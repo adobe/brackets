@@ -520,6 +520,14 @@ define(function (require, exports, module) {
 
         if (!path) {
             // This is a "wholesale" change event
+            // Clear all caches (at least those that won't do a stat() double-check before getting used)
+            this._index.visitAll(function (entry) {
+                if (entry.isDirectory()) {
+                    entry._stat = undefined;
+                    entry._contents = undefined;
+                }
+            });
+            
             fireChangeEvent(null);
             return;
         }
@@ -540,6 +548,7 @@ define(function (require, exports, module) {
                 var oldContents = entry._contents || [];
                 
                 // Clear out old contents
+                entry._stat = stat;
                 entry._contents = undefined;
                 
                 var watchedRootPath = null,

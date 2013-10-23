@@ -53,6 +53,19 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Visits every entry in the entire index; no stopping condition.
+     * @param {!function(FileSystemEntry, string):void} Called with an entry and its fullPath
+     */
+    FileIndex.prototype.visitAll = function (visitor) {
+        var path;
+        for (path in this._index) {
+            if (this._index.hasOwnProperty(path)) {
+                visitor(this._index[path], path);
+            }
+        }
+    };
+    
+    /**
      * Add an entry.
      *
      * @param {FileSystemEntry} entry The entry to add.

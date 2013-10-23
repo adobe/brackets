@@ -49,7 +49,8 @@ define(function (require, exports, module) {
      */
     var _nodeConnectionDeferred;
     
-    var _changeTimeout,             // Timeout used to batch up file watcher changes
+    var _changeCallback,            // Callback to notify FileSystem of watcher changes
+        _changeTimeout,             // Timeout used to batch up file watcher changes
         _pendingChanges = {};       // Pending file watcher changes
 
     function _mapError(err) {
@@ -75,6 +76,16 @@ define(function (require, exports, module) {
         }
         return FileSystemError.UNKNOWN;
     }
+    
+    /** Returns the path of the item's containing directory (item may be a file or a directory) */
+    function _parentPath(path) {
+        var lastSlash = path.lastIndexOf("/");
+        if (lastSlash === path.length - 1) {
+            lastSlash = path.lastIndexOf("/", lastSlash - 1);
+        }
+        return path.substr(0, lastSlash + 1);
+    }
+    
     
     function init(callback) {
         /* Temporarily disable file watchers
@@ -190,6 +201,9 @@ define(function (require, exports, module) {
             } else {
                 stat(path, function (err, stat) {
                     callback(_mapError(err), stat);
+                    
+                    // Fake a file-watcher result until real watchers respond quickly
+                    _changeCallback(_parentPath(path));
                 });
             }
         });
@@ -197,6 +211,7 @@ define(function (require, exports, module) {
     
     function rename(oldPath, newPath, callback) {
         appshell.fs.rename(oldPath, newPath, _wrap(callback));
+        // No need to fake a file-watcher result here: FileSystem already updates index on rename()
     }
     
     function readFile(path, options, callback) {
@@ -228,15 +243,25 @@ define(function (require, exports, module) {
             encoding = options.encoding || "utf8";
         }
         
-        appshell.fs.writeFile(path, data, encoding, function (err) {
-            if (err) {
-                callback(_mapError(err));
-            } else {
-                stat(path, function (err, stat) {
-                    callback(_mapError(err), stat);
-                });
-            }
+        exists(path, function (alreadyExists) {
+            appshell.fs.writeFile(path, data, encoding, function (err) {
+                if (err) {
+                    callback(_mapError(err));
+                } else {
+                    stat(path, function (err, stat) {
+                        callback(_mapError(err), stat);
+                        
+                        // Fake a file-watcher result until real watchers respond quickly
+                        if (alreadyExists) {
+                            _changeCallback(path, stat);        // existing file modified
+                        } else {
+                            _changeCallback(_parentPath(path)); // new file created
+                        }
+                    });
+                }
+            });
         });
+        
     }
     
     function chmod(path, mode, callback) {
@@ -244,11 +269,21 @@ define(function (require, exports, module) {
     }
     
     function unlink(path, callback) {
-        appshell.fs.unlink(path, _wrap(callback));
+        appshell.fs.unlink(path, function (err) {
+            callback(_mapError(err));
+            
+            // Fake a file-watcher result until real watchers respond quickly
+            _changeCallback(_parentPath(path));
+        });
     }
     
     function moveToTrash(path, callback) {
-        appshell.fs.moveToTrash(path, _wrap(callback));
+        appshell.fs.moveToTrash(path, function (err) {
+            callback(_mapError(err));
+            
+            // Fake a file-watcher result until real watchers respond quickly
+            _changeCallback(_parentPath(path));
+        });
     }
     
     /* File watchers are temporarily disabled
@@ -288,6 +323,8 @@ define(function (require, exports, module) {
     */
     
     function initWatchers(callback) {
+        _changeCallback = callback;
+        
         /* File watchers are temporarily disabled. For now, send
            a "wholesale" change when the window is focused. */
         $(window).on("focus", function () {

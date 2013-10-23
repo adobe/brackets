@@ -81,7 +81,16 @@ define(function (require, exports, module) {
             this._contentsCallbacks.push(callback);
             return;
         }
-                
+        
+        if (this._contents) {
+            // Return cached contents
+            // Watchers aren't guaranteed to fire immediately, so it's possible this will be somewhat stale. But
+            // unlike file contents, we're willing to tolerate directory contents being stale. It should at least
+            // be up-to-date with respect to changes made internally (by this filesystem).
+            callback(null, this._contents);
+            return;
+        }
+        
         this._contentsCallbacks = [callback];
         
         this._impl.readdir(this.fullPath, function (err, contents, stats) {
@@ -98,11 +107,15 @@ define(function (require, exports, module) {
                 if (stats[i] && this._fileSystem._indexFilter(entryPath)) {
                     if (stats[i].isFile()) {
                         entry = this._fileSystem.getFileForPath(entryPath);
+                        
+                        // If file already existed, its cache may now be invalid (a change to file content may be messaged EITHER as
+                        // a watcher change directly on that file, OR as a watcher change to its parent dir)
+                        // TODO: move this to FileSystem._handleWatchResult()?
+                        entry._contents = undefined;
                     } else {
                         entry = this._fileSystem.getDirectoryForPath(entryPath);
                     }
                     entry._stat = stats[i];
-                    entry._contents = undefined;
                     
                     this._contents.push(entry);
                 }
