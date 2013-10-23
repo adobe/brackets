@@ -33,9 +33,12 @@ define({
     "GENERIC_ERROR"                     : "(hata {0})",
     "NOT_FOUND_ERR"                     : "Dosya bulunamadı.",
     "NOT_READABLE_ERR"                  : "Dosya okunamadı.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Klasörde değişiklik yapılamıyor.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Klasör değişikliği için izniniz yok.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Dosya değişikliği için izniniz yok.",
     "FILE_EXISTS_ERR"                   : "Dosya bulunmaktadır.",
+    "FILE"                              : "Dosya",
+    "DIRECTORY"                         : "Kalsör",
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Proje yüklenirken hata",
@@ -46,20 +49,23 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Dosya açılırken hata",
     "ERROR_OPENING_FILE"                : "<span class='dialog-filename'>{0}</span> dosyası açılırken hata meydana geldi. {1}",
+    "ERROR_OPENING_FILES"               : "Şu dosyalar açılamadı:",
     "ERROR_RELOADING_FILE_TITLE"        : "Değişiklikler hafızadan okunurken hata oluştu.",
     "ERROR_RELOADING_FILE"              : "<span class='dialog-filename'>{0}</span> dosyası yenilenirken hata meydana geldi. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Dosya kaydedilirken hata",
     "ERROR_SAVING_FILE"                 : "<span class='dialog-filename'>{0}</span> dosyası kaydedilirken hata meydana geldi. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Dosya ismi değiştirilirken hata",
     "ERROR_RENAMING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyasının ismi değiştirilirken hata meydana geldi. {1}",
-    "INVALID_FILENAME_TITLE"            : "Hatalı dosya ismi",
-    "INVALID_FILENAME_MESSAGE"          : "Dosya isimleri yandaki karakterleri bulunduramaz: /?*:;{}<>\\|",
+    "ERROR_DELETING_FILE_TITLE"         : "Dosya silinemedi",
+    "ERROR_DELETING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyası silinirken hata meydana geldi. {1}",
+    "INVALID_FILENAME_TITLE"            : "Geçersiz dosya ismi",
+    "INVALID_FILENAME_MESSAGE"          : "Dosya isimleri yandaki karakterleri içeremez: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "<span class='dialog-filename'>{0}</span> dosyası zaten bulunmakta",
     "ERROR_CREATING_FILE_TITLE"         : "Dosya yaratılırken hata",
     "ERROR_CREATING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyası yaratılırken hata meydana geldi. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} programı şuan tarayıcıda açılmadı.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} programı henüz tarayıcıda açılmadı.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} HTML olarak hazırlandı, ancak şuan için masaüstünde çalışabilmekte. Bu nedenle makinanızda bulunan dosyalarda değişiklik için kullanabilirsiniz. {APP_NAME} programını çalıştırabilmek için lütfen <b>github.com/adobe/brackets-shell</b> adresindeki 'application shell'i kullanınız.",
 
     // FileIndexManager error string
