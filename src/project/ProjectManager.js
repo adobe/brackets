@@ -1630,10 +1630,9 @@ define(function (require, exports, module) {
      * Respond to a FileSystem change event.
      */
     _fileSystemChange = function (event, item) {
-        // TODO: Batch multiple changes into a single refresh
-        if (!item || item.isDirectory()) {
-            refreshFileTree();
-        }
+        // TODO: Refresh file tree too - once watchers are precise enough to notify only
+        // when real changes occur, instead of on every window focus!
+        
         FileSyncManager.syncOpenDocuments();
     };
 
