@@ -184,7 +184,7 @@ define(function (require, exports, module) {
             }
         }
 
-        this._setSelectedIndex(pos);
+        this._setSelectedIndex(pos, true);
     };
 
     /**
@@ -241,7 +241,7 @@ define(function (require, exports, module) {
      * @private
      * @param {number} index
      */
-    DropdownEventHandler.prototype._setSelectedIndex = function (index) {
+    DropdownEventHandler.prototype._setSelectedIndex = function (index, scrollIntoView) {
         
         // Range check
         index = Math.max(-1, Math.min(index, this.$items.length - 1));
@@ -257,7 +257,9 @@ define(function (require, exports, module) {
         if (this._selectedIndex !== -1) {
             var $item = this.$items.eq(this._selectedIndex);
 
-            ViewUtils.scrollElementIntoView(this.$list, $item, false);
+            if (scrollIntoView) {
+                ViewUtils.scrollElementIntoView(this.$list, $item, false);
+            }
             $item.find("a").addClass("selected");
         }
     };
@@ -266,8 +268,7 @@ define(function (require, exports, module) {
      * Register mouse event handlers
      */
     DropdownEventHandler.prototype._registerMouseEvents = function () {
-        var self = this,
-            $highlightItem;
+        var self = this;
         
         this.$list
             .on("click", "a", function () {
@@ -275,8 +276,16 @@ define(function (require, exports, module) {
             })
             .on("mouseover", "a", function (e) {
                 var $link = $(e.currentTarget),
-                    $item = $link.closest("li");
-                self._setSelectedIndex(self.$items.index($item));
+                    $item = $link.closest("li"),
+                    viewOffset = self.$list.offset(),
+                    elementOffset = $item.offset();
+
+                // Only set selected if in view
+                if (elementOffset.top < viewOffset.top + self.$list.height()) {
+                    if (viewOffset.top <= elementOffset.top) {
+                        self._setSelectedIndex(self.$items.index($item), false);
+                    }
+                }
             });
     };
 
