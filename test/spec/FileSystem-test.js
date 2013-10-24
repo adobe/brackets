@@ -40,6 +40,7 @@ define(function (require, exports, module) {
             MockFileSystemImpl.reset();
             fileSystem = new FileSystem._FileSystem();
             fileSystem.init(MockFileSystemImpl);
+            fileSystem.watch(fileSystem.getDirectoryForPath("/"), function () {return true; }, function () {});
         });
         
         

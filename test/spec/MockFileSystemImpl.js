@@ -29,6 +29,9 @@ define(function (require, exports, module) {
 
     var FileSystemError     = require("filesystem/FileSystemError");
     
+    // Watcher callback function
+    var _watcherCallback;
+    
     // Initial file system data. 
     var _initialData = {
         "/": {
@@ -65,6 +68,33 @@ define(function (require, exports, module) {
     // initialize with _initialData
     var _data;
     
+    // Callback hooks, set in when(). See when() for more details.
+    var _hooks;
+    
+    function _getHookEntry(method, path) {
+        return _hooks[method] && _hooks[method][path] && _hooks[method][path];
+    }
+    
+    function _getCallback(method, path, cb) {
+        var entry = _getHookEntry(method, path),
+            result = entry && entry.callback && entry.callback(cb);
+        
+        if (!result) {
+            result = cb;
+        }
+        return result;
+    }
+    
+    function _getNotification(method, path, cb) {
+        var entry = _getHookEntry(method, path),
+            result = entry && entry.notify && entry.notify(cb);
+        
+        if (!result) {
+            result = cb;
+        }
+        return result;
+    }
+    
     function _getStat(path) {
         var entry = _data[path],
             stat = null;
@@ -78,6 +108,21 @@ define(function (require, exports, module) {
         }
         
         return stat;
+    }
+    
+    function _sendWatcherNotification(path) {
+        if (_watcherCallback) {
+            _watcherCallback(path);
+        }
+    }
+    
+    function _sendDirectoryWatcherNotification(path) {
+        // Path may be a file or a directory. If it's a file,
+        // strip the file name off
+        if (path[path.length - 1] !== "/") {
+            path = path.substr(0, path.lastIndexOf("/") + 1);
+        }
+        _sendWatcherNotification(path);
     }
     
     function init(callback) {
@@ -101,12 +146,13 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
-        var entry,
+        var cb = _getCallback("readdir", path, callback),
+            entry,
             contents = [],
             stats = [];
         
         if (!_data[path]) {
-            callback(FileSystemError.NOT_FOUND);
+            cb(FileSystemError.NOT_FOUND);
             return;
         }
         
@@ -125,7 +171,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        callback(null, contents, stats);
+        cb(null, contents, stats);
     }
     
     function mkdir(path, mode, callback) {
@@ -133,24 +179,34 @@ define(function (require, exports, module) {
             callback = mode;
             mode = null;
         }
+        var cb = _getCallback("mkdir", path, callback),
+            notify = _getNotification("mkdir", path, _sendDirectoryWatcherNotification);
         
         if (_data[path]) {
-            callback(FileSystemError.ALREADY_EXISTS);
+            cb(FileSystemError.ALREADY_EXISTS);
         } else {
             var entry = {
                 isFile: false,
                 mtime: Date.now()
             };
             _data[path] = entry;
-            callback(null, _getStat(path));
+            cb(null, _getStat(path));
+            
+            // Strip the trailing slash off the directory name so the
+            // notification gets sent to the parent
+            var notifyPath = path.substr(0, path.length - 1);
+            notify(notifyPath);
         }
     }
     
     function rename(oldPath, newPath, callback) {
+        var cb = _getCallback("rename", oldPath, callback),
+            notify = _getNotification("rename", oldPath, _sendDirectoryWatcherNotification);
+        
         if (_data[newPath]) {
-            callback(FileSystemError.ALREADY_EXISTS);
+            cb(FileSystemError.ALREADY_EXISTS);
         } else if (!_data[oldPath]) {
-            callback(FileSystemError.NOT_FOUND);
+            cb(FileSystemError.NOT_FOUND);
         } else {
             _data[newPath] = _data[oldPath];
             delete _data[oldPath];
@@ -170,15 +226,27 @@ define(function (require, exports, module) {
                     delete _data[toDelete.pop()];
                 }
             }
-            callback(null);
+            cb(null);
+            
+            // If renaming a Directory, remove the slash from the notification
+            // name so the *parent* directory is notified of the change
+            var notifyPath;
+            
+            if (oldPath[oldPath.length - 1] === "/") {
+                notifyPath = oldPath.substr(0, oldPath.length - 1);
+            } else {
+                notifyPath = oldPath;
+            }
+            notify(notifyPath);
         }
     }
     
     function stat(path, callback) {
+        var cb = _getCallback("stat", path, callback);
         if (!_data[path]) {
-            callback(FileSystemError.NOT_FOUND);
+            cb(FileSystemError.NOT_FOUND);
         } else {
-            callback(null, _getStat(path));
+            cb(null, _getStat(path));
         }
     }
     
@@ -188,10 +256,12 @@ define(function (require, exports, module) {
             options = null;
         }
         
+        var cb = _getCallback("readFile", path, callback);
+        
         if (!_data[path]) {
-            callback(FileSystemError.NOT_FOUND);
+            cb(FileSystemError.NOT_FOUND);
         } else {
-            callback(null, _data[path].contents);
+            cb(null, _data[path].contents);
         }
     }
     
@@ -201,6 +271,9 @@ define(function (require, exports, module) {
             options = null;
         }
         
+        var cb = _getCallback("writeFile", path, callback),
+            notify = _getNotification("writeFile", path, _sendWatcherNotification);
+        
         if (!_data[path]) {
             _data[path] = {
                 isFile: true
@@ -208,7 +281,8 @@ define(function (require, exports, module) {
         }
         _data[path].contents = data;
         _data[path].mtime = Date.now();
-        callback(null);
+        cb(null);
+        notify(path);
     }
     
     function chmod(path, mode, callback) {
@@ -217,17 +291,20 @@ define(function (require, exports, module) {
     }
     
     function unlink(path, callback) {
+        var cb = _getCallback("unlink", path, callback),
+            notify = _getNotification("unlink", path, _sendDirectoryWatcherNotification);
+        
         if (!_data[path]) {
-            callback(FileSystemError.NOT_FOUND);
+            cb(FileSystemError.NOT_FOUND);
         } else {
             delete _data[path];
-            callback(null);
+            cb(null);
+            notify(path);
         }
     }
     
     function initWatchers(callback) {
-        // Not implemeneted
-        callback(null);
+        _watcherCallback = callback;
     }
     
     function watchPath(path) {
@@ -261,5 +338,37 @@ define(function (require, exports, module) {
     exports.reset = function () {
         _data = {};
         $.extend(_data, _initialData);
+        _hooks = {};
+    };
+    
+    /**
+     * Add a callback and notification hooks to be used when specific
+     * methods are called with a specific path.
+     *
+     * @param {string} method The name of the method
+     * @param {string} path The path that must be matched
+     * @param {object} callbacks Object with optional 'callback' and 'notify'
+     *           fields. These are functions that have one parameter and
+     *           must return a function.
+     *
+     * Here is an example that delays the callback and change notifications by 300ms when
+     * writing a file named "/foo.txt".
+     *
+     * function delayedCallback(cb) {
+     *     return function () {
+     *         var args = arguments;
+     *         setTimeout(function () {
+     *             cb.apply(null, args);
+     *         }, 300);
+     *     };
+     * }
+     *
+     * MockFileSystem.when("writeFile", "/foo.txt", {callback: delayedCallback, notify: delayedCallback});
+     */
+    exports.when = function (method, path, callbacks) {
+        if (!_hooks[method]) {
+            _hooks[method] = {};
+        }
+        _hooks[method][path] = callbacks;
     };
 });
