@@ -21,8 +21,7 @@
             {{#isCompatible}}
                 {{^isCompatibleLatest}}
                     <div class="alert warning">
-                        {{#requiresNewer}}{{Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
-                        {{^requiresNewer}}{{Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+                        {{installWarning}}
                     </div>
                 {{/isCompatibleLatest}}
             {{/isCompatible}}

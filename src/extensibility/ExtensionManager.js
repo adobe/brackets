@@ -254,7 +254,7 @@ define(function (require, exports, module) {
      * @return {{isCompatible: boolean, requiresNewer: ?boolean, compatibleVersion: ?string}}
      */
     function getCompatibilityInfoForVersion(extVersion, apiVersion) {
-        var requiredVersion = extVersion.brackets,
+        var requiredVersion = (extVersion.brackets || (extVersion.engines && extVersion.engines.brackets)),
             result = {};
         result.isCompatible = !requiredVersion || semver.satisfies(apiVersion, requiredVersion);
         if (result.isCompatible) {
@@ -293,7 +293,9 @@ define(function (require, exports, module) {
     function getCompatibilityInfo(entry, apiVersion) {
         if (!entry.versions) {
             var fallback = getCompatibilityInfoForVersion(entry.metadata, apiVersion);
-            fallback.isLatestVersion = true;
+            if (fallback.isCompatible) {
+                fallback.isLatestVersion = true;
+            }
             return fallback;
         }
         
@@ -304,6 +306,7 @@ define(function (require, exports, module) {
             latestInfo.isLatestVersion = true;
             return latestInfo;
         } else {
+            // Look at earlier versions (skipping very latest version since we already checked it)
             for (i--; i >= 0; i--) {
                 var compatInfo = getCompatibilityInfoForVersion(entry.versions[i], apiVersion);
                 if (compatInfo.isCompatible) {
@@ -313,7 +316,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            // No version is compatible, so just return into for the latest version
+            // No version is compatible, so just return info for the latest version
             return latestInfo;
         }
     }
