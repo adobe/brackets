@@ -27,7 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystem          = require("filesystem/FileSystem");
+    var FileSystem          = require("filesystem/FileSystem"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        MockFileSystemImpl  = require("./MockFileSystemImpl");
     
     describe("FileSystem", function () {
         
@@ -35,7 +37,9 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             // Create an FS instance for testing
+            MockFileSystemImpl.reset();
             fileSystem = new FileSystem._FileSystem();
+            fileSystem.init(MockFileSystemImpl);
         });
         
         
@@ -128,6 +132,192 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Singleton enforcement", function () {
+            function resolveCallback() {
+                var callback = function (err, entry) {
+                    callback.error = err;
+                    callback.entry = entry;
+                    callback.wasCalled = true;
+                };
+                return callback;
+            }
+            
+            it("should return the same File object for the same path", function () {
+                var cb = resolveCallback();
+                expect(fileSystem.getFileForPath("/file1.txt")).toEqual(fileSystem.getFileForPath("/file1.txt"));
+                expect(fileSystem.getFileForPath("/file1.txt")).not.toEqual(fileSystem.getFileForPath("/file2.txt"));
+                runs(function () {
+                    fileSystem.resolve("/file1.txt", cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(fileSystem.getFileForPath("/file1.txt")).toEqual(cb.entry);
+                });
+            });
+            
+            it("should return the same Directory object for the same path", function () {
+                var cb = resolveCallback();
+                expect(fileSystem.getDirectoryForPath("/subdir/")).toEqual(fileSystem.getFileForPath("/subdir/"));
+                expect(fileSystem.getDirectoryForPath("/subdir/")).not.toEqual(fileSystem.getFileForPath("/subdir2/"));
+                runs(function () {
+                    fileSystem.resolve("/subdir/", cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(fileSystem.getDirectoryForPath("/subdir/")).toEqual(cb.entry);
+                });
+            });
+        });
         
+        describe("Rename", function () {
+            function renameCallback() {
+                var callback = function (err) {
+                    callback.error = err;
+                    callback.wasCalled = true;
+                };
+                return callback;
+            }
+            
+            it("should rename a File", function () {
+                var file = fileSystem.getFileForPath("/file1.txt"),
+                    cb = renameCallback();
+                
+                runs(function () {
+                    file.rename("/file1-renamed.txt", cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(file.fullPath).toBe("/file1-renamed.txt");
+                });
+            });
+            
+            it("should fail if the file doesn't exist", function () {
+                var file = fileSystem.getFileForPath("/doesnt-exist.txt"),
+                    cb = renameCallback();
+                
+                runs(function () {
+                    file.rename("foo.txt", cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBe(FileSystemError.NOT_FOUND);
+                });
+            });
+            
+            it("should fail if the new name already exists", function () {
+                var file = fileSystem.getFileForPath("/file1.txt"),
+                    cb = renameCallback();
+                
+                runs(function () {
+                    file.rename("/file2.txt", cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBe(FileSystemError.ALREADY_EXISTS);
+                });
+            });
+            
+            it("should rename a Directory", function () {
+                var directory = fileSystem.getDirectoryForPath("/subdir/"),
+                    file = fileSystem.getFileForPath("/subdir/file3.txt"),
+                    cb = renameCallback();
+                
+                runs(function () {
+                    directory.rename("/subdir-renamed/", cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(directory.fullPath).toBe("/subdir-renamed/");
+                    expect(file.fullPath).toBe("/subdir-renamed/file3.txt");
+                });
+            });
+        });
+        
+        describe("Read directory", function () {
+            function getContentsCallback() {
+                var callback = function (err, contents) {
+                    callback.error = err;
+                    callback.contents = contents;
+                    callback.wasCalled = true;
+                };
+                return callback;
+            }
+            
+            it("should read a Directory", function () {
+                var directory = fileSystem.getDirectoryForPath("/subdir/"),
+                    cb = getContentsCallback();
+                
+                runs(function () {
+                    directory.getContents(cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(cb.contents.length).toBe(2);
+                    expect(cb.contents[0].fullPath).toBe("/subdir/file3.txt");
+                });
+            });
+        });
+        
+        describe("Read and write files", function () {
+            function readCallback() {
+                var callback = function (err, contents, stat) {
+                    callback.error = err;
+                    callback.contents = contents;
+                    callback.stat = stat;
+                    callback.wasCalled = true;
+                };
+                return callback;
+            }
+            
+            function writeCallback() {
+                var callback = function (err) {
+                    callback.error = err;
+                    callback.wasCalled = true;
+                };
+                return callback;
+            }
+            
+            it("should read and write files", function () {
+                var file = fileSystem.getFileForPath("/subdir/file4.txt"),
+                    newContents = "New file contents",
+                    firstReadCB = readCallback(),
+                    writeCB = writeCallback(),
+                    secondReadCB = readCallback();
+                
+                // Verify initial contents
+                runs(function () {
+                    file.readAsText(firstReadCB);
+                });
+                waitsFor(function () { return firstReadCB.wasCalled; });
+                runs(function () {
+                    expect(firstReadCB.error).toBeFalsy();
+                    expect(firstReadCB.contents).toBe("File 4 Contents");
+                });
+                
+                // Write new contents
+                runs(function () {
+                    file.write(newContents, writeCB);
+                });
+                waitsFor(function () { return writeCB.wasCalled; });
+                runs(function () {
+                    expect(writeCB.error).toBeFalsy();
+                });
+                
+                // Verify new contents
+                runs(function () {
+                    file.readAsText(secondReadCB);
+                });
+                waitsFor(function () { return secondReadCB.wasCalled; });
+                runs(function () {
+                    expect(secondReadCB.error).toBeFalsy();
+                    expect(secondReadCB.contents).toBe(newContents);
+                });
+            });
+        });
     });
 });
