@@ -21,7 +21,6 @@
  *
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, KeyEvent */
 
@@ -61,18 +60,15 @@ define(function (require, exports, module) {
         }
         
         /**
-         * Expects an inline editor to be opened at the given cursor position and to have the
-         * given initial timing function (which should match the timing function at that position).
-         * @param {!{line:number, ch:number}} cursor The cursor position to try opening the inline at.
-         * @param {number} start The expected start of timing function.
-         * @param {number} end The expected end of timing function.
+         * Expects arrays to be of specified length and equal.
+         * @param {Array} a1 Result to test
+         * @param {Array} a2 Expected values.
+         * @param {number} len Expected length.
          */
-        function testOpenTimingFunction(cursor, start, end) {
-            makeTimingFunctionEditor(cursor);
-            runs(function () {
-                expect(inline).toBeTruthy();
-                expect(inline._startBookmark.find().ch).toBe(start);
-                expect(inline._endBookmark.find().ch).toBe(end);
+        function expectArraysToBeEqual(a1, a2, len) {
+            expect(a2.length).toEqual(a1.length);
+            a2.forEach(function (entry, index) {
+                expect(entry).toEqual(a1[index]);
             });
         }
         
@@ -83,142 +79,86 @@ define(function (require, exports, module) {
             it("should match bezier curve function in strict mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(.1, .2, .3, .4)", false);
                 expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(.1, .2, .3, .4)");
-                expect(match[1]).toEqual(".1");
-                expect(match[2]).toEqual(".2");
-                expect(match[3]).toEqual(".3");
-                expect(match[4]).toEqual(".4");
+                expectArraysToBeEqual(match, ["cubic-bezier(.1, .2, .3, .4)", ".1", ".2", ".3", ".4"]);
             });
             it("should match bezier curve function in lax mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(.1, .2, .3, .4)", true);
                 expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(.1, .2, .3, .4)");
-                expect(match[1]).toEqual(".1");
-                expect(match[2]).toEqual(".2");
-                expect(match[3]).toEqual(".3");
-                expect(match[4]).toEqual(".4");
+                expectArraysToBeEqual(match, ["cubic-bezier(.1, .2, .3, .4)", ".1", ".2", ".3", ".4"]);
             });
             it("should match bezier curve function with negative value", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(0, -.2, 1, 1.2)", false);
-                expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(0, -.2, 1, 1.2)");
-                expect(match[1]).toEqual("0");
-                expect(match[2]).toEqual("-.2");
-                expect(match[3]).toEqual("1");
-                expect(match[4]).toEqual("1.2");
+                expectArraysToBeEqual(match, ["cubic-bezier(0, -.2, 1, 1.2)", "0", "-.2", "1", "1.2"]);
             });
             it("should match bezier curve function in full line of longhand css", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("    transition-timing-function: cubic-bezier(.37, .28, .83, .94);", true);
-                expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(.37, .28, .83, .94)");
-                expect(match[1]).toEqual(".37");
-                expect(match[2]).toEqual(".28");
-                expect(match[3]).toEqual(".83");
-                expect(match[4]).toEqual(".94");
+                expectArraysToBeEqual(match, ["cubic-bezier(.37, .28, .83, .94)", ".37", ".28", ".83", ".94"]);
             });
             it("should match bezier curve function in full line of shorthand css", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("    transition: top 100ms cubic-bezier(.37, .28, .83, .94) 0;", true);
-                expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(.37, .28, .83, .94)");
-                expect(match[1]).toEqual(".37");
-                expect(match[2]).toEqual(".28");
-                expect(match[3]).toEqual(".83");
-                expect(match[4]).toEqual(".94");
+                expectArraysToBeEqual(match, ["cubic-bezier(.37, .28, .83, .94)", ".37", ".28", ".83", ".94"]);
             });
             it("should match bezier curve function with leading zeros", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(0.1, 0.2, 0.3, 0.4)", false);
-                expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(0.1, 0.2, 0.3, 0.4)");
-                expect(match[1]).toEqual("0.1");
-                expect(match[2]).toEqual("0.2");
-                expect(match[3]).toEqual("0.3");
-                expect(match[4]).toEqual("0.4");
+                expectArraysToBeEqual(match, ["cubic-bezier(0.1, 0.2, 0.3, 0.4)", "0.1", "0.2", "0.3", "0.4"]);
             });
             it("should match bezier curve function with no optional whitespace", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(.1,.2,.3,.4)", false);
-                expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier(.1,.2,.3,.4)");
-                expect(match[1]).toEqual(".1");
-                expect(match[2]).toEqual(".2");
-                expect(match[3]).toEqual(".3");
-                expect(match[4]).toEqual(".4");
+                expectArraysToBeEqual(match, ["cubic-bezier(.1,.2,.3,.4)", ".1", ".2", ".3", ".4"]);
             });
             it("should match bezier curve function with extra optional whitespace", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("cubic-bezier( .1 , .2 , .3 , .4 )", false);
-                expect(match).toBeTruthy();
-                expect(match.length).toEqual(5);
-                expect(match[0]).toEqual("cubic-bezier( .1 , .2 , .3 , .4 )");
-                expect(match[1]).toEqual(".1");
-                expect(match[2]).toEqual(".2");
-                expect(match[3]).toEqual(".3");
-                expect(match[4]).toEqual(".4");
+                expectArraysToBeEqual(match, ["cubic-bezier( .1 , .2 , .3 , .4 )", ".1", ".2", ".3", ".4"]);
             });
             
             // Valid other functions
             it("should match linear function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("transition-timing-function: linear;", false);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("linear");
             });
             it("should match linear function value in lax mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("linear", true);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("linear");
             });
             it("should match ease function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("transition-timing-function: ease;", false);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease");
             });
             it("should match ease function value in lax mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("ease", true);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease");
             });
             it("should match ease-in function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("transition-timing-function: ease-in;", false);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in");
             });
             it("should match ease-in function value in lax mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("ease-in", true);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in");
             });
             it("should match ease-out function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("transition-timing-function: ease-out;", false);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-out");
             });
             it("should match ease-out function value in lax mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("ease-out", true);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-out");
             });
             it("should match ease-in-out function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("transition-timing-function: ease-in-out;", false);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in-out");
             });
             it("should match ease-in-out function value in lax mode", function () {
                 match = TimingFunctionUtils.bezierCurveMatch("ease-in-out", true);
-                expect(match).toBeTruthy();
                 expect(match.length).toEqual(1);
                 expect(match[0]).toEqual("ease-in-out");
             });
@@ -280,6 +220,22 @@ define(function (require, exports, module) {
                 inline = null;
             });
          
+            /**
+             * Expects an inline editor to be opened at the given cursor position and to have the
+             * given initial timing function (which should match the timing function at that position).
+             * @param {!{line:number, ch:number}} cursor The cursor position to try opening the inline at.
+             * @param {number} start The expected start of timing function.
+             * @param {number} end The expected end of timing function.
+             */
+            function testOpenTimingFunction(cursor, start, end) {
+                makeTimingFunctionEditor(cursor);
+                runs(function () {
+                    expect(inline).toBeTruthy();
+                    expect(inline._startBookmark.find().ch).toBe(start);
+                    expect(inline._endBookmark.find().ch).toBe(end);
+                });
+            }
+        
             it("should bookmark cubic-bezier() function when opened in inline editor", function () {
                 testOpenTimingFunction({line: 3, ch: 34}, 32, 60);
             });
@@ -312,7 +268,7 @@ define(function (require, exports, module) {
                 // Hide it
                 timingFunctionEditor.getRootElement().css("display", "none");
             }
-                        
+            
             afterEach(function () {
                 timingFunctionEditor.getRootElement().remove();
             });
@@ -324,24 +280,15 @@ define(function (require, exports, module) {
                     runs(function () {
                         makeUI("cubic-bezier(.2, .3, .4, .5)");
                         expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(".2");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(".3");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(".4");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(".5");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, [".2", ".3", ".4", ".5"]);
                     });
                 });
                 it("should load externally updated timing function correctly", function () {
                     runs(function () {
                         makeUI("cubic-bezier(.1, .3, .5, .7)");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        
                         var matchUpdate = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(.2, .4, .6, .8)", true);
                         timingFunctionEditor.handleExternalUpdate(matchUpdate);
-                        
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(".2");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(".4");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(".6");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(".8");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, [".2", ".4", ".6", ".8"]);
                     });
                 });
             });
@@ -351,51 +298,31 @@ define(function (require, exports, module) {
                 it("should convert linear function to cubic-bezier function parameters", function () {
                     runs(function () {
                         makeUI("linear");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe("0");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe("0");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe("1");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe("1");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, ["0", "0", "1", "1"]);
                     });
                 });
                 it("should convert ease function to cubic-bezier function parameters", function () {
                     runs(function () {
                         makeUI("ease");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe("0.25");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe("0.1");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe("0.25");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe("1");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, [".25", ".1", ".25", "1"]);
                     });
                 });
                 it("should convert ease-in function to cubic-bezier function parameters", function () {
                     runs(function () {
                         makeUI("ease-in");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe("0.42");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe("0");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe("1");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe("1");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, [".42", "0", "1", "1"]);
                     });
                 });
                 it("should convert ease-out function to cubic-bezier function parameters", function () {
                     runs(function () {
                         makeUI("ease-out");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe("0");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe("0");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe("0.58");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe("1");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, ["0", "0", ".58", "1"]);
                     });
                 });
                 it("should convert ease-in-out function to cubic-bezier function parameters", function () {
                     runs(function () {
                         makeUI("ease-in-out");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe("0.42");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe("0");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe("0.58");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe("1");
+                        expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, [".42", "0", ".58", "1"]);
                     });
                 });
             });
@@ -443,11 +370,7 @@ define(function (require, exports, module) {
                     makeUI("cubic-bezier(.42, 0, .58 ,1)");
                     var $item = $(timingFunctionEditor[opts.item]);
                     eventAtOffset("click", $item, opts.clickAt);
-                    
-                    expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(opts.expected[0]);
-                    expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(opts.expected[1]);
-                    expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(opts.expected[2]);
-                    expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(opts.expected[3]);
+                    expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, opts.expected);
                 }
 
                 /**
@@ -470,11 +393,7 @@ define(function (require, exports, module) {
                     eventAtOffset("mousedown", $downItem, opts.clickAt);
                     eventAtOffset("mousemove", $dragItem, opts.dragTo);
                     $downItem.trigger("mouseup");
-                    
-                    expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(opts.expected[0]);
-                    expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(opts.expected[1]);
-                    expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(opts.expected[2]);
-                    expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(opts.expected[3]);
+                    expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, opts.expected);
                 }
                 
                 it("should move point P1 on mousedown in curve", function () {
@@ -542,11 +461,7 @@ define(function (require, exports, module) {
                     var $item = $(timingFunctionEditor[opts.item]);
                     $item.focus();
                     $item.trigger(makeKeyEvent(opts));
-                    
-                    expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(opts.expected[0]);
-                    expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(opts.expected[1]);
-                    expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(opts.expected[2]);
-                    expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(opts.expected[3]);
+                    expectArraysToBeEqual(timingFunctionEditor._cubicBezierCoords, opts.expected);
                 }
                 
                 it("should increase P1 x-value by .02 on right arrow", function () {

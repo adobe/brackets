@@ -609,13 +609,13 @@ define(function (require, exports, module) {
             case "linear":
                 return [ "0", "0", "1", "1" ];
             case "ease":
-                return [ "0.25", "0.1", "0.25", "1" ];
+                return [ ".25", ".1", ".25", "1" ];
             case "ease-in":
-                return [ "0.42", "0", "1", "1" ];
+                return [ ".42", "0", "1", "1" ];
             case "ease-out":
-                return [ "0", "0", "0.58", "1" ];
+                return [ "0", "0", ".58", "1" ];
             case "ease-in-out":
-                return [ "0.42", "0", "0.58", "1" ];
+                return [ ".42", "0", ".58", "1" ];
             }
         }
 
