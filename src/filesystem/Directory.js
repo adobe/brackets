@@ -44,6 +44,7 @@ define(function (require, exports, module) {
      */
     function Directory(fullPath, fileSystem) {
         FileSystemEntry.call(this, fullPath, fileSystem);
+        this._isDirectory = true;
     }
     
     Directory.prototype = Object.create(FileSystemEntry.prototype);
@@ -55,15 +56,6 @@ define(function (require, exports, module) {
      * @type {Array<FileSystemEntry>}
      */
     Directory.prototype._contents = null;
-    
-    /**
-     * Override to return true.
-     *
-     * @return {boolean} True -- this is a Directory.
-     */
-    Directory.prototype.isDirectory = function () {
-        return true;
-    };
     
     /**
      * Read the contents of a Directory. 
@@ -105,7 +97,7 @@ define(function (require, exports, module) {
                 // Note: not all entries necessarily have associated stats.
                 // For now, silently ignore such entries.
                 if (stats[i] && this._fileSystem._indexFilter(entryPath)) {
-                    if (stats[i].isFile()) {
+                    if (stats[i].isFile) {
                         entry = this._fileSystem.getFileForPath(entryPath);
                         
                         // If file already existed, its cache may now be invalid (a change to file content may be messaged EITHER as
@@ -137,7 +129,7 @@ define(function (require, exports, module) {
     /**
      * Create a directory
      *
-     * @param {function (?string, object=)=} callback Callback resolved with an error
+     * @param {function (?string, FileSystemStats=)=} callback Callback resolved with an error
      *      string or the stat object for the created directory.
      */
     Directory.prototype.create = function (callback) {

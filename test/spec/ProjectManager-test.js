@@ -103,7 +103,7 @@ define(function (require, exports, module) {
                 var unlinkError = null;
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isFile()).toBe(true);
+                    expect(stat.isFile).toBe(true);
 
                     // delete the new file
                     complete = false;
@@ -279,7 +279,7 @@ define(function (require, exports, module) {
                 // Verify the existence of the new file and make sure it is selected in the project tree.
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isFile()).toBe(true);
+                    expect(stat.isFile).toBe(true);
                     selectedFile = ProjectManager.getSelectedItem();
                     expect(selectedFile.fullPath).toBe(testPath + "/delete_me.js");
                 });
@@ -364,7 +364,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isDirectory()).toBe(true);
+                    expect(stat.isDirectory).toBe(true);
 
                     rootFolderEntry = ProjectManager.getSelectedItem();
                     expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
@@ -399,7 +399,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isDirectory()).toBe(true);
+                    expect(stat.isDirectory).toBe(true);
                 });
 
                 // Create a file in the sub folder just created.
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isFile()).toBe(true);
+                    expect(stat.isFile).toBe(true);
                 });
                 
                 // Delete the root folder and all files/folders in it.

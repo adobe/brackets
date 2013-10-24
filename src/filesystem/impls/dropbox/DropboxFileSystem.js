@@ -30,6 +30,8 @@ define(function (require, exports, module) {
 
     require("filesystem/impls/dropbox/dropbox.min");
     
+    var FileSystemStats = require("filesystem/FileSystemStats");
+    
     var client;
     
     function init(callback) {
@@ -55,15 +57,13 @@ define(function (require, exports, module) {
     }
     
     function _convertStat(stat) {
-        return {
-            isFile: function () {
-                return stat.isFile;
-            },
-            isDirectory: function () {
-                return stat.isDirectory;
-            },
-            mtime: stat && stat.modifiedAt
-        };
+        if (stat) {
+            var options = { isFile: stat.isFile, mtime: stat.modifiedAt, size: stat.size };
+            
+            return new FileSystemStats(options);
+        } else {
+            return undefined;
+        }
     }
     
     function stat(path, callback) {

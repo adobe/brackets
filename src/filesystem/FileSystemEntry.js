@@ -47,30 +47,38 @@ define(function (require, exports, module) {
         this._id = nextId++;
     }
         
-    // Add "fullPath", "name", and "id" getters
+    // Add "fullPath", "name", "id", "isFile" and "isDirectory" getters
     Object.defineProperties(FileSystemEntry.prototype, {
         "fullPath": {
             get: function () { return this._path; },
-            set: function (val) { throw new Error("Cannot set fullPath"); }
+            set: function () { throw new Error("Cannot set fullPath"); }
         },
         "name": {
             get: function () {
                 var parts = this._path.split("/");
-                if (this.isDirectory()) {
+                if (this.isDirectory) {
                     return parts[parts.length - 2];
                 } else {
                     return parts[parts.length - 1];
                 }
             },
-            set: function (val) { throw new Error("Cannot set name"); }
+            set: function () { throw new Error("Cannot set name"); }
         },
         "id": {
             get: function () { return this._id; },
-            set: function (val) { throw new Error("Cannot set id"); }
+            set: function () { throw new Error("Cannot set id"); }
+        },
+        "isFile": {
+            get: function () { return this._isFile; },
+            set: function () { throw new Error("Cannot set isFile"); }
+        },
+        "isDirectory": {
+            get: function () { return this._isDirectory; },
+            set: function () { throw new Error("Cannot set isDirectory"); }
         },
         "_impl": {
             get: function () { return this._fileSystem._impl; },
-            set: function (val) { throw new Error("Cannot set _impl"); }
+            set: function () { throw new Error("Cannot set _impl"); }
         }
     });
     
@@ -89,28 +97,24 @@ define(function (require, exports, module) {
      * @type {string}
      */
     FileSystemEntry.prototype._path = null;
-        
+
     /**
-     * Returns true if this entry is a file.
-     * @return {boolean}
+     * Whether or not the entry is a file
+     * @type {boolean}
      */
-    FileSystemEntry.prototype.isFile = function () {
-        return false;
-    };
+    FileSystemEntry.prototype._isFile = false;
     
     /**
-     * Returns true if this entry is a directory.
-     * @return {boolean}
+     * Whether or not the entry is a directory
+     * @type {boolean}
      */
-    FileSystemEntry.prototype.isDirectory = function () {
-        return false;
-    };
+    FileSystemEntry.prototype._isDirectory = false;
     
     /**
      * Helpful toString for debugging purposes
      */
     FileSystemEntry.prototype.toString = function () {
-        return "[" + (this.isDirectory() ? "Directory " : "File ") + this._path + "]";
+        return "[" + (this.isDirectory ? "Directory " : "File ") + this._path + "]";
     };
     
     /**
@@ -125,7 +129,7 @@ define(function (require, exports, module) {
     /**
      * Returns the stats for the entry.
      *
-     * @param {function (?string, object=)} callback Callback with "error" and "stat" 
+     * @param {function (?string, FileSystemStats=)} callback Callback with "error" and "stat" 
      *     parameters.
      */
     FileSystemEntry.prototype.stat = function (callback) {
@@ -161,7 +165,7 @@ define(function (require, exports, module) {
             try {
                 if (!err) {
                     // Notify the file system of the name change
-                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory());
+                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
                 }
                 callback(err);  // notify caller
             } finally {
@@ -234,7 +238,7 @@ define(function (require, exports, module) {
         var maxDepth = typeof options.maxDepth === "number" ? options.maxDepth : DEFAULT_MAX_DEPTH,
             continueTraversal = visitor(this) && maxDepth-- > 0;
         
-        if (this.isFile() || !continueTraversal) {
+        if (this.isFile || !continueTraversal) {
             callback(null);
             return;
         }

@@ -520,7 +520,7 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry) {
-                        if (entry.isFile()) {
+                        if (entry.isFile) {
                             var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                         
                             openResult.done(function () {
@@ -625,7 +625,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry && entry.isFile() && !_isInRename(event.target)) {
+                    if (entry && entry.isFile && !_isInRename(event.target)) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
@@ -688,7 +688,7 @@ define(function (require, exports, module) {
                     metadata: { entry: entry }
                 };
 
-                if (entry.isDirectory()) {
+                if (entry.isDirectory) {
                     jsonEntry.children = [];
                     jsonEntry.state = "closed";
                 } else {
@@ -1036,7 +1036,7 @@ define(function (require, exports, module) {
         
         // We're going to traverse from root of tree, one segment at a time
         var pathSegments = projRelativePath.split("/");
-        if (entry.isDirectory()) {
+        if (entry.isDirectory) {
             pathSegments.pop();  // DirectoryEntry always has a trailing "/"
         }
         
@@ -1230,7 +1230,7 @@ define(function (require, exports, module) {
 
         // move selection to parent DirectoryEntry
         if (selectionEntry) {
-            if (selectionEntry.isFile()) {
+            if (selectionEntry.isFile) {
                 position = "after";
                 
                 var parent = $.jstree._reference(_projectTree)._get_parent(selection);
@@ -1243,7 +1243,7 @@ define(function (require, exports, module) {
                     // reset here. will be replaced with project root.
                     selectionEntry = null;
                 }
-            } else if (selectionEntry.isDirectory()) {
+            } else if (selectionEntry.isDirectory) {
                 wasNodeOpen = selection.hasClass("jstree-open");
             }
         }
@@ -1315,7 +1315,7 @@ define(function (require, exports, module) {
                     var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
                         oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var useOppositeType = (isFolder === entry.isFile());
+                        var useOppositeType = (isFolder === entry.isFile);
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
@@ -1548,7 +1548,7 @@ define(function (require, exports, module) {
                         var sel     = _projectTree.jstree("get_selected"),
                             entry   = sel ? sel.data("entry") : null;
                         
-                        if (entry && entry.isDirectory()) {
+                        if (entry && entry.isDirectory) {
                             // Make sure it didn't turn into a leaf node. This happens if
                             // the only file in the directory was deleted
                             if (sel.hasClass("jstree-leaf")) {
@@ -1611,7 +1611,7 @@ define(function (require, exports, module) {
 
         
         function visitor(entry) {
-            if (entry.isFile()) {
+            if (entry.isFile) {
                 result.push(entry);
             }
             

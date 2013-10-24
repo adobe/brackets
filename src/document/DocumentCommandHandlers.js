@@ -1173,7 +1173,7 @@ define(function (require, exports, module) {
     
     function handleFileDelete() {
         var entry = ProjectManager.getSelectedItem();
-        if (entry.isDirectory()) {
+        if (entry.isDirectory) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_EXT_DELETED,
                 Strings.CONFIRM_FOLDER_DELETE_TITLE,

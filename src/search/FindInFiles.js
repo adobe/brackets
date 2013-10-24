@@ -616,7 +616,7 @@ define(function (require, exports, module) {
      */
     function _inScope(file, scope) {
         if (scope) {
-            if (scope.isDirectory()) {
+            if (scope.isDirectory) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
                 return file.fullPath.indexOf(scope.fullPath) === 0;

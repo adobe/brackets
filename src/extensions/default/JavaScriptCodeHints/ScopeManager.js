@@ -188,7 +188,7 @@ define(function (require, exports, module) {
         var files = [];
         
         FileSystem.resolve(dir, function (err, directory) {
-            if (!err && directory.isDirectory()) {
+            if (!err && directory.isDirectory) {
                 directory.getContents(function (err, contents) {
                     if (!err) {
                         contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
                                 split   = HintUtils.splitPath(path),
                                 file    = split.file;
         
-                            if (fileCallback && entry.isFile()) {
+                            if (fileCallback && entry.isFile) {
         
                                 if (file.indexOf(".") > 0) { // ignore .dotfiles
                                     var languageID = LanguageManager.getLanguageForPath(path).getId();
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                                         fileCallback(path);
                                     }
                                 }
-                            } else if (directoryCallback && entry.isDirectory()) {
+                            } else if (directoryCallback && entry.isDirectory) {
                                 var dirName = HintUtils.splitPath(split.dir).file;
                                 if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
                                     directoryCallback(entry.fullPath);
@@ -840,7 +840,7 @@ define(function (require, exports, module) {
                 var result = new $.Deferred();
                 
                 FileSystem.resolve(filePath, function (err, file) {
-                    if (!err && file.isFile()) {
+                    if (!err && file.isFile) {
                         DocumentManager.getDocumentForPath(filePath)
                             .done(function (document) {
                                 resolvedFiles[name] = filePath;

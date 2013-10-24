@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils           = require("file/FileUtils"),
+        FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
         NodeConnection      = require("utils/NodeConnection");
     
@@ -148,7 +149,16 @@ define(function (require, exports, module) {
     }
     
     function stat(path, callback) {
-        appshell.fs.stat(path, _wrap(callback));
+        appshell.fs.stat(path, function (err, stats) {
+            if (err) {
+                callback(_mapError(err));
+            } else {
+                var options = { isFile: stats.isFile(), mtime: stats.mtime, size: stats.size },
+                    fsStats = new FileSystemStats(options);
+                
+                callback(null, fsStats);
+            }
+        });
     }
     
     function isNetworkDrive(path, callback) {
@@ -177,13 +187,13 @@ define(function (require, exports, module) {
             }
             
             contents.forEach(function (val, idx) {
-                appshell.fs.stat(path + "/" + val, function (err, stat) {
+                stat(path + "/" + val, function (err, stat) {
                     if (!err) {
                         stats[idx] = stat;
                     }
                     count--;
                     if (count <= 0) {
-                        callback(_mapError(err), contents, stats);
+                        callback(err, contents, stats);
                     }
                 });
             });
@@ -200,7 +210,7 @@ define(function (require, exports, module) {
                 callback(_mapError(err));
             } else {
                 stat(path, function (err, stat) {
-                    callback(_mapError(err), stat);
+                    callback(err, stat);
                     
                     // Fake a file-watcher result until real watchers respond quickly
                     _changeCallback(_parentPath(path));
@@ -228,7 +238,7 @@ define(function (require, exports, module) {
                 callback(_mapError(err), null);
             } else {
                 stat(path, function (err, stat) {
-                    callback(_mapError(err), data, stat);
+                    callback(err, data, stat);
                 });
             }
         });
@@ -249,7 +259,7 @@ define(function (require, exports, module) {
                     callback(_mapError(err));
                 } else {
                     stat(path, function (err, stat) {
-                        callback(_mapError(err), stat);
+                        callback(err, stat);
                         
                         // Fake a file-watcher result until real watchers respond quickly
                         if (alreadyExists) {

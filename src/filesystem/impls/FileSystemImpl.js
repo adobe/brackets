@@ -1,9 +1,10 @@
 // Methods that must be implemented by a FileSystemImpl
 //
 // stat {
-//   isFile(): boolean,
-//   isDirectory(): boolean,
+//   isFile: boolean,
+//   isDirectory: boolean,
 //   mtime: Date, 
+//   size: Number, 
 // }
 //
 //

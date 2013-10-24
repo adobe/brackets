@@ -863,7 +863,7 @@ define(function (require, exports, module) {
                             var childDestination = destination + "/" + child.name,
                                 promise;
                             
-                            if (child.isDirectory()) {
+                            if (child.isDirectory) {
                                 promise = copyDirectoryEntry(child, childDestination, options);
                             } else {
                                 promise = copyFileEntry(child, childDestination, options);
@@ -928,7 +928,7 @@ define(function (require, exports, module) {
         resolveNativeFileSystemPath(source).done(function (entry) {
             var promise;
             
-            if (entry.isDirectory()) {
+            if (entry.isDirectory) {
                 promise = copyDirectoryEntry(entry, destination, options);
             } else {
                 promise = copyFileEntry(entry, destination, options);

@@ -52,7 +52,7 @@ define(function (require, exports, module) {
 
     function _getCSSFilesInProject() {
         function cssFilter(entry) {
-            if (entry.isFile()) {
+            if (entry.isFile) {
                 var language = LanguageManager.getLanguageForPath(entry.fullPath);
                 if (language.getId() === "css") {
                     return true;

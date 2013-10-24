@@ -198,7 +198,7 @@ define(function (require, exports, module) {
         }
         
         var visitor = function (child) {
-            if (child.isDirectory() || child === watchedRoot.entry) {
+            if (child.isDirectory || child === watchedRoot.entry) {
                 watchPaths.push(child.fullPath);
             }
             
@@ -435,7 +435,7 @@ define(function (require, exports, module) {
             var item;
             
             if (!err) {
-                if (stat.isFile()) {
+                if (stat.isFile) {
                     item = this.getFileForPath(path);
                 } else {
                     item = this.getDirectoryForPath(path);
@@ -525,7 +525,7 @@ define(function (require, exports, module) {
             // This is a "wholesale" change event
             // Clear all caches (at least those that won't do a stat() double-check before getting used)
             this._index.visitAll(function (entry) {
-                if (entry.isDirectory()) {
+                if (entry.isDirectory) {
                     entry._stat = undefined;
                     entry._contents = undefined;
                 }
@@ -539,7 +539,7 @@ define(function (require, exports, module) {
         var entry = this._index.getEntry(path);
         
         if (entry) {
-            if (entry.isFile()) {
+            if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
                 if (!stat || !entry._stat || (stat.mtime.getTime() !== entry._stat.mtime.getTime())) {
                     entry._stat = stat;

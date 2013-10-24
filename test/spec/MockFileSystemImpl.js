@@ -71,12 +71,8 @@ define(function (require, exports, module) {
         
         if (entry) {
             stat = {
-                isDirectory: function () {
-                    return !entry.isFile;
-                },
-                isFile: function () {
-                    return entry.isFile;
-                },
+                isDirectory: !entry.isFile,
+                isFile: entry.isFile,
                 mtime: entry.mtime
             };
         }

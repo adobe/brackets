@@ -199,7 +199,7 @@ define(function (require, exports, module) {
         file.stat(function (err, stat) {
             if (!err) {
                 statComplete = true;
-                if (stat.isFile()) {
+                if (stat.isFile) {
                     // unit test file exists
                     var extensionRequire = brackets.libRequire.config({
                         context: name,
@@ -243,7 +243,7 @@ define(function (require, exports, module) {
                     extensions = [];
                 
                 for (i = 0; i < contents.length; i++) {
-                    if (contents[i].isDirectory()) {
+                    if (contents[i].isDirectory) {
                         // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
                         // Also, load sub-extensions defined in package.json.
                         extensions.push(contents[i].name);

@@ -80,7 +80,7 @@ define(function (require, exports, module) {
             
             // Only open files.
             FileSystem.resolve(path, function (err, item) {
-                if (!err && item.isFile()) {
+                if (!err && item.isFile) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
                             errorFiles.push(path);
                             result.reject();
                         });
-                } else if (!err && item.isDirectory() && files.length === 1) {
+                } else if (!err && item.isDirectory && files.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(path)
                         .done(function () {

@@ -45,6 +45,7 @@ define(function (require, exports, module) {
      */
     function File(fullPath, fileSystem) {
         FileSystemEntry.call(this, fullPath, fileSystem);
+        this._isFile = true;
     }
     
     File.prototype = Object.create(FileSystemEntry.prototype);
@@ -57,19 +58,10 @@ define(function (require, exports, module) {
     File.prototype._contents = null;
     
     /**
-     * Override to return true.
-     *
-     * @return {boolean} True -- this is a file
-     */
-    File.prototype.isFile = function () {
-        return true;
-    };
-    
-    /**
      * Read a file as text. 
      *
      * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
-     * @param {function (?string, string=, object=)} callback Callback that is passed the
+     * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              error code, the file's contents, and the file's new stats.
      */
     File.prototype.readAsText = function (encoding, callback) {
@@ -92,7 +84,7 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     * @param {!function (?string, object=)=} callback Callback that is passed the
+     * @param {!function (?string, FileSystemStats=)=} callback Callback that is passed the
      *              error code and the file's new stats if the write is sucessful.
      */
     File.prototype.write = function (data, encoding, callback) {
