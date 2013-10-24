@@ -894,7 +894,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should list function defined from .prototype", function () {
+            xit("should list function defined from .prototype", function () {
                 var start = { line: 59, ch: 5 };
                 
                 testEditor.setCursorPos(start);
@@ -905,7 +905,7 @@ define(function (require, exports, module) {
                 
             });
 
-            it("should list function type defined from .prototype", function () {
+            xit("should list function type defined from .prototype", function () {
                 var start = { line: 59, ch: 10 };
                 testEditor.setCursorPos(start);
                 runs(function () {
@@ -913,7 +913,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should list function inhertated from super class", function () {
+            xit("should list function inherited from super class", function () {
                 var start = { line: 79, ch: 11 };
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
