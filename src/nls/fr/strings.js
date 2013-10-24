@@ -206,7 +206,7 @@ define({
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
-	"CMD_OPEN_DROPPED_FILES": "[7317594] !é=Open Dropped Files=!",
+	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
@@ -385,6 +385,8 @@ define({
 	"EXTENSION_DATE": "Date",
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
 	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "La version {0} de cette extension nécessite une version plus récente de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "La version {0} de cette extension n’est compatible qu’avec les anciennes versions de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
 	"EXTENSION_MORE_INFO": "Plus d’infos...",
 	"EXTENSION_ERROR": "Erreur d’extension",
@@ -463,9 +465,9 @@ define({
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
     
-    // extensions/default/InlineBezierCurveEditor
-	"INLINE_BEZIER_EDITOR_TIME": "Heure",
-	"INLINE_BEZIER_EDITOR_PROGRESSION": "Progression",
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "Durée",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
