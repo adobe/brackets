@@ -551,7 +551,7 @@ define(function (require, exports, module) {
                         spyOn(file, "unlink");
                         ExtensionManager.removeUpdate(id);
                         expect(calledId).toBe(id);
-                        expect(file.unlink).toHaveBeenCalledWith(jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                     });
                 });
@@ -1028,7 +1028,7 @@ define(function (require, exports, module) {
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         $undoLink.click();
                         expect(ExtensionManager.isMarkedForUpdate(id)).toBe(false);
-                        expect(file.unlink).toHaveBeenCalledWith(jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
                     });
@@ -1185,7 +1185,7 @@ define(function (require, exports, module) {
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
-                            expect(file.unlink).toHaveBeenCalledWith(jasmine.any(Function));
+                            expect(file.unlink).toHaveBeenCalled();
                         });
                     });
                     

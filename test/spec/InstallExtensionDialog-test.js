@@ -738,7 +738,7 @@ define(function (require, exports, module) {
                 });
                 spyOn(file, "unlink");
                 fields.$cancelButton.click();
-                expect(file.unlink).toHaveBeenCalledWith(jasmine.any(Function));
+                expect(file.unlink).toHaveBeenCalled();
                 expect(fields.$dlg.is(":visible")).toBe(false);
             });
             
