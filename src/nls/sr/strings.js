@@ -66,11 +66,11 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Упс! \"{APP_NAME}\" још увек не ради у претраживачу.",
-    "ERROR_IN_BROWSER"                  : "Апликација \"{APP_NAME}\" је направљена помоћу HTML-а, али тренутно ради као \"desktop\" апликација па је можете користити за измену локалних датотека. Молимо Вас користите \"application shell\" на <b>github.com/adobe/brackets-shell</b> репозиторијумз за покретање \"{APP_NAME}\" апликације.",
+    "ERROR_IN_BROWSER"                  : "Апликација \"{APP_NAME}\" је направљена помоћу HTML-а, али тренутно ради као \"desktop\" апликација па је можете користити за измену локалних датотека. Молимо Вас користите \"application shell\" на <b>github.com/adobe/brackets-shell</b> репозиторијум за покретање \"{APP_NAME}\" апликације.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Грешка приликом индексирања датотека",
-    "ERROR_MAX_FILES"                   : "Индексиран је максимални број датотека. Акције које претражују датотеке у индеку могу погрешно функционисати.",
+    "ERROR_MAX_FILES"                   : "Индексиран је максимални број датотека. Акције које претражују датотеке у индексу могу погрешно функционисати.",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Грешка при покретању претраживача",
@@ -79,13 +79,13 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Грешка у живом приказу",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Повезивање са претраживачем",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Да би се живи приказ повезао, потребно је да поново покренете Хром (Chrome) са укљученим подешавањима за \"remote debugging\".<br /><br />Да ли желите поново да покренете Хром са укљученим подешавањима за \"remote debugging\"?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Није мочиће учитати живу развојну страницу",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Да би се живи приказ повезао, потребно је да поново покренете Chrome са укљученим подешавањима за \"remote debugging\".<br /><br />Да ли желите поново да покренете Chrome са укљученим подешавањима за \"remote debugging\"?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Није могуће учитати живу развојну страницу",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Отворите HTML датотеку како бисте покренули живи приказ.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "За покретање живог приказа са датотеком која је \"server-side\", морате навести основну URL адресу за овај пројекат.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Грешка приликом покретања HTTP сервера за \"живе\" развојне датотеке. Молимо покушајте поново.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Добро дошли у живи приказ!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Живи приказ повезује \"{APP_NAME}\" са Вашим претраживалем. Он покреће Вашу \"HTML\" датотеку у претраживачу, а потом ажурира приказ тренутно док Ви мењате Ваш кôд.<br /><br />У овој раној верзији апликације \"{APP_NAME}\", живи приказ ради једино у <strong>Гугл Хром</strong> (Google Chrome) претраживачу и ажурира приказ док мењате <strong>CSS или HTML датотеке</strong>. За освежавање приказа приликом измена у JavaScript датотекама потребно је да сачувате Ваше измене.<br /><br />(Ова порука ће само једном бити приказана.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Живи приказ повезује \"{APP_NAME}\" са Вашим претраживачем. Он покреће Вашу \"HTML\" датотеку у претраживачу, а потом ажурира приказ тренутно док Ви мењате Ваш кôд.<br /><br />У овој раној верзији апликације \"{APP_NAME}\", живи приказ ради једино у <strong>Google Chrome</strong> претраживачу и ажурира приказ док мењате <strong>CSS или HTML датотеке</strong>. За освежавање приказа приликом измена у JavaScript датотекама потребно је да сачувате Ваше измене.<br /><br />(Ова порука ће само једном бити приказана.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "За више информација, погледајте <a href='{0}' title='{0}'>Решавање грешака у конекцији приликом развоја уживо</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Живи приказ",
@@ -152,21 +152,21 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Грешка приликом учитавања информација о новој верзији",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Дошло је до проблема приликом преузимања последњих информација о новој верзији са сервера. Молимо проверите да ли сте конектовани на интернет и покушајте поново.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Дошло је до проблема приликом преузимања последњих информација о новој верзији са сервера. Молимо проверите да ли сте повезани на интернет и покушајте поново.",
 
     /**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Учитавање\u2026",
     "UNTITLED"          : "Неименовани документ",
-    "WORKING_FILES"     : "Радне датотекте",
+    "WORKING_FILES"     : "Радне датотеке",
 
     /**
      * Keyboard modifier names
      */
-    "KEYBOARD_CTRL"   : "Контрол (Ctrl)",
-    "KEYBOARD_SHIFT"  : "Шифт (Shift)",
-    "KEYBOARD_SPACE"  : "Размак (Space)",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SPACE"  : "Space",
     
     /**
      * StatusBar strings
@@ -307,7 +307,7 @@ define({
     "RELOAD_FROM_DISK"                     : "Поново учитај са диска",
     "KEEP_CHANGES_IN_EDITOR"               : "Сачувај измене у едитору",
     "CLOSE_DONT_SAVE"                      : "Затвори (без чувања измена)",
-    "RELAUNCH_CHROME"                      : "Поново покрени Хром (Chrome)",
+    "RELAUNCH_CHROME"                      : "Поново покрени Chrome",
     "ABOUT"                                : "О апликацији",
     "CLOSE"                                : "Затвори",
     "ABOUT_TEXT_LINE1"                     : "итерација {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
@@ -327,7 +327,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Основна URL адреса не сме садржати параметре попут \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Основна URL адреса не сме садржати хешеве (hashes) попут \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Специјални карактери попут '{0}' морају бити %-енкодирани.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Непозната грепка приликом парсирања основне URL адресе",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Непозната грешка приликом парсирања основне URL адресе",
     
     // Extension Management strings
     "INSTALL"                              : "Инсталирај",
@@ -369,7 +369,7 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "URL мора бити http или https.",
     "UNKNOWN_ERROR"                        : "Непозната интерна грешка.",
     // For NOT_FOUND_ERR, see generic strings above
-    "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
+    "EXTENSION_MANAGER_TITLE"              : "Менаџер екстензија",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Приступање регистру екстензије није могуће. Молимо покушајте касније.",
     "INSTALL_FROM_URL"                     : "Инсталирај са интернет локације (URL-а)\u2026",
     "EXTENSION_AUTHOR"                     : "Аутор",
