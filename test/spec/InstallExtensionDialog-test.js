@@ -208,10 +208,7 @@ define(function (require, exports, module) {
                 fields.$okButton.click();
                 installer.install.reset();
                 
-                var modSpy = jasmine.createSpy("modSpy");
-                fields.$dlg.on("DOMSubtreeModified", modSpy);
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
-                expect(modSpy).not.toHaveBeenCalled();
                 expect(installer.install).not.toHaveBeenCalled();
                 expect(installer.cancel).not.toHaveBeenCalled();
                 
