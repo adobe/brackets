@@ -276,7 +276,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @param {function(?err)} callback
+     * @param {function(?string)} callback Callback resolved, possibly with an error string.
      */
     FileSystem.prototype.init = function (impl, callback) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
@@ -424,7 +424,8 @@ define(function (require, exports, module) {
      * Resolve a path.
      *
      * @param {string} path The path to resolve
-     * @param {function (err, object)} callback
+     * @param {function (?string, FileSystemEntry=)} callback Callback resolved
+     *      with an error string or with the entry for the provided path
      */
     FileSystem.prototype.resolve = function (path, callback) {
         // No need to normalize path here: assume underlying stat() does it internally,
@@ -470,7 +471,8 @@ define(function (require, exports, module) {
      *                          browsed folder depending on the OS preferences
      * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
      *                          allows any extension to be selected.
-     * @param {function (number, array)} callback Callback resolved with the selected file(s)/directories.
+     * @param {function (?string, Array.<string>=)} callback Callback resolved with an error string or
+     *                          the selected file(s)/directories.
      */
     FileSystem.prototype.showOpenDialog = function (allowMultipleSelection,
                             chooseDirectories,
@@ -491,7 +493,8 @@ define(function (require, exports, module) {
      *                          browsed folder depending on the OS preferences.
      * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
      *                          on the current file name plus an additional suffix
-     * @param {function (number, string)} callback Callback that is called with the name of the file to save.
+     * @param {function (?string, string=)} callback Callback that is resolved with an error string or the
+     *                          name of the file to save.
      */
     FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
@@ -634,7 +637,7 @@ define(function (require, exports, module) {
      * @param {function(string): boolean} filter - A function to determine whether
      *      a particular path should be watched or ignored. Paths that are ignored are also
      *      filtered from Directory.getContents() results within this subtree.
-     * @param {function(?string)} callback - A function that is called when the watch has
+     * @param {function(?string)=} callback - A function that is called when the watch has
      *      completed. If the watch fails, the function will have a non-null parameter
      *      that describes the error.
      */
@@ -644,6 +647,8 @@ define(function (require, exports, module) {
                 entry: entry,
                 filter: filter
             };
+        
+        callback = callback || function () {};
         
         var watchingParentRoot = Object.keys(this._watchedRoots).some(function (path) {
             var watchedRoot = this._watchedRoots[path],
@@ -676,6 +681,7 @@ define(function (require, exports, module) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
                 return;
             }
+            
             callback(null);
         }.bind(this));
     };
@@ -685,13 +691,15 @@ define(function (require, exports, module) {
      * 
      * @param {FileSystemEntry} entry - The root entry to stop watching. The unwatch will
      *      if the entry is not currently being watched.
-     * @param {function(?string)} callback - A function that is called when the unwatch has
+     * @param {function(?string)=} callback - A function that is called when the unwatch has
      *      completed. If the unwatch fails, the function will have a non-null parameter
      *      that describes the error.
      */
     FileSystem.prototype.unwatch = function (entry, callback) {
         var fullPath = entry.fullPath,
             watchedRoot = this._watchedRoots[fullPath];
+        
+        callback = callback || function () {};
         
         if (!watchedRoot) {
             callback("Root is not watched.");
