@@ -337,13 +337,15 @@ define(function (require, exports, module) {
              * standalone TimingFunctionEditor, not inside an InlineTimingFunctionEditor.
              * @param {string} initialTimingFunction The timingFunction that should be initially set
              *     in the TimingFunctionEditor.
+             * @param {?function} callback An optional callback to be passed as the TimingFunctionEditor's
+             *     callback. If none is supplied, a dummy function is passed.
              * @param {boolean=} hide Whether to hide the TimingFunctionEditor; default is true.
              */
-            function makeUI(initialTimingFunction, hide) {
+            function makeUI(initialTimingFunction, callback, hide) {
                 timingFunctionEditor = new TimingFunctionEditor(
                     $(document.body),
                     TimingFunctionUtils.bezierCurveMatch(initialTimingFunction, true),
-                    function () { }
+                    callback || function () { }
                 );
                 if (hide !== false) {
                     timingFunctionEditor.getRootElement().css("display", "none");
@@ -354,14 +356,8 @@ define(function (require, exports, module) {
                 timingFunctionEditor.getRootElement().remove();
             });
             
-            /** Returns the timingFunctionEditor's current value as a string in its current format */
-/*
-            function getTimingFunctionString() {
-                return timingFunctionEditor.getTimingFunction().toString();
-            }
-*/
             
-            describe("Load and Commit", function () {
+            describe("Initial Load and External Update", function () {
             
                 it("should load the initial timing function correctly", function () {
                     runs(function () {
@@ -373,30 +369,20 @@ define(function (require, exports, module) {
                         expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(".5");
                     });
                 });
-                
-/*
-                it("should load a committed timing function correctly", function () {
-                    var timingFunctionStr = "rgba(77, 122, 31, 0.5)";
-                    var timingFunctionStrRgb = "rgb(77, 122, 31)";
-                    
+                it("should load externally updated timing function correctly", function () {
                     runs(function () {
-                        makeUI("#0a0a0a");
-                        timingFunctionEditor.setTimingFunctionFromString(timingFunctionStr);
-                        expect(timingFunctionEditor.getTimingFunction().toString()).toBe(timingFunctionStr);
-                        expect(timingFunctionEditor.$timingFunctionValue.val()).toBe(timingFunctionStr);
+                        makeUI("cubic-bezier(.1, .3, .5, .7)");
+                        expect(timingFunctionEditor).toBeTruthy();
+                        
+                        var matchUpdate = TimingFunctionUtils.bezierCurveMatch("cubic-bezier(.2, .4, .6, .8)", true);
+                        timingFunctionEditor.handleExternalUpdate(matchUpdate);
+                        
+                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(".2");
+                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(".4");
+                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(".6");
+                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(".8");
                     });
                 });
-*/
-    
-/*
-                it("should call the callback when a new timing function is committed", function () {
-                    var lastTimingFunction;
-                    makeUI("rgba(100, 100, 100, 0.5)");
-                    timingFunctionEditor.setTimingFunctionFromString("#a0a0a0");
-                    expect(lastTimingFunction).toBe("#a0a0a0");
-                });
-*/
-                
             });
             
             describe("Conversions", function () {
@@ -453,7 +439,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            describe("parameter editing with mouse", function () {
+            describe("Editing with Mouse", function () {
                 
                 /**
                  * Test a mouse down event on the given UI element.
@@ -520,7 +506,7 @@ define(function (require, exports, module) {
 */
             });
             
-            describe("parameter editing with keyboard", function () {
+            describe("Editing with Keyboard", function () {
                 
 /*
                 function makeKeyEvent(opts) {
@@ -575,7 +561,7 @@ define(function (require, exports, module) {
                     // The timing function editor needs to be displayed for this test; otherwise the
                     // selection won't be properly set, because you can only set the selection
                     // when the text field has focus.
-                    makeUI(opts.timingFunction || "hsla(50, 25%, 50%, 0.5)", false);
+                    makeUI(opts.timingFunction || "hsla(50, 25%, 50%, 0.5)", null, false);
                     
                     $item = timingFunctionEditor[opts.item];
                     $item.focus();
