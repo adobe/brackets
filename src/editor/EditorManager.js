@@ -56,6 +56,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
+        ProjectManager      = require("project/ProjectManager"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         ImageViewer         = require("editor/ImageViewer"),
@@ -584,10 +585,8 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor) {
-            $("#not-editor").css("display", "");
-            _nullifyEditor();
-        }
+        $("#not-editor").css("display", "");
+        _nullifyEditor();
     }
     
     function getCurrentlyViewedPath() {
@@ -611,6 +610,12 @@ define(function (require, exports, module) {
             _$currentCustomViewer.remove();
         }
         _$currentCustomViewer = null;
+    }
+    
+    /** Handle project close, remove customView */
+    function _onBeforeProjectClose() {
+        _removeCustomViewer();
+        _showNoEditor();
     }
 
     /** 
@@ -898,7 +903,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
-
+    $(ProjectManager).on("beforeProjectClose",     _onBeforeProjectClose);
 
     // For unit tests and internal use only
     exports._openInlineWidget             = _openInlineWidget;
