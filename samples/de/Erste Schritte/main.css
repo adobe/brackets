@@ -27,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 
 samp
 {
-    /* hide <samp> from the browser so we can show cool features in Edge Code */
+    /* Tutorial-Anweisungen verstecken, sodass diese nicht im Browser angezeigt werden */
     display: none;
 }
 

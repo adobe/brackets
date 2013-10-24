@@ -70,7 +70,8 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
-        FileSyncManager     = require("project/FileSyncManager");
+        FileSyncManager     = require("project/FileSyncManager"),
+        EditorManager       = require("editor/EditorManager");
     
     
     /**
@@ -110,15 +111,7 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var _projectTree = null;
-    
-    function canonicalize(path) {
-        if (path.length > 0 && path[path.length - 1] === "/") {
-            return path.slice(0, -1);
-        } else {
-            return path;
-        }
-    }
-    
+        
     /**
      * @private
      * Reference to previous selected jstree leaf node when ProjectManager had
@@ -241,12 +234,12 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
-        var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && _hasFileSelectionFocus()) {
+        var curFile = EditorManager.getCurrentlyViewedPath();
+        if (curFile && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
                 var $treeNode = $(this),
                     entry = $treeNode.data("entry");
-                if (entry && entry.fullPath === curDoc.file.fullPath) {
+                if (entry && entry.fullPath === curFile) {
                     if (!_projectTree.jstree("is_selected", $treeNode)) {
                         if ($treeNode.parents(".jstree-closed").length) {
                             //don't auto-expand tree to show file - but remember it if parent is manually expanded later
@@ -797,6 +790,19 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Although Brackets is generally standardized on folder paths with a trailing "/", some APIs here
+     * receive project paths without "/" due to legacy preference storage formats, etc.
+     * @param {!string} fullPath  Path that may or may not end in "/"
+     * @return {!string} Path that ends in "/"
+     */
+    function _ensureTrailingSlash(fullPath) {
+        if (fullPath[fullPath.length - 1] !== "/") {
+            return fullPath + "/";
+        }
+        return fullPath;
+    }
+    
     /** Returns the full path to the welcome project, which we open on first launch.
      * @private
      * @return {!string} fullPath reference
@@ -810,7 +816,7 @@ define(function (require, exports, module) {
             initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
         }
 
-        return initialPath;
+        return _ensureTrailingSlash(initialPath); // paths above weren't canonical
     }
     
     /**
@@ -818,16 +824,29 @@ define(function (require, exports, module) {
      * or the one for the current build.
      */
     function isWelcomeProjectPath(path) {
-        var canonPath = FileUtils.canonicalizeFolderPath(path);
-        if (canonPath === _getWelcomeProjectPath()) {
+        if (path === _getWelcomeProjectPath()) {
             return true;
         }
+        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-        return welcomeProjects.indexOf(canonPath) !== -1;
+        return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
     
     /**
-     * If the provided path is to an old welcome project, updates to the current one.
+     * Adds the path to the list of welcome projects we've ever seen, if not on the list already.
+     */
+    function addWelcomeProjectPath(path) {
+        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
+        
+        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        if (welcomeProjects.indexOf(pathNoSlash) === -1) {
+            welcomeProjects.push(pathNoSlash);
+            _prefs.setValue("welcomeProjects", welcomeProjects);
+        }
+    }
+    
+    /**
+     * If the provided path is to an old welcome project, returns the current one instead.
      */
     function updateWelcomeProjectPath(path) {
         if (isWelcomeProjectPath(path)) {
@@ -878,8 +897,8 @@ define(function (require, exports, module) {
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
-     * @param {string} rootPath  Absolute path to the root folder of the project.
-     *  If rootPath is undefined or null, the last open project will be restored.
+     * @param {!string} rootPath  Absolute path to the root folder of the project.
+     *  A trailing "/" on the path is optional (unlike many Brackets APIs that assume a trailing "/").
      * @param {boolean=} isUpdating  If true, indicates we're just updating the tree;
      *  if false, a different project is being loaded.
      * @param {string=} filesystem  Name of the file system to use for this project. 
@@ -890,8 +909,11 @@ define(function (require, exports, module) {
     function _loadProject(rootPath, isUpdating, filesystem) {
         forceFinishRename();    // in case we're in the middle of renaming a file in the project
         
+        // Some legacy code calls this API with a non-canonical path
+        rootPath = _ensureTrailingSlash(rootPath);
+        
         if (!isUpdating) {
-            if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
+            if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
             if (_projectRoot) {
@@ -932,21 +954,16 @@ define(function (require, exports, module) {
                     var i;
 
                     // Success!
-                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
-                        canonPath = FileUtils.canonicalizeFolderPath(rootPath);
+                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                     _projectRoot = rootEntry;
                     _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
 
-                    // If this is the current welcome project, record it. In future launches, we always
-                    // want to substitute the welcome project for the current build instead of using an
+                    // If this is the most current welcome project, record it. In future launches, we want
+                    // to substitute the latest welcome project from the current build instead of using an
                     // outdated one (when loading recent projects or the last opened project).
-                    if (canonPath === _getWelcomeProjectPath()) {
-                        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
-                        if (welcomeProjects.indexOf(canonPath) === -1) {
-                            welcomeProjects.push(canonPath);
-                            _prefs.setValue("welcomeProjects", welcomeProjects);
-                        }
+                    if (rootPath === _getWelcomeProjectPath()) {
+                        addWelcomeProjectPath(rootPath);
                     }
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
@@ -1105,7 +1122,7 @@ define(function (require, exports, module) {
      * this method handles both closing the current project and opening a new project.
      *
      * @param {string=} path Optional absolute path to the root folder of the project.
-     *  If path is undefined or null, displays a  dialog where the user can choose a
+     *  If path is undefined or null, displays a dialog where the user can choose a
      *  folder to load. If the user cancels the dialog, nothing more happens.
      * @param {string=} filesystem Optional name of the file system to use. Defaults to
      *  the default file system for the application.
@@ -1119,7 +1136,7 @@ define(function (require, exports, module) {
 
         // Confirm any unsaved changes first. We run the command in "prompt-only" mode, meaning it won't
         // actually close any documents even on success; we'll do that manually after the user also oks
-        //the folder-browse dialog.
+        // the folder-browse dialog.
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 if (path) {

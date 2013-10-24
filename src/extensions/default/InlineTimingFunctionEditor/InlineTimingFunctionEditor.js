@@ -28,69 +28,69 @@ define(function (require, exports, module) {
     "use strict";
     
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
-        BezierCurveEditor    = require("BezierCurveEditor").BezierCurveEditor,
-        BezierCurveUtils     = require("BezierCurveUtils");
+        TimingFunctionEditor = require("TimingFunctionEditor").TimingFunctionEditor,
+        TimingFunctionUtils  = require("TimingFunctionUtils");
         
 
-    /** @type {number} Global var used to provide a unique ID for each bezierCurve editor instance's _origin field. */
+    /** @type {number} Global var used to provide a unique ID for each timingFunction editor instance's _origin field. */
     var lastOriginId = 1;
     
     /**
-     * Constructor for inline widget containing a BezierCurveEditor control
+     * Constructor for inline widget containing a TimingFunctionEditor control
      *
-     * @param {!RegExpMatch} bezierCurve  RegExp match object of initially selected bezierCurve
+     * @param {!RegExpMatch} timingFunction  RegExp match object of initially selected timingFunction
      * @param {!CodeMirror.Bookmark} startBookmark
      * @param {!CodeMirror.Bookmark} endBookmark
      */
-    function InlineBezierCurveEditor(bezierCurve, startBookmark, endBookmark) {
-        this._bezierCurve = bezierCurve;
+    function InlineTimingFunctionEditor(timingFunction, startBookmark, endBookmark) {
+        this._timingFunction = timingFunction;
         this._startBookmark = startBookmark;
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
-        this._origin = "*InlineBezierCurveEditor_" + (lastOriginId++);
+        this._origin = "*InlineTimingFunctionEditor_" + (lastOriginId++);
 
-        this._handleBezierCurveChange = this._handleBezierCurveChange.bind(this);
+        this._handleTimingFunctionChange = this._handleTimingFunctionChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
         
         InlineWidget.call(this);
     }
     
-    InlineBezierCurveEditor.prototype = Object.create(InlineWidget.prototype);
-    InlineBezierCurveEditor.prototype.constructor = InlineBezierCurveEditor;
-    InlineBezierCurveEditor.prototype.parentClass = InlineWidget.prototype;
+    InlineTimingFunctionEditor.prototype = Object.create(InlineWidget.prototype);
+    InlineTimingFunctionEditor.prototype.constructor = InlineTimingFunctionEditor;
+    InlineTimingFunctionEditor.prototype.parentClass = InlineWidget.prototype;
     
-    /** @type {!BezierCurveEditor} BezierCurveEditor instance */
-    InlineBezierCurveEditor.prototype.bezierCurveEditor = null;
+    /** @type {!TimingFunctionEditor} TimingFunctionEditor instance */
+    InlineTimingFunctionEditor.prototype.timingFunctionEditor = null;
     
-    /** @type {!string} Current value of the bezier curve editor control */
-    InlineBezierCurveEditor.prototype._bezierCurve = null;
+    /** @type {!string} Current value of the timing function editor control */
+    InlineTimingFunctionEditor.prototype._timingFunction = null;
     
     /**
      * Start of the range of code we're attached to; _startBookmark.find() may by null if sync is lost.
      * @type {!CodeMirror.Bookmark}
      */
-    InlineBezierCurveEditor.prototype._startBookmark = null;
+    InlineTimingFunctionEditor.prototype._startBookmark = null;
     
     /**
      * End of the range of code we're attached to; _endBookmark.find() may by null if sync is lost or even
      * in some cases when it's not. Call getCurrentRange() for the definitive text range we're attached to.
      * @type {!CodeMirror.Bookmark}
      */
-    InlineBezierCurveEditor.prototype._endBookmark = null;
+    InlineTimingFunctionEditor.prototype._endBookmark = null;
     
-    /** @type {boolean} True while we're syncing a bezier curve editor change into the code editor */
-    InlineBezierCurveEditor.prototype._isOwnChange = null;
+    /** @type {boolean} True while we're syncing a timing function editor change into the code editor */
+    InlineTimingFunctionEditor.prototype._isOwnChange = null;
     
-    /** @type {boolean} True while we're syncing a code editor change into the bezier curve editor */
-    InlineBezierCurveEditor.prototype._isHostChange = null;
+    /** @type {boolean} True while we're syncing a code editor change into the timing function editor */
+    InlineTimingFunctionEditor.prototype._isHostChange = null;
     
     /** @type {number} ID used to identify edits coming from this inline widget for undo batching */
-    InlineBezierCurveEditor.prototype._origin = null;
+    InlineTimingFunctionEditor.prototype._origin = null;
     
     
     /**
-     * Returns the current text range of the bezierCurve we're attached to, or null if
+     * Returns the current text range of the timingFunction we're attached to, or null if
      * we've lost sync with what's in the code.
      *
      * @return {?{
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
      *              match: {RegExpMatch}
      *          }}
      */
-    InlineBezierCurveEditor.prototype.getCurrentRange = function () {
+    InlineTimingFunctionEditor.prototype.getCurrentRange = function () {
         var start, end;
         
         start = this._startBookmark.find();
@@ -114,13 +114,13 @@ define(function (require, exports, module) {
         
         // Even if we think we have a good end bookmark, we want to run the
         // regexp match to see if there's a valid match that extends past the bookmark.
-        // This can happen if the user deletes the end of the existing bezierCurve and then
+        // This can happen if the user deletes the end of the existing timingFunction and then
         // types some more.
         // FUTURE: when we migrate to CodeMirror v3, we might be able to use markText()
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),
-            matches = BezierCurveUtils.cubicBezierMatch(line.substr(start.ch), true);
+            matches = TimingFunctionUtils.bezierCurveMatch(line.substr(start.ch), true);
 
         // No longer have a match
         if (!matches) {
@@ -148,12 +148,12 @@ define(function (require, exports, module) {
     };
         
     /**
-     * When the bezier curve editor's selected bezierCurve changes, update text in code editor
-     * @param {!string} bezierCurveString
+     * When the timing function editor's selected timingFunction changes, update text in code editor
+     * @param {!string} timingFunctionString
      */
-    InlineBezierCurveEditor.prototype._handleBezierCurveChange = function (bezierCurveString) {
-        var bezierCurveMatch = BezierCurveUtils.cubicBezierMatch(bezierCurveString, true);
-        if (bezierCurveMatch !== this._bezierCurve) {
+    InlineTimingFunctionEditor.prototype._handleTimingFunctionChange = function (timingFunctionString) {
+        var timingFunctionMatch = TimingFunctionUtils.bezierCurveMatch(timingFunctionString, true);
+        if (timingFunctionMatch !== this._timingFunction) {
             var range = this.getCurrentRange();
             if (!range) {
                 return;
@@ -161,17 +161,17 @@ define(function (require, exports, module) {
 
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
-                // Replace old bezierCurve in code with the editor's bezier curve, and select it
+                // Replace old timingFunction in code with the editor's timing function, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(bezierCurveString, range.start, range.end, this._origin);
+                this.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, this._origin);
                 this._isOwnChange = false;
                 this.hostEditor.setSelection(range.start, {
                     line: range.start.line,
-                    ch: range.start.ch + bezierCurveString.length
+                    ch: range.start.ch + timingFunctionString.length
                 });
             }
             
-            this._bezierCurve = bezierCurveMatch;
+            this._timingFunction = timingFunctionMatch;
         }
     };
     
@@ -179,38 +179,38 @@ define(function (require, exports, module) {
      * @override
      * @param {!Editor} hostEditor
      */
-    InlineBezierCurveEditor.prototype.load = function (hostEditor) {
-        InlineBezierCurveEditor.prototype.parentClass.load.apply(this, arguments);
+    InlineTimingFunctionEditor.prototype.load = function (hostEditor) {
+        InlineTimingFunctionEditor.prototype.parentClass.load.apply(this, arguments);
         
-        // Create bezier curve editor control
+        // Create timing function editor control
         var swatchInfo = null;
-        this.bezierCurveEditor = new BezierCurveEditor(this.$htmlContent, this._bezierCurve, this._handleBezierCurveChange, swatchInfo);
+        this.timingFunctionEditor = new TimingFunctionEditor(this.$htmlContent, this._timingFunction, this._handleTimingFunctionChange, swatchInfo);
     };
 
     /**
      * @override
      * Perform sizing & focus once we've been added to Editor's DOM
      */
-    InlineBezierCurveEditor.prototype.onAdded = function () {
-        InlineBezierCurveEditor.prototype.parentClass.onAdded.apply(this, arguments);
+    InlineTimingFunctionEditor.prototype.onAdded = function () {
+        InlineTimingFunctionEditor.prototype.parentClass.onAdded.apply(this, arguments);
         
         var doc = this.hostEditor.document;
         doc.addRef();
         $(doc).on("change", this._handleHostDocumentChange);
         
-        this.hostEditor.setInlineWidgetHeight(this, this.bezierCurveEditor.getRootElement().outerHeight(), true);
+        this.hostEditor.setInlineWidgetHeight(this, this.timingFunctionEditor.getRootElement().outerHeight(), true);
         
-        this.bezierCurveEditor.focus();
+        this.timingFunctionEditor.focus();
     };
     
     /**
      * @override
      * Called whenever the inline widget is closed, whether automatically or explicitly
      */
-    InlineBezierCurveEditor.prototype.onClosed = function () {
-        InlineBezierCurveEditor.prototype.parentClass.onClosed.apply(this, arguments);
+    InlineTimingFunctionEditor.prototype.onClosed = function () {
+        InlineTimingFunctionEditor.prototype.parentClass.onClosed.apply(this, arguments);
 
-        this.bezierCurveEditor.destroy();
+        this.timingFunctionEditor.destroy();
 
         if (this._startBookmark) {
             this._startBookmark.clear();
@@ -225,21 +225,21 @@ define(function (require, exports, module) {
     };
 
     /**
-     * When text in the code editor changes, update bezier curve editor to reflect it
+     * When text in the code editor changes, update timing function editor to reflect it
      */
-    InlineBezierCurveEditor.prototype._handleHostDocumentChange = function () {
-        // Don't push the change into the bezierCurve editor if it came from the bezierCurve editor.
+    InlineTimingFunctionEditor.prototype._handleHostDocumentChange = function () {
+        // Don't push the change into the timingFunction editor if it came from the timingFunction editor.
         if (this._isOwnChange) {
             return;
         }
         
         var range = this.getCurrentRange();
         if (range) {
-            if (range.match !== this._bezierCurve) {
+            if (range.match !== this._timingFunction) {
                 this._isHostChange = true;
                 this._isHostChange = false;
-                this._bezierCurve = range.match;
-                this.bezierCurveEditor.handleExternalUpdate(range.match);
+                this._timingFunction = range.match;
+                this.timingFunctionEditor.handleExternalUpdate(range.match);
             }
         } else {
             // The edit caused our range to become invalid. Close the editor.
@@ -247,5 +247,5 @@ define(function (require, exports, module) {
         }
     };
 
-    exports.InlineBezierCurveEditor = InlineBezierCurveEditor;
+    exports.InlineTimingFunctionEditor = InlineTimingFunctionEditor;
 });

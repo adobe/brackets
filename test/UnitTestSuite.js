@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("spec/JSUtils-test");
     require("spec/Document-test");
     require("spec/DocumentCommandHandlers-test");
+    require("spec/DocumentManager-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
     require("spec/EditorOptionHandlers-test");
@@ -65,6 +66,7 @@ define(function (require, exports, module) {
     require("spec/QuickOpen-test");
     require("spec/RemoteFunctions-test");
     require("spec/StringMatch-test");
+    require("spec/StringUtils-test");
     require("spec/TextRange-test");
     require("spec/UpdateNotification-test");
     require("spec/ViewCommandHandlers-test");

@@ -193,8 +193,8 @@ define(function (require, exports, module) {
     var queryDialog = Strings.CMD_FIND +
             ": <input type='text' style='width: 10em'/>" +
             "<div class='navigator'>" +
-                "<button id='find-prev' class='btn' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
-                "<button id='find-next' class='btn' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
+                "<button id='find-prev' class='btn no-focus' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
+                "<button id='find-next' class='btn no-focus' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
             "</div>" +
             "<div class='message'>" +
                 "<span id='find-counter'></span> " +
@@ -468,7 +468,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/, replaceFunction);
+                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/g, replaceFunction);
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -508,7 +508,7 @@ define(function (require, exports, module) {
             '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL +
             '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
 
-    function replace(editor, all) {
+    function replace(editor) {
         var cm = editor._codeMirror;
         createModalBar(replaceQueryDialog, true);
         $(modalBar).on("commit", function (e, query) {
@@ -524,62 +524,44 @@ define(function (require, exports, module) {
             createModalBar(replacementQueryDialog, true, false);
             $(modalBar).on("commit", function (e, text) {
                 text = text || "";
-                var match,
-                    fnMatch = function (w, i) { return match[i]; };
-                if (all) {
-                    cm.compoundChange(function () {
-                        cm.operation(function () {
-                            var cursor = getSearchCursor(cm, query);
-                            while (cursor.findNext()) {
-                                if (typeof query !== "string") {
-                                    match = cm.getRange(cursor.from(), cursor.to()).match(query);
-                                    cursor.replace(text.replace(/\$(\d)/, fnMatch));
-                                } else {
-                                    cursor.replace(text);
-                                }
-                            }
-                        });
-                    });
-                } else {
-                    clearSearch(cm);
-                    var cursor = getSearchCursor(cm, query, cm.getCursor(true));
-                    var advance = function () {
-                        var start = cursor.from(),
-                            match = cursor.findNext();
-                        if (!match) {
-                            cursor = getSearchCursor(cm, query);
-                            match = cursor.findNext();
-                            if (!match ||
-                                    (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
-                                // No more matches, so destroy modalBar
-                                modalBar = null;
-                                return;
-                            }
+                clearSearch(cm);
+                var cursor = getSearchCursor(cm, query, cm.getCursor(true));
+                var advance = function () {
+                    var start = cursor.from(),
+                        match = cursor.findNext();
+                    if (!match) {
+                        cursor = getSearchCursor(cm, query);
+                        match = cursor.findNext();
+                        if (!match ||
+                                (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
+                            // No more matches, so destroy modalBar
+                            modalBar = null;
+                            return;
                         }
-                        editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
-                        createModalBar(doReplaceConfirm, true, false);
-                        modalBar.getRoot().on("click", function (e) {
-                            var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
-                            modalBar.close(true, animate);
-                            if (e.target.id === "replace-yes") {
-                                doReplace(match);
-                            } else if (e.target.id === "replace-no") {
-                                advance();
-                            } else if (e.target.id === "replace-all") {
-                                _showReplaceAllPanel(editor, query, text, fnMatch);
-                            } else if (e.target.id === "replace-stop") {
-                                // Destroy modalBar on stop
-                                modalBar = null;
-                            }
-                        });
-                    };
-                    var doReplace = function (match) {
-                        cursor.replace(typeof query === "string" ? text :
-                                            text.replace(/\$(\d)/, fnMatch));
-                        advance();
-                    };
+                    }
+                    editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
+                    createModalBar(doReplaceConfirm, true, false);
+                    modalBar.getRoot().on("click", function (e) {
+                        var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
+                        modalBar.close(true, animate);
+                        if (e.target.id === "replace-yes") {
+                            doReplace(match);
+                        } else if (e.target.id === "replace-no") {
+                            advance();
+                        } else if (e.target.id === "replace-all") {
+                            _showReplaceAllPanel(editor, query, text, function (w, i) { return match[i]; });
+                        } else if (e.target.id === "replace-stop") {
+                            // Destroy modalBar on stop
+                            modalBar = null;
+                        }
+                    });
+                };
+                var doReplace = function (match) {
+                    cursor.replace(typeof query === "string" ? text :
+                                        text.replace(/\$(\d)/g, function (w, i) { return match[i]; }));
                     advance();
-                }
+                };
+                advance();
             });
         });
 

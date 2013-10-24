@@ -1252,18 +1252,20 @@ define(function (require, exports, module) {
      * 
      * In the given rule array (as returned by `findMatchingRules()`), if multiple rules in a row 
      * refer to the same rule (because there were multiple matching selectors), eliminate the redundant 
-     * rules and use the selectorGroup as the name instead of the original selector.
+     * rules. Also, always use the selector group if available instead of the original matching selector.
      */
     function consolidateRules(rules) {
         var newRules = [], lastRule;
         rules.forEach(function (rule) {
-            if (lastRule &&
-                    rule.document === lastRule.document &&
-                    rule.lineStart === lastRule.lineStart &&
-                    rule.lineEnd === lastRule.lineEnd &&
-                    rule.selectorGroup === lastRule.selectorGroup) {
-                lastRule.name = lastRule.selectorGroup;
-            } else {
+            if (rule.selectorGroup) {
+                rule.name = rule.selectorGroup;
+            }
+            // Push the entry unless it refers to the same rule as the previous entry.
+            if (!(lastRule &&
+                     rule.document === lastRule.document &&
+                     rule.lineStart === lastRule.lineStart &&
+                     rule.lineEnd === lastRule.lineEnd &&
+                     rule.selectorGroup === lastRule.selectorGroup)) {
                 newRules.push(rule);
             }
             lastRule = rule;

@@ -509,6 +509,9 @@ define(function (require, exports, module) {
                     expect(inlineEditor.document.isDirty).toBeTruthy();
                     expect(hostEditor.document.isDirty).toBeFalsy();
                     
+                    // verify that the dirty dot is visible in the UI
+                    expect(testWindow.$(".dirty-indicator", hostEditor.getInlineWidgets()[0].$htmlContent).width()).not.toEqual(0);
+                    
                     // verify focus is in inline editor
                     expect(inlineEditor.hasFocus()).toBeTruthy();
                     
@@ -537,6 +540,9 @@ define(function (require, exports, module) {
                     expect(inlineEditor.document.isDirty).toBeFalsy();
                     expect(hostEditor.document.isDirty).toBeFalsy();
 
+                    // verify that the dirty dot is hidden in the UI
+                    expect(testWindow.$(".dirty-indicator", hostEditor.getInlineWidgets()[0].$htmlContent).width()).toEqual(0);
+                    
                     inlineEditor = hostEditor = null;
                 });
             });

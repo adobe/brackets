@@ -242,7 +242,7 @@ define(function (require, exports, module) {
         }
 
         var testPath = ProjectManager.makeProjectRelativeIfPossible(path);
-        testPath = FileUtils.canonicalizeFolderPath(testPath);
+        testPath = FileUtils.stripTrailingSlash(testPath);
 
         return excludes.test(testPath);
     }
@@ -1040,7 +1040,7 @@ define(function (require, exports, module) {
                     }
                 }
     
-                dir = FileUtils.canonicalizeFolderPath(dir);
+                dir = FileUtils.stripTrailingSlash(dir);
                 forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback);
             }
     
