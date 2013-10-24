@@ -361,7 +361,9 @@ define(function (require, exports, module) {
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+            if (doc) {
+                DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+            }
         });
     }
 
