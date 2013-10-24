@@ -457,7 +457,7 @@ define(function (require, exports, module) {
                  *     expected: The expected array of values for _cubicBezierCoords.
                  */
                 function testKey(opts) {
-                    makeUI(opts.curve);
+                    makeUI(opts.curve, opts.callback);
                     var $item = $(timingFunctionEditor[opts.item]);
                     $item.focus();
                     $item.trigger(makeKeyEvent(opts));
@@ -519,14 +519,14 @@ define(function (require, exports, module) {
                     });
                 });
                 it("should call callback function after edit", function () {
+                    var calledBack = false;
+                    
+                    var _callback = function (timingFunctionString) {
+                        calledBack = true;
+                        expect(timingFunctionString).toBe("cubic-bezier(.42, .1, .58, 1)");
+                    };
+                        
                     runs(function () {
-                        var calledBack = false;
-                        
-                        function _callback(timingFunctionString) {
-                            calledBack = true;
-                            expect(timingFunctionString).toBe("cubic-bezier(.42, .1, .58, 1");
-                        }
-                        
                         testKey({
                             curve:     "cubic-bezier(.42, 0, .58 ,1)",
                             item:      "P1",
@@ -536,7 +536,12 @@ define(function (require, exports, module) {
                             callback:  _callback
                         });
                     });
+                    
+                    runs(function () {
+                        expect(calledBack).toBeTruthy();
+                    });
                 });
+                
             });
         });
     });
