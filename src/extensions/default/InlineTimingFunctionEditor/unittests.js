@@ -96,24 +96,6 @@ define(function (require, exports, module) {
             });
         }
         
-        /**
-         * Simulate the given event with clientX/clientY specified by the given
-         * ratios of the item's actual width/height (offset by the left/top of the
-         * item).
-         * @param {string} event The name of the event to simulate.
-         * @param {object} $item A jQuery object to trigger the event on.
-         * @param {Array.<number>} ratios Numbers between 0 and 1 indicating the x and y positions of the
-         *      event relative to the item's width and height.
-         */
-/*
-        function eventAtRatio(event, $item, ratios) {
-            $item.trigger($.Event(event, {
-                clientX: $item.offset().left + (ratios[0] * $item.width()),
-                clientY: $item.offset().top + (ratios[1] * $item.height())
-            }));
-        }
-*/
-                
         describe("TimingFunctionUtils", function () {
             var match;
             
@@ -442,68 +424,111 @@ define(function (require, exports, module) {
             describe("Editing with Mouse", function () {
                 
                 /**
-                 * Test a mouse down event on the given UI element.
+                 * Translate from a bezier-curve point (1.0 x 1.0 grid)
+                 *           to a canvas element point (150px x 150px grid).
+                 * @param  {Array} bezierPoint The bezier point [x, y].
+                 * @return {Array} canvas element point in [x, y]
+                 */
+                function translatePointFromBezierToCanvas(bezierPoint) {
+                    return [
+                        Math.round(bezierPoint[0] * 150),
+                        Math.round(((1 - bezierPoint[1]) * 150) + 75)
+                    ];
+                }
+                /**
+                 * Simulate the given event with clientX/clientY specified by the given
+                 * offsets by the left/top of the item.
+                 * @param {string} event The name of the event to simulate.
+                 * @param {object} $item A jQuery object to trigger the event on.
+                 * @param {Array.<number>} offsets Numbers the x and y positions of the
+                 *      event relative to the item's top and left.
+                 */
+                function eventAtOffset(event, $item, offsets) {
+                    $item.trigger($.Event(event, {
+                        pageX: $item.offset().left + offsets[0],
+                        pageY: $item.offset().top  + offsets[1],
+                        which: 1
+                    }));
+                }
+                
+                /**
+                 * Test a mouse down event on the given UI element in a cubic-bezier function.
                  * @param {object} opts The parameters to test:
                  *     item: The (string) name of the member of TimingFunctionEditor that references the element to test.
-                 *     clickAt: An [x, y] array specifying the simulated x/y mouse position as a fraction of the
-                 *          item's width/height. For example, [0.5, 0.5] would specify a click exactly in the
-                 *          center of the element.
-                 *     param: The (string) parameter whose value we're testing (h, s, v, or a).
-                 *     expected: The expected value for the parameter.
-                 *     tolerance: The tolerance in variation for the expected value.
+                 *     clickAt: An [x, y] array specifying the simulated x/y mouse position as an offset of the
+                 *          item's width/height.
+                 *     expected: The expected array of values for _cubicBezierCoords.
                  */
-/*
-                function testMousedown(opts) {
-                    makeUI("#0000ff");
-                    eventAtRatio("mousedown", timingFunctionEditor[opts.item], opts.clickAt);
-                    timingFunctionEditor[opts.item].trigger("mouseup");  // clean up drag state
+                function testCubicBezierClick(opts) {
+                    makeUI("cubic-bezier(.42, 0, .58 ,1)", false);
+                    var $item = $(timingFunctionEditor[opts.item]);
+                    eventAtOffset("click", $item, opts.clickAt);
+                    
+                    expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(opts.expected[0]);
+                    expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(opts.expected[1]);
+                    expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(opts.expected[2]);
+                    expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(opts.expected[3]);
                 }
-*/
 
                 /**
                  * Test a drag event on the given UI element.
                  * @param {object} opts The parameters to test:
-                 *     item: The (string) name of the member of TimingFunctionEditor that references the element to test.
-                 *     clickAt: An [x, y] array specifying the simulated x/y mouse position for the initial mouse down
-                 *          as a fraction of the item's width/height. For example, [0.5, 0.5] would specify a click 
-                 *          exactly in the center of the element.
+                 *     downItem: The (string) name of the member of TimingFunctionEditor
+                 *          that references the element to mousedown on to drag.
+                 *     clickAt: An [x, y] array specifying the simulated x/y mouse position as an offset of the
+                 *          item's width/height.
+                 *     dragItem: The (string) name of the member of TimingFunctionEditor
+                 *          that references the element to drag item to.
                  *     dragTo: An [x, y] array specifying the location to drag to, using the same convention as clickAt.
-                 *     param: The (string) parameter whose value we're testing (h, s, v, or a).
-                 *     expected: The expected value for the parameter.
-                 *     tolerance: The tolerance in variation for the expected value.
+                 *     expected: The expected array of values for _cubicBezierCoords.
                  */
-/*
-                function testDrag(opts) {
-                    makeUI("#0000ff");
-                    eventAtRatio("mousedown", timingFunctionEditor[opts.item], opts.clickAt);
-                    eventAtRatio("mousemove", timingFunctionEditor[opts.item], opts.dragTo);
-                    timingFunctionEditor[opts.item].trigger("mouseup");  // clean up drag state
+                function testCubicBezierDrag(opts) {
+                    makeUI("cubic-bezier(.42, 0, .58 ,1)", false);
+                    var $downItem = $(timingFunctionEditor[opts.downItem]),
+                        $dragItem = $(timingFunctionEditor[opts.dragItem]);
+                    
+                    eventAtOffset("mousedown", $downItem, opts.clickAt);
+                    eventAtOffset("mousemove", $dragItem, opts.dragTo);
+                    $downItem.trigger("mouseup");
+                    
+                    expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(opts.expected[0]);
+                    expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(opts.expected[1]);
+                    expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(opts.expected[2]);
+                    expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(opts.expected[3]);
                 }
-*/
                 
-/*
-                it("should set saturation on mousedown", function () {
-                    testMousedown({
-                        item:      "$selection",
-                        clickAt:   [0.25, 0], // x: saturation, y: 1.0 - value
-                        param:     "s",
-                        expected:  0.25,
-                        tolerance: 0.1
+                it("should move point P1 on mousedown in curve", function () {
+                    testCubicBezierClick({
+                        item:      "curve",
+                        clickAt:   translatePointFromBezierToCanvas([0.5, 0.1]),
+                        expected:  [".5", ".1", ".58", "1"]
                     });
                 });
-*/
-/*
-                it("should set saturation on drag", function () {
-                    testDrag({
-                        item:      "$selection",
-                        clickAt:   [0.25, 0], // x: saturation, y: 1.0 - value
-                        dragTo:    [0.75, 0],
-                        param:     "s",
-                        expected:  0.75,
-                        tolerance: 0.1
+                it("should move point P2 on mousedown in curve", function () {
+                    testCubicBezierClick({
+                        item:      "curve",
+                        clickAt:   translatePointFromBezierToCanvas([0.6, 1.2]),
+                        expected:  [".42", "0", ".6", "1.2"]
                     });
                 });
-*/
+                it("should move point P1 on drag", function () {
+                    testCubicBezierDrag({
+                        downItem:  "P1",        // mouse down on this element
+                        clickAt:   [5, 5],
+                        dragItem:  "curve",     // drag over this element
+                        dragTo:    translatePointFromBezierToCanvas([0.6, -0.1]),
+                        expected:  [".6", "-0.1", ".58", "1"]
+                    });
+                });
+                it("should move point P2 on drag", function () {
+                    testCubicBezierDrag({
+                        downItem:  "P2",        // mouse down on this element
+                        clickAt:   [5, 5],
+                        dragItem:  "curve",     // drag over this element
+                        dragTo:    translatePointFromBezierToCanvas([0.8, 0.9]),
+                        expected:  [".42", "0", ".8", ".9"]
+                    });
+                });
             });
             
             describe("Editing with Keyboard", function () {
@@ -540,7 +565,7 @@ define(function (require, exports, module) {
                     makeUI(opts.timingFunction || "hsla(50, 25%, 50%, 0.5)");
 
                     var before = getParam();
-                    timingFunctionEditor[opts.item].trigger(makeKeyEvent(opts));
+                    $(timingFunctionEditor[opts.item]).trigger(makeKeyEvent(opts));
                 }
 */
                 
@@ -563,7 +588,7 @@ define(function (require, exports, module) {
                     // when the text field has focus.
                     makeUI(opts.timingFunction || "hsla(50, 25%, 50%, 0.5)", null, false);
                     
-                    $item = timingFunctionEditor[opts.item];
+                    $item = $(timingFunctionEditor[opts.item]);
                     $item.focus();
                     if (opts.selection) {
                         $item[0].setSelectionRange(opts.selection[0], opts.selection[1]);
@@ -593,6 +618,22 @@ define(function (require, exports, module) {
                         item:      "$hueBase",
                         key:       KeyEvent.DOM_VK_RIGHT,
                         expected:  true
+                    });
+                });
+*/
+            });
+            
+            describe("Callback after Edit", function () {
+            
+/*
+                it("should call callback function after edit", function () {
+                    runs(function () {
+                        makeUI("cubic-bezier(.2, .3, .4, .5)");
+                        expect(timingFunctionEditor).toBeTruthy();
+                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(".2");
+                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(".3");
+                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(".4");
+                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(".5");
                     });
                 });
 */
