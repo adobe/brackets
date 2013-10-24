@@ -446,7 +446,7 @@ define(function (require, exports, module) {
             var $this = $(e.target),
                 left = parseInt($this.css("left"), 10),
                 top  = parseInt($this.css("top"), 10),
-                offset = (e.shiftKey ? 20 : 2),
+                offset = (e.shiftKey ? 15 : 3),
                 newVal;
 
             switch (code) {

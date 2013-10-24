@@ -25,32 +25,12 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, KeyEvent */
 
-/*******************************
-
-
-Search/Replace
-- rgb
-- hsl, hsv
-
-
-Tests
-- select correct range from IP
-- editor updates when doc updated
-- doc updates when edit made
-
-
-*******************************/
-
-
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
     var SpecRunnerUtils         = brackets.getModule("spec/SpecRunnerUtils"),
-//        Editor                  = brackets.getModule("editor/Editor").Editor,
-//        DocumentManager         = brackets.getModule("document/DocumentManager"),
-//        Strings                 = brackets.getModule("strings"),
-//        KeyEvent                = brackets.getModule("utils/KeyEvent"),
+        KeyEvent                = brackets.getModule("utils/KeyEvent"),
         testContentCSS          = require("text!unittest-files/unittests.css"),
         provider                = require("main").inlineTimingFunctionEditorProvider,
         TimingFunctionUtils     = require("TimingFunctionUtils"),
@@ -79,7 +59,7 @@ define(function (require, exports, module) {
                 }
             });
         }
-            
+        
         /**
          * Expects an inline editor to be opened at the given cursor position and to have the
          * given initial timing function (which should match the timing function at that position).
@@ -321,17 +301,16 @@ define(function (require, exports, module) {
              *     in the TimingFunctionEditor.
              * @param {?function} callback An optional callback to be passed as the TimingFunctionEditor's
              *     callback. If none is supplied, a dummy function is passed.
-             * @param {boolean=} hide Whether to hide the TimingFunctionEditor; default is true.
              */
-            function makeUI(initialTimingFunction, callback, hide) {
+            function makeUI(initialTimingFunction, callback) {
                 timingFunctionEditor = new TimingFunctionEditor(
                     $(document.body),
                     TimingFunctionUtils.bezierCurveMatch(initialTimingFunction, true),
                     callback || function () { }
                 );
-                if (hide !== false) {
-                    timingFunctionEditor.getRootElement().css("display", "none");
-                }
+                
+                // Hide it
+                timingFunctionEditor.getRootElement().css("display", "none");
             }
                         
             afterEach(function () {
@@ -454,13 +433,14 @@ define(function (require, exports, module) {
                 /**
                  * Test a mouse down event on the given UI element in a cubic-bezier function.
                  * @param {object} opts The parameters to test:
-                 *     item: The (string) name of the member of TimingFunctionEditor that references the element to test.
-                 *     clickAt: An [x, y] array specifying the simulated x/y mouse position as an offset of the
-                 *          item's width/height.
+                 *     item: The (string) name of the member of TimingFunctionEditor that
+                 *          references the element to test.
+                 *     clickAt: An [x, y] array specifying the simulated x/y mouse position as
+                 *          an offset of the item's width/height.
                  *     expected: The expected array of values for _cubicBezierCoords.
                  */
                 function testCubicBezierClick(opts) {
-                    makeUI("cubic-bezier(.42, 0, .58 ,1)", false);
+                    makeUI("cubic-bezier(.42, 0, .58 ,1)");
                     var $item = $(timingFunctionEditor[opts.item]);
                     eventAtOffset("click", $item, opts.clickAt);
                     
@@ -483,7 +463,7 @@ define(function (require, exports, module) {
                  *     expected: The expected array of values for _cubicBezierCoords.
                  */
                 function testCubicBezierDrag(opts) {
-                    makeUI("cubic-bezier(.42, 0, .58 ,1)", false);
+                    makeUI("cubic-bezier(.42, 0, .58 ,1)");
                     var $downItem = $(timingFunctionEditor[opts.downItem]),
                         $dragItem = $(timingFunctionEditor[opts.dragItem]);
                     
@@ -529,114 +509,119 @@ define(function (require, exports, module) {
                         expected:  [".42", "0", ".8", ".9"]
                     });
                 });
+                it("should not move point P2 x-value out-of-range on drag", function () {
+                    testCubicBezierDrag({
+                        downItem:  "P2",        // mouse down on this element
+                        clickAt:   [5, 5],
+                        dragItem:  "curve",     // drag over this element
+                        dragTo:    translatePointFromBezierToCanvas([1.1, 1]),
+                        expected:  [".42", "0", "1", "1"]
+                    });
+                });
             });
             
             describe("Editing with Keyboard", function () {
                 
-/*
                 function makeKeyEvent(opts) {
                     return $.Event("keydown", { keyCode: opts.key, shiftKey: !!opts.shift });
                 }
-*/
 
                 /**
                  * Test a key event on the given UI element.
                  * @param {object} opts The parameters to test:
-                 *     timingFunction: An optional initial value to set in the TimingFunctionEditor. Defaults to "hsla(50, 25%, 50%, 0.5)".
-                 *     item: The (string) name of the member of TimingFunctionEditor that references the element to test.
+                 *     curve: The initial cubic-bezier curve
+                 *     item: The (string) name of the member of TimingFunctionEditor
+                 *          that references the element to test.
                  *     key: The KeyEvent key code to simulate.
-                 *     shift: Optional boolean specifying whether to simulate the shift key being down (default false).
-                 *     param: The (string) parameter whose value we're testing (h, s, v, or a).
-                 *     delta: The expected change in value for the parameter.
-                 *     tolerance: The tolerance in variation for the expected value.
+                 *     shift: Optional boolean specifying whether to simulate the shift
+                 *          key being down (default false).
+                 *     expected: The expected array of values for _cubicBezierCoords.
                  */
-/*
                 function testKey(opts) {
-                    
-                    function getParam() {
-                        var result = timingFunctionEditor._hsv[opts.param];
-                        // Because of #2201, this is sometimes a string with a percentage value.
-                        if (typeof result === "string" && result.charAt(result.length - 1) === "%") {
-                            result = Number(result.substr(0, result.length - 1));
-                        }
-                        return result;
-                    }
-                    
-                    makeUI(opts.timingFunction || "hsla(50, 25%, 50%, 0.5)");
-
-                    var before = getParam();
-                    $(timingFunctionEditor[opts.item]).trigger(makeKeyEvent(opts));
-                }
-*/
-                
-                /**
-                 * Test whether the given event's default is or isn't prevented on a given key.
-                 * @param {object} opts The parameters to test:
-                 *     timingFunction: An optional initial value to set in the TimingFunctionEditor. Defaults to "hsla(50, 25%, 50%, 0.5)".
-                 *     item: The (string) name of the member of TimingFunctionEditor that references the element to test.
-                 *     selection: An optional array ([start, end]) specifying the selection to set in the given element.
-                 *     key: The KeyEvent key code to simulate.
-                 *     shift: Optional boolean specifying whether to simulate the shift key being down (default false).
-                 *     expected: Whether the default is expected to be prevented.
-                 */
-/*
-                function testPreventDefault(opts) {
-                    var event, $item;
-                    
-                    // The timing function editor needs to be displayed for this test; otherwise the
-                    // selection won't be properly set, because you can only set the selection
-                    // when the text field has focus.
-                    makeUI(opts.timingFunction || "hsla(50, 25%, 50%, 0.5)", null, false);
-                    
-                    $item = $(timingFunctionEditor[opts.item]);
+                    makeUI(opts.curve);
+                    var $item = $(timingFunctionEditor[opts.item]);
                     $item.focus();
-                    if (opts.selection) {
-                        $item[0].setSelectionRange(opts.selection[0], opts.selection[1]);
-                    }
+                    $item.trigger(makeKeyEvent(opts));
                     
-                    event = makeKeyEvent(opts);
-                    $item.trigger(event);
-                    expect(event.isDefaultPrevented()).toBe(opts.expected);
+                    expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(opts.expected[0]);
+                    expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(opts.expected[1]);
+                    expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(opts.expected[2]);
+                    expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(opts.expected[3]);
                 }
-*/
                 
-/*
-                it("should increase saturation by 1.5% on right arrow", function () {
+                it("should increase P1 x-value by .02 on right arrow", function () {
                     testKey({
-                        item:      "$selectionBase",
+                        curve:     "cubic-bezier(.42, 0, .58 ,1)",
+                        item:      "P1",
                         key:       KeyEvent.DOM_VK_RIGHT,
-                        param:     "s",
-                        delta:     0.015,
-                        tolerance: 0.01
+                        shift:     false,
+                        expected:  [".44", "0", ".58", "1"]
                     });
                 });
-*/
-/*
-                it("should prevent default on the key event for an unhandled arrow key on non-text-field", function () {
-                    testPreventDefault({
-                        timingFunction:     "#8e8247",
-                        item:      "$hueBase",
-                        key:       KeyEvent.DOM_VK_RIGHT,
-                        expected:  true
+                it("should increase P1 y-value by .1 on shift up arrow", function () {
+                    testKey({
+                        curve:     "cubic-bezier(.42, 0, .58 ,1)",
+                        item:      "P1",
+                        key:       KeyEvent.DOM_VK_UP,
+                        shift:     true,
+                        expected:  [".42", ".1", ".58", "1"]
                     });
                 });
-*/
-            });
-            
-            describe("Callback after Edit", function () {
-            
-/*
+                it("should decrease P2 x-value by .02 on left arrow", function () {
+                    testKey({
+                        curve:     "cubic-bezier(.42, 0, .58 ,1)",
+                        item:      "P2",
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        shift:     false,
+                        expected:  [".42", "0", ".56", "1"]
+                    });
+                });
+                it("should decrease P2 y-value by .1 on shift down arrow", function () {
+                    testKey({
+                        curve:     "cubic-bezier(.42, 0, .58 ,1)",
+                        item:      "P2",
+                        key:       KeyEvent.DOM_VK_DOWN,
+                        shift:     true,
+                        expected:  [".42", "0", ".58", ".9"]
+                    });
+                });
+                it("should not decrease P1 x-value below 0 on left arrow", function () {
+                    testKey({
+                        curve:     "cubic-bezier(0, 0, 1 ,1)",
+                        item:      "P1",
+                        key:       KeyEvent.DOM_VK_LEFT,
+                        shift:     false,
+                        expected:  ["0", "0", "1", "1"]
+                    });
+                });
+                it("should not increase P2 x-value above 0 on shift right arrow", function () {
+                    testKey({
+                        curve:     "cubic-bezier(0, 0, 1 ,1)",
+                        item:      "P2",
+                        key:       KeyEvent.DOM_VK_RIGHT,
+                        shift:     true,
+                        expected:  ["0", "0", "1", "1"]
+                    });
+                });
                 it("should call callback function after edit", function () {
                     runs(function () {
-                        makeUI("cubic-bezier(.2, .3, .4, .5)");
-                        expect(timingFunctionEditor).toBeTruthy();
-                        expect(timingFunctionEditor._cubicBezierCoords[0]).toBe(".2");
-                        expect(timingFunctionEditor._cubicBezierCoords[1]).toBe(".3");
-                        expect(timingFunctionEditor._cubicBezierCoords[2]).toBe(".4");
-                        expect(timingFunctionEditor._cubicBezierCoords[3]).toBe(".5");
+                        var calledBack = false;
+                        
+                        function _callback(timingFunctionString) {
+                            calledBack = true;
+                            expect(timingFunctionString).toBe("cubic-bezier(.42, .1, .58, 1");
+                        }
+                        
+                        testKey({
+                            curve:     "cubic-bezier(.42, 0, .58 ,1)",
+                            item:      "P1",
+                            key:       KeyEvent.DOM_VK_UP,
+                            shift:     true,
+                            expected:  [".42", ".1", ".58", "1"],
+                            callback:  _callback
+                        });
                     });
                 });
-*/
             });
         });
     });
