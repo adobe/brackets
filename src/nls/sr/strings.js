@@ -455,9 +455,9 @@ define({
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Тренутна боја",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Оригинална боја",
-    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "РГБа (RGBa) формат",
-    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Хекс (Hex) формат",
-    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "ХСЛа (HSLa) формат",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa формат",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex формат",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa формат",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Коришћена {1} пут)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Коришћена {1} пута)",
     
