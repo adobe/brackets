@@ -1548,8 +1548,11 @@ define(function (require, exports, module) {
             
             // Notify that one of the project files has changed
             $(exports).triggerHandler("projectFilesChange");
-            
-            DocumentManager.notifyPathDeleted(entry.fullPath);
+            if (DocumentManager.getCurrentDocument()) {
+                DocumentManager.notifyPathDeleted(entry.fullPath);
+            }else {
+                EditorManager.notifyPathDeleted(entry.fullPath);
+            }
 
             _redraw(true);
             result.resolve();

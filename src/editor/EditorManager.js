@@ -584,10 +584,8 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor) {
-            $("#not-editor").css("display", "");
-            _nullifyEditor();
-        }
+        $("#not-editor").css("display", "");
+        _nullifyEditor();
     }
     
     function getCurrentlyViewedPath() {
@@ -657,6 +655,20 @@ define(function (require, exports, module) {
         }
         
         return null;
+    }
+    
+    /** Clears custom viewer for a file with a given path and displays 
+     * either a file from the working set or the no editor view.
+     * @param {!string} fullPath - file path of deleted file.
+     */
+    function notifyPathDeleted(fullPath) {
+        var fileToOpen = DocumentManager.getNextPrevFile(1);
+        if (fileToOpen) {
+            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});    
+        } else if (_currentlyViewedPath === fullPath) {
+            _removeCustomViewer();
+            _showNoEditor();
+        }
     }
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -929,4 +941,5 @@ define(function (require, exports, module) {
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
+    exports.notifyPathDeleted             = notifyPathDeleted;
 });
