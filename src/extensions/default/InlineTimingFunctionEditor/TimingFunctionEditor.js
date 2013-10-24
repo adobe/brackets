@@ -611,20 +611,20 @@ define(function (require, exports, module) {
             // handle special cases of cubic-bezier calls
             switch (match[0]) {
             case "linear":
-                return [ 0, 0, 1, 1 ];
+                return [ "0", "0", "1", "1" ];
             case "ease":
-                return [ 0.25, 0.1, 0.25, 1 ];
+                return [ "0.25", "0.1", "0.25", "1" ];
             case "ease-in":
-                return [ 0.42, 0, 1, 1 ];
+                return [ "0.42", "0", "1", "1" ];
             case "ease-out":
-                return [ 0, 0, 0.58, 1 ];
+                return [ "0", "0", "0.58", "1" ];
             case "ease-in-out":
-                return [ 0.42, 0, 0.58, 1 ];
+                return [ "0.42", "0", "0.58", "1" ];
             }
         }
 
         window.console.log("brackets-cubic-bezier: getCubicBezierCoords() passed invalid RegExp match array");
-        return [ 0, 0, 0, 0 ];
+        return [ "0", "0", "0", "0" ];
     };
 
     /**
