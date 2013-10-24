@@ -803,8 +803,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            // TODO: Figure out why these fail with FileSystem. They pass individually, but fail when all tests are run            
-            xdescribe("Inline Editor range updating", function () {
+            describe("Inline Editor range updating", function () {
                 
                 var fullEditor,
                     hostEditor,
@@ -1173,9 +1172,7 @@ define(function (require, exports, module) {
                     inlineEditor = null;
                 });
 
-                // TODO: FileSystem - figure out why this test fails when running all, but not when
-                // run on its own.
-                xit("should keep range consistent after undo/redo (bug #1031)", function () {
+                it("should keep range consistent after undo/redo (bug #1031)", function () {
                     var secondInlineOpen = false, secondInlineEditor;
                     
                     // open inline editor at specified offset index

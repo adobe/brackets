@@ -69,7 +69,6 @@ define(function (require, exports, module) {
                     if (!err) {
                         result.resolve();
                     } else {
-                        // TODO: fix error code
                         if (err === FileSystemError.NOT_FOUND && silent) {
                             result.resolve();
                         } else {
@@ -286,7 +285,7 @@ define(function (require, exports, module) {
                     chmod(folder, 777).then(deferred.resolve, deferred.reject);
                 })
                 .fail(function (err) {
-                    if (err === FileSystemError.NOT_FOUND) { // TODO: FileSystem
+                    if (err === FileSystemError.NOT_FOUND) {
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {
@@ -480,13 +479,11 @@ define(function (require, exports, module) {
         var $dlg = _testWindow.$(".modal.instance"),
             promise = $dlg.data("promise");
         
-        // TODO: FileSystem - this is causing intermittent failures. Figure out why.
-        //expect($dlg.length).toBe(1);
+        expect($dlg.length).toBe(1);
         
         // Make sure desired button exists
         var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
-        // TODO: FileSystem - this is causing intermittent failures. Figure out why.
-        //expect(dismissButton.length).toBe(1);
+        expect(dismissButton.length).toBe(1);
         
         // Click the button
         dismissButton.click();
