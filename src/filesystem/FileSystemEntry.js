@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     /**
      * Returns the stats for the entry.
      *
-     * @param {function (string, object)} callback Callback with "error" and "stat" 
+     * @param {function (?string, object=)} callback Callback with "error" and "stat" 
      *     parameters.
      */
     FileSystemEntry.prototype.stat = function (callback) {
@@ -141,19 +141,21 @@ define(function (require, exports, module) {
      * Changes the mode of the entry. 
      *
      * @param {number} mode The desired mode of the entry as a number (e.g., 0777)
-     * @param {function (number)} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.chmod = function (mode, callback) {
-        this._impl.chmod(this._path, mode, callback || function () {});
+        callback = callback || function () {};
+        this._impl.chmod(this._path, mode, callback);
     };
     
     /**
      * Rename this entry.
      *
      * @param {string} newFullPath New path & name for this entry.
-     * @param {function (string)} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.rename = function (newFullPath, callback) {
+        callback = callback || function () {};
         this._fileSystem._beginWrite();
         this._impl.rename(this._path, newFullPath, function (err) {
             try {
@@ -171,18 +173,17 @@ define(function (require, exports, module) {
     /**
      * Unlink (delete) this entry.
      *
-     * @param {function (string)} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.unlink = function (callback) {
+        callback = callback || function () {};
         this._stat = null;
         this._impl.unlink(this._path, function (err) {
             if (!err) {
                 this._fileSystem._index.removeEntry(this);
             }
             
-            if (callback) {
-                callback.apply(undefined, arguments);
-            }
+            callback.apply(undefined, arguments);
         }.bind(this));
     };
         
@@ -190,9 +191,10 @@ define(function (require, exports, module) {
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
      *
-     * @param {function (string)} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single "error" parameter.
      */
     FileSystemEntry.prototype.moveToTrash = function (callback) {
+        callback = callback || function () {};
         if (!this._impl.moveToTrash) {
             this.unlink(callback);
             return;
@@ -204,9 +206,7 @@ define(function (require, exports, module) {
                 this._fileSystem._index.removeEntry(this);
             }
             
-            if (callback) {
-                callback.apply(undefined, arguments);
-            }
+            callback.apply(undefined, arguments);
         }.bind(this));
     };
     
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
      * @param {{failFast: boolean=, maxDepth: number=}=} options - An optional set of options.
-     * @param {function(string)} callback Callback with single "error" parameter.
+     * @param {function(?string)=} callback Callback with single "error" parameter.
      */
     FileSystemEntry.prototype.visit = function (visitor, options, callback) {
         var DEFAULT_MAX_DEPTH = 100;
@@ -225,7 +225,11 @@ define(function (require, exports, module) {
         if (typeof options === "function") {
             callback = options;
             options = {};
+        } else if (options === undefined) {
+            options = {};
         }
+        
+        callback = callback || function () {};
 
         var maxDepth = typeof options.maxDepth === "number" ? options.maxDepth : DEFAULT_MAX_DEPTH,
             continueTraversal = visitor(this) && maxDepth-- > 0;

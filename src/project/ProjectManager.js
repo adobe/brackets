@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
+        InMemoryFile        = require("document/InMemoryFile"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
@@ -1588,12 +1589,13 @@ define(function (require, exports, module) {
     
     /**
      * Returns an Array of all files for this project, optionally including
-     * files in the working set that are *not* under the project root.
+     * files in the working set that are *not* under the project root. Files filtered
+     * out by shouldShow() OR isBinaryFile() are excluded.
      *
      * @param {function (File, number):boolean=} filter Optional filter function.
      *          See Array.filter() for details.
      * @param {boolean=} includeWorkingSet If true, include files in the working set
-     *          that are not under the project root.
+     *          that are not under the project root (*except* for untitled documents).
      *
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
@@ -1601,41 +1603,39 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             result = [];
         
-        // The filter and includeWorking set params are both optional.
+        // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
         // specified.
-        if (typeof (filter) === "boolean") {
+        if (includeWorkingSet === undefined && typeof (filter) !== "function") {
             includeWorkingSet = filter;
             filter = null;
         }
 
         
         function visitor(entry) {
-            if (entry.isFile()) {
+            if (entry.isFile() && !isBinaryFile(entry.fullPath)) {
                 result.push(entry);
             }
             
             return true;
         }
         
+        // First gather all files in project proper
         getProjectRoot().visit(visitor, function (err) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
-                var workingSet = DocumentManager.getWorkingSet();
-                
-                workingSet.forEach(function (file) {
-                    if (result.indexOf(file) === -1) {
+                DocumentManager.getWorkingSet().forEach(function (file) {
+                    if (result.indexOf(file) === -1 && !(file instanceof InMemoryFile)) {
                         result.push(file);
                     }
                 });
             }
             
-            // Apply filter
+            // Filter list, if requested
             if (filter) {
                 result = result.filter(filter);
             }
             
-            // Done!
             deferred.resolve(result);
         });
         

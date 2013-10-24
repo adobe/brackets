@@ -69,7 +69,7 @@ define(function (require, exports, module) {
      * Read a file as text. 
      *
      * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
-     * @param {function (string, string, object)} callback Callback that is passed the
+     * @param {function (?string, string=, object=)} callback Callback that is passed the
      *              error code, the file's contents, and the file's new stats.
      */
     File.prototype.readAsText = function (encoding, callback) {
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     * @param {!function (string, object)} callback Callback that is passed the
+     * @param {!function (?string, object=)=} callback Callback that is passed the
      *              error code and the file's new stats if the write is sucessful.
      */
     File.prototype.write = function (data, encoding, callback) {
@@ -100,6 +100,8 @@ define(function (require, exports, module) {
             callback = encoding;
             encoding = null;
         }
+        
+        callback = callback || function () {};
         
         this._fileSystem._beginWrite();
         

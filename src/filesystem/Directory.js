@@ -69,8 +69,8 @@ define(function (require, exports, module) {
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (string, array)} callback Callback that is passed
-     *          and error code and the contents of the directory.
+     * @param {function (?string, Array.<FileSystemEntry>=)} callback Callback that is passed
+     *          an error code and the contents of the directory.
      */
     Directory.prototype.getContents = function (callback) {
         var i, entryPath, entry;
@@ -137,16 +137,17 @@ define(function (require, exports, module) {
     /**
      * Create a directory
      *
-     * @param {function (string, object)=} callback 
+     * @param {function (?string, object=)=} callback Callback resolved with an error
+     *      string or the stat object for the created directory.
      */
     Directory.prototype.create = function (callback) {
+        callback = callback || function () {};
         this._impl.mkdir(this._path, function (err, stat) {
             if (!err) {
                 this._stat = stat;
             }
-            if (callback) {
-                callback(err, stat);
-            }
+
+            callback(err, stat);
         }.bind(this));
     };
     
