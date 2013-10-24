@@ -118,6 +118,7 @@ define({
     "WITH"                              : "Con",
     "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "No",
+    "BUTTON_REPLACE_ALL"                : "Todo\u2026",
     "BUTTON_ALL"                        : "Todos\u2026",
     "BUTTON_STOP"                       : "Parar",
     "BUTTON_REPLACE"                    : "Reemplazar",
@@ -206,9 +207,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Nueva carpeta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Añadir al espacio de trabajo",
+    "CMD_OPEN_DROPPED_FILES"              : "Abrir archivos soltados",
     "CMD_OPEN_FOLDER"                     : "Abrir carpeta\u2026",
     "CMD_FILE_CLOSE"                      : "Cerrar",
     "CMD_FILE_CLOSE_ALL"                  : "Cerrar todo",
+    "CMD_FILE_CLOSE_LIST"                 : "Cerrar lista",
+    "CMD_FILE_CLOSE_OTHERS"               : "Cerrar otros",
+    "CMD_FILE_CLOSE_ABOVE"                : "Cerrar otros por encima",
+    "CMD_FILE_CLOSE_BELOW"                : "Cerrar otros por debajo",
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
@@ -281,6 +287,7 @@ define({
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nueva regla",
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
@@ -329,6 +336,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
     
+    // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Nueva regla",
+    
     // Extension Management strings
     "INSTALL"                              : "Instalar",
     "UPDATE"                               : "Actualizar",
@@ -376,6 +386,8 @@ define({
     "EXTENSION_DATE"                       : "Fecha",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "La versión {0} de esta extensión necesita una versión superior de {APP_NAME}. Puedes instalar una versión anterior de {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "La versión {0} de esta extensión sólo funciona con versiones anteriores de {APP_NAME}. Puedes instalar la versión previa {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
     "EXTENSION_MORE_INFO"                  : "Más información...",
     "EXTENSION_ERROR"                      : "Error en la extensión",
@@ -405,7 +417,11 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibles",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizaciones",
-
+    
+    "INLINE_EDITOR_NO_MATCHES"             : "No hay coincidencias disponibles.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "No hay reglas CSS existentes que coincidan con tu selección.<br> Haz click en \"Nueva regla\" para crear una.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "No hay hojas de estilos en tu proyecto.<br>Crea una para añadir reglas CSS.",
+    
     /**
      * Unit names
      */
@@ -450,6 +466,10 @@ define({
     "LOCALE_TR"                                 : "Turco",
     "LOCALE_ZH_CN"                              : "Chino, simplificado",
     "LOCALE_HU"                                 : "Húngaro",
+    
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progreso",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
