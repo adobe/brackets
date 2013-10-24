@@ -385,6 +385,8 @@ define({
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
 	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "!能=[7317766] Version {0} of this extension requires a newer version of {APP_NAME}. But you can install the earlier version {1}._=!",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "!能=[7317767] Version {0} of this extension only works with older versions of {APP_NAME}. But you can install the earlier version {1}._=!",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
 	"EXTENSION_MORE_INFO": "詳細情報...",
 	"EXTENSION_ERROR": "拡張機能のエラー",
@@ -463,9 +465,9 @@ define({
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
     
-    // extensions/default/InlineBezierCurveEditor
-	"INLINE_BEZIER_EDITOR_TIME": "時刻",
-	"INLINE_BEZIER_EDITOR_PROGRESSION": "進行",
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "時刻",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

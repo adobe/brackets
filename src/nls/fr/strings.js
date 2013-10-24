@@ -385,6 +385,8 @@ define({
 	"EXTENSION_DATE": "Date",
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
 	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "[7317766] !é=Version {0} of this extension requires a newer version of {APP_NAME}. But you can install the earlier version {1}.=!",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "[7317767] !é=Version {0} of this extension only works with older versions of {APP_NAME}. But you can install the earlier version {1}.=!",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
 	"EXTENSION_MORE_INFO": "Plus d’infos...",
 	"EXTENSION_ERROR": "Erreur d’extension",
@@ -463,9 +465,9 @@ define({
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
     
-    // extensions/default/InlineBezierCurveEditor
-	"INLINE_BEZIER_EDITOR_TIME": "Heure",
-	"INLINE_BEZIER_EDITOR_PROGRESSION": "Progression",
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "Heure",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
