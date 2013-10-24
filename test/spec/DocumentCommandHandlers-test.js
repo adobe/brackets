@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -224,7 +224,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, "");  // "" means cancel
                     });
 
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
@@ -471,7 +471,7 @@ define(function (require, exports, module) {
                     });
                     
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
@@ -499,7 +499,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -554,7 +554,7 @@ define(function (require, exports, module) {
                     });
                     
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -775,7 +775,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -813,7 +813,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -849,7 +849,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback("Error", undefined);
                     });
 
@@ -894,7 +894,7 @@ define(function (require, exports, module) {
                     // save the file opened above to a different filename
                     DocumentManager.setCurrentDocument(targetDoc);
                     
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 

@@ -189,7 +189,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
+     * Patch JUnitXMLReporter to use FileSystem and to consolidate all results
      * into a single file.
      */
     function _patchJUnitReporter() {

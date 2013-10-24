@@ -254,7 +254,7 @@ define(function (require, exports, module) {
             // and the user cancels, we can delete the downloaded file.
             if (this._installResult && this._installResult.localPath) {
                 var filename = this._installResult.localPath;
-                FileSystem.getFileForPath(filename).unlink();
+                FileSystem.getFileForPath(filename).unlink(function () {});
             }
             this._enterState(STATE_CLOSED);
         } else if (this._state !== STATE_CANCELING_INSTALL) {

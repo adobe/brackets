@@ -332,7 +332,7 @@ define(function (require, exports, module) {
         Object.keys(_idsToUpdate).forEach(function (id) {
             var filename = _idsToUpdate[id].localPath;
             if (filename) {
-                FileSystem.getFileForPath(filename).unlink();
+                FileSystem.getFileForPath(filename).unlink(function () {});
             }
         });
         _idsToUpdate = {};
@@ -406,7 +406,7 @@ define(function (require, exports, module) {
             return;
         }
         if (installationResult.localPath) {
-            FileSystem.getFileForPath(installationResult.localPath).unlink();
+            FileSystem.getFileForPath(installationResult.localPath).unlink(function () {});
         }
         delete _idsToUpdate[id];
         $(exports).triggerHandler("statusChange", [id]);

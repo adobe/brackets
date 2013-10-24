@@ -100,7 +100,7 @@ define(function (require, exports, module) {
 
                 waitsFor(function () { return complete; }, 1000);
 
-                var unlinkError = brackets.fs.NO_ERROR;
+                var unlinkError = null;
                 runs(function () {
                     expect(error).toBeFalsy();
                     expect(stat.isFile()).toBe(true);
@@ -109,7 +109,6 @@ define(function (require, exports, module) {
                     complete = false;
                     file.unlink(function (err) {
                         if (!err) {
-                            unlinkError = 0;
                             complete = true;
                         } else {
                             unlinkError = err;
@@ -119,7 +118,7 @@ define(function (require, exports, module) {
                 });
                 waitsFor(
                     function () {
-                        return complete && (unlinkError === brackets.fs.NO_ERROR);
+                        return complete && (unlinkError === null);
                     },
                     "unlink() failed to cleanup Untitled.js, err=" + unlinkError,
                     1000
