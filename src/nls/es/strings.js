@@ -119,7 +119,6 @@ define({
     "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "No",
     "BUTTON_REPLACE_ALL"                : "Todo\u2026",
-    "BUTTON_ALL"                        : "Todos\u2026",
     "BUTTON_STOP"                       : "Parar",
     "BUTTON_REPLACE"                    : "Reemplazar",
     
@@ -286,8 +285,8 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Coincidencia siguiente",
-    "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nueva regla",
+    "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
@@ -386,8 +385,8 @@ define({
     "EXTENSION_DATE"                       : "Fecha",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita una versión más actualizada de {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "En estos momentos esta extensión sólo funciona con versiones anteriores de {APP_NAME}.",
-    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "La versión {0} de esta extensión necesita una versión superior de {APP_NAME}. Puedes instalar una versión anterior de {1}.",
-    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "La versión {0} de esta extensión sólo funciona con versiones anteriores de {APP_NAME}. Puedes instalar la versión previa {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "La versión {0} de esta extensión necesita una versión superior de {APP_NAME}. Puedes instalar la versión anterior {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "La versión {0} de esta extensión sólo funciona con versiones anteriores de {APP_NAME}. Puedes instalar la versión anterior {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
     "EXTENSION_MORE_INFO"                  : "Más información...",
     "EXTENSION_ERROR"                      : "Error en la extensión",
@@ -469,7 +468,7 @@ define({
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
-    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progreso",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresión",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
