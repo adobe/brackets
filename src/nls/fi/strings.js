@@ -428,6 +428,7 @@ define({
     "LOCALE_PT_BR"                         : "portugali, Brasilia",
     "LOCALE_PT_PT"                         : "portugali",
     "LOCALE_RU"                            : "venäjä",
+	"LOCALE_SR"                            : "serbialainen",
     "LOCALE_SV"                            : "ruotsi",
     "LOCALE_TR"                            : "turkki",
     "LOCALE_ZH_CN"                         : "kiina, yksinkertaistettu",
