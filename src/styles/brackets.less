@@ -687,11 +687,14 @@ a, img {
     }
 
     .inline-editor-header {
+        display: inline-block;
+        line-height: 0;
         padding: 10px 10px 0px 40px;
 
         .filename {
+            vertical-align: middle;
             font-family: @sansFontFamily;
-            font-size: 1.1em;
+            font-size: 13px;
             color: @bc-black;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
