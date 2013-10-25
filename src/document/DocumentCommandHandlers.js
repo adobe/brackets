@@ -846,18 +846,30 @@ define(function (require, exports, module) {
             if (!promptOnly) {
                 // This selects a different document if the working set has any other options
                 DocumentManager.closeFullEditor(fileEntry);
-            
+                
                 EditorManager.focusEditor();
             }
         }
-        
-        
+
+        function doCloseCustomViewer() {
+            var nextFile = DocumentManager.getNextPrevFile(1);
+            if (nextFile) {
+                doOpen(nextFile.fullPath);
+            } else {
+                EditorManager.closeCustomViewer();
+            }
+        }
+                
         var result = new $.Deferred(), promise = result.promise();
         
         // Default to current document if doc is null
         if (!file) {
             if (DocumentManager.getCurrentDocument()) {
                 file = DocumentManager.getCurrentDocument().file;
+            } else if (EditorManager.getCurrentlyViewedPath()) {
+                doCloseCustomViewer();
+                result.resolve();
+                return promise;
             }
         }
         
@@ -1039,10 +1051,16 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
+        if (!DocumentManager.getCurrentDocument()) {
+            EditorManager.closeCustomViewer();
+        }
         return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
     }
     
     function handleFileCloseList(commandData) {
+        if (!DocumentManager.getCurrentDocument()) {
+            EditorManager.closeCustomViewer();
+        }
         return _doCloseDocumentList((commandData && commandData.documentList), false);
     }
     
