@@ -293,18 +293,23 @@ define({
     
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
-    "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
-    "CMD_ABOUT"                           : "{APP_TITLE} Hakkında",
+    "CMD_CHECK_FOR_UPDATE"                : "Güncellemeleri Kontrol Et",
+    "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_RELEASE_NOTES"                   : "Release Notes",
+    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
+    "CMD_ABOUT"                           : "{APP_TITLE} Hakkında","ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+   
 
     // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Ekranı Kapat",
+    "CMD_CLOSE_WINDOW"                    : "Pencereyi Kapat",
     "CMD_ABORT_QUIT"                      : "Çıkışı İptal Et",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Deneysel Sürüm",
-    "SEARCH_RESULTS"                       : "Arama sonuçları",
+    "EXPERIMENTAL_BUILD"                   : "deneysel sürüm",
+    "DEVELOPMENT_BUILD"                    : "geliştime sürümü",
     "OK"                                   : "Tamam",
     "DONT_SAVE"                            : "Kaydetme",
     "SAVE"                                 : "Kaydet",
@@ -315,9 +320,12 @@ define({
     "RELAUNCH_CHROME"                      : "Chrome'u Tekrar Aç",
     "ABOUT"                                : "Hakkında",
     "CLOSE"                                : "Kapat",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 test sürümü",
-    "ABOUT_TEXT_LINE3"                     : "Üçüncü parti yazılımlara ilişkin bildirimler, şartlar ve koşullar <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> adresinde bulunmaktadır ve bu adreste referans olarak dahil edilmiştir",
-    "ABOUT_TEXT_LINE4"                     : "Döküman ve kodlar için <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a> adresine bakabilirsiniz.",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
+    "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} programının yeni versiyonu bulunmakta! Detaylar için tıklayın.",
     "UPDATE_AVAILABLE_TITLE"               : "Yeni versiyon hazır",
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} programının yeni versiyonu hazır. İşte bazı yeni özellikler:",
@@ -331,46 +339,161 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
     
+       // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Yeni Kural",
+      
+    // Extension Management strings
+    "INSTALL"                              : "Install",
+    "UPDATE"                               : "Update",
+    "REMOVE"                               : "Remove",
+    "OVERWRITE"                            : "Overwrite",
+    "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
+    "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
+    "INSTALL_EXTENSION_TITLE"              : "Install Extension",
+    "UPDATE_EXTENSION_TITLE"               : "Update Extension",
+    "INSTALL_EXTENSION_LABEL"              : "Extension URL",
+    "INSTALL_EXTENSION_HINT"               : "URL of the extension's zip file or GitHub repo",
+    "INSTALLING_FROM"                      : "Installing extension from {0}\u2026",
+    "INSTALL_SUCCEEDED"                    : "Installation successful!",
+    "INSTALL_FAILED"                       : "Installation failed.",
+    "CANCELING_INSTALL"                    : "Canceling\u2026",
+    "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
+    "INSTALL_CANCELED"                     : "Installation canceled.",
+    // These must match the error codes in ExtensionsDomain.Errors.* :
+    "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
+    "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
+    "MISSING_PACKAGE_NAME"                 : "The package.json file doesn't specify a package name.",
+    "BAD_PACKAGE_NAME"                     : "{0} is an invalid package name.",
+    "MISSING_PACKAGE_VERSION"              : "The package.json file doesn't specify a package version.",
+    "INVALID_VERSION_NUMBER"               : "The package version number ({0}) is invalid.",
+    "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string ({0}) is invalid.",
+    "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
+    "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
+    "MISSING_MAIN"                         : "The package has no main.js file.",
+    "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
+    "EXTENSION_SAME_VERSION"               : "This package is the same version as the one that is currently installed. Overwrite the existing installation?",
+    "EXTENSION_OLDER_VERSION"              : "This package is version {0} which is older than the currently installed ({1}). Overwrite the existing installation?",
+    "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
+    "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
+    "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
+    "CANNOT_WRITE_TEMP"                    : "Unable to save download to temp file.",
+    "ERROR_LOADING"                        : "The extension encountered an error while starting up.",
+    "MALFORMED_URL"                        : "The URL is invalid. Please check that you entered it correctly.",
+    "UNSUPPORTED_PROTOCOL"                 : "The URL must be an http or https URL.",
+    "UNKNOWN_ERROR"                        : "Unknown internal error.",
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Extension Manager",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Unable to access the extension registry. Please try again later.",
+    "INSTALL_FROM_URL"                     : "Install from URL\u2026",
+    "EXTENSION_AUTHOR"                     : "Author",
+    "EXTENSION_DATE"                       : "Date",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
+    "EXTENSION_NO_DESCRIPTION"             : "No description",
+    "EXTENSION_MORE_INFO"                  : "More info...",
+    "EXTENSION_ERROR"                      : "Extension error",
+    "EXTENSION_KEYWORDS"                   : "Keywords",
+    "EXTENSION_INSTALLED"                  : "Installed",
+    "EXTENSION_UPDATE_INSTALLED"           : "This extension update has been downloaded and will be installed when you quit {APP_NAME}.",
+    "EXTENSION_SEARCH_PLACEHOLDER"         : "Search",
+    "EXTENSION_MORE_INFO_LINK"             : "More",
+    "BROWSE_EXTENSIONS"                    : "Browse Extensions",
+    "EXTENSION_MANAGER_REMOVE"             : "Remove Extension",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {0}. {APP_NAME} will still quit.",
+    "EXTENSION_MANAGER_UPDATE"             : "Update Extension",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Unable to update one or more extensions: {0}. {APP_NAME} will still quit.",
+    "MARKED_FOR_REMOVAL"                   : "Marked for removal",
+    "UNDO_REMOVE"                          : "Undo",
+    "MARKED_FOR_UPDATE"                    : "Marked for update",
+    "UNDO_UPDATE"                          : "Undo",
+    "CHANGE_AND_QUIT_TITLE"                : "Change Extensions",
+    "CHANGE_AND_QUIT_MESSAGE"              : "To update or remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
+    "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
+    "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
+    "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
+    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
+    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
+    "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
+    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
     
+    "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+    
+    /**
+     * Unit names
+     */
+
+    "UNIT_PIXELS"                          : "pixels",
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Ayıkla",
     "CMD_SHOW_DEV_TOOLS"                   : "Geliştirici Araçlarını Göster",
-    "CMD_REFRESH_WINDOW"                   : "{APP_NAME} Ekranını Yenile",
-    "CMD_NEW_BRACKETS_WINDOW"              : "Yeni {APP_NAME} Ekranı",
+    "CMD_REFRESH_WINDOW"                   : "{APP_NAME} Penceresini Yenile",
+    "CMD_NEW_BRACKETS_WINDOW"              : "Yeni {APP_NAME} Penceresi",
     "CMD_SWITCH_LANGUAGE"                  : "Dili Değiştir",
     "CMD_RUN_UNIT_TESTS"                   : "Testleri Çalıştır",
     "CMD_SHOW_PERF_DATA"                   : "Performans Bilgisini Göster",
+    "CMD_ENABLE_NODE_DEBUGGER"             : "Enable Node Debugger",
+    "CMD_LOG_NODE_STATE"                   : "Log Node State to Console",
+    "CMD_RESTART_NODE"                     : "Restart Node",
     
     "LANGUAGE_TITLE"                       : "Dili değiştir",
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
     "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
     "LANGUAGE_CANCEL"                      : "İptal",
+    "LANGUAGE_SYSTEM_DEFAULT"              : "Sistem Varsayılanı",
     
-    /**
-     * Locales
-     */
-    "LOCALE_DE"                                 : "Almanca",
-    "LOCALE_EN"                                 : "Ingilizce",
-    "LOCALE_FR"                                 : "Fransizca",
-    "LOCALE_CS"                                 : "Çekçe",
-    "LOCALE_ES"                                 : "İspanyolca",
-    "LOCALE_IT"                                 : "İtalyanca",
-    "LOCALE_JA"                                 : "Japonca",
-    "LOCALE_NB"                                 : "Norveççe",
-    "LOCALE_PL"                                 : "Polonyaca",
-    "LOCALE_PT_BR"                              : "Portekizce, Brezilya",
-    "LOCALE_PT_PT"                              : "Portekizce",
-    "LOCALE_RU"                                 : "Rusça",
-    "LOCALE_SV"                                 : "İsveççe",
+    // Locales (used by Debug > Switch Language)
+    "LOCALE_CS"                                 : "Czech",
+    "LOCALE_DE"                                 : "German",
+    "LOCALE_EN"                                 : "English",
+    "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FI"                                 : "Finnish",
+    "LOCALE_FR"                                 : "French",
+    "LOCALE_IT"                                 : "Italian",
+    "LOCALE_JA"                                 : "Japanese",
+    "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_PL"                                 : "Polish",
+    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
+    "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SK"                                 : "Slovak",
+    "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Türkçe",
-    "LOCALE_ZH_CN"                              : "Çince, basitleştirilmiş",
-    "LOCALE_HU"                                 : "Macarca",
+    "LOCALE_ZH_CN"                              : "Chinese, simplified",
+    "LOCALE_HU"                                 : "Hungarian",
+    
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Time",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
+  
+     
+    // extensions/default/InlineColorEditor
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+      
+        // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
+    "NO_ARGUMENTS"                              : "<no parameters>",
     
     // extensions/default/JSLint
-    "CMD_JSLINT"                           : "JSLint Aç",
-    "JSLINT_ERRORS"                        : "JSLint Hataları",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
-    "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
-    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor"
+    "JSLINT_NAME"                               : "JSLint",
+   // extensions/default/QuickView
+    "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
+    
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
+    
+    // extensions/default/WebPlatformDocs
+    "DOCS_MORE_LINK"                            : "Read more"
 });
