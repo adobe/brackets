@@ -364,7 +364,7 @@ define(function (require, exports, module) {
             };
         
         recentProjects.forEach(function (root) {
-            if (root.path !== currentProject) {
+            if (root !== currentProject) {
                 templateVars.projectList.push(parsePath(root));
             }
         });
