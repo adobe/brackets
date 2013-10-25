@@ -93,13 +93,13 @@ define(function (require, exports, module) {
      *
      * @param { name: string, 
      *          languageIds: ?Array.<string>,
-     *          done: function(),
+     *          done: ?function(),
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
-     *          itemFocus: function(?SearchResult|string),
+     *          itemFocus: ?function(?SearchResult|string),
      *          itemSelect: function(?SearchResult|string),
      *          resultsFormatter: ?function(SearchResult|string, string):string,
-     *          matcherOptions: Object,
+     *          matcherOptions: ?Object,
      *          label: ?string
      *        } pluginDef
      *
@@ -115,10 +115,10 @@ define(function (require, exports, module) {
      *      The highlighted search result item (as returned by search()) is passed as an argument. Optional.
      * itemSelect - performs an action when a result is chosen.
      *      The selected search result item (as returned by search()) is passed as an argument. Required.
-     * resultFormatter - takes a query string and an item string and returns 
-     *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     * resultsFormatter - takes a query string and an item string and returns 
+     *      a <LI> item to insert into the displayed search results. Optional.
      * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
-     *          for available options)
+     *          for available options). Optional.
      * label - if provided, the label to show before the query field.
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
