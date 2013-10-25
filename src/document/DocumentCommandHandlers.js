@@ -854,6 +854,8 @@ define(function (require, exports, module) {
         function doCloseCustomViewer() {
             var nextFile = DocumentManager.getNextPrevFile(1);
             if (nextFile) {
+                // opening a text file will automatically close the custom viewer.
+                // This is done in the currentDocumentChange handler in EditorManager
                 doOpen(nextFile.fullPath);
             } else {
                 EditorManager.closeCustomViewer();
