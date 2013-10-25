@@ -254,7 +254,7 @@ define({
     "CMD_SHOW_CODE_HINTS": "Show Code Hints",
 
     // View menu commands
-    "VIEW_MENU": "Göster",
+    "VIEW_MENU": "Görünüm",
     "CMD_HIDE_SIDEBAR": "Kenar Çubuğu Gizle",
     "CMD_SHOW_SIDEBAR": "Kenar Çubuğu Göster",
     "CMD_INCREASE_FONT_SIZE": "Font Boyutunu Büyült",
