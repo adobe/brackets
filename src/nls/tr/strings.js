@@ -77,7 +77,7 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE": "Canlı Önizleme Hatası",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Tarayıcıya bağlanılıyor",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE": "Canlı Önizleme özelliğini kullanabilmek için uzaktan hata ayıklayıcı ile Chrome'un tekrardan açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE": "Canlı Önizleme özelliğini kullanabilmek için uzaktan hata ayıklayıcı ile Chrome'un tekrar açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE": "Unable to load Live Development page",
     "LIVE_DEV_NEED_HTML_MESSAGE": "Canlı Önizlemeyi çalıştırabilmeniz için html dosyası açmanız gerekiyor",
     "LIVE_DEV_NEED_BASEURL_MESSAGE": "Canlı Önizlemeyi server-side dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir link belirtiniz.",
