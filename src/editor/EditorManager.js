@@ -611,7 +611,8 @@ define(function (require, exports, module) {
         _$currentCustomViewer = null;
     }
     
-    /** Closes the customViere currently displayed, shows the NoEditor view
+    /** 
+     * Closes the customViewer currently displayed, shows the NoEditor view
      * and notifies the ProjectManager to update the file selection
      */
     function closeCustomViewer() {
