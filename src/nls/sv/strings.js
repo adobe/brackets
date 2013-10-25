@@ -436,6 +436,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugisiska, Brasilien",
     "LOCALE_PT_PT"                              : "Portugisiska",
     "LOCALE_RU"                                 : "Ryska",
+	"LOCALE_SR"                                 : "Serbiska",
     "LOCALE_SV"                                 : "Svenska",
     "LOCALE_TR"                                 : "Turkiska",
     "LOCALE_ZH_CN"                              : "Kinesiska, förenklad",

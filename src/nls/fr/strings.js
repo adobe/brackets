@@ -460,6 +460,7 @@ define({
 	"LOCALE_PT_PT": "Portugais",
 	"LOCALE_RU": "Russe",
 	"LOCALE_SK": "Slovaque",
+	"LOCALE_SR": "Serbe",
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",

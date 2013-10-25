@@ -461,6 +461,7 @@ define({
     "LOCALE_PT_PT"                              : "Portugués",
     "LOCALE_RU"                                 : "Ruso",
     "LOCALE_SK"                                 : "Eslovaco",
+	"LOCALE_SR"									: "Serbio",
     "LOCALE_SV"                                 : "Sueco",
     "LOCALE_TR"                                 : "Turco",
     "LOCALE_ZH_CN"                              : "Chino, simplificado",

@@ -347,6 +347,7 @@ define({
     "LOCALE_PT_BR"                              : "葡萄牙语(巴西)",
     "LOCALE_PT_PT"                              : "葡萄牙语",
     "LOCALE_RU"                                 : "俄语",
+	"LOCALE_SR"                                 : "塞尔维亚",
     "LOCALE_SV"                                 : "瑞典语",
     "LOCALE_TR"                                 : "土耳其语",
     "LOCALE_ZH_CN"                              : "简体中文",
