@@ -523,16 +523,19 @@ define(function (require, exports, module) {
         // redraw canvas
         this._updateCanvas();
 
-        $(this.curve).on("click", _curveClick);
-        $(this.curve).on("mousemove", _curveMouseMove);
-        $(this.P1).on("mousemove", _pointMouseMove);
-        $(this.P2).on("mousemove", _pointMouseMove);
-        $(this.P1).on("mousedown", _pointMouseDown);
-        $(this.P2).on("mousedown", _pointMouseDown);
-        $(this.P1).on("mouseup", _pointMouseUp);
-        $(this.P2).on("mouseup", _pointMouseUp);
-        $(this.P1).on("keydown", _pointKeyDown);
-        $(this.P2).on("keydown", _pointKeyDown);
+        $(this.curve)
+            .on("click", _curveClick)
+            .on("mousemove", _curveMouseMove);
+        $(this.P1)
+            .on("mousemove", _pointMouseMove)
+            .on("mousedown", _pointMouseDown)
+            .on("mouseup", _pointMouseUp)
+            .on("keydown", _pointKeyDown);
+        $(this.P2)
+            .on("mousemove", _pointMouseMove)
+            .on("mousedown", _pointMouseDown)
+            .on("mouseup", _pointMouseUp)
+            .on("keydown", _pointKeyDown);
     }
 
     /**
@@ -542,16 +545,19 @@ define(function (require, exports, module) {
 
         this.P1.bezierEditor = this.P2.bezierEditor = this.curve.bezierEditor = null;
 
-        $(this.curve).off("click", _curveClick);
-        $(this.curve).off("mousemove", _curveMouseMove);
-        $(this.P1).off("mousemove", _pointMouseMove);
-        $(this.P2).off("mousemove", _pointMouseMove);
-        $(this.P1).off("mousedown", _pointMouseDown);
-        $(this.P2).off("mousedown", _pointMouseDown);
-        $(this.P1).off("mouseup", _pointMouseUp);
-        $(this.P2).off("mouseup", _pointMouseUp);
-        $(this.P1).off("keydown", _pointKeyDown);
-        $(this.P2).off("keydown", _pointKeyDown);
+        $(this.curve)
+            .off("click", _curveClick)
+            .off("mousemove", _curveMouseMove);
+        $(this.P1)
+            .off("mousemove", _pointMouseMove)
+            .off("mousedown", _pointMouseDown)
+            .off("mouseup", _pointMouseUp)
+            .off("keydown", _pointKeyDown);
+        $(this.P2)
+            .off("mousemove", _pointMouseMove)
+            .off("mousedown", _pointMouseDown)
+            .off("mouseup", _pointMouseUp)
+            .off("keydown", _pointKeyDown);
     };
 
 
