@@ -34,8 +34,8 @@ define({
     "GENERIC_ERROR"                     : "(hata {0})",
     "NOT_FOUND_ERR"                     : "Dosya bulunamadı.",
     "NOT_READABLE_ERR"                  : "Dosya okunamadı.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Klasör değişikliği için izniniz yok.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Dosya değişikliği için izniniz yok.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Klasör değişikliği için yetkiniz yok.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Dosya değişikliği için yetkiniz yok.",
     "FILE_EXISTS_ERR"                   : "Dosya bulunmaktadır.",
     "FILE"                              : "Dosya",
     "DIRECTORY"                         : "Klasör",
@@ -247,14 +247,14 @@ define({
     "CMD_UNINDENT"                        : "Girintiyi Geri Al",
     "CMD_DUPLICATE"                       : "Eşini Oluştur",
     "CMD_DELETE_LINES"                    : "Satır Sil",
-    "CMD_COMMENT"                         : "Satır yorum etiketi ekle/kaldır",
-    "CMD_BLOCK_COMMENT"                   : "Blok yorum etiketi ekle/kaldır",
+    "CMD_COMMENT"                         : "Satıra yorum etiketi ekle/kaldır",
+    "CMD_BLOCK_COMMENT"                   : "Bloğa yorum etiketi ekle/kaldır",
     "CMD_LINE_UP"                         : "Satırı Yukarı Taşı",
     "CMD_LINE_DOWN"                       : "Satırı Aşağı Taşı",
     "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
-    "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
+    "CMD_SHOW_CODE_HINTS"                 : "Kod İpuçlarını Göster",
     
     // View menu commands
     "VIEW_MENU"                           : "Göster",
@@ -265,10 +265,10 @@ define({
     "CMD_RESTORE_FONT_SIZE"               : "Font Boyutunu Sıfırla",
     "CMD_SCROLL_LINE_UP"                  : "Scroll Line Up",
     "CMD_SCROLL_LINE_DOWN"                : "Scroll Line Down",
-    "CMD_TOGGLE_LINE_NUMBERS"             : "Line Numbers",
-    "CMD_TOGGLE_ACTIVE_LINE"              : "Highlight Active Line",
-    "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
-    "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
+    "CMD_TOGGLE_LINE_NUMBERS"             : "Satır Numaraları",
+    "CMD_TOGGLE_ACTIVE_LINE"              : "Aktif Satırı Vurgula",
+    "CMD_TOGGLE_WORD_WRAP"                : "Sözcük Kaydır",
+    "CMD_LIVE_HIGHLIGHT"                  : "Canlı Önizlemede Vurgula",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Eklenmeye Göre Sırala",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "İsme Göre Sırala",
@@ -402,48 +402,48 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Unable to remove one or more extensions: {0}. {APP_NAME} will still quit.",
     "EXTENSION_MANAGER_UPDATE"             : "Update Extension",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Unable to update one or more extensions: {0}. {APP_NAME} will still quit.",
-    "MARKED_FOR_REMOVAL"                   : "Marked for removal",
-    "UNDO_REMOVE"                          : "Undo",
-    "MARKED_FOR_UPDATE"                    : "Marked for update",
-    "UNDO_UPDATE"                          : "Undo",
-    "CHANGE_AND_QUIT_TITLE"                : "Change Extensions",
-    "CHANGE_AND_QUIT_MESSAGE"              : "To update or remove the marked extensions, you need to quit and restart {APP_NAME}. You'll be prompted to save unsaved changes.",
-    "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
-    "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
-    "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
-    "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
-    "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
-    "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Be cautious when installing extensions from an unknown source.",
-    "EXTENSIONS_INSTALLED_TITLE"           : "Installed",
-    "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
-    "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+    "MARKED_FOR_REMOVAL"                   : "Kaldırma  İçin İşaretlendi",
+    "UNDO_REMOVE"                          : "Geri Al",
+    "MARKED_FOR_UPDATE"                    : "Güncelleme İçin İşaretlendi",
+    "UNDO_UPDATE"                          : "Geri Al",
+    "CHANGE_AND_QUIT_TITLE"                : "Uzantıları Değiştir",
+    "CHANGE_AND_QUIT_MESSAGE"              : "Seçili uzantıları kaldırmak yada güncellemek için {APP_NAME} yeniden başlatılmalı. Kaydedilmemiş dosyaları kaydetmeniz istenecektir.",
+    "REMOVE_AND_QUIT"                      : "Uzantıları Kaldır ve Çık",
+    "CHANGE_AND_QUIT"                      : "Uzantıları Değiştir ve Çık",
+    "UPDATE_AND_QUIT"                      : "Uzantıları Güncelle ve Çık",
+    "EXTENSION_NOT_INSTALLED"              : "Uzantı kaldırılamıyor {0} çünkü yüklenmedi.",
+    "NO_EXTENSIONS"                        : "Henüz yüklenmiş uzantı yok.<br>Başlamak için Mevcut butonuna basın.",
+    "NO_EXTENSION_MATCHES"                 : "Aramanızla eşlenşen uzantı bulunamadı.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Bilinmeyen kaynaklardan uzantı yüklerken dikkatli olmalısınız.",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Kurulu",
+    "EXTENSIONS_AVAILABLE_TITLE"           : "Mevcut",
+    "EXTENSIONS_UPDATES_TITLE"             : "Güncellemeler",
     
-    "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
-    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+    "INLINE_EDITOR_NO_MATCHES"             : "Eşleşme yok.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Seçiminize uygun CSS kuralı yok.<br> Yeni oluşturmak için \"Yeni Kural\"' butonuna tıklayın.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projenizde stilsayfası(CSS)bulunmuyor.<br>CSS kuralları eklemek için bir tene oluşturmalısınız.",
     
     /**
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "pixels",
+    "UNIT_PIXELS"                          : "pixeller",
 
     // extensions/default/DebugCommands
-    "DEBUG_MENU"                           : "Ayıkla",
+    "DEBUG_MENU"                           : "Hata Ayıkla",
     "CMD_SHOW_DEV_TOOLS"                   : "Geliştirici Araçlarını Göster",
     "CMD_REFRESH_WINDOW"                   : "{APP_NAME} Penceresini Yenile",
     "CMD_NEW_BRACKETS_WINDOW"              : "Yeni {APP_NAME} Penceresi",
     "CMD_SWITCH_LANGUAGE"                  : "Dili Değiştir",
     "CMD_RUN_UNIT_TESTS"                   : "Testleri Çalıştır",
     "CMD_SHOW_PERF_DATA"                   : "Performans Bilgisini Göster",
-    "CMD_ENABLE_NODE_DEBUGGER"             : "Enable Node Debugger",
-    "CMD_LOG_NODE_STATE"                   : "Log Node State to Console",
-    "CMD_RESTART_NODE"                     : "Restart Node",
+    "CMD_ENABLE_NODE_DEBUGGER"             : "Node Ayıklayıcısını Etkinleştir",
+    "CMD_LOG_NODE_STATE"                   : "Node Durum Konsolunu Kaydet",
+    "CMD_RESTART_NODE"                     : "Node'u Yeniden Başlat",
     
     "LANGUAGE_TITLE"                       : "Dili değiştir",
-    "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
-    "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
+    "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdan istediğiniz dili seçin:",
+    "LANGUAGE_SUBMIT"                      : "{APP_NAME}'i Yenile",
     "LANGUAGE_CANCEL"                      : "İptal",
     "LANGUAGE_SYSTEM_DEFAULT"              : "Sistem Varsayılanı",
     
@@ -468,23 +468,23 @@ define({
     "LOCALE_HU"                                 : "Hungarian",
     
     // extensions/default/InlineTimingFunctionEditor
-    "INLINE_TIMING_EDITOR_TIME"                 : "Time",
-    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
+    "INLINE_TIMING_EDITOR_TIME"                 : "Süre",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "İlerleme",
   
      
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
-    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
-    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Format",
-    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Format",
-    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
-    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
-    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "suanki Renk",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Gerçek REnk",
+    "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Formatı",
+    "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Formatı",
+    "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Formatı",
+    "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ( {1} defa kullanıldı)",
+    "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ( {1} defa kullanıldı)",
       
         // extensions/default/JavaScriptCodeHints
-    "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
-    "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
-    "NO_ARGUMENTS"                              : "<no parameters>",
+    "CMD_JUMPTO_DEFINITION"                     : "Tanıma Atla",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Parametre ipucunu göster",
+    "NO_ARGUMENTS"                              : "<parametre yok>",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -492,8 +492,8 @@ define({
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
     // extensions/default/RecentProjects
-    "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Geçmiş Projeler",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "Daha fazla"
 });
