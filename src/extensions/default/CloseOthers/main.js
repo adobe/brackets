@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     }
     
     /*
-    Pass 'command id' and it'll let you know, whether contextmenu for that command is existing or not.
+    Pass 'command id' and it'll let you know, whether contextmenu item for that command is existing or not.
     */
     function isMenuThere(cmd) {
         return Menus.getMenuItem(workingSetCmenu.id + "-" + cmd) ? true : false;
