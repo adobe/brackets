@@ -611,19 +611,14 @@ define(function (require, exports, module) {
                         matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
                         this._matchers[currentPlugin.name] = matcher;
                     }
-                    if (plugin.label) {
-                        $(".find-dialog-label", this.dialog).text(plugin.label);
-                    } else {
-                        // Use default dialog label for the given query.
-                        this._updateDialogLabel(query);
-                    }
+                    this._updateDialogLabel(plugin, query);
                     return plugin.search(query, matcher);
                 }
             }
         }
         
         // Reflect current search mode in UI
-        this._updateDialogLabel(query);
+        this._updateDialogLabel(null, query);
         
         // No matching plugin: use default file search mode
         currentPlugin = null;
@@ -740,31 +735,34 @@ define(function (require, exports, module) {
         // Kick smart-autocomplete to update (it only listens for keyboard events)
         // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
         $field.trigger("keyIn", [initialString]);
-        
-        this._updateDialogLabel(initialString);
     };
     
     /**
-     * Sets the dialog label based on the type of the given query.
+     * Sets the dialog label based on the current plugin (if any) and the current query.
+     * @param {Object} plugin The current Quick Open plugin, or none if there is none.
      * @param {string} query The user's current query.
      */
-    QuickNavigateDialog.prototype._updateDialogLabel = function (query) {
-        var prefix = (query.length > 0 ? query.charAt(0) : "");
-        
-        // Update the dialog label based on the current prefix.
+    QuickNavigateDialog.prototype._updateDialogLabel = function (plugin, query) {
         var dialogLabel = "";
-        switch (prefix) {
-        case ":":
-            dialogLabel = Strings.CMD_GOTO_LINE;
-            break;
-        case "@":
-            dialogLabel = Strings.CMD_GOTO_DEFINITION;
-            break;
-        default:
-            dialogLabel = Strings.CMD_QUICK_OPEN;
-            break;
+        if (plugin && plugin.label) {
+            dialogLabel = plugin.label;
+        } else {
+            var prefix = (query.length > 0 ? query.charAt(0) : "");
+            
+            // Update the dialog label based on the current prefix.
+            switch (prefix) {
+            case ":":
+                dialogLabel = Strings.CMD_GOTO_LINE;
+                break;
+            case "@":
+                dialogLabel = Strings.CMD_GOTO_DEFINITION;
+                break;
+            default:
+                dialogLabel = Strings.CMD_QUICK_OPEN;
+                break;
+            }
         }
-        $(".find-dialog-label", this.dialog).text(dialogLabel);
+        $(".find-dialog-label", this.dialog).text(dialogLabel + ":");
     };
     
     /**
@@ -817,7 +815,7 @@ define(function (require, exports, module) {
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span>: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
+        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span> <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
