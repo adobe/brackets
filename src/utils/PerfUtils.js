@@ -30,6 +30,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("lodash");
+    
     var Global = require("utils/Global");
 
     /**
@@ -299,7 +301,7 @@ define(function (require, exports, module) {
         var testName,
             index,
             result = "";
-        $.each(perfData, function (testName, entry) {
+        _.forEach(perfData, function (entry, testName) {
             result += getValue(entry) + "\t" + testName + "\n";
         });
 
@@ -342,8 +344,8 @@ define(function (require, exports, module) {
     }
     
     // create performance measurement constants
-    createPerfMeasurement("INLINE_EDITOR_OPEN", "Open inline editor");
-    createPerfMeasurement("INLINE_EDITOR_CLOSE", "Close inline editor");
+    createPerfMeasurement("INLINE_WIDGET_OPEN", "Open inline editor or docs");
+    createPerfMeasurement("INLINE_WIDGET_CLOSE", "Close inline editor or docs");
     
     // extensions may create additional measurement constants during their lifecycle
 

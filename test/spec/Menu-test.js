@@ -21,46 +21,123 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
-    var CommandManager,
-        Commands,
-        KeyBindingManager,
-        Menus,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        KeyEvent        = require("utils/KeyEvent");
+    var CommandManager,     // Load from brackets.test
+        Commands,           // Load from brackets.test
+        KeyBindingManager,  // Load from brackets.test
+        Menus,              // Load from brackets.test
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        KeyEvent            = require("utils/KeyEvent");
 
 
-
-    describe("Menus", function () {
+    describe("Menus (Native Shell)", function () {
         
         this.category = "integration";
 
         var testWindow;
 
-        beforeEach(function () {
-            // Create a new window that will be shared by ALL tests in this spec. (We need the tests to
-            // run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
-            // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
+        beforeFirst(function () {
+            var testWindowOptions = {"hasNativeMenus" : true};
+            
+            // Create a new native menu window that will be shared by ALL tests in this spec.
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
 
-                    // Load module instances from brackets.test
-                    CommandManager    = testWindow.brackets.test.CommandManager;
-                    Commands          = testWindow.brackets.test.Commands;
-                    KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
-                    Menus             = testWindow.brackets.test.Menus;
-                });
+                // Load module instances from brackets.test
+                CommandManager    = testWindow.brackets.test.CommandManager;
+                Commands          = testWindow.brackets.test.Commands;
+                KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
+                Menus             = testWindow.brackets.test.Menus;
+            }, testWindowOptions);
+        });
+        
+        afterLast(function () {
+            testWindow        = null;
+            CommandManager    = null;
+            Commands          = null;
+            KeyBindingManager = null;
+            Menus             = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
 
-                this.after(function () {
-                    SpecRunnerUtils.closeTestWindow();
+        describe("Remove Menu", function () {
+            it("should add then remove new menu to menu bar with a menu id", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+                    Menus.addMenu("Custom", menuId);
+                    
+                    var menu = Menus.getMenu(menuId);
+                    expect(menu).toBeTruthy();
+                    
+                    Menus.removeMenu(menuId);
+                    menu = Menus.getMenu(menuId);
+                    expect(menu).toBeUndefined();
                 });
-            }
+            });
+
+            it("should remove all menu items and dividers in the menu when removing the menu", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+                    Menus.addMenu("Custom", menuId);
+                    
+                    var menu = Menus.getMenu(menuId);
+                    expect(menu).toBeTruthy();
+                    
+                    var commandId = "Remove-Menu-test.Item-1";
+                    CommandManager.register("Remove Menu Test Command", commandId, function () {});
+                    
+                    var menuItem = menu.addMenuItem(commandId);
+                    expect(menuItem).toBeTruthy();
+                    
+                    var menuItemId = menuItem.id;
+                    expect(menuItemId).toBeTruthy();
+                    
+                    var menuDivider = menu.addMenuDivider();
+                    expect(menuDivider).toBeTruthy();
+                    
+                    var menuDividerId = menuDivider.id;
+                    expect(menuDividerId).toBeTruthy();
+                    
+                    menuItem = Menus.getMenuItem(menuItemId);
+                    expect(menuItem).toBeTruthy();
+                    
+                    menuDivider = Menus.getMenuItem(menuDividerId);
+                    expect(menuDivider).toBeTruthy();
+                    
+                    Menus.removeMenu(menuId);
+                    
+                    menu = Menus.getMenu(menuId);
+                    expect(menu).toBeUndefined();
+                    
+                    menuItem = Menus.getMenuItem(menuItemId);
+                    expect(menuItem).toBeUndefined();
+                    
+                    menuDivider = Menus.getMenuItem(menuDividerId);
+                    expect(menuDivider).toBeUndefined();
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu that doesn't exist", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+
+                    Menus.removeMenu(menuId);
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu without supplying the id", function () {
+                runs(function () {
+                    Menus.removeMenu();
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
         });
 
 
@@ -126,18 +203,18 @@ define(function (require, exports, module) {
 
             function getBounds(object) {
                 return {
-                    left: object.offset().left,
-                    top: object.offset().top,
-                    right: object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
                 };
             }
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return bounds.left >= 0 &&
-                       bounds.right <= $(testWindow).width() &&
-                       bounds.top >= 0 &&
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
                        bounds.bottom <= $(testWindow).height();
             }
 
@@ -207,24 +284,56 @@ define(function (require, exports, module) {
                 expect($menus.length).toBe(0);
             });
         });
+    });
 
-        if (!brackets.inBrowser) {
-            return;
-        }
+    
+    describe("Menus (HTML)", function () {
+        
+        this.category = "integration";
 
+        var testWindow;
+
+        beforeFirst(function () {
+            var testWindowOptions = {"hasNativeMenus" : false};
+            
+            // Create a new HTML menu window that will be shared by ALL tests in this spec.
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                CommandManager    = testWindow.brackets.test.CommandManager;
+                Commands          = testWindow.brackets.test.Commands;
+                KeyBindingManager = testWindow.brackets.test.KeyBindingManager;
+                Menus             = testWindow.brackets.test.Menus;
+            }, testWindowOptions);
+        });
+        
+        afterLast(function () {
+            testWindow        = null;
+            CommandManager    = null;
+            Commands          = null;
+            KeyBindingManager = null;
+            Menus             = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+        
         describe("Add Menus", function () {
+            
+            function getTopMenus() {
+                return testWindow.$("#titlebar > ul.nav").children();
+            }
 
             it("should add new menu in last position of list", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom1", "menu-unittest1");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
+                    $listItems = getTopMenus(); // refresh
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest1");
                 });
@@ -232,15 +341,15 @@ define(function (require, exports, module) {
 
             it("should add new menu in first position of list", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom2", "menu-unittest2", Menus.FIRST);
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[0]).attr("id")).toBe("menu-unittest2");
                 });
@@ -248,16 +357,16 @@ define(function (require, exports, module) {
 
             it("should add new menu after reference menu", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("CustomFirst", "menu-unittest3-first", Menus.FIRST);
                     menu = Menus.addMenu("CustomAfter", "menu-unittest3-after", Menus.AFTER, "menu-unittest3-first");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 2);
                     expect($($listItems[0]).attr("id")).toBe("menu-unittest3-first");
                     expect($($listItems[1]).attr("id")).toBe("menu-unittest3-after");
@@ -266,16 +375,16 @@ define(function (require, exports, module) {
 
             it("should add new menu before reference menu", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("CustomLast", "menu-unittest3-last", Menus.LAST);
                     menu = Menus.addMenu("CustomBefore", "menu-unittest3-before", Menus.BEFORE, "menu-unittest3-last");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 2);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest3-before");
                     expect($($listItems[menuCountOriginal + 1]).attr("id")).toBe("menu-unittest3-last");
@@ -284,15 +393,15 @@ define(function (require, exports, module) {
 
             it("should add new menu at end of list when reference menu doesn't exist", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom3", "menu-unittest4", Menus.AFTER, "NONEXISTANT");
-                    expect(menu).not.toBeNull();
+                    expect(menu).toBeTruthy();
                     expect(menu).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest4");
                 });
@@ -300,19 +409,19 @@ define(function (require, exports, module) {
 
             it("should not add duplicate menu", function () {
                 runs(function () {
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    var $listItems = getTopMenus();
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
                     var menu1 = Menus.addMenu("Custom5", "menu-unittest5");
-                    expect(menu1).not.toBeNull();
+                    expect(menu1).toBeTruthy();
 
                     var menu2 = null;
 
                     menu2 = Menus.addMenu("Custom5", "menu-unittest5");
                     expect(menu2).toBeFalsy();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
+                    $listItems = getTopMenus();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect(menu2).toBeNull();
                 });
@@ -333,7 +442,7 @@ define(function (require, exports, module) {
                     // add new menu item to empty menu
                     CommandManager.register("Brackets Test Command Custom 0", "Menu-test.command00", function () {});
                     var menuItem = menu.addMenuItem("Menu-test.command00");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -348,7 +457,7 @@ define(function (require, exports, module) {
                     // add new menu item in first position of menu
                     CommandManager.register("Brackets Test Command Custom 1", "Menu-test.command01", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command01", "Ctrl-Alt-1", Menus.FIRST);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -359,7 +468,7 @@ define(function (require, exports, module) {
                     // add new menu item in last position of menu
                     CommandManager.register("Brackets Test Command Custom 2", "Menu-test.command02", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command02", Menus.LAST);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -370,7 +479,7 @@ define(function (require, exports, module) {
                     // add new menu item in position after reference command
                     CommandManager.register("Brackets Test Command Custom 3", "Menu-test.command03", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command03", "Ctrl-Alt-3", Menus.AFTER, "Menu-test.command01");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -381,7 +490,7 @@ define(function (require, exports, module) {
                     // add new menu item in position before reference command
                     CommandManager.register("Brackets Test Command Custom 4", "Menu-test.command04", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command04", "Ctrl-Alt-4", Menus.BEFORE, "Menu-test.command01");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -404,7 +513,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should add menu items to beginnging and end of menu section", function () {
+            it("should add menu items to beginning and end of menu section", function () {
                 // set up test menu and menu items
                 CommandManager.register("Brackets Test Command Section 10", "Menu-test.command10", function () {});
                 CommandManager.register("Brackets Test Command Section 11", "Menu-test.command11", function () {});
@@ -464,7 +573,7 @@ define(function (require, exports, module) {
                     // reference command doesn't exist
                     CommandManager.register("Brackets Test Command Custom 21", "Menu-test.command21", function () {});
                     var menuItem = menu.addMenuItem("Menu-test.command21", "Ctrl-Alt-2", Menus.BEFORE, "NONEXISTANT");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     var $listItems = testWindow.$(listSelector).children();
@@ -479,7 +588,7 @@ define(function (require, exports, module) {
 
                     CommandManager.register("Brackets Test Command Custom 23", "Menu-test.command23", function () {});
                     menuItem = menu.addMenuItem("Menu-test.command23", "Ctrl-Alt-3", Menus.BEFORE, "Menu-test.command22");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -492,7 +601,7 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 25", "Menu-test.command25", function () {});
 
                     menuItem = menu.addMenuItem("Menu-test.command24", "Ctrl-Alt-1", Menus.BEFORE, "Menu-test.command25");
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
@@ -549,7 +658,7 @@ define(function (require, exports, module) {
 
                     // Re-use commands that are already registered
                     var menuItem = menu.addMenuItem(commandId);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     expect(typeof (commandId)).toBe("string");
@@ -574,7 +683,7 @@ define(function (require, exports, module) {
 
                     // Re-use commands that are already registered
                     var menuItem = menu.addMenuItem(commandId);
-                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = menuDOMChildren(menuItemId);
@@ -612,6 +721,100 @@ define(function (require, exports, module) {
         });
 
 
+        describe("Remove Menu Divider", function () {
+
+            function menuDividerDOM(menuItemId) {
+                return testWindow.$("#" + menuItemId);
+            }
+
+            it("should add then remove new menu divider to empty menu", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-1";
+                    var menu = Menus.addMenu("Custom", menuId);
+
+                    var menuDivider = menu.addMenuDivider();
+                    expect(menuDivider).toBeTruthy();
+                    
+                    var $listItems = menuDividerDOM(menuDivider.id);
+                    expect($listItems.length).toBe(1);
+                    
+                    menu.removeMenuDivider(menuDivider.id);
+                    $listItems = menuDividerDOM(menuDivider.id);
+                    expect($listItems.length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu divider without supplying the id", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-2";
+                    var menu = Menus.addMenu("Custom", menuId);
+                    
+                    menu.removeMenuDivider();
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu divider with an invalid id", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-3";
+                    var menu = Menus.addMenu("Custom", menuId);
+                    
+                    menu.removeMenuDivider("foo");
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu item that is not a divider", function () {
+                runs(function () {
+                    var menuId = "menu-custom-removeMenuDivider-4";
+                    var menu = Menus.addMenu("Custom", menuId);
+                    var menuItemId = "menu-test-removeMenuDivider1";
+                    var menuItem = menu.addMenuItem(menuItemId);
+                    
+                    menu.removeMenuDivider(menuItemId);
+                    expect(menu).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+        });
+
+
+        describe("Remove Menu", function () {
+
+            function menuDOM(menuId) {
+                return testWindow.$("#" + menuId);
+            }
+
+            it("should add then remove new menu to menu bar with a menu id", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+                    Menus.addMenu("Custom", menuId);
+                    var $menu = menuDOM(menuId);
+                    expect($menu.length).toBe(1);
+
+                    Menus.removeMenu(menuId);
+                    $menu = menuDOM(menuId);
+                    expect($menu.length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu that doesn't exist", function () {
+                runs(function () {
+                    var menuId = "Menu-test";
+
+                    Menus.removeMenu(menuId);
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+
+            it("should gracefully handle someone trying to remove a menu without supplying the id", function () {
+                runs(function () {
+                    Menus.removeMenu();
+                    expect(Menus).toBeTruthy();   // Verify that we got this far...
+                });
+            });
+        });
+
+
         describe("Menu Item synchronizing", function () {
 
             it("should have same state as command", function () {
@@ -619,7 +822,7 @@ define(function (require, exports, module) {
 
                     // checked state
                     var cmd = CommandManager.register("Brackets Test Command Custom 40", "Menu-test.command40", function () {});
-                    expect(cmd).not.toBeNull();
+                    expect(cmd).toBeTruthy();
                     expect(cmd).toBeDefined();
 
                     var menu = Menus.addMenu("Synchronizing Menu", "menuitem-unittest4");
@@ -753,18 +956,18 @@ define(function (require, exports, module) {
 
             function getBounds(object) {
                 return {
-                    left:   object.offset().left,
-                    top:    object.offset().top,
-                    right:  object.offset().left + object.width(),
-                    bottom: object.offset().top + object.height()
+                    left   : object.offset().left,
+                    top    : object.offset().top,
+                    right  : object.offset().left + object.width(),
+                    bottom : object.offset().top + object.height()
                 };
             }
 
             function boundsInsideWindow(object) {
                 var bounds = getBounds(object);
-                return bounds.left >= 0 &&
-                       bounds.right <= $(testWindow).width() &&
-                       bounds.top >= 0 &&
+                return bounds.left   >= 0 &&
+                       bounds.right  <= $(testWindow).width() &&
+                       bounds.top    >= 0 &&
                        bounds.bottom <= $(testWindow).height();
             }
                 

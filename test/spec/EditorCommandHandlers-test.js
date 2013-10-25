@@ -22,15 +22,17 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
     
     var Editor                = require("editor/Editor").Editor,
+        EditorManager         = require("editor/EditorManager"),
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
+        LanguageManager       = require("language/LanguageManager"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
 
     describe("EditorCommandHandlers", function () {
@@ -46,6 +48,9 @@ define(function (require, exports, module) {
 
         var myDocument, myEditor;
         
+        var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files"),
+            testWindow;
+        
         function setupFullEditor(content, languageId) {
             content = content || defaultContent;
             languageId = languageId || "javascript";
@@ -58,9 +63,11 @@ define(function (require, exports, module) {
             myEditor.focus();
         }
         
-        function makeEditorWithRange(range) {
+        function makeEditorWithRange(range, content) {
+            content = content || defaultContent;
+            
             // create editor with a visible range
-            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript", range);
+            var mocks = SpecRunnerUtils.createMockEditor(content, "javascript", range);
             myDocument = mocks.doc;
             myEditor = mocks.editor;
             
@@ -68,9 +75,11 @@ define(function (require, exports, module) {
         }
         
         afterEach(function () {
-            SpecRunnerUtils.destroyMockEditor(myDocument);
-            myEditor = null;
-            myDocument = null;
+            if (myDocument) {
+                SpecRunnerUtils.destroyMockEditor(myDocument);
+                myEditor = null;
+                myDocument = null;
+            }
         });
         
         
@@ -82,6 +91,65 @@ define(function (require, exports, module) {
         }
         function expectSelection(sel) {
             expect(myEditor.getSelection()).toEqual(sel);
+        }
+        
+        
+        // Helper function for creating a test window
+        function createTestWindow(spec) {
+            SpecRunnerUtils.createTestWindowAndRun(spec, function (w) {
+                testWindow = w;
+                
+                // Load module instances from brackets.test
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            });
+        }
+        
+        // Helper function to open a new inline editor
+        function openInlineEditor(spec) {
+            var promise;
+            
+            runs(function () {
+                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
+                waitsForDone(promise, "Open into working set");
+            });
+            
+            runs(function () {
+                // Open inline editor onto test.css's ".testClass" rule
+                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
+                waitsForDone(promise, "Open inline editor");
+            });
+            
+            runs(function () {
+                myEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
+            });
+        }
+        
+        // Helper function for closing open files in the test window
+        function closeFilesInTestWindow() {
+            runs(function () {
+                var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                waitsForDone(promise, "Close all open files in working set");
+                
+                // Close the save dialog without saving the changes
+                var $dlg = testWindow.$(".modal.instance");
+                if ($dlg.length) {
+                    SpecRunnerUtils.clickDialogButton("dontsave");
+                }
+                $dlg = null;
+            });
+        }
+        
+        // Helper function for closing the test window
+        function closeTestWindow() {
+            testWindow      = null;
+            CommandManager  = null;
+            Commands        = null;
+            EditorManager   = null;
+            SpecRunnerUtils.closeTestWindow();
         }
         
 
@@ -406,6 +474,79 @@ define(function (require, exports, module) {
             
         });
         
+        describe("Line comment in languages with mutiple line comment prefixes", function () {
+            // Define a special version of JavaScript for testing purposes
+            LanguageManager.defineLanguage("javascript2", {
+                "name": "JavaScript2",
+                "mode": "javascript",
+                "fileExtensions": ["js2"],
+                "lineComment": ["//", "////", "#"]
+            });
+            
+            beforeEach(function () {
+                setupFullEditor(null, "javascript2");
+            });
+            
+            it("should comment using the first prefix", function () {
+                // select first 2 lines
+                myEditor.setSelection({line: 0, ch: 4}, {line: 1, ch: 12});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines[0] = "//function foo() {";
+                lines[1] = "//    function bar() {";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 6}, end: {line: 1, ch: 14}});
+            });
+            
+            it("should uncomment every prefix", function () {
+                // Start with lines 1-5 commented out, with multiple line comment variations
+                var lines = defaultContent.split("\n");
+                lines[1] = "//    function bar() {";
+                lines[2] = "    //    ";
+                lines[3] = "    ////    a();";
+                lines[4] = "        ";
+                lines[5] = "#    }";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+                
+                // select lines 1-5
+                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+            });
+            
+            it("should only uncomment the first prefix", function () {
+                // Start with lines 1-3 commented out, with multiple line comment variations
+                var lines = defaultContent.split("\n");
+                lines[1] = "//#    function bar() {";
+                lines[2] = "//        ";
+                lines[3] = "//////        a();";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+                
+                lines = defaultContent.split("\n");
+                lines[1] = "#    function bar() {";
+                lines[2] = "        ";
+                lines[3] = "//        a();";
+                var expectedContent = lines.join("\n");
+                
+                // select lines 1-3
+                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedContent);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+            });
+        });
+        
         
         /**
          * Invokes Toggle Block Comment, expects the given selection/cursor & document text, invokes
@@ -430,13 +571,6 @@ define(function (require, exports, module) {
             expect(myDocument.getText()).toEqual(expectedCommentedText);
             expectSel(expectedCommentedSel);
             
-            // Toggle comment off
-            // Can't immediately call BLOCK_COMMENT again to uncomment because CodeMirror might not
-            // be done re-tokenizing in response to the first toggle, and BLOCK_COMMENT depends on
-            // getting correct tokens. See #2335. Ideally we'd listen for onHighlightComplete() but
-            // it's not clear that will always get called (if CM decides no async work was needed).
-            // So we just wait until after the async tokenization must have been run.
-            waits(200);
             runs(function () {
                 CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
                 expect(myDocument.getText()).toEqual(startingContent);
@@ -1989,7 +2123,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
             });
         });
-        
+
         
         describe("Delete Line", function () {
             beforeEach(setupFullEditor);
@@ -2200,6 +2334,391 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 4, ch: 0}, end: {line: 5, ch: 0}});
             });
         });
+      
+        describe("Open Line Above and Below", function () {
+            var indentUnit  = SpecRunnerUtils.EDITOR_USE_TABS ? 1 : SpecRunnerUtils.EDITOR_SPACE_UNITS,
+                indentation = (function () {
+                    // generate indent string once
+                    if (SpecRunnerUtils.EDITOR_USE_TABS) {
+                        return "\t";
+                    }
+                    var spaces = [];
+                    spaces.length = indentUnit + 1;
+                    return spaces.join(" ");
+                }());
+            
+            beforeEach(setupFullEditor);
+
+            it("should insert new line above if no selection", function () {
+                // place cursor in line 1
+                myEditor.setCursorPos(1, 10);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+            
+            it("should insert new line above the first line if no selection", function () {
+                // place cursor in the first line
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(0, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 0, ch: 0});
+            });
+            
+            it("should insert new line above the last line if no selection", function () {
+                // place cursor in the last line
+                myEditor.setCursorPos(7, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(7, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 7, ch: indentUnit});
+            });
+            
+            it("should insert new line above with no indentation if no selection", function () {
+                // place cursor in the middle of line 0
+                myEditor.setCursorPos(0, 10);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(0, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 0, ch: 0});
+            });
+            
+            it("should insert new line above when characters selected", function () {
+                // select characters 0-10 in line 1
+                myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 10});
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+
+            it("should insert new line above when linewise selection", function () {
+                // select all of line 1 and 2, Including trailing \n
+                myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+         
+            it("should insert new line above when multiple line selection", function () {
+                // selection from line 2 character 6 to line 5 character 2 
+                myEditor.setSelection({line: 2, ch: 6}, {line: 5, ch: 2});
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(2, 0, indentation + indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 2, ch: indentUnit * 2});
+            });
+
+            it("should insert new line below when no selection", function () {
+                // place cursor in line 0
+                myEditor.setCursorPos(0, 10);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+            
+            it("should insert new line below the first line if no selection", function () {
+                // place cursor in the first line
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+            
+            it("should insert new line below the last line if no selection", function () {
+                // place cursor in the last line
+                myEditor.setCursorPos(7, 0);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(8, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 8, ch: 0});
+            });
+            
+            it("should insert new line below with no indentation if no selection", function () {
+                // place cursor in line 7 character 1
+                myEditor.setCursorPos(7, 1);
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                            
+                var lines = defaultContent.split("\n");
+                lines.splice(8, 0, "");
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 8, ch: 0});
+            });
+
+            it("should insert new line below when characters selected", function () {
+                // select characters 0-10 in line 0
+                myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 10});
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(1, 0, indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 1, ch: indentUnit});
+            });
+
+            it("should insert new line below when linewise selection", function () {
+                // select all of line 1 and 2, Including trailing \n
+                myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines.splice(3, 0, indentation + indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 3, ch: indentUnit * 2});
+            });
+
+            it("should insert new line below when multiple line selection", function () {
+                // selection from line 1 character 4 to line 4 character 2 
+                myEditor.setSelection({line: 1, ch: 4}, {line: 4, ch: 2});
+                
+                CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+
+                var lines = defaultContent.split("\n");
+                lines.splice(5, 0, indentation + indentation);
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 5, ch: indentUnit * 2});
+            });
+        });
+
         
+        describe("EditorCommandHandlers Integration", function () {
+            this.category = "integration";
+            
+            beforeFirst(function () {
+                createTestWindow(this);
+            });
+            
+            afterLast(function () {
+                closeTestWindow();
+            });
+            
+            
+            describe("Move Lines Up/Down - inline editor", function () {
+                
+                var moveContent = ".testClass {\n" +
+                                  "    color: red;\n" +
+                                  "}";
+                
+                beforeEach(function () {
+                    openInlineEditor(this);
+                });
+                
+                afterEach(function () {
+                    closeFilesInTestWindow();
+                });
+                
+                
+                it("should not move the first line of the inline editor up", function () {
+                    myEditor.setCursorPos({line: 0, ch: 5});
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                    
+                    expect(myEditor.document.getText()).toEqual(moveContent);
+                    expect(myEditor._codeMirror.doc.historySize().undo).toBe(0);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(2);
+                });
+                
+                it("should not move the last line of the inline editor down", function () {
+                    myEditor.setCursorPos({line: 2, ch: 5});
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                    
+                    expect(myEditor.document.getText()).toEqual(moveContent);
+                    expect(myEditor._codeMirror.doc.historySize().undo).toBe(0);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(2);
+                });
+                
+                it("should be able to move the second to last line of the inline editor down", function () {
+                    myEditor.setCursorPos({line: 1, ch: 5});
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                    
+                    var lines = moveContent.split("\n");
+                    var temp = lines[1];
+                    lines[1] = lines[2];
+                    lines[2] = temp;
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(2);
+                });
+                
+                it("should be able to move the last line of the inline editor up", function () {
+                    myEditor.setCursorPos({line: 2, ch: 0});
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                    
+                    var lines = moveContent.split("\n");
+                    var temp = lines[1];
+                    lines[1] = lines[2];
+                    lines[2] = temp;
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(2);
+                });
+            });
+        
+        
+            describe("Open Line Above and Below - inline editor", function () {
+                
+                var content = ".testClass {\n" +
+                              "    color: red;\n" +
+                              "}";
+                
+                beforeEach(function () {
+                    openInlineEditor(this);
+                });
+                
+                afterEach(function () {
+                    closeFilesInTestWindow();
+                });
+                
+    
+                it("should insert new line above the first line of the inline editor", function () {
+                    myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 6});
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                    
+                    var lines = content.split("\n");
+                    lines.splice(0, 0, "");
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(3);
+                });
+                
+                it("should insert new line below the first line of the inline editor", function () {
+                    myEditor.setCursorPos({line: 0, ch: 3});
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                    
+                    var lines = content.split("\n");
+                    lines.splice(1, 0, "    ");
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(3);
+                });
+                
+                it("should insert new line above the last line of the inline editor", function () {
+                    myEditor.setSelection({line: 2, ch: 0}, {line: 2, ch: 1});
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                    
+                    var lines = content.split("\n");
+                    lines.splice(2, 0, "    ");
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(3);
+                });
+    
+                it("should insert new line below the last line of the inline editor", function () {
+                    myEditor.setCursorPos({line: 3, ch: 0});
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                    
+                    var lines = content.split("\n");
+                    lines.splice(3, 0, "");
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(3);
+                });
+                
+                it("should insert new indented line above the second line of the inline editor", function () {
+                    myEditor.setCursorPos({line: 1, ch: 5});
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                    
+                    var lines = content.split("\n");
+                    lines.splice(1, 0, "    ");
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(3);
+                });
+                
+                it("should insert new indented line below the second line of the inline editor", function () {
+                    myEditor.setCursorPos({line: 1, ch: 5});
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                    
+                    var lines = content.split("\n");
+                    lines.splice(2, 0, "    ");
+                    var expectedText = lines.join("\n");
+                    
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    expect(myEditor.getFirstVisibleLine()).toBe(0);
+                    expect(myEditor.getLastVisibleLine()).toBe(3);
+                });
+            });
+        });
     });
 });

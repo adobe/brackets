@@ -1,0 +1,66 @@
+<tr>
+    <td class="ext-info">
+        <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
+        {{#authorInfo}}
+            <span class="muted ext-author">{{{authorInfo}}}</span>
+        {{/authorInfo}}
+        <span class="muted ext-version">{{metadata.version}}</span>
+        {{#hasVersionInfo}}
+            <span class="muted ext-date"> &mdash; {{lastVersionDate}}</span>
+        {{/hasVersionInfo}}
+    </td>
+    <td class="ext-desc">
+        {{^isCompatible}}
+            <div class="alert warning">
+                {{#requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
+                {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+            </div>
+        {{/isCompatible}}
+        {{metadata.description}}
+        {{^metadata.description}}
+            <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
+        {{/metadata.description}}
+        {{#metadata.homepage}}
+            <p><a title="{{metadata.homepage}}" href="{{metadata.homepage}}">{{Strings.EXTENSION_MORE_INFO}}</a></p>
+        {{/metadata.homepage}}
+        {{#metadata.keywords.length}}
+            <br/>
+            <span class="ext-keywords">{{Strings.EXTENSION_KEYWORDS}}:
+            {{#metadata.keywords}}
+                {{.}}
+            {{/metadata.keywords}}
+            </span>
+        {{/metadata.keywords.length}}
+    </td>
+    <td class="ext-action">
+        {{#showInstallButton}}
+            <button class="btn btn-mini install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
+                {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
+                {{#isInstalled}}{{Strings.EXTENSION_INSTALLED}}{{/isInstalled}}
+            </button>
+        {{/showInstallButton}}
+        {{#isInstalled}}
+            {{#showUpdateButton}}
+                <button class="btn btn-mini update" data-extension-id="{{metadata.name}}" {{^allowUpdate}}disabled title="{{Strings.CANT_UPDATE}}"{{/allowUpdate}}>
+                    {{Strings.UPDATE}}
+                </button>
+            {{/showUpdateButton}}
+            {{#removalAllowed}}
+                <button class="btn btn-mini remove" data-extension-id="{{metadata.name}}" {{^allowRemove}}disabled title="{{Strings.CANT_REMOVE_DEV}}"{{/allowRemove}}>
+                    {{Strings.REMOVE}}
+                </button>
+            {{/removalAllowed}}
+            {{#failedToStart}}
+                {{^isMarkedForRemoval}}
+                    {{Strings.EXTENSION_ERROR}} {{#allowRemove}}(<a class="remove" data-extension-id="{{metadata.name}}">{{Strings.REMOVE}}</a>){{/allowRemove}}
+                {{/isMarkedForRemoval}}
+            {{/failedToStart}}
+            {{#isMarkedForRemoval}}
+                {{Strings.MARKED_FOR_REMOVAL}} (<a class="undo-remove" data-extension-id="{{metadata.name}}" href="#">{{Strings.UNDO_REMOVE}}</a>)
+            {{/isMarkedForRemoval}}
+            {{#isMarkedForUpdate}}
+                {{Strings.MARKED_FOR_UPDATE}} (<a class="undo-update" data-extension-id="{{metadata.name}}" href="#">{{Strings.UNDO_UPDATE}}</a>)
+            {{/isMarkedForUpdate}}
+        {{/isInstalled}}
+    </td>
+</tr>

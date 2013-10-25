@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -33,13 +33,16 @@ define(function (require, exports, module) {
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
     
     describe("QuickOpen", function () {
+        this.category = "integration";
+        
         var testPath = SpecRunnerUtils.getTestPath("/spec/QuickOpen-test-files");
-        var brackets, test$, executeCommand, EditorManager, DocumentManager;
+        var brackets, testWindow, test$, executeCommand, EditorManager, DocumentManager;
 
         beforeEach(function () {
         
             runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (other) {
+                    testWindow = other;
                     brackets = testWindow.brackets;
                     test$ = testWindow.$;
                     executeCommand = testWindow.executeCommand;
@@ -47,11 +50,15 @@ define(function (require, exports, module) {
                     DocumentManager = brackets.test.DocumentManager;
                 });
             });
-
-
         });
 
         afterEach(function () {
+            testWindow      = null;
+            brackets        = null;
+            test$           = null;
+            executeCommand  = null;
+            EditorManager   = null;
+            DocumentManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -74,7 +81,7 @@ define(function (require, exports, module) {
             
             expectSearchBarOpen();
             
-            window.setTimeout(function () {
+            testWindow.setTimeout(function () {
                 getSearchField().val(str);
             }, timeoutLength);
         }
@@ -90,8 +97,10 @@ define(function (require, exports, module) {
         // TODO: fix me!
         // This test is currently turned off due to failures on Windows 7
         // See https://github.com/adobe/brackets/issues/2696
-        xit("can open a file and jump to a line, centering that line on the screen", function () {
-            var err = false;
+        it("can open a file and jump to a line, centering that line on the screen", function () {
+            var err = false,
+                editor,
+                $scroller;
             
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
             
@@ -101,6 +110,7 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
+                // Test quick open using a partial file name
                 executeCommand(Commands.NAVIGATE_QUICK_OPEN);
                 
                 // need to set the timeout length here to ensure that it has a chance to load the file
@@ -117,13 +127,18 @@ define(function (require, exports, module) {
             });
             
             waitsFor(function () {
-                return EditorManager.getCurrentFullEditor() !== null;
+                editor = EditorManager.getCurrentFullEditor();
+                return editor !== null && getSearchBar().length === 0;
             }, "file opening timeout", 3000);
             
             runs(function () {
+                $scroller = test$(editor.getScrollerElement());
+
                 // Make sure we've opened the right file. It should open the longer one, because
                 // of the scoring in the StringMatch algorithm.
                 expect(DocumentManager.getCurrentDocument().file.name).toEqual("lotsOfLines.html");
+
+                // Test go to line
                 executeCommand(Commands.NAVIGATE_GOTO_LINE);
                 enterSearchText(":50");
             });
@@ -132,27 +147,27 @@ define(function (require, exports, module) {
                 return getSearchField().val() === ":50";
             }, "goto line entry timeout", 1000);
             
-            var eventLooped = false;
             runs(function () {
                 pressEnter();
-                window.setTimeout(function () {
-                    eventLooped = true;
-                }, 10);
             });
-            
-            waitsFor(function () { return eventLooped; });
-            
+
+            // wait for ModalBar to close
+            waitsFor(function () {
+                return getSearchBar().length === 0;
+            }, "ModalBar close", 1000);
+
             runs(function () {
-                var editor = EditorManager.getCurrentFullEditor();
-                var scrollPos = editor.getScrollPos();
-                
                 // The user enters a 1-based number, but the reported position
                 // is 0 based, so we check for 49.
                 expect(editor).toHaveCursorPosition(49, 0);
                 
                 // We expect the result to be scrolled roughly to the middle of the window.
-                expect(scrollPos.y).toBeGreaterThan(400);
-                expect(scrollPos.y).toBeLessThan(500);
+                var offset = $scroller.offset().top;
+                var editorHeight = $scroller.height();
+                var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
+                
+                expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 - offset);
+                expect(cursorPos).toBeLessThan(editorHeight * 0.6 - offset);
             });
         });
 

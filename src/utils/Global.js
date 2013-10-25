@@ -34,7 +34,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var configJSON = require("text!config.json");
+    var configJSON  = require("text!config.json"),
+        UrlParams   = require("utils/UrlParams").UrlParams;
+    
+    var params          = new UrlParams(),
+        hasNativeMenus  = "";
+    
+    // read URL params
+    params.parse();
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -67,8 +74,6 @@ define(function (require, exports, module) {
     // TODO: (issue #266) load conditionally
     global.brackets.shellAPI = require("utils/ShellAPI");
     
-    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
-    
     if (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") {
         global.brackets.platform = "mac";
     } else if (global.navigator.platform.indexOf("Linux") >= 0) {
@@ -76,6 +81,20 @@ define(function (require, exports, module) {
     } else {
         global.brackets.platform = "win";
     }
+    
+    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
+    
+    hasNativeMenus = params.get("hasNativeMenus");
+    
+    if (hasNativeMenus) {
+        global.brackets.nativeMenus = (hasNativeMenus === "true");
+    } else {
+        global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
+    }
+    
+    global.brackets.isLocaleDefault = function () {
+        return !global.localStorage.getItem("locale");
+    };
     
     global.brackets.getLocale = function () {
         // By default use the locale that was determined in brackets.js

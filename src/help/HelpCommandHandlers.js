@@ -66,18 +66,22 @@ define(function (require, exports, module) {
     }
 
     function _handleAboutDialog() {
-        var templateVars = $.extend({
+        var templateVars = {
             ABOUT_ICON          : brackets.config.about_icon,
             APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
-            BUILD_INFO          : buildInfo || ""
-        }, Strings);
+            BUILD_INFO          : buildInfo || "",
+            Strings             : Strings
+        };
         
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
         
         // Get containers
-        var $dlg = $(".about-dialog.instance");
-        var $contributors = $dlg.find(".about-contributors");
-            
+        var $dlg = $(".about-dialog.instance"),
+            $contributors = $dlg.find(".about-contributors"),
+            $spinner = $dlg.find(".spinner");
+        
+        $spinner.addClass("spin");
+        
         // Get all the project contributors and add them to the dialog
         $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
             
@@ -94,26 +98,15 @@ define(function (require, exports, module) {
                 // Count the contributors loaded and hide the spinner once all are loaded
                 contributorsCount++;
                 if (contributorsCount >= totalContributors) {
-                    $dlg.find(".about-spinner").css("display", "none");
+                    $spinner.removeClass("spin");
                 }
             }).each(function () {
                 if (this.complete) {
                     $(this).trigger("load");
                 }
             });
-            
-            // Create a link for each contributor image to their github account
-            $contributors.on("click", "img", function (e) {
-                var url = $(e.target).data("url");
-                if (url) {
-                    // Make sure the URL has a domain that we know about
-                    if (/(^|\.)github\.com$/i.test(PathUtils.parseUrl(url).hostname)) {
-                        NativeApp.openURLInDefaultBrowser(url);
-                    }
-                }
-            });
         }).fail(function () {
-            $dlg.find(".about-spinner").css("display", "none");
+            $spinner.removeClass("spin");
             $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
         });
     }

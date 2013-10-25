@@ -1,0 +1,161 @@
+/* Colors */
+@body-text-color: #666;
+@emphasized-text-color: #454545;
+@heading-color: #454545;
+@link-color: #0083e8;
+
+/* Typography */
+ @font-weight-semibold: 500;
+
+
+/* Overall inline widget content container */
+.css-prop-defn {
+    margin-left: 20px;
+    
+    color: @body-text-color;
+    
+    /* Enable text selection */
+    cursor: auto;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    -o-user-select: text;
+    user-select: text;
+    
+    &:focus {
+        outline: none;
+    }
+    
+    font-family: SourceSansPro;
+    font-size: 14px;
+    
+    h1 {
+        color: @heading-color;
+        font-size: 16px;
+        font-weight: @font-weight-semibold;
+        line-height: normal;
+        margin: 15px 0 9px 0;
+    }
+    
+    a {
+        color: @link-color;
+    }
+    code {
+        font-family: SourceCodePro;
+        font-size: 12px;
+        color: @emphasized-text-color;
+        background: none;   // revert Bootstrap's styling
+        padding: 0;
+    }
+    b {
+        font-weight: @font-weight-semibold;
+    }
+}
+
+/* Left-hand column */
+.css-prop-summary {
+    box-sizing: border-box;
+    float: left;
+    padding-left: 20px;
+    width: 35%;
+    
+    p {
+        line-height: 18px;
+    }
+}
+
+// Used to avoid overlapping CM scrollbar - TODO (#3460): need a cleaner way to do this
+@scrollbar-wid: 17px;
+
+/* Right-hand column */
+.css-prop-values {
+    box-sizing: border-box; //for exact dimension        
+    float: right;
+    width: 60%;
+    
+    .scroller {
+        max-height: 300px;
+        overflow-y: auto;
+        
+        margin: 20px (@scrollbar-wid + 4px) 0 0;
+        
+        &:focus {
+            outline: none;
+        }
+    }
+        
+    dl {
+        margin-top: 0px;
+        
+        dt {
+            color: @emphasized-text-color;
+            font-size: 13px;
+            font-weight: @font-weight-semibold;
+            margin-bottom: 3px;
+        }
+        
+        dd {
+            // some styles must specifically be on <p> to override Bootstrap
+            p, li, b {
+                font-size: 13px;
+                font-style: normal;
+                line-height: 18px;
+                margin-bottom: 15px;
+            }
+            line-height: 18px;
+            margin-left: 20px;
+            margin-right: 0px;
+            margin-bottom: -2px; // remove extra spacing between dt-dd pairs
+            padding-bottom: 0px;
+        }
+    }
+}
+
+.divider-holder {
+    // This nesting lets us effectively have 'left: (37% + 12px)'
+    position: absolute;
+    left: 37%;
+    top: 0;
+    height: 100%;
+    .divider {
+        margin-left: 12px;
+        width: 0px;
+        height: 100%;
+        border-left: 1px solid #cccccc;
+        border-right: 1px solid white;
+    }
+}
+
+.content-bottom {
+    // Used to pull bottom edge of .css-prop-defn down below its two floated children.
+    // Also prevents .more-info (after us in DOM order) from overlapping the float: right content.
+    clear: both;
+}
+
+/* Link to full docs, at bottom */
+a.more-info {
+    position: absolute;
+    bottom: 0px;
+    right: (33px + @scrollbar-wid);
+    padding: 4px 10px 4px 28px;
+    
+    background: #e5e9e9 url("logo.svg");
+    background-repeat: no-repeat;
+    background-size: 15px 15px;
+    background-position: 8px 4px;
+    
+    border: 1px solid #9c9e9e;
+    border-radius: 3px 3px 0 0;
+    border-bottom: none;
+    box-shadow: inset 0 1px 0 white;  // white chisel along top edge
+    
+    font-size: 12px;
+    font-weight: @font-weight-semibold;
+    color: @heading-color;
+    text-shadow: 0 1px 0 white;
+    &:hover {
+        background-color: #edf1f1;
+        text-decoration: none;
+    }
+}

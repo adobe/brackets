@@ -48,9 +48,11 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
+        LanguageManager     = require("language/LanguageManager"),
         KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
-        StringMatch         = require("utils/StringMatch");
+        StringMatch         = require("utils/StringMatch"),
+        ViewUtils           = require("utils/ViewUtils");
     
 
     /** @type Array.<QuickOpenPlugin> */
@@ -66,30 +68,6 @@ define(function (require, exports, module) {
     var fileListPromise;
 
     /**
-     * Remembers the current document that was displayed when showDialog() was called.
-     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
-     * @type {?string} full path
-     */
-    var origDocPath;
-
-    /**
-     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
-     * item can change the selection; we restore this original selection if the user presses Escape. Null if
-     * no document was open when Quick Open was invoked.
-     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
-     */
-    var origSelection;
-    
-    /**
-     * Remembers the scroll position in origDocPath when showDialog() was called (see origSelection above).
-     * @type {?{x:number, y:number}}
-     */
-    var origScrollPos;
-
-    /** @type {boolean} */
-    var dialogOpen = false;
-    
-    /**
      * The currently open quick open dialog.
      */
     var _curDialog;
@@ -97,15 +75,16 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter, label) {
+    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions, label) {
         this.name = name;
-        this.fileTypes = fileTypes;
+        this.languageIds = languageIds;
         this.done = done;
         this.search = search;
         this.match = match;
         this.itemFocus = itemFocus;
         this.itemSelect = itemSelect;
         this.resultsFormatter = resultsFormatter;
+        this.matcherOptions = matcherOptions;
         this.label = label;
     }
     
@@ -113,21 +92,21 @@ define(function (require, exports, module) {
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          fileTypes:Array.<string>,
+     *          languageIds: ?Array.<string>,
      *          done: function(),
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
      *          itemFocus: function(?SearchResult|string),
      *          itemSelect: function(?SearchResult|string),
      *          resultsFormatter: ?function(SearchResult|string, string):string,
+     *          matcherOptions: Object,
      *          label: ?string
      *        } pluginDef
      *
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * fileTypes - file types array. Example: ["js", "css", "txt"]. If unspecified or empty array,
-     *      indicates all file types.
+     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. Defaults to all language IDs.
      * done - called when quick open is complete. Plug-in should clear its internal state. Optional.
      * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query. Required.
      * match - takes a query string and returns true if this plug-in wants to provide
@@ -138,21 +117,33 @@ define(function (require, exports, module) {
      *      The selected search result item (as returned by search()) is passed as an argument. Required.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
+     *          for available options)
      * label - if provided, the label to show before the query field.
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
+        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
+        if (pluginDef.fileTypes && !pluginDef.languageIds) {
+            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
+            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
+                return LanguageManager.getLanguageForPath("file." + extension).getId();
+            });
+            delete pluginDef.fileTypes;
+        }
+        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
-            pluginDef.fileTypes || [],
+            pluginDef.languageIds || [],
             pluginDef.done,
             pluginDef.search,
             pluginDef.match,
             pluginDef.itemFocus,
             pluginDef.itemSelect,
             pluginDef.resultsFormatter,
+            pluginDef.matcherOptions,
             pluginDef.label
         ));
     }
@@ -178,11 +169,21 @@ define(function (require, exports, module) {
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
         
         // StringMatchers that cache in-progress query data.
-        this._filenameMatcher           = new StringMatch.StringMatcher();
+        this._filenameMatcher           = new StringMatch.StringMatcher({
+            segmentedSearch: true
+        });
         this._matchers                  = {};
     }
     
     /**
+     * True if the dialog is currently open. Note that this is set to false immediately
+     * when the dialog starts closing; it doesn't wait for the ModalBar animation to finish.
+     * @type {boolean}
+     */
+    QuickNavigateDialog.prototype.isOpen = false;
+    
+    /**
+     * @private
      * Handles caching of filename search information for the lifetime of a 
      * QuickNavigateDialog (a single search until the dialog is dismissed)
      *
@@ -191,6 +192,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._filenameMatcher = null;
     
     /**
+     * @private
      * StringMatcher caches for each QuickOpen plugin that keep track of search
      * information for the lifetime of a QuickNavigateDialog (a single search
      * until the dialog is dismissed)
@@ -198,6 +200,39 @@ define(function (require, exports, module) {
      * @type {Object.<string, StringMatch.StringMatcher>}
      */
     QuickNavigateDialog.prototype._matchers = null;
+    
+    /**
+     * @private
+     * If the dialog is closing, this will contain a deferred that is resolved
+     * when it's done closing.
+     * @type {$.Deferred}
+     */
+    QuickNavigateDialog.prototype._closeDeferred = null;
+    
+
+    /**
+     * @private
+     * Remembers the current document that was displayed when showDialog() was called.
+     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
+     * @type {?string} full path
+     */
+    QuickNavigateDialog.prototype._origDocPath = null;
+
+    /**
+     * @private
+     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * item can change the selection; we restore this original selection if the user presses Escape. Null if
+     * no document was open when Quick Open was invoked.
+     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     */
+    QuickNavigateDialog.prototype._origSelection = null;
+    
+    /**
+     * @private
+     * Remembers the scroll position in origDocPath when showDialog() was called (see origSelection above).
+     * @type {?{x:number, y:number}}
+     */
+    QuickNavigateDialog.prototype._origScrollPos = null;
 
     function _filenameFromPath(path, includeExtension) {
         var end;
@@ -277,7 +312,9 @@ define(function (require, exports, module) {
             selectedDOMItem = $(".smart_autocomplete_container > li:first-child").get(0);
         }
         
-        var selectedItem = domItemToSearchResult(selectedDOMItem);
+        var selectedItem = domItemToSearchResult(selectedDOMItem),
+            doClose = true,
+            self = this;
 
         // Delegate to current plugin
         if (currentPlugin) {
@@ -291,21 +328,32 @@ define(function (require, exports, module) {
             // Navigate to file and line number
             var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
+                // This case is tricky. We want to switch editors, so we need to deal with
+                // resizing/rescrolling the current editor first. But we don't actually want
+                // to start the animation of the ModalBar until afterward (otherwise it glitches
+                // because it gets starved of cycles during the creation of the new editor). 
+                // So we call `prepareClose()` first, and finish the close later.
+                doClose = false;
+                this.modalBar.prepareClose();
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
                         if (!isNaN(gotoLine)) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(gotoLine, 0, true);
                         }
+                    })
+                    .always(function () {
+                        self.close();
                     });
             } else if (!isNaN(gotoLine)) {
                 EditorManager.getCurrentFullEditor().setCursorPos(gotoLine, 0, true);
             }
         }
 
-
-        this._close();
-        EditorManager.focusEditor();
+        if (doClose) {
+            this.close();
+            EditorManager.focusEditor();
+        }
     };
 
     /**
@@ -353,17 +401,10 @@ define(function (require, exports, module) {
             var self = this;
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    self._close()
-                        .done(function () {
-                            // Restore original selection / scroll pos
-                            if (origSelection) {
-                                EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
-                                EditorManager.getCurrentFullEditor().setScrollPos(origScrollPos.x, origScrollPos.y);
-                            }
-                        });
-                    
+                    // Restore original selection / scroll pos
+                    self.close(self._origScrollPos, self._origSelection);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls _close() too
+                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
             }, 0);
             
@@ -394,9 +435,11 @@ define(function (require, exports, module) {
      * list items are re-rendered. Both happen synchronously just after we return. Called even when results is empty.
      */
     QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
-        // Give visual clue when there are no results
-        var isNoResults = (results.length === 0 && !this._isValidLineNumberQuery(this.$searchField.val()));
-        this.$searchField.toggleClass("no-results", isNoResults);
+        // Give visual clue when there are no results (unless we're in "Go To Line" mode, where there
+        // are never results, or we're in file search mode and waiting for the index to get rebuilt)
+        var hasNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
+        
+        ViewUtils.toggleClass(this.$searchField, "no-results", hasNoResults);
     };
     
     /**
@@ -413,13 +456,22 @@ define(function (require, exports, module) {
     /**
      * Closes the search dialog and notifies all quick open plugins that
      * searching is done.
+     * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
+     *     position when closing the ModalBar.
+     * @param {{start: {line: number, ch: number}, end: {line: number, ch: number}} selection If specified,
+     *     restore the given selection when closing the ModalBar.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype._close = function () {
-        if (!dialogOpen) {
-            return new $.Deferred().reject();
+    QuickNavigateDialog.prototype.close = function (scrollPos, selection) {
+        if (!this.isOpen) {
+            return this._closeDeferred.promise();
         }
-        dialogOpen = false;
+        this.isOpen = false;
+        
+        // We can't just return the ModalBar's `close()` promise because we need to do it on a
+        // setTimeout, so we create our own Deferred and cache it so we can return it if multiple
+        // callers happen to call `close()`.
+        this._closeDeferred = new $.Deferred();
 
         var i;
         for (i = 0; i < plugins.length; i++) {
@@ -429,31 +481,37 @@ define(function (require, exports, module) {
             }
         }
 
-        // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
-        //JSLintUtils.setEnabled(true);
-        
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
         // editor to give focus to below, it won't notice otherwise).
         this.$searchField.trigger("lostFocus");
-
-        EditorManager.focusEditor();
         
         // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
-        // (because it's a later handler of the event that just triggered _close()), and that code expects to
+        // (because it's a later handler of the event that just triggered close()), and that code expects to
         // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
         // So we wait until after this call chain is complete before actually closing the dialog.
-        var result = new $.Deferred();
         var self = this;
         setTimeout(function () {
-            self.modalBar.close();
-            result.resolve();
+            self.modalBar.close(!scrollPos).done(function () {
+                self._closeDeferred.resolve();
+            });
+
+            // Note that we deliberately reset the scroll position synchronously on return from
+            // `ModalBar.close()` (before the animation completes).
+            // See description of `restoreScrollPos` in `ModalBar.close()`.
+            var editor = EditorManager.getCurrentFullEditor();
+            if (selection) {
+                editor.setSelection(selection.start, selection.end);
+            }
+            if (scrollPos) {
+                editor.setScrollPos(scrollPos.x, scrollPos.y);
+            }
         }, 0);
         
         $(".smart_autocomplete_container").remove();
 
         $(window.document).off("mousedown", this._handleDocumentMouseDown);
         
-        return result.promise();
+        return this._closeDeferred.promise();
     };
     
     /**
@@ -493,7 +551,10 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
-            var searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            var searchResult;
+            
+            searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+            
             if (searchResult) {
                 searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
@@ -535,20 +596,19 @@ define(function (require, exports, module) {
         // Try to invoke a search plugin
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc) {
-            var filename = _filenameFromPath(curDoc.file.fullPath, true);
-            var extension = filename.slice(filename.lastIndexOf(".") + 1, filename.length);
+            var languageId = curDoc.getLanguage().getId();
 
             var i;
             for (i = 0; i < plugins.length; i++) {
                 var plugin = plugins[i];
-                var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
-                if (extensionMatch &&  plugin.match && plugin.match(query)) {
+                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
+                if (languageIdMatch && plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
                     
                     // Look up the StringMatcher for this plugin.
                     var matcher = this._matchers[currentPlugin.name];
                     if (!matcher) {
-                        matcher = new StringMatch.StringMatcher();
+                        matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
                         this._matchers[currentPlugin.name] = matcher;
                     }
                     if (plugin.label) {
@@ -609,7 +669,7 @@ define(function (require, exports, module) {
             }
             
             var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
-            displayName += StringUtils.breakableUrl(StringUtils.htmlEscape(rangeText));
+            displayName += StringUtils.breakableUrl(rangeText);
             
             if (range.matched) {
                 displayName += "</span>";
@@ -714,7 +774,7 @@ define(function (require, exports, module) {
      */
     QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
         if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
-            this._close();
+            this.close();
         } else {
             // Allow clicks in the search field to propagate. Clicks in the menu should be 
             // blocked to prevent focus from leaving the search field.
@@ -729,36 +789,31 @@ define(function (require, exports, module) {
      * Close the dialog when it loses focus.
      */
     QuickNavigateDialog.prototype._handleBlur = function (e) {
-        this._close();
+        this.close();
     };
 
     /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
      */
     QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
-        if (dialogOpen) {
+        if (this.isOpen) {
             return;
         }
-        dialogOpen = true;
+        this.isOpen = true;
 
         // Global listener to hide search bar & popup
         $(window.document).on("mousedown", this._handleDocumentMouseDown);
 
-
-        // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
-        // To improve performance during list selection disable JSLint until a document is chosen or dialog is closed
-        //JSLintUtils.setEnabled(false);
-
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
         var curDoc = DocumentManager.getCurrentDocument();
-        origDocPath = curDoc ? curDoc.file.fullPath : null;
+        this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            origSelection = EditorManager.getCurrentFullEditor().getSelection();
-            origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
+            this._origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
-            origSelection = null;
-            origScrollPos = null;
+            this._origSelection = null;
+            this._origScrollPos = null;
         }
 
         // Show the search bar ("dialog")
@@ -798,12 +853,12 @@ define(function (require, exports, module) {
         
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileList = null;
         fileListPromise = FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
-            });
+                this._filenameMatcher.reset();
+            }.bind(this));
     };
 
     function getCurrentEditorSelectedText() {
@@ -818,11 +873,24 @@ define(function (require, exports, module) {
      * @param {?string} initialString
      */
     function beginSearch(prefix, initialString) {
-        if (dialogOpen) {
-            _curDialog.setSearchFieldValue(prefix, initialString);
-        } else {
+        function createDialog() {
             _curDialog = new QuickNavigateDialog();
             _curDialog.showDialog(prefix, initialString);
+        }
+
+        if (_curDialog) {
+            if (_curDialog.isOpen) {
+                // Just start a search using the existing dialog.
+                _curDialog.setSearchFieldValue(prefix, initialString);
+            } else {
+                // The dialog is already closing. Wait till it's done closing,
+                // then open a new dialog. (Calling close() again returns the
+                // promise for the deferred that was already kicked off when it
+                // started closing.)
+                _curDialog.close().done(createDialog);
+            }
+        } else {
+            createDialog();
         }
     }
 
@@ -845,8 +913,11 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
-
-
+    
+    // Listen for a change of project to invalidate our file list
+    $(ProjectManager).on("projectOpen", function () {
+        fileList = null;
+    });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);

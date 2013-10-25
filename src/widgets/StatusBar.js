@@ -1,8 +1,35 @@
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, window, document, Mustache */
 
 /**
- * A status bar with support for file information and busy and status indicators.
+ * A status bar with support for file information and busy and status indicators. This is a semi-generic
+ * container; for the code that decides what content appears in the status bar, see client modules like
+ * EditorStatusBar. (Although in practice StatusBar's HTML structure and initialization
+ * assume it's only used for this one purpose, and all the APIs are on a singleton).
  */
 define(function (require, exports, module) {
     'use strict';
@@ -33,6 +60,7 @@ define(function (require, exports, module) {
      */
     function showBusyIndicator(updateCursor) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -49,6 +77,7 @@ define(function (require, exports, module) {
      */
     function hideBusyIndicator() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -65,15 +94,14 @@ define(function (require, exports, module) {
     /**
      * Registers a new status indicator
      * @param {string} id Registration id of the indicator to be updated.
-     * @param {DOMNode} indicator Optional DOMNode for the indicator
-     * @param {boolean} visible Shows or hides the indicator over the statusbar.
-     * @param {string} style Sets the attribute "class" of the indicator.
-     * @param {string} tooltip Sets the attribute "title" of the indicator.
-     * @param {string} command Optional command name to execute on the indicator click.
-     * TODO Unused command parameter. Include command functionality for statusbar indicators.
+     * @param {(DOMNode|jQueryObject)=} indicator Optional DOMNode for the indicator
+     * @param {boolean=} visible Shows or hides the indicator over the statusbar.
+     * @param {string=} style Sets the attribute "class" of the indicator.
+     * @param {string=} tooltip Sets the attribute "title" of the indicator.
      */
-    function addIndicator(id, indicator, visible, style, tooltip, command) {
+    function addIndicator(id, indicator, visible, style, tooltip) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -87,25 +115,24 @@ define(function (require, exports, module) {
         $indicator.attr("id", id);
         $indicator.attr("title", tooltip);
         $indicator.addClass("indicator");
-        $indicator.addClass("style");
+        $indicator.addClass(style);
             
         if (!visible) {
             $indicator.hide();
         }
         
-        $indicators.prepend($indicator);
     }
     
     /**
      * Updates a status indicator
      * @param {string} id Registration id of the indicator to be updated.
      * @param {boolean} visible Shows or hides the indicator over the statusbar.
-     * @param {string} style Sets the attribute "class" of the indicator.
-     * @param {string} tooltip Sets the attribute "title" of the indicator.
-     * @param {string} command Optional command name to execute on the indicator click.
+     * @param {string=} style Sets the attribute "class" of the indicator.
+     * @param {string=} tooltip Sets the attribute "title" of the indicator.
      */
-    function updateIndicator(id, visible, style, tooltip, command) {
+    function updateIndicator(id, visible, style, tooltip) {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
         
@@ -138,6 +165,7 @@ define(function (require, exports, module) {
      */
     function hide() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
         
@@ -152,6 +180,7 @@ define(function (require, exports, module) {
      */
     function show() {
         if (!_init) {
+            console.error("StatusBar API invoked before status bar created");
             return;
         }
 
@@ -160,28 +189,22 @@ define(function (require, exports, module) {
             EditorManager.resizeEditor();  // changes available ht for editor area
         }
     }
-
-    function init($parent) {
-        // check if status bar already exists
-        if (_init) {
-            return;
-        }
-
-        $parent = $parent || $("body");
+    
+    AppInit.htmlReady(function () {
+        var $parent = $(".main-view .content");
         $parent.append(Mustache.render(StatusBarHTML, Strings));
 
         // Initialize items dependent on HTML DOM
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
-        $busyIndicator      = $("#busy-indicator");
+        $busyIndicator      = $("#status-bar .spinner");
 
         _init = true;
 
         // hide on init
         hide();
-    }
+    });
 
-    exports.init = init;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;

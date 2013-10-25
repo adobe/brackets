@@ -44,16 +44,22 @@ define(function (require, exports, module) {
         return {
             "editor": editor,
             "pos": pos,
-            "token": editor.getTokenAt(pos)
+            "token": editor.getTokenAt(pos, true)
         };
     }
     
     /**
      * Moves the given context backwards by one token.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {boolean=} precise If code is being edited, use true (default) for accuracy.
+     *      If parsing unchanging code, use false to use cache for performance.
      * @return {boolean} whether the context changed
      */
-    function movePrevToken(ctx) {
+    function movePrevToken(ctx, precise) {
+        if (precise === undefined) {
+            precise = true;
+        }
+        
         if (ctx.pos.ch <= 0 || ctx.token.start <= 0) {
             //move up a line
             if (ctx.pos.line <= 0) {
@@ -64,17 +70,23 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
         return true;
     }
     
     /**
      * Moves the given context forward by one token.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {boolean=} precise If code is being edited, use true (default) for accuracy.
+     *      If parsing unchanging code, use false to use cache for performance.
      * @return {boolean} whether the context changed
      */
-    function moveNextToken(ctx) {
+    function moveNextToken(ctx, precise) {
         var eol = ctx.editor.getLine(ctx.pos.line).length;
+        if (precise === undefined) {
+            precise = true;
+        }
+        
         if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
             //move down a line
             if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
@@ -85,7 +97,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
         return true;
     }
     
@@ -99,7 +111,7 @@ define(function (require, exports, module) {
         if (!moveFxn(ctx)) {
             return false;
         }
-        while (!ctx.token.className && ctx.token.string.trim().length === 0) {
+        while (!ctx.token.type && ctx.token.string.trim().length === 0) {
             if (!moveFxn(ctx)) {
                 return false;
             }
@@ -128,7 +140,7 @@ define(function (require, exports, module) {
      */
     function getModeAt(cm, pos) {
         var outerMode = cm.getMode(),
-            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos).state),
+            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
             name;
 
         name = (modeData.mode.name === "xml") ?

@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         NativeFileError     = require("file/NativeFileError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Encodings           = NativeFileSystem.Encodings;
@@ -79,6 +80,8 @@ define(function (require, exports, module) {
             };
 
             reader.readAsText(file, Encodings.UTF8);
+        }, function (error) {
+            result.reject(error);
         });
 
         return result.promise();
@@ -104,6 +107,8 @@ define(function (require, exports, module) {
 
             // TODO (issue #241): NativeFileSystem.BlobBulder
             fileWriter.write(text);
+        }, function (error) {
+            result.reject(error);
         });
         
         return result.promise();
@@ -177,11 +182,11 @@ define(function (require, exports, module) {
     
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
-            Dialogs.DIALOG_ID_ERROR,
+            DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
-                StringUtils.htmlEscape(path),
+                StringUtils.breakableUrl(path),
                 getFileErrorString(name)
             )
         );
@@ -205,22 +210,71 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Canonicalizes a folder path to not include a trailing slash.
+     * Convert a Windows-native path to use Unix style slashes.
+     * On Windows, this converts "C:\foo\bar\baz.txt" to "C:/foo/bar/baz.txt".
+     * On Mac, this does nothing, since Mac paths are already in Unix syntax.
+     * (Note that this does not add an initial forward-slash. Internally, our
+     * APIs generally use the "C:/foo/bar/baz.txt" style for "native" paths.)
+     * @param {string} path A native-style path.
+     * @return {string} A Unix-style path.
+     */
+    function convertWindowsPathToUnixPath(path) {
+        if (brackets.platform === "win") {
+            path = path.replace(/\\/g, "/");
+        }
+        return path;
+    }
+    
+    /**
+     * Removes the trailing slash from a path, if it has one.
+     * Warning: this differs from the format of most paths used in Brackets! Use paths ending in "/"
+     * normally, as this is the format used by DirectoryEntry.fullPath.
+     * 
      * @param {string} path
      * @return {string}
      */
-    function canonicalizeFolderPath(path) {
-        if (path.length > 0 && path[path.length - 1] === "/") {
+    function stripTrailingSlash(path) {
+        if (path && path[path.length - 1] === "/") {
             return path.slice(0, -1);
         } else {
             return path;
         }
     }
-
+    
+    /**
+     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
+     * used by DirectoryEntry.fullPath actually DOES include the trailing "/"
+     * @deprecated
+     * 
+     * @param {string} path
+     * @return {string}
+     */
+    function canonicalizeFolderPath(path) {
+        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like DirectoryEntry.fullPath");
+        return stripTrailingSlash(path);
+    }
+    
+    /**
+     * Get the name of a file or a directory, removing any preceding path.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the base name of a file or the name of a
+     * directory
+     */
+    function getBaseName(fullPath) {
+        var lastSlash = fullPath.lastIndexOf("/");
+        if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
+            return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
+        } else {
+            return fullPath.slice(lastSlash + 1);
+        }
+    }
+    
     /**
      * Returns a native absolute path to the 'brackets' source directory.
      * Note that this only works when run in brackets/src/index.html, so it does
      * not work for unit tests (which is run from brackets/test/SpecRunner.html)
+     * 
+     * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
@@ -233,6 +287,8 @@ define(function (require, exports, module) {
      * Given the module object passed to JS module define function,
      * convert the path to a native absolute path.
      * Returns a native absolute path to the module folder.
+     * 
+     * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
      */
     function getNativeModuleDirectoryPath(module) {
@@ -292,42 +348,115 @@ define(function (require, exports, module) {
         
         return false;
     }
-    
+
+    /**
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension. If the name starts with ".", the
+     * full remaining text is considered the extension.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getFileExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            idx      = baseName.lastIndexOf(".");
+
+        if (idx === -1) {
+            return "";
+        }
+
+        return baseName.substr(idx + 1);
+    }
+
+    /**
+     * Similar to getFileExtension(), but includes the leading "." in the returned value.
+     * @deprecated Use getFileExtension() instead. This API will be removed soon.
+     */
+    function getFilenameExtension(fullPath) {
+        console.error("Warning: FileUtils.getFilenameExtension() is deprecated. Use FileUtils.getFileExtension() (which omits the '.') instead.");
+        
+        var ext = getFileExtension(fullPath);
+        if (ext !== "") {
+            ext = "." + ext;
+        }
+        return ext;
+    }
+
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
      * Determine if file extension is a static html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} filePath could be a path, a file name or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
-    function isStaticHtmlFileExt(fileExt) {
-        if (!fileExt) {
+    function isStaticHtmlFileExt(filePath) {
+        if (!filePath) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_staticHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_staticHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
     }
 
     /**
      * Determine if file extension is a server html file extension.
-     * @param {String} file name with extension or just a file extension
-     * @return {Boolean} Returns true if fileExt is in the list
+     * @param {string} filePath could be a path, a file name or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
      */
-    function isServerHtmlFileExt(fileExt) {
-        if (!fileExt) {
+    function isServerHtmlFileExt(filePath) {
+        if (!filePath) {
             return false;
         }
 
-        var i = fileExt.lastIndexOf("."),
-            ext = (i === -1 || i >= fileExt.length - 1) ? fileExt : fileExt.substr(i + 1);
-
-        return (_serverHtmlFileExts.indexOf(ext.toLowerCase()) !== -1);
+        return (_serverHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
     }
+    
+    /**
+     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or the path of a directory,
+     *                  including trailing "/"
+     */
+    function getDirectoryPath(fullPath) {
+        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
+    }
+
+    /**
+     * @private
+     * Get the file name without the extension.
+     * @param {string} filename File name of a file or directory
+     * @return {string} Returns the file name without the extension
+     */
+    function _getFilenameWithoutExtension(filename) {
+        var index = filename.lastIndexOf(".");
+        return index === -1 ? filename : filename.slice(0, index);
+    }
+    
+    /**
+     * Compares 2 filenames in lowercases. In Windows it compares the names without the
+     * extension first and then the extensions to fix issue #4409
+     * @param {string} filename1
+     * @param {string} filename2
+     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
+     * @return {number} The result of the local compare function
+     */
+    function compareFilenames(filename1, filename2, extFirst) {
+        var ext1   = getFileExtension(filename1),
+            ext2   = getFileExtension(filename2),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
+            cmpNames;
+        
+        if (brackets.platform === "win") {
+            filename1 = _getFilenameWithoutExtension(filename1);
+            filename2 = _getFilenameWithoutExtension(filename2);
+        }
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
+        
+        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
+    }
+
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -340,11 +469,18 @@ define(function (require, exports, module) {
     exports.readAsText                     = readAsText;
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
+    exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
+    exports.stripTrailingSlash             = stripTrailingSlash;
     exports.isAffectedWhenRenaming         = isAffectedWhenRenaming;
     exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
+    exports.getDirectoryPath               = getDirectoryPath;
+    exports.getBaseName                    = getBaseName;
+    exports.getFileExtension               = getFileExtension;
+    exports.getFilenameExtension           = getFilenameExtension;
+    exports.compareFilenames               = compareFilenames;
 });

@@ -43,8 +43,16 @@ define(function (require, exports, module) {
         this.htmlContent = window.document.createElement("div");
         this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
         this.$htmlContent.append("<div class='shadow top' />")
-            .append("<div class='shadow bottom' />");
-        
+            .append("<div class='shadow bottom' />")
+            .append("<a href='#' class='close'>&times;</a>");
+
+        // create the close button
+        this.$closeBtn = this.$htmlContent.find(".close");
+        this.$closeBtn.click(function (e) {
+            self.close();
+            e.stopImmediatePropagation();
+        });
+
         this.$htmlContent.on("keydown", function (e) {
             if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 self.close();
@@ -65,9 +73,10 @@ define(function (require, exports, module) {
     
     /**
      * Closes this inline widget and all its contained Editors
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     InlineWidget.prototype.close = function () {
-        EditorManager.closeInlineWidget(this.hostEditor, this);
+        return EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     
@@ -88,9 +97,11 @@ define(function (require, exports, module) {
     /**
      * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
      * focus or measuring content, which require htmlContent to be in the DOM tree.
+     * IMPORTANT: onAdded() must ensure that hostEditor.setInlineWidgetHeight() is called at least once in order
+     * to set the initial height of the widget and animate it open.
      */
     InlineWidget.prototype.onAdded = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("add");
     };
 
     /**

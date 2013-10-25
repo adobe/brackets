@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -27,10 +27,10 @@
 /**
  * Resizer is a Module utility to inject resizing capabilities to any element
  * inside Brackets.
- * 
- * On initialization, Resizer discovers all nodes tagged as "vert-resizable" 
- * and "horz-resizable" to add the resizer handler. Additionally, "top-resizer", 
- * "bottom-resizer", "left-resizer" and "right-resizer" classes control the 
+ *
+ * On initialization, Resizer discovers all nodes tagged as "vert-resizable"
+ * and "horz-resizable" to add the resizer handler. Additionally, "top-resizer",
+ * "bottom-resizer", "left-resizer" and "right-resizer" classes control the
  * position of the resizer on the element.
  *
  * An element can be made resizable at any time using the `makeResizable()` API.
@@ -38,7 +38,7 @@
  * again in a subsequent launch.
  *
  * The resizable elements trigger a panelResizeStart, panelResizeUpdate and panelResizeEnd
- * event that can be used to create performance optimizations (such as hiding/showing elements 
+ * event that can be used to create performance optimizations (such as hiding/showing elements
  * while resizing), custom layout logic, etc. See makeResizable() for details on the events.
  *
  * A resizable element can be collapsed/expanded using the `show`, `hide` and `toggle` APIs or
@@ -60,12 +60,8 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        EditorManager           = require("editor/EditorManager");
+        PreferencesManager      = require("preferences/PreferencesManager");
     
-    var PREFERENCES_CLIENT_ID = module.id,
-        defaultPrefs = { };
-	
     /**
      * @private
      * @type {PreferenceStorage}
@@ -110,6 +106,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the visibility state of a resizable element.
+     * @param {DOMNode} element Html element to toggle
+     * @return {boolean} true if element is visible, false if it is not visible
+     */
+    function isVisible(element) {
+        return $(element).is(":visible");
+    }
+    
+    /**
      * Adds resizing capabilities to a given html element.
      *
      * Resizing can be configured in two directions:
@@ -133,16 +138,20 @@ define(function (require, exports, module) {
      * @param {!string} direction Direction of the resize action: one of the DIRECTION_* constants.
      * @param {!string} position Which side of the element can be dragged: one of the POSITION_* constants
      *                          (TOP/BOTTOM for vertical resizing or LEFT/RIGHT for horizontal).
-     * @param {?number} minSize Minimum size (width or height) of the element. Defaults to 0.
+     * @param {?number} minSize Minimum size (width or height) of the element's outer dimensions, including
+     *                          border & padding. Defaults to DEFAULT_MIN_SIZE.
      * @param {?boolean} collapsible Indicates the panel is collapsible on double click on the
      *                          resizer. Defaults to false.
-     * @param {?string} forcemargin CSS selector indicating element whose margin-left should be locked to
-     *                          the resizable elemnt's size.
+     * @param {?string} forceLeft CSS selector indicating element whose 'left' should be locked to the
+     *                          the resizable element's size (useful for siblings laid out to the right of
+     *                          the element). Must lie in element's parent's subtree.
+     * @param {?boolean} createdByPanelManager For internal use only
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forcemargin) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByPanelManager) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
+            $parent             = $element.parent(),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
             elementID           = $element.attr("id"),
@@ -153,15 +162,27 @@ define(function (require, exports, module) {
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
-		
-        minSize = minSize || 0;
+
+        if (minSize === undefined) {
+            minSize = DEFAULT_MIN_SIZE;
+        }
+
         collapsible = collapsible || false;
         
         $element.prepend($resizer);
         
-        function forceMargins(size) {
-            if (forcemargin !== undefined) {
-                $(forcemargin, $element.parent()).css("margin-left", size);
+        // Important so min/max sizes behave predictably
+        $element.css("box-sizing", "border-box");
+        
+        // Detect legacy cases where panels in the editor area are created without using PanelManager APIs
+        if ($parent[0] && $parent.is(".content") && !createdByPanelManager) {
+            console.warn("Deprecated: resizable panels should be created via PanelManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
+            $(exports).triggerHandler("deprecatedPanelAdded", [$element]);
+        }
+        
+        function adjustSibling(size) {
+            if (forceLeft !== undefined) {
+                $(forceLeft, $parent).css("left", size);
             }
         }
         
@@ -196,10 +217,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            forceMargins(elementSize);
-            
-            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
-            EditorManager.resizeEditor();
+            adjustSibling(elementSize);
             
             $element.trigger("panelExpanded", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
@@ -221,17 +239,14 @@ define(function (require, exports, module) {
                 }
             }
             
-            forceMargins(0);
-            
-            // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
-            EditorManager.resizeEditor();
+            adjustSibling(0);
             
             $element.trigger("panelCollapsed", [elementSize]);
             _prefs.setValue(elementID, elementPrefs);
         });
         
-        // If the resizer is positioned right or bottom of the panel, we need to listen to 
-        // reposition it if the element size changes externally		
+        // If the resizer is positioned right or bottom of the panel, we need to listen to
+        // reposition it if the element size changes externally
         function repositionResizer(elementSize) {
             var resizerPosition = elementSize || 1;
             if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
@@ -262,7 +277,7 @@ define(function (require, exports, module) {
             }
                         
             function doRedraw() {
-                // only run this if the mouse is down so we don't constantly loop even 
+                // only run this if the mouse is down so we don't constantly loop even
                 // after we're done resizing.
                 if (!isMouseDown) {
                     return;
@@ -283,10 +298,10 @@ define(function (require, exports, module) {
                                 $element.trigger("panelResizeStart", newSize);
                             }
                             
-                            // Resize the main element to the new size. If there is a content element, 
+                            // Resize the main element to the new size. If there is a content element,
                             // its size is the new size minus the size of the non-resizable elements
                             resizeElement(newSize, (newSize - baseSize));
-                            forceMargins(newSize);
+                            adjustSibling(newSize);
                             
                             $element.trigger("panelResizeUpdate", [newSize]);
                         }
@@ -300,9 +315,6 @@ define(function (require, exports, module) {
                             $element.trigger("panelResizeStart", newSize);
                         }
                     }
-    
-                    // Vertical resize affects editor directly; horizontal resize could change height of top toolbar
-                    EditorManager.resizeEditor();
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
@@ -312,6 +324,13 @@ define(function (require, exports, module) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
+                
+                // respect max size if one provided (e.g. by PanelManager)
+                var maxSize = $element.data("maxsize");
+                if (maxSize !== undefined) {
+                    newSize = Math.min(newSize, maxSize);
+                }
+                                   
                 e.preventDefault();
                 
                 if (animationRequest === null) {
@@ -382,14 +401,14 @@ define(function (require, exports, module) {
             if (elementPrefs.visible !== undefined && !elementPrefs.visible) {
                 hide($element);
             } else {
-                forceMargins(elementSizeFunction.apply($element));
+                adjustSibling(elementSizeFunction.apply($element));
                 repositionResizer(elementSizeFunction.apply($element));
             }
         }
     }
 	
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    _prefs = PreferencesManager.getPreferenceStorage(module);
     
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
@@ -423,13 +442,20 @@ define(function (require, exports, module) {
             //}
 
             if ($(element).hasClass("right-resizer")) {
-                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forcemargin);
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forceleft);
             }
         });
     });
     
-    exports.makeResizable = makeResizable;
-    exports.toggle = toggle;
-    exports.show = show;
-    exports.hide = hide;
+    exports.makeResizable   = makeResizable;
+    exports.toggle          = toggle;
+    exports.show            = show;
+    exports.hide            = hide;
+    exports.isVisible       = isVisible;
+    
+    //Resizer Constants
+    exports.DIRECTION_VERTICAL   = DIRECTION_VERTICAL;
+    exports.DIRECTION_HORIZONTAL = DIRECTION_HORIZONTAL;
+    exports.POSITION_TOP         = POSITION_TOP;
+    exports.POSITION_RIGHT       = POSITION_RIGHT;
 });

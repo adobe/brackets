@@ -60,7 +60,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Opa! {APP_NAME} não funciona em navegadores ainda.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} é criado em HTML, mas agora mesmo ele é executado como um aplicativo de desktop para que você possa usá-lo para editar arquivos locais. Por favor, use o shell da aplicação no <b>github.com/adobe/brackets-shell</b> repo para executar {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} é criado em HTML, mas no momento ele é executado como um aplicativo de desktop para que você possa usá-lo para editar arquivos locais. Por favor, use o shell da aplicação no <b>github.com/adobe/brackets-shell</b> repo para executar {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Erro indexando Arquivos",
@@ -79,8 +79,8 @@ define({
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview se conecta {APP_NAME} ao seu navegador. Ele lança uma prévia do seu arquivo HTML no navegador, em seguida atualiza a visualização de imediato, quando você editar o código.<br /><br />Nesta versão inicial de {APP_NAME}, Live Preview só funciona para as edições de <strong>arquivos CSS</strong> e apenas com <strong>Google Chrome</strong>. Nós iremos implementá-lo para HTML e JavaScript em breve!<br /><br />(Você só vai ver esta mensagem uma vez.)",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connectando...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inicializando...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connectando\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Desconectando do Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Clique para desconectar (Salve o arquivo para atualizar)",
 
@@ -116,12 +116,6 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Erro recebendo informações atualizadas",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Houve um problema obtendo a informação de atualização mais recente a partir do servidor. Por favor, verifique se você está conectado à Internet e tente novamente.",
-
-    // Switch language
-    "LANGUAGE_TITLE"                    : "Comutar Idioma",
-    "LANGUAGE_MESSAGE"                  : "Por favor, selecione o idioma desejado na lista abaixo:",
-    "LANGUAGE_SUBMIT"                   : "Recarregar {APP_NAME}",
-    "LANGUAGE_CANCEL"                   : "Cancelar",
 
     /**
      * ProjectManager
@@ -166,6 +160,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salvar Tudo",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_FILE_RENAME"                     : "Renomear",
+    "CMD_FILE_REFRESH"                    : "Atualizar",
     "CMD_QUIT"                            : "Sair",
 
     // Edit menu commands
@@ -203,23 +198,12 @@ define({
     "CMD_NEXT_DOC"                        : "Documento Seguinte",
     "CMD_PREV_DOC"                        : "Documento Anterior",
 
-    // Debug menu commands
-    "DEBUG_MENU"                          : "Depurar",
-    "CMD_REFRESH_WINDOW"                  : "Recarregar {APP_NAME}",
-    "CMD_SHOW_DEV_TOOLS"                  : "Mostrar Ferramentas de Desenvolvimento",
-    "CMD_RUN_UNIT_TESTS"                  : "Executar Testes",
-    "CMD_JSLINT"                          : "Habilitar JSLint",
-    "CMD_SHOW_PERF_DATA"                  : "Mostrar Dados de Desempenho",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nova Janela {APP_NAME}",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar Pasta de Extensões",
-    "CMD_USE_TAB_CHARS"                   : "Usar Caracteres de Tabulação",
-    "CMD_SWITCH_LANGUAGE"                 : "Trocar Linguagem",
-    "CMD_CHECK_FOR_UPDATE"                : "Verificar Atualizações",
-
     // Help menu commands
     "HELP_MENU"                           : "Ajuda",
-    "CMD_ABOUT"                           : "Sobre",
+    "CMD_CHECK_FOR_UPDATE"                : "Verificar Atualizações",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar Pasta de Extensões",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_ABOUT"                           : "Sobre",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fechar Janela",
@@ -227,11 +211,6 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versão Experimental",
-    "JSLINT_ERRORS"                        : "Erros JSLint",
-    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
-    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
-    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual",
     "SEARCH_RESULTS"                       : "Resultados da Pesquisa",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Não Salvar",
@@ -240,9 +219,8 @@ define({
     "RELOAD_FROM_DISK"                     : "Atualizar a Partir do Disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Manter Mudanças no Editor",
     "CLOSE_DONT_SAVE"                      : "Fechar (Não Salvar)",
-    "RELAUNCH_CHROME"                      : "Relançar Chrome",
+    "RELAUNCH_CHROME"                      : "Abrir Chrome Novamente",
     "ABOUT"                                : "Sobre",
-    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Fechar",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versão experimental {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Avisos, termos e condições de softwares de terceiros estão localizados em <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e aqui incorporados por referência.",
@@ -250,5 +228,28 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Há uma nova versão de {APP_NAME} disponível! Clique aqui para mais detalhes.",
     "UPDATE_AVAILABLE_TITLE"               : "Atualização Disponível",
     "UPDATE_MESSAGE"                       : "Opa, há uma nova versão de {APP_NAME} disponível. Aqui estão alguns dos novos recursos:",
-    "GET_IT_NOW"                           : "Obtenha agora!"
+    "GET_IT_NOW"                           : "Obtenha agora!",
+    
+    
+    // extensions/default/DebugCommands
+    "DEBUG_MENU"                           : "Depurar",
+    "CMD_SHOW_DEV_TOOLS"                   : "Mostrar Ferramentas de Desenvolvimento",
+    "CMD_REFRESH_WINDOW"                   : "Recarregar {APP_NAME}",
+    "CMD_NEW_BRACKETS_WINDOW"              : "Nova Janela {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                  : "Trocar Linguagem",
+    "CMD_RUN_UNIT_TESTS"                   : "Executar Testes",
+    "CMD_SHOW_PERF_DATA"                   : "Mostrar Dados de Desempenho",
+    
+    "LANGUAGE_TITLE"                       : "Trocar Idioma",
+    "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
+    "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",
+    "LANGUAGE_CANCEL"                      : "Cancelar",
+    
+    // extensions/default/JSLint
+    "CMD_JSLINT"                           : "Habilitar JSLint",
+    "JSLINT_ERRORS"                        : "Erros JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
+    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
+    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual"
 });

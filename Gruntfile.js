@@ -24,8 +24,11 @@
 module.exports = function (grunt) {
     'use strict';
 
+    var common = require("./tasks/lib/common")(grunt);
+    
     // Project configuration.
     grunt.initConfig({
+        pkg  : grunt.file.readJSON("package.json"),
         meta : {
             src   : [
                 'src/**/*.js',
@@ -35,7 +38,7 @@ module.exports = function (grunt) {
                 '!src/extensions/**/thirdparty/**/*.js',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
-                '!src/extensions/**/node_modules/**/*.js',
+                '!**/node_modules/**/*.js',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
@@ -45,20 +48,37 @@ module.exports = function (grunt) {
                 '!test/spec/*-files/**/*.js',
                 '!test/smokes/**',
                 '!test/temp/**',
-                '!test/thirdparty/**'
+                '!test/thirdparty/**',
+                '!test/**/node_modules/**/*.js'
+            ],
+            grunt: [
+                'Gruntfile.js',
+                'tasks/**/*.js'
             ],
             /* specs that can run in phantom.js */
             specs : [
                 'test/spec/CommandManager-test.js',
-                'test/spec/LanguageManager-test.js',
-                'test/spec/PreferencesManager-test.js',
+                //'test/spec/LanguageManager-test.js',
+                //'test/spec/PreferencesManager-test.js',
                 'test/spec/ViewUtils-test.js'
             ]
         },
         watch: {
+            all : {
+                files: ['**/*', '!**/node_modules/**'],
+                tasks: ['jshint']
+            },
+            grunt : {
+                files: ['<%= meta.grunt %>', 'tasks/**/*'],
+                tasks: ['jshint:grunt']
+            },
+            src : {
+                files: ['<%= meta.src %>', 'src/**/*'],
+                tasks: ['jshint:src']
+            },
             test : {
-                files: ['Gruntfile.js', '<%= meta.src %>', '<%= meta.test %>'],
-                tasks: 'test'
+                files: ['<%= meta.test %>', 'test/**/*'],
+                tasks: ['jshint:test']
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -72,12 +92,15 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'src/thirdparty/jquery-1.7.js',
+                    'src/thirdparty/jquery-2.0.1.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
+                    'src/thirdparty/CodeMirror2/addon/edit/closetag.js',
+                    'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
-                    'src/thirdparty/path-utils/path-utils.min'
+                    'src/thirdparty/path-utils/path-utils.min',
+                    'src/thirdparty/less-1.4.2.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -90,23 +113,35 @@ module.exports = function (grunt) {
                             'test' : '../test',
                             'perf' : '../test/perf',
                             'spec' : '../test/spec',
-                            'text' : 'thirdparty/text',
-                            'i18n' : 'thirdparty/i18n'
+                            'text' : 'thirdparty/text/text',
+                            'i18n' : 'thirdparty/i18n/i18n'
                         }
                     }
                 }
             }
         },
+        'jasmine_node': {
+            projectRoot: 'src/extensibility/node/spec/'
+        },
         jshint: {
             all: [
-                'Gruntfile.js',
+                '<%= meta.grunt %>',
                 '<%= meta.src %>',
                 '<%= meta.test %>'
             ],
+            grunt:  '<%= meta.grunt %>',
+            src:    '<%= meta.src %>',
+            test:   '<%= meta.test %>',
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
             options: {
                 jshintrc: '.jshintrc'
             }
+        },
+        shell: {
+            repo: grunt.option("shell-repo") || "../brackets-shell",
+            mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
+            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe",
+            linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
 
@@ -115,12 +150,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
-
+    grunt.loadNpmTasks('grunt-jasmine-node');
+    
     // task: install
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-    grunt.registerTask('test', ['jshint', 'jasmine']);
+//    grunt.registerTask('test', ['jshint:all', 'jasmine']);
+    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json

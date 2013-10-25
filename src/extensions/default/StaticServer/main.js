@@ -33,8 +33,10 @@ define(function (require, exports, module) {
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
+        BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
         NodeConnection       = brackets.getModule("utils/NodeConnection"),
-        ProjectManager       = brackets.getModule("project/ProjectManager");
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
+        StaticServer         = require("StaticServer").StaticServer;
 
     /**
      * @const
@@ -42,7 +44,7 @@ define(function (require, exports, module) {
      * deferred. If we hit this timeout, we'll never have a node connection
      * for the static server in this run of Brackets.
      */
-    var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds
+    var NODE_CONNECTION_TIMEOUT = 5000; // 5 seconds
     
     /**
      * @private
@@ -50,119 +52,27 @@ define(function (require, exports, module) {
      * A deferred which is resolved with a NodeConnection or rejected if
      * we are unable to connect to Node.
      */
-    var _nodeConnectionDeferred = $.Deferred();
+    var _nodeConnectionDeferred = new $.Deferred();
     
-    var _baseUrl = "";
-
-    /**
-     * @constructor
-     */
-    function StaticServerProvider() {}
-
-    /**
-     * Determines whether we can serve local file.
-     * 
-     * @param {String} localPath
-     * A local path to file being served.
-     *
-     * @return {Boolean} 
-     * true for yes, otherwise false.
-     */
-    StaticServerProvider.prototype.canServe = function (localPath) {
-
-        if (!_nodeConnectionDeferred.isResolved()) {
-            return false;
-        }
-        
-        if (!ProjectManager.isWithinProject(localPath)) {
-            return false;
-        }
-
-        // Url ending in "/" implies default file, which is usually index.html.
-        // Return true to indicate that we can serve it.
-        if (localPath.match(/\/$/)) {
-            return true;
-        }
-
-        // FUTURE: do a MIME Type lookup on file extension
-        return FileUtils.isStaticHtmlFileExt(localPath);
-    };
-
-    /**
-     * Returns a base url for current project. 
-     *
-     * @return {String}
-     * Base url for current project.
-     */
-    StaticServerProvider.prototype.getBaseUrl = function () {
-        return _baseUrl;
-    };
-
-    /**
-     * # LiveDevServerProvider.readyToServe()
-     *
-     * Gets the server details from the StaticServerDomain in node.
-     * The domain itself handles starting a server if necessary (when
-     * the staticServer.getServer command is called).
-     *
-     * @return {jQuery.Promise} A promise that resolves/rejects when 
-     *     the server is ready/failed.
-     */
-    StaticServerProvider.prototype.readyToServe = function () {
-        var readyToServeDeferred = $.Deferred();
-
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.staticServer.getServer(
-                    ProjectManager.getProjectRoot().fullPath
-                ).done(function (address) {
-                    _baseUrl = "http://" + address.address + ":" + address.port + "/";
-                    readyToServeDeferred.resolve();
-                }).fail(function () {
-                    _baseUrl = "";
-                    readyToServeDeferred.reject();
-                });
-            } else {
-                // nodeConnection has been connected once (because the deferred
-                // resolved, but is not currently connected).
-                //
-                // If we are in this case, then the node process has crashed
-                // and is in the process of restarting. Once that happens, the
-                // node connection will automatically reconnect and reload the
-                // domain. Unfortunately, we don't have any promise to wait on
-                // to know when that happens. The best we can do is reject this
-                // readyToServe so that the user gets an error message to try
-                // again later.
-                //
-                // The user will get the error immediately in this state, and
-                // the new node process should start up in a matter of seconds
-                // (assuming there isn't a more widespread error). So, asking
-                // them to retry in a second is reasonable.
-                readyToServeDeferred.reject();
-            }
-        });
-        
-        _nodeConnectionDeferred.fail(function () {
-            readyToServeDeferred.reject();
-        });
-        
-        return readyToServeDeferred.promise();
-    };
-
     /**
      * @private
-     * @type{StaticServerProvider}
-     * Stores the singleton StaticServerProvider for use in unit testing.
+     * @type {NodeConnection}
      */
-    var _staticServerProvider = new StaticServerProvider();
+    var _nodeConnection = new NodeConnection();
     
     /**
      * @private
      * @return {StaticServerProvider} The singleton StaticServerProvider initialized
      * on app ready.
      */
-    function _getStaticServerProvider() {
-        return _staticServerProvider;
+    function _createStaticServer() {
+        var config = {
+            nodeConnection  : _nodeConnection,
+            pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
+            root            : ProjectManager.getProjectRoot().fullPath
+        };
+        
+        return new StaticServer(config);
     }
 
     /**
@@ -177,10 +87,7 @@ define(function (require, exports, module) {
         return _nodeConnectionDeferred;
     }
     
-    AppInit.appReady(function () {
-        // Register as a Live Development server provider
-        LiveDevServerManager.registerProvider(_staticServerProvider, 5);
-        
+    function initExtension() {
         // Start up the node connection, which is held in the
         // _nodeConnectionDeferred module variable. (Use 
         // _nodeConnectionDeferred.done() to access it.
@@ -189,7 +96,6 @@ define(function (require, exports, module) {
             _nodeConnectionDeferred.reject();
         }, NODE_CONNECTION_TIMEOUT);
         
-        var _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
             _nodeConnection.loadDomains(
                 [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
@@ -197,6 +103,10 @@ define(function (require, exports, module) {
             ).then(
                 function () {
                     clearTimeout(connectionTimeout);
+
+                    // Register as a Live Development server provider
+                    LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
+
                     _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
                 },
                 function () { // Failed to connect
@@ -205,13 +115,13 @@ define(function (require, exports, module) {
                 }
             );
         });
-        
-        if (brackets.test) {
-            brackets.test.extensions.StaticServer = module.exports;
-        }
-    });
+
+        return _nodeConnectionDeferred.promise();
+    }
+
+    exports.initExtension = initExtension;
 
     // For unit tests only
-    exports._getStaticServerProvider = _getStaticServerProvider;
+    exports._getStaticServerProvider = _createStaticServer;
     exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
 });

@@ -23,23 +23,29 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, WebSocket */
+/*global define, $, brackets, window, WebSocket, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands           = brackets.getModule("command/Commands"),
-        CommandManager     = brackets.getModule("command/CommandManager"),
-        Editor             = brackets.getModule("editor/Editor").Editor,
-        FileUtils          = brackets.getModule("file/FileUtils"),
-        KeyBindingManager  = brackets.getModule("command/KeyBindingManager"),
-        Menus              = brackets.getModule("command/Menus"),
-        Strings            = brackets.getModule("strings"),
-        PerfUtils          = brackets.getModule("utils/PerfUtils"),
-        ProjectManager     = brackets.getModule("project/ProjectManager"),
-        NativeApp          = brackets.getModule("utils/NativeApp"),
-        NativeFileSystem   = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        NodeDebugUtils     = require("NodeDebugUtils");
+    var _ = brackets.getModule("lodash");
+    
+    var Commands               = brackets.getModule("command/Commands"),
+        CommandManager         = brackets.getModule("command/CommandManager"),
+        KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
+        Menus                  = brackets.getModule("command/Menus"),
+        Editor                 = brackets.getModule("editor/Editor").Editor,
+        FileUtils              = brackets.getModule("file/FileUtils"),
+        NativeFileSystem       = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager         = brackets.getModule("project/ProjectManager"),
+        PerfUtils              = brackets.getModule("utils/PerfUtils"),
+        NativeApp              = brackets.getModule("utils/NativeApp"),
+        StringUtils            = brackets.getModule("utils/StringUtils"),
+        Dialogs                = brackets.getModule("widgets/Dialogs"),
+        Strings                = brackets.getModule("strings"),
+        NodeDebugUtils         = require("NodeDebugUtils"),
+        PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
+        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 	
@@ -87,26 +93,15 @@ define(function (require, exports, module) {
     }
     
     function _handleShowPerfData() {
-        var $perfHeader = $("<div class='modal-header' />")
-            .append("<a href='#' class='close'>&times;</a>")
-            .append("<h1 class='dialog-title'>Performance Data</h1>")
-            .append("<div align=right>Raw data (copy paste out): <textarea rows=1 style='width:30px; height:8px; overflow: hidden; resize: none' id='brackets-perf-raw-data'>" + PerfUtils.getDelimitedPerfData() + "</textarea></div>");
-        
-        var $perfBody = $("<div class='modal-body' style='padding: 0; max-height: 500px; overflow: auto;' />");
-
-        var $data = $("<table class='zebra-striped condensed-table'>")
-            .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
-            .append("<tbody />")
-            .appendTo($perfBody);
-        
-        var makeCell = function (content) {
-            return $("<td/>").text(content);
+        var templateVars = {
+            delimitedPerfData: PerfUtils.getDelimitedPerfData(),
+            perfData: []
         };
         
         var getValue = function (entry) {
             // entry is either an Array or a number
             if (Array.isArray(entry)) {
-                // For Array of values, return: minimum/average/maximum/last
+                // For Array of values, return: minimum/average(count)/maximum/last
                 var i, e, avg, sum = 0, min = Number.MAX_VALUE, max = 0;
                 
                 for (i = 0; i < entry.length; i++) {
@@ -115,34 +110,24 @@ define(function (require, exports, module) {
                     sum += e;
                     max = Math.max(max, e);
                 }
-                avg = Math.round(sum / entry.length);
-                return String(min) + "/" + String(avg) + "/" + String(max) + "/" + String(e);
+                avg = Math.round(sum * 10 / entry.length) / 10; // tenth of a millisecond
+                return String(min) + "/" + String(avg) + "(" + entry.length + ")/" + String(max) + "/" + String(e);
             } else {
                 return entry;
             }
         };
-            
-        var testName;
+        
         var perfData = PerfUtils.getData();
-        for (testName in perfData) {
-            if (perfData.hasOwnProperty(testName)) {
-                // Add row to error table
-                $("<tr/>")
-                    .append(makeCell(testName))
-                    .append(makeCell(getValue(perfData[testName])))
-                    .appendTo($data);
-            }
-        }
-                                                     
-        $("<div class='modal hide' />")
-            .append($perfHeader)
-            .append($perfBody)
-            .appendTo(window.document.body)
-            .modal({
-                backdrop: "static",
-                show: true
+        _.forEach(perfData, function (value, testName) {
+            templateVars.perfData.push({
+                testName: StringUtils.breakableUrl(testName),
+                value:    getValue(value)
             });
-
+        });
+        
+        var template = Mustache.render(PerfDialogTemplate, templateVars);
+        Dialogs.showModalDialogUsingTemplate(template);
+        
         // Select the raw perf data field on click since select all doesn't 
         // work outside of the editor
         $("#brackets-perf-raw-data").click(function () {
@@ -153,89 +138,37 @@ define(function (require, exports, module) {
     function _handleNewBracketsWindow() {
         window.open(window.location.href);
     }
-
+    
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
             fs.root.createReader().readEntries(function (entries) {
-
-                var $activeLanguage,
+                var $dialog,
                     $submit,
-                    locale;
+                    $select,
+                    locale,
+                    curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale()),
+                    languages = [];
                 
                 function setLanguage(event) {
-                    if ($activeLanguage) {
-                        $activeLanguage.css("font-weight", "normal");
-                    }
-                    $activeLanguage = $(event.currentTarget);
-                    locale = $activeLanguage.data("locale");
-                    
-                    $activeLanguage.css("font-weight", "bold");
-                    $submit.attr("disabled", false);
+                    locale = $select.val();
+                    $submit.prop("disabled", locale === (curLocale || ""));
                 }
-    
-                var $modal = $("<div class='modal hide' />");
-    
-                var $header = $("<div class='modal-header' />")
-                    .append("<a href='#' class='close'>&times;</a>")
-                    .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
-                    .appendTo($modal);
-                  
-                var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
-                    .appendTo($modal);
-
-                var $p = $("<p class='dialog-message'>")
-                    .text(Strings.LANGUAGE_MESSAGE)
-                    .appendTo($body);
-
-                var $ul = $("<ul>")
-                    .on("click", "li", setLanguage)
-                    .appendTo($p);
                 
-                var $footer = $("<div class='modal-footer' />")
-                    .appendTo($modal);
-                
-                var $cancel = $("<button class='dialog-button btn left'>")
-                    .on("click", function () {
-                        $modal.modal('hide');
-                    })
-                    .text(Strings.LANGUAGE_CANCEL)
-                    .appendTo($footer);
-                
-                $submit = $("<button class='dialog-button btn primary'>")
-                    .text(Strings.LANGUAGE_SUBMIT)
-                    .on("click", function () {
-                        if (!$activeLanguage) {
-                            return;
-                        }
-                        brackets.setLocale(locale);
-                        
-                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
-                    })
-                    .attr("disabled", "disabled")
-                    .appendTo($footer);
-                
-                $modal
-                    .appendTo(window.document.body)
-                    .modal({
-                        backdrop: "static",
-                        show: true
-                    })
-                    .on("hidden", function () {
-                        $(this).remove();
-                    });
+                // returns the localized label for the given locale
+                // or the locale, if nothing found
+                function getLocalizedLabel(locale) {
+                    var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
+                        i18n = Strings[key];
+                    
+                    return i18n === undefined ? locale : i18n;
+                }
 
                 // add system default
-                var $li = $("<li>")
-                    .text("system default")
-                    .data("locale", null)
-                    .appendTo($ul);
+                languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
                 
                 // add english
-                $li = $("<li>")
-                    .text("en")
-                    .data("locale", "en")
-                    .appendTo($ul);
+                languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -250,13 +183,24 @@ define(function (require, exports, module) {
                                 label += match[2].toUpperCase();
                             }
                             
-                            var $li = $("<li>")
-                                .text(label)
-                                .data("locale", language)
-                                .appendTo($ul);
+                            languages.push({label: getLocalizedLabel(label), language: language});
                         }
                     }
                 });
+                
+                var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
+                Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_OK && locale !== curLocale) {
+                        brackets.setLocale(locale);
+                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                    }
+                });
+                
+                $dialog = $(".switch-language.instance");
+                $submit = $dialog.find(".dialog-button[data-button-id='" + Dialogs.DIALOG_BTN_OK + "']");
+                $select = $dialog.find("select");
+                
+                $select.on("change", setLanguage).val(curLocale);
             });
         });
     }
@@ -294,7 +238,7 @@ define(function (require, exports, module) {
         } else {
             var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
             var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-            Inspector.getAvailableSockets("127.0.0.1", port)
+            Inspector.getDebuggableWindows("127.0.0.1", port)
                 .fail(result.reject)
                 .done(function (response) {
                     var page = response[0];

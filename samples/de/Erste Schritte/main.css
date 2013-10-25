@@ -1,5 +1,10 @@
 html {
     background-color: #eeeeee;
+    background-image: linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -o-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -moz-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -webkit-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
+    background-image: -ms-linear-gradient(bottom, rgb(238,238,238) 18%, rgb(153,153,153) 59%, rgb(238,238,238) 80%);
 }
 
 body {
@@ -22,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 
 samp
 {
-    /* hide <samp> from the browser so we can show cool features in Edge Code */
+    /* Tutorial-Anweisungen verstecken, sodass diese nicht im Browser angezeigt werden */
     display: none;
 }
 

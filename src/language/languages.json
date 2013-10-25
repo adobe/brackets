@@ -3,6 +3,20 @@
         "name": "Text",
         "mode": ["null", "text/plain"]
     },
+    
+    "groovy": {
+        "name": "Groovy",
+        "mode": "groovy",
+        "fileExtensions": ["groovy"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+   
+    "properties": {
+        "name": "Properties",
+        "mode": ["properties", "text/x-properties"],
+        "fileExtensions": ["ini", "properties"]
+    },
 
     "css": {
         "name": "CSS",
@@ -10,88 +24,133 @@
         "fileExtensions": ["css"],
         "blockComment": ["/*", "*/"]
     },
-    
+
+    "scss": {
+        "name": "SCSS",
+        "mode": ["css", "text/x-scss"],
+        "fileExtensions": ["scss", "scss.erb"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master"],
         "blockComment": ["<!--", "-->"]
     },
     
+    "ejs": {
+        "name": "EJS",
+        "mode": ["htmlembedded", "application/x-ejs"],
+        "fileExtensions": ["ejs"],
+        "blockComment": ["<!--", "-->"]
+    },
+    
+    "dust": {
+        "name": "Dust.js",
+        "mode": ["htmlembedded", "application/x-ejs"],
+        "fileExtensions": ["dust"],
+        "blockComment": ["<!--", "-->"]
+    },
+
+    "erb_html": {
+        "name": "Embedded Ruby",
+        "mode": ["htmlembedded", "application/x-erb"],
+        "fileExtensions": ["erb", "html.erb", "htm.erb"],
+        "blockComment": ["<!--", "-->"]
+    },
+
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
-    
+
+    "vbscript": {
+        "name": "VBScript",
+        "mode": "vbscript",
+        "fileExtensions": ["vbs"],
+        "lineComment": ["'", "REM"]
+    },
+
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"]
+        "fileExtensions": ["json"],
+        "lineComment": ["//"]
     },
-    
+
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config"],
         "blockComment": ["<!--", "-->"]
     },
-    
+
     "php": {
         "name": "PHP",
         "mode": "php",
         "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
     },
-    
+
     "c": {
         "name": "C",
         "mode": ["clike", "text/x-csrc"],
         "fileExtensions": ["c", "h", "i"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
-    
+
     "cpp": {
         "name": "C++",
         "mode": ["clike", "text/x-c++src"],
         "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
-    
+
     "csharp": {
         "name": "C#",
         "mode": ["clike", "text/x-csharp"],
-        "fileExtensions": ["cs"],
+        "fileExtensions": ["cs", "cshtml", "asax", "ashx"],
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//"]
     },
-    
+
     "clike": {
         "name": "clike",
         "mode": "clike",
         "blockComment": ["/*", "*/"],
-        "lineComment": "//"
+        "lineComment": ["//", "#"]
     },
-    
+
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
         "fileExtensions": ["java"]
     },
 
+    "scala": {
+        "name": "Scala",
+        "mode": ["clike", "text/x-scala"],
+        "fileExtensions": ["scala", "sbt"]
+    },
+
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee"]
+        "fileExtensions": ["coffee", "cf", "cson"],
+        "fileNames": ["Cakefile"]
     },
 
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"]
+        "fileExtensions": ["clj"],
+        "lineComment": [";", ";;"]
     },
 
     "perl": {
@@ -99,23 +158,23 @@
         "mode": "perl",
         "fileExtensions": ["pl", "pm"]
     },
-    
+
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
     },
-    
+
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw"]
+        "fileExtensions": ["py", "pyw", "wsgi"]
     },
-    
+
     "sass": {
         "name": "SASS",
         "mode": "sass",
-        "fileExtensions": ["sass", "scss"]
+        "fileExtensions": ["sass"]
     },
 
     "lua": {
@@ -126,7 +185,7 @@
 
     "sql": {
         "name": "SQL",
-        "mode": "mysql",
+        "mode": ["sql", "text/x-mysql"],
         "fileExtensions": ["sql"]
     },
 
@@ -135,22 +194,35 @@
         "mode": "diff",
         "fileExtensions": ["diff", "patch"]
     },
-    
+
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
         "fileExtensions": ["md", "markdown"]
     },
-    
+
     "yaml": {
         "name": "YAML",
         "mode": "yaml",
         "fileExtensions": ["yaml", "yml"]
     },
-    
+
     "hx": {
         "name": "Haxe",
         "mode": "haxe",
         "fileExtensions": ["hx"]
+    },
+
+    "bash": {
+        "name": "Bash",
+        "mode": ["shell", "text/x-sh"],
+        "fileExtensions": ["sh"],
+        "lineComment": ["#"]
+    },
+  
+    "image": {
+        "name": "Image",
+        "mode": ["null", "text/plain"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"]
     }
 }

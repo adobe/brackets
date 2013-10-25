@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     QuickOpen.addQuickOpenPlugin(
         {
             name: "html ids",
-            fileTypes: ["html"],
+            languageIds: ["html"],
             done: function () {},
             search: search,
             match: match,

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Untitled Document</title>
+</head>
+
+<body>
+  <p>A paragraph with no closing tag
+  <h1>h1<wbr>tag that auto closes the preceding p tag</h1>
+  <div>
+    <ul>
+      <li>first item
+      <li>second item<br> with a line break</li>
+      <li>3rd item
+    </ul>
+  </div>
+  <table width="200" border="1">
+	<tr>
+      <th>Name
+      <th>Address</th>
+      <th>Phone
+	<tr>
+      <td>Name
+      <td>Address
+      <td>Phone
+	</tr>
+	<tr>
+      <td>Name
+      <td><pre>Address</pre></td>
+      <td>Phone
+	</tr>
+  </table>
+  <form name="form1" method="post" action="http://somesite.com/prog/adduser">
+	<input type="button" name="prev" id="prev" value="<Prev">
+	<input type="button" name="next" id="next" value="Next>">
+    <hr>
+	<label for="select">Select your magic number:</label>
+	<select name="select" id="select">
+      <option value="1">item1
+      <option value="2">item2</option>
+      <option value="3">item3
+	</select>
+  </form>
+ <p><mark>selected color</mark></p>
+ <script type="text/javascript">
+   //<![CDATA[
+   document.write("<");
+   //]]>
+ </script>
+ <FOOTER>SOME FOOTNOTE</FOOTER>
+ <p>unclosed p
+ <h1>heading</h1>
+ this text should be directly inside body because the p was closed by the h1
+      

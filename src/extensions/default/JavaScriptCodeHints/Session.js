@@ -21,14 +21,20 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var HintUtils       = require("HintUtils"),
-        ScopeManager    = require("ScopeManager");
+    var StringMatch     = brackets.getModule("utils/StringMatch"),
+        LanguageManager = brackets.getModule("language/LanguageManager"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
+        HintUtils       = require("HintUtils"),
+        ScopeManager    = require("ScopeManager"),
+        Acorn           = require("thirdparty/acorn/acorn"),
+        Acorn_Loose     = require("thirdparty/acorn/acorn_loose");
 
     /**
      * Session objects encapsulate state associated with a hinting session
@@ -40,22 +46,25 @@ define(function (require, exports, module) {
     function Session(editor) {
         this.editor = editor;
         this.path = editor.document.file.fullPath;
+        this.ternHints = [];
+        this.ternGuesses = null;
+        this.fnType = null;
+        this.builtins = null;
     }
 
     /**
-     * Update the scope information assocated with the current session
-     * 
-     * @param {Object} scopeInfo - scope information, including the scope and
-     *      lists of identifiers, globals, literals and properties, and a set
-     *      of associations
+     *  Get the builtin libraries tern is using.
+     *
+     * @return {Array.<string>} - array of library names.
+     * @private
      */
-    Session.prototype.setScopeInfo = function (scopeInfo) {
-        this.scope = scopeInfo.scope;
-        this.identifiers = scopeInfo.identifiers;
-        this.globals = scopeInfo.globals;
-        this.literals = scopeInfo.literals;
-        this.properties = scopeInfo.properties;
-        this.associations = scopeInfo.associations;
+    Session.prototype._getBuiltins = function () {
+        if (!this.builtins) {
+            this.builtins = ScopeManager.getBuiltins();
+            this.builtins.push("requirejs.js");     // consider these globals as well.
+        }
+
+        return this.builtins;
     };
 
     /**
@@ -76,6 +85,17 @@ define(function (require, exports, module) {
     Session.prototype.getCursor = function () {
         return this.editor.getCursorPos();
     };
+
+    /**
+     * Get the text of a line.
+     *
+     * @param {number} line - the line number     
+     * @return {string} - the text of the line
+     */
+    Session.prototype.getLine = function (line) {
+        var doc = this.editor.document;
+        return doc.getLine(line);
+    };
     
     /**
      * Get the offset of the current cursor position
@@ -86,6 +106,16 @@ define(function (require, exports, module) {
     Session.prototype.getOffset = function () {
         var cursor = this.getCursor();
         
+        return this.getOffsetFromCursor(cursor);
+    };
+    
+    /**
+     * Get the offset of a cursor position
+     *
+     * @param {{line: number, ch: number}} the line/col info
+     * @return {number} - the offset into the current document of the cursor
+     */
+    Session.prototype.getOffsetFromCursor = function (cursor) {
         return this.editor.indexFromPos(cursor);
     };
 
@@ -106,7 +136,24 @@ define(function (require, exports, module) {
             return cm.getTokenAt(this.getCursor());
         }
     };
-    
+
+    /**
+     * Get the token after the one at the given cursor position
+     *
+     * @param {{line: number, ch: number}} cursor - cursor position before
+     *      which a token should be retrieved
+     * @return {Object} - the CodeMirror token after the one at the given
+     *      cursor position
+     */
+    Session.prototype.getNextTokenOnLine = function (cursor) {
+        cursor = this.getNextCursorOnLine(cursor);
+        if (cursor) {
+            return this.getToken(cursor);
+        }
+
+        return null;
+    };
+
     /**
      * Get the next cursor position on the line, or null if there isn't one.
      * 
@@ -114,9 +161,8 @@ define(function (require, exports, module) {
      *      immediately following the current cursor position, or null if
      *      none exists.
      */
-    Session.prototype.getNextCursorOnLine = function () {
-        var cursor  = this.getCursor(),
-            doc     = this.editor.document,
+    Session.prototype.getNextCursorOnLine = function (cursor) {
+        var doc     = this.editor.document,
             line    = doc.getLine(cursor.line);
 
         if (cursor.ch < line.length) {
@@ -158,6 +204,38 @@ define(function (require, exports, module) {
         
         return prev;
     };
+
+    /**
+     * Get the token after the one at the given cursor position
+     * 
+     * @param {{line: number, ch: number}} cursor - cursor position after
+     *      which a token should be retrieved
+     * @param {boolean} skipWhitespace - true if this should skip over whitespace tokens 
+     * @return {Object} - the CodeMirror token after the one at the given
+     *      cursor position
+     */
+    Session.prototype.getNextToken = function (cursor, skipWhitespace) {
+        var token   = this.getToken(cursor),
+            next    = token,
+            doc     = this.editor.document;
+
+        do {
+            if (next.end > cursor.ch) {
+                cursor.ch = next.end;
+            } else if (next.end < doc.getLine(cursor.line).length) {
+                cursor.ch = next.end + 1;
+            } else if (doc.getLine(cursor.line + 1)) {
+                cursor.ch = 0;
+                cursor.line++;
+            } else {
+                next = null;
+                break;
+            }
+            next = this.getToken(cursor);
+        } while (skipWhitespace && next.string.trim() === "");
+        
+        return next;
+    };
     
     /**
      * Calculate a query string relative to the current cursor position
@@ -169,24 +247,33 @@ define(function (require, exports, module) {
     Session.prototype.getQuery = function () {
         var cursor  = this.getCursor(),
             token   = this.getToken(cursor),
-            query   = "";
-        
+            query   = "",
+            start   = cursor.ch,
+            end     = start;
+
         if (token) {
-            if (token.string !== ".") {
-                query = token.string.substring(0, token.string.length - (token.end - cursor.ch));
-                query = query.trim();
+            var line = this.getLine(cursor.line);
+            while (start > 0) {
+                if (HintUtils.maybeIdentifier(line[start - 1])) {
+                    start--;
+                } else {
+                    break;
+                }
             }
+
+            query = line.substring(start, end);
         }
+
         return query;
     };
-    
+
     /**
      * Find the context of a property lookup. For example, for a lookup 
      * foo(bar, baz(quux)).prop, foo is the context.
      * 
      * @param {{line: number, ch: number}} cursor - the cursor position
      *      at which context information is to be retrieved
-     * @param {number} depth - the current depth of the parenthesis stack, or
+     * @param {number=} depth - the current depth of the parenthesis stack, or
      *      undefined if the depth is 0.
      * @return {string} - the context for the property that was looked up
      */
@@ -214,10 +301,160 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @return {{line:number, ch:number}} - the line, col info for where the previous "."
+     *      in a property lookup occurred, or undefined if no previous "." was found.
+     */
+    Session.prototype.findPreviousDot = function () {
+        var cursor = this.getCursor(),
+            token = this.getToken(cursor);
+        
+        // If the cursor is right after the dot, then the current token will be "."
+        if (token && token.string === ".") {
+            return cursor;
+        } else {
+            // If something has been typed like 'foo.b' then we have to look back 2 tokens
+            // to get past the 'b' token
+            token = this._getPreviousToken(cursor);
+            if (token && token.string === ".") {
+                return cursor;
+            }
+        }
+        return undefined;
+    };
+
+    /**
+     *
+     * @param {Object} token - a CodeMirror token
+     * @return {*} - the lexical state of the token
+     */
+    function getLexicalState(token) {
+        if (token.state.lexical) {
+            // in a javascript file this is just in the state field
+            return token.state.lexical;
+        } else if (token.state.localState && token.state.localState.lexical) {
+            // inline javascript in an html file will have this in
+            // the localState field
+            return token.state.localState.lexical;
+        }
+    }
+
+
+    /**
+     * Determine if the caret is either within a function call or on the function call itself.
+     *
+     * @return {{inFunctionCall: boolean, functionCallPos: {line: number, ch: number}}}
+     * inFunctionCall - true if the caret if either within a function call or on the
+     * function call itself.
+     * functionCallPos - the offset of the '(' character of the function call if inFunctionCall
+     * is true, otherwise undefined.
+     */
+    Session.prototype.getFunctionInfo = function () {
+        var inFunctionCall   = false,
+            cursor           = this.getCursor(),
+            functionCallPos,
+            token            = this.getToken(cursor),
+            lexical,
+            self = this,
+            foundCall = false;
+
+        /**
+         * Test if the cursor is on a function identifier
+         *
+         * @return {Object} - lexical state if on a function identifier, null otherwise.
+         */
+        function isOnFunctionIdentifier() {
+
+            // Check if we might be on function identifier of the function call.
+            var type = token.type,
+                nextToken,
+                localLexical,
+                localCursor = {line: cursor.line, ch: token.end};
+
+            if (type === "variable-2" || type === "variable" || type === "property") {
+                nextToken = self.getNextToken(localCursor, true);
+                if (nextToken && nextToken.string === "(") {
+                    localLexical = getLexicalState(nextToken);
+                    return localLexical;
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Test is a lexical state is in a function call.
+         *
+         * @param {Object} lex - lexical state.
+         * @return {Object | boolean}
+         *
+         */
+        function isInFunctionalCall(lex) {
+            // in a call, or inside array or object brackets that are inside a function.
+            return (lex && (lex.info === "call" ||
+                (lex.info === undefined && (lex.type === "]" || lex.type === "}") &&
+                    lex.prev.info === "call")));
+        }
+
+        if (token) {
+            // if this token is part of a function call, then the tokens lexical info
+            // will be annotated with "call".
+            // If the cursor is inside an array, "[]", or object, "{}", the lexical state
+            // will be undefined, not "call". lexical.prev will be the function state.
+            // Handle this case and then set "lexical" to lexical.prev.
+            // Also test if the cursor is on a function identifier of a function call.
+            lexical = getLexicalState(token);
+            foundCall = isInFunctionalCall(lexical);
+
+            if (!foundCall) {
+                lexical = isOnFunctionIdentifier();
+                foundCall = isInFunctionalCall(lexical);
+            }
+
+            if (foundCall) {
+                // we need to find the location of the called function so that we can request the functions type.
+                // the token's lexical info will contain the column where the open "(" for the
+                // function call occurs, but for whatever reason it does not have the line, so
+                // we have to walk back and try to find the correct location.  We do this by walking
+                // up the lines starting with the line the token is on, and seeing if any of the lines
+                // have "(" at the column indicated by the tokens lexical state.
+                // We walk back 9 lines, as that should be far enough to find most function calls,
+                // and it will prevent us from walking back thousands of lines if something went wrong.
+                // there is nothing magical about 9 lines, and it can be adjusted if it doesn't seem to be
+                // working well
+                if (lexical.info === undefined) {
+                    lexical = lexical.prev;
+                }
+
+                var col = lexical.info === "call" ? lexical.column : lexical.prev.column,
+                    line,
+                    e,
+                    found;
+                for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
+                    if (this.getLine(line).charAt(col) === "(") {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    inFunctionCall = true;
+                    functionCallPos = {line: line, ch: col};
+                }
+            }
+        }
+
+        return {
+            inFunctionCall: inFunctionCall,
+            functionCallPos: functionCallPos
+        };
+    };
+
+    /**
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
      * 
-     * @return {{property: boolean, context: string}} - a pair consisting
+     * @return {{property: boolean, 
+                 context: string} - an Object consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
      *      indicates the object context (as described in getContext above) of
@@ -225,340 +462,342 @@ define(function (require, exports, module) {
      *      always null for non-property lookups.
      */
     Session.prototype.getType = function () {
-        var propertyLookup  = false,
-            context         = null,
-            cursor          = this.getCursor(),
-            token           = this.getToken(cursor);
+        var propertyLookup   = false,
+            context          = null,
+            cursor           = this.getCursor(),
+            token            = this.getToken(cursor),
+            lexical;
 
         if (token) {
-            if (token.string === ".") {
+            // if this token is part of a function call, then the tokens lexical info
+            // will be annotated with "call"
+            lexical = getLexicalState(token);
+            if (token.type === "property") {
+                propertyLookup = true;
+            }
+
+            cursor = this.findPreviousDot();
+            if (cursor) {
                 propertyLookup = true;
                 context = this.getContext(cursor);
-            } else {
-                if (token.className === "property") {
-                    propertyLookup = true;
-                }
-
-                token = this._getPreviousToken(cursor);
-                if (token && token.string === ".") {
-                    propertyLookup = true;
-                    context = this.getContext(cursor);
-                }
             }
         }
-
+        
         return {
             property: propertyLookup,
             context: context
         };
     };
-
+    
+    // Comparison function used for sorting that does a case-insensitive string
+    // comparison on the "value" field of both objects. Unlike a normal string
+    // comparison, however, this sorts leading "_" to the bottom, given that a
+    // leading "_" usually denotes a private value.
+    function penalizeUnderscoreValueCompare(a, b) {
+        var aName = a.value.toLowerCase(), bName = b.value.toLowerCase();
+        // this sort function will cause _ to sort lower than lower case
+        // alphabetical letters
+        if (aName[0] === "_" && bName[0] !== "_") {
+            return 1;
+        } else if (bName[0] === "_" && aName[0] !== "_") {
+            return -1;
+        }
+        if (aName < bName) {
+            return -1;
+        } else if (aName > bName) {
+            return 1;
+        }
+        return 0;
+    }
+    
     /**
      * Get a list of hints for the current session using the current scope
      * information. 
-     * 
-     * @return {Array.<Object>} - the sorted list of hints for the current 
-     *      session.
+     *
+     * @param {string} query - the query prefix
+     * @param {StringMatcher} matcher - the class to find query matches and sort the results
+     * @return {hints: Array.<string>, needGuesses: boolean} - array of
+     * matching hints. If needGuesses is true, then the caller needs to
+     * request guesses and call getHints again.
      */
-    Session.prototype.getHints = function () {
-        
-        /*
-         * Comparator for sorting tokens according to minimum distance from
-         * a given position
-         * 
-         * @param {number} pos - the position to which a token's occurrences
-         *      are compared
-         * @param {Function} - the comparator function
-         */
-        function compareByPosition(pos) {
-            
-            /*
-             * Compute the minimum distance between a token, with which is 
-             * associated a sorted list of positions, and a given offset.
-             *
-             * @param {number} pos - the position to which a token's occurrences
-             *      are compared.
-             * @param {Object} token - a hint token, annotated with a list of
-             *      occurrence positions
-             * @return number - the least distance of an occurrence of token to
-             *      pos, or Infinity if there are no occurrences
-             */
-            function minDistToPos(pos, token) {
-                var arr     = token.positions,
-                    low     = 0,
-                    high    = arr.length,
-                    middle  = Math.floor(high / 2),
-                    dist;
+    Session.prototype.getHints = function (query, matcher) {
 
-                if (high === 0) {
-                    return Infinity;
+        if (query === undefined) {
+            query = "";
+        }
+
+        var MAX_DISPLAYED_HINTS = 500,
+            type                = this.getType(),
+            builtins            = this._getBuiltins(),
+            needGuesses         = false,
+            hints;
+
+        /**
+         *  Is the origin one of the builtin files.
+         *
+         * @param {string} origin
+         */
+        function isBuiltin(origin) {
+            return builtins.indexOf(origin) !== -1;
+        }
+
+        /**
+         *  Filter an array hints using a given query and matcher.
+         *  The hints are returned in the format of the matcher.
+         *  The matcher returns the value in the "label" property,
+         *  the match score in "matchGoodness" property.
+         *
+         * @param {Array} hints - array of hints
+         * @param {StringMatcher} matcher
+         * @returns {Array} - array of matching hints.
+         */
+        function filterWithQueryAndMatcher(hints, matcher) {
+            var matchResults = $.map(hints, function (hint) {
+                var searchResult = matcher.match(hint.value, query);
+                if (searchResult) {
+                    searchResult.value = hint.value;
+                    searchResult.guess = hint.guess;
+                    searchResult.type = hint.type;
+
+                    if (hint.keyword !== undefined) {
+                        searchResult.keyword = hint.keyword;
+                    }
+
+                    if (hint.literal !== undefined) {
+                        searchResult.literal = hint.literal;
+                    }
+
+                    if (hint.depth !== undefined) {
+                        searchResult.depth = hint.depth;
+                    }
+
+                    if (!type.property && !type.showFunctionType && hint.origin &&
+                            isBuiltin(hint.origin)) {
+                        searchResult.builtin = 1;
+                    } else {
+                        searchResult.builtin = 0;
+                    }
+                }
+
+                return searchResult;
+            });
+
+            return matchResults;
+        }
+
+        if (type.property) {
+            hints = this.ternHints || [];
+            hints = filterWithQueryAndMatcher(hints, matcher);
+
+            // If there are no hints then switch over to guesses.
+            if (hints.length === 0) {
+                if (this.ternGuesses) {
+                    hints = filterWithQueryAndMatcher(this.ternGuesses, matcher);
                 } else {
-                    // binary search for the position
-                    while (low < middle && middle < high) {
-                        if (arr[middle] < pos) {
-                            low = middle;
-                            middle += Math.floor((high - middle) / 2);
-                        } else if (arr[middle] > pos) {
-                            high = middle;
-                            middle = low + Math.floor((middle - low) / 2);
-                        } else {
+                    needGuesses = true;
+                }
+            }
+
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", penalizeUnderscoreValueCompare ]);
+        } else {     // identifiers, literals, and keywords
+            hints = this.ternHints || [];
+            hints = hints.concat(HintUtils.LITERALS);
+            hints = hints.concat(HintUtils.KEYWORDS);
+            hints = filterWithQueryAndMatcher(hints, matcher);
+            StringMatch.multiFieldSort(hints, [ "matchGoodness", "depth", "builtin", penalizeUnderscoreValueCompare ]);
+        }
+
+        if (hints.length > MAX_DISPLAYED_HINTS) {
+            hints = hints.slice(0, MAX_DISPLAYED_HINTS);
+        }
+
+        return {hints: hints, needGuesses: needGuesses};
+    };
+    
+    Session.prototype.setTernHints = function (newHints) {
+        this.ternHints = newHints;
+    };
+
+    Session.prototype.setGuesses = function (newGuesses) {
+        this.ternGuesses = newGuesses;
+    };
+
+    /**
+     * Set a new function type hint.
+     *
+     * @param {Array<{name: string, type: string, isOptional: boolean}>} newFnType -
+     * Array of function hints.
+     */
+    Session.prototype.setFnType = function (newFnType) {
+        this.fnType = newFnType;
+    };
+
+    /**
+     * The position of the function call for the current fnType.
+     *
+     * @param {{line:number, ch:number}} functionCallPos - the offset of the function call.
+     */
+    Session.prototype.setFunctionCallPos = function (functionCallPos) {
+        this.functionCallPos = functionCallPos;
+    };
+
+    /**
+     * Get the function type hint.  This will format the hint, showing the
+     * parameter at the cursor in bold.
+     *
+     * @return {{parameters: Array<{name: string, type: string, isOptional: boolean}>,
+     * currentIndex: number}} An Object where the
+     * "parameters" property is an array of parameter objects;
+     * the "currentIndex" property index of the hint the cursor is on, may be
+     * -1 if the cursor is on the function identifier.
+     */
+    Session.prototype.getParameterHint = function () {
+        var fnHint = this.fnType,
+            cursor = this.getCursor(),
+            token = this.getToken(this.functionCallPos),
+            start = {line: this.functionCallPos.line, ch: token.start},
+            fragment = this.editor.document.getRange(start,
+                {line: this.functionCallPos.line + 10, ch: 0});
+
+        var ast;
+        try {
+            ast = Acorn.parse(fragment);
+        } catch (e) { ast = Acorn_Loose.parse_dammit(fragment); }
+
+        // find argument as cursor location and bold it.
+        var startOffset = this.getOffsetFromCursor(start),
+            cursorOffset = this.getOffsetFromCursor(cursor),
+            offset = cursorOffset - startOffset,
+            node = ast.body[0],
+            currentArg = -1;
+
+        if (node.type === "ExpressionStatement") {
+            node = node.expression;
+            if (node.type === "SequenceExpression") {
+                node = node.expressions[0];
+            }
+            if (node.type === "BinaryExpression") {
+                if (node.left.type === "CallExpression") {
+                    node = node.left;
+                } else if (node.right.type === "CallExpression") {
+                    node = node.right;
+                }
+            }
+            if (node.type === "CallExpression") {
+                var args = node["arguments"],
+                    i,
+                    n = args.length,
+                    lastEnd = offset,
+                    text;
+                for (i = 0; i < n; i++) {
+                    node = args[i];
+                    if (offset >= node.start && offset <= node.end) {
+                        currentArg = i;
+                        break;
+                    } else if (offset < node.start) {
+                        // The range of nodes can be disjoint so see i f we
+                        // passed the node. If we passed the node look at the
+                        // text between the nodes to figure out which
+                        // arg we are on.
+                        text = fragment.substring(lastEnd, node.start);
+
+                        // test if comma is before or after the offset
+                        if (text.indexOf(",") >= (offset - lastEnd)) {
+                            // comma is after the offset so the current arg is the
+                            // previous arg node.
+                            i--;
+                        } else if (i === 0 && text.indexOf("(") !== -1) {
+                            // the cursor is on the function identifier
+                            currentArg = -1;
                             break;
+                        }
+
+                        currentArg = Math.max(0, i);
+                        break;
+                    } else if (i + 1 === n) {
+                        // look for a comma after the node.end. This will tell us we
+                        // are on the next argument, even there is no text, and therefore no node,
+                        // for the next argument.
+                        text = fragment.substring(node.end, offset);
+                        if (text.indexOf(",") !== -1) {
+                            currentArg = i + 1; // we know we are after the current arg, but keep looking
                         }
                     }
 
-                    // the closest position is off by no more than one
-                    dist = Math.abs(arr[middle] - pos);
-                    if (middle > 0) {
-                        dist = Math.min(dist, Math.abs(arr[middle - 1] - pos));
-                    }
-                    if (middle + 1 < arr.length) {
-                        dist = Math.min(dist, Math.abs(arr[middle + 1] - pos));
-                    }
-                    return dist;
-                }
-            }
-
-            return function (a, b) {
-                
-                /*
-                 * Look up the cached minimum distance from an occurrence of
-                 * the token to the given position, calculating and storing it
-                 * if needed.
-                 * 
-                 * @param {Object} token - the token from which the minimum
-                 *      distance to position pos is required
-                 * @return {number} - the least distance of an occurrence of
-                 *      token to position pos
-                 */
-                function getDistToPos(token) {
-                    var dist;
-
-                    if (token.distToPos >= 0) {
-                        dist = token.distToPos;
-                    } else {
-                        dist = minDistToPos(pos, token);
-                        token.distToPos = dist;
-                    }
-                    return dist;
+                    lastEnd = node.end;
                 }
 
-                var aDist = getDistToPos(a),
-                    bDist = getDistToPos(b);
-
-                if (aDist === Infinity) {
-                    if (bDist === Infinity) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                } else {
-                    if (bDist === Infinity) {
-                        return -1;
-                    } else {
-                        return aDist - bDist;
-                    }
-                }
-            };
-        }
-
-        /*
-         * Comparator for sorting tokens lexicographically according to scope,
-         * assuming the scope level has already been annotated.
-         * 
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @param {number} - comparator value that indicates whether a is more
-         *      tightly scoped than b
-         */
-        function compareByScope(a, b) {
-            var adepth = a.level;
-            var bdepth = b.level;
-
-            if (adepth >= 0) {
-                if (bdepth >= 0) {
-                    return adepth - bdepth;
-                } else {
-                    return -1;
-                }
-            } else {
-                if (bdepth >= 0) {
-                    return 1;
-                } else {
-                    return 0;
+                // if there are no args, then figure out if we are on the function identifier
+                if (n === 0 && cursorOffset > this.getOffsetFromCursor(this.functionCallPos)) {
+                    currentArg = 0;
                 }
             }
         }
-        
-        /*
-         * Comparator for sorting tokens by name
-         * 
-         * @param {Object} a - a token
-         * @param {Object} b - another token
-         * @return {number} - comparator value that indicates whether the name
-         *      of token a is lexicographically lower than the name of token b
-         */
-        function compareByName(a, b) {
-            if (a.value === b.value) {
-                return 0;
-            } else if (a.value < b.value) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
-        
-        /*
-         * Comparator for sorting tokens by path, such that a <= b if
-         * a.path === path
-         *
-         * @param {string} path - the target path name
-         * @return {Function} - the comparator function
-         */
-        function compareByPath(path) {
-            return function (a, b) {
-                if (a.path === path) {
-                    if (b.path === path) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    if (b.path === path) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-        }
-        
-        /*
-         * Comparator for sorting properties w.r.t. an association object.
-         * 
-         * @param {Object} assoc - an association object
-         * @return {Function} - the comparator function
-         */
-        function compareByAssociation(assoc) {
-            return function (a, b) {
-                if (Object.prototype.hasOwnProperty.call(assoc, a.value)) {
-                    if (Object.prototype.hasOwnProperty.call(assoc, b.value)) {
-                        return assoc[a.value] - assoc[b.value];
-                    } else {
-                        return -1;
-                    }
-                } else {
-                    if (Object.prototype.hasOwnProperty.call(assoc, b.value)) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-            };
-        }
 
-        /*
-         * Forms the lexicographical composition of comparators, i.e., 
-         * "a lex(c1,c2) b" iff "a c1 b or (a = b and a c2 b)"
-         * 
-         * @param {Function} compare1 - a comparator
-         * @param {Function} compare2 - another comparator
-         * @return {Function} - the lexicographic composition of comparator1
-         *      and comparator2
-         */
-        function lexicographic(compare1, compare2) {
-            return function (a, b) {
-                var result = compare1(a, b);
-                if (result === 0) {
-                    return compare2(a, b);
-                } else {
-                    return result;
-                }
-            };
-        }
-
-        /*
-         * A comparator for identifiers: the lexicographic combination of
-         * scope, position and name.
-         * 
-         * @param {number} pos - the target position by which identifiers are
-         *      compared
-         * @return {Function} - the comparator function
-         */
-        function compareIdentifiers(pos) {
-            return lexicographic(compareByScope,
-                        lexicographic(compareByPosition(pos),
-                            compareByName));
-        }
-        
-        /*
-         * A comparator for properties: the lexicographic combination of
-         * association, path name, position, and name.
-         * 
-         * @param {Object} assoc - the association by which properties are
-         *      compared
-         * @param {string} path - the path name by which properties are
-         *      compared
-         * @param {number} pos - the target position by which properties are
-         *      compared
-         * @return {Function} - the comparator function
-         */
-        function compareProperties(assoc, path, pos) {
-            return lexicographic(compareByAssociation(assoc),
-                        lexicographic(compareByPath(path),
-                            lexicographic(compareByPosition(pos),
-                                compareByName)));
-        }
-        
-        /*
-         * Clone a list of hints. (Used so that later annotations are not 
-         * preserved when scope information changes.)
-         * 
-         * @param {Array.<Object>} hints - an array of hint tokens
-         * @return {Array.<Object>} - a new array of objects that are clones of
-         *      the objects in the input array
-         */
-        function copyHints(hints) {
-            function cloneToken(token) {
-                var copy = {},
-                    prop;
-                for (prop in token) {
-                    if (Object.prototype.hasOwnProperty.call(token, prop)) {
-                        copy[prop] = token[prop];
-                    }
-                }
-                return copy;
-            }
-            return hints.map(cloneToken);
-        }
-
-        var cursor = this.editor.getCursorPos(),
-            offset = this.editor.indexFromPos(cursor),
-            type = this.getType(),
-            association,
-            hints;
-
-        if (type.property) {
-            hints = copyHints(this.properties);
-            if (type.context &&
-                    Object.prototype.hasOwnProperty.call(this.associations, type.context)) {
-                association = this.associations[type.context];
-                hints = HintUtils.annotateWithAssociation(hints, association);
-                hints.sort(compareProperties(association, this.path, offset));
-            } else {
-                hints.sort(compareProperties({}, this.path, offset));
-            }
-        } else {
-            hints = copyHints(this.identifiers);
-            hints = HintUtils.annotateWithScope(hints, this.scope);
-            hints = hints.concat(this.literals);
-            hints.sort(compareIdentifiers(offset));
-            hints = hints.concat(this.globals);
-            hints = hints.concat(HintUtils.LITERALS);
-            hints = hints.concat(HintUtils.KEYWORDS);
-        }
-
-        return hints;
+        return {parameters: fnHint, currentIndex: currentArg};
     };
 
+    /**
+     * Get the javascript text of the file open in the editor for this Session.
+     * For a javascript file, this is just the text of the file.  For an HTML file,
+     * this will be only the text in the <script> tags.  This is so that we can pass
+     * just the javascript text to tern, and avoid confusing it with HTML tags, since it
+     * only knows how to parse javascript.
+     * @return {string} - the "javascript" text that can be sent to Tern.
+     */
+    Session.prototype.getJavascriptText = function () {
+        if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
+            // HTML file - need to send back only the bodies of the
+            // <script> tags
+            var text = "",
+                offset = this.getOffset(),
+                cursor = this.getCursor(),
+                editor = this.editor,
+                scriptBlocks = HTMLUtils.findBlocks(editor, "javascript");
+            
+            // Add all the javascript text
+            // For non-javascript blocks we replace everything except for newlines
+            // with whitespace.  This is so that the offset and cursor positions
+            // we get from the document still work.  
+            // Alternatively we could strip the non-javascript text, and modify the offset,
+            // and/or cursor, but then we have to remember how to reverse the translation
+            // to support jump-to-definition
+            var htmlStart = {line: 0, ch: 0};
+            scriptBlocks.forEach(function (scriptBlock) {
+                var start = scriptBlock.start,
+                    end = scriptBlock.end;
+                
+                // get the preceding html text, and replace it with whitespace
+                var htmlText = editor.document.getRange(htmlStart, start);
+                htmlText = htmlText.replace(/./g, " ");
+
+                htmlStart = end;
+                text += htmlText + scriptBlock.text;
+            });
+            
+            return text;
+        } else {
+            // Javascript file, just return the text
+            return this.editor.document.getText();
+        }
+    };
+    
+    /**
+     * Determine if the cursor is located in the name of a function declaration.
+     * This is so we can suppress hints when in a function name, as we do for variable and
+     * parameter declarations, but we can tell those from the token itself rather than having
+     * to look at previous tokens.
+     * 
+     * @return {boolean} - true if the current cursor position is in the name of a function
+     * declaration.
+     */
+    Session.prototype.isFunctionName = function () {
+        var cursor = this.getCursor(),
+            token  = this.getToken(cursor),
+            prevToken = this._getPreviousToken(cursor);
+        
+        return prevToken.string === "function";
+    };
+    
     module.exports = Session;
 });

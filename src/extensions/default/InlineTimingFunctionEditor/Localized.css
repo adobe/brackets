@@ -1,0 +1,15 @@
+.timing-function-editor .coordinate-plane:after {
+    content: '{{INLINE_TIMING_EDITOR_TIME}}';
+}
+
+.timing-function-editor .coordinate-plane:hover:before {
+    content: '{{INLINE_TIMING_EDITOR_PROGRESSION}} (' attr(data-progression) '%)';
+}
+
+.timing-function-editor .coordinate-plane:before {
+    content: '{{INLINE_TIMING_EDITOR_PROGRESSION}}';
+}
+
+.timing-function-editor .coordinate-plane:hover:after {
+    content: '{{INLINE_TIMING_EDITOR_TIME}} (' attr(data-time) '%)';
+}

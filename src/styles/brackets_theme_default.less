@@ -1,22 +1,22 @@
 
 // Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
-//  
+//
 // Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the "Software"), 
-// to deal in the Software without restriction, including without limitation 
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-// and/or sell copies of the Software, and to permit persons to whom the 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following conditions:
-//  
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-//  
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 
@@ -24,7 +24,7 @@
  * Brackets Default Theme
  *
  * Defines all the variables that one can configure in a theme. This should
- * contain all variables / mixins for UI styling that we want to be able to 
+ * contain all variables / mixins for UI styling that we want to be able to
  * change in a theme.
  *
  * Throughout the rest of the LESS files we should _only_ use color
@@ -35,7 +35,7 @@
 
 /* Overall Colors */
 
-/* 
+/*
  * Background colors are ordered from least "intense" to most "intense"
  * So, if the background is light, then @background-color-3 should be
  * lightest, -2 should be darker, and -1 should be darker still.
@@ -70,14 +70,14 @@
 @accent-variable-3: #535353;
 @accent-property: #8757ad;
 @accent-operator: #535353;
-@accent-comment: #a2a2a2;
+@accent-comment: #949494;
 @accent-string: #f18900;
 @accent-string-2: #f18900;
 @accent-meta: #535353;
 @accent-error: #dc322f;
 @accent-qualifier: #446fbd;
 @accent-builtin: #446fbd;
-@accent-bracket: #535353;
+@accent-bracket: #222;
 @accent-tag: #446fbd;
 @accent-attribute: #738d00;
 @accent-header: #d33682;
@@ -87,6 +87,12 @@
 @accent-rangeinfo: #6c71c4;
 @accent-minus: #dc322f;
 @accent-plus: #859900;
+@match-text: #121212;
+@cm-match-highlight: rgba(244, 237, 98, 0.7);
+@cm-current-match-highlight: rgb(255, 108, 0);
+
+/* code highlight */
+@matching-bracket: #cfead6;
 
 /* inline editor colors */
 @inline-background-color-1: #eaeaea;
@@ -97,9 +103,30 @@
 @inline-color-2: #8a8a8a;
 @inline-color-3: @bc-black;
 
-/* Selection colors */
-@selection-color-focused: #d2dcf8;
-@selection-color-unfocused: #d9d9d9;
+/* sidebar/toolbar colors */
+@project-panel-base-color: #3C3F41;
+@project-panel-text-1: #ffffff;
+@project-panel-text-2: #94A3A7;
+@main-toolbar-background-color: #5D5F60;
+
+/* open working file highlight */
+@open-working-file-name-highlight: #8fddff;
+@open-working-file-ext-highlight: #8fddff;
+
+/* selection colors */
+@selection-color-focused: #abdffa;
+@selection-color-unfocused: #e9e9e9;
+
+/* background color of the line that has the cursor */
+@activeline-bgcolor: #ebefef;
+
+/* custom scrollbar colors */
+@custom-scrollbar-thumb: rgba(0, 0, 0, 0.24);
+@custom-scrollbar-thumb-inactive: rgba(0, 0, 0, 0.12);
+
+/* live preview */
+@live-preview-sync-error-background: #ff5d99;
+@live-preview-sync-error-color: @bc-white;
 
 /* Code font formatting
  *
@@ -115,17 +142,13 @@
     // Sizing via em will cause the code and line numbers to misalign
     line-height: 15px;
     font-size: 12px;
-    font-family: 'SourceCodePro', "ＭＳ ゴシック", "MS Gothic", monospace;
+    font-family: "SourceCodePro-Medium", "ＭＳ ゴシック", "MS Gothic", monospace;
 }
 
 .code-font-win() {
-    .code-font();
 }
 
 .code-font-mac() {
-    .code-font();
-    /* Use the Medium weight on the Mac to counterbalance the grayscale antialiasing. */
-    font-family: 'SourceCodePro-Medium', "ＭＳ ゴシック", "MS Gothic", monospace;
 }
 
 .code-cursor() {

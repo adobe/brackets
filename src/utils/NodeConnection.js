@@ -54,7 +54,7 @@ define(function (require, exports, module) {
      */
     function setDeferredTimeout(deferred, delay) {
         var timer = setTimeout(function () {
-            deferred.reject();
+            deferred.reject("timeout");
         }, delay);
         deferred.always(function () { clearTimeout(timer); });
     }
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
         
         brackets.app.getNodeState(function (err, nodePort) {
-            if (!err && nodePort && !deferred.isRejected()) {
+            if (!err && nodePort && deferred.state() !== "rejected") {
                 port = nodePort;
                 ws = new WebSocket("ws://localhost:" + port);
                 
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
                 // at some point in the future (and will not get an onopen 
                 // event)
                 ws.onclose = function () {
-                    deferred.reject();
+                    deferred.reject("WebSocket closed");
                 };
 
                 ws.onopen = function () {
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
                     deferred.resolveWith(null, [ws, port]);
                 };
             } else {
-                deferred.reject();
+                deferred.reject("brackets.app.getNodeState error: " + err);
             }
         });
         
@@ -192,7 +192,7 @@ define(function (require, exports, module) {
         var failedDeferreds = this._pendingInterfaceRefreshDeferreds
             .concat(this._pendingCommandDeferreds);
         failedDeferreds.forEach(function (d) {
-            d.reject();
+            d.reject("cleanup");
         });
         this._pendingInterfaceRefreshDeferreds = [];
         this._pendingCommandDeferreds = [];
@@ -202,7 +202,11 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Connect to the node server
+     * Connect to the node server. After connecting, the NodeConnection
+     * object will trigger a "close" event when the underlying socket
+     * is closed. If the connection is set to autoReconnect, then the
+     * event will also include a jQuery promise for the connection.
+     * 
      * @param {boolean} autoReconnect Whether to automatically try to
      *    reconnect to the server if the connection succeeds and then
      *    later disconnects. Note if this connection fails initially, the
@@ -224,17 +228,19 @@ define(function (require, exports, module) {
             function success() {
                 self._ws.onclose = function () {
                     if (self._autoReconnect) {
-                        self.connect(true);
+                        var $promise = self.connect(true);
+                        $(self).triggerHandler("close", [$promise]);
                     } else {
                         self._cleanup();
+                        $(self).triggerHandler("close");
                     }
                 };
                 deferred.resolve();
             }
             // Called if we fail at the final setup
-            function fail() {
+            function fail(err) {
                 self._cleanup();
-                deferred.reject();
+                deferred.reject(err);
             }
             
             self._ws = ws;
@@ -276,7 +282,7 @@ define(function (require, exports, module) {
                         );
                         setTimeout(doConnect, delay);
                     } else { // too many attempts, give up
-                        deferred.reject();
+                        deferred.reject("Max connection attempts reached");
                     }
                 }
             );
@@ -322,7 +328,7 @@ define(function (require, exports, module) {
         var deferred = $.Deferred();
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
         var pathArray = paths;
-        if (!$.isArray(paths)) {
+        if (!Array.isArray(paths)) {
             pathArray = [paths];
         }
         
@@ -336,19 +342,19 @@ define(function (require, exports, module) {
                     if (!success) {
                         // response from commmand call was "false" so we know
                         // the actual load failed.
-                        deferred.reject();
+                        deferred.reject("loadDomainModulesFromPaths failed");
                     }
                     // if the load succeeded, we wait for the API refresh to
                     // resolve the deferred.
                 },
-                function () { // command call failed
-                    deferred.reject();
+                function (reason) { // command call failed
+                    deferred.reject("Unable to load one of the modules: " + pathArray + (reason ? ", reason: " + reason : ""));
                 }
             );
 
             this._pendingInterfaceRefreshDeferreds.push(deferred);
         } else {
-            deferred.reject();
+            deferred.reject("this.domains.base is undefined");
         }
         
         return deferred.promise();
@@ -395,40 +401,43 @@ define(function (require, exports, module) {
      * @param {WebSocket.Message} message Message object from WebSocket
      */
     NodeConnection.prototype._receive = function (message) {
+        var responseDeferred = null;
+        var m;
         try {
-            var responseDeferred = null;
-            var m = JSON.parse(message.data);
-            switch (m.type) {
-            case "event":
-                $(this).triggerHandler(m.message.domain + "." + m.message.event,
-                                       m.message.parameters);
-                break;
-            case "commandResponse":
-                responseDeferred = this._pendingCommandDeferreds[m.message.id];
-                if (responseDeferred) {
-                    responseDeferred.resolveWith(this, [m.message.response]);
-                    delete this._pendingCommandDeferreds[m.message.id];
-                }
-                break;
-            case "commandError":
-                responseDeferred = this._pendingCommandDeferreds[m.message.id];
-                if (responseDeferred) {
-                    responseDeferred.rejectWith(
-                        this,
-                        [m.message.message, m.message.stack]
-                    );
-                    delete this._pendingCommandDeferreds[m.message.id];
-                }
-                break;
-            case "error":
-                console.error("[NodeConnection] received error: " +
-                                m.message.message);
-                break;
-            default:
-                console.error("[NodeConnection] unknown event type: " + m.type);
-            }
+            m = JSON.parse(message.data);
         } catch (e) {
-            console.error("[NodeConnection] received malformed message");
+            console.error("[NodeConnection] received malformed message", message, e.message);
+            return;
+        }
+        
+        switch (m.type) {
+        case "event":
+            $(this).triggerHandler(m.message.domain + "." + m.message.event,
+                                   m.message.parameters);
+            break;
+        case "commandResponse":
+            responseDeferred = this._pendingCommandDeferreds[m.message.id];
+            if (responseDeferred) {
+                responseDeferred.resolveWith(this, [m.message.response]);
+                delete this._pendingCommandDeferreds[m.message.id];
+            }
+            break;
+        case "commandError":
+            responseDeferred = this._pendingCommandDeferreds[m.message.id];
+            if (responseDeferred) {
+                responseDeferred.rejectWith(
+                    this,
+                    [m.message.message, m.message.stack]
+                );
+                delete this._pendingCommandDeferreds[m.message.id];
+            }
+            break;
+        case "error":
+            console.error("[NodeConnection] received error: " +
+                            m.message.message);
+            break;
+        default:
+            console.error("[NodeConnection] unknown event type: " + m.type);
         }
     };
     
@@ -448,8 +457,8 @@ define(function (require, exports, module) {
             function () {
                 pendingDeferreds.forEach(function (d) { d.resolve(); });
             },
-            function () {
-                pendingDeferreds.forEach(function (d) { d.reject(); });
+            function (err) {
+                pendingDeferreds.forEach(function (d) { d.reject(err); });
             }
         );
         
@@ -483,13 +492,22 @@ define(function (require, exports, module) {
         
         if (this.connected()) {
             $.getJSON("http://localhost:" + this._port + "/api")
-                .success(refreshInterfaceCallback)
-                .error(function () { deferred.reject(); });
+                .done(refreshInterfaceCallback)
+                .fail(function (err) { deferred.reject(err); });
         } else {
-            deferred.reject();
+            deferred.reject("Attempted to call _refreshInterface when not connected.");
         }
         
         return deferred.promise();
+    };
+    
+    /**
+     * @private
+     * Get the default timeout value
+     * @return {number} Timeout value in milliseconds
+     */
+    NodeConnection._getConnectionTimeout = function () {
+        return CONNECTION_TIMEOUT;
     };
     
     module.exports = NodeConnection;

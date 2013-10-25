@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
+/*global require, define, brackets: true, $, window, navigator, Mustache */
 
 require.config({
     paths: {
-        "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "text"      : "thirdparty/text/text",
+        "i18n"      : "thirdparty/i18n/i18n",
+        "lodash"    : "thirdparty/lodash.custom.min"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -53,6 +54,7 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
+    require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
     
@@ -74,7 +76,6 @@ define(function (require, exports, module) {
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
-        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
         QuickOpen               = require("search/QuickOpen"),
@@ -83,6 +84,7 @@ define(function (require, exports, module) {
         MainViewHTML            = require("text!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
+        DefaultDialogs          = require("widgets/DefaultDialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
@@ -93,22 +95,30 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
-        ExtensionUtils          = require("utils/ExtensionUtils");
-            
+        ExtensionUtils          = require("utils/ExtensionUtils"),
+        DragAndDrop             = require("utils/DragAndDrop"),
+        ColorUtils              = require("utils/ColorUtils"),
+        CodeInspection          = require("language/CodeInspection"),
+        NativeApp               = require("utils/NativeApp"),
+        _                       = require("lodash");
+        
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
+    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
+    require("editor/EditorOptionHandlers");
     require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
+    require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
 
     // Local variables
-    var params                  = new UrlParams(),
-        PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+    var params = new UrlParams();
     
     // read URL params
     params.parse();
@@ -128,7 +138,6 @@ define(function (require, exports, module) {
             EditorManager           : EditorManager,
             Commands                : Commands,
             WorkingSetView          : WorkingSetView,
-            JSLintUtils             : JSLintUtils,
             PerfUtils               : PerfUtils,
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
@@ -137,15 +146,22 @@ define(function (require, exports, module) {
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
+            Dialogs                 : Dialogs,
+            DefaultDialogs          : DefaultDialogs,
+            CodeInspection          : CodeInspection,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-            NativeApp               : require("utils/NativeApp"),
+            NativeApp               : NativeApp,
+            ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
             UpdateNotification      : require("utils/UpdateNotification"),
-            extensions              : {}, // place for extensions to hang modules for unit tests
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
+            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            HTMLInstrumentation     : require("language/HTMLInstrumentation"),
+            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             doneLoading             : false
         };
 
@@ -162,7 +178,7 @@ define(function (require, exports, module) {
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
+                DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.ERROR_IN_BROWSER_TITLE,
                 Strings.ERROR_IN_BROWSER
             );
@@ -187,7 +203,8 @@ define(function (require, exports, module) {
         LanguageManager.ready.always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
-            var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
+            var extensionPathOverride = params.get("extensions");  // used by unit tests
+            var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
@@ -200,8 +217,9 @@ define(function (require, exports, module) {
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID),
+                    var prefs = PreferencesManager.getPreferenceStorage(module),
                         deferred = new $.Deferred();
+                    
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
@@ -209,7 +227,7 @@ define(function (require, exports, module) {
                             
                             dirEntry.getFile("index.html", {}, function (fileEntry) {
                                 var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.pipe(deferred.resolve, deferred.reject);
+                                promise.then(deferred.resolve, deferred.reject);
                             }, deferred.reject);
                         } else {
                             deferred.resolve();
@@ -228,9 +246,7 @@ define(function (require, exports, module) {
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, files) {
-                            files.forEach(function (filename) {
-                                CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
-                            });
+                            DragAndDrop.openDroppedFiles(files);
                         });
                     }
                 });
@@ -242,7 +258,11 @@ define(function (require, exports, module) {
             // check once a day, plus 2 minutes, 
             // as the check will skip if the last check was not -24h ago
             window.setInterval(UpdateNotification.checkForUpdate, 86520000);
-            UpdateNotification.checkForUpdate();
+            
+            // Check for updates on App Ready
+            AppInit.appReady(function () {
+                UpdateNotification.checkForUpdate();
+            });
         }
     }
     
@@ -252,6 +272,29 @@ define(function (require, exports, module) {
     function _beforeHTMLReady() {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
+        
+        // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
+        if (brackets.inBrowser) {
+            $("body").addClass("in-browser");
+        } else {
+            $("body").addClass("in-appshell");
+        }
+
+        // Enable/Disable HTML Menus
+        if (brackets.nativeMenus) {
+            $("body").addClass("has-appshell-menus");
+        } else {
+            // (issue #5310) workaround for bootstrap dropdown: prevent the menu item to grab
+            // the focus -- override jquery focus implementation for top-level menu items
+            (function () {
+                var defaultFocus = $.fn.focus;
+                $.fn.focus = function () {
+                    if (!this.hasClass("dropdown-toggle")) {
+                        return defaultFocus.apply(this, arguments);
+                    }
+                };
+            }());
+        }
         
         // Localize MainViewHTML and inject into <BODY> tag
         $("body").html(Mustache.render(MainViewHTML, Strings));
@@ -264,16 +307,27 @@ define(function (require, exports, module) {
         // handle drops.
         $(window.document.body)
             .on("dragover", function (event) {
+                var dropEffect = "none";
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    event.originalEvent.dataTransfer.dropEffect = "none";
+                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
+                    if ($(".modal.instance").length === 0 &&
+                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                        dropEffect = "copy";
+                    }
+                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
                 }
             })
             .on("drop", function (event) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
+                    brackets.app.getDroppedFiles(function (err, files) {
+                        if (!err) {
+                            DragAndDrop.openDroppedFiles(files);
+                        }
+                    });
                 }
             });
         
@@ -308,6 +362,26 @@ define(function (require, exports, module) {
                 e.preventDefault();
             }
         });
+        
+        // Prevent clicks on any link from navigating to a different page (which could lose unsaved
+        // changes). We can't use a simple .on("click", "a") because of http://bugs.jquery.com/ticket/3861:
+        // jQuery hides non-left clicks from such event handlers, yet middle-clicks still cause CEF to
+        // navigate. Also, a capture handler is more reliable than bubble.
+        window.document.body.addEventListener("click", function (e) {
+            // Check parents too, in case link has inline formatting tags
+            var node = e.target, url;
+            while (node) {
+                if (node.tagName === "A") {
+                    url = node.getAttribute("href");
+                    if (url && !url.match(/^#/)) {
+                        NativeApp.openURLInDefaultBrowser(url);
+                    }
+                    e.preventDefault();
+                    break;
+                }
+                node = node.parentElement;
+            }
+        }, true);
     }
 
     // Dispatch htmlReady event

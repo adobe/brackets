@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -51,19 +51,16 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        FileUtils           = require("file/FileUtils"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
+        PanelManager        = require("view/PanelManager"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        KeyEvent            = require("utils/KeyEvent"),
-        ViewUtils           = require("utils/ViewUtils"),
-        StatusBar           = require("widgets/StatusBar"),
+        ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        LanguageManager     = require("language/LanguageManager");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -75,6 +72,10 @@ define(function (require, exports, module) {
     var _currentEditor = null;
     /** @type {?Document} */
     var _currentEditorsDocument = null;
+    /** @type {?string} full path to file */
+    var _currentlyViewedPath = null;
+    /** @type {?JQuery} DOM node representing UI of custom view   */
+    var _$currentCustomViewer = null;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -95,18 +96,24 @@ define(function (require, exports, module) {
     var _lastEditorWidth = null;
     
     /**
-     * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
-     * @type {Array.<function(...)>}
+     * Registered inline-editor widget providers sorted descending by priority. 
+     * See {@link #registerInlineEditProvider()}.
+     * @type {Array.<{priority:number, provider:function(...)}>}
      */
     var _inlineEditProviders = [];
     
-    /* StatusBar indicators */
-    var $languageInfo,
-        $cursorInfo,
-        $fileInfo,
-        $indentType,
-        $indentWidthLabel,
-        $indentWidthInput;
+    /**
+     * Registered inline documentation widget providers sorted descending by priority.
+     * See {@link #registerInlineDocsProvider()}.
+     * @type {Array.<{priority:number, provider:function(...)}>}
+     */
+    var _inlineDocsProviders = [];
+    
+    /**
+     * Registered jump-to-definition providers. See {@link #registerJumpToDefProvider()}.
+     * @type {Array.<function(...)>}
+     */
+    var _jumpToDefProviders = [];
     
 	/**
      * @private
@@ -147,13 +154,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Bound to Ctrl+E on outermost editors.
-     * @param {!Editor} editor the candidate host editor
+     * Finds an inline widget provider from the given list that can offer a widget for the current cursor
+     * position, and once the widget has been created inserts it into the editor.
+     * @param {!Editor} editor The host editor
+     * @param {!Array.<{priority:number, provider:function(!Editor, !{line:number, ch:number}):?$.Promise}>} prioritized providers
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
-     *      is created or rejected when no inline editors are available.
+     *      is created or rejected if no inline providers have offered one.
      */
-    function _openInlineWidget(editor) {
-        PerfUtils.markStart(PerfUtils.INLINE_EDITOR_OPEN);
+    function _openInlineWidget(editor, providers) {
+        PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
         
         // Run through inline-editor providers until one responds
         var pos = editor.getCursorPos(),
@@ -161,25 +170,26 @@ define(function (require, exports, module) {
             i,
             result = new $.Deferred();
         
-        for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
-            var provider = _inlineEditProviders[i];
+        for (i = 0; i < providers.length && !inlinePromise; i++) {
+            var provider = providers[i].provider;
             inlinePromise = provider(editor, pos);
         }
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
-                editor.addInlineWidget(pos, inlineWidget);
-                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
-                result.resolve();
+                editor.addInlineWidget(pos, inlineWidget).done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                    result.resolve();
+                });
             }).fail(function () {
                 // terminate timer that was started above
-                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 result.reject();
             });
         } else {
             // terminate timer that was started above
-            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
+            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
             result.reject();
         }
         
@@ -187,10 +197,34 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Inserts a prioritized provider object into the array in sorted (descending) order.
+     *
+     * @param {Array.<{priority:number, provider:function(...)}>} array
+     * @param {number} priority
+     * @param {function(...)} provider
+     */
+    function _insertProviderSorted(array, provider, priority) {
+        var index,
+            prioritizedProvider = {
+                priority: priority,
+                provider: provider
+            };
+        
+        for (index = 0; index < array.length; index++) {
+            if (array[index].priority < priority) {
+                break;
+            }
+        }
+        
+        array.splice(index, 0, prioritizedProvider);
+    }
+    
+    /**
      * Removes the given widget UI from the given hostEditor (agnostic of what the widget's content
      * is). The widget's onClosed() callback will be run as a result.
      * @param {!Editor} hostEditor The editor containing the widget.
      * @param {!InlineWidget} inlineWidget The inline widget to close.
+     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
     function closeInlineWidget(hostEditor, inlineWidget) {
         // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
@@ -206,23 +240,55 @@ define(function (require, exports, module) {
             hostEditor.focus();
         }
         
-        hostEditor.removeInlineWidget(inlineWidget);
+        return hostEditor.removeInlineWidget(inlineWidget);
     }
     
     /**
-     * Registers a new inline provider. When _openInlineWidget() is called each registered inline
-     * widget is called and asked if it wants to provide an inline widget given the current cursor
-     * location and document.
-     * @param {function} provider 
-     *      Parameters: 
-     *      {!Editor} editor, {!{line:Number, ch:Number}} pos
-     *      
-     *      Returns:
-     *      {$.Promise} a promise that will be resolved with an inlineWidget
-     *      or null to indicate the provider doesn't create an editor in this case
+     * Registers a new inline editor provider. When Quick Edit is invoked each registered provider is
+     * asked if it wants to provide an inline editor given the current editor and cursor location.
+     * An optional priority parameter is used to give providers with higher priority an opportunity
+     * to provide an inline editor before providers with lower priority.
+     * 
+     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {number=} priority 
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
+     * to indicate the provider doesn't want to respond to this case.
      */
-    function registerInlineEditProvider(provider) {
-        _inlineEditProviders.push(provider);
+    function registerInlineEditProvider(provider, priority) {
+        if (priority === undefined) {
+            priority = 0;
+        }
+        _insertProviderSorted(_inlineEditProviders, provider, priority);
+    }
+
+    /**
+     * Registers a new inline docs provider. When Quick Docs is invoked each registered provider is
+     * asked if it wants to provide inline docs given the current editor and cursor location.
+     * An optional priority parameter is used to give providers with higher priority an opportunity
+     * to provide an inline editor before providers with lower priority.
+     * 
+     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {number=} priority 
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
+     * to indicate the provider doesn't want to respond to this case.
+     */
+    function registerInlineDocsProvider(provider, priority) {
+        if (priority === undefined) {
+            priority = 0;
+        }
+        _insertProviderSorted(_inlineDocsProviders, provider, priority);
+    }
+    
+    /**
+     * Registers a new jump-to-definition provider. When jump-to-definition is invoked each
+     * registered provider is asked if it wants to provide jump-to-definition results, given
+     * the current editor and cursor location. 
+     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * The provider returns a promise that will be resolved with jump-to-definition results, or
+     * returns null to indicate the provider doesn't want to respond to this case.
+     */
+    function registerJumpToDefProvider(provider) {
+        _jumpToDefProviders.push(provider);
     }
     
     /**
@@ -238,8 +304,8 @@ define(function (require, exports, module) {
         
         if (hostEditor) {
             hostEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    inlineEditors = inlineEditors.concat(widget.editors);
+                if (widget instanceof InlineTextEditor && widget.editor) {
+                    inlineEditors.push(widget.editor);
                 }
             });
         }
@@ -283,8 +349,14 @@ define(function (require, exports, module) {
      * @return {{content:DOMElement, editor:Editor}}
      */
     function createInlineEditorForDocument(doc, range, inlineContent) {
-        // Create the Editor
+        // Hide the container for the editor before creating it so that CodeMirror doesn't do extra work
+        // when initializing the document. When we construct the editor, we have to set its text and then
+        // set the (small) visible range that we show in the editor. If the editor is visible, CM has to
+        // render a large portion of the document before setting the visible range. By hiding the editor
+        // first and showing it after the visible range is set, we avoid that initial render.
+        $(inlineContent).hide();
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range);
+        $(inlineContent).show();
         
         return { content: inlineContent, editor: inlineEditor };
     }
@@ -308,6 +380,9 @@ define(function (require, exports, module) {
         var editor = document._masterEditor;
 
         if (!editor) {
+            if (!(document instanceof DocumentManager.Document)) {
+                throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
+            }
             return;
         }
         
@@ -339,61 +414,50 @@ define(function (require, exports, module) {
     
     
     /**
-     * Calculates the available height for the full-size Editor (or the no-editor placeholder),
-     * accounting for the current size of all visible panels, toolbar, & status bar.
-     * @return {number}
-     */
-    function _calcEditorHeight() {
-        var availableHt = $(".content").height();
-        
-        _editorHolder.siblings().each(function (i, elem) {
-            var $elem = $(elem);
-            if ($elem.css("display") !== "none") {
-                availableHt -= $elem.outerHeight();
-            }
-        });
-        
-        // Clip value to 0 (it could be negative if a panel wants more space than we have)
-        return Math.max(availableHt, 0);
-    }
-    
-    /**
-     * Flag for resizeEditor() to always force refresh.
+     * Flag for _onEditorAreaResize() to always force refresh.
      * @const
      * @type {string}
      */
     var REFRESH_FORCE = "force";
     
     /**
-     * Flag for resizeEditor() to never refresh.
+     * Flag for _onEditorAreaResize() to never refresh.
      * @const
      * @type {string}
      */
     var REFRESH_SKIP = "skip";
 
-    /** 
-     * Resize the editor. This must be called any time the contents of the editor area are swapped
-     * or any time the editor area might change height. EditorManager takes care of calling this when
-     * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
-     * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
-     *
-     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
-     *    "skip" to ensure the editor does not refresh, or leave undefined to let resizeEditor() determine 
-     *    whether it needs to refresh.
+    /**
+     * Must be called whenever the size/visibility of editor area siblings is changed without going through
+     * PanelManager or Resizer. Resizable panels created via PanelManager do not require this manual call.
      */
-    function resizeEditor(refreshFlag) {
+    function resizeEditor() {
         if (!_editorHolder) {
             return;  // still too early during init
         }
-        
-        var editorAreaHt = _calcEditorHeight();
-        _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
-        
+        // PanelManager computes the correct editor-holder size & calls us back with it, via _onEditorAreaResize()
+        PanelManager._notifyLayoutChange();
+    }
+    
+    /**
+     * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
+     * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
+     * case. PanelManager calls us in the most common height-change cases (panel and/or window resize), but
+     * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
+     * 
+     * @param {number} editorAreaHt
+     * @param {string=} refreshFlag For internal use. Set to "force" to ensure the editor will refresh, 
+     *    "skip" to ensure the editor does not refresh, or leave undefined to let _onEditorAreaResize()
+     *    determine whether it needs to refresh.
+     */
+    function _onEditorAreaResize(event, editorAreaHt, refreshFlag) {
         if (_currentEditor) {
             var curRoot = _currentEditor.getRootElement(),
                 curWidth = $(curRoot).width();
             if (!curRoot.style.height || $(curRoot).height() !== editorAreaHt) {
-                $(curRoot).height(editorAreaHt);
+                // Call setSize() instead of $.height() to allow CodeMirror to
+                // check for options like line wrapping
+                _currentEditor.setSize(null, editorAreaHt);
                 if (refreshFlag === undefined) {
                     refreshFlag = REFRESH_FORCE;
                 }
@@ -408,15 +472,6 @@ define(function (require, exports, module) {
                 _currentEditor.refreshAll(true);
             }
         }
-    }
-    
-    /**
-     * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
-     * height.
-     */
-    function _updateEditorDuringResize() {
-        // always skip the refresh since CodeMirror will call refresh() itself when it sees the resize event
-        resizeEditor(REFRESH_SKIP);
     }
     
     
@@ -463,13 +518,13 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        // Skip refreshing the editor since we're going to refresh it in resizeEditor() later.
+        // Skip refreshing the editor since we're going to refresh it more explicitly below
         _currentEditor.setVisible(true, false);
         _currentEditor.focus();
         
         // Resize and refresh the editor, since it might have changed size or had other edits applied
         // since it was last visible.
-        resizeEditor(REFRESH_FORCE);
+        PanelManager._notifyLayoutChange(REFRESH_FORCE);
     }
 
     /**
@@ -491,6 +546,13 @@ define(function (require, exports, module) {
         var createdNewEditor = false;
         if (!document._masterEditor) {
             createdNewEditor = true;
+
+            // Performance (see #4757) Chrome wastes time messing with selection
+            // that will just be changed at end, so clear it for now
+            if (window.getSelection && window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+            }
+            
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
@@ -502,9 +564,12 @@ define(function (require, exports, module) {
         }
     }
     
-
-    /** Hide the currently visible editor and show a placeholder UI in its place */
-    function _showNoEditor() {
+    /**
+     * resets editor state to make sure getFocusedEditor(), getActiveEditor() 
+     * and getCurrentFullEditor() return null when an image or the NoEditor 
+     * placeholder is displayed.
+     */
+    function _nullifyEditor() {
         if (_currentEditor) {
             _saveEditorViewState(_currentEditor);
             _currentEditor.setVisible(false);
@@ -512,12 +577,63 @@ define(function (require, exports, module) {
             
             _currentEditorsDocument = null;
             _currentEditor = null;
-            
-            $("#not-editor").css("display", "");
-            
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
             _notifyActiveEditorChanged(null);
         }
+    }
+    
+    /** Hide the currently visible editor and show a placeholder UI in its place */
+    function _showNoEditor() {
+        if (_currentEditor) {
+            $("#not-editor").css("display", "");
+            _nullifyEditor();
+        }
+    }
+    
+    function getCurrentlyViewedPath() {
+        return _currentlyViewedPath;
+    }
+    
+    function _clearCurrentlyViewedPath() {
+        _currentlyViewedPath = null;
+        $(exports).triggerHandler("currentlyViewedFileChange");
+    }
+    
+    function _setCurrentlyViewedPath(fullPath) {
+        _currentlyViewedPath = fullPath;
+        $(exports).triggerHandler("currentlyViewedFileChange");
+    }
+    
+    /** Remove existing custom view if present */
+    function _removeCustomViewer() {
+        $(exports).triggerHandler("removeCustomViewer");
+        if (_$currentCustomViewer) {
+            _$currentCustomViewer.remove();
+        }
+        _$currentCustomViewer = null;
+    }
+
+    /** append custom view to editor-holder
+     *  @param {!JQuery} $customView  DOM node representing UI of custom view
+     *  @param {!string} fullPath  path to the file displayed in the custom view
+     */
+    function showCustomViewer($customView, fullPath) {
+        DocumentManager._clearCurrentDocument();
+    
+        // Hide the not-editor
+        $("#not-editor").css("display", "none");
+        
+        _removeCustomViewer();
+        
+        _nullifyEditor();
+        _$currentCustomViewer = $customView;
+        // place in window
+        $("#editor-holder").append(_$currentCustomViewer);
+        
+        // add path, dimensions and file size to the view after loading image
+        ImageViewer.render(fullPath);
+        
+        _setCurrentlyViewedPath(fullPath);
     }
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -526,18 +642,16 @@ define(function (require, exports, module) {
             container = _editorHolder.get(0);
         
         var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
-
-        // Remove scroller-shadow from the current editor
-        if (_currentEditor) {
-            ViewUtils.removeScrollerShadow(container, _currentEditor);
-        }
         
+        // When the document or file in view changes clean up.
+        _removeCustomViewer();
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
             _showEditor(doc);
-            ViewUtils.addScrollerShadow(container, _currentEditor);
+            _setCurrentlyViewedPath(doc.file.fullPath);
         } else {
+            _clearCurrentlyViewedPath();
             _showNoEditor();
         }
 
@@ -659,14 +773,17 @@ define(function (require, exports, module) {
     function getActiveEditor() {
         return _lastFocusedEditor;
     }
-     
+    
+    
     /**
-     * Toggle Quick Edit command handler
-     * @return {!Promise} A promise resolved with true if an inline editor
-     *   is opened or false when closed. The promise is rejected if there
-     *   is no current editor or an inline editor is not created.
+     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
+     *
+     * @param {Array.<{priority:number, provider:function(...)}>} prioritized providers
+     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
+     *   when closed. Rejected if there is neither an existing widget to close nor a provider
+     *   willing to create a widget (or if no editor is open).
      */
-    function _toggleQuickEdit() {
+    function _toggleInlineWidget(providers) {
         var result = new $.Deferred();
         
         if (_currentEditor) {
@@ -674,15 +791,15 @@ define(function (require, exports, module) {
             
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
-                PerfUtils.markStart(PerfUtils.INLINE_EDITOR_CLOSE);
-                inlineWidget.close();
-                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_CLOSE);
-        
-                // return a resolved promise to CommandManager
-                result.resolve(false);
+                PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
+                inlineWidget.close().done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
+                    // return a resolved promise to CommandManager
+                    result.resolve(false);
+                });
             } else {
                 // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor).done(function () {
+                _openInlineWidget(_currentEditor, providers).done(function () {
                     result.resolve(true);
                 }).fail(function () {
                     result.reject();
@@ -696,177 +813,96 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().getName());
-    }
-    
-    function _updateFileInfo(editor) {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
-    }
-    
-    function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
-        $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
-        $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
-        $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
-    }
-
-    function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
-    }
-    
-    function _updateIndentSize() {
-        var size = _getIndentSize();
-        $indentWidthLabel.text(size);
-        $indentWidthInput.val(size);
-    }
-    
-    function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        _updateIndentType();
-        _updateIndentSize();
-    }
-    
-    function _updateCursorInfo(event, editor) {
-        editor = editor || getFocusedEditor();
-
-        // compute columns, account for tab size
-        var cursor = editor.getCursorPos(true);
+    /**
+     * Asynchronously asks providers to handle jump-to-definition.
+     * @return {!Promise} null if no appropriate provider exists. Else, returns a promise
+     *  which is resolved by adjusting the editor selection to the requested definition.
+     */
+    function _doJumpToDef() {
+        var providers = _jumpToDefProviders;
+        var promise,
+            i,
+            result = new $.Deferred();
         
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
-    }
-    
-    function _changeIndentWidth(value) {
-        $indentWidthLabel.removeClass("hidden");
-        $indentWidthInput.addClass("hidden");
-        
-        // remove all event handlers from the input field
-        $indentWidthInput.off("blur keyup");
-        
-        // restore focus to the editor
-        focusEditor();
+        if (_currentEditor) {
+            // main editor has focus
 
-        if (!value || isNaN(value)) {
-            return;
-        }
-        
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
-        } else {
-            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
-        }
-
-        // update indicator
-        _updateIndentSize();
-
-        // column position may change when tab size changes
-        _updateCursorInfo();
-    }
-    
-    function _onActiveEditorChange(event, current, previous) {
-        if (previous) {
-            $(previous).off("cursorActivity.statusbar");
-            $(previous).off("change.statusbar");
-        }
-        
-        if (!current) {
-            StatusBar.hide();  // calls resizeEditor() if needed
-        } else {
-            StatusBar.show();  // calls resizeEditor() if needed
+            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
             
-            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
-            $(current).on("change.statusbar", function () {
-                // async update to keep typing speed smooth
-                window.setTimeout(function () { _updateFileInfo(current); }, 0);
-            });
+            // Run through providers until one responds
+            for (i = 0; i < providers.length && !promise; i++) {
+                var provider = providers[i];
+                promise = provider();
+            }
+
+            // Will one of them will provide a result?
+            if (promise) {
+                promise.done(function () {
+                    PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.resolve();
+                }).fail(function () {
+                    // terminate timer that was started above
+                    PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                    result.reject();
+                });
+            } else {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                result.reject();
+            }
             
-            _updateCursorInfo(null, current);
-            _updateLanguageInfo(current);
-            _updateFileInfo(current);
-            _updateIndentType();
-            _updateIndentSize();
+        } else {
+            result.reject();
         }
+        
+        return result.promise();
     }
     
-    function _init() {
-        StatusBar.init($(".main-view .content"));
-
-        $languageInfo       = $("#status-language");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $indentType         = $("#indent-type");
-        $indentWidthLabel   = $("#indent-width-label");
-        $indentWidthInput   = $("#indent-width-input");
-        
-        // indentation event handlers
-        $indentType.on("click", _toggleIndentType);
-        $indentWidthLabel
-            .on("click", function () {
-                // update the input value before displaying
-                $indentWidthInput.val(_getIndentSize());
-
-                $indentWidthLabel.addClass("hidden");
-                $indentWidthInput.removeClass("hidden");
-                $indentWidthInput.focus();
-        
-                $indentWidthInput
-                    .on("blur", function () {
-                        _changeIndentWidth($indentWidthInput.val());
-                    })
-                    .on("keyup", function (event) {
-                        if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
-                            $indentWidthInput.blur();
-                        } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(false);
-                        }
-                    });
-            });
-
-        $indentWidthInput.focus(function () { $indentWidthInput.select(); });
-
-        _onActiveEditorChange(null, getFocusedEditor(), null);
-    }
-
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {
+        return _toggleInlineWidget(_inlineEditProviders);
+    });
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_DOCS, Commands.TOGGLE_QUICK_DOCS, function () {
+        return _toggleInlineWidget(_inlineDocsProviders);
+    });
+    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
     
+    // Create PerfUtils measurement
+    PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
+
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+    $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
+    $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
+    $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
 
-    // Add this as a capture handler so we're guaranteed to run it before the editor does its own
-    // refresh on resize.
-    window.addEventListener("resize", _updateEditorDuringResize, true);
-    
-    // Initialize: status bar focused listener
-    $(exports).on("activeEditorChange", _onActiveEditorChange);
-    
-    AppInit.htmlReady(_init);
-    
+
     // For unit tests and internal use only
-    exports._init = _init;
-    exports._openInlineWidget = _openInlineWidget;
-    exports._createFullEditorForDocument = _createFullEditorForDocument;
-    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
-    exports._getViewState = _getViewState;
-    exports._resetViewStates = _resetViewStates;
-    exports._doShow = _doShow;
-    exports._notifyActiveEditorChanged = _notifyActiveEditorChanged;
+    exports._openInlineWidget             = _openInlineWidget;
+    exports._createFullEditorForDocument  = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded      = _destroyEditorIfUnneeded;
+    exports._getViewState                 = _getViewState;
+    exports._resetViewStates              = _resetViewStates;
+    exports._doShow                       = _doShow;
+    exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
-    exports.REFRESH_SKIP = REFRESH_SKIP;
+    exports.REFRESH_SKIP  = REFRESH_SKIP;
     
     // Define public API
-    exports.setEditorHolder = setEditorHolder;
-    exports.getCurrentFullEditor = getCurrentFullEditor;
+    exports.setEditorHolder               = setEditorHolder;
+    exports.getCurrentFullEditor          = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
-    exports.focusEditor = focusEditor;
-    exports.getFocusedEditor = getFocusedEditor;
-    exports.getActiveEditor = getActiveEditor;
-    exports.getFocusedInlineWidget = getFocusedInlineWidget;
-    exports.resizeEditor = resizeEditor;
-    exports.registerInlineEditProvider = registerInlineEditProvider;
-    exports.getInlineEditors = getInlineEditors;
-    exports.closeInlineWidget = closeInlineWidget;
+    exports.focusEditor                   = focusEditor;
+    exports.getFocusedEditor              = getFocusedEditor;
+    exports.getActiveEditor               = getActiveEditor;
+    exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
+    exports.getFocusedInlineWidget        = getFocusedInlineWidget;
+    exports.resizeEditor                  = resizeEditor;
+    exports.registerInlineEditProvider    = registerInlineEditProvider;
+    exports.registerInlineDocsProvider    = registerInlineDocsProvider;
+    exports.registerJumpToDefProvider     = registerJumpToDefProvider;
+    exports.getInlineEditors              = getInlineEditors;
+    exports.closeInlineWidget             = closeInlineWidget;
+    exports.showCustomViewer              = showCustomViewer;
 });

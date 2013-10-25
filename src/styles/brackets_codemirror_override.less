@@ -20,18 +20,16 @@
 
 /* Brackets / CodeMirror Code Formatting */
 
-/*
- * TODO This can be removed next time we update CodeMirror2.
- * Marijn made this change to codemirror.css, but I need it now
- * in order to make font resizing work.
- */
 .CodeMirror pre {
-    line-height: inherit;
     padding: 0 @code-padding;
 }
 
 .CodeMirror-scroll {
     background-color: @background-color-3;
+}
+
+.CodeMirror {
+    .code-font();
 }
 
 .platform-mac .CodeMirror {
@@ -43,6 +41,22 @@
 }
 
 @code-padding: 15px;
+
+.CodeMirror-activeline-background {
+    background: transparent;
+}
+.CodeMirror-focused .CodeMirror-activeline-background {
+    background: @activeline-bgcolor;
+}
+.CodeMirror-focused .CodeMirror-activeline {
+    & > div, .CodeMirror-gutter-elt {
+        height: 100%;
+    }
+    .CodeMirror-gutter-elt {
+        background: @activeline-bgcolor;
+    }
+}
+
 
 .cm-s-default {
     span.cm-keyword {color: @accent-keyword;}
@@ -72,7 +86,7 @@
     span.cm-minus {color: @accent-minus;}
     span.cm-plus {color: @accent-plus;}
     
-    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @background-color-2;}
+    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
     span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 
     .CodeMirror-cursor {
@@ -105,15 +119,23 @@
     .CodeMirror-gutters {
         background-color: @background-color-3;
         border-right: none;
-        padding: @code-padding 0;
-        min-width: 2.5em;
+    }
+    .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+        background-color: #ebebeb;
+    }
+    .platform-mac & {
+        .CodeMirror-scrollbar-filler {
+            background-image: url(images/scrollbar-mac-corner.png);
+        }
+        .CodeMirror-gutter-filler {
+            background-image: url(images/scrollbar-mac-bg.png);
+        }
     }
     .CodeMirror-linenumber {
         color: @accent-comment;
         min-width: 2.5em;
         /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
-        padding-top: 0px;
-        padding-bottom: 0px;
+        padding: 0 3px 0 10px;  /* left padding for project panel selection triangle */
     }
     &.CodeMirror-focused .CodeMirror-selected {
         background: @selection-color-focused;
@@ -132,9 +154,14 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
+    .CodeMirror {
+        background: transparent;
+    }
+    
     .CodeMirror span.CodeMirror-matchingbracket {
         /* Ensure visibility against gray inline editor background */
-        background-color: @background-color-1;
+        background-color: @matching-bracket;
+        color: @accent-bracket !important;
     }
 
     .CodeMirror .CodeMirror-cursor {
@@ -166,6 +193,22 @@
     .CodeMirror .CodeMirror-vscrollbar, .CodeMirror .CodeMirror-hscrollbar {
         cursor: default;
     }
+    
+    .CodeMirror .CodeMirror-activeline-background {
+        background: transparent;
+    }
+    .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: transparent;
+    }
+    
+    .CodeMirror-focused .CodeMirror-activeline-background {
+        background: darken(@activeline-bgcolor, (@bc-color-step-size / 2)); 
+    }
+    .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
+        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
+    }
+    
+    .CodeMirror-matchingtag { background: @matching-bracket; }
 }
 
 /*

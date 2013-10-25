@@ -26,9 +26,17 @@
 /*global define, $, document, window, brackets  */
 
 /**
- * The view that controls the showing and hiding of the sidebar. Dispatches the following events:
- *    hide -- when the sidebar is hidden
- *    show -- when the sidebar is shown
+ * The view that controls the showing and hiding of the sidebar.
+ * 
+ * Although the sidebar view doesn't dispatch any events directly, it is a
+ * resizable element (../utils/Resizer.js), which means it can dispatch Resizer
+ * events.  For example, if you want to listen for the sidebar showing
+ * or hiding itself, set up listeners for the corresponding Resizer events,
+ * panelCollapsed and panelExpanded:
+ * 
+ *      $("#sidebar").on("panelCollapsed", ...);
+ *      $("#sidebar").on("panelExpanded", ...);
+ * 
  */
 
 define(function (require, exports, module) {
@@ -75,10 +83,32 @@ define(function (require, exports, module) {
     /**
      * Toggle sidebar visibility.
      */
-    function toggleSidebar(width) {
+    function toggle() {
         Resizer.toggle($sidebar);
     }
 
+    /**
+     * Show the sidebar.
+     */
+    function show() {
+        Resizer.show($sidebar);
+    }
+    
+    /**
+     * Hide the sidebar.
+     */
+    function hide() {
+        Resizer.hide($sidebar);
+    }
+    
+    /**
+     * Returns the visibility state of the sidebar.
+     * @return {boolean} true if element is visible, false if it is not visible
+     */
+    function isVisible() {
+        return Resizer.isVisible($sidebar);
+    }
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
@@ -86,6 +116,14 @@ define(function (require, exports, module) {
         $openFilesContainer     = $("#open-files-container");
         $projectTitle           = $("#project-title");
         $projectFilesContainer  = $("#project-files-container");
+    
+        function _resizeSidebarSelection() {
+            var $element;
+            $sidebar.find(".sidebar-selection").each(function (index, element) {
+                $element = $(element);
+                $element.width($element.parent()[0].scrollWidth);
+            });
+        }
 
         // init
         WorkingSetView.create($openFilesContainer);
@@ -100,7 +138,7 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelResizeEnd", function (evt, width) {
-            $sidebar.find(".sidebar-selection").width(width);
+            _resizeSidebarSelection();
             $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
@@ -112,7 +150,8 @@ define(function (require, exports, module) {
         });
         
         $sidebar.on("panelExpanded", function (evt, width) {
-            $sidebar.find(".sidebar-selection").width(width);
+            WorkingSetView.refresh();
+            _resizeSidebarSelection();
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-triangle").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");
@@ -128,8 +167,11 @@ define(function (require, exports, module) {
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
-    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR, Commands.VIEW_HIDE_SIDEBAR, toggle);
     
     // Define public API
-    exports.toggleSidebar = toggleSidebar;
+    exports.toggle      = toggle;
+    exports.show        = show;
+    exports.hide        = hide;
+    exports.isVisible   = isVisible;
 });

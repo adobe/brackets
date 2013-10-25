@@ -22,26 +22,32 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, xdescribe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, CodeMirror: false */
+/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        Async                   = require("utils/Async"),
-        FileUtils               = require("file/FileUtils"),
-        CSSUtils                = require("language/CSSUtils"),
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+    var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
+        Async                      = require("utils/Async"),
+        FileUtils                  = require("file/FileUtils"),
+        CSSUtils                   = require("language/CSSUtils"),
+        HTMLUtils                  = require("language/HTMLUtils"),
+        SpecRunnerUtils            = require("spec/SpecRunnerUtils"),
+        TextRange                  = require("document/TextRange").TextRange;
     
-    var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
-        universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
-        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
-        bootstrapCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
-        escapesCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css");
+    var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+        simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
+        universalCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
+        groupsFileEntry            = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
+        offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css"),
+        embeddedHtmlFileEntry      = new NativeFileSystem.FileEntry(testPath + "/embedded.html"),
+        cssRegionsFileEntry        = new NativeFileSystem.FileEntry(testPath + "/regions.css");
     
-    var contextTestCss          = require("text!spec/CSSUtils-test-files/contexts.css");
+    var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
+        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
+        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -54,7 +60,7 @@ define(function (require, exports, module) {
     };
     
     function init(spec, fileEntry) {
-        spec.fileCssContent = null;
+        spec.fileContent = null;
         
         if (fileEntry) {
             spec.addMatchers({toMatchSelector: toMatchSelector});
@@ -64,11 +70,11 @@ define(function (require, exports, module) {
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
-                        spec.fileCssContent = text;
+                        spec.fileContent = text;
                     });
             });
             
-            waitsFor(function () { return (spec.fileCssContent !== null); }, 1000);
+            waitsFor(function () { return (spec.fileContent !== null); }, 1000);
         }
     }
     
@@ -133,9 +139,9 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    expectRuleRanges(this, this.fileCssContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
-                    expectRuleRanges(this, this.fileCssContent, ".firstGrade", [ {start: 8, end: 10} ]);
-                    expectRuleRanges(this, this.fileCssContent, "#brack3ts",
+                    expectRuleRanges(this, this.fileContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
+                    expectRuleRanges(this, this.fileContent, ".firstGrade", [ {start: 8, end: 10} ]);
+                    expectRuleRanges(this, this.fileContent, "#brack3ts",
                         [ {start: 16, end: 18} ]);
                 });
             });
@@ -146,7 +152,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    expectRuleRanges(this, this.fileCssContent, "a", [
+                    expectRuleRanges(this, this.fileContent, "a", [
                         {start:  0, end:  2}, {start:  3, end:  5}, {start:  7, end:  7},
                         {start:  8, end:  8}, {start: 10, end: 10}, {start: 10, end: 10},
                         {start: 16, end: 19}, {start: 23, end: 25}, {start: 29, end: 32},
@@ -161,14 +167,14 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    expectGroupRanges(this, this.fileCssContent, ".a", [{start: 24, end: 29}]);
-                    expectGroupRanges(this, this.fileCssContent, ".b", [{start: 24, end: 29}]);
-                    expectGroupRanges(this, this.fileCssContent, ".c", [{start: 24, end: 29}]);
-                    expectGroupRanges(this, this.fileCssContent, ".d", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileContent, ".a", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileContent, ".b", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileContent, ".c", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileContent, ".d", [{start: 24, end: 29}]);
                     
-                    expectGroupRanges(this, this.fileCssContent, ".f", [{start: 31, end: 31}]);
-                    expectGroupRanges(this, this.fileCssContent, ".g", [{start: 31, end: 34}]);
-                    expectGroupRanges(this, this.fileCssContent, ".h", [{start: 31, end: 34}]);
+                    expectGroupRanges(this, this.fileContent, ".f", [{start: 31, end: 31}]);
+                    expectGroupRanges(this, this.fileContent, ".g", [{start: 31, end: 34}]);
+                    expectGroupRanges(this, this.fileContent, ".h", [{start: 31, end: 34}]);
                     
                 });
             });
@@ -181,12 +187,12 @@ define(function (require, exports, module) {
             });
             
             it("should match a tag name not referenced anywhere in the CSS", function () {
-                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "blockquote");
+                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "blockquote");
                 expect(matches.length).toEqual(1);
                 expect(matches[0]).toMatchSelector("*");
             });
             it("should match a tag name also referenced elsewhere in the CSS", function () {
-                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "p");
+                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "p");
                 
                 expect(matches.length).toEqual(2);
                 expect(matches[0]).toMatchSelector("*");
@@ -202,7 +208,7 @@ define(function (require, exports, module) {
             });
             
             it("should match a class selector (right-most only, no pseudo or attr selectors)", function () {
-                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, ".message");
+                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, ".message");
                 
                 expect(matches.length).toEqual(7);
                 expect(matches[0]).toMatchSelector("div.message");
@@ -215,7 +221,7 @@ define(function (require, exports, module) {
             });
             
             it("should match a type selector (can terminate with class name, ID, pseudo or attr selectors)", function () {
-                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "h4");
+                var matches = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "h4");
                 
                 expect(matches.length).toEqual(5);
             });
@@ -228,17 +234,17 @@ define(function (require, exports, module) {
             });
             
             it("should find the first instance of the h2 selector", function () {
-                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "h2");
-                expect(selectors).not.toBe(null);
+                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "h2");
+                expect(selectors).toBeTruthy();
                 expect(selectors.length).toBeGreaterThan(0);
                 
-                expect(selectors[0]).not.toBe(null);
+                expect(selectors[0]).toBeTruthy();
                 expect(selectors[0].selectorStartLine).toBe(292);
                 expect(selectors[0].declListEndLine).toBe(301);
             });
             
             it("should find all instances of the h2 selector", function () {
-                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "h2");
+                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "h2");
                 expect(selectors.length).toBe(2);
                 
                 expect(selectors[0].selectorStartLine).toBe(292);
@@ -248,7 +254,7 @@ define(function (require, exports, module) {
             });
             
             it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
-                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "NO-SUCH-SELECTOR");
+                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "NO-SUCH-SELECTOR");
                 expect(selectors.length).toBe(0);
             });
         });
@@ -261,63 +267,63 @@ define(function (require, exports, module) {
             });
             
             it("should remove simple backslashes for simple characters", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[0].selector).toEqual(".simple");
             });
             
             it("should remove simple backslashes with escaped characters", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[1].selector).toEqual(".not\\so|simple?");
             });
             
             it("should parse '\\XX ' as a single character", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[2].selector).toEqual(".twodigits");
             });
             
             it("should parse '\\XXXX ' as a single character", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[3].selector).toEqual(".fourdigits");
             });
             
             it("should parse '\\XXXXXX' as a single character", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[4].selector).toEqual(".sixdigits");
             });
             
             it("should not trim end spaces", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[5].selector).toEqual(".two-digit-endspace");
                 
-                selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[6].selector).toEqual(".four-digit-endspace");
                 
-                selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[7].selector).toEqual(".six-digit-endspace");
             });
             
             it("should detect all combinations", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[8].selector).toEqual(".mixin-it-all");
             });
             
             it("should parse '\\AX' as AX", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[9].selector).toEqual(".two-wi74out-space");
             });
             
             it("should parse '\\AXXX' as AXXX", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[10].selector).toEqual(".four-n0085-space");
             });
             
             it("should replace out of range characters with U+FFFD", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[11].selector).toEqual(".\uFFFDut\uFFFDfrange");
             });
             
             it("should parse everything less does", function () {
-                var selectors = CSSUtils.extractAllSelectors(this.fileCssContent);
+                var selectors = CSSUtils.extractAllSelectors(this.fileContent);
                 expect(selectors[12].selector).toEqual(".escape|random|char");
                 expect(selectors[13].selector).toEqual(".mixin!tUp");
                 expect(selectors[14].selector).toEqual(".404");
@@ -333,7 +339,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 init(this, groupsFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "css").editor;
                 });
             });
 
@@ -374,7 +380,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 init(this, offsetsCssFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "css").editor;
                 });
             });
 
@@ -406,7 +412,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 init(this, offsetsCssFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "css").editor;
                 });
             });
 
@@ -443,7 +449,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 init(this, bootstrapCssFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "css").editor;
                 });
             });
 
@@ -480,7 +486,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 init(this, groupsFileEntry);
                 runs(function () {
-                    editor = SpecRunnerUtils.createMockEditor(this.fileCssContent, "css").editor;
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "css").editor;
                 });
             });
 
@@ -511,10 +517,61 @@ define(function (require, exports, module) {
             
         });
         
+        describe("find correct positions of selectors", function () {
+                
+            it("should find selector positions when whitespace between selector and '{'", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+                expect([selectors[0].selectorStartChar, selectors[0].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when no whitespace between selector and '{'", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+                expect([selectors[1].selectorStartChar, selectors[1].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when '{' on the next line", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+                expect([selectors[2].selectorStartChar, selectors[2].selectorEndChar]).toEqual([0, 3]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+                expect([selectors[3].selectorStartChar, selectors[3].selectorEndChar]).toEqual([4, 7]);
+            });
+            
+            it("should find selector positions when '{' on the next line and selector is indented with tabs", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss);
+                expect([selectors[4].selectorStartChar, selectors[4].selectorEndChar]).toEqual([1, 4]);
+            });
+            
+            it("should find selector positions in a selector group when '{' on the next line", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss),
+                    expected = [0, 2, 4, 6, 8, 10],
+                    result = [
+                        selectors[5].selectorStartChar, selectors[5].selectorEndChar,
+                        selectors[6].selectorStartChar, selectors[6].selectorEndChar,
+                        selectors[7].selectorStartChar, selectors[7].selectorEndChar
+                    ];
+                
+                expect(result).toEqual(expected);
+            });
+            
+            it("should find selector positions in a selector group when '{' on the next line and selector group is indented", function () {
+                var selectors = CSSUtils.extractAllSelectors(selectorPositionsTestCss),
+                    expected = [4, 6, 8, 10, 12, 14],
+                    result = [
+                        selectors[8].selectorStartChar, selectors[8].selectorEndChar,
+                        selectors[9].selectorStartChar, selectors[9].selectorEndChar,
+                        selectors[10].selectorStartChar, selectors[10].selectorEndChar
+                    ];
+                
+                expect(result).toEqual(expected);
+            });
+        });
     }); // describe("CSSUtils")
 
     
-    describe("CSS Parsing: ", function () {
+    describe("CSS Parsing", function () {
         
         var lastCssCode,
             match,
@@ -585,11 +642,12 @@ define(function (require, exports, module) {
         });
 
 
-        describe("Simple selectors: ", function () {
+        describe("Simple selectors", function () {
         
             it("should match a lone type selector given a type", function () {
                 var result = match("div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ tag: "span" });
                 expect(result.length).toBe(0);
@@ -604,6 +662,7 @@ define(function (require, exports, module) {
             it("should match a lone class selector given a class", function () {
                 var result = match(".foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
@@ -621,6 +680,7 @@ define(function (require, exports, module) {
             it("should match a lone id selector given an id", function () {
                 var result = match("#foo { color:red }", { id: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(0);
@@ -642,6 +702,7 @@ define(function (require, exports, module) {
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "bar" });
@@ -651,6 +712,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
                 
@@ -660,6 +722,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
             });
             
             it("should be case-sensitive for all but types", function () {
@@ -946,6 +1009,7 @@ define(function (require, exports, module) {
                 
                 css = "@import \"null?\\\"{\"; \n" +   // a real-world CSS hack similar to the above case
                       "div { color: red }";
+                
                 result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
                 
@@ -1000,6 +1064,7 @@ define(function (require, exports, module) {
                       "{\n" +
                       "    color: red;\n" +
                       "}";
+                
                 result = match(css, { clazz: "foo" });
                 expect(result.length).toBe(1);
             });
@@ -1115,6 +1180,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match("p h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
@@ -1122,6 +1188,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match(".foo h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -1130,8 +1197,10 @@ define(function (require, exports, module) {
                 
                 result = match("div div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = match(".foo .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
             });
@@ -1141,6 +1210,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match(".foo > h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -1222,42 +1292,63 @@ define(function (require, exports, module) {
                 // Comma- and space- separated
                 var result = match("h4, .foo, #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 
                 // Comma only
                 result = match("h4,.foo,#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 
                 // Newline-separated
                 result = match("h4,\n.foo,\r\n#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 
                 // Space-separated with a space combinator
                 result = match("h4, .foo #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo #bar");
                 
                 // Test items of each type in all positions (first, last, middle)
                 result = match("h4, h4, h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(3);
+                var i;
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe("h4, h4, h4");
+                }
                 result = match(".foo, .foo, .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(3);
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe(".foo, .foo, .foo");
+                }
                 result = match("#bar, #bar, #bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(3);
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe("#bar, #bar, #bar");
+                }
             });
         }); // describe("Selector groups")        
 
@@ -1312,140 +1403,323 @@ define(function (require, exports, module) {
             
         }); // describe("Known Issues")    
 
-
-        describe("Working with real public CSSUtils API", function () {
-            this.category = "integration";
-            
-            var CSSUtils;
-            
-            beforeEach(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
-                    // Load module instances from brackets.test
-                    CSSUtils = testWindow.brackets.test.CSSUtils;
-                    
-                    // Load test project
-                    var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files");
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                });
-            });
-            afterEach(function () {
-                SpecRunnerUtils.closeTestWindow();
-            });
-            
-            it("should include comment preceding selector (issue #403)", function () {
-                var rules;
-                runs(function () {
-                    CSSUtils.findMatchingRules("#issue403")
-                        .done(function (result) { rules = result; });
-                });
-                waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
-                
-                runs(function () {
-                    expect(rules.length).toBe(1);
-                    expect(rules[0].lineStart).toBe(4);
-                    expect(rules[0].lineEnd).toBe(7);
-                });
-            });
-            
-        });
         
-        
-        describe("Working with unsaved changes", function () {
+        describe("CSS Intgration Tests", function () {
             this.category = "integration";
             
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+                testWindow,
                 CSSUtils,
                 DocumentManager,
-                FileViewController,
-                ProjectManager,
-                brackets;
-    
-            beforeEach(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                FileViewController;
+            
+            beforeFirst(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+                    
                     // Load module instances from brackets.test
-                    brackets            = testWindow.brackets;
                     CSSUtils            = testWindow.brackets.test.CSSUtils;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
-                    ProjectManager      = testWindow.brackets.test.ProjectManager;
-
+                    
+                    // Load test project
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
             });
-
-            afterEach(function () {
+            
+            afterLast(function () {
+                CSSUtils            = null;
+                DocumentManager     = null;
+                FileViewController  = null;
                 SpecRunnerUtils.closeTestWindow();
             });
             
-            it("should return the correct offsets if the file has changed", function () {
-                var didOpen = false,
-                    gotError = false;
+            afterEach(function () {
+                testWindow.closeAllFiles();
+            });
+            
+            
+            describe("Working with real public CSSUtils API", function () {
                 
-                runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
-                });
-                
-                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-                
-                var rules = null;
-                
-                runs(function () {
-                    var doc = DocumentManager.getCurrentDocument();
+                it("should include comment preceding selector (issue #403)", function () {
+                    var rules;
+                    runs(function () {
+                        CSSUtils.findMatchingRules("#issue403")
+                            .done(function (result) { rules = result; });
+                    });
+                    waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
-                    // Add several blank lines at the beginning of the text
-                    doc.setText("\n\n\n\n" + doc.getText());
-                    
-                    // Look for ".FIRSTGRADE"
-                    CSSUtils.findMatchingRules(".FIRSTGRADE")
-                        .done(function (result) { rules = result; });
-                });
-                
-                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
-                
-                runs(function () {
-                    expect(rules.length).toBe(1);
-                    expect(rules[0].lineStart).toBe(16);
-                    expect(rules[0].lineEnd).toBe(18);
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(4);
+                        expect(rules[0].lineEnd).toBe(7);
+                    });
                 });
             });
             
-            it("should return a newly created rule in an unsaved file", function () {
-                var didOpen = false,
-                    gotError = false;
+            describe("Working with unsaved changes", function () {
                 
-                runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                it("should return the correct offsets if the file has changed", function () {
+                    var didOpen = false,
+                        gotError = false;
+                    
+                    runs(function () {
+                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                            .done(function () { didOpen = true; })
+                            .fail(function () { gotError = true; });
+                    });
+                    
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    
+                    var rules = null;
+                    
+                    runs(function () {
+                        var doc = DocumentManager.getCurrentDocument();
+                        
+                        // Add several blank lines at the beginning of the text
+                        doc.setText("\n\n\n\n" + doc.getText());
+                        
+                        // Look for ".FIRSTGRADE"
+                        CSSUtils.findMatchingRules(".FIRSTGRADE")
+                            .done(function (result) { rules = result; });
+                        
+                        doc = null;
+                    });
+                    
+                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(16);
+                        expect(rules[0].lineEnd).toBe(18);
+                    });
                 });
                 
-                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-                
-                var rules = null;
-                
-                runs(function () {
-                    var doc = DocumentManager.getCurrentDocument();
+                it("should return a newly created rule in an unsaved file", function () {
+                    var didOpen = false,
+                        gotError = false;
                     
-                    // Add a new selector to the file
-                    doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                    runs(function () {
+                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                            .done(function () { didOpen = true; })
+                            .fail(function () { gotError = true; });
+                    });
                     
-                    // Look for the selector we just created
-                    CSSUtils.findMatchingRules(".TESTSELECTOR")
-                        .done(function (result) { rules = result; });
-                });
-                
-                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
-                
-                runs(function () {
-                    expect(rules.length).toBe(1);
-                    expect(rules[0].lineStart).toBe(24);
-                    expect(rules[0].lineEnd).toBe(26);
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    
+                    var rules = null;
+                    
+                    runs(function () {
+                        var doc = DocumentManager.getCurrentDocument();
+                        
+                        // Add a new selector to the file
+                        doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                        
+                        // Look for the selector we just created
+                        CSSUtils.findMatchingRules(".TESTSELECTOR")
+                            .done(function (result) { rules = result; });
+    
+                        doc = null;
+                    });
+                    
+                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(24);
+                        expect(rules[0].lineEnd).toBe(26);
+                    });
                 });
             });
         });
+        
     }); //describe("CSS Parsing")
+    
+    describe("CSSUtils - Other", function () {
+        function doAddRuleTest(options) {
+            var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
+                doc = mock.doc,
+                result = CSSUtils.addRuleToDocument(doc, options.selector, options.useTab, options.indentUnit);
+
+            // Normalize line endings so tests pass on all Operating Systems
+            var normalizedDocText = FileUtils.translateLineEndings(doc.getText(), FileUtils.LINE_ENDINGS_LF),
+                normalizedResText = FileUtils.translateLineEndings(options.resultText, FileUtils.LINE_ENDINGS_LF);
+
+            expect(normalizedDocText).toEqual(normalizedResText);
+            expect(result).toEqual(options.result);
+            SpecRunnerUtils.destroyMockEditor(doc);
+        }
+        
+        it("should add a new rule with the given selector to the given document using tab indent and return its range", function () {
+            doAddRuleTest({
+                initialText: simpleTestCss,
+                selector: "#myID",
+                useTab: true,
+                resultText: simpleTestCss + "\n#myID {\n\t\n}\n",
+                result: {
+                    range: {
+                        from: { line: 23, ch: 0 },
+                        to: { line: 25, ch: 1 }
+                    },
+                    pos: { line: 24, ch: 1 }
+                }
+            });
+        });
+        
+        it("should add a new rule with the given selector to the given document using space indent and return its range", function () {
+            doAddRuleTest({
+                initialText: simpleTestCss,
+                selector: "#myID",
+                useTab: false,
+                indentUnit: 4,
+                resultText: simpleTestCss + "\n#myID {\n    \n}\n",
+                result: {
+                    range: {
+                        from: { line: 23, ch: 0 },
+                        to: { line: 25, ch: 1 }
+                    },
+                    pos: { line: 24, ch: 4 }
+                }
+            });
+        });
+        
+        it("should add a new rule to an empty document", function () {
+            doAddRuleTest({
+                initialText: "",
+                selector: "#myID",
+                useTab: false,
+                indentUnit: 4,
+                resultText: "\n#myID {\n    \n}\n",
+                result: {
+                    range: {
+                        from: { line: 1, ch: 0 },
+                        to: { line: 3, ch: 1 }
+                    },
+                    pos: { line: 2, ch: 4 }
+                }
+            });
+        });
+        
+        it("should consolidate consecutive rules that refer to the same item and replace names with selector groups", function () {
+            var doc1 = SpecRunnerUtils.createMockDocument(""),
+                doc2 = SpecRunnerUtils.createMockDocument(""),
+                rules = [
+                    {
+                        name: ".foo",
+                        doc: doc1,
+                        lineStart: 5,
+                        lineEnd: 7
+                    },
+                    {
+                        name: ".eek",
+                        doc: doc1,
+                        lineStart: 10,
+                        lineEnd: 12,
+                        selectorGroup: "#blah, .eek, .glah"
+                    },
+                    {
+                        name: ".bar",
+                        doc: doc2,
+                        lineStart: 3,
+                        lineEnd: 5
+                    },
+                    {
+                        name: "#baz",
+                        doc: doc2,
+                        lineStart: 8,
+                        lineEnd: 12,
+                        selectorGroup: "#baz, h2"
+                    },
+                    {
+                        name: "h2",
+                        doc: doc2,
+                        lineStart: 8,
+                        lineEnd: 12,
+                        selectorGroup: "#baz, h2"
+                    },
+                    {
+                        name: ".argle",
+                        doc: doc2,
+                        lineStart: 15,
+                        lineEnd: 20
+                    }
+                ],
+                result = CSSUtils.consolidateRules(rules);
+            
+            expect(result).toEqual([
+                rules[0],
+                {
+                    name: "#blah, .eek, .glah",
+                    doc: doc1,
+                    lineStart: 10,
+                    lineEnd: 12,
+                    selectorGroup: "#blah, .eek, .glah"
+                },
+                rules[2],
+                {
+                    name: "#baz, h2",
+                    doc: doc2,
+                    lineStart: 8,
+                    lineEnd: 12,
+                    selectorGroup: "#baz, h2"
+                },
+                rules[5]
+            ]);
+        });
+        
+        it("should extract selectors at the beginning of a text range", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar, #baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
+        });
+        
+        it("should extract selectors spanning multiple lines at the beginning of a text range, with newlines replaced", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar,\n#baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
+        });
+    });
+
+    // Unit Tests: "HTMLUtils (css)"
+    describe("HTMLUtils InlineEditorProviders", function () {
+        var editor;
+        
+        describe("Embedded <style> blocks: ", function () {
+            beforeEach(function () {
+                init(this, embeddedHtmlFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                });
+            });
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            it("should find style blocks", function () {
+                var styleBlocks = HTMLUtils.findStyleBlocks(editor);
+                
+                expect(styleBlocks.length).toBe(4);
+                
+                // Indexes of external UI are 1-based. Internal indexes are 0-based.
+                // Style block positions are where embedded style sheet starts/ends.
+                expect(styleBlocks[0].start).toEqual({ line:  5, ch: 23 });
+                expect(styleBlocks[0].end).toEqual({   line: 17, ch:  1 });
+
+                expect(styleBlocks[1].start).toEqual({ line: 19, ch: 27 });
+                expect(styleBlocks[1].end).toEqual({   line: 21, ch:  1 });    // trailing whitespace stripped
+
+                expect(styleBlocks[2].start).toEqual({ line: 23, ch:  7 });
+                expect(styleBlocks[2].end).toEqual({   line: 30, ch:  0 });
+
+                expect(styleBlocks[3].start).toEqual({ line: 30, ch: 15 });
+                expect(styleBlocks[3].end).toEqual({   line: 34, ch:  0 });
+            });
+        });
+    });
     
     // These tests are based on the implementation spec at https://github.com/adobe/brackets/wiki/CSS-Context-API-implementation-spec.
     describe("CSS Context Info", function () {
@@ -1829,5 +2103,24 @@ define(function (require, exports, module) {
                 expectEmptyInfo(80);
             });
         });
+    });
+    
+    describe("CSS Regions", function () {
+        beforeEach(function () {
+            init(this, cssRegionsFileEntry);
+        });
+        
+        it("should find named flows", function () {
+            var namedFlows = CSSUtils.extractAllNamedFlows(this.fileContent);
+            expect(namedFlows.length).toBe(5);
+            expect(namedFlows).toContain("main");
+            expect(namedFlows).toContain("jeff");
+            expect(namedFlows).toContain("randy");
+            expect(namedFlows).toContain("lim");
+            expect(namedFlows).toContain("edge-code_now_shipping");
+            expect(namedFlows).not.toContain("inherit");
+            expect(namedFlows).not.toContain("content");
+        });
+        
     });
 });
