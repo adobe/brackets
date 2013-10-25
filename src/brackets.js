@@ -114,7 +114,13 @@ define(function (require, exports, module) {
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
     
+    // Compatibility shims for filesystem API migration
+    require("project/FileIndexManager");
+    require("file/NativeFileSystem");
+    require("file/NativeFileError");
+    
     PerfUtils.addMeasurement("brackets module dependencies resolved");
+    
 
     // Initialize the file system
     FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
