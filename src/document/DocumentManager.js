@@ -227,7 +227,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds the given file to the end of the working set list, if it is not already in the list.
+     * Adds the given file to the end of the working set list, if it is not already in the list
+     * and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
@@ -237,6 +238,11 @@ define(function (require, exports, module) {
     function addToWorkingSet(file, index, forceRedraw) {
         var indexRequested = (index !== undefined && index !== null && index !== -1);
         
+        // If the file has a custom viewer, then don't add it to the working set.
+        if (EditorManager.getCustomViewerForPath(file.fullPath)) {
+            return;
+        }
+            
         // If doc is already in working set, don't add it again
         var curIndex = findInWorkingSet(file.fullPath);
         if (curIndex !== -1) {
@@ -283,6 +289,8 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file list to the end of the working set list.
+     * If a file in the list has its own custom viewer, then it 
+     * is not added into the working set.
      * Does not change which document is currently open in the editor.
      * More efficient than calling addToWorkingSet() (in a loop) for
      * a list of files because there's only 1 redraw at the end
@@ -293,8 +301,10 @@ define(function (require, exports, module) {
 
         // Process only files not already in working set
         fileList.forEach(function (file, index) {
-            // If doc is already in working set, don't add it again
-            if (findInWorkingSet(file.fullPath) === -1) {
+            // If doc has a custom viewer, then don't add it to the working set.
+            // Or if doc is already in working set, don't add it again.
+            if (!EditorManager.getCustomViewerForPath(file.fullPath) &&
+                    findInWorkingSet(file.fullPath) === -1) {
                 uniqueFileList.push(file);
 
                 // Add
@@ -662,26 +672,19 @@ define(function (require, exports, module) {
                 getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
                 fileEntry = new NativeFileSystem.FileEntry(fullPath);
-                var mode = LanguageManager.getLanguageForPath(fullPath);
-                if (mode.getId() === "image") {
-                    var fileError = {name: "Cannot get document for image."};
-                    result.reject(fileError);
-                } else {
-              
-                    FileUtils.readAsText(fileEntry)
-                        .always(function () {
-                            // document is no longer pending
-                            delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                        })
-                        .done(function (rawText, readTimestamp) {
-                            doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                            result.resolve(doc);
-                        })
-                        .fail(function (fileError) {
-                            result.reject(fileError);
-                        });
-                }
-            
+                
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
             }
             // This is a good point to clean up any old dangling Documents
             result.done(_gcDocuments);

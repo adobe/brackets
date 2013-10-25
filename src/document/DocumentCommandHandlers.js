@@ -36,7 +36,6 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        ImageViewer         = require("editor/ImageViewer"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
         StringUtils         = require("utils/StringUtils"),
@@ -46,6 +45,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
+        DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         LanguageManager     = require("language/LanguageManager");
@@ -186,10 +186,10 @@ define(function (require, exports, module) {
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
-            var mode = LanguageManager.getLanguageForPath(fullPath);
-            if (mode.getId() === "image") {
-                var $imageHolder = ImageViewer.getImageHolder(fullPath);
-                EditorManager.showCustomViewer($imageHolder, fullPath);
+
+            var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
+            if (viewProvider) {
+                EditorManager.showCustomViewer(viewProvider, fullPath);
                 result.resolve();
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI
@@ -250,13 +250,15 @@ define(function (require, exports, module) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
-                        var filesToOpen = [];
-                        paths.forEach(function (file) {
+                        var filesToOpen = [],
+                            filteredPaths = DragAndDrop.filterFilesToOpen(paths);
+                        
+                        filteredPaths.forEach(function (file) {
                             filesToOpen.push(new NativeFileSystem.FileEntry(file));
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
-                        doOpen(paths[paths.length - 1], silent)
+                        doOpen(filteredPaths[filteredPaths.length - 1], silent)
                             .done(function (doc) {
                                 //  doc may be null, i.e. if an image has been opened.
                                 // Then we do not add the opened file to the working set.
@@ -341,14 +343,19 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the working set.
+     * Opens the given file, makes it the current document, AND adds it to the working set 
+     * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
      *   working set list (defaults to last); optional flag to force working set redraw
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+            // When opening a file with a custom viewer, we get a null doc.
+            // So check it before we add it to the working set.
+            if (doc) {
+                DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+            }
         });
     }
 
