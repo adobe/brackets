@@ -845,7 +845,16 @@ define(function (require, exports, module) {
         function doClose(fileEntry) {
             if (!promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeFullEditor(fileEntry);
+                if (DocumentManager.getCurrentDocument()) {
+                    DocumentManager.closeFullEditor(fileEntry);
+                } else {
+                    var nextFile = DocumentManager.getNextPrevFile(1);
+                    if (nextFile) {
+                        doOpen(nextFile.fullPath);
+                    } else {
+                        EditorManager.closeCustomViewer();
+                    }
+                }
             
                 EditorManager.focusEditor();
             }
@@ -856,8 +865,8 @@ define(function (require, exports, module) {
         
         // Default to current document if doc is null
         if (!file) {
-            if (DocumentManager.getCurrentDocument()) {
-                file = DocumentManager.getCurrentDocument().file;
+            if (EditorManager.getCurrentlyViewedPath()) {
+                file = new NativeFileSystem.FileEntry(EditorManager.getCurrentlyViewedPath());
             }
         }
         
@@ -1039,10 +1048,16 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
+        if (!DocumentManager.getCurrentDocument()) {
+            EditorManager.closeCustomViewer();
+        }
         return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
     }
     
     function handleFileCloseList(commandData) {
+        if (!DocumentManager.getCurrentDocument()) {
+            EditorManager.closeCustomViewer();
+        }
         return _doCloseDocumentList((commandData && commandData.documentList), false);
     }
     

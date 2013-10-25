@@ -446,8 +446,8 @@ define(function (require, exports, module) {
             return null;
         }
         
-        if (_currentDocument) {
-            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
+        if (EditorManager.getCurrentlyViewedPath()) {
+            var mruI = findInWorkingSet(EditorManager.getCurrentlyViewedPath(), _workingSetMRUOrder);
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
                 if (_workingSetMRUOrder.length > 0) {
