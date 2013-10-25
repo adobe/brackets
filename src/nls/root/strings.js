@@ -302,7 +302,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
 
-    // Strings for main-view.html
+ // Special commands invoked by the native shell
+    "CMD_CLOSE_WINDOW"                    : "Ekranı Kapat",
+    "CMD_ABORT_QUIT"                      : "Çıkışı İptal Et",
+
+     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
     "OK"                                   : "OK",
