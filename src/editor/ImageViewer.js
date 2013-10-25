@@ -27,13 +27,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager       = require("editor/EditorManager"),
+    var DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
+        StringUtils         = require("utils/StringUtils");
     
     var _naturalWidth = 0;
     
@@ -56,21 +57,34 @@ define(function (require, exports, module) {
     }
         
     /**
+     * Update file name if necessary
+     */
+    function _onFileNameChange(e, oldName, newName) {
+        var oldRelPath = ProjectManager.makeProjectRelativeIfPossible(oldName),
+            currentPath = $("#img-path").text();
+
+        if (currentPath === oldRelPath) {
+            $("#img-path").text(ProjectManager.makeProjectRelativeIfPossible(newName));
+        }
+    }
+
+    /**
      * creates a DOM node to place in the editor-holder
      * in order to display an image.
      * @param {!string} fullPath  path to image file
      * @return {JQuery}
      *
      */
-    function getImageHolder(fullPath) {
+    function getCustomViewHolder(fullPath) {
         return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
     }
     
     /** 
      *    
      */
-    function _removeListener() {
+    function _removeListeners() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
+        $(DocumentManager).off("fileNameChange", _onFileNameChange);
     }
     
     /** Perform decorations on the view that require loading the image in the browser,
@@ -103,10 +117,11 @@ define(function (require, exports, module) {
             // listen to resize to  update the scale sticker
             $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
             // listen to removal to stop listening to resize events
-            $(EditorManager).on("removeCustomViewer", _removeListener);
+            $(EditorManager).on("removeCustomViewer", _removeListeners);
+            $(DocumentManager).on("fileNameChange", _onFileNameChange);
             _updateScale($(this).width());
         });
     }
-    exports.getImageHolder      = getImageHolder;
+    exports.getCustomViewHolder = getCustomViewHolder;
     exports.render              = render;
 });

@@ -34,10 +34,35 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         DocumentManager = require("document/DocumentManager"),
+        EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");
+    
+    /**
+     * Return an array of files excluding all files with a custom viewer. If all files
+     * in the array have their own custom viewers, then the last file is added back in
+     * the array since only one file with custom viewer can be open at a time.
+     *
+     * @param {Array.<string>} files Array of files to filter before opening.
+     * @return {Array.<string>}
+     */
+    function filterFilesToOpen(files) {
+        // Filter out all files that have their own custom viewers
+        // since we don't keep them in the working set.
+        var filteredFiles = files.filter(function (file) {
+            return !EditorManager.getCustomViewerForPath(file);
+        });
+        
+        // If all files have custom viewers, then add back the last file
+        // so that we open it in its custom viewer.
+        if (filteredFiles.length === 0) {
+            filteredFiles.push(files[files.length - 1]);
+        }
+        
+        return filteredFiles;
+    }
     
     /**
      * Returns true if the drag and drop items contains valid drop objects.
@@ -72,9 +97,10 @@ define(function (require, exports, module) {
      *     if there was an error. 
      */
     function openDroppedFiles(files) {
-        var errorFiles = [];
+        var errorFiles = [],
+            filteredFiles = filterFilesToOpen(files);
         
-        return Async.doInParallel(files, function (file, idx) {
+        return Async.doInParallel(filteredFiles, function (file, idx) {
             var result = new $.Deferred();
             
             // Only open files
@@ -83,7 +109,7 @@ define(function (require, exports, module) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
-                    if (idx < files.length - 1) {
+                    if (idx < filteredFiles.length - 1) {
                         if (DocumentManager.findInWorkingSet(file) !== -1) {
                             result.resolve();
                             return;
@@ -99,7 +125,7 @@ define(function (require, exports, module) {
                             errorFiles.push(file);
                             result.reject();
                         });
-                } else if (!err && stat.isDirectory() && files.length === 1) {
+                } else if (!err && stat.isDirectory() && filteredFiles.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(file)
                         .done(function () {
@@ -143,4 +169,5 @@ define(function (require, exports, module) {
     // Export public API
     exports.isValidDrop         = isValidDrop;
     exports.openDroppedFiles    = openDroppedFiles;
+    exports.filterFilesToOpen   = filterFilesToOpen;
 });

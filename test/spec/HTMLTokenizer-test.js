@@ -422,6 +422,9 @@ define(function (require, exports, module) {
             it("should fail if there is no whitespace between the end of an attribute and the next attribute name", function () {
                 expectError("<p attr=\"val\"attr2=\"val\"></p>");
             });
+            it("should allow a hyphen in a custom tag name", function () {
+                expectError("<custom-tag></custom-tag>", false);
+            });
         });
     });
 });

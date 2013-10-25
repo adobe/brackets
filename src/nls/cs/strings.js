@@ -446,6 +446,7 @@ define({
     "LOCALE_PT_PT"                              : "Portugalsky",
     "LOCALE_RU"                                 : "Rusky",
     "LOCALE_SK"                                 : "Slovensky",
+	"LOCALE_SR"									: "Srbština",
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_FI"                                 : "Finsky",
