@@ -24,38 +24,19 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
 /*global define */
 
+/**
+ * @deprecated
+ * This is a compatibility shim for legacy Brackets APIs that will be removed soon. These
+ * error codes are *never* returned anymore. Use error codes in FileSystemError instead.
+ */
 define(function () {
     "use strict";
    
     /**
-     * Implementation of w3 DOMError interface
-     *  http://www.w3.org/TR/2012/WD-dom-20120105/#interface-domerror
-     *
-     * NativeFileError describes possible errors occurred during NativeFileSystem
-     * operations. It is inteneded to be used in error handling through other means
-     * than exceptions.
-     * @constructor
-     * @implements {DOMError}
-     *
+     * @deprecated
      */
-    var NativeFileError = function (name) {
-
-        /**
-         * The name of the error
-         * @const
-         * @type {string}
-         */
-        Object.defineProperty(this, "name", {
-            value: name,
-            writable: false
-        });
-    };
+    var NativeFileError = {};
     
-    /**
-     * Possible error name constants for NativeFileSystem operations. For details check:
-     *   http://www.w3.org/TR/file-system-api/#definitions
-     *   http://dev.w3.org/2009/dap/file-system/file-writer.html#definitions
-     */
     NativeFileError.NOT_FOUND_ERR = "NotFoundError";
     NativeFileError.SECURITY_ERR = "SecurityError";
     NativeFileError.ABORT_ERR = "AbortError";
@@ -68,6 +49,5 @@ define(function () {
     NativeFileError.TYPE_MISMATCH_ERR = "TypeMismatchError";
     NativeFileError.PATH_EXISTS_ERR = "PathExistsError";
     
-    // Define public API
     return NativeFileError;
 });
