@@ -365,9 +365,8 @@ define(function (require, exports, module) {
             });
             
             it("should calculate compatibility info for registry extensions", function () {
-                function fakeEntry(versionRequirements) {
-                    return makeMockExtension(versionRequirements);
-                }
+                // Use the fakeEntry name for consistency with the tests above
+                var fakeEntry = makeMockExtension;
                 
                 var curVer = "0.33.0";
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.24"]), curVer))
