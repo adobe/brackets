@@ -572,6 +572,24 @@ define(function (require, exports, module) {
     function _nullifyEditor() {
         if (_currentEditor) {
             _saveEditorViewState(_currentEditor);
+            
+            // This is a hack to deal with #5589. The issue is that CodeMirror's logic for polling its
+            // hidden input field relies on whether there's a selection in the input field or not. When
+            // we hide the editor, the input field loses its selection. Somehow, CodeMirror's readInput()
+            // poll can get called before the resulting blur event is asynchronously sent. (Our guess is
+            // that if the setTimeout() that the poll is on is overdue, it gets serviced before the backlog
+            // of asynchronous events is flushed.) That means that readInput() thinks CM still has focus,
+            // but that the hidden input has lost its selection, meaning the user has typed something, which
+            // causes it to replace the editor selection (with the same text), leading to the erroneous
+            // change event and selection change. To work around this, we simply blur CM's input field
+            // before hiding the editor, which forces the blur event to be sent synchronously, before the
+            // next readInput() triggers.
+            //
+            // Note that we only need to do this here, not in _showEditor(), because _showEditor()
+            // ends up synchronously setting focus to another editor, which has the effect of
+            // forcing a synchronous blur event as well.
+            _currentEditor._codeMirror.getInputField().blur();
+            
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
