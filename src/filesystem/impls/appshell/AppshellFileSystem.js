@@ -199,7 +199,7 @@ define(function (require, exports, module) {
     function mkdir(path, mode, callback) {
         if (typeof mode === "function") {
             callback = mode;
-            mode = parseInt("0777", 8);
+            mode = parseInt("0755", 8);
         }
         appshell.fs.makedir(path, mode, function (err) {
             if (err) {
