@@ -474,7 +474,6 @@ define(function (require, exports, module) {
         }
     }
     
-    
     /** Updates _viewStateCache from the given editor's actual current state */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
@@ -634,6 +633,15 @@ define(function (require, exports, module) {
         ImageViewer.render(fullPath);
         
         _setCurrentlyViewedPath(fullPath);
+    }
+
+    /**
+     * Update file name if necessary
+     */
+    function _onFileNameChange(e, oldName, newName) {
+        if (_currentlyViewedPath === oldName) {
+            _setCurrentlyViewedPath(newName);
+        }
     }
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -874,6 +882,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
+    $(DocumentManager).on("fileNameChange",        _onFileNameChange);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
 
 
