@@ -645,7 +645,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} fullPath
      * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
-     *      with a filesystem.Error if the file is not yet open and can't be read from disk.
+     *      with a FileSystemError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
         var file            = FileSystem.getFileForPath(fullPath),
@@ -679,9 +679,6 @@ define(function (require, exports, module) {
             }).fail(function () {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
-
-            // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             var mode = LanguageManager.getLanguageForPath(fullPath);
             if (mode.getId() === "image") {

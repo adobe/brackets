@@ -161,10 +161,6 @@ define(function (require, exports, module) {
         });
     }
     
-    function isNetworkDrive(path, callback) {
-        appshell.fs.isNetworkDrive(path, _wrap(callback));
-    }
-    
     function exists(path, callback) {
         stat(path, function (err) {
             if (err) {
@@ -385,7 +381,6 @@ define(function (require, exports, module) {
     exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;
     exports.showSaveDialog  = showSaveDialog;
-    exports.isNetworkDrive  = isNetworkDrive;
     exports.exists          = exists;
     exports.readdir         = readdir;
     exports.mkdir           = mkdir;

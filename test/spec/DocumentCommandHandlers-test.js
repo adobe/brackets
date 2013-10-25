@@ -36,7 +36,6 @@ define(function (require, exports, module) {
         Dialogs,                 // loaded from brackets.test
         FileSystem,              // loaded from brackets.test
         FileViewController,      // loaded from brackets.test
-        ProjectManager,          // loaded from brackets.test
         EditorManager,           // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
@@ -69,7 +68,6 @@ define(function (require, exports, module) {
                 Dialogs                 = testWindow.brackets.test.Dialogs;
                 FileSystem              = testWindow.brackets.test.FileSystem;
                 FileViewController      = testWindow.brackets.test.FileViewController;
-                ProjectManager          = testWindow.brackets.test.ProjectManager;
                 EditorManager           = testWindow.brackets.test.EditorManager;
             });
         });

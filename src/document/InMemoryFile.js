@@ -40,7 +40,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var File = require("filesystem/File");
+    var File            = require("filesystem/File"),
+        FileSystemError = require("filesystem/FileSystemError");
     
     function InMemoryFile(fullPath, fileSystem) {
         File.call(this, fullPath, fileSystem);
@@ -65,7 +66,7 @@ define(function (require, exports, module) {
         if (typeof (encoding) === "function") {
             callback = encoding;
         }
-        callback(1); // TODO: Error code
+        callback(FileSystemError.NOT_FOUND);
     };
     
     /**
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
         if (typeof (encoding) === "function") {
             callback = encoding;
         }
-        callback(1);    // TODO: Error code
+        callback(FileSystemError.NOT_FOUND);
     };
     
     
@@ -91,19 +92,19 @@ define(function (require, exports, module) {
     };
     
     InMemoryFile.prototype.stat = function (callback) {
-        callback(1); // TODO: Error
+        callback(FileSystemError.NOT_FOUND);
     };
     
     InMemoryFile.prototype.unlink = function (callback) {
-        callback(1); // TODO: Error
+        callback(FileSystemError.NOT_FOUND);
     };
     
     InMemoryFile.prototype.rename = function (newName, callback) {
-        callback(1); // TODO: Error
+        callback(FileSystemError.NOT_FOUND);
     };
     
     InMemoryFile.prototype.moveToTrash = function (callback) {
-        callback(1); // TODO: Error
+        callback(FileSystemError.NOT_FOUND);
     };
     
     // Export this class

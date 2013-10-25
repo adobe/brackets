@@ -71,8 +71,8 @@ define(function (require, exports, module) {
     
     /** @cost Constants used to define the maximum results show per page and found in a single file */
 
-    var RESULTS_PER_PAGE = 1000,
-        FIND_IN_FILE_MAX = 3000,
+    var RESULTS_PER_PAGE = 100,
+        FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400;
     
     /**

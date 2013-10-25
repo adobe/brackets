@@ -173,7 +173,7 @@ define(function (require, exports, module) {
                 
                 // inspect all children of dirEntry
                 contents.forEach(function (entry) {
-                    if (entry.isDirectory()) {
+                    if (entry.isDirectory) {
                         var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
                         
                         if (match) {

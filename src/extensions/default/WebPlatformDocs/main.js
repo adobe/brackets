@@ -33,8 +33,7 @@ define(function (require, exports, module) {
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        CSSUtils             = brackets.getModule("language/CSSUtils"),
-        ProjectManager       = brackets.getModule("project/ProjectManager");
+        CSSUtils             = brackets.getModule("language/CSSUtils");
     
     // Extension modules
     var InlineDocsViewer = require("InlineDocsViewer");

@@ -87,14 +87,9 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     file.stat(function (err, _stat) {
-                        if (!err) {
-                            error = 0;
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
 
@@ -108,12 +103,8 @@ define(function (require, exports, module) {
                     // delete the new file
                     complete = false;
                     file.unlink(function (err) {
-                        if (!err) {
-                            complete = true;
-                        } else {
-                            unlinkError = err;
-                            complete = true;
-                        }
+                        unlinkError = err;
+                        complete = true;
                     });
                 });
                 waitsFor(
@@ -263,15 +254,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    error = 0;
                     newFile.stat(function (err, _stat) {
-                        if (!err) {
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
@@ -297,15 +283,10 @@ define(function (require, exports, module) {
                 // Verify that file no longer exists.
                 runs(function () {
                     complete = false;
-                    error = 0;
                     newFile.stat(function (err, _stat) {
-                        if (!err) {
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
@@ -350,14 +331,9 @@ define(function (require, exports, module) {
                     var newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
-                        if (!err) {
-                            error = 0;
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
@@ -385,14 +361,9 @@ define(function (require, exports, module) {
                     newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
-                        if (!err) {
-                            error = 0;
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
@@ -414,14 +385,9 @@ define(function (require, exports, module) {
                     var file = FileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
                     complete = false;
                     file.stat(function (err, _stat) {
-                        if (!err) {
-                            error = 0;
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
@@ -445,14 +411,9 @@ define(function (require, exports, module) {
                     var rootFolder = FileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
                     rootFolder.stat(function (err, _stat) {
-                        if (!err) {
-                            error = 0;
-                            stat = _stat;
-                            complete = true;
-                        } else {
-                            error = err;
-                            complete = true;
-                        }
+                        error = err;
+                        stat = _stat;
+                        complete = true;
                     });
                 });
                 waitsFor(function () { return complete; }, 1000);
