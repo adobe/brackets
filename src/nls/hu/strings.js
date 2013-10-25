@@ -408,6 +408,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugál, Brazil",
     "LOCALE_PT_PT"                              : "Portugál",
     "LOCALE_RU"                                 : "Orosz",
+	"LOCALE_SR"                                 : "Szerb",
     "LOCALE_SV"                                 : "Svéd",
     "LOCALE_TR"                                 : "Török",
     "LOCALE_ZH_CN"                              : "Kínai, egyszerűsített",

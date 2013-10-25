@@ -432,6 +432,7 @@ define({
     "LOCALE_PT_BR"                              : "Portugalský, Brazília",
     "LOCALE_PT_PT"                              : "Portugalský",
     "LOCALE_RU"                                 : "Ruský",
+	"LOCALE_SR"                                 : "Srbčina",
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecký",
     "LOCALE_ZH_CN"                              : "Čínsky, zjednodušený",
