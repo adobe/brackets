@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
+        DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         LanguageManager     = require("language/LanguageManager");
@@ -250,19 +251,7 @@ define(function (require, exports, module) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [],
-                            filteredPaths = [];
-
-                        // Filter out all files that have their own custom viewers
-                        // since we don't keep them in the working set.
-                        filteredPaths = paths.filter(function (file) {
-                            return !EditorManager.getCustomViewerForPath(file);
-                        });
-                        
-                        // If all files have custom viewers, then add back the last file
-                        // so that we open it in its custom viewer.
-                        if (filteredPaths.length === 0) {
-                            filteredPaths.push(paths[paths.length - 1]);
-                        }
+                            filteredPaths = DragAndDrop.filterFilesToOpen(paths);
                         
                         filteredPaths.forEach(function (file) {
                             filesToOpen.push(new NativeFileSystem.FileEntry(file));
@@ -354,13 +343,16 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the working set.
+     * Opens the given file, makes it the current document, AND adds it to the working set 
+     * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
      *   working set list (defaults to last); optional flag to force working set redraw
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
+            // When opening a file with a custom viewer, we get a null doc.
+            // So check it before we add it to the working set.
             if (doc) {
                 DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
             }

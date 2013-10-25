@@ -41,6 +41,30 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils");
     
     /**
+     * Return an array of files excluding all files with a custom viewer. If all files
+     * in the array have their own custom viewers, then the last file is added back in
+     * the array since only one file with custom viewer can be open at a time.
+     *
+     * @param {Array.<string>} files Array of files to filter before opening.
+     * @return {Array.<string>}
+     */
+    function filterFilesToOpen(files) {
+        // Filter out all files that have their own custom viewers
+        // since we don't keep them in the working set.
+        var filteredFiles = files.filter(function (file) {
+            return !EditorManager.getCustomViewerForPath(file);
+        });
+        
+        // If all files have custom viewers, then add back the last file
+        // so that we open it in its custom viewer.
+        if (filteredFiles.length === 0) {
+            filteredFiles.push(files[files.length - 1]);
+        }
+        
+        return filteredFiles;
+    }
+    
+    /**
      * Returns true if the drag and drop items contains valid drop objects.
      * @param {Array.<DataTransferItem>} items Array of items being dragged
      * @return {boolean} True if one or more items can be dropped.
@@ -74,20 +98,7 @@ define(function (require, exports, module) {
      */
     function openDroppedFiles(files) {
         var errorFiles = [],
-            filteredFiles = [];
-        
-        // Filter out all files that have their own custom viewers
-        // since we don't keep them in the working set.
-        filteredFiles = files.filter(function (file) {
-            return !EditorManager.getCustomViewerForPath(file);
-        });
-        
-        // If all files have custom viewers, then add back the last file
-        // so that we open it in its custom viewer.
-        if (filteredFiles.length === 0) {
-            filteredFiles.push(files[files.length - 1]);
-        }
-        
+            filteredFiles = filterFilesToOpen(files);
         
         return Async.doInParallel(filteredFiles, function (file, idx) {
             var result = new $.Deferred();
@@ -158,4 +169,5 @@ define(function (require, exports, module) {
     // Export public API
     exports.isValidDrop         = isValidDrop;
     exports.openDroppedFiles    = openDroppedFiles;
+    exports.filterFilesToOpen   = filterFilesToOpen;
 });
