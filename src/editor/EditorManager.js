@@ -657,7 +657,8 @@ define(function (require, exports, module) {
         return null;
     }
     
-    /** Clears custom viewer for a file with a given path and displays 
+    /** 
+     * Clears custom viewer for a file with a given path and displays 
      * either a file from the working set or the no editor view.
      * @param {!string} fullPath - file path of deleted file.
      */

@@ -1550,7 +1550,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("projectFilesChange");
             if (DocumentManager.getCurrentDocument()) {
                 DocumentManager.notifyPathDeleted(entry.fullPath);
-            }else {
+            } else {
                 EditorManager.notifyPathDeleted(entry.fullPath);
             }
 
