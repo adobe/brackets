@@ -584,10 +584,8 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor) {
-            $("#not-editor").css("display", "");
-            _nullifyEditor();
-        }
+        $("#not-editor").css("display", "");
+        _nullifyEditor();
     }
     
     function getCurrentlyViewedPath() {
@@ -611,6 +609,15 @@ define(function (require, exports, module) {
             _$currentCustomViewer.remove();
         }
         _$currentCustomViewer = null;
+    }
+    
+    /** Closes the customViere currently displayed, shows the NoEditor view
+     * and notifies the ProjectManager to update the file selection
+     */
+    function closeCustomViewer() {
+        _removeCustomViewer();
+        _setCurrentlyViewedPath();
+        _showNoEditor();
     }
 
     /** 
@@ -929,4 +936,5 @@ define(function (require, exports, module) {
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
+    exports.closeCustomViewer             = closeCustomViewer;
 });
