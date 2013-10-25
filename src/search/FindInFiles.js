@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
+        FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
         FileViewController    = require("project/FileViewController"),
         PerfUtils             = require("utils/PerfUtils"),
@@ -854,29 +855,42 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Deletes the results from the deleted file and updates the results list, if required
+     * Handle a FileSystem "change" event
      * @param {$.Event} event
-     * @param {string} path
+     * @param {FileSystemEntry} entry
      */
-    function _pathDeletedHandler(event, path) {
-        /* TODO: Handle path deleted
-        var resultsChanged = false, numMatches;
-        
-        if (searchResultsPanel.isVisible()) {
-            // Update the search results
-            _.forEach(searchResults, function (item, fullPath) {
-                if (FileUtils.isAffectedWhenRenaming(fullPath, path)) {
-                    delete searchResults[fullPath];
-                    resultsChanged = true;
-                }
-            });
+    function _fileSystemChangeHandler(event, entry) {
+        if (entry && entry.isDirectory) {
+            var resultsChanged = false;
             
-            // Restore the results if needed
-            if (resultsChanged) {
-                _restoreSearchResults();
+            if (searchResultsPanel.isVisible()) {
+                entry.getContents(function (err, contents) {
+                    if (!err) {
+                        var _includesPath = function (fullPath) {
+                            return _.some(contents, function (item) {
+                                return item.fullPath === fullPath;
+                            });
+                        };
+                        
+                        // Update the search results
+                        _.forEach(searchResults, function (item, fullPath) {
+                            if (fullPath.lastIndexOf("/") === entry.fullPath.length - 1) {
+                                // The changed directory includes this entry. Make sure the file still exits.
+                                if (!_includesPath(fullPath)) {
+                                    delete searchResults[fullPath];
+                                    resultsChanged = true;
+                                }
+                            }
+                        });
+                        
+                        // Restore the results if needed
+                        if (resultsChanged) {
+                            _restoreSearchResults();
+                        }
+                    }
+                });
             }
         }
-        */
     }
     
     
@@ -893,8 +907,9 @@ define(function (require, exports, module) {
     
     // Initialize: register listeners
     $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
-    $(DocumentManager).on("pathDeleted",       _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
+    
+    FileSystem.on("change", _fileSystemChangeHandler);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
