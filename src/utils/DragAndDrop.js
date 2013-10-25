@@ -57,7 +57,7 @@ define(function (require, exports, module) {
         
         // If all files have custom viewers, then add back the last file
         // so that we open it in its custom viewer.
-        if (filteredFiles.length === 0) {
+        if (filteredFiles.length === 0 && files.length) {
             filteredFiles.push(files[files.length - 1]);
         }
         
