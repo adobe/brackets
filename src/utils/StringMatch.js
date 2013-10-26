@@ -816,15 +816,25 @@ define(function (require, exports, module) {
                 } else {
                     var valueA = a[comparison];
                     var valueB = b[comparison];
-                    if (typeof valueA === "string") {
-                        valueA = valueA.toLowerCase();
-                        valueB = valueB.toLowerCase();
-                    }
                     
-                    if (valueA < valueB) {
-                        return -1;
-                    } else if (valueA > valueB) {
-                        return 1;
+                    if (comparison === "matchGoodness") {
+                        // Higher "match goodness" scores get lower indices
+                        if (valueA < valueB) {
+                            return 1;
+                        } else if (valueA > valueB) {
+                            return -1;
+                        }
+                    } else {
+                        if (typeof valueA === "string") {
+                            valueA = valueA.toLowerCase();
+                            valueB = valueB.toLowerCase();
+                        }
+                        
+                        if (valueA < valueB) {
+                            return -1;
+                        } else if (valueA > valueB) {
+                            return 1;
+                        }
                     }
                 }
                 // otherwise, move on to next sort priority
