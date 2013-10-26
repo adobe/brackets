@@ -583,10 +583,11 @@ define(function (require, exports, module) {
                     
                     if (partialHint === query) {
                         // Exact matches gets the highest score possible
-                        searchResult.matchGoodness = Number.MAX_VALUE;
+                        // Note: The most negative score is the highest score
+                        searchResult.matchGoodness = -Number.MAX_VALUE;
                     } else if (partialHint.toLowerCase() === query.toLowerCase()) {
                         // Case insensitive exact matches get the second highest score
-                        searchResult.matchGoodness = Number.MAX_VALUE / 10;
+                        searchResult.matchGoodness = -Number.MAX_VALUE / 10;
                     }
                 }
 
