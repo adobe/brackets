@@ -793,12 +793,13 @@ define(function (require, exports, module) {
      * @param {?Entry} scope  Project file/subfolder to search within; else searches whole project.
      */
     function _doFindInFiles(scope) {
+        // If the scope is a file with a custom viewer, then we
+        // don't show find in files dialog.
+        if (scope && EditorManager.getCustomViewerForPath(scope.fullPath)) {
+            return;
+        }
+        
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
-            // If the scope is a file with a custom viewer, then we
-            // don't show find in files dialog.
-            if (EditorManager.getCustomViewerForPath(scope.fullPath)) {
-                return;
-            }
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
                 CommandManager.execute(Commands.EDIT_FIND);
             });
