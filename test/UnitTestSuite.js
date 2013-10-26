@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     require("spec/Document-test");
     require("spec/DocumentCommandHandlers-test");
     require("spec/DocumentManager-test");
+    require("spec/DragAndDrop-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
     require("spec/EditorOptionHandlers-test");

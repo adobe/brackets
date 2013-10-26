@@ -156,6 +156,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             Dialogs                 : Dialogs,
             DefaultDialogs          : DefaultDialogs,
+            DragAndDrop             : DragAndDrop,
             CodeInspection          : CodeInspection,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),

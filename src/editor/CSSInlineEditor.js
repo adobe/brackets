@@ -100,7 +100,10 @@ define(function (require, exports, module) {
                 }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
-                selectorName = "#" + tagInfo.attr.value;
+                var trimmedVal = tagInfo.attr.value.trim();
+                if (trimmedVal) {
+                    selectorName = "#" + trimmedVal;
+                }
             }
         }
         

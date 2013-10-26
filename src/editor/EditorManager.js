@@ -474,7 +474,6 @@ define(function (require, exports, module) {
         }
     }
     
-    
     /** Updates _viewStateCache from the given editor's actual current state */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
@@ -613,11 +612,14 @@ define(function (require, exports, module) {
         _$currentCustomViewer = null;
     }
 
-    /** append custom view to editor-holder
-     *  @param {!JQuery} $customView  DOM node representing UI of custom view
-     *  @param {!string} fullPath  path to the file displayed in the custom view
+    /** 
+     * Append custom view to editor-holder
+     * @param {!Object} provider  custom view provider
+     * @param {!string} fullPath  path to the file displayed in the custom view
      */
-    function showCustomViewer($customView, fullPath) {
+    function showCustomViewer(provider, fullPath) {
+        var $customView = provider.getCustomViewHolder(fullPath);
+
         DocumentManager._clearCurrentDocument();
     
         // Hide the not-editor
@@ -631,11 +633,40 @@ define(function (require, exports, module) {
         $("#editor-holder").append(_$currentCustomViewer);
         
         // add path, dimensions and file size to the view after loading image
-        ImageViewer.render(fullPath);
+        provider.render(fullPath);
         
         _setCurrentlyViewedPath(fullPath);
     }
 
+    /**
+     * Update file name if necessary
+     */
+    function _onFileNameChange(e, oldName, newName) {
+        if (_currentlyViewedPath === oldName) {
+            _setCurrentlyViewedPath(newName);
+        }
+    }
+
+    /** 
+     * Return the provider of a custom viewer for the given path if one exists.
+     * Otherwise, return null.
+     *
+     * @param {!string} fullPath - file path to be checked for a custom viewer
+     * @return {?Object}
+     */
+    function getCustomViewerForPath(fullPath) {
+        var lang = LanguageManager.getLanguageForPath(fullPath);
+        if (lang.getId() === "image") {
+            // TODO: Extensibility
+            // For now we only have the image viewer, so just return ImageViewer object.
+            // Once we have each viewer registers with EditorManager as a provider,
+            // then we return the provider registered with the language id.
+            return ImageViewer;
+        }
+        
+        return null;
+    }
+    
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
         var doc = DocumentManager.getCurrentDocument(),
@@ -874,6 +905,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
+    $(DocumentManager).on("fileNameChange",        _onFileNameChange);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
 
 
@@ -905,4 +937,5 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
+    exports.getCustomViewerForPath        = getCustomViewerForPath;
 });
