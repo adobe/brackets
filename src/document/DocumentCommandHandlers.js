@@ -836,8 +836,7 @@ define(function (require, exports, module) {
     function handleFileClose(commandData) {
         var file,
             promptOnly,
-            _forceClose,
-            _customViewerIsDisplayed = false;
+            _forceClose;
         
         if (commandData) {
             file        = commandData.file;
@@ -874,8 +873,17 @@ define(function (require, exports, module) {
                 
         var result = new $.Deferred(), promise = result.promise();
         
+        // Close custom viewer if necessary
         if (!DocumentManager.getCurrentDocument() && EditorManager.getCurrentlyViewedPath()) {
-            _customViewerIsDisplayed = true;
+            //_customViewerIsDisplayed = true;
+                // if there is no doc a custom viewer is displayed
+            if(!file || file.fullPath === EditorManager.getCurrentlyViewedPath()){
+                doCloseCustomViewer();
+                return promise;
+            }else{
+                result.resolve();
+                return promise;
+            }
         }
         
         // Default to current document if doc is null
@@ -884,7 +892,7 @@ define(function (require, exports, module) {
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
-        if (!file && !_customViewerIsDisplayed) {
+        if (!file) {
             result.resolve();
             return promise;
         }
@@ -956,16 +964,10 @@ define(function (require, exports, module) {
                 EditorManager.focusEditor();
             });
         } else {
-            if (_customViewerIsDisplayed) {
-                // if there is no doc a custom viewer is displayed
-                doCloseCustomViewer();
-            } else {
-                // File is not open, or IS open but Document not dirty: close immediately
-                doClose(file);
-                EditorManager.focusEditor();
-                result.resolve();                
-            }
-
+            // File is not open, or IS open but Document not dirty: close immediately
+            doClose(file);
+            EditorManager.focusEditor();
+            result.resolve();
         }
         return promise;
     }
