@@ -794,6 +794,11 @@ define(function (require, exports, module) {
      */
     function _doFindInFiles(scope) {
         if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+            // If the scope is a file with a custom viewer, then we
+            // don't show find in files dialog.
+            if (EditorManager.getCustomViewerForPath(scope.fullPath)) {
+                return;
+            }
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
                 CommandManager.execute(Commands.EDIT_FIND);
             });
