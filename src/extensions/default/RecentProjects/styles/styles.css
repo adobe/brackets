@@ -27,13 +27,12 @@
 
 #project-dropdown-toggle {
     border: 1px solid transparent;
-    display: block;
+    display: inline-table;
     /* adjust margins to keep position #project-title position stable after extension is loaded */
     margin: -3px 0px -2px -6px;
     padding: 0 5px;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;       
 }
 
 #project-title {
