@@ -641,15 +641,23 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns false for files and directories that are not commonly useful to display.
-     *
-     * @param {string} path File or directory to filter
-     * @return boolean true if the file should be displayed
+     * @private
+     * See shouldShow
      */
-    function shouldShow(path) {
+    function _shouldShowPath(path) {
         var name = path.substr(path.lastIndexOf("/") + 1);
         
         return !name.match(_exclusionListRegEx);
+    }
+    
+    /**
+     * Returns false for files and directories that are not commonly useful to display.
+     *
+     * @param {FileSystemEntry} entry File or directory to filter
+     * @return boolean true if the file should be displayed
+     */
+    function shouldShow(entry) {
+        return _shouldShowPath(entry.fullPath);
     }
     
     /**
@@ -682,7 +690,7 @@ define(function (require, exports, module) {
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
-            if (shouldShow(entry.fullPath)) {
+            if (shouldShow(entry)) {
                 jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
@@ -869,7 +877,7 @@ define(function (require, exports, module) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), shouldShow, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowPath, function (err) {
             if (err) {
                 console.log("Error watching project root: ", rootPath, err);
             }

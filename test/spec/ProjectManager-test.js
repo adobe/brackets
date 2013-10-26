@@ -559,22 +559,25 @@ define(function (require, exports, module) {
         describe("File Display", function () {
             it("should not show useless directory entries", function () {
                 var shouldShow = ProjectManager.shouldShow;
+                var makeEntry = function (name) {
+                    return { fullPath: name };
+                };
                 
-                expect(shouldShow(".git")).toBe(false);
-                expect(shouldShow(".svn")).toBe(false);
-                expect(shouldShow(".DS_Store")).toBe(false);
-                expect(shouldShow("Thumbs.db")).toBe(false);
-                expect(shouldShow(".hg")).toBe(false);
-                expect(shouldShow(".gitmodules")).toBe(false);
-                expect(shouldShow(".gitignore")).toBe(false);
-                expect(shouldShow("foobar")).toBe(true);
-                expect(shouldShow("pyc.py")).toBe(true);
-                expect(shouldShow("module.pyc")).toBe(false);
-                expect(shouldShow(".gitattributes")).toBe(false);
-                expect(shouldShow("CVS")).toBe(false);
-                expect(shouldShow(".cvsignore")).toBe(false);
-                expect(shouldShow(".hgignore")).toBe(false);
-                expect(shouldShow(".hgtags")).toBe(false);
+                expect(shouldShow(makeEntry(".git"))).toBe(false);
+                expect(shouldShow(makeEntry(".svn"))).toBe(false);
+                expect(shouldShow(makeEntry(".DS_Store"))).toBe(false);
+                expect(shouldShow(makeEntry("Thumbs.db"))).toBe(false);
+                expect(shouldShow(makeEntry(".hg"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitignore"))).toBe(false);
+                expect(shouldShow(makeEntry("foobar"))).toBe(true);
+                expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
+                expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitattributes"))).toBe(false);
+                expect(shouldShow(makeEntry("CVS"))).toBe(false);
+                expect(shouldShow(makeEntry(".cvsignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
                 
             });
         });
