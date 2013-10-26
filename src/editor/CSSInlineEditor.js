@@ -86,7 +86,10 @@ define(function (require, exports, module) {
                 }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
-                selectorName = "#" + tagInfo.attr.value;
+                var trimmedVal = tagInfo.attr.value.trim();
+                if (trimmedVal) {
+                    selectorName = "#" + trimmedVal;
+                }
             }
         }
         
@@ -189,11 +192,22 @@ define(function (require, exports, module) {
         
         /**
          * @private
+         * When editor scrolls, close dropdown
+         */
+        function _onScroll() {
+            if (dropdownEventHandler) {
+                dropdownEventHandler.close();
+            }
+        }
+        
+        /**
+         * @private
          * Remove the various event handlers that close the dropdown. This is called by the
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
+            $(hostEditor).off("scroll", _onScroll);
             dropdownEventHandler = null;
             $dropdown = null;
     
@@ -220,15 +234,30 @@ define(function (require, exports, module) {
         function _showDropdown() {
             Menus.closeAll();
             
-            $dropdown = $(_renderList(cssFileInfos));
-            
-            var toggleOffset = $newRuleButton.offset();
-            $dropdown
-                .css({
-                    left: toggleOffset.left,
-                    top: toggleOffset.top + $newRuleButton.outerHeight()
-                })
+            $dropdown = $(_renderList(cssFileInfos))
                 .appendTo($("body"));
+            
+            var toggleOffset   = $newRuleButton.offset(),
+                $window        = $(window),
+                posLeft        = toggleOffset.left,
+                posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
+                bottomOverhang = posTop  + $dropdown.height() - $window.height(),
+                rightOverhang  = posLeft + $dropdown.width()  - $window.width();
+            
+            if (bottomOverhang > 0) {
+                // Bottom is clipped, so move entire menu above button
+                posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
+            }
+            
+            if (rightOverhang > 0) {
+                // Right is clipped, so adjust left to fit menu in editor
+                posLeft = Math.max(0, posLeft - rightOverhang);
+            }
+            
+            $dropdown.css({
+                left: posLeft,
+                top: posTop
+            });
             
             $("html").on("click", _closeDropdown);
             
@@ -236,6 +265,8 @@ define(function (require, exports, module) {
             dropdownEventHandler.open();
             
             $dropdown.focus();
+            
+            $(hostEditor).on("scroll", _onScroll);
         }
         
         /**
@@ -280,6 +311,67 @@ define(function (require, exports, module) {
             }
         }
         
+        /**
+         * @private
+         * Sort fileInfo objects by name then sub-directory
+         */
+        function _sortFileInfos(a, b) {
+            var nameComparison = a.name.localeCompare(b.name);
+            if (nameComparison !== 0) {
+                return nameComparison;
+            }
+            return a.subDirStr.localeCompare(b.subDirStr);
+        }
+        
+        /**
+         * @private
+         * Helper function to add a sub-directory to string displayed in list
+         */
+        function _addSubDir(fileInfo) {
+            var dirSplit = fileInfo.fullPath.split("/"),
+                index = dirSplit.length - fileInfo.subDirCount - 2;
+            
+            fileInfo.subDirStr = dirSplit.slice(index, dirSplit.length - 1).join("/");
+            fileInfo.subDirCount++;
+        }
+        
+        /**
+         * @private
+         * Prepare file list for display
+         */
+        function _prepFileList(fileInfos) {
+            var i,
+                done = false;
+            
+            // Add subdir field to each entry
+            fileInfos.forEach(function (fileInfo) {
+                fileInfo.subDirStr = "";
+                fileInfo.subDirCount = 0;
+            });
+
+            // Each pass through loop re-sorts and then adds a subdir to
+            // duplicates to try to differentiate. Loop until no dupes remain.
+            while (!done) {
+                // Done unless a dupe is found
+                done = true;
+                
+                // Sort by name
+                fileInfos.sort(_sortFileInfos);
+                
+                // For identical names, add a subdir
+                for (i = 1; i < fileInfos.length; i++) {
+                    if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
+                        // Duplicate found. Add a subdir to both.
+                        done = false;
+                        _addSubDir(fileInfos[i - 1]);
+                        _addSubDir(fileInfos[i]);
+                    }
+                }
+            }
+            
+            return fileInfos;
+        }
+        
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
@@ -312,7 +404,7 @@ define(function (require, exports, module) {
                 // list.
                 $.when(stylesheetsPromise, inlineEditorDeferred.promise())
                     .done(function (fileInfos) {
-                        cssFileInfos = fileInfos;
+                        cssFileInfos = _prepFileList(fileInfos);
                         
                         // "New Rule" button is disabled by default and gets enabled
                         // here if there are any stylesheets in project

@@ -474,7 +474,6 @@ define(function (require, exports, module) {
         }
     }
     
-    
     /** Updates _viewStateCache from the given editor's actual current state */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
@@ -610,6 +609,16 @@ define(function (require, exports, module) {
         }
         _$currentCustomViewer = null;
     }
+    
+    /** 
+     * Closes the customViewer currently displayed, shows the NoEditor view
+     * and notifies the ProjectManager to update the file selection
+     */
+    function closeCustomViewer() {
+        _removeCustomViewer();
+        _setCurrentlyViewedPath();
+        _showNoEditor();
+    }
 
     /** 
      * Append custom view to editor-holder
@@ -635,6 +644,15 @@ define(function (require, exports, module) {
         provider.render(fullPath);
         
         _setCurrentlyViewedPath(fullPath);
+    }
+
+    /**
+     * Update file name if necessary
+     */
+    function _onFileNameChange(e, oldName, newName) {
+        if (_currentlyViewedPath === oldName) {
+            _setCurrentlyViewedPath(newName);
+        }
     }
 
     /** 
@@ -665,7 +683,7 @@ define(function (require, exports, module) {
     function notifyPathDeleted(fullPath) {
         var fileToOpen = DocumentManager.getNextPrevFile(1);
         if (fileToOpen) {
-            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});    
+            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
         } else if (_currentlyViewedPath === fullPath) {
             _removeCustomViewer();
             _showNoEditor();
@@ -910,6 +928,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
+    $(DocumentManager).on("fileNameChange",        _onFileNameChange);
     $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
 
 
@@ -943,4 +962,5 @@ define(function (require, exports, module) {
     exports.showCustomViewer              = showCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
+    exports.closeCustomViewer             = closeCustomViewer;
 });

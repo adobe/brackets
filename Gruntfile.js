@@ -156,8 +156,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-//    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
+    grunt.registerTask('test', ['jshint:all', 'jasmine']);
+//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
