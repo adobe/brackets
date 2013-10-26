@@ -681,12 +681,14 @@ define(function (require, exports, module) {
      * @param {!string} fullPath - file path of deleted file.
      */
     function notifyPathDeleted(fullPath) {
-        var fileToOpen = DocumentManager.getNextPrevFile(1);
-        if (fileToOpen) {
-            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
-        } else if (_currentlyViewedPath === fullPath) {
-            _removeCustomViewer();
-            _showNoEditor();
+        if (_currentlyViewedPath === fullPath) {
+            var fileToOpen = DocumentManager.getNextPrevFile(1);
+            if (fileToOpen) {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
+            } else {
+                _removeCustomViewer();
+                _showNoEditor();
+            }
         }
     }
     
