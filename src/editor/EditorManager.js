@@ -626,8 +626,10 @@ define(function (require, exports, module) {
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
     function showCustomViewer(provider, fullPath) {
-        var $customView = provider.getCustomViewHolder(fullPath);
-
+        if (_currentlyViewedPath === fullPath) {
+            return;
+        }
+        
         DocumentManager._clearCurrentDocument();
     
         // Hide the not-editor
@@ -636,7 +638,7 @@ define(function (require, exports, module) {
         _removeCustomViewer();
         
         _nullifyEditor();
-        _$currentCustomViewer = $customView;
+        _$currentCustomViewer = provider.getCustomViewHolder(fullPath);
         // place in window
         $("#editor-holder").append(_$currentCustomViewer);
         
