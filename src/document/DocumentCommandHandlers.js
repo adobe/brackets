@@ -854,13 +854,15 @@ define(function (require, exports, module) {
             }
         }
 
+        var result = new $.Deferred(), promise = result.promise();
+        
         function doCloseCustomViewer() {
             if (!promptOnly) {
                 var nextFile = DocumentManager.getNextPrevFile(1);
                 if (nextFile) {
                     // opening a text file will automatically close the custom viewer.
                     // This is done in the currentDocumentChange handler in EditorManager
-                    doOpen(nextFile.fullPath).always(function() {
+                    doOpen(nextFile.fullPath).always(function () {
                         EditorManager.focusEditor();
                         result.resolve();
                     });
@@ -870,17 +872,15 @@ define(function (require, exports, module) {
                 }
             }
         }
-                
-        var result = new $.Deferred(), promise = result.promise();
-        
+
         // Close custom viewer if necessary
         if (!DocumentManager.getCurrentDocument() && EditorManager.getCurrentlyViewedPath()) {
             //_customViewerIsDisplayed = true;
                 // if there is no doc a custom viewer is displayed
-            if(!file || file.fullPath === EditorManager.getCurrentlyViewedPath()){
+            if (!file || file.fullPath === EditorManager.getCurrentlyViewedPath()) {
                 doCloseCustomViewer();
                 return promise;
-            }else{
+            } else {
                 result.resolve();
                 return promise;
             }
