@@ -834,7 +834,11 @@ define(function (require, exports, module) {
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
-        var file, promptOnly, _forceClose;
+        var file,
+            promptOnly,
+            _forceClose,
+            _customViewerIsDisplayed = false;
+        
         if (commandData) {
             file        = commandData.file;
             promptOnly  = commandData.promptOnly;
@@ -852,36 +856,41 @@ define(function (require, exports, module) {
         }
 
         function doCloseCustomViewer() {
-            var nextFile = DocumentManager.getNextPrevFile(1);
-            if (nextFile) {
-                // opening a text file will automatically close the custom viewer.
-                // This is done in the currentDocumentChange handler in EditorManager
-                doOpen(nextFile.fullPath);
-            } else {
-                EditorManager.closeCustomViewer();
+            if (!promptOnly) {
+                var nextFile = DocumentManager.getNextPrevFile(1);
+                if (nextFile) {
+                    // opening a text file will automatically close the custom viewer.
+                    // This is done in the currentDocumentChange handler in EditorManager
+                    doOpen(nextFile.fullPath);
+                } else {
+                    EditorManager.closeCustomViewer();
+                }
             }
         }
                 
         var result = new $.Deferred(), promise = result.promise();
         
+        if (!DocumentManager.getCurrentDocument() && EditorManager.getCurrentlyViewedPath()) {
+            _customViewerIsDisplayed = true;
+        }
+        
         // Default to current document if doc is null
         if (!file) {
             if (DocumentManager.getCurrentDocument()) {
                 file = DocumentManager.getCurrentDocument().file;
-            } else if (EditorManager.getCurrentlyViewedPath()) {
-                doCloseCustomViewer();
-                result.resolve();
-                return promise;
             }
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
-        if (!file) {
+        if (!file && !_customViewerIsDisplayed) {
             result.resolve();
             return promise;
         }
         
-        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        var doc;
+        if (DocumentManager.getCurrentDocument()) {
+            doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        }
         
         if (doc && doc.isDirty && !_forceClose) {
             // Document is dirty: prompt to save changes before closing
@@ -945,8 +954,13 @@ define(function (require, exports, module) {
                 EditorManager.focusEditor();
             });
         } else {
-            // File is not open, or IS open but Document not dirty: close immediately
-            doClose(file);
+            if (_customViewerIsDisplayed) {
+                // if there is no doc a custom viewer is displayed
+                doCloseCustomViewer();
+            } else {
+                // File is not open, or IS open but Document not dirty: close immediately
+                doClose(file);
+            }
             EditorManager.focusEditor();
             result.resolve();
         }
