@@ -138,7 +138,7 @@ define(function (require, exports, module) {
                 
                 delete this._index[path];
                 this._index[renameMap[path]] = item;
-                item._path = renameMap[path];
+                item._setPath(renameMap[path]);
             }
         }
     };

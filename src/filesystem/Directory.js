@@ -43,8 +43,8 @@ define(function (require, exports, module) {
      * @param {!FileSystem} fileSystem The file system associated with this Directory.
      */
     function Directory(fullPath, fileSystem) {
-        FileSystemEntry.call(this, fullPath, fileSystem);
         this._isDirectory = true;
+        FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
     Directory.prototype = Object.create(FileSystemEntry.prototype);

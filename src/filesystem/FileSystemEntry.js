@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      * @param {FileSystem} fileSystem The file system associated with this entry.
      */
     function FileSystemEntry(path, fileSystem) {
-        this._path = path;
+        this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
     }
@@ -54,14 +54,7 @@ define(function (require, exports, module) {
             set: function () { throw new Error("Cannot set fullPath"); }
         },
         "name": {
-            get: function () {
-                var parts = this._path.split("/");
-                if (this.isDirectory) {
-                    return parts[parts.length - 2];
-                } else {
-                    return parts[parts.length - 1];
-                }
-            },
+            get: function () { return this._name; },
             set: function () { throw new Error("Cannot set name"); }
         },
         "id": {
@@ -97,6 +90,12 @@ define(function (require, exports, module) {
      * @type {string}
      */
     FileSystemEntry.prototype._path = null;
+    
+    /**
+     * The name of this entry.
+     * @type {string}
+     */
+    FileSystemEntry.prototype._name = null;
 
     /**
      * Whether or not the entry is a file
@@ -109,6 +108,22 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     FileSystemEntry.prototype._isDirectory = false;
+    
+    /**
+     * Update the path for this entry
+     * @private
+     * @param {String} newPath
+     */
+    FileSystemEntry.prototype._setPath = function (newPath) {
+        var parts = newPath.split("/");
+        if (this.isDirectory) {
+            this._name = parts[parts.length - 2];
+        } else {
+            this._name = parts[parts.length - 1];
+        }
+
+        this._path = newPath;
+    };
     
     /**
      * Helpful toString for debugging purposes

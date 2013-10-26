@@ -44,8 +44,8 @@ define(function (require, exports, module) {
      * @param {!FileSystem} fileSystem The file system associated with this File.
      */
     function File(fullPath, fileSystem) {
-        FileSystemEntry.call(this, fullPath, fileSystem);
         this._isFile = true;
+        FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
     File.prototype = Object.create(FileSystemEntry.prototype);
