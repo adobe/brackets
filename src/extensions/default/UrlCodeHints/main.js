@@ -754,4 +754,9 @@ define(function (require, exports, module) {
         // For unit testing
         exports.hintProvider = urlHints;
     });
+
+    $(ProjectManager).on("projectFilesChange", function (event, projectRoot) {
+        // delete stale cache
+        exports.hintProvider.cachedHints = null;
+    });
 });
