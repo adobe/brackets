@@ -1569,7 +1569,11 @@ define(function (require, exports, module) {
                     suppressToggleOpen = oldSuppressToggleOpen;
                 });
                 
-                DocumentManager.notifyPathDeleted(entry.fullPath);
+                if (DocumentManager.getCurrentDocument()) {
+                    DocumentManager.notifyPathDeleted(entry.fullPath);
+                } else {
+                    EditorManager.notifyPathDeleted(entry.fullPath);
+                }
     
                 _redraw(true);
                 result.resolve();

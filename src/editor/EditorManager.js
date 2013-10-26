@@ -571,6 +571,24 @@ define(function (require, exports, module) {
     function _nullifyEditor() {
         if (_currentEditor) {
             _saveEditorViewState(_currentEditor);
+            
+            // This is a hack to deal with #5589. The issue is that CodeMirror's logic for polling its
+            // hidden input field relies on whether there's a selection in the input field or not. When
+            // we hide the editor, the input field loses its selection. Somehow, CodeMirror's readInput()
+            // poll can get called before the resulting blur event is asynchronously sent. (Our guess is
+            // that if the setTimeout() that the poll is on is overdue, it gets serviced before the backlog
+            // of asynchronous events is flushed.) That means that readInput() thinks CM still has focus,
+            // but that the hidden input has lost its selection, meaning the user has typed something, which
+            // causes it to replace the editor selection (with the same text), leading to the erroneous
+            // change event and selection change. To work around this, we simply blur CM's input field
+            // before hiding the editor, which forces the blur event to be sent synchronously, before the
+            // next readInput() triggers.
+            //
+            // Note that we only need to do this here, not in _showEditor(), because _showEditor()
+            // ends up synchronously setting focus to another editor, which has the effect of
+            // forcing a synchronous blur event as well.
+            _currentEditor._codeMirror.getInputField().blur();
+            
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
@@ -583,10 +601,8 @@ define(function (require, exports, module) {
     
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor) {
-            $("#not-editor").css("display", "");
-            _nullifyEditor();
-        }
+        $("#not-editor").css("display", "");
+        _nullifyEditor();
     }
     
     function getCurrentlyViewedPath() {
@@ -611,6 +627,16 @@ define(function (require, exports, module) {
         }
         _$currentCustomViewer = null;
     }
+    
+    /** 
+     * Closes the customViewer currently displayed, shows the NoEditor view
+     * and notifies the ProjectManager to update the file selection
+     */
+    function closeCustomViewer() {
+        _removeCustomViewer();
+        _setCurrentlyViewedPath();
+        _showNoEditor();
+    }
 
     /** 
      * Append custom view to editor-holder
@@ -618,8 +644,10 @@ define(function (require, exports, module) {
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
     function showCustomViewer(provider, fullPath) {
-        var $customView = provider.getCustomViewHolder(fullPath);
-
+        if (_currentlyViewedPath === fullPath) {
+            return;
+        }
+        
         DocumentManager._clearCurrentDocument();
     
         // Hide the not-editor
@@ -628,7 +656,7 @@ define(function (require, exports, module) {
         _removeCustomViewer();
         
         _nullifyEditor();
-        _$currentCustomViewer = $customView;
+        _$currentCustomViewer = provider.getCustomViewHolder(fullPath);
         // place in window
         $("#editor-holder").append(_$currentCustomViewer);
         
@@ -665,6 +693,23 @@ define(function (require, exports, module) {
         }
         
         return null;
+    }
+    
+    /** 
+     * Clears custom viewer for a file with a given path and displays 
+     * either a file from the working set or the no editor view.
+     * @param {!string} fullPath - file path of deleted file.
+     */
+    function notifyPathDeleted(fullPath) {
+        if (_currentlyViewedPath === fullPath) {
+            var fileToOpen = DocumentManager.getNextPrevFile(1);
+            if (fileToOpen) {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
+            } else {
+                _removeCustomViewer();
+                _showNoEditor();
+            }
+        }
     }
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -938,4 +983,6 @@ define(function (require, exports, module) {
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
+    exports.notifyPathDeleted             = notifyPathDeleted;
+    exports.closeCustomViewer             = closeCustomViewer;
 });
