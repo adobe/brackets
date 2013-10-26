@@ -33,7 +33,7 @@ define({
     // General file io error strings
     "GENERIC_ERROR"                     : "(hata {0})",
     "NOT_FOUND_ERR"                     : "Dosya bulunamadı.",
-    "NOT_READABLE_ERR"                  : "Dosya okunamadı.",
+    "NOT_READABLE_ERR"                  : "Dosya okunabilir değil.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Klasör değişikliği için yetkiniz yok.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Dosya değişikliği için yetkiniz yok.",
     "FILE_EXISTS_ERR"                   : "Dosya bulunmaktadır.",
@@ -65,15 +65,15 @@ define({
     "ERROR_CREATING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyası oluşturulurken hata oluştu. {1}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} programı henüz tarayıcıda açılmadı.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} HTML olarak hazırlandı, ancak şuan için masaüstünde çalışabilmekte. Bu nedenle makinanızda bulunan dosyalarda değişiklik için kullanabilirsiniz. {APP_NAME} programını çalıştırabilmek için lütfen <b>github.com/adobe/brackets-shell</b> adresindeki 'application shell'i kullanınız.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} henüz tarayıcıda açılmadı.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} HTML kullanarak hazırlandı, ancak şuan için sadece masaüstü uygulaması olarak çalışabilmekte. {APP_NAME} programını çalıştırabilmek için lütfen <b>github.com/adobe/brackets-shell</b> adresindeki 'application shell'i kullanınız.",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE"             : "Dosyalar indekslenirken hata",
+    "ERROR_MAX_FILES_TITLE"             : "Dosyalar indekslenirken hata oluştu",
     "ERROR_MAX_FILES"                   : "Maksimum sayıda dosya indekslendi. İndekslenen dosyalardaki işlemler düzgün çalışmayabilir.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Tarayıcı çalıştırılırken hata",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Tarayıcı çalıştırılırken hata oluştu",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome tarayıcısı bulunamadı. Lütfen kurulu olduğundan emin olun.",
     "ERROR_LAUNCHING_BROWSER"           : "Tarayıcı açılırken hata oluştu. (hata {0})",
     
@@ -272,7 +272,7 @@ define({
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Kaydedildiğinde Yazım Denetimi Yap",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Eklenmeye Göre Sırala",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "İsme Göre Sırala",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Türüne Göre Sırala",
+    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Türe Göre Sırala",
     "CMD_SORT_WORKINGSET_AUTO"            : "Otomatik Sırala",
 
     // Navigate menu Commands
@@ -280,7 +280,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Hızlı Aç",
     "CMD_GOTO_LINE"                       : "Satıra Git",
     "CMD_GOTO_DEFINITION"                 : "Tanıma Git",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
+    "CMD_GOTO_FIRST_PROBLEM"              : "İlk Hataya/Uyarıya Git",
     "CMD_TOGGLE_QUICK_EDIT"               : "Hızlı Düzenle",
     "CMD_TOGGLE_QUICK_DOCS"               : "Hızlı Yardım",
 
@@ -326,9 +326,9 @@ define({
     "ABOUT_TEXT_LINE5"                     : "Made with \u2764 and JavaScript by:",
     "ABOUT_TEXT_LINE6"                     : "Lots of people (but we're having trouble loading that data right now).",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME} programının yeni versiyonu bulunmakta! Detaylar için tıklayın.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}'in' yeni versiyonu bulunmakta! Detaylar için tıklayın.",
     "UPDATE_AVAILABLE_TITLE"               : "Yeni versiyon hazır",
-    "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} programının yeni versiyonu hazır. İşte bazı yeni özellikler:",
+    "UPDATE_MESSAGE"                       : "Hey, {APP_NAME}'in' yeni versiyonu hazır. İşte bazı yeni özellikler:",
     "GET_IT_NOW"                           : "Şimdi Yükle!",
     "PROJECT_SETTINGS_TITLE"               : "{0} İçin Proje Ayarları",
     "PROJECT_SETTING_BASE_URL"             : "Ana URL'den Canlı Önizleme<br />",
@@ -337,7 +337,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Ana URL \"{0}\" gibi arama karakterleri bulunduramaz.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Ana URL \"{0}\" gibi karakterler bulunduramaz.",
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata oluştu",
     
        // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Yeni Kural",
@@ -347,7 +347,7 @@ define({
     "UPDATE"                               : "Güncelle",
     "REMOVE"                               : "Kaldır",
     "OVERWRITE"                            : "Üzerine Yaz",
-    "CANT_REMOVE_DEV"                      : "\"dev\" kladöründeki uzantılar elle silinmelidir.",
+    "CANT_REMOVE_DEV"                      : "\"dev\" klasöründeki uzantılar elle silinmelidir.",
     "CANT_UPDATE"                          : "Bu güncelleme {APP_NAME}'in bu sürümüyle uyumlu değil.",
     "INSTALL_EXTENSION_TITLE"              : "Uzantı Yükle",
     "UPDATE_EXTENSION_TITLE"               : "Uzantı Güncelle",
@@ -414,13 +414,13 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Uzantı kaldırılamıyor {0} çünkü yüklenmedi.",
     "NO_EXTENSIONS"                        : "Henüz yüklenmiş uzantı yok.<br>Başlamak için Mevcut butonuna basın.",
     "NO_EXTENSION_MATCHES"                 : "Aramanızla eşlenşen uzantı bulunamadı.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Bilinmeyen kaynaklardan uzantı yüklerken dikkatli olmalısınız.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Bilinmeyen kaynaklardan uzantı yüklerken dikkatli olun.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Kurulu",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Mevcut",
     "EXTENSIONS_UPDATES_TITLE"             : "Güncellemeler",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Eşleşme yok.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Seçiminize uygun CSS kuralı yok.<br> Yeni oluşturmak için \"Yeni Kural\"' butonuna tıklayın.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Seçiminize uygun CSS kuralı yok.<br> Yeni bir kural oluşturmak için \"Yeni Kural\"' butonuna tıklayın.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projenizde stilsayfası(CSS)bulunmuyor.<br>CSS kuralları eklemek için bir tane oluşturmalısınız.",
     
     /**
@@ -475,7 +475,7 @@ define({
      
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Geçerli Renk",
-    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Gerçek REnk",
+    "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Gerçek Renk",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Formatı",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Formatı",
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Formatı",
@@ -490,7 +490,7 @@ define({
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint Yazım Denetimi",
    // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Hızlı Önizleme",
     
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Geçmiş Projeler",
