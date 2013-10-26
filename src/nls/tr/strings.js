@@ -93,7 +93,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Canlı Önizleme: Başlıyor\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Canlı Önizleme'den Çık",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Canlı Önizleme: Kapatmak için tıklayın (Yenilemek için dosyayı kaydedin)",
-    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Canlı Önizleme (sözdizi hatasından dolayı güncellenemiyor)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Canlı Önizleme (sözdizimi hatasından dolayı güncellenemiyor)",
 	
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Canlı Önizleme tarayıcı sekmesi kapatıldığı için iptal edildi",
@@ -111,7 +111,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> dosyası hafızadan silind ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Değişikliklerin kalmasını istiyor musunuz?",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Regexp arama yapmak için /re/ sözdizimini kullanın",
+    "SEARCH_REGEXP_INFO"                : "Regexp araması yapmak için /re/ sözdizimini kullanın",
 	"FIND_RESULT_COUNT"                 : "{0} sonuç",
     "FIND_RESULT_COUNT_SINGLE"          : "1 sonuç",
     "FIND_NO_RESULTS"                   : "Eşleşme yok",
@@ -166,7 +166,7 @@ define({
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_SPACE"  : "Boşluk",
 
 	    /**
      * StatusBar strings
@@ -190,9 +190,9 @@ define({
     "SINGLE_ERROR"                          : "1 {0} Hata",
     "MULTIPLE_ERRORS"                       : "{1} {0} Hatalar",
     "NO_ERRORS"                             : "{0} hata - Tebrikler!",
-    "LINT_DISABLED"                         : "Linting devre dışı",
-    "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
-    "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINT_DISABLED"                         : "Yazım deneyimi devre dışı",
+    "NO_LINT_AVAILABLE"                     : "{0} için yazım denetçisi mevcut değil",
+    "NOTHING_TO_LINT"                       : "Denetlenecek birşey yok",
     
 	
 	/**
@@ -200,7 +200,7 @@ define({
      */
     // File menu commands
     
-    "FILE_MENU"                           : "Dosya",
+    "FILE_MENU"								: "Dosya",
     "CMD_FILE_NEW_UNTITLED"               : "Yeni",
     "CMD_FILE_NEW"                        : "Yeni Dosya",
     "CMD_FILE_NEW_FOLDER"                 : "Yeni Klasör",
@@ -269,7 +269,7 @@ define({
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktif Satırı Vurgula",
     "CMD_TOGGLE_WORD_WRAP"                : "Sözcük Kaydır",
     "CMD_LIVE_HIGHLIGHT"                  : "Canlı Önizlemede Vurgula",
-    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Kaydedildiğinde Yazım Denetimi Yap",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Eklenmeye Göre Sırala",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "İsme Göre Sırala",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Türüne Göre Sırala",
@@ -370,9 +370,9 @@ define({
     "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
     "MISSING_MAIN"                         : "Paket main.js dosyası içermiyor.",
-    "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
-    "EXTENSION_SAME_VERSION"               : "This package is the same version as the one that is currently installed. Overwrite the existing installation?",
-    "EXTENSION_OLDER_VERSION"              : "This package is version {0} which is older than the currently installed ({1}). Overwrite the existing installation?",
+    "EXTENSION_ALREADY_INSTALLED"          : "Bu paket önceden kurulu bir uzantı yerine geçecek. Mevcut uzantının üzerine yazlısınmı?",
+    "EXTENSION_SAME_VERSION"               : "This package is the same version as the one that is currently installed. Mevcut uzantının üzerine yazlısınmı?",
+    "EXTENSION_OLDER_VERSION"              : "This package is version {0} which is older than the currently installed ({1}). Mevcut uzantının üzerine yazlısınmı?",
     "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID already in use.",
     "NO_SERVER_RESPONSE"                   : "Cannot connect to server.",
     "BAD_HTTP_STATUS"                      : "File not found on server (HTTP {0}).",
@@ -488,7 +488,7 @@ define({
     "NO_ARGUMENTS"                              : "<parametre yok>",
     
     // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
+    "JSLINT_NAME"                               : "JSLint Yazım Denetimi",
    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
     
