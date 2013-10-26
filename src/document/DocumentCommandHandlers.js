@@ -861,9 +861,13 @@ define(function (require, exports, module) {
                 if (nextFile) {
                     // opening a text file will automatically close the custom viewer.
                     // This is done in the currentDocumentChange handler in EditorManager
-                    doOpen(nextFile.fullPath);
+                    doOpen(nextFile.fullPath).always(function() {
+                        EditorManager.focusEditor();
+                        result.resolve();
+                    });
                 } else {
                     EditorManager.closeCustomViewer();
+                    result.resolve();
                 }
             }
         }
@@ -875,10 +879,8 @@ define(function (require, exports, module) {
         }
         
         // Default to current document if doc is null
-        if (!file) {
-            if (DocumentManager.getCurrentDocument()) {
-                file = DocumentManager.getCurrentDocument().file;
-            }
+        if (!file && DocumentManager.getCurrentDocument()) {
+            file = DocumentManager.getCurrentDocument().file;
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
@@ -960,9 +962,10 @@ define(function (require, exports, module) {
             } else {
                 // File is not open, or IS open but Document not dirty: close immediately
                 doClose(file);
+                EditorManager.focusEditor();
+                result.resolve();                
             }
-            EditorManager.focusEditor();
-            result.resolve();
+
         }
         return promise;
     }
