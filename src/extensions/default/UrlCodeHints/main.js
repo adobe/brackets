@@ -756,7 +756,9 @@ define(function (require, exports, module) {
     });
 
     $(ProjectManager).on("projectFilesChange", function (event, projectRoot) {
-        // delete stale cache
+        // Cache may or may not be stale. Main benefit of cache is to limit async lookups
+        // during typing. File tree updates cannot happen during typing, so it's probably
+        // not worth determining whether cache may still be valid. Just delete it.
         exports.hintProvider.cachedHints = null;
     });
 });
