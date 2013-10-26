@@ -80,10 +80,10 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Canlı Önizleme Hatası",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Tarayıcıya bağlanılıyor",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Canlı Önizleme özelliğini kullanabilmek için Chrome'un uzaktan hata ayıklayıcı ile tekrardan açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Canlı Geliştirme Sayfası Yüklenemedi",   
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Canlı Geliştirme Sayfası Yüklenemedi",
 	"LIVE_DEV_NEED_HTML_MESSAGE"        : "Canlı Önizlemeyi çalıştırabilmeniz için html dosyası açmanız gerekiyor",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Canlı Önizlemeyi sunucu taraflı dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir yol belirtiniz.",
-	"LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Lütfen tekrar deneyin.", 
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Lütfen tekrar deneyin.",
 	"LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} Canlı Önizleme için tarayıcınıza bağlanarak projenizin örnek görüntüsünü açıyor. Değişiklik yaptığınız sayfayı kaydettiğiniz anda tarayıcı otomatik yenileme yapar.<br /><br />{APP_NAME} programının bu versiyonunda, Canlı Önizleme özelliği sndece <strong>CSS dosyaları</strong> değişikliğine izin veriyor yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />Canlı Önizleme sadece <strong>Google Chrome</strong> üzerinde çalışır.<br /><br />(Bu mesaj sadece bir defa gösterilecektir.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
@@ -171,7 +171,7 @@ define({
 	    /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION"             : "Satır {0}, Kolon {1}"
+    "STATUSBAR_CURSOR_POSITION"             : "Satır {0}, Kolon {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selected {0} kolon",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} kolonlar",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} satır",
@@ -283,7 +283,7 @@ define({
     "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
     "CMD_TOGGLE_QUICK_EDIT"               : "Hızlı Düzenle",
     "CMD_TOGGLE_QUICK_DOCS"               : "Hızlı Yardım",
-    "CMD_TOGGLE_QUICK_EDIT"               : "Hızlı Düzenle",
+
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Önceki Eşleşme",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Sonraki Eşleşme",
     "CMD_NEXT_DOC"                        : "Sonraki Dosya",
@@ -300,8 +300,8 @@ define({
     "CMD_REPORT_AN_ISSUE"                 : "Hata Bildir",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitter'da",
-    "CMD_ABOUT"                           : "{APP_TITLE} Hakkında","ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
-   
+    "CMD_ABOUT"                           : "{APP_TITLE} Hakkında",
+
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Pencereyi Kapat",
@@ -331,7 +331,7 @@ define({
     "UPDATE_MESSAGE"                       : "Hey, {APP_NAME} programının yeni versiyonu hazır. İşte bazı yeni özellikler:",
     "GET_IT_NOW"                           : "Şimdi Yükle!",
     "PROJECT_SETTINGS_TITLE"               : "{0} İçin Proje Ayarları",
-    "PROJECT_SETTING_BASE_URL"             : "Ana URL'den Canlı Önizleme"<br />,
+    "PROJECT_SETTING_BASE_URL"             : "Ana URL'den Canlı Önizleme<br />",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Dosya urlsi için boş bırakın",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "{0} protokolü canlı önizlemeyi desteklemiyor.&mdash;lütfen http: yada https: kullanın.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Ana URL \"{0}\" gibi arama karakterleri bulunduramaz.",
@@ -369,7 +369,7 @@ define({
     "INVALID_BRACKETS_VERSION"             : "The {APP_NAME} compatibility string ({0}) is invalid.",
     "DISALLOWED_WORDS"                     : "The words ({1}) are not allowed in the {0} field.",
     "API_NOT_COMPATIBLE"                   : "The extension isn't compatible with this version of {APP_NAME}. It's installed in your disabled extensions folder.",
-    "MISSING_MAIN"                         : "The package has no main.js file.",
+    "MISSING_MAIN"                         : "Paket main.js dosyası içermiyor.",
     "EXTENSION_ALREADY_INSTALLED"          : "Installing this package will overwrite a previously installed extension. Overwrite the old extension?",
     "EXTENSION_SAME_VERSION"               : "This package is the same version as the one that is currently installed. Overwrite the existing installation?",
     "EXTENSION_OLDER_VERSION"              : "This package is version {0} which is older than the currently installed ({1}). Overwrite the existing installation?",
@@ -421,7 +421,7 @@ define({
     
     "INLINE_EDITOR_NO_MATCHES"             : "Eşleşme yok.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Seçiminize uygun CSS kuralı yok.<br> Yeni oluşturmak için \"Yeni Kural\"' butonuna tıklayın.",
-    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projenizde stilsayfası(CSS)bulunmuyor.<br>CSS kuralları eklemek için bir tene oluşturmalısınız.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projenizde stilsayfası(CSS)bulunmuyor.<br>CSS kuralları eklemek için bir tane oluşturmalısınız.",
     
     /**
      * Unit names
@@ -462,6 +462,7 @@ define({
     "LOCALE_PT_PT"                              : "Portuguese",
     "LOCALE_RU"                                 : "Russian",
     "LOCALE_SK"                                 : "Slovak",
+    "LOCALE_SR"                                 : "Sırpça",
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Türkçe",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
@@ -473,7 +474,7 @@ define({
   
      
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Şuanki Renk",
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Geçerli Renk",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Gerçek REnk",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa Formatı",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "Hex Formatı",
