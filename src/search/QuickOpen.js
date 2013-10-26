@@ -594,26 +594,26 @@ define(function (require, exports, module) {
         }
         
         // Try to invoke a search plugin
-        var curDoc = DocumentManager.getCurrentDocument();
+        var curDoc = DocumentManager.getCurrentDocument(), languageId;
         if (curDoc) {
-            var languageId = curDoc.getLanguage().getId();
+            languageId = curDoc.getLanguage().getId();
+        }
 
-            var i;
-            for (i = 0; i < plugins.length; i++) {
-                var plugin = plugins[i];
-                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (languageIdMatch && plugin.match && plugin.match(query)) {
-                    currentPlugin = plugin;
-                    
-                    // Look up the StringMatcher for this plugin.
-                    var matcher = this._matchers[currentPlugin.name];
-                    if (!matcher) {
-                        matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
-                        this._matchers[currentPlugin.name] = matcher;
-                    }
-                    this._updateDialogLabel(plugin, query);
-                    return plugin.search(query, matcher);
+        var i;
+        for (i = 0; i < plugins.length; i++) {
+            var plugin = plugins[i];
+            var languageIdMatch = plugin.languageIds.length === 0 || plugin.languageIds.indexOf(languageId) !== -1;
+            if (languageIdMatch && plugin.match && plugin.match(query)) {
+                currentPlugin = plugin;
+                
+                // Look up the StringMatcher for this plugin.
+                var matcher = this._matchers[currentPlugin.name];
+                if (!matcher) {
+                    matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
+                    this._matchers[currentPlugin.name] = matcher;
                 }
+                this._updateDialogLabel(plugin, query);
+                return plugin.search(query, matcher);
             }
         }
         
