@@ -191,6 +191,10 @@ define(function (require, exports, module) {
             if (viewProvider) {
                 EditorManager.showCustomViewer(viewProvider, fullPath);
                 result.resolve();
+            } else if (EditorManager.showingCustomViewerForPath(fullPath)) {
+                // We get here only if the user opens a file that no longer has a custom
+                // viewer but the file is still showing in the current custom viewer.
+                result.resolve();
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)

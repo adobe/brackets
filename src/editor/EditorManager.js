@@ -666,6 +666,17 @@ define(function (require, exports, module) {
         _setCurrentlyViewedPath(fullPath);
     }
 
+    /** 
+     * Check whether the given file is currently open in a custom viewer.
+     *
+     * @param {!string} fullPath  file path to check
+     * @return {boolean} true if we have a custom viewer showing and the given file
+     *     path matches the one in the custom viewer, false otherwise.
+     */
+    function showingCustomViewerForPath(fullPath) {
+        return (_$currentCustomViewer && _currentlyViewedPath === fullPath);
+    }
+    
     /**
      * Update file name if necessary
      */
@@ -985,4 +996,5 @@ define(function (require, exports, module) {
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.closeCustomViewer             = closeCustomViewer;
+    exports.showingCustomViewerForPath    = showingCustomViewerForPath;
 });
