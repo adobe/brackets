@@ -32,7 +32,9 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
-    var _FSEncodings        = require("file/NativeFileSystem").NativeFileSystem._FSEncodings;
+    
+    var UTF8 = "utf8",
+        UTF16 = "utf16";
     
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.
@@ -252,7 +254,7 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/file_one.txt", _FSEncodings.UTF8, cb);
+                    brackets.fs.readFile(baseDir + "/file_one.txt", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -267,7 +269,7 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile("/This/file/doesnt/exist.txt", _FSEncodings.UTF8, cb);
+                    brackets.fs.readFile("/This/file/doesnt/exist.txt", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -281,7 +283,7 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/file_one.txt", _FSEncodings.UTF16, cb);
+                    brackets.fs.readFile(baseDir + "/file_one.txt", UTF16, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -309,7 +311,7 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir, _FSEncodings.UTF8, cb);
+                    brackets.fs.readFile(baseDir, UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -329,7 +331,7 @@ define(function (require, exports, module) {
                     readFileCB = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.writeFile(baseDir + "/write_test.txt", contents, _FSEncodings.UTF8, cb);
+                    brackets.fs.writeFile(baseDir + "/write_test.txt", contents, UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -340,7 +342,7 @@ define(function (require, exports, module) {
 
                 // Read contents to verify
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/write_test.txt", _FSEncodings.UTF8, readFileCB);
+                    brackets.fs.readFile(baseDir + "/write_test.txt", UTF8, readFileCB);
                 });
 
                 waitsFor(function () { return readFileCB.wasCalled; }, 1000);
@@ -356,7 +358,7 @@ define(function (require, exports, module) {
                     var cb = errSpy();
                 
                     runs(function () {
-                        brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, _FSEncodings.UTF8, cb);
+                        brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, UTF8, cb);
                     });
                 
                     waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -386,7 +388,7 @@ define(function (require, exports, module) {
                 var cb = errSpy();
                 
                 runs(function () {
-                    brackets.fs.writeFile(baseDir, contents, _FSEncodings.UTF8, cb);
+                    brackets.fs.writeFile(baseDir, contents, UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
@@ -410,7 +412,7 @@ define(function (require, exports, module) {
                     statCB      = statSpy();
             
                 runs(function () {
-                    brackets.fs.writeFile(filename, contents, _FSEncodings.UTF8, writeFileCB);
+                    brackets.fs.writeFile(filename, contents, UTF8, writeFileCB);
                 });
             
                 waitsFor(function () { return writeFileCB.wasCalled; }, 1000);
@@ -422,7 +424,7 @@ define(function (require, exports, module) {
 
                 // Read contents to verify
                 runs(function () {
-                    brackets.fs.readFile(filename, _FSEncodings.UTF8, readFileCB);
+                    brackets.fs.readFile(filename, UTF8, readFileCB);
                 });
 
                 waitsFor(function () { return readFileCB.wasCalled; }, 1000);
@@ -822,7 +824,7 @@ define(function (require, exports, module) {
                 
                 // Create a file
                 runs(function () {
-                    brackets.fs.writeFile(newFileName, "", _FSEncodings.UTF8, writeFileCB);
+                    brackets.fs.writeFile(newFileName, "", UTF8, writeFileCB);
                 });
                 
                 waitsFor(function () { return writeFileCB.wasCalled; });
