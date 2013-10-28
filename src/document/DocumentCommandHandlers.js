@@ -205,15 +205,16 @@ define(function (require, exports, module) {
                                 // custom viewer but the file is still showing in the current custom viewer. This only
                                 // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
                                 // message that in turn calls _cleanup() after the user clicks OK in the message box.
-                                // By calling result.resolve() we keep the file open in the current custom viewer and 
-                                // the user can rename it back using the keyboard shortcut F2.
-                                result.resolve();
+                                // So we need to explicitly close the currently viewing image file whose filename is  
+                                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
+                                // the previously opened text file or show no-editor if none exists.
+                                EditorManager.notifyPathDeleted(fullPath);
                             } else {
                                 // For performance, we do lazy checking of file existence, so it may be in working set
                                 DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                                 EditorManager.focusEditor();
-                                result.reject();
                             }
+                            result.reject();
                         }
                         
                         if (silent) {
