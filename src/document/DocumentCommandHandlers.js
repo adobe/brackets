@@ -873,16 +873,15 @@ define(function (require, exports, module) {
             }
         }
 
-        // Close custom viewer if necessary
-        if (!file && !DocumentManager.getCurrentDocument()
-                && EditorManager.getCurrentlyViewedPath()) {
-            
-                // if there is no doc a custom viewer is displayed
+        // Close custom viewer if, either
+        // - a custom viewer is currently displayed and no file specified in command data
+        // - a custom viewer is currently displayed and the file specified in command data 
+        //   is the file in the custom viewer
+        if ((!DocumentManager.getCurrentDocument() && EditorManager.getCurrentlyViewedPath() && !file) ||
+                (!DocumentManager.getCurrentDocument() && file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
+
             if (!file || file.fullPath === EditorManager.getCurrentlyViewedPath()) {
                 doCloseCustomViewer();
-                return promise;
-            } else {
-                result.resolve();
                 return promise;
             }
         }
@@ -1070,17 +1069,20 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        if (!DocumentManager.getCurrentDocument()) {
-            EditorManager.closeCustomViewer();
-        }
-        return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
+        return _doCloseDocumentList(DocumentManager.getWorkingSet(),
+                                    (commandData && commandData.promptOnly)).done(function () {
+            if (!DocumentManager.getCurrentDocument()) {
+                EditorManager.closeCustomViewer();
+            }
+        });
     }
     
     function handleFileCloseList(commandData) {
-        if (!DocumentManager.getCurrentDocument()) {
-            EditorManager.closeCustomViewer();
-        }
-        return _doCloseDocumentList((commandData && commandData.documentList), false);
+        return _doCloseDocumentList((commandData && commandData.documentList), false).done(function () {
+            if (!DocumentManager.getCurrentDocument()) {
+                EditorManager.closeCustomViewer();
+            }
+        });
     }
     
     /**
