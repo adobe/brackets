@@ -874,7 +874,8 @@ define(function (require, exports, module) {
         }
 
         // Close custom viewer if necessary
-        if (!DocumentManager.getCurrentDocument() && EditorManager.getCurrentlyViewedPath()) {
+        if (!file && !DocumentManager.getCurrentDocument() 
+            && EditorManager.getCurrentlyViewedPath()) {
             //_customViewerIsDisplayed = true;
                 // if there is no doc a custom viewer is displayed
             if (!file || file.fullPath === EditorManager.getCurrentlyViewedPath()) {
@@ -897,10 +898,7 @@ define(function (require, exports, module) {
             return promise;
         }
         
-        var doc;
-        if (DocumentManager.getCurrentDocument()) {
-            doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        }
+        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
         
         if (doc && doc.isDirty && !_forceClose) {
             // Document is dirty: prompt to save changes before closing
