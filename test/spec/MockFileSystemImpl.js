@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     var _hooks;
     
     function _getHookEntry(method, path) {
-        return _hooks[method] && _hooks[method][path] && _hooks[method][path];
+        return _hooks[method] && _hooks[method][path];
     }
     
     function _getCallback(method, path, cb) {

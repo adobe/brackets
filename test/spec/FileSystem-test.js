@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, setTimeout */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,6 +33,8 @@ define(function (require, exports, module) {
     
     describe("FileSystem", function () {
         
+        // Setup
+        
         var fileSystem;
         
         beforeEach(function () {
@@ -42,6 +44,24 @@ define(function (require, exports, module) {
             fileSystem.init(MockFileSystemImpl);
             fileSystem.watch(fileSystem.getDirectoryForPath("/"), function () {return true; }, function () {});
         });
+        
+        
+        // Utilities
+        
+        /** Pass this to when() as the 'callback' or 'notify' value to delay invoking the callback or change handler by a fixed amount of time */
+        function delay(ms) {
+            function generateCbWrapper(cb) {
+                function cbReadyToRun() {
+                    var _args = arguments;
+                    setTimeout(function () {
+                        cb.apply(null, _args);
+                    }, ms);
+                }
+                return cbReadyToRun;
+            }
+            return generateCbWrapper;
+        }
+        
         
         
         describe("Path normalization", function () {
@@ -133,6 +153,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Singleton enforcement", function () {
             function resolveCallback() {
                 var callback = function (err, entry) {
@@ -171,6 +192,7 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
         
         describe("Rename", function () {
             function renameCallback() {
@@ -238,6 +260,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("Read directory", function () {
             function getContentsCallback() {
                 var callback = function (err, contents) {
@@ -263,6 +286,7 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
         
         describe("Read and write files", function () {
             function readCallback() {
@@ -320,5 +344,159 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        
+        describe("Event timing", function () {
+            
+            it("should notify rename callback before 'change' event", function () {
+                var origFilePath = "/file1.txt",
+                    origFile = fileSystem.getFileForPath(origFilePath),
+                    renamedFilePath = "/file1_renamed.txt";
+                
+                runs(function () {
+                    var renameDone = false, changeDone = false;
+                    
+                    // Delay impl callback to happen after impl watcher notification
+                    MockFileSystemImpl.when("rename", origFilePath, {
+                        callback: delay(250)
+                    });
+                    
+                    $(fileSystem).on("change", function (evt, entry) {
+                        expect(renameDone).toBe(true);  // this is the important check: callback should have already run!
+                        changeDone = true;
+                    });
+                    
+                    origFile.rename(renamedFilePath, function (err) {
+                        expect(err).toBeFalsy();
+                        renameDone = true;
+                    });
+                    
+                    waitsFor(function () { return changeDone && renameDone; });
+                });
+                
+                runs(function () {
+                    expect(origFile.fullPath).toBe(renamedFilePath);
+                });
+            });
+            
+            
+            it("should notify write callback before 'change' event", function () {
+                var testFilePath = "/file1.txt",
+                    testFile = fileSystem.getFileForPath(testFilePath);
+                
+                runs(function () {
+                    var writeDone = false, changeDone = false;
+                    
+                    // Delay impl callback to happen after impl watcher notification
+                    MockFileSystemImpl.when("writeFile", testFilePath, {
+                        callback: delay(250)
+                    });
+                    
+                    $(fileSystem).on("change", function (evt, entry) {
+                        expect(writeDone).toBe(true);  // this is the important check: callback should have already run!
+                        changeDone = true;
+                    });
+                    
+                    testFile.write("Foobar", function (err) {
+                        expect(err).toBeFalsy();
+                        writeDone = true;
+                    });
+                    
+                    waitsFor(function () { return changeDone && writeDone; });
+                });
+            });
+            
+            // Used for various tests below where two write operations (to two different files) overlap in various ways
+            function dualWrite(cb1Delay, watcher1Delay, cb2Delay, watcher2Delay) {
+                var testFile1 = fileSystem.getFileForPath("/file1.txt"),
+                    testFile2 = fileSystem.getFileForPath("/file2.txt");
+                
+                runs(function () {
+                    var write1Done = false, change1Done = false;
+                    var write2Done = false, change2Done = false;
+                    
+                    // Delay impl callback to happen after impl watcher notification
+                    MockFileSystemImpl.when("writeFile", "/file1.txt", {
+                        callback: delay(cb1Delay),
+                        notify: delay(watcher1Delay)
+                    });
+                    MockFileSystemImpl.when("writeFile", "/file2.txt", {
+                        callback: delay(cb2Delay),
+                        notify: delay(watcher2Delay)
+                    });
+                    
+                    $(fileSystem).on("change", function (evt, entry) {
+                        // this is the important check: both callbacks should have already run!
+                        expect(write1Done).toBe(true);
+                        expect(write2Done).toBe(true);
+                        
+                        expect(entry.fullPath === "/file1.txt" || entry.fullPath === "/file2.txt").toBe(true);
+                        if (entry.fullPath === "/file1.txt") {
+                            change1Done = true;
+                        } else {
+                            change2Done = true;
+                        }
+                    });
+                    
+                    // We always *start* both operations together, synchronously
+                    // What varies is when the impl callbacks for for each op, and when the impl's watcher notices each op
+                    fileSystem.getFileForPath("/file1.txt").write("Foobar 1", function (err) {
+                        expect(err).toBeFalsy();
+                        write1Done = true;
+                    });
+                    fileSystem.getFileForPath("/file2.txt").write("Foobar 2", function (err) {
+                        expect(err).toBeFalsy();
+                        write2Done = true;
+                    });
+                    
+                    waitsFor(function () { return change1Done && write1Done && change2Done && write2Done; });
+                });
+            }
+            
+            it("should handle overlapping writes to different files - 2nd file finishes much faster", function () {
+                dualWrite(100, 200, 0, 0);
+            });
+            it("should handle overlapping writes to different files - 2nd file finishes much faster, 1st file watcher runs early", function () {
+                dualWrite(200, 100, 0, 0);
+            });
+            it("should handle overlapping writes to different files - 1st file finishes much faster", function () {
+                dualWrite(0, 0, 100, 200);
+            });
+            it("should handle overlapping writes to different files - 1st file finishes much faster, 2nd file watcher runs early", function () {
+                dualWrite(0, 0, 200, 100);
+            });
+            it("should handle overlapping writes to different files - both watchers run early", function () {
+                dualWrite(100, 0, 200, 0);
+            });
+            it("should handle overlapping writes to different files - both watchers run early, reversed", function () {
+                dualWrite(100, 50, 200, 0);
+            });
+            it("should handle overlapping writes to different files - 2nd file finishes faster, both watchers run early", function () {
+                dualWrite(200, 0, 100, 0);
+            });
+            it("should handle overlapping writes to different files - 2nd file finishes faster, both watchers run early, reversed", function () {
+                dualWrite(200, 50, 100, 0);
+            });
+            it("should handle overlapping writes to different files - watchers run in order", function () {
+                dualWrite(0, 100, 0, 200);
+            });
+            it("should handle overlapping writes to different files - watchers reversed", function () {
+                dualWrite(0, 200, 0, 100);
+            });
+            it("should handle overlapping writes to different files - nonoverlapping in order", function () {
+                dualWrite(0, 50, 100, 200);
+            });
+            it("should handle overlapping writes to different files - nonoverlapping reversed", function () {
+                dualWrite(100, 200, 0, 50);
+            });
+            it("should handle overlapping writes to different files - overlapped in order", function () {
+                dualWrite(0, 100, 50, 200);
+            });
+            it("should handle overlapping writes to different files - overlapped reversed", function () {
+                dualWrite(50, 200, 0, 100);
+            });
+        });
+        
+        
     });
 });
