@@ -40,44 +40,44 @@ define({
 
     // Project error strings
     "ERROR_LOADING_PROJECT": "Proje yüklenemedi",
-    "OPEN_DIALOG_ERROR": "Dosya dialogu gösterilemedi. (hata {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR": "<span class='dialog-filename'>{0}</span> klasörü yüklenirken hata oluştu. (hata {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR": "<span class='dialog-filename'>{0}</span> klasörü okunurken hata oluştu. (hata {1})",
+    "OPEN_DIALOG_ERROR": "Dosya açma dialoğu gösterilirken bir hata oluştu. (hata {0})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR": "<span class='dialog-filename'>{0}</span> klasörü yüklenirken bir hata oluştu. (hata {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR": "<span class='dialog-filename'>{0}</span> klasörünün içeriği okunurken bir hata oluştu. (hata {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE": "Dosya açılamadı",
-    "ERROR_OPENING_FILE": "<span class='dialog-filename'>{0}</span> dosyası açılırken hata oluştu. {1}",
+    "ERROR_OPENING_FILE": "<span class='dialog-filename'>{0}</span> dosyası açılırken bir hata oluştu. {1}",
     "ERROR_OPENING_FILES": "Şu dosyalar açılamadı:",
     "ERROR_RELOADING_FILE_TITLE": "Değişiklikler hafızadan okunurken hata oluştu.",
-    "ERROR_RELOADING_FILE": "<span class='dialog-filename'>{0}</span> dosyası yenilenirken hata oluştu. {1}",
+    "ERROR_RELOADING_FILE": "<span class='dialog-filename'>{0}</span> dosyası yenilenirken bir hata oluştu. {1}",
     "ERROR_SAVING_FILE_TITLE": "Dosya kaydedilirken hata",
-    "ERROR_SAVING_FILE": "<span class='dialog-filename'>{0}</span> dosyası kaydedilirken hata oluştu. {1}",
+    "ERROR_SAVING_FILE": "<span class='dialog-filename'>{0}</span> dosyası kaydedilirken bir hata oluştu. {1}",
     "ERROR_RENAMING_FILE_TITLE": "Dosya ismi değiştirilirken hata",
-    "ERROR_RENAMING_FILE": "<span class='dialog-filename'>{0}</span> dosyasının ismi değiştirilirken hata oluştu. {1}",
+    "ERROR_RENAMING_FILE": "<span class='dialog-filename'>{0}</span> dosyasının ismi değiştirilirken bir hata oluştu. {1}",
     "ERROR_DELETING_FILE_TITLE": "Dosya silinemedi",
-    "ERROR_DELETING_FILE": "<span class='dialog-filename'>{0}</span> dosyası silinirken hata oluştu. {1}",
+    "ERROR_DELETING_FILE": "<span class='dialog-filename'>{0}</span> dosyası silinirken bir hata oluştu. {1}",
     "INVALID_FILENAME_TITLE": "Geçersiz dosya ismi",
     "INVALID_FILENAME_MESSAGE": "Dosya isimleri yandaki karakterleri içeremez: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS": "<span class='dialog-filename'>{0}</span> dosyası zaten bulunmakta",
     "ERROR_CREATING_FILE_TITLE": "Dosya oluşturulamadı",
-    "ERROR_CREATING_FILE": "<span class='dialog-filename'>{0}</span> dosyası oluşturulurken hata oluştu. {1}",
+    "ERROR_CREATING_FILE": "<span class='dialog-filename'>{0}</span> dosyası oluşturulurken bir hata oluştu. {1}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE": "Ups! {APP_NAME} henüz tarayıcıda açılmadı.",
-    "ERROR_IN_BROWSER": "{APP_NAME} HTML kullanarak hazırlandı, ancak şuan için sadece masaüstü uygulaması olarak çalışabilmekte. {APP_NAME} programını çalıştırabilmek için lütfen <b>github.com/adobe/brackets-shell</b> adresindeki 'application shell'i kullanınız.",
+    "ERROR_IN_BROWSER": "{APP_NAME} HTML kullanarak hazırlandı, ancak şuan için sadece masaüstü uygulaması olarak çalışabilmekte. {APP_NAME} programını çalıştırabilmek için lütfen <b>github.com/adobe/brackets-shell</b> adresindeki uygulama arayüzünü kullanınız.",
 
     // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE": "Dosyalar indekslenirken hata oluştu",
+    "ERROR_MAX_FILES_TITLE": "Dosyalar taranırken bir hata oluştu",
     "ERROR_MAX_FILES": "Maksimum sayıda dosya indekslendi. İndekslenen dosyalardaki işlemler düzgün çalışmayabilir.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE": "Tarayıcı çalıştırılırken hata oluştu",
+    "ERROR_LAUNCHING_BROWSER_TITLE": "Tarayıcı çalıştırılırken bir hata oluştu",
     "ERROR_CANT_FIND_CHROME": "Google Chrome tarayıcısı bulunamadı. Lütfen kurulu olduğundan emin olun.",
-    "ERROR_LAUNCHING_BROWSER": "Tarayıcı açılırken hata oluştu. (hata {0})",
+    "ERROR_LAUNCHING_BROWSER": "Tarayıcı açılırken bir hata oluştu. (hata {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE": "Canlı Önizleme Hatası",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Tarayıcıya bağlanılıyor",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE": "Canlı Önizleme özelliğini kullanabilmek için Chrome'un uzaktan hata ayıklayıcı ile tekrardan açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE": "Canlı Önizleme özelliğini kullanabilmek için Chrome'un uzaktan hata ayıklayıcı ile tekrar açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE": "Canlı Geliştirme Sayfası Yüklenemedi",
     "LIVE_DEV_NEED_HTML_MESSAGE": "Canlı Önizlemeyi çalıştırabilmeniz için html dosyası seçili olması gerekiyor",
     "LIVE_DEV_NEED_BASEURL_MESSAGE": "Canlı Önizlemeyi sunucu taraflı dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir yol belirtiniz.",
@@ -150,7 +150,7 @@ define({
     "FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH": "Dosya: <b>{0}</b>",
     "ERROR_FETCHING_UPDATE_INFO_TITLE": "Versiyon bilgisi alınamadı",
-    "ERROR_FETCHING_UPDATE_INFO_MSG": "Sunucudan yeni versiyon bilgisi alınırken hata oluştu. Lütfen internete bağlı olduğunuzdan emin olun ve tekrar deneyin.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG": "Sunucudan yeni versiyon bilgisi alınırken bir hata oluştu. Lütfen internete bağlı olduğunuzdan emin olun ve tekrar deneyin.",
 
     /**
      * ProjectManager
@@ -335,7 +335,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED": "Ana URL \"{0}\" gibi arama karakterleri bulunduramaz.",
     "BASEURL_ERROR_HASH_DISALLOWED": "Ana URL \"{0}\" gibi karakterler bulunduramaz.",
     "BASEURL_ERROR_INVALID_CHAR": "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
-    "BASEURL_ERROR_UNKNOWN_ERROR": "Ana URL'yi işlerken bilinmeyen hata oluştu",
+    "BASEURL_ERROR_UNKNOWN_ERROR": "Ana URL'yi işlerken bilinmeyen bir hata oluştu",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE": "Yeni Kural",
