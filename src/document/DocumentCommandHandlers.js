@@ -834,7 +834,10 @@ define(function (require, exports, module) {
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
-        var file, promptOnly, _forceClose;
+        var file,
+            promptOnly,
+            _forceClose;
+        
         if (commandData) {
             file        = commandData.file;
             promptOnly  = commandData.promptOnly;
@@ -851,28 +854,40 @@ define(function (require, exports, module) {
             }
         }
 
-        function doCloseCustomViewer() {
-            var nextFile = DocumentManager.getNextPrevFile(1);
-            if (nextFile) {
-                // opening a text file will automatically close the custom viewer.
-                // This is done in the currentDocumentChange handler in EditorManager
-                doOpen(nextFile.fullPath);
-            } else {
-                EditorManager.closeCustomViewer();
-            }
-        }
-                
         var result = new $.Deferred(), promise = result.promise();
         
-        // Default to current document if doc is null
-        if (!file) {
-            if (DocumentManager.getCurrentDocument()) {
-                file = DocumentManager.getCurrentDocument().file;
-            } else if (EditorManager.getCurrentlyViewedPath()) {
+        function doCloseCustomViewer() {
+            if (!promptOnly) {
+                var nextFile = DocumentManager.getNextPrevFile(1);
+                if (nextFile) {
+                    // opening a text file will automatically close the custom viewer.
+                    // This is done in the currentDocumentChange handler in EditorManager
+                    doOpen(nextFile.fullPath).always(function () {
+                        EditorManager.focusEditor();
+                        result.resolve();
+                    });
+                } else {
+                    EditorManager.closeCustomViewer();
+                    result.resolve();
+                }
+            }
+        }
+
+        // Close custom viewer if, either
+        // - a custom viewer is currently displayed and no file specified in command data
+        // - a custom viewer is currently displayed and the file specified in command data 
+        //   is the file in the custom viewer
+        if (!DocumentManager.getCurrentDocument()) {
+            if ((EditorManager.getCurrentlyViewedPath() && !file) ||
+                    (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
                 doCloseCustomViewer();
-                result.resolve();
                 return promise;
             }
+        }
+        
+        // Default to current document if doc is null
+        if (!file && DocumentManager.getCurrentDocument()) {
+            file = DocumentManager.getCurrentDocument().file;
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
@@ -1053,17 +1068,20 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        if (!DocumentManager.getCurrentDocument()) {
-            EditorManager.closeCustomViewer();
-        }
-        return _doCloseDocumentList(DocumentManager.getWorkingSet(), (commandData && commandData.promptOnly));
+        return _doCloseDocumentList(DocumentManager.getWorkingSet(),
+                                    (commandData && commandData.promptOnly)).done(function () {
+            if (!DocumentManager.getCurrentDocument()) {
+                EditorManager.closeCustomViewer();
+            }
+        });
     }
     
     function handleFileCloseList(commandData) {
-        if (!DocumentManager.getCurrentDocument()) {
-            EditorManager.closeCustomViewer();
-        }
-        return _doCloseDocumentList((commandData && commandData.documentList), false);
+        return _doCloseDocumentList((commandData && commandData.documentList), false).done(function () {
+            if (!DocumentManager.getCurrentDocument()) {
+                EditorManager.closeCustomViewer();
+            }
+        });
     }
     
     /**
