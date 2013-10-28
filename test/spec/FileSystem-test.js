@@ -376,6 +376,31 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Create directory", function () {
+            it("should create a Directory", function () {
+                var directory = fileSystem.getDirectoryForPath("/subdir2/"),
+                    cb = errorCallback(),
+                    cbCalled = false;
+                
+                runs(function () {
+                    directory.exists(function (exists) {
+                        expect(exists).toBe(false);
+                        cbCalled = true;
+                    });
+                });
+                waitsFor(function () { return cbCalled; });
+                runs(function () {
+                    directory.create(cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    directory.exists(function (exists) {
+                        expect(exists).toBe(true);
+                    });
+                });
+            });
+        });
         
         describe("Read and write files", function () {
             it("should read and write files", function () {
@@ -412,6 +437,48 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(secondReadCB.error).toBeFalsy();
                     expect(secondReadCB.data).toBe(newContents);
+                });
+            });
+            
+            it("should return an error if the file can't be found", function () {
+                var file = fileSystem.getFileForPath("/doesnt-exist.txt"),
+                    cb = readCallback();
+                
+                runs(function () {
+                    file.readAsText(cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBe(FileSystemError.NOT_FOUND);
+                });
+            });
+            
+            it("should create a new file if needed", function () {
+                var file = fileSystem.getFileForPath("/new-file.txt"),
+                    cb = errorCallback(),
+                    readCb = readCallback(),
+                    cbCalled = false,
+                    newContents = "New file contents";
+                
+                runs(function () {
+                    file.exists(function (exists) {
+                        expect(exists).toBe(false);
+                        cbCalled = true;
+                    });
+                });
+                waitsFor(function () { return cbCalled; });
+                runs(function () {
+                    file.write(newContents, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    file.readAsText(readCb);
+                });
+                waitsFor(function () { return readCb.wasCalled; });
+                runs(function () {
+                    expect(readCb.error).toBeFalsy();
+                    expect(readCb.data).toBe(newContents);
                 });
             });
         });
