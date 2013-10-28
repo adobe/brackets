@@ -22,12 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, window, $, jasmine, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, window, $, jasmine, brackets */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystem          = require("filesystem/FileSystem"),
+    var Directory           = require("filesystem/Directory"),
+        File                = require("filesystem/File"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
@@ -43,6 +45,15 @@ define(function (require, exports, module) {
             fileSystem.watch(fileSystem.getDirectoryForPath("/"), function () {return true; }, function () {});
         });
         
+        // Callback factories
+        function resolveCallback() {
+            var callback = function (err, entry) {
+                callback.error = err;
+                callback.entry = entry;
+                callback.wasCalled = true;
+            };
+            return callback;
+        }
         
         describe("Path normalization", function () {
             // Auto-prepended to both origPath & normPath in all the test helpers below
@@ -134,15 +145,6 @@ define(function (require, exports, module) {
         });
         
         describe("Singleton enforcement", function () {
-            function resolveCallback() {
-                var callback = function (err, entry) {
-                    callback.error = err;
-                    callback.entry = entry;
-                    callback.wasCalled = true;
-                };
-                return callback;
-            }
-            
             it("should return the same File object for the same path", function () {
                 var cb = resolveCallback();
                 expect(fileSystem.getFileForPath("/file1.txt")).toEqual(fileSystem.getFileForPath("/file1.txt"));
@@ -169,6 +171,37 @@ define(function (require, exports, module) {
                     expect(cb.error).toBeFalsy();
                     expect(fileSystem.getDirectoryForPath("/subdir/")).toEqual(cb.entry);
                 });
+            });
+        });
+        
+        describe("Resolve", function () {
+            function testResolve(path, expectedError, expectedType) {
+                var cb = resolveCallback();
+                runs(function () {
+                    fileSystem.resolve(path, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    if (!expectedError) {
+                        expect(cb.error).toBeFalsy();
+                    } else {
+                        expect(cb.error).toBe(expectedError);
+                    }
+                    if (expectedType) {
+                        expect(cb.entry instanceof expectedType).toBeTruthy();
+                    }
+                });
+            }
+            
+            it("should resolve a File", function () {
+                testResolve("/subdir/file3.txt", null, File);
+            });
+            it("should resolve a Directory", function () {
+                testResolve("/subdir/", null, Directory);
+            });
+            it("should return an error if the File/Directory is not found", function () {
+                testResolve("/doesnt-exist.txt", FileSystemError.NOT_FOUND);
+                testResolve("/doesnt-exist/", FileSystemError.NOT_FOUND);
             });
         });
         
@@ -260,6 +293,53 @@ define(function (require, exports, module) {
                     expect(cb.error).toBeFalsy();
                     expect(cb.contents.length).toBe(2);
                     expect(cb.contents[0].fullPath).toBe("/subdir/file3.txt");
+                });
+            });
+            
+            it("should return an error if the Directory can't be found", function () {
+                var directory = fileSystem.getDirectoryForPath("/doesnt-exist/"),
+                    cb = getContentsCallback();
+                
+                runs(function () {
+                    directory.getContents(cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBe(FileSystemError.NOT_FOUND);
+                });
+            });
+            
+            it("should only call the impl once for simultaneous read requests", function () {
+                var directory = fileSystem.getDirectoryForPath("/subdir/"),
+                    cb = getContentsCallback(),
+                    cbCount = 0;
+                
+                function delayedCallback() {
+                    return function () {
+                        var args = arguments;
+                        window.setTimeout(function () {
+                            cbCount++;
+                            cb.apply(null, args);
+                        }, 300);
+                    };
+                }
+                
+                MockFileSystemImpl.when("readdir", "/subdir/", {callback: delayedCallback});
+                
+                // Fire off 2 getContents() calls in rapid succession
+                runs(function () {
+                    // Make sure cached data is cleared
+                    directory._contents = undefined;
+                    directory.getContents(cb);
+                    directory.getContents(cb);
+                    expect(cb.wasCalled).toBeFalsy(); // Callback should *not* have been called yet
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                waits(100); // Make sure there is time for a second callback
+                runs(function () {
+                    expect(cb.wasCalled).toBe(true);
+                    expect(cb.error).toBeFalsy();
+                    expect(cbCount).toBe(1);
                 });
             });
         });
