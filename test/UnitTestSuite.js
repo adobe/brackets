@@ -44,7 +44,6 @@ define(function (require, exports, module) {
     require("spec/ExtensionLoader-test");
     require("spec/ExtensionManager-test");
     require("spec/ExtensionUtils-test");
-    // require("spec/FileIndexManager-test");
     require("spec/FileSystem-test");
     require("spec/FileUtils-test");
     require("spec/FindReplace-test");
