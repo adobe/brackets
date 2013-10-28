@@ -874,9 +874,9 @@ define(function (require, exports, module) {
         }
 
         // Close custom viewer if necessary
-        if (!file && !DocumentManager.getCurrentDocument() 
-            && EditorManager.getCurrentlyViewedPath()) {
-            //_customViewerIsDisplayed = true;
+        if (!file && !DocumentManager.getCurrentDocument()
+                && EditorManager.getCurrentlyViewedPath()) {
+            
                 // if there is no doc a custom viewer is displayed
             if (!file || file.fullPath === EditorManager.getCurrentlyViewedPath()) {
                 doCloseCustomViewer();
