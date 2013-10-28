@@ -26,7 +26,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var UrlParams       = require("utils/UrlParams").UrlParams,
         SpecRunnerUtils = require("spec/SpecRunnerUtils");

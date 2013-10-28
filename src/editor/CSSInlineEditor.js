@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings"),
-        _                       = require("lodash");
+        _                       = require("thirdparty/lodash");
 
     var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
     

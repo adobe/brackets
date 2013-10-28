@@ -34,7 +34,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = brackets.getModule("lodash");
+    var _ = brackets.getModule("thirdparty/lodash");
     
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),

@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),

@@ -33,7 +33,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var strings         = require("i18n!nls/strings"),
         urls            = require("i18n!nls/urls"),

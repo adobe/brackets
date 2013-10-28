@@ -30,7 +30,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
 
     /**
      * Returns the first index in 'array' for which isMatch() returns true, or -1 if none
