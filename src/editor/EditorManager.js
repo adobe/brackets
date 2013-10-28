@@ -76,6 +76,8 @@ define(function (require, exports, module) {
     var _currentlyViewedPath = null;
     /** @type {?JQuery} DOM node representing UI of custom view   */
     var _$currentCustomViewer = null;
+    /** @type {?Object} view provider */
+    var _currentViewProvider = null;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -626,6 +628,7 @@ define(function (require, exports, module) {
             _$currentCustomViewer.remove();
         }
         _$currentCustomViewer = null;
+        _currentViewProvider = null;
     }
     
     /** 
@@ -644,19 +647,24 @@ define(function (require, exports, module) {
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
     function showCustomViewer(provider, fullPath) {
-        if (_currentlyViewedPath === fullPath) {
+        // Don't show the same custom view again if file path
+        // and view provider are still the same.
+        if (_currentlyViewedPath === fullPath &&
+                _currentViewProvider === provider) {
             return;
         }
         
+        // Clean up currently viewing document or custom viewer
         DocumentManager._clearCurrentDocument();
-    
-        // Hide the not-editor
-        $("#not-editor").css("display", "none");
-        
         _removeCustomViewer();
-        
+    
+        // Hide the not-editor or reset current editor
+        $("#not-editor").css("display", "none");
         _nullifyEditor();
+
+        _currentViewProvider = provider;
         _$currentCustomViewer = provider.getCustomViewHolder(fullPath);
+
         // place in window
         $("#editor-holder").append(_$currentCustomViewer);
         
@@ -666,7 +674,7 @@ define(function (require, exports, module) {
         _setCurrentlyViewedPath(fullPath);
     }
 
-    /** 
+    /**
      * Check whether the given file is currently open in a custom viewer.
      *
      * @param {!string} fullPath  file path to check
@@ -674,7 +682,7 @@ define(function (require, exports, module) {
      *     path matches the one in the custom viewer, false otherwise.
      */
     function showingCustomViewerForPath(fullPath) {
-        return (_$currentCustomViewer && _currentlyViewedPath === fullPath);
+        return (_currentViewProvider && _currentlyViewedPath === fullPath);
     }
     
     /**

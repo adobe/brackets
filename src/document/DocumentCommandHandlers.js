@@ -191,10 +191,6 @@ define(function (require, exports, module) {
             if (viewProvider) {
                 EditorManager.showCustomViewer(viewProvider, fullPath);
                 result.resolve();
-            } else if (EditorManager.showingCustomViewerForPath(fullPath)) {
-                // We get here only if the user opens a file that no longer has a custom
-                // viewer but the file is still showing in the current custom viewer.
-                result.resolve();
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
@@ -204,10 +200,20 @@ define(function (require, exports, module) {
                     })
                     .fail(function (fileError) {
                         function _cleanup() {
-                            // For performance, we do lazy checking of file existence, so it may be in working set
-                            DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
-                            EditorManager.focusEditor();
-                            result.reject();
+                            if (EditorManager.showingCustomViewerForPath(fullPath)) {
+                                // We get here only after the user renames a file that makes it no longer belong to a
+                                // custom viewer but the file is still showing in the current custom viewer. This only
+                                // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
+                                // message that in turn calls _cleanup() after the user clicks OK in the message box.
+                                // By calling result.resolve() we keep the file open in the current custom viewer and 
+                                // the user can rename it back using the keyboard shortcut F2.
+                                result.resolve();
+                            } else {
+                                // For performance, we do lazy checking of file existence, so it may be in working set
+                                DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                                EditorManager.focusEditor();
+                                result.reject();
+                            }
                         }
                         
                         if (silent) {
