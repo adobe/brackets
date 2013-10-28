@@ -877,10 +877,9 @@ define(function (require, exports, module) {
         // - a custom viewer is currently displayed and no file specified in command data
         // - a custom viewer is currently displayed and the file specified in command data 
         //   is the file in the custom viewer
-        if ((!DocumentManager.getCurrentDocument() && EditorManager.getCurrentlyViewedPath() && !file) ||
-                (!DocumentManager.getCurrentDocument() && file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
-
-            if (!file || file.fullPath === EditorManager.getCurrentlyViewedPath()) {
+        if (!DocumentManager.getCurrentDocument()) {
+            if ((EditorManager.getCurrentlyViewedPath() && !file) ||
+                    (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
                 doCloseCustomViewer();
                 return promise;
             }
