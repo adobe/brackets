@@ -1419,9 +1419,9 @@ define(function (require, exports, module) {
                 DocumentManager.notifyPathNameChanged(oldName, newName, isFolder);
                 
                 // Finally, re-open the selected document
-                if (DocumentManager.getCurrentDocument()) {
+                if (EditorManager.getCurrentlyViewedPath()) {
                     FileViewController.openAndSelectDocument(
-                        DocumentManager.getCurrentDocument().file.fullPath,
+                        EditorManager.getCurrentlyViewedPath(),
                         FileViewController.getFileSelectionFocus()
                     );
                 }

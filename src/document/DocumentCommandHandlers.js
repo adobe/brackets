@@ -200,9 +200,20 @@ define(function (require, exports, module) {
                     })
                     .fail(function (fileError) {
                         function _cleanup() {
-                            // For performance, we do lazy checking of file existence, so it may be in working set
-                            DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
-                            EditorManager.focusEditor();
+                            if (EditorManager.showingCustomViewerForPath(fullPath)) {
+                                // We get here only after the user renames a file that makes it no longer belong to a
+                                // custom viewer but the file is still showing in the current custom viewer. This only
+                                // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
+                                // message that in turn calls _cleanup() after the user clicks OK in the message box.
+                                // So we need to explicitly close the currently viewing image file whose filename is  
+                                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
+                                // the previously opened text file or show no-editor if none exists.
+                                EditorManager.notifyPathDeleted(fullPath);
+                            } else {
+                                // For performance, we do lazy checking of file existence, so it may be in working set
+                                DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                                EditorManager.focusEditor();
+                            }
                             result.reject();
                         }
                         
