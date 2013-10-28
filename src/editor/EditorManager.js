@@ -596,6 +596,8 @@ define(function (require, exports, module) {
             
             _currentEditorsDocument = null;
             _currentEditor = null;
+            _currentlyViewedPath = null;
+            
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
             _notifyActiveEditorChanged(null);
         }
