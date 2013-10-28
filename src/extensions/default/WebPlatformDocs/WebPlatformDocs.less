@@ -40,14 +40,19 @@
     
     a {
         color: @link-color;
+        word-break: break-word;
+        -webkit-hyphens: auto;
     }
+    
     code {
         font-family: SourceCodePro;
         font-size: 12px;
         color: @emphasized-text-color;
         background: none;   // revert Bootstrap's styling
         padding: 0;
+        white-space: normal;
     }
+    
     b {
         font-weight: @font-weight-semibold;
     }
