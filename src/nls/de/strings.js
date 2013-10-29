@@ -206,6 +206,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
+    "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
@@ -284,6 +285,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Neue Regel",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
@@ -322,7 +324,7 @@ define({
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
-    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
+    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier sind einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
@@ -332,6 +334,9 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+
+    // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Neue Regel",
 
     // Extension Management strings
     "INSTALL"                              : "Installieren",
@@ -374,12 +379,14 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut versuchen.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf das Verzeichnis der Erweiterungen. Bitte später erneut versuchen.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Die Version {0} dieser Erweiterung benötigt eine neuere Version von {APP_NAME}. Sie können jedoch die ältere Version {1} installieren.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Die Version {0} dieser Erweiterung funktioniert nur mit älteren Versionen von {APP_NAME}. Sie können jedoch die ältere Version {1} installieren.",
     "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
@@ -409,6 +416,10 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Installiert",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Verfügbar",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
+
+    "INLINE_EDITOR_NO_MATCHES"             : "Keine Ergebnisse verfügbar.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
 
     /**
      * Unit names
@@ -449,10 +460,15 @@ define({
     "LOCALE_PT_PT"                              : "Portugiesisch",
     "LOCALE_RU"                                 : "Russisch",
     "LOCALE_SK"                                 : "Slowakisch",
+	"LOCALE_SR"									: "Serbisch",
     "LOCALE_SV"                                 : "Schwedisch",
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     "LOCALE_HU"                                 : "Ungarisch",
+
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Verlauf",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",

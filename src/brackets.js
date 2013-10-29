@@ -28,8 +28,7 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n",
-        "lodash"    : "thirdparty/lodash.custom.min"
+        "i18n"      : "thirdparty/i18n/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
@@ -100,7 +99,7 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
-        _                       = require("lodash");
+        _                       = require("thirdparty/lodash");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -148,6 +147,7 @@ define(function (require, exports, module) {
             CodeHintManager         : CodeHintManager,
             Dialogs                 : Dialogs,
             DefaultDialogs          : DefaultDialogs,
+            DragAndDrop             : DragAndDrop,
             CodeInspection          : CodeInspection,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
@@ -246,9 +246,7 @@ define(function (require, exports, module) {
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, files) {
-                            files.forEach(function (filename) {
-                                CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
-                            });
+                            DragAndDrop.openDroppedFiles(files);
                         });
                     }
                 });

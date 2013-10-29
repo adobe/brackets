@@ -30,7 +30,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     // Load brackets modules
     var Async                   = require("utils/Async"),

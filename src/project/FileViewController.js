@@ -80,9 +80,9 @@ define(function (require, exports, module) {
     });
 
     /** 
-      * Update the file selection focus when ever the current document changes
+      * Update the file selection focus whenever the contents of the editor area change
       */
-    $(DocumentManager).on("currentDocumentChange", function (event) {
+    $(EditorManager).on("currentlyViewedFileChange", function (event) {
         var perfTimerName;
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
@@ -157,7 +157,8 @@ define(function (require, exports, module) {
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && curDoc.file.fullPath === fullPath) {
+        if (curDoc && curDoc.file.fullPath === fullPath &&
+                !EditorManager.getCustomViewerForPath(fullPath)) {
             _selectCurrentDocument();
             result = (new $.Deferred()).resolve().promise();
         } else {
@@ -190,8 +191,13 @@ define(function (require, exports, module) {
         // documentSelectionFocusChange so the views change their selection
         promise.done(function (doc) {
             // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
-            // selection focus and trigger documentSelectionFocusChange event
-            _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
+            // selection focus only if doc is not null. When double-clicking on an
+            // image file, we get a null doc here but we still want to keep _fileSelectionFocus
+            // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument
+            // to trigger documentSelectionFocusChange event.
+            if (doc) {
+                _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
+            }
             _selectCurrentDocument();
             
             result.resolve(doc);

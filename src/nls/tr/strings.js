@@ -283,6 +283,7 @@ define({
     "LOCALE_PT_BR"                              : "Portekizce, Brezilya",
     "LOCALE_PT_PT"                              : "Portekizce",
     "LOCALE_RU"                                 : "Rusça",
+	"LOCALE_SR"                                 : "Sırpça",
     "LOCALE_SV"                                 : "İsveççe",
     "LOCALE_TR"                                 : "Türkçe",
     "LOCALE_ZH_CN"                              : "Çince, basitleştirilmiş",

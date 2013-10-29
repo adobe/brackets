@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         FileUtils         = require("file/FileUtils"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
         PreferencesBase   = require("preferences/PreferencesBase"),
-        _                 = require("lodash");
+        _                 = require("thirdparty/lodash");
     
     /**
      * The local storage ID

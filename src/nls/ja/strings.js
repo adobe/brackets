@@ -206,6 +206,7 @@ define({
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
 	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
+	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
@@ -284,6 +285,7 @@ define({
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
 	"CMD_QUICK_EDIT_NEXT_MATCH": "次の候補に移動",
+	"CMD_CSS_QUICK_EDIT_NEW_RULE": "新規ルール",
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
@@ -333,6 +335,9 @@ define({
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
     
+    // CSS Quick Edit
+	"BUTTON_NEW_RULE": "新規ルール",
+    
     // Extension Management strings
 	"INSTALL": "インストール",
 	"UPDATE": "更新",
@@ -380,6 +385,8 @@ define({
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
 	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "この拡張機能のバージョン {0} には {APP_NAME} の新しいバージョンが必要です。ただし、以前のバージョン {1} をインストールすることができます。",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "この拡張機能のバージョン {0} は {APP_NAME} の古いバージョンでのみ動作します。ただし、以前のバージョン {1} をインストールすることができます。",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
 	"EXTENSION_MORE_INFO": "詳細情報...",
 	"EXTENSION_ERROR": "拡張機能のエラー",
@@ -409,6 +416,10 @@ define({
 	"EXTENSIONS_INSTALLED_TITLE": "インストール済み",
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
+    
+	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
+	"CSS_QUICK_EDIT_NO_MATCHES": "選択に一致する既存の CSS ルールがありません。<br>「新規ルール」をクリックしてルールを作成してください。",
+	"CSS_QUICK_EDIT_NO_STYLESHEETS": "プロジェクトにはスタイルシートがありません。<br>スタイルシートを作成して CSS ルールに追加してください。",
     
     /**
      * Unit names
@@ -449,10 +460,15 @@ define({
 	"LOCALE_PT_PT": "ポルトガル語",
 	"LOCALE_RU": "ロシア語",
 	"LOCALE_SK": "スロバキア語",
+	"LOCALE_SR": "セルビア語",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
+    
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "時刻",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

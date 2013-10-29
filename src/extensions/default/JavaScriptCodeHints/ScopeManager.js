@@ -34,7 +34,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = brackets.getModule("lodash");
+    var _ = brackets.getModule("thirdparty/lodash");
     
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
         }
 
         var testPath = ProjectManager.makeProjectRelativeIfPossible(path);
-        testPath = FileUtils.canonicalizeFolderPath(testPath);
+        testPath = FileUtils.stripTrailingSlash(testPath);
 
         return excludes.test(testPath);
     }
@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
                     }
                 }
     
-                dir = FileUtils.canonicalizeFolderPath(dir);
+                dir = FileUtils.stripTrailingSlash(dir);
                 forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback);
             }
     

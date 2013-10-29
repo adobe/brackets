@@ -88,7 +88,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var DocumentModule      = require("document/Document"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
@@ -227,7 +227,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds the given file to the end of the working set list, if it is not already in the list.
+     * Adds the given file to the end of the working set list, if it is not already in the list
+     * and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
@@ -237,6 +238,11 @@ define(function (require, exports, module) {
     function addToWorkingSet(file, index, forceRedraw) {
         var indexRequested = (index !== undefined && index !== null && index !== -1);
         
+        // If the file has a custom viewer, then don't add it to the working set.
+        if (EditorManager.getCustomViewerForPath(file.fullPath)) {
+            return;
+        }
+            
         // If doc is already in working set, don't add it again
         var curIndex = findInWorkingSet(file.fullPath);
         if (curIndex !== -1) {
@@ -283,6 +289,8 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file list to the end of the working set list.
+     * If a file in the list has its own custom viewer, then it 
+     * is not added into the working set.
      * Does not change which document is currently open in the editor.
      * More efficient than calling addToWorkingSet() (in a loop) for
      * a list of files because there's only 1 redraw at the end
@@ -293,8 +301,10 @@ define(function (require, exports, module) {
 
         // Process only files not already in working set
         fileList.forEach(function (file, index) {
-            // If doc is already in working set, don't add it again
-            if (findInWorkingSet(file.fullPath) === -1) {
+            // If doc has a custom viewer, then don't add it to the working set.
+            // Or if doc is already in working set, don't add it again.
+            if (!EditorManager.getCustomViewerForPath(file.fullPath) &&
+                    findInWorkingSet(file.fullPath) === -1) {
                 uniqueFileList.push(file);
 
                 // Add
@@ -436,8 +446,8 @@ define(function (require, exports, module) {
             return null;
         }
         
-        if (_currentDocument) {
-            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
+        if (EditorManager.getCurrentlyViewedPath()) {
+            var mruI = findInWorkingSet(EditorManager.getCurrentlyViewedPath(), _workingSetMRUOrder);
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
                 if (_workingSetMRUOrder.length > 0) {
@@ -503,19 +513,22 @@ define(function (require, exports, module) {
 
         PerfUtils.addMeasurement(perfTimerName);
     }
+
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
     function _clearCurrentDocument() {
         // If editor already blank, do nothing
         if (!_currentDocument) {
             return;
+        } else {
+            // Change model & dispatch event
+            _currentDocument = null;
+            // (this event triggers EditorManager to actually clear the editor UI)
+            $(exports).triggerHandler("currentDocumentChange");
         }
-        
-        // Change model & dispatch event
-        _currentDocument = null;
-        $(exports).triggerHandler("currentDocumentChange");
-        // (this event triggers EditorManager to actually clear the editor UI)
     }
+    
+
     
     /**
      * Warning: low level API - use FILE_CLOSE command in most cases.
@@ -666,6 +679,7 @@ define(function (require, exports, module) {
                 getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
                 fileEntry = new NativeFileSystem.FileEntry(fullPath);
+                
                 FileUtils.readAsText(fileEntry)
                     .always(function () {
                         // document is no longer pending
@@ -679,10 +693,8 @@ define(function (require, exports, module) {
                         result.reject(fileError);
                     });
             }
-            
             // This is a good point to clean up any old dangling Documents
             result.done(_gcDocuments);
-            
             return promise;
         }
     }
@@ -958,10 +970,13 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSaved", doc);
         });
     
-
+    // For unit tests and internal use only
+    exports._clearCurrentDocument       = _clearCurrentDocument;
+    
     // Define public API
     exports.Document                    = DocumentModule.Document;
     exports.getCurrentDocument          = getCurrentDocument;
+    exports._clearCurrentDocument        = _clearCurrentDocument;
     exports.getDocumentForPath          = getDocumentForPath;
     exports.getOpenDocumentForPath      = getOpenDocumentForPath;
     exports.createUntitledDocument      = createUntitledDocument;

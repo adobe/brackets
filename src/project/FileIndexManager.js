@@ -39,7 +39,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
