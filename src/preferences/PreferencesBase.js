@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils"),
-        _                 = require("lodash"),
+        _                 = require("thirdparty/lodash"),
         Async             = require("utils/Async"),
         globmatch         = require("thirdparty/globmatch");
     
