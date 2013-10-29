@@ -90,7 +90,7 @@ define(function (require, exports, module) {
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
     // Initialize the file system
-    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    FileSystem.init(require("filesystem/impls/node/NodeFileSystem"));
     
     // parse URL parameters
     params.parse();

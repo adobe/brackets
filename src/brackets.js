@@ -122,7 +122,7 @@ define(function (require, exports, module) {
     
 
     // Initialize the file system
-    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    FileSystem.init(require("filesystem/impls/node/NodeFileSystem"));
     
     // Local variables
     var params = new UrlParams();
