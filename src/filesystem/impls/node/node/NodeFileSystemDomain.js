@@ -27,7 +27,8 @@
 "use strict";
 
 var Promise = require("bluebird"),
-    fs = Promise.promisifyAll(require("fs"));
+    callbackfs = require("fs"),
+    fs = Promise.promisifyAll(callbackfs);
 
 var _domainManager,
     _watcherMap = {};
@@ -69,6 +70,29 @@ function readFileCmd(path, encoding, callback) {
             return _addStats({data: filteredData}, stats);
         })
         .nodeify(callback);
+}
+
+function statCmd(path, callback) {
+    fs.statAsync(path)
+        .then(function (stats) {
+            return _addStats({}, stats);
+        })
+        .nodeify(callback);
+}
+
+function existsCmd(path, callback) {
+    callbackfs.exists(path, callback);
+}
+
+function writeFileCmd(path, data, encoding, callback) {
+    existsCmd(path, function (exists) {
+        fs.writeFileAsync(path, data, {encoding: encoding}).then(function () {
+            return fs.statAsync(path).then(function (stats) {
+                return _addStats({created: !exists}, stats);
+            });
+        })
+        .nodeify(callback);
+    });
 }
 
 /**
@@ -149,8 +173,8 @@ function init(domainManager) {
         }],
         [{
             name: "statObjs",
-            type: "Array.<{path: string, isFile: boolean, mtime: number, size: number}>",
-            description: "An array"
+            type: "Array.<{name: string, isFile: boolean, mtime: number, size: number}>",
+            description: "An array of objects, each of which contains a name and stat information"
         }]
     );
     domainManager.registerCommand(
@@ -170,8 +194,62 @@ function init(domainManager) {
         }],
         [{
             name: "statObjs",
-            type: "Array.<{path: string, isFile: boolean, mtime: number, size: number}>",
-            description: "An array"
+            type: "{data: string, isFile: boolean, mtime: number, size: number}",
+            description: "An object that contains data and stat information"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "stat",
+        statCmd,
+        true,
+        "Stat a file or directory",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the file or directory to stat"
+        }],
+        [{
+            name: "statObj",
+            type: "{isFile: boolean, mtime: number, size: number}",
+            description: "An object that contains stat information"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "exists",
+        statCmd,
+        true,
+        "Determine whether a file or directory exists",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the file or directory"
+        }],
+        [{
+            name: "exists",
+            type: "boolean",
+            description: "A boolean that indicates whether or not the file or directory exists"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "writeFile",
+        writeFileCmd,
+        true,
+        "Write data to a file with a given encoding",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the file or directory"
+        }, {
+            name: "data",
+            type: "string",
+            description: "data to write"
+        }, {
+            name: "encoding",
+            type: "string",
+            description: "encoding with which to write the data"
         }]
     );
     domainManager.registerCommand(

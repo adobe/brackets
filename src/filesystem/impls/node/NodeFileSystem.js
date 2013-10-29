@@ -86,8 +86,7 @@ define(function (require, exports, module) {
         switch (err.cause && err.cause.code) {
         case "ENOENT":
             return FileSystemError.NOT_FOUND;
-            break;
-        default: 
+        default:
             console.log("Unknown node error: ", err);
             return FileSystemError.UNKNOWN;
         }
@@ -175,25 +174,36 @@ define(function (require, exports, module) {
     }
     
     function stat(path, callback) {
-        appshell.fs.stat(path, function (err, stats) {
-            if (err) {
-                callback(_mapError(err));
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.stat(path)
+                    .done(function (statObj) {
+                        callback(null, _mapNodeStats(statObj));
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
+                    });
             } else {
-                var options = { isFile: stats.isFile(), mtime: stats.mtime, size: stats.size },
-                    fsStats = new FileSystemStats(options);
-                
-                callback(null, fsStats);
+                callback(FileSystemError.UNKNOWN);
             }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
         });
     }
     
     function exists(path, callback) {
-        stat(path, function (err) {
-            if (err) {
-                callback(false);
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.exists(path)
+                    .done(callback)
+                    .fail(function (err) {
+                        callback(false);
+                    });
             } else {
-                callback(true);
+                callback(false);
             }
+        }).fail(function (err) {
+            callback(false);
         });
     }
     
@@ -282,25 +292,31 @@ define(function (require, exports, module) {
             encoding = options.encoding || "utf8";
         }
         
-        exists(path, function (alreadyExists) {
-            appshell.fs.writeFile(path, data, encoding, function (err) {
-                if (err) {
-                    callback(_mapError(err));
-                } else {
-                    stat(path, function (err, stat) {
-                        callback(err, stat);
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.writeFile(path, data, encoding)
+                    .done(function (statObj) {
+                        var created = statObj.created,
+                            stat = _mapNodeStats(statObj);
+                        
+                        callback(null, stat);
                         
                         // Fake a file-watcher result until real watchers respond quickly
-                        if (alreadyExists) {
+                        if (!created) {
                             _changeCallback(path, stat);        // existing file modified
                         } else {
                             _changeCallback(_parentPath(path)); // new file created
                         }
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
                     });
-                }
-            });
+            } else {
+                callback(FileSystemError.UNKNOWN);
+            }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
         });
-        
     }
     
     function chmod(path, mode, callback) {
