@@ -162,7 +162,8 @@
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"],
+        "fileNames": ["Gemfile", "Rakefile"]
     },
 
     "python": {
