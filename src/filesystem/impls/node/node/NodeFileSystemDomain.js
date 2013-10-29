@@ -58,6 +58,23 @@ function readdirCmd(path, callback) {
         .nodeify(callback);
 }
 
+function readFileCmd(path, encoding, callback) {
+    fs.readFileAsync(path, {encoding: encoding})
+        .then(function (data) {
+            return fs.statAsync(path).then(function (stat) {
+                return {
+                    data: data,
+                    isFile: !stat.isDirectory(),
+                    mtime: stat.mtime.getTime(),
+                    size: stat.size
+                };
+            }, function (err) {
+                return {data: data};
+            });
+        })
+        .nodeify(callback);
+}
+
 /**
  * Un-watch a file or directory.
  * @param {string} path File or directory to unwatch.
@@ -133,6 +150,27 @@ function init(domainManager) {
             name: "path",
             type: "string",
             description: "absolute filesystem path of the directory to read"
+        }],
+        [{
+            name: "statObjs",
+            type: "Array.<{path: string, isFile: boolean, mtime: number, size: number}>",
+            description: "An array"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "readFile",
+        readFileCmd,
+        true,
+        "Read the contents of a file",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the file to read"
+        }, {
+            name: "encoding",
+            type: "string",
+            description: "encoding with which to read the file"
         }],
         [{
             name: "statObjs",

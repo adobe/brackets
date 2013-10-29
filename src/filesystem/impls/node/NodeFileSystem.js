@@ -82,23 +82,7 @@ define(function (require, exports, module) {
         if (!err) {
             return null;
         }
-        
-        switch (err) {
-        case appshell.fs.ERR_INVALID_PARAMS:
-            return FileSystemError.INVALID_PARAMS;
-        case appshell.fs.ERR_NOT_FOUND:
-            return FileSystemError.NOT_FOUND;
-        case appshell.fs.ERR_CANT_READ:
-            return FileSystemError.NOT_READABLE;
-        case appshell.fs.ERR_CANT_WRITE:
-            return FileSystemError.NOT_WRITABLE;
-        case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return FileSystemError.NOT_READABLE;
-        case appshell.fs.ERR_OUT_OF_SPACE:
-            return FileSystemError.OUT_OF_SPACE;
-        case appshell.fs.ERR_FILE_EXISTS:
-            return FileSystemError.ALREADY_EXISTS;
-        }
+
         return FileSystemError.UNKNOWN;
     }
     
@@ -206,8 +190,6 @@ define(function (require, exports, module) {
                                 names.push(statObj.name);
                                 return new FileSystemStats(statObj);
                             });
-                        console.log("Returning: ", JSON.stringify(statObjs));
-
                         callback(null, names, stats);
                     })
                     .fail(function (err) {
@@ -253,6 +235,25 @@ define(function (require, exports, module) {
         } else {
             encoding = options.encoding || "utf8";
         }
+        
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.readFile(path, encoding)
+                    .done(function (statObj) {
+                        var data = statObj.data,
+                            stat = statObj.mtime ? new FileSystemStats(statObj) : undefined;
+                        
+                        callback(null, data, stat);
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
+                    });
+            } else {
+                callback(FileSystemError.UNKNOWN);
+            }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
+        });
         
         appshell.fs.readFile(path, encoding, function (err, data) {
             if (err) {
