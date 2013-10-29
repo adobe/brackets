@@ -65,6 +65,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     require("utils/Global");
 
+    var _ = brackets.getModule("thirdparty/lodash");
+
     // Status Codes
     var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
     var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
@@ -75,7 +77,6 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
     var Async                = require("utils/Async"),
-        CollectionUtils      = require("utils/CollectionUtils"),
         FileIndexManager     = require("project/FileIndexManager"),
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
@@ -709,7 +710,7 @@ define(function LiveDevelopment(require, exports, module) {
             };
 
             while (!indexFileFound && stillInProjectTree) {
-                i = CollectionUtils.indexOf(filteredFiltered, filterIndexFile);
+                i = _.findIndex(filteredFiltered, filterIndexFile);
 
                 // We found no good match
                 if (i === -1) {
