@@ -828,35 +828,26 @@ define(function (require, exports, module) {
     
             /**
              * Helper function to get the text of a given document and send it to tern.
-             * If we successfully get the document from the DocumentManager then the text of 
-             * the document will be sent to the tern worker.
-             * The Promise for getDocumentForPath is returned so that custom fail functions can be
-             * used.
+             * If DocumentManager successfully gets the file's text then we'll send it to the tern worker.
+             * The Promise for getDocumentText() is returned so that custom fail functions can be used.
              *
              * @param {string} filePath - the path of the file to get the text of
-             * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentForPath 
+             * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
              */
             function getDocText(filePath) {
-                var result = new $.Deferred();
+                if (!FileSystem.isAbsolutePath(filePath)) {
+                    return new $.Deferred().reject();
+                }
                 
-                FileSystem.resolve(filePath, function (err, file) {
-                    if (!err && file.isFile) {
-                        DocumentManager.getDocumentForPath(filePath)
-                            .done(function (document) {
-                                resolvedFiles[name] = filePath;
-                                numResolvedFiles++;
-                                replyWith(name, getTextFromDocument(document));
-                                result.resolve();
-                            })
-                            .fail(function () {
-                                result.reject();
-                            });
-                    } else {
-                        result.reject();
-                    }
+                var file = FileSystem.getFileForPath(filePath),
+                    promise = DocumentManager.getDocumentText(file);
+                
+                promise.done(function (docText) {
+                    resolvedFiles[name] = filePath;
+                    numResolvedFiles++;
+                    replyWith(name, filterText(docText));
                 });
-                
-                return result.promise();
+                return promise;
             }
             
             /**
