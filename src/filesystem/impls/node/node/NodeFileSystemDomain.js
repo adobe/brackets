@@ -32,6 +32,13 @@ var Promise = require("bluebird"),
 var _domainManager,
     _watcherMap = {};
 
+function _addStats(obj, stats) {
+    obj.isFile = !stats.isDirectory();
+    obj.mtime = stats.mtime.getTime();
+    obj.size = stats.size;
+    return obj;
+}
+
 function readdirCmd(path, callback) {
     fs.readdirAsync(path)
         .then(function (names) {
@@ -43,13 +50,7 @@ function readdirCmd(path, callback) {
                 .then(function (inspectors) {
                     return inspectors.reduce(function (total, inspector, index) {
                         if (inspector.isFulfilled()) {
-                            var stat = inspector.value();
-                            total.push({
-                                name: names[index],
-                                isFile: !stat.isDirectory(),
-                                mtime: stat.mtime.getTime(),
-                                size: stat.size
-                            });
+                            total.push(_addStats({name: names[index]}, inspector.value()));
                         }
                         return total;
                     }, []);
@@ -59,18 +60,13 @@ function readdirCmd(path, callback) {
 }
 
 function readFileCmd(path, encoding, callback) {
-    fs.readFileAsync(path, {encoding: encoding})
-        .then(function (data) {
-            return fs.statAsync(path).then(function (stat) {
-                return {
-                    data: data,
-                    isFile: !stat.isDirectory(),
-                    mtime: stat.mtime.getTime(),
-                    size: stat.size
-                };
-            }, function (err) {
-                return {data: data};
-            });
+    var readPromise = fs.readFileAsync(path, {encoding: "binary"}),
+        statPromise = fs.statAsync(path);
+    
+    Promise.join(readPromise, statPromise)
+        .spread(function (data, stats) {
+            var filteredData = data.toString(encoding);
+            return _addStats({data: filteredData}, stats);
         })
         .nodeify(callback);
 }

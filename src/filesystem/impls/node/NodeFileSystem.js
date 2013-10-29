@@ -82,8 +82,25 @@ define(function (require, exports, module) {
         if (!err) {
             return null;
         }
+        
+        switch (err.cause && err.cause.code) {
+        case "ENOENT":
+            return FileSystemError.NOT_FOUND;
+            break;
+        default: 
+            console.log("Unknown node error: ", err);
+            return FileSystemError.UNKNOWN;
+        }
+    }
 
-        return FileSystemError.UNKNOWN;
+    function _mapNodeStats(stats) {
+        var options = {
+            isFile: stats.isFile,
+            mtime: new Date(stats.mtime),
+            size: stats.size
+        };
+
+        return new FileSystemStats(options);
     }
     
     /** Returns the path of the item's containing directory (item may be a file or a directory) */
@@ -188,7 +205,7 @@ define(function (require, exports, module) {
                         var names = [],
                             stats = statObjs.map(function (statObj) {
                                 names.push(statObj.name);
-                                return new FileSystemStats(statObj);
+                                return _mapNodeStats(statObj);
                             });
                         callback(null, names, stats);
                     })
@@ -241,7 +258,7 @@ define(function (require, exports, module) {
                 nodeConnection.domains.fileSystem.readFile(path, encoding)
                     .done(function (statObj) {
                         var data = statObj.data,
-                            stat = statObj.mtime ? new FileSystemStats(statObj) : undefined;
+                            stat = _mapNodeStats(statObj);
                         
                         callback(null, data, stat);
                     })
@@ -253,16 +270,6 @@ define(function (require, exports, module) {
             }
         }).fail(function (err) {
             callback(FileSystemError.UNKNOWN);
-        });
-        
-        appshell.fs.readFile(path, encoding, function (err, data) {
-            if (err) {
-                callback(_mapError(err), null);
-            } else {
-                stat(path, function (err, stat) {
-                    callback(err, data, stat);
-                });
-            }
         });
     }
     
