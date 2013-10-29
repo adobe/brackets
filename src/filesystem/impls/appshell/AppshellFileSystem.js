@@ -175,10 +175,14 @@ define(function (require, exports, module) {
         var stats = [];
         
         appshell.fs.readdir(path, function (err, contents) {
-            var i, count = contents.length;
-            
-            if (err || !count) {
+            if (err) {
                 callback(_mapError(err));
+                return;
+            }
+            
+            var count = contents.length;
+            if (!count) {
+                callback(null, [], []);
                 return;
             }
             
