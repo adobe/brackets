@@ -32,7 +32,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),

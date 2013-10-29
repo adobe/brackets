@@ -40,17 +40,25 @@
  *
  * FileSystem dispatches the following events:
  *    change - Sent whenever there is a change in the file system. The handler
- *          is passed one argument -- entry. The entry can be a File, Directory, or null.
- *          *  When entry is a File, the contents of the file have changed, and should
- *             be reloaded.
- *          *  When entry is a Directory, the contents of the directory have changed. This
- *             could be from items being added, removed, or renamed. 
- *          *  When entry is null, a 'wholesale' change happened, and you should assume
- *             that everything may have changed.
+ *          is passed one argument -- entry. This argument can be...
+ *          *  a File - the contents of the file have changed, and should be reloaded.
+ *          *  a Directory - an immediate child of the directory has been added, removed,
+ *             or renamed/moved. Not triggered for "grandchildren".
+ *          *  null - a 'wholesale' change happened, and you should assume everything may
+ *             have changed.
+ *          For changes made externally, there may be a significant delay before a "change" event
+ *          is dispatched.
  *    rename - Sent whenever a File or Directory is renamed. All affected File and Directory
- *          objects have been updated by the time this event is dispatched. This event 
- *          should be used to trigger an UI updates that may need to occur when a path
+ *          objects have been updated to reflect the new path by the time this event is dispatched.
+ *          This event should be used to trigger any UI updates that may need to occur when a path
  *          has changed.
+ * 
+ * FileSystem may perform caching. But it guarantees:
+ *    * File contents & metadata - reads are guaranteed to be up to date (cached data is not used
+ *      without first veryifying it is up to date).
+ *    * Directory structure / file listing - reads may return cached data immediately, which may not
+ *      reflect external changes made recently. (However, changes made via FileSystem itself are always
+ *      reflected immediately, as soon as the change operation's callback signals success).
  *
  * The FileSystem doesn't directly read or write contents--this work is done by a low-level
  * implementation object. This allows client code to use the FileSystem API without having to
@@ -342,6 +350,10 @@ define(function (require, exports, module) {
         }
     };
     
+    FileSystem.isAbsolutePath = function (path) {
+        return (path[0] === "/" || path[1] === ":");
+    };
+    
     /**
      * Returns a canonical version of the path: no duplicated "/"es, no ".."s,
      * and directories guaranteed to end in a trailing "/"
@@ -351,7 +363,7 @@ define(function (require, exports, module) {
      */
     function _normalizePath(path, isDirectory) {
         
-        console.assert(path[0] === "/" || path[1] === ":");  // expect only absolute paths
+        console.assert(FileSystem.isAbsolutePath(path), "Unexpected relative path '" + path + "'");  // expect only absolute paths
 
         // Remove duplicated "/"es
         path = path.replace(/\/{2,}/g, "/");
@@ -739,6 +751,9 @@ define(function (require, exports, module) {
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
     exports.watch = _wrap(FileSystem.prototype.watch);
     exports.unwatch = _wrap(FileSystem.prototype.unwatch);
+    
+    // Static public utility methods
+    exports.isAbsolutePath = FileSystem.isAbsolutePath;
     
     // Export "on" and "off" methods
     

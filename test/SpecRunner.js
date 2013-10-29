@@ -32,15 +32,14 @@ require.config({
         "perf"      : "../test/perf",
         "spec"      : "../test/spec",
         "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n",
-        "lodash"    : "thirdparty/lodash.custom.min"
+        "i18n"      : "thirdparty/i18n/i18n"
     }
 });
 
 define(function (require, exports, module) {
     'use strict';
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     // Utility dependency
     var AppInit                 = require("utils/AppInit"),
