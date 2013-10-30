@@ -233,13 +233,30 @@ define(function (require, exports, module) {
             encoding = options.encoding || "utf8";
         }
         
-        appshell.fs.readFile(path, encoding, function (err, data) {
-            if (err) {
-                callback(_mapError(err), null);
+        // Execute the read and stat calls in parallel
+        var done = false, data, stat, err;
+        
+        appshell.fs.readFile(path, encoding, function (_err, _data) {
+            if (_err) {
+                callback(_mapError(_err));
+                return;
+            }
+            
+            if (done) {
+                callback(err, _data, stat);
             } else {
-                stat(path, function (err, stat) {
-                    callback(err, data, stat);
-                });
+                done = true;
+                data = _data;
+            }
+        });
+
+        exports.stat(path, function (_err, _stat) {
+            if (done) {
+                callback(_err, data, _stat);
+            } else {
+                done = true;
+                stat = _stat;
+                err = _err;
             }
         });
     }
