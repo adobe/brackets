@@ -668,6 +668,10 @@ define(function (require, exports, module) {
             dialog = null;
             return;
         }
+        
+        var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
+            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
+        
         ProjectManager.getAllFiles(true)
             .done(function (fileListResult) {
                 Async.doInParallel(fileListResult, function (file) {
@@ -693,11 +697,13 @@ define(function (require, exports, module) {
                         // Done searching all files: show results
                         _showSearchResults();
                         StatusBar.hideBusyIndicator();
+                        PerfUtils.addMeasurement(perfTimer);
                         $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
                     })
                     .fail(function () {
                         console.log("find in files failed.");
                         StatusBar.hideBusyIndicator();
+                        PerfUtils.finalizeMeasurement(perfTimer);
                     });
             });
     }
