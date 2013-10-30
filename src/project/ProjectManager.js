@@ -1622,7 +1622,7 @@ define(function (require, exports, module) {
 
         
         function visitor(entry) {
-            if (entry.isFile && !isBinaryFile(entry.fullPath)) {
+            if (entry.isFile && !isBinaryFile(entry.name)) {
                 result.push(entry);
             }
             
