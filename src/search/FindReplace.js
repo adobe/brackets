@@ -476,7 +476,6 @@ define(function (require, exports, module) {
                     var match = results[$(checkedRow).data("match")],
                         rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/g, function (w, i) { return match.match[i]; });
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
-                    console.log(results);
                 });
             _closeReplaceAllPanel();
         });
