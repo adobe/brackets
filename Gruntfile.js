@@ -24,11 +24,66 @@
 module.exports = function (grunt) {
     'use strict';
 
+    // load dependencies
+    grunt.loadTasks('tasks');
+    
+    [
+        'grunt-contrib-jasmine',
+        'grunt-contrib-jshint',
+        'grunt-contrib-watch',
+        'grunt-contrib-clean',
+        'grunt-contrib-copy',
+        'grunt-contrib-concat',
+        'grunt-contrib-uglify',
+        'grunt-contrib-cssmin',
+        'grunt-contrib-concat',
+        'grunt-contrib-less',
+        'grunt-jasmine-node',
+        'grunt-usemin'
+    ].forEach(function (task) { grunt.loadNpmTasks(task); });
+
     var common = require("./tasks/lib/common")(grunt);
     
     // Project configuration.
     grunt.initConfig({
         pkg  : grunt.file.readJSON("package.json"),
+        clean: {
+            dist: ['dist']
+        },
+        copy: {
+            dist: {
+                files: [
+                    {
+                        expand: true,
+                        dest: 'dist/',
+                        cwd: 'src/',
+                        src: ['**']
+                    },
+                    {
+                        expand: true,
+                        dest: 'dist/css',
+                        cwd: 'src/styles',
+                        src: ['fonts/**', 'images/**']
+                    }
+                ]
+            }
+        },
+        less: {
+            css: {
+                files: {
+                    "src/styles/brackets.css": "src/styles/brackets.less"
+                }
+            }
+        },
+        useminPrepare: {
+            html: ['dist/index.html']
+        },
+        usemin: {
+            html: ['dist/index.html'],
+            options: {
+                dirs: ['dist/']
+            }
+        },
         meta : {
             src   : [
                 'src/**/*.js',
@@ -144,13 +199,6 @@ module.exports = function (grunt) {
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
-
-    // load dependencies
-    grunt.loadTasks('tasks');
-    grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-jasmine-node');
     
     // task: install
     grunt.registerTask('install', ['write-config']);
@@ -164,5 +212,10 @@ module.exports = function (grunt) {
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
 
     // Default task.
-    grunt.registerTask('default', ['test']);
+    grunt.registerTask('default', [
+        'less', 'test', 'clean', 'copy',
+        'useminPrepare',
+        'concat', 'uglify', 'cssmin',
+        'usemin'
+    ]);
 };
