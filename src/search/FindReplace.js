@@ -410,19 +410,19 @@ define(function (require, exports, module) {
      * @param {Editor} editor - Currently active editor that was used to invoke this action.
      * @param {string|RegExp} replaceWhat - Query that will be passed into CodeMirror Cursor to search for results.
      * @param {string} replaceWith - String that should be used to replace chosen results.
-     * @param {?function} replaceFunction - If replaceWhat is a RegExp, than this function is used to replace matches in that RegExp.
      */
-    function _showReplaceAllPanel(editor, replaceWhat, replaceWith, replaceFunction) {
+    function _showReplaceAllPanel(editor, replaceWhat, replaceWith) {
         var results = [],
             cm      = editor._codeMirror,
             cursor  = getSearchCursor(cm, replaceWhat),
             from,
             to,
             line,
-            multiLine;
+            multiLine,
+            matchResult = cursor.findNext();
 
         // Collect all results from document
-        while (cursor.findNext()) {
+        while (matchResult) {
             from      = cursor.from();
             to        = cursor.to();
             line      = editor.document.getLine(from.line);
@@ -435,12 +435,15 @@ define(function (require, exports, module) {
                 line:      from.line + 1,
                 pre:       line.slice(0, from.ch),
                 highlight: line.slice(from.ch, multiLine ? undefined : to.ch),
-                post:      multiLine ? "\u2026" : line.slice(to.ch)
+                post:      multiLine ? "\u2026" : line.slice(to.ch),
+                result:    matchResult
             });
 
             if (results.length >= REPLACE_ALL_MAX) {
                 break;
             }
+            
+            matchResult = cursor.findNext();
         }
 
         // This text contains some formatting, so all the strings are assumed to be already escaped
@@ -468,7 +471,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/g, replaceFunction);
+                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/g, function (w, i) { return match.result[i]; });
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -549,7 +552,7 @@ define(function (require, exports, module) {
                         } else if (e.target.id === "replace-no") {
                             advance();
                         } else if (e.target.id === "replace-all") {
-                            _showReplaceAllPanel(editor, query, text, function (w, i) { return match[i]; });
+                            _showReplaceAllPanel(editor, query, text);
                         } else if (e.target.id === "replace-stop") {
                             // Destroy modalBar on stop
                             modalBar = null;
