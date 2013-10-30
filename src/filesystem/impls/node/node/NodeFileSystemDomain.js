@@ -86,13 +86,41 @@ function existsCmd(path, callback) {
 
 function writeFileCmd(path, data, encoding, callback) {
     existsCmd(path, function (exists) {
-        fs.writeFileAsync(path, data, {encoding: encoding}).then(function () {
+        fs.writeFileAsync(path, data, {encoding: encoding})
+            .then(function () {
+                return fs.statAsync(path).then(function (stats) {
+                    return _addStats({created: !exists}, stats);
+                });
+            })
+            .nodeify(callback);
+    });
+}
+
+function mkdirCmd(path, mode, callback) {
+    fs.mkdirAsync(path, mode)
+        .then(function () {
             return fs.statAsync(path).then(function (stats) {
-                return _addStats({created: !exists}, stats);
+                return _addStats({}, stats);
             });
         })
         .nodeify(callback);
-    });
+}
+
+function renameCmd(oldPath, newPath, callback) {
+    fs.renameAsync(oldPath, newPath)
+        .nodeify(callback);
+}
+
+function unlinkCmd(path, callback) {
+    fs.statAsync(path)
+        .then(function (stats) {
+            if (stats.isDirectory()) {
+                return fs.rmdirAsync(path);
+            } else {
+                return fs.unlinkAsync(path);
+            }
+        })
+        .nodeify(callback);
 }
 
 /**
@@ -250,6 +278,60 @@ function init(domainManager) {
             name: "encoding",
             type: "string",
             description: "encoding with which to write the data"
+        }],
+        [{
+            name: "statObj",
+            type: "{isFile: boolean, mtime: number, size: number}",
+            description: "An object that contains stat information"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "mkdir",
+        mkdirCmd,
+        true,
+        "Create a new directory with a given mode",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the directory to create"
+        }, {
+            name: "mode",
+            type: "number",
+            description: "mode with which to create the directory"
+        }],
+        [{
+            name: "statObj",
+            type: "{isFile: boolean, mtime: number, size: number}",
+            description: "An object that contains stat information for the new directory"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "rename",
+        renameCmd,
+        true,
+        "Rename a file or directory",
+        [{
+            name: "oldPath",
+            type: "string",
+            description: "absolute filesystem path of the directory to rename"
+        }, {
+            name: "newPath",
+            type: "string",
+            description: "new absolute filesystem path"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "unlink",
+        unlinkCmd,
+        true,
+        "Delete a file or directory",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the directory to delete"
         }]
     );
     domainManager.registerCommand(

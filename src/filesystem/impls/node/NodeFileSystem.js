@@ -86,6 +86,10 @@ define(function (require, exports, module) {
         switch (err.cause && err.cause.code) {
         case "ENOENT":
             return FileSystemError.NOT_FOUND;
+        case "EEXIST":
+            return FileSystemError.ALREADY_EXISTS;
+        case "EPERM":
+            return FileSystemError.NOT_READABLE; // ???
         default:
             console.log("Unknown node error: ", err);
             return FileSystemError.UNKNOWN;
@@ -235,23 +239,44 @@ define(function (require, exports, module) {
             callback = mode;
             mode = parseInt("0755", 8);
         }
-        appshell.fs.makedir(path, mode, function (err) {
-            if (err) {
-                callback(_mapError(err));
+        
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.mkdir(path, mode)
+                    .done(function (statObj) {
+                        callback(null, _mapNodeStats(statObj));
+                        
+                         // Fake a file-watcher result until real watchers respond quickly
+                        _changeCallback(_parentPath(path));
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
+                    });
             } else {
-                stat(path, function (err, stat) {
-                    callback(err, stat);
-                    
-                    // Fake a file-watcher result until real watchers respond quickly
-                    _changeCallback(_parentPath(path));
-                });
+                callback(FileSystemError.UNKNOWN);
             }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
         });
     }
     
     function rename(oldPath, newPath, callback) {
-        appshell.fs.rename(oldPath, newPath, _wrap(callback));
-        // No need to fake a file-watcher result here: FileSystem already updates index on rename()
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.rename(oldPath, newPath)
+                    .done(function () {
+                        callback(null);
+                        // No need to fake a file-watcher result here: FileSystem already updates index on rename()                
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
+                    });
+            } else {
+                callback(FileSystemError.UNKNOWN);
+            }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
+        });
     }
     
     function readFile(path, options, callback) {
@@ -320,22 +345,48 @@ define(function (require, exports, module) {
     }
     
     function chmod(path, mode, callback) {
-        appshell.fs.chmod(path, mode, _wrap(callback));
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.chmod(path, mode)
+                    .done(function () {
+                        callback(null);
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
+                    });
+            } else {
+                callback(FileSystemError.UNKNOWN);
+            }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
+        });
     }
     
     function unlink(path, callback) {
-        appshell.fs.unlink(path, function (err) {
-            callback(_mapError(err));
-            
-            // Fake a file-watcher result until real watchers respond quickly
-            _changeCallback(_parentPath(path));
+        _nodeConnectionDeferred.done(function (nodeConnection) {
+            if (nodeConnection.connected()) {
+                nodeConnection.domains.fileSystem.unlink(path)
+                    .done(function () {
+                        callback(null);
+                        
+                        // Fake a file-watcher result until real watchers respond quickly
+                        _changeCallback(_parentPath(path));
+                    })
+                    .fail(function (err) {
+                        callback(_mapNodeError(err));
+                    });
+            } else {
+                callback(FileSystemError.UNKNOWN);
+            }
+        }).fail(function (err) {
+            callback(FileSystemError.UNKNOWN);
         });
     }
     
     function moveToTrash(path, callback) {
         appshell.fs.moveToTrash(path, function (err) {
             callback(_mapError(err));
-            
+           
             // Fake a file-watcher result until real watchers respond quickly
             _changeCallback(_parentPath(path));
         });
@@ -439,7 +490,7 @@ define(function (require, exports, module) {
     exports.writeFile       = writeFile;
     exports.chmod           = chmod;
     exports.unlink          = unlink;
-    exports.moveToTrash     = moveToTrash;
+//    exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
