@@ -437,13 +437,30 @@ define(function (require, exports, module) {
                         
                         // This is a file title row, expand/collapse on click
                         if ($row.hasClass("file-section")) {
-                            // Clicking the file section header collapses/expands result rows for that file
-                            $row.nextUntil(".file-section").toggle();
                             
-                            var $triangle = $(".disclosure-triangle", $row);
-                            $triangle.toggleClass("expanded").toggleClass("collapsed");
-                            
-                            searchResults[fullPath].collapsed = !searchResults[fullPath].collapsed;
+                            if (e.ctrlKey) { //Expand all / Collapse all
+                                var $titleRows = $(e.target).closest("table").find(".file-section"),
+                                    collapsed  = !searchResults[fullPath].collapsed;
+                                
+                                $titleRows.each(function () {
+                                    searchItem = searchList[$(this).data("file")];
+                                    fullPath   = searchItem.fullPath;
+                                    
+                                    if (searchResults[fullPath].collapsed !== collapsed) {
+                                        $(this).nextUntil(".file-section").toggle();
+                                        $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                    }
+                                });
+                                
+                                _.forEach(searchResults, function (item) {
+                                    item.collapsed = collapsed;
+                                });
+                            } else {
+                                // Clicking the file section header collapses/expands result rows for that file
+                                $row.nextUntil(".file-section").toggle();
+                                $row.find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                searchResults[fullPath].collapsed = !searchResults[fullPath].collapsed;
+                            }
                         
                         // This is a file row, show the result on click
                         } else {
