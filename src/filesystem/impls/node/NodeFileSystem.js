@@ -42,14 +42,6 @@ define(function (require, exports, module) {
     var NODE_CONNECTION_TIMEOUT = 30000,    // 30 seconds - TODO: share with StaticServer & Package?
         FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
-    /**
-     * @private
-     * @type{jQuery.Deferred.<NodeConnection>}
-     * A deferred which is resolved with a NodeConnection or rejected if
-     * we are unable to connect to Node.
-     */
-    var _nodeConnectionDeferred;
-    
     var _changeCallback,            // Callback to notify FileSystem of watcher changes
         _changeTimeout,             // Timeout used to batch up file watcher changes
         _pendingChanges = {};       // Pending file watcher changes
@@ -80,7 +72,7 @@ define(function (require, exports, module) {
     
     function _mapNodeError(err) {
         if (!err) {
-            return null;
+            return FileSystemError.UNKNOWN;
         }
         
         switch (err.cause && err.cause.code) {
@@ -115,50 +107,45 @@ define(function (require, exports, module) {
         return path.substr(0, lastSlash + 1);
     }
     
+    var _bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath = "node/NodeFileSystemDomain",
+        _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/");
+    
+    var _nodeConnection = new NodeConnection(),
+        _nodeConnectionPromise = null;
+    
+    function _connectToNode() {
+        return _nodeConnection
+            .connect(true)
+            .then(_nodeConnection.loadDomains.bind(_nodeConnection, _domainPath, true));
+    }
+
+    $(_nodeConnection).on("close", function (promise) {
+        _nodeConnectionPromise = _connectToNode();
+    });
+
+    function _execWhenConnected(name, args, callback, errback) {
+        function execConnected() {
+            var domain = _nodeConnection.domains.fileSystem,
+                fn = domain[name];
+
+            fn.apply(domain, args)
+                .done(callback)
+                .fail(errback);
+        }
+
+        if (_nodeConnection.connected()) {
+            execConnected();
+        } else {
+            _nodeConnectionPromise
+                .done(execConnected)
+                .fail(errback);
+        }
+    }
     
     function init(callback) {
-        if (!_nodeConnectionDeferred) {
-            _nodeConnectionDeferred = new $.Deferred();
-            
-            // TODO: This code is a copy of the AppInit function in extensibility/Package.js. This should be refactored
-            // into common code.
-            
-            
-            // Start up the node connection, which is held in the
-            // _nodeConnectionDeferred module variable. (Use 
-            // _nodeConnectionDeferred.done() to access it.
-            var connectionTimeout = window.setTimeout(function () {
-                console.error("[NodeFileSystem] Timed out while trying to connect to node");
-                _nodeConnectionDeferred.reject();
-            }, NODE_CONNECTION_TIMEOUT);
-            
-            var _nodeConnection = new NodeConnection();
-            _nodeConnection.connect(true).then(function () {
-                var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
-                    modulePath = FileUtils.getNativeModuleDirectoryPath(module),
-                    nodePath = "node/NodeFileSystemDomain",
-                    domainPath = [bracketsPath, modulePath, nodePath].join("/");
-                
-                _nodeConnection.loadDomains(domainPath, true)
-                    .then(
-                        function () {
-                            window.clearTimeout(connectionTimeout);
-                            _nodeConnectionDeferred.resolve(_nodeConnection);
-                        },
-                        function () { // Failed to connect
-                            console.error("[NodeFileSystem] Failed to connect to node", arguments);
-                            window.clearTimeout(connectionTimeout);
-                            _nodeConnectionDeferred.reject();
-                        }
-                    );
-            });
-        }
-        
-        // Don't want to block on _nodeConnectionDeferred because we're needed as the 'root' fs
-        // at startup -- and the Node-side stuff isn't needed for most functionality anyway.
-        if (callback) {
-            callback();
-        }
+        _nodeConnectionPromise = _connectToNode().done(callback);
     }
     
     function _wrap(cb) {
@@ -178,60 +165,32 @@ define(function (require, exports, module) {
     }
     
     function stat(path, callback) {
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.stat(path)
-                    .done(function (statObj) {
-                        callback(null, _mapNodeStats(statObj));
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+        _execWhenConnected("stat", [path],
+            function (statObj) {
+                callback(null, _mapNodeStats(statObj));
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function exists(path, callback) {
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.exists(path)
-                    .done(callback)
-                    .fail(function (err) {
-                        callback(false);
-                    });
-            } else {
-                callback(false);
-            }
-        }).fail(function (err) {
-            callback(false);
-        });
+        _execWhenConnected("exists", [path],
+            callback,
+            callback.bind(undefined, false));
     }
     
     function readdir(path, callback) {
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.readdir(path)
-                    .done(function (statObjs) {
-                        var names = [],
-                            stats = statObjs.map(function (statObj) {
-                                names.push(statObj.name);
-                                return _mapNodeStats(statObj);
-                            });
-                        callback(null, names, stats);
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
+        _execWhenConnected("readdir", [path],
+            function (statObjs) {
+                var names = [],
+                    stats = statObjs.map(function (statObj) {
+                        names.push(statObj.name);
+                        return _mapNodeStats(statObj);
                     });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+                callback(null, names, stats);
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function mkdir(path, mode, callback) {
@@ -239,44 +198,26 @@ define(function (require, exports, module) {
             callback = mode;
             mode = parseInt("0755", 8);
         }
-        
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.mkdir(path, mode)
-                    .done(function (statObj) {
-                        callback(null, _mapNodeStats(statObj));
-                        
-                         // Fake a file-watcher result until real watchers respond quickly
-                        _changeCallback(_parentPath(path));
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+
+        _execWhenConnected("mkdir", [path, mode],
+            function (statObj) {
+                callback(null, _mapNodeStats(statObj));
+                
+                 // Fake a file-watcher result until real watchers respond quickly
+                _changeCallback(_parentPath(path));
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function rename(oldPath, newPath, callback) {
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.rename(oldPath, newPath)
-                    .done(function () {
-                        callback(null);
-                        // No need to fake a file-watcher result here: FileSystem already updates index on rename()                
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+        _execWhenConnected("rename", [oldPath, newPath],
+            function () {
+                callback(null);
+                // No need to fake a file-watcher result here: FileSystem already updates index on rename()                
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function readFile(path, options, callback) {
@@ -287,25 +228,16 @@ define(function (require, exports, module) {
         } else {
             encoding = options.encoding || "utf8";
         }
-        
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.readFile(path, encoding)
-                    .done(function (statObj) {
-                        var data = statObj.data,
-                            stat = _mapNodeStats(statObj);
-                        
-                        callback(null, data, stat);
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+
+        _execWhenConnected("readFile", [path, encoding],
+            function (statObj) {
+                var data = statObj.data,
+                    stat = _mapNodeStats(statObj);
+                
+                callback(null, data, stat);
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function writeFile(path, data, options, callback) {
@@ -316,80 +248,43 @@ define(function (require, exports, module) {
         } else {
             encoding = options.encoding || "utf8";
         }
-        
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.writeFile(path, data, encoding)
-                    .done(function (statObj) {
-                        var created = statObj.created,
-                            stat = _mapNodeStats(statObj);
-                        
-                        callback(null, stat);
-                        
-                        // Fake a file-watcher result until real watchers respond quickly
-                        if (!created) {
-                            _changeCallback(path, stat);        // existing file modified
-                        } else {
-                            _changeCallback(_parentPath(path)); // new file created
-                        }
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+
+        _execWhenConnected("writeFile", [path, data, encoding],
+            function (statObj) {
+                var created = statObj.created,
+                    stat = _mapNodeStats(statObj);
+                
+                callback(null, stat);
+                
+                // Fake a file-watcher result until real watchers respond quickly
+                if (!created) {
+                    _changeCallback(path, stat);        // existing file modified
+                } else {
+                    _changeCallback(_parentPath(path)); // new file created
+                }
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function chmod(path, mode, callback) {
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.chmod(path, mode)
-                    .done(function () {
-                        callback(null);
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
+        _execWhenConnected("chmod", [path, mode],
+            callback.bind(undefined, null),
+            function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     function unlink(path, callback) {
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileSystem.unlink(path)
-                    .done(function () {
-                        callback(null);
-                        
-                        // Fake a file-watcher result until real watchers respond quickly
-                        _changeCallback(_parentPath(path));
-                    })
-                    .fail(function (err) {
-                        callback(_mapNodeError(err));
-                    });
-            } else {
-                callback(FileSystemError.UNKNOWN);
-            }
-        }).fail(function (err) {
-            callback(FileSystemError.UNKNOWN);
-        });
-    }
-    
-    function moveToTrash(path, callback) {
-        appshell.fs.moveToTrash(path, function (err) {
-            callback(_mapError(err));
-           
-            // Fake a file-watcher result until real watchers respond quickly
-            _changeCallback(_parentPath(path));
-        });
+        _execWhenConnected("unlink", [path],
+            function () {
+                callback(null);
+                
+                // Fake a file-watcher result until real watchers respond quickly
+                _changeCallback(_parentPath(path));
+            }, function (err) {
+                callback(_mapNodeError(err));
+            });
     }
     
     /* File watchers are temporarily disabled
@@ -438,7 +333,7 @@ define(function (require, exports, module) {
         });
         
         /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
+        _nodeConnectionPromise.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 _fileWatcherChange.callback = callback;
                 $(nodeConnection).on("fileWatcher.change", _fileWatcherChange);
@@ -449,7 +344,7 @@ define(function (require, exports, module) {
     
     function watchPath(path) {
         /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
+        _nodeConnectionPromise.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.fileWatcher.watchPath(path);
             }
@@ -459,7 +354,7 @@ define(function (require, exports, module) {
     
     function unwatchPath(path) {
         /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
+        _nodeConnectionPromise.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.fileWatcher.unwatchPath(path);
             }
@@ -469,7 +364,7 @@ define(function (require, exports, module) {
     
     function unwatchAll() {
         /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
+        _nodeConnectionPromise.done(function (nodeConnection) {
             if (nodeConnection.connected()) {
                 nodeConnection.domains.fileWatcher.unwatchAll();
             }
@@ -490,7 +385,6 @@ define(function (require, exports, module) {
     exports.writeFile       = writeFile;
     exports.chmod           = chmod;
     exports.unlink          = unlink;
-//    exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
