@@ -27,7 +27,7 @@
 "use strict";
 
 var Promise = require("bluebird"),
-    callbackfs = require("fs"),
+    callbackfs = require("fs-extra"),
     fs = Promise.promisifyAll(callbackfs);
 
 var _domainManager,
@@ -111,15 +111,13 @@ function renameCmd(oldPath, newPath, callback) {
         .nodeify(callback);
 }
 
+function chmodCmd(path, mode, callback) {
+    fs.chmodAsync(path, mode)
+        .nodeify(callback);
+}
+
 function unlinkCmd(path, callback) {
-    fs.statAsync(path)
-        .then(function (stats) {
-            if (stats.isDirectory()) {
-                return fs.rmdirAsync(path);
-            } else {
-                return fs.unlinkAsync(path);
-            }
-        })
+    fs.removeAsync(path)
         .nodeify(callback);
 }
 
@@ -304,6 +302,22 @@ function init(domainManager) {
             name: "statObj",
             type: "{isFile: boolean, mtime: number, size: number}",
             description: "An object that contains stat information for the new directory"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileSystem",
+        "chmod",
+        chmodCmd,
+        true,
+        "Chnage the mode of the given file",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the file or directory"
+        }, {
+            name: "mode",
+            type: "number",
+            description: "mode to which the file or directory should be changed"
         }]
     );
     domainManager.registerCommand(
