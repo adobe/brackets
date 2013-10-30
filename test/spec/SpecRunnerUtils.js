@@ -282,7 +282,7 @@ define(function (require, exports, module) {
             _stat(folder)
                 .done(function () {
                     // Change permissions if the directory exists
-                    chmod(folder, 777).then(deferred.resolve, deferred.reject);
+                    chmod(folder, "777").then(deferred.resolve, deferred.reject);
                 })
                 .fail(function (err) {
                     if (err === FileSystemError.NOT_FOUND) {
