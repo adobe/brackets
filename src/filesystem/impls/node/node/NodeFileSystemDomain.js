@@ -29,7 +29,8 @@
 
 var Promise = require("bluebird"),
     callbackfs = require("fs-extra"),
-    fs = Promise.promisifyAll(callbackfs);
+    fs = Promise.promisifyAll(callbackfs),
+    isBinaryFile = require("isbinaryfile");
 
 var _domainManager,
     _watcherMap = {};
@@ -66,12 +67,18 @@ function strencode(data) {
 }
 
 function readFileCmd(path, encoding, callback) {
-    var readPromise = fs.readFileAsync(path, {encoding: "utf8"}),
+    var readPromise = fs.readFileAsync(path),
         statPromise = fs.statAsync(path);
     
     Promise.join(readPromise, statPromise)
         .spread(function (data, stats) {
-            return _addStats({data: strencode(data)}, stats);
+            if (isBinaryFile(data, stats.size)) {
+                return Promise.rejected("Binary file");
+            } else {
+                var utf8Data = data.toString(encoding),
+                    encodedData = strencode(utf8Data);
+                return _addStats({data: encodedData}, stats);
+            }
         })
         .nodeify(callback);
 }
