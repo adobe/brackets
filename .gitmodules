@@ -28,3 +28,6 @@
 [submodule "src/extensions/default/JSLint/thirdparty/jslint"]
 	path = src/extensions/default/JSLint/thirdparty/jslint
 	url = https://github.com/douglascrockford/JSLint.git
+[submodule "src/filesystem/impls/node"]
+	path = src/filesystem/impls/node
+	url = https://github.com/iwehrman/brackets-node-filesystem.git
