@@ -506,7 +506,8 @@ define(function (require, exports, module) {
         }
         
         // Ignore clicks in editor and clicks on filename link
-        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$editorHolder))) {
+        // Check clicks on filename link in the context of the current inline widget.
+        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$htmlContent))) {
             childEditor.focus();
             // Only set the cursor if the click isn't in the range list.
             if (!containsClick(this.$relatedContainer)) {

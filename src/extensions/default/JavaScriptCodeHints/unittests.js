@@ -471,7 +471,7 @@ define(function (require, exports, module) {
                 expectNoHints(JSCodeHints.jsHintProvider);
             });
 
-            it("should list declared variable and function names in outer scope", function () {
+            xit("should list declared variable and function names in outer scope", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["A2", "A3", "funB", "A1"]);

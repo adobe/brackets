@@ -1442,9 +1442,9 @@ define(function (require, exports, module) {
         var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
         entry.rename(newName, function (err) {
             if (!err) {
-                if (DocumentManager.getCurrentDocument()) {
+                if (EditorManager.getCurrentlyViewedPath()) {
                     FileViewController.openAndSelectDocument(
-                        DocumentManager.getCurrentDocument().file.fullPath,
+                        EditorManager.getCurrentlyViewedPath(),
                         FileViewController.getFileSelectionFocus()
                     );
                 }
