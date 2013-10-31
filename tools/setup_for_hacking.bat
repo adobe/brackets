@@ -24,7 +24,7 @@ GOTO Exit
 ECHO Usage: setup_for_hacking.bat application_path
 ECHO Setup Brackets to use the HTML/CSS/JS files pulled from GitHub.
 ECHO Parameters: application_path - path that contains the Brackets application
-ECHO Example: setup_for_hacking.bat "c:\Program Files (x86)\Brackets Sprint 14"
+ECHO Example: setup_for_hacking.bat "c:\Program Files (x86)\Brackets"
 GOTO Exit
 
 :XPNotSupported
