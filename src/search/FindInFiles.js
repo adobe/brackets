@@ -432,7 +432,7 @@ define(function (require, exports, module) {
                         // This is a file title row, expand/collapse on click
                         if ($row.hasClass("file-section")) {
                             
-                            if (e.ctrlKey) { //Expand all / Collapse all
+                            if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
                                 var $titleRows = $(e.target).closest("table").find(".file-section"),
                                     collapsed  = !searchResults[fullPath].collapsed;
                                 
