@@ -88,7 +88,7 @@ define(function (require, exports, module) {
             var member = entry[property];
             if (typeof member === "function") {
                 entry[property] = function () {
-                    console.warn("FileSystemEntry used after being removed index: ", path, new Error().stack);
+                    console.warn("FileSystemEntry used after being removed from index: ", path);
                     return member.apply(entry, arguments);
                 };
             }
