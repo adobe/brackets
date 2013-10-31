@@ -417,7 +417,7 @@ define(function (require, exports, module) {
             // Insert the search results
             $searchContent
                 .empty()
-                .append(Mustache.render(searchResultsTemplate, {searchList: searchList, 
+                .append(Mustache.render(searchResultsTemplate, {searchList: searchList,
                                                                 triangleTitle: Strings.FIND_IN_FILES_EXPAND_COLLAPSE}))
                 .scrollTop(0)        // Otherwise scroll pos from previous contents is remembered
                 .off(".searchList")  // Remove the old events
@@ -437,12 +437,12 @@ define(function (require, exports, module) {
                             fullPath   = searchItem.fullPath;
                         
                         // This is a file title row, expand/collapse on click
-                        if ($row.hasClass("file-section")) {                            
-                            var $titleRows, 
+                        if ($row.hasClass("file-section")) {
+                            var $titleRows,
                                 collapsed = !searchResults[fullPath].collapsed;
                             
                             if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
-                                $titleRows = $(e.target).closest("table").find(".file-section");                               
+                                $titleRows = $(e.target).closest("table").find(".file-section");
                             } else {
                                 // Clicking the file section header collapses/expands result rows for that file
                                 $titleRows = $row;
@@ -450,7 +450,7 @@ define(function (require, exports, module) {
                             
                             $titleRows.each(function () {
                                 fullPath   = searchList[$(this).data("file")].fullPath;
-                                searchItem = searchResults[fullPath]
+                                searchItem = searchResults[fullPath];
 
                                 if (searchItem.collapsed !== collapsed) {
                                     searchItem.collapsed = collapsed;
@@ -490,7 +490,7 @@ define(function (require, exports, module) {
                         searchResults[fullPath].collapsed = false;
                         $(this).trigger("click");
                     }
-                });            
+                });
             
             if ($selectedRow) {
                 $selectedRow.removeClass("selected");
