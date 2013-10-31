@@ -1,15 +1,17 @@
-.timing-function-editor .coordinate-plane:after {
+.bezier-curve-editor .coordinate-plane:after,
+.step-editor .coordinate-plane:after {
     content: '{{INLINE_TIMING_EDITOR_TIME}}';
 }
 
-.timing-function-editor .coordinate-plane:hover:before {
+.bezier-curve-editor .coordinate-plane:hover:before {
     content: '{{INLINE_TIMING_EDITOR_PROGRESSION}} (' attr(data-progression) '%)';
 }
 
-.timing-function-editor .coordinate-plane:before {
+.bezier-curve-editor .coordinate-plane:before,
+.step-editor .coordinate-plane:before {
     content: '{{INLINE_TIMING_EDITOR_PROGRESSION}}';
 }
 
-.timing-function-editor .coordinate-plane:hover:after {
+.bezier-curve-editor .coordinate-plane:hover:after {
     content: '{{INLINE_TIMING_EDITOR_TIME}} (' attr(data-time) '%)';
 }
