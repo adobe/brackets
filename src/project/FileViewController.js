@@ -157,7 +157,8 @@ define(function (require, exports, module) {
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && curDoc.file.fullPath === fullPath) {
+        if (curDoc && curDoc.file.fullPath === fullPath &&
+                !EditorManager.getCustomViewerForPath(fullPath)) {
             _selectCurrentDocument();
             result = (new $.Deferred()).resolve().promise();
         } else {
