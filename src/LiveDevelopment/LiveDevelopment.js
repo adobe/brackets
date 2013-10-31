@@ -155,6 +155,7 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _openDeferred;        // promise returned for each call to open()
+    var _liveBrowserStarted;  // indicates live browser session status
     
     /**
      * Current live preview server
@@ -784,6 +785,21 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
+    function _closeLiveBrowser(deferred, reason) {
+        NativeApp.closeLiveBrowser()
+            .done(function () {
+                _liveBrowserStarted = false;
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            })
+            .fail(function (err) {
+                // Report error?
+                _setStatus(STATUS_ERROR);
+                deferred.reject("CLOSE_LIVE_BROWSER");
+            });
+    }
+    
+
     /**
      * @private
      * Close the connection and the associated window asynchronously
@@ -799,8 +815,7 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-            deferred.resolve();
+            _closeLiveBrowser(deferred, reason);
         }
 
         if (_openDeferred) {
@@ -815,7 +830,7 @@ define(function LiveDevelopment(require, exports, module) {
             // ProjectManager beforeProjectClose and beforeAppClose events
             cleanup();
         }
-        
+                
         return deferred.promise();
     }
 
@@ -1056,39 +1071,6 @@ define(function LiveDevelopment(require, exports, module) {
                 return;
             }
             retryCount++;
-
-            if (!browserStarted && exports.status !== STATUS_ERROR) {
-                NativeApp.openLiveBrowser(
-                    launcherUrl,
-                    true        // enable remote debugging
-                )
-                    .done(function () {
-                        browserStarted = true;
-                    })
-                    .fail(function (err) {
-                        var message;
-
-                        _setStatus(STATUS_ERROR);
-                        if (err === NativeFileError.NOT_FOUND_ERR) {
-                            message = Strings.ERROR_CANT_FIND_CHROME;
-                        } else {
-                            message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
-                        }
-                        
-                        // Append a message to direct users to the troubleshooting page.
-                        if (message) {
-                            message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
-                        }
-
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_LAUNCHING_BROWSER_TITLE,
-                            message
-                        );
-
-                        _openDeferred.reject("OPEN_LIVE_BROWSER");
-                    });
-            }
                 
             if (exports.status !== STATUS_ERROR) {
                 window.setTimeout(function retryConnect() {
@@ -1098,6 +1080,49 @@ define(function LiveDevelopment(require, exports, module) {
         });
     }
     
+    function _openLiveBrowser() {
+        var deferred    = $.Deferred();
+
+        if (!_liveBrowserStarted && exports.status !== STATUS_ERROR) {
+            NativeApp.openLiveBrowser(
+                launcherUrl,
+                true        // enable remote debugging
+            )
+                .done(function () {
+                    _liveBrowserStarted = true;
+                    deferred.resolve();
+                })
+                .fail(function (err) {
+                    var message;
+                    
+                    _setStatus(STATUS_ERROR);
+                    if (err === NativeFileError.NOT_FOUND_ERR) {
+                        message = Strings.ERROR_CANT_FIND_CHROME;
+                    } else {
+                        message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
+                    }
+                    
+                    // Append a message to direct users to the troubleshooting page.
+                    if (message) {
+                        message += " " + StringUtils.format(Strings.LIVE_DEVELOPMENT_TROUBLESHOOTING, brackets.config.troubleshoot_url);
+                    }
+                    
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_LAUNCHING_BROWSER_TITLE,
+                        message
+                    );
+                    
+                    _liveBrowserStarted = false;
+                    deferred.reject("OPEN_LIVE_BROWSER");
+                });
+        } else {
+            deferred.resolve();
+        }
+        
+        return deferred.promise();
+    }
+
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
     function _doLaunchAfterServerReady(initialDoc) {
@@ -1116,7 +1141,11 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector).one("connect", _onConnect);
         
         // open browser to the interstitial page to prepare for loading agents
-        _openInterstitialPage();
+        _openLiveBrowser().done(function () {
+            _openInterstitialPage();
+        }).fail(function (err) {
+            _openDeferred.reject(err || "OPEN_LIVE_BROWSER");
+        });
     }
     
     function _prepareServer(doc) {
