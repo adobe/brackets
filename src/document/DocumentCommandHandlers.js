@@ -579,7 +579,7 @@ define(function (require, exports, module) {
             result = new $.Deferred();
         
         function _doSaveAfterSaveDialog(path) {
-            var newFile = FileSystem.getFileForPath(path);
+            var newFile;
             
             // Reconstruct old doc's editor's view state, & finally resolve overall promise
             function _configureEditorAndResolve() {
@@ -627,6 +627,7 @@ define(function (require, exports, module) {
             }
             
             // First, write document's current text to new file
+            newFile = FileSystem.getFileForPath(path);
             FileUtils.writeText(newFile, doc.getText()).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
