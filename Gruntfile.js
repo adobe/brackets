@@ -25,22 +25,8 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-usemin']});
     grunt.loadTasks('tasks');
-    
-    [
-        'grunt-contrib-jasmine',
-        'grunt-contrib-jshint',
-        'grunt-contrib-watch',
-        'grunt-contrib-clean',
-        'grunt-contrib-copy',
-        'grunt-contrib-concat',
-        'grunt-contrib-uglify',
-        'grunt-contrib-cssmin',
-        'grunt-contrib-concat',
-        'grunt-contrib-less',
-        'grunt-jasmine-node',
-        'grunt-usemin'
-    ].forEach(function (task) { grunt.loadNpmTasks(task); });
 
     var common = require("./tasks/lib/common")(grunt);
     
@@ -53,17 +39,41 @@ module.exports = function (grunt) {
         copy: {
             dist: {
                 files: [
+                    /* static files */
                     {
                         expand: true,
                         dest: 'dist/',
                         cwd: 'src/',
-                        src: ['**']
+                        src: [
+                            'config.json',
+                            'nls/{,*/}*.js',
+                            'xorigin.js',
+                            'dependencies.js',
+                            'thirdparty/requirejs/require.js',
+                            'thirdparty/CodeMirror2/**/*',
+                            'thirdparty/i18n/*.js',
+                            'thirdparty/text/*.js'
+                        ]
                     },
+                    /* extensions and CodeMirror modes */
                     {
                         expand: true,
-                        dest: 'dist/css',
+                        dest: 'dist/',
+                        cwd: 'src/',
+                        src: [
+                            'extensibility/**/*',
+                            'extensions/default/**/*',
+                            'thirdparty/CodeMirror2/**/*',
+                            'thirdparty/i18n/*.js',
+                            'thirdparty/text/*.js'
+                        ]
+                    },
+                    /* styles, fonts and images */
+                    {
+                        expand: true,
+                        dest: 'dist/styles',
                         cwd: 'src/styles',
-                        src: ['fonts/**', 'images/**']
+                        src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*']
                     }
                 ]
             }
@@ -75,13 +85,58 @@ module.exports = function (grunt) {
                 }
             }
         },
+        requirejs: {
+            dist: {
+                // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
+                options: {
+                    // `name` and `out` is set by grunt-usemin
+                    baseUrl: 'src',
+                    optimize: 'none',
+                    // TODO: Figure out how to make sourcemaps work with grunt-usemin
+                    // https://github.com/yeoman/grunt-usemin/issues/30
+                    //generateSourceMaps: true,
+                    // required to support SourceMaps
+                    // http://requirejs.org/docs/errors.html#sourcemapcomments
+                    preserveLicenseComments: true,
+                    useStrict: true,
+                    // Disable closure, we want define/require to be globals
+                    wrap: false
+                    //uglify2: {} // https://github.com/mishoo/UglifyJS2
+                }
+            }
+        },
         useminPrepare: {
-            html: ['dist/index.html']
+            options: {
+                dest: 'dist'
+            },
+            html: 'src/index.html'
         },
         usemin: {
-            html: ['dist/index.html'],
             options: {
-                dirs: ['dist/']
+                dirs: ['dist']
+            },
+            html: ['dist/{,*/}*.html'],
+            css: ['dist/css/{,*/}*.css']
+        },
+        htmlmin: {
+            dist: {
+                options: {
+                    /*removeCommentsFromCDATA: true,
+                    // https://github.com/yeoman/grunt-usemin/issues/44
+                    //collapseWhitespace: true,
+                    collapseBooleanAttributes: true,
+                    removeAttributeQuotes: true,
+                    removeRedundantAttributes: true,
+                    useShortDoctype: true,
+                    removeEmptyAttributes: true,
+                    removeOptionalTags: true*/
+                },
+                files: [{
+                    expand: true,
+                    cwd: 'src',
+                    src: '*.html',
+                    dest: 'dist'
+                }]
             }
         },
         meta : {
@@ -213,9 +268,16 @@ module.exports = function (grunt) {
 
     // Default task.
     grunt.registerTask('default', [
-        'less', 'test', 'clean', 'copy',
+        'test',
+        'less',
+        'clean',
         'useminPrepare',
-        'concat', 'uglify', 'cssmin',
+        'htmlmin',
+        'requirejs',
+        'concat',
+        'cssmin',
+        'uglify',
+        'copy',
         'usemin'
     ]);
 };

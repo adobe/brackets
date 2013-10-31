@@ -56,7 +56,9 @@ define(function (require, exports, module) {
             // which we have to return true (issue #3152).
             return (eventName === Commands.FILE_CLOSE_WINDOW);
         }
-        var promise, e = new Error(), stackDepth = e.stack.split("\n").length;
+
+        // Use E for Error so that uglify doesn't change this to simply Error()
+        var promise, E = Error, e = new E(), stackDepth = e.stack.split("\n").length;
         
         // This function should *only* be called as a top-level function. If the current
         // stack depth is > 2, it is most likely because we are at a breakpoint. 

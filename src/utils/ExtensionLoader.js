@@ -69,7 +69,11 @@ define(function (require, exports, module) {
      * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
      */
     function getUserExtensionPath() {
-        return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
+        if (brackets.app.getApplicationSupportDirectory) {
+            return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
+        }
+
+        return null;
     }
     
     /**
@@ -270,7 +274,9 @@ define(function (require, exports, module) {
             },
             function (error) {
                 console.error("[Extension] Error -- could not open native directory: " + directory);
-                result.reject();
+
+                // Silently ignore error
+                result.resolve();
             });
         
         return result.promise();
@@ -337,8 +343,10 @@ define(function (require, exports, module) {
         // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
         // during extension loading.
         var extensionPath = getUserExtensionPath();
-        new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
-                                                           {create: true});
+
+        if (extensionPath) {
+            new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath, {create: true});
+        }
         
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");

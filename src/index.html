@@ -35,7 +35,7 @@
     <script type="application/javascript" src="xorigin.js">
     </script>
 
-    <!-- build:css css/brackets.min.css -->
+    <!-- build:css styles/brackets.min.css -->
     <link rel="stylesheet" type="text/css" href="thirdparty/CodeMirror2/lib/codemirror.css">
     <link rel="stylesheet" type="text/css" href="styles/brackets.css">
     <!-- endbuild -->
@@ -43,7 +43,7 @@
     <!-- JavaScript -->
 
     <!-- Pre-load third party scripts that cannot be async loaded. -->
-    <!-- build:js js/thirdparty.min.js -->
+    <!-- build:js thirdparty/thirdparty.min.js -->
     <script src="thirdparty/less-1.4.2.min.js"></script>
     <script src="thirdparty/mustache/mustache.js"></script>
     <script src="thirdparty/jquery-2.0.1.min.js"></script>
@@ -67,7 +67,9 @@
     -->
     
     <!-- All other scripts are loaded through require. -->
-    <script src="thirdparty/requirejs/require.js" data-main="brackets"></script>
+    <!-- build:js main.js -->
+    <script src="thirdparty/requirejs/require.js" data-main="main"></script>
+    <!-- endbuild -->
 
     <!-- Verify that all dependencies are loaded. -->
     <script src="dependencies.js"></script>
