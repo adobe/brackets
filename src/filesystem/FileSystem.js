@@ -469,7 +469,6 @@ define(function (require, exports, module) {
         // Update all affected entries in the index
         this._index.entryRenamed(oldName, newName, isDirectory);
         $(this).trigger("rename", [oldName, newName]);
-        console.log("rename: ", oldName, newName);
     };
     
     /**
@@ -526,7 +525,6 @@ define(function (require, exports, module) {
         var fireChangeEvent = function (entry) {
             // Trigger a change event
             $(this).trigger("change", entry);
-            console.log("change: ", entry);
         }.bind(this);
 
         if (!this._index) {
