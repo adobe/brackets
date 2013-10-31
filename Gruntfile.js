@@ -49,10 +49,7 @@ module.exports = function (grunt) {
                             'nls/{,*/}*.js',
                             'xorigin.js',
                             'dependencies.js',
-                            'thirdparty/requirejs/require.js',
-                            'thirdparty/CodeMirror2/**/*',
-                            'thirdparty/i18n/*.js',
-                            'thirdparty/text/*.js'
+                            'thirdparty/requirejs/require.js'
                         ]
                     },
                     /* extensions and CodeMirror modes */
@@ -62,8 +59,14 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'extensibility/**/*',
-                            'extensions/default/**/*',
-                            'thirdparty/CodeMirror2/**/*',
+                            '!extensions/default/*/unittest-files/**/*',
+                            '!extensions/default/*/unittests.js',
+                            'extensions/default/*/**/*',
+                            'thirdparty/CodeMirror2/addon/{,*/}*',
+                            'thirdparty/CodeMirror2/keymap/{,*/}*',
+                            'thirdparty/CodeMirror2/lib/{,*/}*',
+                            'thirdparty/CodeMirror2/mode/{,*/}*',
+                            'thirdparty/CodeMirror2/theme/{,*/}*',
                             'thirdparty/i18n/*.js',
                             'thirdparty/text/*.js'
                         ]
@@ -116,7 +119,7 @@ module.exports = function (grunt) {
                 dirs: ['dist']
             },
             html: ['dist/{,*/}*.html'],
-            css: ['dist/css/{,*/}*.css']
+            css: ['dist/styles/{,*/}*.css']
         },
         htmlmin: {
             dist: {
@@ -256,7 +259,7 @@ module.exports = function (grunt) {
     });
     
     // task: install
-    grunt.registerTask('install', ['write-config']);
+    grunt.registerTask('install', ['write-config', 'less']);
 
     // task: test
     grunt.registerTask('test', ['jshint:all', 'jasmine']);
