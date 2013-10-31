@@ -739,22 +739,22 @@ define(function (require, exports, module) {
      * as in Document.getText(); (b) unsaved changes are returned if there are any.
      * 
      * @param {!File} file
-     * @return {!string}
+     * @return {!$.Promise} Resolved with (!string, !Date), or rejected with !FileSystemError
      */
     function getDocumentText(file) {
         var result = new $.Deferred(),
             doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
-            result.resolve(doc.getText());
+            result.resolve(doc.getText(), doc.diskTimestamp);
         } else {
-            file.readAsText(function (err, contents) {
+            file.readAsText(function (err, contents, stat) {
                 if (err) {
                     result.reject(err);
                 } else {
                     // Normalize line endings the same way Document would, but don't actually
                     // new up a Document (which entails a bunch of object churn).
                     contents = DocumentModule.Document.normalizeText(contents);
-                    result.resolve(contents);
+                    result.resolve(contents, stat.mtime);
                 }
             });
         }
