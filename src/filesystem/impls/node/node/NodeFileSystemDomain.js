@@ -23,6 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true, indent: 4, maxerr: 50 */
+/*global unescape*/
 
 "use strict";
 
@@ -60,14 +61,17 @@ function readdirCmd(path, callback) {
         .nodeify(callback);
 }
 
+function strencode(data) {
+    return unescape(encodeURIComponent(JSON.stringify(data)));
+}
+
 function readFileCmd(path, encoding, callback) {
-    var readPromise = fs.readFileAsync(path, {encoding: "binary"}),
+    var readPromise = fs.readFileAsync(path, {encoding: "utf8"}),
         statPromise = fs.statAsync(path);
     
     Promise.join(readPromise, statPromise)
         .spread(function (data, stats) {
-            var filteredData = data.toString(encoding);
-            return _addStats({data: filteredData}, stats);
+            return _addStats({data: strencode(data)}, stats);
         })
         .nodeify(callback);
 }

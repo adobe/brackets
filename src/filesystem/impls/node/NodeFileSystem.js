@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell, $, window */
+/*global define, appshell, $, window, escape */
 
 define(function (require, exports, module) {
     "use strict";
@@ -220,6 +220,10 @@ define(function (require, exports, module) {
             });
     }
     
+    function strdecode(data) {
+        return JSON.parse(decodeURIComponent(escape(data)));
+    }
+
     function readFile(path, options, callback) {
         var encoding = "utf8";
         
@@ -234,7 +238,7 @@ define(function (require, exports, module) {
                 var data = statObj.data,
                     stat = _mapNodeStats(statObj);
                 
-                callback(null, data, stat);
+                callback(null, strdecode(data), stat);
             }, function (err) {
                 callback(_mapNodeError(err));
             });
