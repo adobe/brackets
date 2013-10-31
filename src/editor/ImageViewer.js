@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
