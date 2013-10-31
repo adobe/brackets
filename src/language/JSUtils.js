@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 
+    /** Cached results so we don't reload & rescan files unless thay've changed */
     var _cache = new PerFileCache.Cache();
     
     /**
@@ -71,7 +72,7 @@ define(function (require, exports, module) {
         while ((match = _functionRegExp.exec(text)) !== null) {
             functionName = (match[2] || match[5]).trim();
             
-            if (!Array.isArray(results[functionName])) {
+            if (!Array.isArray(results[functionName])) {  // can't just check truthiness since functionName might be in Object.prototype
                 results[functionName] = [];
             }
             
@@ -188,40 +189,31 @@ define(function (require, exports, module) {
     /**
      * @private
      * Compute lineStart and lineEnd for each matched function
-     * @param {!Array.<{fullPath: !string, functions: Array.<offsetStart: number, offsetEnd: number>}>} docEntries
+     * @param {!Array.<{fullPath: !string, functions: Array.<{offsetStart: number, offsetEnd: number}>}>} docEntries
      * @param {!string} functionName
-     * @return {$.Promise} A promise resolved with: !Array.<document: Document, name: string, lineStart: number, lineEnd: number>
+     * @return {$.Promise} A promise resolved with: !Array.<{document: Document, name: string, lineStart: number, lineEnd: number}>
      */
-    function _getOffsetsForFunction(docEntries, functionName) {
-        // Filter for documents that contain the named function
+    function _filterAndGetOffsets(docEntries, functionName) {
         var result              = new $.Deferred(),
-            matchedDocuments    = [],
+            matchedEntries      = [],
             rangeResults        = [];
         
-        docEntries.forEach(function (docEntry) {
-            // Need to call CollectionUtils.hasProperty here since the docEntry.functions map could
-            // have a key "hasOwnProperty", which results in an error if trying to
-            // invoke docEntry.functions.hasOwnProperty().
-            if (_.has(docEntry.functions, functionName)) {
-                var functionsInDocument = docEntry.functions[functionName];
-                matchedDocuments.push({fullPath: docEntry.fileInfo, functions: functionsInDocument});
-            }
+        // Filter for documents that contain the named function
+        matchedEntries = docEntries.filter(function (docEntry) {
+            // Can't use docEntry.functions.hasOwnProperty() since the docEntry.functions map could have
+            // a key "hasOwnProperty" which shadows the original function.
+            return _.has(docEntry.functions, functionName);
         });
         
-        Async.doInParallel(matchedDocuments, function (docEntry) {
-            var oneResult   = new $.Deferred();
-            
-            // FIXME: this is still quite inefficient - _computeOffsets() doesn't really need the doc except
-            // to return it... do callers require it for ALL (unfiltered) results??
-            DocumentManager.getDocumentForPath(docEntry.fullPath)
+        // Find end offsets for all matching functions & convert to MultiRangeInlineEditor-compatible result objects
+        Async.doInParallel(matchedEntries, function (docEntry) {
+            // Need to create a real Document for each file containing matches, since our caller needs Documents
+            // to pass to MultiRangeInlineEditor
+            var oneResult = DocumentManager.getDocumentForPath(docEntry.fullPath)
                 .done(function (fetchedDoc) {
                     _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
-                })
-                .always(function () {
-                    oneResult.resolve();
                 });
-            
-            return oneResult.promise();
+            return oneResult;
         }).done(function () {
             result.resolve(rangeResults);
         });
@@ -233,7 +225,7 @@ define(function (require, exports, module) {
      * @private
      * Get all functions for each FileInfo.
      * @param {Array.<FileInfo>} fileInfos
-     * @return {$.Promise} A promise resolved with: !Array.<{fullPath: string, functions: Array.<offsetStart: number, offsetEnd: number>}>
+     * @return {$.Promise} A promise resolved with: !Array.<{fullPath: string, functions: Array.<{offsetStart: number, offsetEnd: number}>}>
      *   (i.e. an array of objects each containing a fullPaths and its _findAllFunctionsInText() return value)
      */
     function _getFunctionsInFiles(fileInfos) {
@@ -243,10 +235,10 @@ define(function (require, exports, module) {
         PerfUtils.markStart(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
         
         Async.doInParallel(fileInfos, function (fileInfo) {
-            var oneResult = _cache.getOrCreate(fileInfo.fullPath, function (text) {
-                return { fullPath: fileInfo.fullPath, functions: _findAllFunctionsInText(text) };
-            });
-            
+            var oneResult = _cache.getOrCreate(fileInfo.fullPath,
+                function (text) {
+                    return { fullPath: fileInfo.fullPath, functions: _findAllFunctionsInText(text) };
+                });
             oneResult.done(function (docInfo) {
                 docEntries.push(docInfo);
             });
@@ -288,7 +280,7 @@ define(function (require, exports, module) {
         // RegExp search (or cache lookup) for all functions in the project
         _getFunctionsInFiles(jsFiles).done(function (docEntries) {
             // Compute offsets for all matched functions
-            _getOffsetsForFunction(docEntries, functionName).done(function (rangeResults) {
+            _filterAndGetOffsets(docEntries, functionName).done(function (rangeResults) {
                 result.resolve(rangeResults);
             });
         });

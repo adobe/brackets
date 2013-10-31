@@ -92,27 +92,36 @@ define(function (require, exports, module) {
         });
     };
     
+    
     Cache.prototype.put = function (docOrPath, timestamp, data) {
         var key = docOrPath.file ? docOrPath.file.fullPath : docOrPath;
-        this._storage[key] = { generation: this._generation, data: data, timestamp: timestamp };
+        this._storage[key] = { data: data, generation: this._generation, timestamp: timestamp };
     };
-    Cache.prototype._get = function (docOrPath) {
-        var key = docOrPath.file ? docOrPath.file.fullPath : docOrPath;
-        return this._storage[key];
-    };
-    Cache.prototype.get = function (docOrPath) {
-        var cached = this._get(docOrPath);
-        if (cached.generation < this._generation) {
-            return null;
+    
+    /**
+     * Returns a result immediately. Use the async getOrCreate() whereever possible. Compared to
+     * getOrCreate(), getSync() requires two compromises:
+     *  (a) May return null if value not cached
+     *  (b) If it's unclear whether the cached value is stale or not, you must either ignore it
+     *      (less efficient than getOrCreate()) or use it without checking whether it's stale
+     *      (less accurate than getOrCreate()).
+     */
+    Cache.prototype.getSync = function (docOrPath, acceptStale) {
+        var key = docOrPath.file ? docOrPath.file.fullPath : docOrPath,
+            cached = this._storage[key];
+        
+        if (acceptStale || cached.generation === this._generation) {
+            return cached.data;
         }
-        return cached.data;
+        return null;
     };
+    
     
     function _getDoc(docOrPath, cb) {
         if (docOrPath.file) {
             return new $.Deferred().resolve(docOrPath);
         } else {
-            return DocumentManager.getDocumentForPath(docOrPath);
+            return DocumentManager.getDocumentForPath(docOrPath);  // TODO: use getDocumentText() w/ fs branch
         }
     }
     
@@ -137,7 +146,7 @@ define(function (require, exports, module) {
      */
     Cache.prototype.getOrCreate = function (docOrPath, createFn) {
         var self = this;
-        var cached = this._get(docOrPath);
+        var cached = this.getSync(docOrPath, true);
         if (cached) {
             if (cached.generation === this._generation) {
                 return new $.Deferred().resolve(cached.data);
