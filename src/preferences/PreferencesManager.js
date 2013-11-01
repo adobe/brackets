@@ -224,8 +224,7 @@ define(function (require, exports, module) {
     var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true), "default");
-    
-    
+        
     function setValueAndSave(scopeName, id, value) {
         preferencesManager.setValue(scopeName, id, value);
         preferencesManager.save();
@@ -236,12 +235,11 @@ define(function (require, exports, module) {
     exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
     
     // Public API    
-    exports.getValue = preferencesManager.getValue.bind(preferencesManager);
-    exports.setValue = preferencesManager.setValue.bind(preferencesManager);
+    exports.getValue = preferencesManager.get.bind(preferencesManager);
+    exports.setValue = preferencesManager.set.bind(preferencesManager);
     exports.save = preferencesManager.save.bind(preferencesManager);
     exports.setValueAndSave = setValueAndSave;
     exports.addScope = preferencesManager.addScope.bind(preferencesManager);
-    exports.removeScope = preferencesManager.removeScope.bind(preferencesManager);
     exports.stateManager = stateManager;
     exports.FileStorage = PreferencesBase.FileStorage;
     exports.SETTINGS_FILENAME = SETTINGS_FILENAME;

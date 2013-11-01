@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets */
+/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets, xdescribe */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
@@ -37,6 +37,232 @@ define(function (require, exports, module) {
     var testPath = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files");
 
     describe("Preferences Base", function () {
+        describe("Merged Map", function () {
+            it("should support basic multilevel merging", function () {
+                var map = new PreferencesBase.MergedMap();
+                map.addLevel("user");
+                map.setData("user", {
+                    spaceUnits: 4
+                });
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 4
+                });
+                expect(map.get("spaceUnits")).toBe(4);
+                
+                map.addLevel("project");
+                map.setData("project", {
+                    spaceUnits: 2
+                });
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 2
+                });
+                expect(map.get("spaceUnits")).toBe(2);
+                
+                map.setData("user", {
+                    spaceUnits: 4,
+                    useTabChar: false
+                });
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 2,
+                    useTabChar: false
+                });
+            });
+            
+            it("notifies of changes", function () {
+                var map = new PreferencesBase.MergedMap();
+                
+                var changes = [],
+                    dataChanges = [];
+                $(map).on("change", function (e, data) {
+                    changes.push(data);
+                });
+                
+                $(map).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
+                
+                map.addLevel("user");
+                map.setData("user", {
+                    spaceUnits: 4,
+                    useTabChar: false
+                });
+                
+                expect(changes.length).toEqual(2);
+                expect(dataChanges).toEqual([
+                    {
+                        spaceUnits: 4,
+                        useTabChar: false
+                    }
+                ]);
+                
+                changes = [];
+                dataChanges = [];
+                map.addLevel("project");
+                map.setData("project", {
+                    spaceUnits: 4
+                });
+                expect(changes.length).toBe(0);
+                expect(dataChanges.length).toBe(0);
+                
+                map.setData("project", {
+                    useTabChar: true
+                });
+                
+                expect(changes).toEqual([
+                    {
+                        id: "useTabChar",
+                        oldValue: false,
+                        newValue: true
+                    }
+                ]);
+                
+                expect(dataChanges).toEqual([
+                    {
+                        spaceUnits: 4,
+                        useTabChar: true
+                    }
+                ]);
+                
+                changes = [];
+                dataChanges = [];
+                map.set("project", "spaceUnits", 4);
+                expect(changes.length).toBe(0);
+                expect(dataChanges.length).toBe(0);
+                map.set("project", "spaceUnits", 8);
+                expect(changes).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: 4,
+                    newValue: 8
+                }]);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 8,
+                    useTabChar: true
+                }]);
+            });
+            
+            it("allows excluded properties", function () {
+                var map = new PreferencesBase.MergedMap();
+                map.addExclusion("path");
+                
+                map.addLevel("user");
+                map.setData("user", {
+                    spaceUnits: 4,
+                    path: {
+                        "**.js": {
+                            spaceUnits: 27
+                        }
+                    }
+                });
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 4
+                });
+                
+                var changes = [];
+                var dataChanges = [];
+                $(map).on("change", function (e, change) {
+                    changes.push(change);
+                });
+                $(map).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
+                
+                map.addExclusion("spaceUnits");
+                expect(changes).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: 4,
+                    newValue: undefined
+                }]);
+                expect(dataChanges).toEqual([{}]);
+            });
+            
+            it("supports nested MergedMaps", function () {
+                var changes = [],
+                    dataChanges = [],
+                    map = new PreferencesBase.MergedMap(),
+                    userMap = new PreferencesBase.MergedMap();
+                
+                $(map).on("change", function (e, data) {
+                    changes.push(data);
+                });
+                $(map).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
+                
+                userMap.addLevel("base");
+                userMap.addLevel("path");
+                userMap.setData("base", {
+                    spaceUnits: 4
+                });
+                
+                map.addLevel("user", {
+                    map: userMap
+                });
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 4
+                });
+                expect(changes).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: undefined,
+                    newValue: 4
+                }]);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 4
+                }]);
+                
+                changes = [];
+                dataChanges = [];
+                
+                userMap.setData("path", {
+                    spaceUnits: 27
+                });
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 27
+                });
+                expect(changes).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: 4,
+                    newValue: 27
+                }]);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 27
+                }]);
+                
+                changes = [];
+                dataChanges = [];
+                
+                var projectMap = new PreferencesBase.MergedMap();
+                projectMap.addLevel("base");
+                projectMap.setData("base", {
+                    spaceUnits: 9,
+                    planets: 8
+                });
+                
+                map.addLevel("project", {
+                    map: projectMap
+                });
+                expect(map.merged).toEqual({
+                    spaceUnits: 9,
+                    planets: 8
+                });
+                expect(map.get("planets")).toBe(8);
+                expect(changes.length).toBe(2);
+                expect(dataChanges).toEqual([map.merged]);
+                
+                changes = [];
+                dataChanges = [];
+                map.set(["user", "base"], "planets", 8);
+                expect(changes.length).toBe(0);
+                expect(dataChanges.length).toBe(0);
+                expect(userMap.get("planets")).toBe(8);
+            });
+        });
+        
         describe("Memory Storage", function () {
             it("should support get and save operations", function () {
                 var sampleData = {
@@ -75,20 +301,24 @@ define(function (require, exports, module) {
             it("should be able to find preferences", function () {
                 var layer = new PreferencesBase.LanguageLayer();
                 
-                expect(layer.getValue(data, "useTabChar")).toBeUndefined();
-                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
-                layer.setLanguage("html");
-                expect(layer.getValue(data, "spaceUnits")).toBe(2);
-            });
-            
-            it("can create a list of known keys", function () {
-                var layer = new PreferencesBase.LanguageLayer();
-                expect(layer.getKeys(data, [])).toEqual([]);
+                expect(layer.exclusions).toEqual(["language"]);
                 
-                layer.setLanguage("html");
-                expect(layer.getKeys(data, [])).toEqual(["spaceUnits"]);
+                var dataChanges = [];
                 
-                expect(layer.getKeys(data, ["language"])).toEqual(["spaceUnits"]);
+                $(layer).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
+                
+                layer.setData(data);
+                expect(dataChanges).toEqual([{}]);
+                
+                dataChanges = [];
+                layer.setLanguage("html");
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 2
+                }]);
+                
+                dataChanges = [];
             });
         });
         
@@ -106,20 +336,22 @@ define(function (require, exports, module) {
             it("should be able to find preferences", function () {
                 var layer = new PreferencesBase.PathLayer();
                 
-                expect(layer.getValue(data, "useTabChar")).toBeUndefined();
-                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
-                layer.setFilename("index.html");
-                expect(layer.getValue(data, "spaceUnits")).toBe(2);
-            });
-            
-            it("can create a list of known keys", function () {
-                var layer = new PreferencesBase.PathLayer();
-                expect(layer.getKeys(data, [])).toEqual([]);
+                expect(layer.exclusions).toEqual(["path"]);
                 
-                layer.setFilename("index.html");
-                expect(layer.getKeys(data, [])).toEqual(["spaceUnits"]);
+                var dataChanges = [];
+                $(layer).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
                 
-                expect(layer.getKeys(data, ["path"])).toEqual(["spaceUnits"]);
+                layer.setData(data);
+                
+                expect(dataChanges).toEqual([{}]);
+                
+                dataChanges = [];
+                layer.setFilename("index.html");
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 2
+                }]);
             });
             
             it("handles a variety of glob patterns", function () {
@@ -142,61 +374,82 @@ define(function (require, exports, module) {
                 };
                 
                 var layer = new PreferencesBase.PathLayer();
-                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
                 
+                var dataChanges = [];
+                $(layer).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
+                layer.setData(data);
+                
+                expect(dataChanges).toEqual([{}]);
+                
+                dataChanges = [];
                 layer.setFilename("public/index.html");
-                expect(layer.getValue(data, "spaceUnits")).toBe(2);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 2
+                }]);
                 
+                dataChanges = [];
                 layer.setFilename("lib/script.js");
-                expect(layer.getValue(data, "spaceUnits")).toBe(3);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 3
+                }]);
                 
+                dataChanges = [];
                 layer.setFilename("lib/foo/script.js");
-                expect(layer.getValue(data, "spaceUnits")).toBeUndefined();
+                expect(dataChanges).toEqual([{}]);
                 
+                dataChanges = [];
                 layer.setFilename("lib/foo/styles.css");
-                expect(layer.getValue(data, "spaceUnits")).toBe(4);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 4
+                }]);
                 
+                dataChanges = [];
                 layer.setFilename("README.md");
-                expect(layer.getValue(data, "spaceUnits")).toBe(5);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 5
+                }]);
+                
+                // Note that even though the value doesn't change, it still
+                // registers as a data change. The MergedMap handles detection
+                // of the fact that there was no actual change.
+                dataChanges = [];
                 layer.setFilename("LICENSE.txt");
-                expect(layer.getValue(data, "spaceUnits")).toBe(5);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 5
+                }]);
             });
         });
         
         describe("Scope", function () {
-            var data = {
-                spaceUnits: 4,
-                useTabChar: false,
-                language: {
-                    html: {
-                        spaceUnits: 2
+            it("should look up a value", function () {
+                var data = {
+                    spaceUnits: 4,
+                    useTabChar: false,
+                    language: {
+                        html: {
+                            spaceUnits: 2
+                        }
                     }
-                }
-            };
-            
-            var layer = new PreferencesBase.LanguageLayer();
-            var layerGetters = [layer.getValue.bind(layer)];
-            var layerKeys = [layer.getKeys.bind(layer)];
-            
-            var scope;
-            
-            beforeEach(function () {
-                scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                };
+                
+                var layer = new PreferencesBase.LanguageLayer();
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
                 // MemoryStorage operates synchronously
                 scope.load();
-                layer.setLanguage("");
-            });
-            
-            it("should look up a value", function () {
-                expect(scope.getValue("spaceUnits", layerGetters)).toBe(4);
+                
+                scope.addLevel("language", {
+                    layer: layer
+                });
+                
+                expect(scope.get("language")).toBeUndefined();
+                
+                expect(scope.get("spaceUnits")).toBe(4);
                 layer.setLanguage("html");
-                expect(scope.getValue("spaceUnits", layerGetters)).toBe(2);
-                expect(scope.getValue("useTabChar", layerGetters)).toBe(false);
-            });
-            
-            it("should provide lists of keys", function () {
-                expect(scope.getKeys([])).toEqual(["spaceUnits", "useTabChar", "language"]);
-                expect(scope.getKeys(layerKeys)).toEqual(["spaceUnits", "useTabChar"]);
+                expect(scope.get("spaceUnits")).toBe(2);
+                expect(scope.get("useTabChar")).toBe(false);
             });
         });
         
@@ -215,8 +468,8 @@ define(function (require, exports, module) {
             it("will automatically wrap a Storage with a Scope", function () {
                 var pm = new PreferencesBase.PreferencesManager();
                 pm.addScope("test", new PreferencesBase.MemoryStorage());
-                pm.setValue("test", "testval", 27);
-                expect(pm.getValue("testval")).toBe(27);
+                pm.set("test", "testval", 27);
+                expect(pm.get("testval")).toBe(27);
             });
             
             it("should find the default values", function () {
@@ -243,8 +496,8 @@ define(function (require, exports, module) {
                 pm.definePreference("spaceUnits", "number", 4);
                 var userScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage());
                 var projectScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage());
-                pm.addScope("user", userScope, "default");
-                pm.addScope("project", projectScope, "user");
+                pm.addScope("user", userScope);
+                pm.addScope("project", projectScope);
                 
                 expect(pm.getValue("spaceUnits")).toEqual(4);
                 

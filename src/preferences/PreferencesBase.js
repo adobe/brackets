@@ -43,6 +43,128 @@ define(function (require, exports, module) {
     
     var PREFERENCE_CHANGE = "preferenceChange";
     
+    function MergedMap() {
+        this.merged = {};
+        this._levels = [];
+        this._mergedAtLevel = {};
+        this._exclusions = {};
+        this._childMaps = {};
+    }
+    
+    MergedMap.prototype = {
+        addLevel: function (name, options) {
+            options = options || {};
+            
+            this._levels.unshift(name);
+            var mergedAtLevel = this._mergedAtLevel;
+            _.forIn(mergedAtLevel, function (value, key) {
+                mergedAtLevel[key] = value + 1;
+            });
+            
+            if (options.map) {
+                var childMap = options.map;
+                this._childMaps[name] = childMap;
+                this.setData(name, childMap.merged);
+                $(childMap).on("dataChange", function (e, data) {
+                    this.setData(name, data);
+                }.bind(this));
+            }
+        },
+        
+        addExclusion: function (id) {
+            var merged = this.merged;
+            
+            this._exclusions[id] = true;
+            if (merged[id] !== undefined) {
+                var oldValue = merged[id];
+                delete merged[id];
+                delete this._mergedAtLevel[id];
+                var $this = $(this);
+                $this.trigger("change", {
+                    id: id,
+                    oldValue: oldValue,
+                    newValue: undefined
+                });
+                $this.trigger("dataChange", merged);
+            }
+        },
+        
+        get: function (id) {
+            return this.merged[id];
+        },
+        
+        _performSet: function (levelName, id, value) {
+            if (this._exclusions[id]) {
+                return;
+            }
+            
+            if (_.isArray(levelName)) {
+                if (levelName.length === 1) {
+                    levelName = levelName[0];
+                } else {
+                    var childLevel = levelName[0],
+                        childMap = this._childMaps[childLevel];
+                    
+                    if (!childMap) {
+                        console.error("Attempt to set preference with unknown level (" + childLevel + ") ", levelName, id);
+                        return false;
+                    }
+                    childMap.set(_.rest(levelName), id, value);
+                    
+                    // This is not tracked as a change at this level. The
+                    // handling of the dataChange event will take care of whether or not
+                    // this MergedMap has changed as a result.
+                    return false;
+                }
+            }
+            
+            var merged = this.merged,
+                mergedAtLevel = this._mergedAtLevel,
+                levelRank = this._levels.indexOf(levelName),
+                changed = false;
+            
+            // Check for a reference to undefined level.
+            if (levelRank === -1) {
+                throw new Error("Attempt to set preference in non-existent level: " + levelName);
+            }
+            
+            var oldValue = merged[id];
+            if (oldValue === undefined || mergedAtLevel[id] >= levelRank) {
+                mergedAtLevel[id] = levelRank;
+                if (value !== oldValue) {
+                    changed = true;
+                    merged[id] = value;
+                    $(this).trigger("change", {
+                        id: id,
+                        oldValue: oldValue,
+                        newValue: value
+                    });
+                }
+            }
+            return changed;
+        },
+        
+        set: function (levelName, id, value) {
+            var changed = this._performSet(levelName, id, value);
+            if (changed) {
+                $(this).trigger("dataChange", this.merged);
+            }
+            return changed;
+        },
+        
+        setData: function (levelName, data) {
+            var hadChanges = false;
+            
+            _.forIn(data, function (value, key) {
+                hadChanges = this._performSet(levelName, key, value) || hadChanges;
+            }, this);
+            
+            if (hadChanges) {
+                $(this).trigger("dataChange", this.merged);
+            }
+        }
+    };
+    
     function MemoryStorage(data) {
         this.data = data || {};
     }
@@ -118,70 +240,124 @@ define(function (require, exports, module) {
     };
     
     function Scope(storage) {
+        MergedMap.apply(this);
         this.storage = storage;
         this.data = undefined;
         this._dirty = false;
+        this.addLevel("base");
+        this._layers = {};
     }
     
-    Scope.prototype = {
-        load: function () {
-            var result = $.Deferred();
-            this.storage.load()
-                .then(function (data) {
-                    this.data = data;
-                    result.resolve();
-                }.bind(this))
-                .fail(function (error) {
-                    result.reject(error);
-                });
-            return result.promise();
-        },
+    Scope.prototype = new MergedMap();
+    
+    Scope.prototype.addLevel = function (name, options) {
+        options = options || {};
         
-        save: function () {
-            if (this._dirty) {
-                return this.storage.save(this.data);
-            } else {
-                return $.Deferred().resolve().promise();
-            }
-        },
-        
-        setValue: function (id, value) {
-            this._dirty = true;
-            this.data[id] = value;
-        },
-        
-        getValue: function (id, layers) {
-            var layerCounter;
-            for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
-                var result = layers[layerCounter](this.data, id);
-                if (result !== undefined) {
-                    return result;
-                }
-            }
-            return this.data[id];
-        },
-        
-        getKeys: function (layers) {
-            var data = this.data,
-                keys = _.keys(data);
+        if (options.layer) {
+            var layer = options.layer;
             
-            layers.forEach(function (layer) {
-                keys = layer(data, keys);
-            });
-            return keys;
+            MergedMap.prototype.addLevel.call(this, name);
+            this._layers[name] = layer;
+            _.each(layer.exclusions, this.addExclusion, this);
+            $(layer).on("dataChange", function (e, data) {
+                this.setData(name, data);
+            }.bind(this));
+            layer.setData(this.data);
+        } else {
+            MergedMap.prototype.addLevel.call(this, name, options);
         }
     };
     
+    Scope.prototype.load = function () {
+        var result = $.Deferred();
+        this.storage.load()
+            .then(function (data) {
+                this.data = data;
+                this.setData("base", data);
+                _.forIn(this._layers, function (layer) {
+                    layer.setData(data);
+                });
+                result.resolve();
+            }.bind(this))
+            .fail(function (error) {
+                result.reject(error);
+            });
+        return result.promise();
+    };
+        
+    Scope.prototype.save = function () {
+        if (this._dirty) {
+            return this.storage.save(this.data);
+        } else {
+            return $.Deferred().resolve().promise();
+        }
+    };
+    
+    // TODO remove the following methods on Scope
+    Scope.prototype.setValue = function (id, value) {
+        this._dirty = true;
+        this.data[id] = value;
+    };
+        
+    Scope.prototype.getValue = function (id, layers) {
+        var layerCounter;
+        for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
+            var result = layers[layerCounter](this.data, id);
+            if (result !== undefined) {
+                return result;
+            }
+        }
+        return this.data[id];
+    };
+        
+    Scope.prototype.getKeys = function (layers) {
+        var data = this.data,
+            keys = _.keys(data);
+        
+        layers.forEach(function (layer) {
+            keys = layer(data, keys);
+        });
+        return keys;
+    };
+    
     function LanguageLayer() {
+        this.data = undefined;
+        this.language = undefined;
     }
     
     LanguageLayer.prototype = {
+        exclusions: ["language"],
+        
+        setData: function (data) {
+            this.data = data;
+            this._signalChange();
+        },
+        
         setLanguage: function (languageID) {
+            if (languageID !== this.language) {
+                this.language = languageID;
+                this._signalChange();
+            }
+            
+            // TODO delete the below
             $(this).trigger("beforeLayerChange");
             this.language = languageID;
             $(this).trigger("afterLayerChange");
         },
         
+        _signalChange: function () {
+            var data = this.data,
+                languageData;
+            if (data && data.language) {
+                languageData = data.language[this.language];
+            }
+            if (languageData === undefined) {
+                languageData = {};
+            }
+            $(this).trigger("dataChange", languageData);
+        },
+        
+        // TODO: delete
         getValue: function (data, id) {
             var language = this.language;
             if (data.language && data.language[language]) {
@@ -189,6 +365,7 @@ define(function (require, exports, module) {
             }
         },
         
+        // TODO: delete
         getKeys: function (data, currentKeyList) {
             var language = this.language;
             currentKeyList = _.without(currentKeyList, "language");
@@ -201,13 +378,40 @@ define(function (require, exports, module) {
     };
     
     function PathLayer() {
+        this.data = undefined;
+        this.filename = undefined;
     }
     
     PathLayer.prototype = {
+        exclusions: ["path"],
+        
+        setData: function (data) {
+            this.data = data;
+            this._signalChange();
+        },
+        
         setFilename: function (filename) {
+            this.filename = filename;
+            this._signalChange();
+            
+            // TODO remove code below
             $(this).trigger("beforeLayerChange");
             this.filename = filename;
             $(this).trigger("afterLayerChange");
+        },
+        
+        _signalChange: function () {
+            var data = this.data,
+                pathData;
+            
+            if (data && data.path) {
+                var glob = this._findMatchingGlob(data.path);
+                pathData = data.path[glob];
+            }
+            if (pathData === undefined) {
+                pathData = {};
+            }
+            $(this).trigger("dataChange", pathData);
         },
         
         _findMatchingGlob: function (path) {
@@ -228,6 +432,7 @@ define(function (require, exports, module) {
             }
         },
         
+        // TODO remove this
         getValue: function (data, id) {
             var path = data.path;
             if (path) {
@@ -243,6 +448,7 @@ define(function (require, exports, module) {
             return undefined;
         },
         
+        // TODO remove this
         getKeys: function (data, currentKeyList) {
             var path = data.path;
             currentKeyList = _.without(currentKeyList, "path");
@@ -258,26 +464,17 @@ define(function (require, exports, module) {
     };
     
     function PreferencesManager() {
+        MergedMap.apply(this);
         this._knownPrefs = {};
-        this._scopes = {
-            "default": new Scope(new MemoryStorage())
-        };
-        
-        // Memory-based scope loads synchronously
-        this._scopes["default"].load();
-        this._scopeOrder = ["default"];
-        this._pendingScopes = {};
-        
-        
-        this._layers = {};
-        this._layerGetters = [];
-        this._layerKeys = [];
+        this.addLevel("default");
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
     }
     
-    PreferencesManager.prototype = {
+    PreferencesManager.prototype = new MergedMap();
+    
+    _.extend(PreferencesManager.prototype, {
         definePreference: function (id, type, initial, options) {
             options = options || {};
             if (this._knownPrefs.hasOwnProperty(id)) {
@@ -289,52 +486,27 @@ define(function (require, exports, module) {
                 name: options.name,
                 description: options.description
             };
-            this.setValue("default", id, initial);
+            this.set("default", id, initial);
         },
         
-        addToScopeOrder: function (id, addBefore) {
-            if (!addBefore) {
-                this._scopeOrder.unshift(id);
-            } else {
-                var addIndex = this._scopeOrder.indexOf(addBefore);
-                if (addIndex > -1) {
-                    this._scopeOrder.splice(addIndex, 0, id);
-                } else {
-                    var queue = this._pendingScopes[addBefore];
-                    if (!queue) {
-                        queue = [];
-                        this._pendingScopes[addBefore] = queue;
-                    }
-                    queue.unshift(id);
-                }
-            }
-            if (this._pendingScopes[id]) {
-                var pending = this._pendingScopes[id];
-                delete this._pendingScopes[id];
-                pending.forEach(function (scopeID) {
-                    this.addToScopeOrder(scopeID, id);
-                }.bind(this));
-            }
-        },
-        
-        addScope: function (id, scope, addBefore) {
-            if (this._scopes[id]) {
+        addScope: function (id, scope) {
+            if (this._levels.indexOf(id) > -1) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
             }
             
             // Check to see if "scope" might be a Storage instead
-            if (!scope.getValue) {
+            if (!scope.get) {
                 scope = new Scope(scope);
             }
+            
+            this.addLevel(id, {
+                map: scope
+            });
             
             var deferred = $.Deferred();
             
             scope.load()
                 .then(function () {
-                    this._inspectChangesAndFire(function () {
-                        this._scopes[id] = scope;
-                        this.addToScopeOrder(id, addBefore);
-                    }.bind(this));
                     deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {
@@ -348,106 +520,12 @@ define(function (require, exports, module) {
             return deferred.promise();
         },
         
-        removeScope: function (id) {
-            this._inspectChangesAndFire(function () {
-                delete this._scopes[id];
-                var scopeIndex = this._scopeOrder.indexOf(id);
-                if (scopeIndex > -1) {
-                    this._scopeOrder.splice(scopeIndex, 1);
-                }
-            }.bind(this));
-        },
-        
-        _getAllKeysAndPrefs: function (extraKeys) {
-            var layerKeys = this._layerKeys;
-            
-            var keys = _.map(this._scopes, function (scope) {
-                return scope.getKeys(layerKeys);
-            });
-            
-            keys = _.union.apply(null, keys);
-            if (extraKeys) {
-                keys = _.union(keys, extraKeys);
-            }
-            
-            var prefs = _.object(keys, _.map(keys, function (key) {
-                return this.getValue(key);
-            }.bind(this)));
-            
-            return {
-                keys: keys,
-                prefs: prefs
-            };
-        },
-        
-        _inspectChangesAndFire: function (operation) {
-            var before = this._getAllKeysAndPrefs();
-            
-            operation();
-            
-            var after = this._getAllKeysAndPrefs(before.keys);
-            
-            this._fireChanges(before, after);
-        },
-        
-        _fireChanges: function (before, after) {
-            var differentProps = _.map(after.keys, function (key) {
-                var beforeValue = before.prefs[key],
-                    afterValue = after.prefs[key];
-                    
-                if (afterValue !== beforeValue) {
-                    return {
-                        id: key,
-                        oldValue: beforeValue,
-                        newValue: afterValue
-                    };
-                }
-                return undefined;
-            });
-            
-            var self = $(this);
-            differentProps.forEach(function (data) {
-                if (data !== undefined) {
-                    self.trigger("preferenceChange", data);
-                }
-            });
-
-        },
-        
         addLayer: function (id, layer) {
-            if (this._layers[id]) {
-                throw new Error("Attempt to redefine preferences layer: " + id);
-            }
-            
-            this._inspectChangesAndFire(function () {
-                this._layers[id] = layer;
-                this._layerGetters.push(layer.getValue.bind(layer));
-                this._layerKeys.push(layer.getKeys.bind(layer));
-            }.bind(this));
-            
-            $(layer).on("beforeLayerChange", this._beforeLayerChange.bind(this));
-            $(layer).on("afterLayerChange", this._afterLayerChange.bind(this));
         },
         
-        _beforeLayerChange: function () {
-            this._preLayerChangeData = this._getAllKeysAndPrefs();
-        },
+        setValue: PreferencesManager.prototype.set,
         
-        _afterLayerChange: function () {
-            if (!this._preLayerChangeData) {
-                console.error("After layer change fired without before layer change. This should not happen.");
-                return;
-            }
-            
-            var before = this._preLayerChangeData;
-            delete this._preLayerChangeData;
-            
-            var after = this._getAllKeysAndPrefs(before.keys);
-            
-            this._fireChanges(before, after);
-        },
-        
-        setValue: function (scopeName, id, value) {
+        setValueOld: function (scopeName, id, value) {
             var scope = this._scopes[scopeName];
             if (!scope) {
                 throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
@@ -467,7 +545,9 @@ define(function (require, exports, module) {
             }
         },
         
-        getValue: function (id) {
+        getValue: PreferencesManager.prototype.get,
+        
+        getValueOld: function (id) {
             var scopeCounter,
                 scopeOrder = this._scopeOrder,
                 layerGetters = this._layerGetters;
@@ -510,8 +590,9 @@ define(function (require, exports, module) {
             
             return deferred.promise();
         }
-    };
+    });
     
+    exports.MergedMap = MergedMap;
     exports.PreferencesManager = PreferencesManager;
     exports.Scope = Scope;
     exports.MemoryStorage = MemoryStorage;
