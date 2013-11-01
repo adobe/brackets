@@ -83,7 +83,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Canlı Önizlemeyi sunucu taraflı dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir yol belirtiniz.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Canlı geliştirme için sunucu çalıştırılamadı. Lütfen tekrar deneyin.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} Canlı Önizleme için tarayıcınıza bağlanarak projenizin örnek görüntüsünü açıyor.<br /><br /> Değişiklik yaptığınız sayfayı kaydettiğinizde tarayıcıda otomatik yenileme yaparak size dosyanızn son halini gösterir.<br />{APP_NAME} programının bu versiyonunda, Canlı Önizleme özelliği sndece <strong>CSS dosyaları</strong> değişikliğine izin veriyor yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />Canlı Önizleme sadece <strong>Google Chrome</strong> üzerinde çalışır.<br /><br />(Bu mesaj sadece bir defa gösterilecektir.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} Canlı Önizleme için tarayıcınıza bağlanarak projenizin örnek görüntüsünü açıyor.<br /><br /> Değişiklik yaptığınız sayfayı kaydettiğinizde tarayıcıda otomatik yenileme yaparak size dosyanızn son halini gösterir.<br />{APP_NAME} programının bu versiyonunda, Canlı Önizleme özelliği sndece <strong>CSS dosyaları</strong> değişikliğinde otomatik yenileme yapıyor yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />Canlı Önizleme sadece <strong>Google Chrome</strong> üzerinde çalışır.<br /><br />(Bu mesaj sadece bir defa gösterilecektir.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Canlı Önizleme",
@@ -116,8 +116,8 @@ define({
     "WITH"                              : "İle",
     "BUTTON_YES"                        : "Evet",
     "BUTTON_NO"                         : "Hayır",
-    "BUTTON_REPLACE_ALL"                : "Hepsini\u2026",
-    "BUTTON_STOP"                       : "Durdur",
+    "BUTTON_REPLACE_ALL"                : "Tümünü Değiştir",
+    "BUTTON_STOP"                       : "İptal",
     "BUTTON_REPLACE"                    : "Değiştir",
 
     "BUTTON_NEXT"                       : "\u25B6",
@@ -184,7 +184,7 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Satır",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Hata",
+    "ERRORS_PANEL_TITLE"                    : "{0} Hataları",
     "SINGLE_ERROR"                          : "1 {0} Hata",
     "MULTIPLE_ERRORS"                       : "{1} {0} Hata",
     "NO_ERRORS"                             : "{0} hata - Tebrikler!",
@@ -354,7 +354,7 @@ define({
     "INSTALLING_FROM"                   : "Installing extension from {0}\u2026",
     "INSTALL_SUCCEEDED"                 : "Kurulum Başarılı!",
     "INSTALL_FAILED"                    : "Kurulum Başarısız.",
-    "CANCELING_INSTALL"                 :"İptal edilior\u2026",
+    "CANCELING_INSTALL"                 : "İptal edilior\u2026",
     "CANCELING_HUNG"                    : "Kurulum gerekenden fazla zaman aldığı için iptal ediliyor. Bir iç hata oluşmuş olabilir.",
     "INSTALL_CANCELED"                  : "Kurulum İptal Edildi.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
