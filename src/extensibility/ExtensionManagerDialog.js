@@ -148,12 +148,14 @@ define(function (require, exports, module) {
             $search,
             $searchClear,
             context = { Strings: Strings, showRegistry: !!brackets.config.extension_registry },
-            models  = [new ExtensionManagerViewModel.InstalledViewModel()];
+            models  = [];
         
         // Load registry only if the registry URL exists
         if (context.showRegistry) {
             models.push(new ExtensionManagerViewModel.RegistryViewModel());
         }
+        
+        models.push(new ExtensionManagerViewModel.InstalledViewModel());
         
         function updateSearchDisabled() {
             var model           = models[_activeTabIndex],
