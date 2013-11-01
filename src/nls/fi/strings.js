@@ -44,7 +44,7 @@ define({
     "ERROR_LOADING_PROJECT"             : "Virhe ladattaessa projektia",
     "OPEN_DIALOG_ERROR"                 : "Tapahtui virhe avattaessa tiedostovalintaikkunaa. (virhe {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Tapahtui virhe yrittäessä avata hakemistoa <span class='dialog-filename'>{0}</span>. (virhe {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "Tapahtui virhe luettaessa hakemiston sisältöä. <span class='dialog-filename'>{0}</span>. (virhe {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Tapahtui virhe luettaessa hakemiston <span class='dialog-filename'>{0}</span> sisältöä. (virhe {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Virhe avattaessa tiedostoa",
