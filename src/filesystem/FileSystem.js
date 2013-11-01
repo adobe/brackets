@@ -463,8 +463,9 @@ define(function (require, exports, module) {
         this._index.clear();
         
         // Initialize watchers
-        this._impl.unwatchAll();
-        this._impl.initWatchers(this._watcherCallback.bind(this));
+        // FIXME: reenable once server-side watchers are more stable
+//        this._impl.unwatchAll();
+//        this._impl.initWatchers(this._watcherCallback.bind(this));
         
         // Start indexing from the new root path
         this._scanDirectory(rootPath);
