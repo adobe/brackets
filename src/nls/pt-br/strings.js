@@ -127,7 +127,7 @@ define({
     "BUTTON_PREV_HINT"                  : "Resultado ",
 
     "OPEN_FILE"                         : "Abrir arquivo",
-    "SAVE_FILE_AS"                      : "Savar arquivo",
+    "SAVE_FILE_AS"                      : "Salvar arquivo",
     "CHOOSE_FOLDER"                     : "Escolha uma pasta",
 
     "RELEASE_NOTES"                     : "Notas da Versão",
@@ -135,7 +135,7 @@ define({
     "NO_UPDATE_MESSAGE"                 : "Você está executando a versão mais recente do {APP_NAME}.",
 
     "FIND_REPLACE_TITLE_PART1"          : "Substituir \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" com \"",
+    "FIND_REPLACE_TITLE_PART2"          : "\" por \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
@@ -160,7 +160,7 @@ define({
      */
     "PROJECT_LOADING"   : "Carregando\u2026",
     "UNTITLED"          : "Sem título",
-    "WORKING_FILES"     : "Arquivos de trabalho",
+    "WORKING_FILES"     : "Arquivos abertos",
 
     /**
      * Keyboard modifier names
@@ -209,9 +209,9 @@ define({
     "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao Conjunto de Trabalho",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
     "CMD_FILE_CLOSE"                      : "Fechar",
-    "CMD_FILE_CLOSE_ALL"                  : "Fechar tudo",
+    "CMD_FILE_CLOSE_ALL"                  : "Fechar todos",
     "CMD_FILE_SAVE"                       : "Salvar",
-    "CMD_FILE_SAVE_ALL"                   : "Salvar tudo",
+    "CMD_FILE_SAVE_ALL"                   : "Salvar todos",
     "CMD_FILE_SAVE_AS"                    : "Salvar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Configurações do projeto\u2026",
