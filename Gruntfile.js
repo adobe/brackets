@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-usemin']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin']});
     grunt.loadTasks('tasks');
 
     var common = require("./tasks/lib/common")(grunt);
@@ -34,11 +34,23 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg  : grunt.file.readJSON("package.json"),
         clean: {
-            dist: ['dist']
+            dist: {
+                files: [{
+                    dot: true,
+                    src: [
+                        'dist',
+                        'src/.index.html',
+                        'src/styles/brackets.css'
+                    ]
+                }]
+            }
         },
         copy: {
             dist: {
                 files: [
+                    {
+                        'dist/index.html': 'src/.index.html'
+                    },
                     /* static files */
                     {
                         expand: true,
@@ -49,7 +61,8 @@ module.exports = function (grunt) {
                             'nls/{,*/}*.js',
                             'xorigin.js',
                             'dependencies.js',
-                            'thirdparty/requirejs/require.js'
+                            'thirdparty/requirejs/require.js',
+                            'LiveDevelopment/launch.html'
                         ]
                     },
                     /* extensions and CodeMirror modes */
@@ -108,11 +121,18 @@ module.exports = function (grunt) {
                 }
             }
         },
+        targethtml: {
+            dist: {
+                files: {
+                    'src/.index.html': 'src/index.html'
+                }
+            }
+        },
         useminPrepare: {
             options: {
                 dest: 'dist'
             },
-            html: 'src/index.html'
+            html: 'src/.index.html'
         },
         usemin: {
             options: {
@@ -272,8 +292,9 @@ module.exports = function (grunt) {
     // Default task.
     grunt.registerTask('default', [
         'test',
-        'less',
         'clean',
+        'less',
+        'targethtml',
         'useminPrepare',
         'htmlmin',
         'requirejs',

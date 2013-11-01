@@ -9,6 +9,7 @@ Thumbs.db
 
 # ignore compiled files
 /dist
+/src/.index.html
 /src/styles/brackets.css
 
 # ignore everything in the dev extension directory EXCEPT the README
