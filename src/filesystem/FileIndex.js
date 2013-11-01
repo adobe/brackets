@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, forin: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
 
 /**
@@ -97,7 +97,9 @@ define(function (require, exports, module) {
         delete this._index[path];
         
         for (property in entry) {
-            replaceMember(property);
+            if (entry.hasOwnProperty(property)) {
+                replaceMember(property);
+            }
         }
     };
     
@@ -105,13 +107,13 @@ define(function (require, exports, module) {
      * Notify the index that an entry has been renamed. This updates
      * all affected entries in the index.
      *
-     * @param {string} oldName
-     * @param {string} newName
+     * @param {string} oldPath
+     * @param {string} newPath
      * @param {boolean} isDirectory
      */
-    FileIndex.prototype.entryRenamed = function (oldName, newName, isDirectory) {
+    FileIndex.prototype.entryRenamed = function (oldPath, newPath, isDirectory) {
         var path,
-            splitName = oldName.split("/"),
+            splitName = oldPath.split("/"),
             finalPart = splitName.length - 1,
             renameMap = {};
         
@@ -122,8 +124,8 @@ define(function (require, exports, module) {
                 // starts with the old name. This is safe since paths always end
                 // with '/'. For files, see if there is an exact match between
                 // the path and the old name.
-                if (isDirectory ? path.indexOf(oldName) === 0 : path === oldName) {
-                    renameMap[path] = newName + path.substr(oldName.length);
+                if (isDirectory ? path.indexOf(oldPath) === 0 : path === oldPath) {
+                    renameMap[path] = newPath + path.substr(oldPath.length);
                 }
             }
         }

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $ */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -690,28 +690,22 @@ define(function (require, exports, module) {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
 
-            var mode = LanguageManager.getLanguageForPath(fullPath);
-            if (mode.getId() === "image") {
-                var fileError = "Cannot get document for image.";
-                result.reject(fileError);
-            } else {
-                FileUtils.readAsText(file)
-                    .always(function () {
-                        // document is no longer pending
-                        delete getDocumentForPath._pendingDocumentPromises[file.id];
-                    })
-                    .done(function (rawText, readTimestamp) {
-                        doc = new DocumentModule.Document(file, readTimestamp, rawText);
-                                
-                        // This is a good point to clean up any old dangling Documents
-                        _gcDocuments();
-                        
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-            }
+            FileUtils.readAsText(file)
+                .always(function () {
+                    // document is no longer pending
+                    delete getDocumentForPath._pendingDocumentPromises[file.id];
+                })
+                .done(function (rawText, readTimestamp) {
+                    doc = new DocumentModule.Document(file, readTimestamp, rawText);
+                            
+                    // This is a good point to clean up any old dangling Documents
+                    _gcDocuments();
+                    
+                    result.resolve(doc);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
             
             return promise;
         }

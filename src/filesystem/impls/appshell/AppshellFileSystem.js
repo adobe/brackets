@@ -291,10 +291,6 @@ define(function (require, exports, module) {
         
     }
     
-    function chmod(path, mode, callback) {
-        appshell.fs.chmod(path, mode, _wrap(callback));
-    }
-    
     function unlink(path, callback) {
         appshell.fs.unlink(path, function (err) {
             callback(_mapError(err));
@@ -409,7 +405,6 @@ define(function (require, exports, module) {
     exports.stat            = stat;
     exports.readFile        = readFile;
     exports.writeFile       = writeFile;
-    exports.chmod           = chmod;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;

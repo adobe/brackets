@@ -36,9 +36,6 @@ define(function (require, exports, module) {
     var ProjectManager      = require("project/ProjectManager"),
         FileUtils           = require("file/FileUtils");
     
-    // TODO: do we need anything like _showMaxFilesDialog() now?
-    // If not, remove strings ERROR_MAX_FILES, ERROR_MAX_FILES_TITLE
-    
     function _warn() {
         console.error("Warning: FileIndexManager is deprecated. Use ProjectManager.getAllFiles() instead");
     }

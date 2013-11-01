@@ -98,20 +98,12 @@ define(function (require, exports, module) {
     function chmod(path, mode) {
         var deferred = new $.Deferred();
         
-        FileSystem.resolve(path, function (err, entry) {
+        brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
             if (err) {
                 deferred.reject(err);
-                return;
-            }
-            
-            entry.chmod(parseInt(mode, 8), function (err) {
-                if (err) {
-                    deferred.reject(err);
-                    return;
-                }
-                
+            } else {
                 deferred.resolve();
-            });
+            }
         });
 
         return deferred.promise();
@@ -238,8 +230,8 @@ define(function (require, exports, module) {
 
         runs(function () {
             var dir = FileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
-                if (err) {
-                    deferred.reject();
+                if (err && err !== FileSystemError.ALREADY_EXISTS) {
+                    deferred.reject(err);
                 } else {
                     deferred.resolve();
                 }
@@ -255,13 +247,13 @@ define(function (require, exports, module) {
     function _stat(pathname) {
         var deferred = new $.Deferred();
         
-        FileSystem.resolve(pathname, function (err, stats) {
+        FileSystem.resolve(pathname, function (err, entry) {
             if (err) {
                 deferred.reject(err);
                 return;
             }
             
-            deferred.resolve(stats);
+            deferred.resolve(entry);
         });
                 
         return deferred;

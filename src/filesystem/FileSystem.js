@@ -214,7 +214,7 @@ define(function (require, exports, module) {
                 allChildren.push(child);
             }
             
-            return watchedRoot.filter(child.fullPath);
+            return watchedRoot.filter(child.name);
         }.bind(this);
         
         entry.visit(visitor, function (err) {
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
      * Entries explicitly created via FileSystem.getFile/DirectoryForPath() are *always* added to the index regardless
      * of this filtering - but they will not be watched if the watch-root's filter excludes them.
      */
-    FileSystem.prototype._indexFilter = function (path) {
+    FileSystem.prototype._indexFilter = function (path, name) {
         var parentRoot;
         
         Object.keys(this._watchedRoots).some(function (watchedPath) {
@@ -323,7 +323,7 @@ define(function (require, exports, module) {
         }, this);
         
         if (parentRoot) {
-            return parentRoot.filter(path);
+            return parentRoot.filter(name);
         }
         
         // It might seem more sensible to return false (exclude) for files outside the watch roots, but
@@ -363,7 +363,9 @@ define(function (require, exports, module) {
      */
     function _normalizePath(path, isDirectory) {
         
-        console.assert(FileSystem.isAbsolutePath(path), "Unexpected relative path '" + path + "'");  // expect only absolute paths
+        if (!FileSystem.isAbsolutePath(path)) {
+            throw new Error("Paths must be absolute: '" + path + "'");  // expect only absolute paths
+        }
 
         // Remove duplicated "/"es
         path = path.replace(/\/{2,}/g, "/");
@@ -436,7 +438,7 @@ define(function (require, exports, module) {
      * Resolve a path.
      *
      * @param {string} path The path to resolve
-     * @param {function (?string, FileSystemEntry=)} callback Callback resolved
+     * @param {function (?string, FileSystemEntry=, FileSystemStats=)} callback Callback resolved
      *      with an error string or with the entry for the provided path
      */
     FileSystem.prototype.resolve = function (path, callback) {
@@ -453,7 +455,7 @@ define(function (require, exports, module) {
                     item = this.getDirectoryForPath(path);
                 }
             }
-            callback(err, item);
+            callback(err, item, stat);
         }.bind(this));
     };
     
@@ -645,7 +647,7 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry - The root entry to watch. If entry is a directory,
      *      all subdirectories that aren't explicitly filtered will also be watched.
      * @param {function(string): boolean} filter - A function to determine whether
-     *      a particular path should be watched or ignored. Paths that are ignored are also
+     *      a particular name should be watched or ignored. Paths that are ignored are also
      *      filtered from Directory.getContents() results within this subtree.
      * @param {function(?string)=} callback - A function that is called when the watch has
      *      completed. If the watch fails, the function will have a non-null parameter

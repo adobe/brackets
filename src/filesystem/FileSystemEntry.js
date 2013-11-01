@@ -155,17 +155,6 @@ define(function (require, exports, module) {
             callback(err, stat);
         }.bind(this));
     };
-
-    /**
-     * Changes the mode of the entry. 
-     *
-     * @param {number} mode The desired mode of the entry as a number (e.g., 0777)
-     * @param {function (?string)=} callback Callback with a single "error" parameter.
-     */
-    FileSystemEntry.prototype.chmod = function (mode, callback) {
-        callback = callback || function () {};
-        this._impl.chmod(this._path, mode, callback);
-    };
     
     /**
      * Rename this entry.
@@ -190,7 +179,8 @@ define(function (require, exports, module) {
     };
         
     /**
-     * Unlink (delete) this entry.
+     * Unlink (delete) this entry. For Directories, this will delete the directory
+     * and all of its contents. 
      *
      * @param {function (?string)=} callback Callback with a single "error" parameter.
      */

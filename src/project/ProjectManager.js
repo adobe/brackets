@@ -372,7 +372,7 @@ define(function (require, exports, module) {
             if (entry.fullPath) {
                 fullPath = entry.fullPath;
 
-                // Truncate project path prefix (inlcuding its last slash) AND remove trailing slash suffix
+                // Truncate project path prefix (including its last slash) AND remove trailing slash suffix
                 // So "/foo/bar/projroot/abc/xyz/" -> "abc/xyz"
                 shortPath = fullPath.slice(projectPathLength, -1);
 
@@ -644,9 +644,7 @@ define(function (require, exports, module) {
      * @private
      * See shouldShow
      */
-    function _shouldShowPath(path) {
-        var name = path.substr(path.lastIndexOf("/") + 1);
-        
+    function _shouldShowName(name) {
         return !name.match(_exclusionListRegEx);
     }
     
@@ -657,7 +655,7 @@ define(function (require, exports, module) {
      * @return boolean true if the file should be displayed
      */
     function shouldShow(entry) {
-        return _shouldShowPath(entry.fullPath);
+        return _shouldShowName(entry.name);
     }
     
     /**
@@ -877,7 +875,7 @@ define(function (require, exports, module) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
-        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowPath, function (err) {
+        FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err) {
                 console.log("Error watching project root: ", rootPath, err);
             }
@@ -1163,7 +1161,7 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 DefaultDialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LOADING_PROJECT,
-                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, err.name)
+                                StringUtils.format(Strings.OPEN_DIALOG_ERROR, err)
                             );
                             result.reject();
                         }

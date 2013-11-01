@@ -344,9 +344,10 @@ define(function (require, exports, module) {
             it("should only call the impl once for simultaneous read requests", function () {
                 var directory = fileSystem.getDirectoryForPath("/subdir/"),
                     cb = getContentsCallback(),
+                    cb2 = getContentsCallback(),
                     cbCount = 0;
                 
-                function delayedCallback() {
+                function delayedCallback(cb) {
                     return function () {
                         var args = arguments;
                         setTimeout(function () {
@@ -363,14 +364,16 @@ define(function (require, exports, module) {
                     // Make sure cached data is cleared
                     directory._contents = undefined;
                     directory.getContents(cb);
-                    directory.getContents(cb);
+                    directory.getContents(cb2);
                     expect(cb.wasCalled).toBeFalsy(); // Callback should *not* have been called yet
                 });
-                waitsFor(function () { return cb.wasCalled; });
-                waits(100); // Make sure there is time for a second callback
+                waitsFor(function () { return cb.wasCalled && cb2.wasCalled; });
                 runs(function () {
                     expect(cb.wasCalled).toBe(true);
                     expect(cb.error).toBeFalsy();
+                    expect(cb2.wasCalled).toBe(true);
+                    expect(cb2.error).toBeFalsy();
+                    expect(cb.contents).toEqual(cb2.contents);
                     expect(cbCount).toBe(1);
                 });
             });

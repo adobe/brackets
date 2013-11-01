@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                             errorFiles.push(path);
                             result.reject();
                         });
-                } else if (!err && item.isDirectory() && filteredFiles.length === 1) {
+                } else if (!err && item.isDirectory && filteredFiles.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(path)
                         .done(function () {

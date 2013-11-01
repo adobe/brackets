@@ -528,14 +528,14 @@ define(function (require, exports, module) {
             var file = docToSave.file;
             var writeError = false;
             
-            file.write(docToSave.getText(true), function (err) {
-                if (!err) {
+            FileUtils.writeText(file, docToSave.getText(true))
+                .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
-                } else {
+                })
+                .fail(function (err) {
                     handleError(err, file);
-                }
-            });
+                });
         } else {
             result.resolve(fileEntry);
         }
