@@ -383,10 +383,10 @@ define({
     "INSTALL_FROM_URL"                     : "Asenna URL-osoitteesta\u2026",
     "EXTENSION_AUTHOR"                     : "Tekijä",
     "EXTENSION_DATE"                       : "Päivämäärä",
-    "EXTENSION_INCOMPATIBLE_NEWER"         : "Tämä laajennus vaatii uudemman version {APP_NAME}-sovelluksesta.",
-    "EXTENSION_INCOMPATIBLE_OLDER"         : "Tämä laajennus toimii tällä hetkellä vain vanhemmissa {APP_NAME}-sovelluksen versioissa.",
-    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Versio {0} tästä laajennuksesta vaatii uudemman version {APP_NAME}-sovelluksesta, mutta voit asentaa aikaisemman version {1}.",
-    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Versio {0} tästä laajennuksesta toimii vain vanhemmilla {APP_NAME}-sovelluksen versioilla, mutta voit asentaa aikaisemman version {1}.",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Tämä laajennus vaatii uudemman {APP_NAME}-version.",
+    "EXTENSION_INCOMPATIBLE_OLDER"         : "Tämä laajennus toimii tällä hetkellä vain vanhemmilla {APP_NAME}-versioilla.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Tämän laajennuksen versio {0} vaatii uudemman {APP_NAME}-version, mutta voit asentaa aikaisemman version {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Tämän laajennuksen versio {0} toimii vain vanhemmilla {APP_NAME}-versioilla, mutta voit asentaa aikaisemman version {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Ei kuvausta",
     "EXTENSION_MORE_INFO"                  : "Lisätietoja...",
     "EXTENSION_ERROR"                      : "Laajennusvirhe",
@@ -418,7 +418,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Vastaavuuksia ei saatavilla.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Ei ole olemassa CSS-sääntöjä, jotka vastaavat valintaasi.<br> Napsauta \"Uusi sääntö\" luodaksesi uuden.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta \"Uusi sääntö\" luodaksesi uuden.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projektissasi ei ole tyylitiedostoja.<br>Luo sellainen lisätäksesi CSS-sääntöjä.",
     
     /**
