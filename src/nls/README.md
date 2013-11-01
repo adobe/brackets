@@ -51,6 +51,7 @@ The following languages have been contributed by the Brackets community:
 * Czech (cs)
 * German (de)
 * Spanish (es)
+* Persian (fa-ir)
 * Finnish (fi)
 * Hungarian (hu)
 * Italian (it)
