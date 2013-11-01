@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xdescribe, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -622,14 +622,14 @@ define(function (require, exports, module) {
             
             describe("Inline Editor syncing from disk", function () {
                 
-                // TODO: FileSystem - figure out why this test fails intermittently
-                xit("should close inline editor when file deleted on disk", function () {
+                it("should close inline editor when file deleted on disk", function () {
                     // Create an expendable CSS file
                     var fileToWrite,
                         savedTempCSSFile = false;
 
                     runs(function () {
-                        var promise = SpecRunnerUtils.createTextFile(tempPath + "/tempCSS.css", "#anotherDiv {}")
+                        // Important: must create file using test window's FS so that it sees the new file right away
+                        var promise = SpecRunnerUtils.createTextFile(tempPath + "/tempCSS.css", "#anotherDiv {}", testWindow.brackets.test.FileSystem)
                             .done(function (entry) {
                                 fileToWrite = entry;
                             })
@@ -642,9 +642,6 @@ define(function (require, exports, module) {
                     
                     // Open inline editor for that file
                     runs(function () {
-                        // force FileIndexManager to re-sync and pick up the new tempCSS.css file
-                        // FileIndexManager.markDirty();
-                        
                         initInlineTest("test1.html", 6, true);
                     });
                     // initInlineTest() inserts a waitsFor() automatically, so must end runs() block here
