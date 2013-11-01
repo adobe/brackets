@@ -42,7 +42,7 @@ define({
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Virhe ladattaessa projektia",
-    "OPEN_DIALOG_ERROR"                 : "Tapahtui virhe avattaessa tiedostovalintaikkuna. (virhe {0})",
+    "OPEN_DIALOG_ERROR"                 : "Tapahtui virhe avattaessa tiedostovalintaikkunaa. (virhe {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Tapahtui virhe yrittäessä avata hakemistoa <span class='dialog-filename'>{0}</span>. (virhe {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Tapahtui virhe luettaessa hakemiston sisältöä. <span class='dialog-filename'>{0}</span>. (virhe {1})",
 
@@ -370,7 +370,7 @@ define({
     "EXTENSION_SAME_VERSION"               : "Tämä paketti on sama kuin jo asennettu versio. Korvataanko nykyinen asennus?",
     "EXTENSION_OLDER_VERSION"              : "Tämän paketin versio on {0}, joka on vanhempi kuin nykyinen asennettu ({1}). Korvataanko nykyinen asennus?",
     "DOWNLOAD_ID_IN_USE"                   : "Sisäinen virhe: Lataustunnus on jo käytössä.",
-    "NO_SERVER_RESPONSE"                   : "Ei voida yhdistää palvelimeen.",
+    "NO_SERVER_RESPONSE"                   : "Palvelimeen ei voida yhdistää.",
     "BAD_HTTP_STATUS"                      : "Tiedostoa ei löydy palvelimelta (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan väliaikaiseen tiedostoon.",
     "ERROR_LOADING"                        : "Laajennus kohtasi virheen käynnistyessä.",
