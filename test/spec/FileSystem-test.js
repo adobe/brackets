@@ -182,6 +182,22 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("parent and name properties", function () {
+            it("should have a name property", function () {
+                var file = fileSystem.getFileForPath("/subdir/file3.txt"),
+                    directory = fileSystem.getDirectoryForPath("/subdir/foo/");
+                
+                expect(file.name).toBe("file3.txt");
+                expect(directory.name).toBe("foo");
+            });
+            it("should have a parentPath property", function () {
+                var file = fileSystem.getFileForPath("/subdir/file3.txt"),
+                    directory = fileSystem.getDirectoryForPath("/subdir/foo/");
+                
+                expect(file.parentPath).toBe("/subdir/");
+                expect(directory.parentPath).toBe("/subdir/");
+            });
+        });
         
         describe("Singleton enforcement", function () {
             it("should return the same File object for the same path", function () {

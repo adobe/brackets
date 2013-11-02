@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         this._id = nextId++;
     }
         
-    // Add "fullPath", "name", "id", "isFile" and "isDirectory" getters
+    // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
     Object.defineProperties(FileSystemEntry.prototype, {
         "fullPath": {
             get: function () { return this._path; },
@@ -56,6 +56,10 @@ define(function (require, exports, module) {
         "name": {
             get: function () { return this._name; },
             set: function () { throw new Error("Cannot set name"); }
+        },
+        "parentPath": {
+            get: function () { return this._parentPath; },
+            set: function () { throw new Error("Cannot set parentPath"); }
         },
         "id": {
             get: function () { return this._id; },
@@ -98,6 +102,12 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._name = null;
 
     /**
+     * The parent of this entry.
+     * @type {string}
+     */
+    FileSystemEntry.prototype._parentPath = null;
+    
+    /**
      * Whether or not the entry is a file
      * @type {boolean}
      */
@@ -117,10 +127,11 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._setPath = function (newPath) {
         var parts = newPath.split("/");
         if (this.isDirectory) {
-            this._name = parts[parts.length - 2];
-        } else {
-            this._name = parts[parts.length - 1];
+            parts.pop(); // Remove the empty string after last trailing "/"
         }
+        this._name = parts[parts.length - 1];
+        parts.pop(); // Remove name
+        this._parentPath = parts.join("/") + "/";
 
         this._path = newPath;
     };
