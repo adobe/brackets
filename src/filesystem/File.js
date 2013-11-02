@@ -90,7 +90,7 @@ define(function (require, exports, module) {
     File.prototype.write = function (data, encoding, callback) {
         if (typeof (encoding) === "function") {
             callback = encoding;
-            encoding = 'utf8';
+            encoding = "utf8";
         }
         
         callback = callback || function () {};
