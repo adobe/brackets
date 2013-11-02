@@ -433,7 +433,7 @@ define({
     "LOCALE_IT"                                 : "Italian",
     "LOCALE_JA"                                 : "Japanese",
     "LOCALE_NB"                                 : "Norwegian",
-    "LOCALE_fa_ir"                              : "Persian-پارسی",
+    "LOCALE_FA_IR"                              : "Persian-پارسی",
     "LOCALE_PL"                                 : "Polish",
     "LOCALE_PT_BR"                              : "Portuguese, Brazil",
     "LOCALE_PT_PT"                              : "Portuguese",
