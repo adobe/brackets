@@ -101,28 +101,28 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("getFilenameExtension", function () {
+        describe("getFileExtension", function () {
             
             it("should get the extension of a normalized win file path", function () {
-                expect(FileUtils.getFilenameExtension("C:/foo/bar/baz.txt")).toBe(".txt");
+                expect(FileUtils.getFileExtension("C:/foo/bar/baz.txt")).toBe("txt");
             });
             
             it("should get the extension of a posix file path", function () {
-                expect(FileUtils.getFilenameExtension("/foo/bar/baz.txt")).toBe(".txt");
+                expect(FileUtils.getFileExtension("/foo/bar/baz.txt")).toBe("txt");
             });
             
             it("should return empty extension for a normalized win directory path", function () {
-                expect(FileUtils.getFilenameExtension("C:/foo/bar/")).toBe("");
+                expect(FileUtils.getFileExtension("C:/foo/bar/")).toBe("");
             });
             
             it("should return empty extension for a posix directory path", function () {
-                expect(FileUtils.getFilenameExtension("bar")).toBe("");
+                expect(FileUtils.getFileExtension("bar")).toBe("");
             });
 
             it("should return the extension of a filename containing .", function () {
-                expect(FileUtils.getFilenameExtension("C:/foo/bar/.baz/jaz.txt")).toBe(".txt");
-                expect(FileUtils.getFilenameExtension("foo/bar/baz/.jaz.txt")).toBe(".txt");
-                expect(FileUtils.getFilenameExtension("foo.bar.baz..jaz.txt")).toBe(".txt");
+                expect(FileUtils.getFileExtension("C:/foo/bar/.baz/jaz.txt")).toBe("txt");
+                expect(FileUtils.getFileExtension("foo/bar/baz/.jaz.txt")).toBe("txt");
+                expect(FileUtils.getFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
             });
         });
     });
