@@ -381,6 +381,10 @@ define(function (require, exports, module) {
             this._updateSelectedMarker();
         }
         
+        if (this._ranges.length === 1) {
+            this.$relatedContainer.remove();
+        }
+        
         this._updateCommands();
     };
     
