@@ -156,6 +156,11 @@ define(function (require, exports, module) {
                 expect(dom.attributes.disabled).toEqual("");
             });
             
+            it("should handle unknown self-closing tags", function () {
+                var dom = build("<foo><bar/></foo>", true);
+                expect(dom).toBeTruthy();
+            });
+            
             it("should merge text nodes around a comment", function () {
                 var dom = build("<div>Text <!-- comment --> Text2</div>", true);
                 expect(dom.children.length).toBe(1);
