@@ -21,7 +21,7 @@
     "css": {
         "name": "CSS",
         "mode": "css",
-        "fileExtensions": ["css"],
+        "fileExtensions": ["css", "css.erb"],
         "blockComment": ["/*", "*/"]
     },
 
