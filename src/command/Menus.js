@@ -498,7 +498,7 @@ define(function (require, exports, module) {
                 return;
             }
         } else {
-            dividerID = menuItemID.substring(menuItemID.indexOf("brackets"));
+            dividerID = menuItemID.substring(menuItemID.lastIndexOf("brackets-menuDivider-"));
             brackets.app.removeMenuItem(dividerID, function (err) {
                 if (err) {
                     console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);

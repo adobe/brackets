@@ -152,11 +152,22 @@ define(function (require, exports, module) {
     }
     
     function handleFileReload(commandData) {
-        var href = window.location.href;
+        var href    = window.location.href,
+            params  = new UrlParams();
         
-        // Strip off any parameters
+        // Make sure the Reload Without User Extensions parameter is removed
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts")) {
+            params.remove("reloadWithoutUserExts");
+        }
+        
         if (href.indexOf("?") !== -1) {
             href = href.substring(0, href.indexOf("?"));
+        }
+        
+        if (!params.isEmpty()) {
+            href += "?" + params;
         }
         
         _browserReload(href);
@@ -167,19 +178,26 @@ define(function (require, exports, module) {
     }
     
     function _handleReloadWithoutUserExts() {
-        var href = window.location.href;
+        var href    = window.location.href,
+            params  = new UrlParams();
         
         // Remove all menus to assure extension menus and menu items are removed
         _.forEach(Menus.getAllMenus(), function (value, key) {
             Menus.removeMenu(key);
         });
         
-        // Strip off any parameters
+        params.parse();
+        
+        if (!params.get("reloadWithoutUserExts")) {
+            params.put("reloadWithoutUserExts", true);
+        }
+        
         if (href.indexOf("?") !== -1) {
             href = href.substring(0, href.indexOf("?"));
         }
         
-        _browserReload(href + "?reloadWithoutUserExts=true");
+        href += "?" + params;
+        _browserReload(href);
     }
     
     function _handleShowPerfData() {
