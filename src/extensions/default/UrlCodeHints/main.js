@@ -226,39 +226,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Helper function that cleans partially or malformed encoded characters
-     * in a URI, then decodes it.
-     *
-     * @param {string} URI
-     * The current URI that needs to be cleaned and decoded
-     *
-     * @return {string}
-     * The clean, decoded URI.  Partially typed encoded characters at the end
-     * of the URI are stripped off.  Any encoded characters in the string that
-     * would make decodeURI() fail are interpreted as literal characters instead.
-     */
-    UrlCodeHints.prototype._cleanAndDecodeURI = function (URI) {
-        var matchResults,
-            finalURI = URI;
-        
-        // If there is a partially encoded character on the end, strip it off
-        matchResults = finalURI.match(/^[^%]+%[\dA-Fa-f]?$/); // e.g. "%", "%5", "%A", "%d"
-        if (matchResults) {
-            finalURI = finalURI.substring(0, matchResults.index);
-        }
-        
-        // Decode any encoded characters, checking for incorrect formatting
-        try {
-            finalURI = decodeURI(finalURI);
-        } catch (err) {
-            // do nothing, finalURI does not change...
-            // treat all characters as literal characters
-        }
-        
-        return finalURI;
-    };
-    
-    /**
      * Determines whether url hints are available in the current editor
      * context.
      *
@@ -373,8 +340,6 @@ define(function (require, exports, module) {
                     query = "";
                 }
                 
-                query = this._cleanAndDecodeURI(query);
-                
                 var hintsAndSortFunc = this._getUrlHints({queryStr: query});
                 var hints = hintsAndSortFunc.hints;
                 if (hints instanceof Array) {
@@ -485,9 +450,7 @@ define(function (require, exports, module) {
         } else {
             return null;
         }
-        
-        query.queryStr = this._cleanAndDecodeURI(query.queryStr);
-        
+
         if (query.queryStr !== null) {
             filter = query.queryStr;
             var hintsAndSortFunc = this._getUrlHints(query);
