@@ -139,9 +139,10 @@ define(function (require, exports, module) {
                             // convert to doc relative path
                             var entryStr = entry.fullPath.replace(docDir, "");
 
-                            // code hints show the same strings that are inserted into text,
-                            // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr));
+                            // code hints show the unencoded string so the
+                            // choices are easier to read.  The encoded string
+                            // will still be inserted into the editor.
+                            unfiltered.push(entryStr);
                         }
                     });
 
@@ -225,7 +226,40 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Determines whether font hints are available in the current editor
+     * Helper function that cleans partially or malformed encoded characters
+     * in a URI, then decodes it.
+     *
+     * @param {string} URI
+     * The current URI that needs to be cleaned and decoded
+     *
+     * @return {string}
+     * The clean, decoded URI.  Partially typed encoded characters at the end
+     * of the URI are stripped off.  Any encoded characters in the string that
+     * would make decodeURI() fail are interpreted as literal characters instead.
+     */
+    UrlCodeHints.prototype._cleanAndDecodeURI = function (URI) {
+        var matchResults,
+            finalURI = URI;
+        
+        // If there is a partially encoded character on the end, strip it off
+        matchResults = finalURI.match(/%[\dA-Fa-f]?$/); // e.g. "%", "%5", "%A", "%d"
+        if (matchResults) {
+            finalURI = finalURI.substring(0, matchResults.index);
+        }
+        
+        // Decode any encoded characters, checking for incorrect formatting
+        try {
+            finalURI = decodeURI(finalURI);
+        } catch (err) {
+            // do nothing, finalURI does not change...
+            // treat all characters as literal characters
+        }
+        
+        return finalURI;
+    };
+    
+    /**
+     * Determines whether url hints are available in the current editor
      * context.
      *
      * @param {Editor} editor
@@ -339,6 +373,8 @@ define(function (require, exports, module) {
                     query = "";
                 }
                 
+                query = this._cleanAndDecodeURI(query);
+                
                 var hintsAndSortFunc = this._getUrlHints({queryStr: query});
                 var hints = hintsAndSortFunc.hints;
                 if (hints instanceof Array) {
@@ -356,12 +392,12 @@ define(function (require, exports, module) {
                 }
             }
         }
-
+        
         return (query !== null);
     };
 
     /**
-     * Returns a list of availble font hints, if possible, for the current
+     * Returns a list of available url hints, if possible, for the current
      * editor context.
      *
      * @return {jQuery.Deferred|{
@@ -449,7 +485,9 @@ define(function (require, exports, module) {
         } else {
             return null;
         }
-
+        
+        query.queryStr = this._cleanAndDecodeURI(query.queryStr);
+        
         if (query.queryStr !== null) {
             filter = query.queryStr;
             var hintsAndSortFunc = this._getUrlHints(query);
@@ -504,6 +542,10 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
         var mode = this.editor.getModeForSelection();
+        
+        // Encode the string just prior to inserting the hint into the editor
+        completion = encodeURI(completion);
+        
         if (mode === "html") {
             return this.insertHtmlHint(completion);
         } else if (mode === "css") {
