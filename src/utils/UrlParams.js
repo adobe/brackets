@@ -42,20 +42,27 @@ define(function (require, exports, module) {
      * @param {string} url
      */
     UrlParams.prototype.parse = function (url) {
-        if (url) {
-            url = url.substring(url.indexOf("?") + 1);
-        } else {
-            url = window.document.location.search.substring(1);
-        }
-        
-        var urlParams = url.split("&"),
+        var searchString = "",
+            urlParams,
             p,
             self = this;
+
+        if (url) {
+            searchString = url.substring(url.indexOf("?") + 1);
+        } else {
+            searchString = window.document.location.search.substring(1);
+        }
         
-        urlParams.forEach(function (param) {
-            p = param.split("=");
-            self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-        });
+        if (searchString) {
+            urlParams = searchString.split("&");
+            
+            urlParams.forEach(function (param) {
+                p = param.split("=");
+                self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+            });
+        } else {
+            self._store = {};
+        }
     };
     
     /**
@@ -73,6 +80,21 @@ define(function (require, exports, module) {
      */
     UrlParams.prototype.get = function (name) {
         return this._store[name];
+    };
+    
+    /**
+     * Remove a name/value string pair
+     * @param {!string} name
+     */
+    UrlParams.prototype.remove = function (name) {
+        delete this._store[name];
+    };
+    
+/**
+     * Returns true if the parameter list is empty else returns false.
+     */
+    UrlParams.prototype.isEmpty = function (name) {
+        return _.isEmpty(this._store);
     };
     
     /**

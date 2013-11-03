@@ -41,7 +41,8 @@ define(function (require, exports, module) {
 
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        UrlParams           = require("utils/UrlParams").UrlParams;
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
@@ -317,6 +318,8 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function init(paths) {
+        var params = new UrlParams();
+        
         if (_init) {
             // Only init once. Return a resolved promise.
             return new $.Deferred().resolve().promise();
@@ -324,6 +327,12 @@ define(function (require, exports, module) {
         
         if (!paths) {
             paths = ["default", "dev", getUserExtensionPath()];
+        }
+        
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts") === "true") {
+            paths = ["default", "dev"];
         }
 
         // Load extensions before restoring the project
