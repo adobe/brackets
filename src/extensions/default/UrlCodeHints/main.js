@@ -242,7 +242,7 @@ define(function (require, exports, module) {
             finalURI = URI;
         
         // If there is a partially encoded character on the end, strip it off
-        matchResults = finalURI.match(/%[\dA-Fa-f]?$/); // e.g. "%", "%5", "%A", "%d"
+        matchResults = finalURI.match(/^[^%]+%[\dA-Fa-f]?$/); // e.g. "%", "%5", "%A", "%d"
         if (matchResults) {
             finalURI = finalURI.substring(0, matchResults.index);
         }
