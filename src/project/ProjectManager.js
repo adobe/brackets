@@ -59,6 +59,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
@@ -1600,8 +1601,8 @@ define(function (require, exports, module) {
      * files in the working set that are *not* under the project root. Files filtered
      * out by shouldShow() OR isBinaryFile() are excluded.
      *
-     * @param {function (File, number):boolean=} filter Optional filter function.
-     *          See Array.filter() for details.
+     * @param {function (File, number):boolean=} filter Optional function to filter
+     *          the file list (does not filter directory traversal). API matches Array.filter().
      * @param {boolean=} includeWorkingSet If true, include files in the working set
      *          that are not under the project root (*except* for untitled documents).
      *
@@ -1648,6 +1649,17 @@ define(function (require, exports, module) {
         });
         
         return deferred.promise();
+    }
+    
+    /**
+     * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
+     * @param {!string} languageId
+     * @return {!function(File):boolean}
+     */
+    function getLanguageFilter(languageId) {
+        return function languageFilter(file) {
+            return (LanguageManager.getLanguageForPath(file.fullPath).getId() === languageId);
+        };
     }
     
     /**
@@ -1726,4 +1738,5 @@ define(function (require, exports, module) {
     exports.showInTree               = showInTree;
     exports.refreshFileTree          = refreshFileTree;
     exports.getAllFiles              = getAllFiles;
+    exports.getLanguageFilter        = getLanguageFilter;
 });

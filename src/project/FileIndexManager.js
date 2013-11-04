@@ -43,9 +43,7 @@ define(function (require, exports, module) {
 
     function _getFilter(indexName) {
         if (indexName === "css") {
-            return function (file) {
-                return FileUtils.getFileExtension(file.name) === "css";
-            };
+            return ProjectManager.getLanguageFilter("css");
         } else if (indexName === "all") {
             return null;
         } else {
