@@ -771,9 +771,7 @@ define(function (require, exports, module) {
         
         // Fetch dirEntry's contents
         dirEntry.getContents(function (err, contents) {
-            if (contents) {
-                processEntries(contents);
-            } else {
+            if (err) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
@@ -785,6 +783,8 @@ define(function (require, exports, module) {
                 );
                 // Reject the render promise so we can move on.
                 deferred.reject();
+            } else {
+                processEntries(contents);
             }
         });
     }
