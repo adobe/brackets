@@ -66,13 +66,13 @@ define(function (require, exports, module) {
      * Whether or not this is a stats object for a file
      * @type {boolean}
      */
-    FileSystemStats.prototype._isFile = true;
+    FileSystemStats.prototype._isFile = false;
 
     /**
      * Whether or not this is a stats object for a directory
      * @type {boolean}
      */
-    FileSystemStats.prototype._isDirectory = true;
+    FileSystemStats.prototype._isDirectory = false;
     
     /**
      * Modification time for a file

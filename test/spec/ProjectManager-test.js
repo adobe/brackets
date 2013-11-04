@@ -560,7 +560,7 @@ define(function (require, exports, module) {
             it("should not show useless directory entries", function () {
                 var shouldShow = ProjectManager.shouldShow;
                 var makeEntry = function (name) {
-                    return { fullPath: name };
+                    return { name: name };
                 };
                 
                 expect(shouldShow(makeEntry(".git"))).toBe(false);

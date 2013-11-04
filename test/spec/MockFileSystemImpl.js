@@ -27,7 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FileSystemError     = require("filesystem/FileSystemError");
+    var FileSystemError     = require("filesystem/FileSystemError"),
+        FileSystemStats     = require("filesystem/FileSystemStats");
     
     // Watcher callback function
     var _watcherCallback;
@@ -100,11 +101,11 @@ define(function (require, exports, module) {
             stat = null;
         
         if (entry) {
-            stat = {
-                isDirectory: !entry.isFile,
+            stat = new FileSystemStats({
                 isFile: entry.isFile,
-                mtime: entry.mtime
-            };
+                mtime: entry.mtime,
+                size: 0
+            });
         }
         
         return stat;
@@ -285,11 +286,6 @@ define(function (require, exports, module) {
         notify(path);
     }
     
-    function chmod(path, mode, callback) {
-        // Not implemented
-        callback(null);
-    }
-    
     function unlink(path, callback) {
         var cb = _getCallback("unlink", path, callback),
             notify = _getNotification("unlink", path, _sendDirectoryWatcherNotification);
@@ -327,7 +323,6 @@ define(function (require, exports, module) {
     exports.stat            = stat;
     exports.readFile        = readFile;
     exports.writeFile       = writeFile;
-    exports.chmod           = chmod;
     exports.unlink          = unlink;
     exports.initWatchers    = initWatchers;
     exports.watchPath       = watchPath;

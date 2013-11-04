@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
     
-    /** @cost Constants used to define the maximum results show per page and found in a single file */
+    /** @const Constants used to define the maximum results show per page and found in a single file */
 
     var RESULTS_PER_PAGE = 100,
         FIND_IN_FILE_MAX = 300,

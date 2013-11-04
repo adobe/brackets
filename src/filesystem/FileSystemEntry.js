@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         this._id = nextId++;
     }
         
-    // Add "fullPath", "name", "id", "isFile" and "isDirectory" getters
+    // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
     Object.defineProperties(FileSystemEntry.prototype, {
         "fullPath": {
             get: function () { return this._path; },
@@ -56,6 +56,10 @@ define(function (require, exports, module) {
         "name": {
             get: function () { return this._name; },
             set: function () { throw new Error("Cannot set name"); }
+        },
+        "parentPath": {
+            get: function () { return this._parentPath; },
+            set: function () { throw new Error("Cannot set parentPath"); }
         },
         "id": {
             get: function () { return this._id; },
@@ -98,6 +102,12 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._name = null;
 
     /**
+     * The parent of this entry.
+     * @type {string}
+     */
+    FileSystemEntry.prototype._parentPath = null;
+    
+    /**
      * Whether or not the entry is a file
      * @type {boolean}
      */
@@ -117,10 +127,11 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._setPath = function (newPath) {
         var parts = newPath.split("/");
         if (this.isDirectory) {
-            this._name = parts[parts.length - 2];
-        } else {
-            this._name = parts[parts.length - 1];
+            parts.pop(); // Remove the empty string after last trailing "/"
         }
+        this._name = parts[parts.length - 1];
+        parts.pop(); // Remove name
+        this._parentPath = parts.join("/") + "/";
 
         this._path = newPath;
     };
@@ -155,17 +166,6 @@ define(function (require, exports, module) {
             callback(err, stat);
         }.bind(this));
     };
-
-    /**
-     * Changes the mode of the entry. 
-     *
-     * @param {number} mode The desired mode of the entry as a number (e.g., 0777)
-     * @param {function (?string)=} callback Callback with a single "error" parameter.
-     */
-    FileSystemEntry.prototype.chmod = function (mode, callback) {
-        callback = callback || function () {};
-        this._impl.chmod(this._path, mode, callback);
-    };
     
     /**
      * Rename this entry.
@@ -190,7 +190,8 @@ define(function (require, exports, module) {
     };
         
     /**
-     * Unlink (delete) this entry.
+     * Unlink (delete) this entry. For Directories, this will delete the directory
+     * and all of its contents. 
      *
      * @param {function (?string)=} callback Callback with a single "error" parameter.
      */

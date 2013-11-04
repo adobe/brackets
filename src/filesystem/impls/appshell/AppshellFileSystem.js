@@ -172,8 +172,6 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
-        var stats = [];
-        
         appshell.fs.readdir(path, function (err, contents) {
             if (err) {
                 callback(_mapError(err));
@@ -186,11 +184,10 @@ define(function (require, exports, module) {
                 return;
             }
             
+            var stats = [];
             contents.forEach(function (val, idx) {
                 stat(path + "/" + val, function (err, stat) {
-                    if (!err) {
-                        stats[idx] = stat;
-                    }
+                    stats[idx] = err || stat;
                     count--;
                     if (count <= 0) {
                         callback(err, contents, stats);
@@ -289,10 +286,6 @@ define(function (require, exports, module) {
             });
         });
         
-    }
-    
-    function chmod(path, mode, callback) {
-        appshell.fs.chmod(path, mode, _wrap(callback));
     }
     
     function unlink(path, callback) {
@@ -409,7 +402,6 @@ define(function (require, exports, module) {
     exports.stat            = stat;
     exports.readFile        = readFile;
     exports.writeFile       = writeFile;
-    exports.chmod           = chmod;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;

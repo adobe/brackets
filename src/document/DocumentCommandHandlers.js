@@ -277,7 +277,7 @@ define(function (require, exports, module) {
                                 if (doc) {
                                     DocumentManager.addToWorkingSet(doc.file);
                                 }
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath);
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -510,7 +510,7 @@ define(function (require, exports, module) {
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
-     * @return {$.Promise} a promise that is resolved with the FileEntry of docToSave (to mirror
+     * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
     function doSave(docToSave) {
@@ -528,14 +528,14 @@ define(function (require, exports, module) {
             var file = docToSave.file;
             var writeError = false;
             
-            file.write(docToSave.getText(true), function (err) {
-                if (!err) {
+            FileUtils.writeText(file, docToSave.getText(true))
+                .done(function () {
                     docToSave.notifySaved();
-                    result.resolve();
-                } else {
+                    result.resolve(file);
+                })
+                .fail(function (err) {
                     handleError(err, file);
-                }
-            });
+                });
         } else {
             result.resolve(fileEntry);
         }
@@ -725,16 +725,28 @@ define(function (require, exports, module) {
         return $.Deferred().reject().promise();
     }
     
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown but after dismissing we continue saving the other files; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed (the error given is the
+     * first one encountered). If the user cancels any Save As dialog (for untitled files), the
+     * Promise is immediately rejected.
+     *
+     * @param {!Array.<File>} fileList
+     * @return {!$.Promise} Resolved with {!Array.<File>}, which may differ from 'fileList'
+     *      if any of the files were Unsaved documents. Or rejected with {?FileSystemError}.
+     */
     function _saveFileList(fileList) {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
         var userCanceled = false,
-            savedFiles = [];
+            filesAfterSave = [];
             
         return Async.doSequentially(
             fileList,
             function (file) {
-                // Abort remaining saves if user canceled any Save dialog
+                // Abort remaining saves if user canceled any Save As dialog
                 if (userCanceled) {
                     return (new $.Deferred()).reject().promise();
                 }
@@ -744,7 +756,7 @@ define(function (require, exports, module) {
                     var savePromise = handleFileSave({doc: doc});
                     savePromise
                         .done(function (newFile) {
-                            savedFiles.push(newFile);
+                            filesAfterSave.push(newFile);
                         })
                         .fail(function (error) {
                             if (error === USER_CANCELED) {
@@ -754,23 +766,16 @@ define(function (require, exports, module) {
                     return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
+                    filesAfterSave.push(file);
                     return (new $.Deferred()).resolve().promise();
                 }
             },
-            false
+            false  // if any save fails, continue trying to save other files anyway; then reject at end
         ).then(function () {
-            return savedFiles;
+            return filesAfterSave;
         });
     }
     
-    /**
-     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown and the other files wait to save until it is dismissed; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed.
-     *
-     * @return {$.Promise}
-     */
     function saveAll() {
         return _saveFileList(DocumentManager.getWorkingSet());
     }
@@ -959,7 +964,7 @@ define(function (require, exports, module) {
         }
         return promise;
     }
-        
+    
     function _doCloseDocumentList(list, promptOnly, clearCurrentDoc) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
@@ -1027,13 +1032,14 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
-                        _saveFileList(list).done(function (savedFiles) {
-                            result.resolve(savedFiles);
+                        _saveFileList(list).done(function (listAfterSave) {
+                            // List of files after save may be different, if any were Untitled
+                            result.resolve(listAfterSave);
                         }).fail(function () {
                             result.reject();
                         });
                     } else {
-                        // "Don't Save" case--we can just go ahead and close all  files.
+                        // "Don't Save" case--we can just go ahead and close all files.
                         result.resolve();
                     }
                 });
@@ -1042,10 +1048,10 @@ define(function (require, exports, module) {
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
-        result.done(function (savedFiles) {
-            savedFiles = savedFiles || list;
+        result.done(function (listAfterSave) {
+            listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(savedFiles, (clearCurrentDoc || true));
+                DocumentManager.removeListFromWorkingSet(listAfterSave, (clearCurrentDoc || true));
             }
         });
         
