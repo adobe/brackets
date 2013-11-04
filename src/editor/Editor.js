@@ -140,10 +140,18 @@ define(function (require, exports, module) {
         if (indentAuto) {
             var currentLength = line.length;
             CodeMirror.commands.indentAuto(instance);
-            // If the amount of whitespace didn't change, insert another tab
+            
+            // If the amount of whitespace and the cursor position didn't change, we must have
+            // already been at the correct indentation level as far as CM is concerned, so insert 
+            // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                insertTab = true;
-                to.ch = 0;
+                var newFrom = instance.getCursor(true),
+                    newTo = instance.getCursor(false);
+                if (newFrom.line === from.line && newFrom.ch === from.ch &&
+                        newTo.line === to.line && newTo.ch === to.ch) {
+                    insertTab = true;
+                    to.ch = 0;
+                }
             }
         } else if (instance.somethingSelected() && from.line !== to.line) {
             CodeMirror.commands.indentMore(instance);
@@ -978,21 +986,10 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Handle hiding a single blank line at the end specially by moving the "from" backwards
-        // to include the last newline. Otherwise CodeMirror doesn't hide anything in this case.
-        var hideFrom, inclusiveLeft = true;
-        if (from === to - 1 && from === this._codeMirror.lineCount() - 1 && this._codeMirror.getLine(from).length === 0) {
-            hideFrom = {line: from - 1, ch: this._codeMirror.getLine(from - 1).length};
-            // Allow the cursor to be set immediately before the hidden newline.
-            inclusiveLeft = false;
-        } else {
-            hideFrom = {line: from, ch: 0};
-        }
-        
         var value = this._codeMirror.markText(
-            hideFrom,
+            {line: from, ch: 0},
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true, inclusiveLeft: inclusiveLeft, inclusiveRight: true}
+            {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
         );
         
         return value;
