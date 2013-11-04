@@ -115,7 +115,7 @@
     "csharp": {
         "name": "C#",
         "mode": ["clike", "text/x-csharp"],
-        "fileExtensions": ["cs", "cshtml", "asax", "ashx"],
+        "fileExtensions": ["cs", "asax", "ashx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
