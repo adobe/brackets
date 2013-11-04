@@ -172,8 +172,6 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
-        var stats = [];
-        
         appshell.fs.readdir(path, function (err, contents) {
             if (err) {
                 callback(_mapError(err));
@@ -186,11 +184,10 @@ define(function (require, exports, module) {
                 return;
             }
             
+            var stats = [];
             contents.forEach(function (val, idx) {
                 stat(path + "/" + val, function (err, stat) {
-                    if (!err) {
-                        stats[idx] = stat;
-                    }
+                    stats[idx] = err || stat;
                     count--;
                     if (count <= 0) {
                         callback(err, contents, stats);

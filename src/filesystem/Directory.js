@@ -56,17 +56,32 @@ define(function (require, exports, module) {
      * @type {Array<FileSystemEntry>}
      */
     Directory.prototype._contents = null;
+
+    /**
+     * The stats for the contents of this directory, such that this._contentsStats[i]
+     * corresponds to this._contents[i].
+     * @type {Array.<FileSystemStats>}
+     */
+    Directory.prototype._contentsStats = null;
+    
+    /**
+     * The stats errors for the contents of this directory.
+     * @type {object.<string: string>} fullPaths are mapped to FileSystemError strings
+     */
+    Directory.prototype._contentsStatsErrors = null;
     
     /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (?string, Array.<FileSystemEntry>=)} callback Callback that is passed
-     *          an error code and the contents of the directory.
+     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, object.<string: string>=)} callback
+     *          Callback that is passed an error code or the stat-able contents
+     *          of the directory along with the stats for these entries and a
+     *          fullPath-to-FileSystemError string map of unstat-able entries
+     *          and their stat errors. If there are no stat errors then the last
+     *          parameter shall remain undefined.
      */
     Directory.prototype.getContents = function (callback) {
-        var i, entryPath, entry;
-        
         if (this._contentsCallbacks) {
             // There is already a pending call for this directory's contents.
             // Push the new callback onto the stack and return.
@@ -79,38 +94,57 @@ define(function (require, exports, module) {
             // Watchers aren't guaranteed to fire immediately, so it's possible this will be somewhat stale. But
             // unlike file contents, we're willing to tolerate directory contents being stale. It should at least
             // be up-to-date with respect to changes made internally (by this filesystem).
-            callback(null, this._contents);
+            callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
         
         this._contentsCallbacks = [callback];
         
         this._impl.readdir(this.fullPath, function (err, contents, stats) {
-            this._contents = [];
+            this._contentsStatsErrors = undefined;
             
-            // Instantiate content objects
-            var len = stats ? stats.length : 0;
-            
-            for (i = 0; i < len; i++) {
-                entryPath = this.fullPath + contents[i];
+            if (err) {
+                this._contents = undefined;
+                this._contentsStats = undefined;
+            } else {
+                this._contents = [];
+                this._contentsStats = [];
                 
-                // Note: not all entries necessarily have associated stats.
-                // For now, silently ignore such entries.
-                if (stats[i] && this._fileSystem._indexFilter(entryPath, contents[i])) {
-                    if (stats[i].isFile) {
-                        entry = this._fileSystem.getFileForPath(entryPath);
-                        
-                        // If file already existed, its cache may now be invalid (a change to file content may be messaged EITHER as
-                        // a watcher change directly on that file, OR as a watcher change to its parent dir)
-                        // TODO: move this to FileSystem._handleWatchResult()?
-                        entry._contents = undefined;
-                    } else {
-                        entry = this._fileSystem.getDirectoryForPath(entryPath);
-                    }
-                    entry._stat = stats[i];
+                contents.forEach(function (name, index) {
+                    var entryPath = this.fullPath + name,
+                        entry;
                     
-                    this._contents.push(entry);
-                }
+                    if (this._fileSystem._indexFilter(entryPath, name)) {
+                        var entryStats = stats[index];
+                        
+                        // Note: not all entries necessarily have associated stats.
+                        if (typeof entryStats === "string") {
+                            // entryStats is an error string
+                            if (this._contentsStatsErrors === undefined) {
+                                this._contentsStatsErrors = {};
+                            }
+                            this._contentsStatsErrors[entryPath] = entryStats;
+                        } else {
+                            // entryStats is a FileSystemStats object
+                            if (entryStats.isFile) {
+                                entry = this._fileSystem.getFileForPath(entryPath);
+                                
+                                // If file already existed, its cache may now be invalid (a change
+                                // to file content may be messaged EITHER as a watcher change 
+                                // directly on that file, OR as a watcher change to its parent dir)
+                                // TODO: move this to FileSystem._handleWatchResult()?
+                                entry._contents = undefined;
+                            } else {
+                                entry = this._fileSystem.getDirectoryForPath(entryPath);
+                            }
+                            
+                            entry._stat = entryStats;
+                            this._contents.push(entry);
+                            this._contentsStats.push(entryStats);
+                        }
+                    
+                    }
+                }, this);
             }
             
             // Reset the callback list before we begin calling back so that
@@ -121,7 +155,7 @@ define(function (require, exports, module) {
             
             // Invoke all saved callbacks
             currentCallbacks.forEach(function (cb) {
-                cb(err, this._contents);
+                cb(err, this._contents, this._contentsStats, this._contentsStatsErrors);
             }.bind(this));
         }.bind(this));
     };

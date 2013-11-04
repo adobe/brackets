@@ -59,6 +59,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
@@ -89,8 +90,9 @@ define(function (require, exports, module) {
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
      * @type {RegExp}
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.hgignore$/;
-    
+
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|^\.hgignore$/;
+
     /**
      * @private
      * File names which are not showed in quick open dialog
@@ -770,9 +772,7 @@ define(function (require, exports, module) {
         
         // Fetch dirEntry's contents
         dirEntry.getContents(function (err, contents) {
-            if (contents) {
-                processEntries(contents);
-            } else {
+            if (err) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
@@ -784,6 +784,8 @@ define(function (require, exports, module) {
                 );
                 // Reject the render promise so we can move on.
                 deferred.reject();
+            } else {
+                processEntries(contents);
             }
         });
     }
@@ -1599,8 +1601,8 @@ define(function (require, exports, module) {
      * files in the working set that are *not* under the project root. Files filtered
      * out by shouldShow() OR isBinaryFile() are excluded.
      *
-     * @param {function (File, number):boolean=} filter Optional filter function.
-     *          See Array.filter() for details.
+     * @param {function (File, number):boolean=} filter Optional function to filter
+     *          the file list (does not filter directory traversal). API matches Array.filter().
      * @param {boolean=} includeWorkingSet If true, include files in the working set
      *          that are not under the project root (*except* for untitled documents).
      *
@@ -1647,6 +1649,17 @@ define(function (require, exports, module) {
         });
         
         return deferred.promise();
+    }
+    
+    /**
+     * Returns a filter for use with getAllFiles() that filters files based on LanguageManager language id
+     * @param {!string} languageId
+     * @return {!function(File):boolean}
+     */
+    function getLanguageFilter(languageId) {
+        return function languageFilter(file) {
+            return (LanguageManager.getLanguageForPath(file.fullPath).getId() === languageId);
+        };
     }
     
     /**
@@ -1725,4 +1738,5 @@ define(function (require, exports, module) {
     exports.showInTree               = showInTree;
     exports.refreshFileTree          = refreshFileTree;
     exports.getAllFiles              = getAllFiles;
+    exports.getLanguageFilter        = getLanguageFilter;
 });
