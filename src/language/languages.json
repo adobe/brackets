@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master","cshtml","vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -169,7 +169,8 @@
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"],
+        "fileNames": ["Gemfile", "Rakefile"]
     },
 
     "python": {
