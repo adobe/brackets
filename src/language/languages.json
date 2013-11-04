@@ -43,17 +43,10 @@
     "ejs": {
         "name": "EJS",
         "mode": ["htmlembedded", "application/x-ejs"],
-        "fileExtensions": ["ejs"],
+        "fileExtensions": ["ejs", "dust"],
         "blockComment": ["<!--", "-->"]
     },
     
-    "dust": {
-        "name": "Dust.js",
-        "mode": ["htmlembedded", "application/x-ejs"],
-        "fileExtensions": ["dust"],
-        "blockComment": ["<!--", "-->"]
-    },
-
     "erb_html": {
         "name": "Embedded Ruby",
         "mode": ["htmlembedded", "application/x-erb"],
