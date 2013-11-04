@@ -459,6 +459,41 @@ define(function (require, exports, module) {
         }.bind(this));
     };
     
+    FileSystem.prototype.readAllAsText = function (files, encoding, callback) {
+        if (typeof encoding === "function") {
+            callback = encoding;
+            encoding = "utf8";
+        }
+        
+        if (this._impl.hasOwnProperty("readAllFiles")) {
+            var paths = files.map(function (file) { return file.fullPath; });
+            this._impl.readAllFiles(paths, {encoding: encoding}, callback);
+        } else {
+            var count = files.length,
+                results = new Array(count);
+            
+            if (count === 0) {
+                callback(null, results);
+                return;
+            }
+            
+            files.forEach(function (file, index) {
+                file.readAsText(encoding, function (err, data) {
+                    if (err) {
+                        results[index] = {err: err};
+                    } else {
+                        results[index] = {data: data};
+                    }
+                    
+                    if (--count === 0) {
+                        callback(null, results);
+                    }
+                });
+            });
+        }
+    };
+    
+    
     /**
      * @private
      * Notify the system when an entry name has changed.
@@ -747,6 +782,7 @@ define(function (require, exports, module) {
     exports.getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
     exports.getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
     exports.resolve = _wrap(FileSystem.prototype.resolve);
+    exports.readAllAsText = _wrap(FileSystem.prototype.readAllAsText);
     exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
     exports.watch = _wrap(FileSystem.prototype.watch);

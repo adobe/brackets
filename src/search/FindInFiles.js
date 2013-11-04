@@ -674,37 +674,41 @@ define(function (require, exports, module) {
         
         ProjectManager.getAllFiles(true)
             .done(function (fileListResult) {
-                Async.doInParallel(fileListResult, function (file) {
-                    var result = new $.Deferred();
-                    
+                var filesToRead = fileListResult.filter(function (file) {
                     if (!_inScope(file, currentScope)) {
-                        result.resolve();
-                    } else {
-                        DocumentManager.getDocumentText(file)
-                            .done(function (text) {
-                                _addSearchMatches(file.fullPath, text, currentQueryExpr);
-                                result.resolve();
-                            })
-                            .fail(function (error) {
-                                // Always resolve. If there is an error, this file
-                                // is skipped and we move on to the next file.
-                                result.resolve();
-                            });
+                        return;
                     }
-                    return result.promise();
-                })
-                    .done(function () {
-                        // Done searching all files: show results
-                        _showSearchResults();
-                        StatusBar.hideBusyIndicator();
-                        PerfUtils.addMeasurement(perfTimer);
-                        $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
-                    })
-                    .fail(function () {
-                        console.log("find in files failed.");
+                    
+                    var openDoc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                    if (openDoc) {
+                        _addSearchMatches(file.fullPath, openDoc.getText(), currentQueryExpr);
+                        return;
+                    }
+                    
+                    return true;
+                });
+                
+                FileSystem.readAllAsText(filesToRead, function (err, results) {
+                    if (err) {
                         StatusBar.hideBusyIndicator();
                         PerfUtils.finalizeMeasurement(perfTimer);
+                        return;
+                    }
+                    
+                    results.forEach(function (result, index) {
+                        var file = filesToRead[index];
+                        
+                        if (!result.err) {
+                            _addSearchMatches(file.fullPath, result.data, currentQueryExpr);
+                        }
                     });
+                    
+                    // Done searching all files: show results
+                    _showSearchResults();
+                    StatusBar.hideBusyIndicator();
+                    PerfUtils.addMeasurement(perfTimer);
+                    $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                });
             });
     }
     
