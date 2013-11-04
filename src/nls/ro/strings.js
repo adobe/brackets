@@ -35,7 +35,7 @@ define({
     "NOT_FOUND_ERR"                     : "Fișierul nu a fost găsit.",
     "NOT_READABLE_ERR"                  : "Fișierul nu poate fi citit.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Nu sunt permise modificări în directoriul curent.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Nu sunteți autorizat pentru a face modificări.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Nu aveți destule drepturi pentru a face modificări.",
     "FILE_EXISTS_ERR"                   : "Fișierul sau directoriul există deja.",
     "FILE"                              : "fișier",
     "DIRECTORY"                         : "directoriu",
@@ -74,12 +74,12 @@ define({
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Eroare la lansarea browser-ului",
-    "ERROR_CANT_FIND_CHROME"            : "Browser-ul Google Chrome nu a putut fi găsit. Asigurați-vă că el e instalat.",
+    "ERROR_CANT_FIND_CHROME"            : "Browser-ul Google Chrome nu a putut fi găsit. Asigurați-vă că el este instalat.",
     "ERROR_LAUNCHING_BROWSER"           : "S-a produs o eroare la lansarea browser-ului. (eroare {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Eroare la lansarea Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectare la browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Pentru a lansa Live Preview Google Chrome trebuie să fie relansat cu depanarea la distanță activată.<br /><br />Doriți ca Google Chrome să fie relansat cu depanare la distanță activată?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Pentru a lansa Live Preview Google Chrome trebuie să fie relansat cu opțiunea de depanarea la distanță activată.<br /><br />Doriți ca Google Chrome să fie relansat cu opțiunea de depanare la distanță activată?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Imposibil de a încărca pagina Live Development",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Deschideți un fișier HTML sau fiți sigur că există un fișier index.html în proiectul dumneavoastră pentru a lansa Live Preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Pentru a lansa Live Preview cu un fișier server-side, e necesar de a specifica un URL de bază pentru acest proiect.",
@@ -246,7 +246,7 @@ define({
     "CMD_INDENT"                          : "Indentează",
     "CMD_UNINDENT"                        : "Deindentează",
     "CMD_DUPLICATE"                       : "Duplică",
-    "CMD_DELETE_LINES"                    : "Șterge rând",
+    "CMD_DELETE_LINES"                    : "Șterge rândul",
     "CMD_COMMENT"                         : "Comută comentariul pentru rând",
     "CMD_BLOCK_COMMENT"                   : "Comută comentariul pentru bloc",
     "CMD_LINE_UP"                         : "Mută pe rândul de mai sus",
