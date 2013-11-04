@@ -51,16 +51,7 @@ define(function (require, exports, module) {
         _newRuleHandlers = [];
 
     function _getCSSFilesInProject() {
-        function cssFilter(entry) {
-            if (entry.isFile) {
-                var language = LanguageManager.getLanguageForPath(entry.fullPath);
-                if (language.getId() === "css") {
-                    return true;
-                }
-            }
-            return false;
-        }
-        return ProjectManager.getAllFiles(cssFilter);
+        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"));
     }
     
     /**
