@@ -56,22 +56,30 @@ define(function (require, exports, module) {
      * @type {Array<FileSystemEntry>}
      */
     Directory.prototype._contents = null;
+
+    /**
+     * The stats for the contents of this directory, such that this._contentsStats[i]
+     * corresponds to this._contents[i].
+     * @type {Array.<FileSystemStats>}
+     */
+    Directory.prototype._contentsStats = null;
     
     /**
-     * The statErrors for this directory. This "private" property is used by FileSystem.
+     * The stats errors for the contents of this directory.
      * @type {object.<string: string>} fullPaths are mapped to FileSystemError strings
      */
-    Directory.prototype._statErrors = null;
+    Directory.prototype._contentsStatsErrors = null;
     
     /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (?string, Array.<FileSystemEntry>=, object.<string: string>=)} callback
-     *          Callback that is passed an error code or the stat-able contents of the directory
-     *          along with a fullPath-to-FileSystemError string map of unstat-able entries and
-     *          their stat errors. If there are no stat errors then the last parameter shall
-     *          remain undefined.
+     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, object.<string: string>=)} callback
+     *          Callback that is passed an error code or the stat-able contents
+     *          of the directory along with the stats for these entries and a
+     *          fullPath-to-FileSystemError string map of unstat-able entries
+     *          and their stat errors. If there are no stat errors then the last
+     *          parameter shall remain undefined.
      */
     Directory.prototype.getContents = function (callback) {
         if (this._contentsCallbacks) {
@@ -86,18 +94,21 @@ define(function (require, exports, module) {
             // Watchers aren't guaranteed to fire immediately, so it's possible this will be somewhat stale. But
             // unlike file contents, we're willing to tolerate directory contents being stale. It should at least
             // be up-to-date with respect to changes made internally (by this filesystem).
-            callback(null, this._contents, this._statErrors);
+            callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
         
         this._contentsCallbacks = [callback];
         
         this._impl.readdir(this.fullPath, function (err, contents, stats) {
-            this._statErrors = undefined;
+            this._contentsStatsErrors = undefined;
+            
             if (err) {
                 this._contents = undefined;
+                this._contentsStats = undefined;
             } else {
                 this._contents = [];
+                this._contentsStats = [];
                 
                 contents.forEach(function (name, index) {
                     var entryPath = this.fullPath + name,
@@ -109,10 +120,10 @@ define(function (require, exports, module) {
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {
                             // entryStats is an error string
-                            if (this._statErrors === undefined) {
-                                this._statErrors = {};
+                            if (this._contentsStatsErrors === undefined) {
+                                this._contentsStatsErrors = {};
                             }
-                            this._statErrors[entryPath] = entryStats;
+                            this._contentsStatsErrors[entryPath] = entryStats;
                         } else {
                             // entryStats is a FileSystemStats object
                             if (entryStats.isFile) {
@@ -129,6 +140,7 @@ define(function (require, exports, module) {
                             
                             entry._stat = entryStats;
                             this._contents.push(entry);
+                            this._contentsStats.push(entryStats);
                         }
                     
                     }
@@ -143,7 +155,7 @@ define(function (require, exports, module) {
             
             // Invoke all saved callbacks
             currentCallbacks.forEach(function (cb) {
-                cb(err, this._contents, this._statErrors);
+                cb(err, this._contents, this._contentsStats, this._contentsStatsErrors);
             }.bind(this));
         }.bind(this));
     };
