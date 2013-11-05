@@ -150,26 +150,26 @@ define(function (require, exports, module) {
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file that is currently opened.
      *
-     * @param {!File} fileEntry File that will be inspected for errors.
+     * @param {!File} file File that will be inspected for errors.
      * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
      * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array, aborted:boolean}
      */
-    function inspectFile(fileEntry, provider) {
+    function inspectFile(file, provider) {
         var response = new $.Deferred();
-        provider = provider || getProviderForPath(fileEntry.fullPath);
+        provider = provider || getProviderForPath(file.fullPath);
 
         if (!provider) {
             response.resolve(null);
             return response.promise();
         }
 
-        DocumentManager.getDocumentText(fileEntry)
+        DocumentManager.getDocumentText(file)
             .done(function (fileText) {
                 var result,
-                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
 
                 try {
-                    result = provider.scanFile(fileText, fileEntry.fullPath);
+                    result = provider.scanFile(fileText, file.fullPath);
                 } catch (err) {
                     console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
                     response.reject(err);
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
                 response.resolve(result);
             })
             .fail(function (err) {
-                console.error("[CodeInspection] Could not read file for inspection: " + fileEntry.fullPath);
+                console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
                 response.reject(err);
             });
 

@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     /** @type {RegExp} The current search query regular expression */
     var currentQueryExpr = null;
     
-    /** @type {Array.<FileEntry>} An array of the files where it should look or null/empty to search the entire project */
+    /** @type {Array.<File>} An array of the files where it should look or null/empty to search the entire project */
     var currentScope = null;
     
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */

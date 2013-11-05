@@ -326,8 +326,7 @@ define(function (require, exports, module) {
 
         // Load extensions before restoring the project
         
-        // Create a new DirectoryEntry and call getDirectory() on the user extension
-        // directory. If the directory doesn't exist, it will be created.
+        // Get a Directory for the user extension directory and create it if it doesn't exist.
         // Note that this is an async call and there are no success or failure functions passed
         // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
         // before the directory is finished being created, but that is okay, since the extension

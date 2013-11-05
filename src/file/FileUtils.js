@@ -204,7 +204,7 @@ define(function (require, exports, module) {
     /**
      * Removes the trailing slash from a path, if it has one.
      * Warning: this differs from the format of most paths used in Brackets! Use paths ending in "/"
-     * normally, as this is the format used by DirectoryEntry.fullPath.
+     * normally, as this is the format used by Directory.fullPath.
      * 
      * @param {string} path
      * @return {string}
@@ -219,14 +219,14 @@ define(function (require, exports, module) {
     
     /**
      * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by DirectoryEntry.fullPath actually DOES include the trailing "/"
+     * used by Directory.fullPath actually DOES include the trailing "/"
      * @deprecated
      * 
      * @param {string} path
      * @return {string}
      */
     function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like DirectoryEntry.fullPath");
+        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
         return stripTrailingSlash(path);
     }
     

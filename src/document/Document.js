@@ -69,7 +69,7 @@ define(function (require, exports, module) {
      * deleted -- When the file for this document has been deleted. All views onto the document should
      *      be closed. The document will no longer be editable or dispatch "change" events.
      *
-     * @param {!FileEntry} file  Need not lie within the project.
+     * @param {!File} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
      * @param {!string} rawText  Text content of the file.
      */
@@ -90,9 +90,9 @@ define(function (require, exports, module) {
     Document.prototype._refCount = 0;
     
     /**
-     * The FileEntry for this document. Need not lie within the project.
-     * If Document is untitled, this is an InaccessibleFileEntry object.
-     * @type {!FileEntry}
+     * The File for this document. Need not lie within the project.
+     * If Document is untitled, this is an InMemoryFile object.
+     * @type {!File}
      */
     Document.prototype.file = null;
 
