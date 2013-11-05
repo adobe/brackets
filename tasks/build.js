@@ -71,14 +71,15 @@ module.exports = function (grunt) {
     grunt.registerTask("cla-check-pull", "Check if a given GitHub user has signed the CLA", function () {
         var done    = this.async(),
             body    = "",
-            travis  = process.env.TRAVIS === true,
+            travis  = process.env.TRAVIS === "true",
             pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
             url     = "https://api.github.com/repos/adobe/brackets/issues/" + pull;
         
         if (!pull) {
+            grunt.log.writeln(JSON.stringify(process.env));
+            
             if (travis) {
                 // Kicked off a travis build without a pull request, skip CLA check
-                grunt.log.writeln(JSON.stringify(process.env));
                 grunt.log.writeln("Travis build without pull request");
                 done();
             } else {
