@@ -423,11 +423,10 @@ define(function (require, exports, module) {
         this.file.stat(function (err, stat) {
             if (!err) {
                 thisDoc.diskTimestamp = stat.mtime;
-                $(exports).triggerHandler("_documentSaved", thisDoc);
             } else {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
-                $(exports).triggerHandler("_documentSaved", thisDoc);
             }
+            $(exports).triggerHandler("_documentSaved", thisDoc);
         });
     };
     

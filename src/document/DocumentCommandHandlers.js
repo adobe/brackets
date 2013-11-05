@@ -399,7 +399,7 @@ define(function (require, exports, module) {
             entry.exists(function (exists) {
                 if (exists) {
                     //file exists, notify to the next progress
-                    result.notify(baseFileName + "-" + _nextUntitledIndexToUse + fileExt, _nextUntitledIndexToUse + 1);
+                    result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
                 } else {
                     result.resolve(suggestedName);
                 }
@@ -515,29 +515,29 @@ define(function (require, exports, module) {
      */
     function doSave(docToSave) {
         var result = new $.Deferred(),
-            fileEntry = docToSave.file;
+            file = docToSave.file;
         
         function handleError(error) {
-            _showSaveFileError(error, fileEntry.fullPath)
+            _showSaveFileError(error, file.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
         }
             
-        if (docToSave && docToSave.isDirty) {
-            var file = docToSave.file;
+        if (docToSave.isDirty) {
             var writeError = false;
             
+            // We don't want normalized line endings, so it's important to pass true to getText()
             FileUtils.writeText(file, docToSave.getText(true))
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
                 })
                 .fail(function (err) {
-                    handleError(err, file);
+                    handleError(err);
                 });
         } else {
-            result.resolve(fileEntry);
+            result.resolve(file);
         }
         result.always(function () {
             EditorManager.focusEditor();

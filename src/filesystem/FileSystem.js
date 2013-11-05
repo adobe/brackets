@@ -484,8 +484,9 @@ define(function (require, exports, module) {
      *                          browsed folder depending on the OS preferences
      * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
      *                          allows any extension to be selected.
-     * @param {function (?string, Array.<string>=)} callback Callback resolved with an error string or
-     *                          the selected file(s)/directories.
+     * @param {function (?string, Array.<string>=)} callback Callback resolved with an error and the 
+     *                          selected file(s)/directories. If the user cancels the open dialog,
+     *                          the error will be falsy and the file/directory array will be empty.
      */
     FileSystem.prototype.showOpenDialog = function (allowMultipleSelection,
                             chooseDirectories,
@@ -506,8 +507,9 @@ define(function (require, exports, module) {
      *                          browsed folder depending on the OS preferences.
      * @param {string} proposedNewFilename Provide a new file name for the user. This could be based on
      *                          on the current file name plus an additional suffix
-     * @param {function (?string, string=)} callback Callback that is resolved with an error string or the
-     *                          name of the file to save.
+     * @param {function (?string, string=)} callback Callback that is resolved with an error and the
+     *                          name of the file to save. If the user cancels the save, the error
+     *                          will be falsy and the new name will be empty.
      */
     FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);

@@ -934,7 +934,7 @@ define(function (require, exports, module) {
     
             _unwatchProjectRoot();
         }
-                
+        
         // Clear project path map
         _projectInitialLoad = {
             previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
