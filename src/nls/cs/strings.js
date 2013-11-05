@@ -186,7 +186,7 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
 
     // CodeInspection: chyby/varování
-    "ERRORS_PANEL_TITLE"                    : "{0} chyb",
+    "ERRORS_PANEL_TITLE"                    : "{0} chyby",
     "SINGLE_ERROR"                          : "1 {0} chyba",
     "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
     "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
