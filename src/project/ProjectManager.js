@@ -202,10 +202,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the item selected in the file tree, or null
+     * Returns the File or Directory corresponding to the item selected in the file tree, or null
      * if no item is selected in the tree (though the working set may still have a selection; use
      * getSelectedItem() to get the selection regardless of whether it's in the tree or working set).
-     * @return {?Entry}
+     * @return {?(File|Directory)}
      */
     function _getTreeSelectedItem() {
         var selected = _projectTree.jstree("get_selected");
@@ -216,11 +216,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the item selected in the sidebar panel, whether in
+     * Returns the File or Directory corresponding to the item selected in the sidebar panel, whether in
      * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
      * May NOT be identical to the current Document - a folder may be selected in the sidebar, or the sidebar may not
      * have the current document visible in the tree & working set.
-     * @return {?Entry}
+     * @return {?(File|Directory)}
      */
     function getSelectedItem() {
         // Prefer file tree selection, else use working set selection
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
-     * @return {DirectoryEntry}
+     * @return {Directory}
      */
     function getProjectRoot() {
         return _projectRoot;
@@ -766,7 +766,7 @@ define(function (require, exports, module) {
             dirEntry = _projectRoot;
             isProjectRoot = true;
         } else {
-            // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
+            // All other nodes: the Directory is saved as jQ data in the tree (by _convertEntriesToJSON())
             dirEntry = treeNode.data("entry");
         }
         
@@ -1028,7 +1028,7 @@ define(function (require, exports, module) {
      * Finds the tree node corresponding to the given file/folder (rejected if the path lies
      * outside the project, or if it doesn't exist).
      *
-     * @param {!Entry} entry FileEntry or DirectoryEntry to find
+     * @param {!(File|Directory)} entry File or Directory to find
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
      */
     function _findTreeNode(entry) {
@@ -1045,7 +1045,7 @@ define(function (require, exports, module) {
         // We're going to traverse from root of tree, one segment at a time
         var pathSegments = projRelativePath.split("/");
         if (entry.isDirectory) {
-            pathSegments.pop();  // DirectoryEntry always has a trailing "/"
+            pathSegments.pop();  // Directory always has a trailing "/"
         }
         
         function findInSubtree($nodes, segmentI) {
@@ -1113,7 +1113,7 @@ define(function (require, exports, module) {
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
      * path lies outside the project, or if it doesn't exist.
      *
-     * @param {!Entry} entry FileEntry or DirectoryEntry to show
+     * @param {!(File|Directory)} entry File or Directory to show
      * @return {$.Promise} Resolved when done; or rejected if not found
      */
     function showInTree(entry) {
@@ -1216,7 +1216,7 @@ define(function (require, exports, module) {
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
      * @param isFolder {boolean} If true, create a folder instead of a file
-     * @return {$.Promise} A promise object that will be resolved with the FileEntry
+     * @return {$.Promise} A promise object that will be resolved with the File
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
@@ -1229,12 +1229,12 @@ define(function (require, exports, module) {
             result              = new $.Deferred(),
             wasNodeOpen         = true;
 
-        // get the FileEntry or DirectoryEntry
+        // get the File or Directory
         if (selection) {
             selectionEntry = selection.data("entry");
         }
 
-        // move selection to parent DirectoryEntry
+        // move selection to parent Directory
         if (selectionEntry) {
             if (selectionEntry.isFile) {
                 position = "after";
@@ -1254,7 +1254,7 @@ define(function (require, exports, module) {
             }
         }
 
-        // use the project root DirectoryEntry
+        // use the project root Directory
         if (!selectionEntry) {
             selectionEntry = getProjectRoot();
         }
@@ -1474,7 +1474,7 @@ define(function (require, exports, module) {
     /**
      * Initiates a rename of the selected item in the project tree, showing an inline editor
      * for input. Silently no-ops if the entry lies outside the tree or doesn't exist.
-     * @param {!Entry} entry FileEntry or DirectoryEntry to rename
+     * @param {!(File|Directory)} entry File or Directory to rename
      */
     function renameItemInline(entry) {
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
@@ -1539,7 +1539,7 @@ define(function (require, exports, module) {
 
     /**
      * Delete file or directore from project
-     * @param {!Entry} entry FileEntry or DirectoryEntry to delete
+     * @param {!(File|Directory)} entry File or Directory to delete
      */
     function deleteItem(entry) {
         var result = new $.Deferred();
