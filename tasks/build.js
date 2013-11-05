@@ -75,15 +75,18 @@ module.exports = function (grunt) {
             pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
             url     = "https://api.github.com/repos/adobe/brackets/issues/" + pull;
         
-        if (travis && !pull) {
-            // Kicked off a travis build without a pull request, skip CLA check
-            grunt.log.writeln("Travis build without pull request");
-            done();
-            return;
-        } else if (!pull) {
-            // Grunt command-line option missing, fail CLA check
-            grunt.log.writeln("Missing pull request number. Use 'grunt cla-check-pull --pull=<NUMBER>'.");
-            done(false);
+        if (!pull) {
+            if (travis) {
+                // Kicked off a travis build without a pull request, skip CLA check
+                grunt.log.writeln(JSON.stringify(process.env));
+                grunt.log.writeln("Travis build without pull request");
+                done();
+            } else {
+                // Grunt command-line option missing, fail CLA check
+                grunt.log.writeln("Missing pull request number. Use 'grunt cla-check-pull --pull=<NUMBER>'.");
+                done(false);
+            }
+            
             return;
         }
             
