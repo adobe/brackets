@@ -86,7 +86,7 @@ module.exports = function (grunt) {
             
             res.on("end", function () {
                 var json = JSON.parse(body);
-                
+                grunt.log.write(body);
                 grunt.option("user", json.user.login);
                 grunt.task.run("cla-check");
                 done();
