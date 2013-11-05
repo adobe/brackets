@@ -206,9 +206,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Přidat k pracovní sadě",
+    "CMD_OPEN_DROPPED_FILES"              : "Otevřít opuštěné  soubory",  
     "CMD_OPEN_FOLDER"                     : "Otevřít složku\u2026",
     "CMD_FILE_CLOSE"                      : "Zavřít",
     "CMD_FILE_CLOSE_ALL"                  : "Zavřít vše",
+    "CMD_FILE_CLOSE_LIST"                 : "Zavřít seznam",
+    "CMD_FILE_CLOSE_OTHERS"               : "Zavřít ostatní",
+    "CMD_FILE_CLOSE_ABOVE"                : "Zavřít ostatní výše",
+    "CMD_FILE_CLOSE_BELOW"                : "Zavřít ostatní níže",  
     "CMD_FILE_SAVE"                       : "Uložit",
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
@@ -280,6 +285,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nové pravidlo",  
     "CMD_NEXT_DOC"                        : "Další dokument",
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
@@ -329,6 +335,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
+      // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Nové pravidlo",
+  
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
     "UPDATE"                               : "Aktualizovat",
@@ -376,6 +385,8 @@ define({
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Tento doplněk požaduje novější verzi {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Tento doplněk funguje pouze ve starší verzi {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Verze {0} tohoto doplňku vyžaduje novější verzi {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Verze {0} tohoto doplňku funguje pouze se starší verzi {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",  
     "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
@@ -406,6 +417,10 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
+      "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádné  CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
+  
     /**
      * Jména jednotek
      */
@@ -453,6 +468,10 @@ define({
     "LOCALE_ZH_CN"                              : "Čínsky",
     "LOCALE_HU"                                 : "Maďarsky",
 
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
+  
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
