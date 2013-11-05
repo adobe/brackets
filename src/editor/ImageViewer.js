@@ -110,7 +110,7 @@ define(function (require, exports, module) {
                     $("#img-data").html(dimensionString + sizeString);
                 },
                 function (error) {
-                    $("#img-data").text(dimensionString);
+                    $("#img-data").html(dimensionString);
                 }
             );
             $("#image-holder").show();
