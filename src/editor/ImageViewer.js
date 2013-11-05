@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
-            var dimensionString = _naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+            var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             fileEntry.getMetadata(
@@ -110,7 +110,7 @@ define(function (require, exports, module) {
                     $("#img-data").html(dimensionString + sizeString);
                 },
                 function (error) {
-                    $("#img-data").text(dimensionString);
+                    $("#img-data").html(dimensionString);
                 }
             );
             $("#image-holder").show();
