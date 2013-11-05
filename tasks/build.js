@@ -71,15 +71,19 @@ module.exports = function (grunt) {
     grunt.registerTask("cla-check-pull", "Check if a given GitHub user has signed the CLA", function () {
         var done    = this.async(),
             body    = "",
-            number  = grunt.option("pull") || process.env.TRAVIS_PULL_REQUEST || 0;
+            number  = grunt.option("pull") || process.env.TRAVIS_PULL_REQUEST || 0,
+            url     = "https://api.github.com/repos/adobe/brackets/issues/" + number;
         
         if (!number) {
             grunt.log.writeln("Missing pull request number. Use 'grunt cla-check-pull --pull=<NUMBER>'.");
             done(false);
             return;
         }
+        
+        grunt.log.writeln(JSON.stringify(process.env));
+        grunt.log.writeln(url);
             
-        https.get("https://api.github.com/repos/adobe/brackets/issues/" + number, function (res) {
+        https.get(url, function (res) {
             res.on("data", function (chunk) {
                 body += chunk;
             });
