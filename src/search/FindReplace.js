@@ -144,6 +144,7 @@ define(function (require, exports, module) {
                 centerOptions = Editor.BOUNDARY_IGNORE_TOP;
             }
             editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
+            cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
