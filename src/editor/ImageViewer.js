@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
-            var dimensionString = _naturalWidth + " × " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+            var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             fileEntry.getMetadata(
