@@ -63,13 +63,13 @@
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry, and the 3rd arg is the index it was inserted at.
+ *      to the listener is the added File, and the 3rd arg is the index it was inserted at.
  *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
- *      The 2nd arg to the listener is the array of added FileEntry objects.
+ *      The 2nd arg to the listener is the array of added File objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
- *      2nd arg to the listener is the removed FileEntry.
+ *      2nd arg to the listener is the removed File.
  *    - workingSetRemoveList -- When multiple files are removed from the working set (e.g. project close).
- *      The 2nd arg to the listener is the array of removed FileEntry objects.
+ *      The 2nd arg to the listener is the array of removed File objects.
  *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
  *      Listener receives no arguments.
  *
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {Array.<FileEntry>}
+     * @type {Array.<File>}
      * @see DocumentManager.getWorkingSet()
      */
     var _workingSet = [];
@@ -143,14 +143,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * Contains the same set of items as _workingSet, but ordered by how recently they were _currentDocument (0 = most recent).
-     * @type {Array.<FileEntry>}
+     * @type {Array.<File>}
      */
     var _workingSetMRUOrder = [];
     
     /**
      * @private
      * Contains the same set of items as _workingSet, but ordered in the way they where added to _workingSet (0 = last added).
-     * @type {Array.<FileEntry>}
+     * @type {Array.<File>}
      */
     var _workingSetAddedOrder = [];
     
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
      * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
      * (yet) change this collection on their own.
      *
-     * @return {Array.<FileEntry>}
+     * @return {Array.<File>}
      */
     function getWorkingSet() {
         return _.clone(_workingSet);
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      * Returns the index of the file matching fullPath in the working set.
      * Returns -1 if not found.
      * @param {!string} fullPath
-     * @param {Array.<FileEntry>=} list Pass this arg to search a different array of files. Internal
+     * @param {Array.<File>=} list Pass this arg to search a different array of files. Internal
      *          use only.
      * @returns {number} index
      */
@@ -231,7 +231,7 @@ define(function (require, exports, module) {
      * Adds the given file to the end of the working set list, if it is not already in the list
      * and it does not have a custom viewer.
      * Does not change which document is currently open in the editor. Completes synchronously.
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @param {number=} index  Position to add to list (defaults to last); -1 is ignored
      * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
      *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
@@ -288,7 +288,7 @@ define(function (require, exports, module) {
      * Does not change which document is currently open in the editor.
      * More efficient than calling addToWorkingSet() (in a loop) for
      * a list of files because there's only 1 redraw at the end
-     * @param {!FileEntryArray} fileList
+     * @param {!Array.<File>} fileList
      */
     function addListToWorkingSet(fileList) {
         var uniqueFileList = [];
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
      * Warning: low level API - use FILE_CLOSE command in most cases.
      * Removes the given file from the working set list, if it was in the list. Does not change
      * the current editor even if it's for this file. Does not prompt for unsaved changes.
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @param {boolean=} true to suppress redraw after removal
      */
     function removeFromWorkingSet(file, suppressRedraw) {
@@ -393,7 +393,7 @@ define(function (require, exports, module) {
     
     /**
      * Sorts _workingSet using the compare function
-     * @param {function(FileEntry, FileEntry): number} compareFn  The function that will be used inside JavaScript's
+     * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
      *      the same value when given a specific pair of elements a and b as its two arguments.
@@ -432,7 +432,7 @@ define(function (require, exports, module) {
      * Get the next or previous file in the working set, in MRU order (relative to currentDocument). May
      * return currentDocument itself if working set is length 1.
      * @param {number} inc  -1 for previous, +1 for next; no other values allowed
-     * @return {?FileEntry}  null if working set empty
+     * @return {?File}  null if working set empty
      */
     function getNextPrevFile(inc) {
         if (inc !== -1 && inc !== +1) {
@@ -526,7 +526,7 @@ define(function (require, exports, module) {
      *
      * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
      *
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @param {boolean} skipAutoSelect - if true, don't automatically open and select the next document
      */
     function closeFullEditor(file, skipAutoSelect) {
@@ -716,7 +716,7 @@ define(function (require, exports, module) {
      * to request the same document simultaneously before the initial request has completed.
      * In particular, this happens at app startup where the working set is created and the
      * intial active document is opened in an editor. This is essential to ensure that only
-     * 1 Document exists for any FileEntry.
+     * one Document exists for any File.
      * @private
      * @type {Object.<string, $.Promise>}
      */
@@ -757,11 +757,11 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates an untitled document. The associated FileEntry has a fullPath
+     * Creates an untitled document. The associated File has a fullPath that
      * looks like /some-random-string/Untitled-counter.fileExt.
      *
-     * @param {number} counter - used in the name of the new Document's FileEntry
-     * @param {string} fileExt - file extension of the new Document's FileEntry
+     * @param {number} counter - used in the name of the new Document's File
+     * @param {string} fileExt - file extension of the new Document's File
      * @return {Document} - a new untitled Document
      */
     function createUntitledDocument(counter, fileExt) {
@@ -784,7 +784,7 @@ define(function (require, exports, module) {
      * FUTURE: Instead of an explicit notify, we should eventually listen for deletion events on some
      * sort of "project file model," making this just a private event handler.
      *
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @param {boolean} skipAutoSelect - if true, don't automatically open/select the next document
      */
     function notifyFileDeleted(file, skipAutoSelect) {

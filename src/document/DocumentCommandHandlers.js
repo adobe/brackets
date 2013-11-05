@@ -580,7 +580,7 @@ define(function (require, exports, module) {
      * @param {?{cursorPos:!Object, selection:!Object, scrollPos:!Object}} settings - properties of
      *      the original document's editor that need to be carried over to the new document
      *      i.e. scrollPos, cursorPos and text selection
-     * @return {$.Promise} a promise that is resolved with the saved file's FileEntry. Rejected in
+     * @return {$.Promise} a promise that is resolved with the saved document's File. Rejected in
      *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
     function _doSaveAs(doc, settings) {
@@ -695,7 +695,7 @@ define(function (require, exports, module) {
     /**
      * Saves the given file. If no file specified, assumes the current document.
      * @param {?{doc: ?Document}} commandData  Document to close, or null
-     * @return {$.Promise} resolved with the saved file's FileEntry (which MAY DIFFER from the doc
+     * @return {$.Promise} resolved with the saved document's File (which MAY DIFFER from the doc
      *   passed in, if the doc was untitled). Rejected in case of IO error (after error dialog
      *   dismissed), or if doc was untitled and the Save dialog was canceled (will be rejected with
      *   USER_CANCELED object).
@@ -820,7 +820,7 @@ define(function (require, exports, module) {
      * Closes the specified file: removes it from the working set, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
-     * @param {?{file: FileEntry, promptOnly:boolean}} commandData  Optional bag of arguments:
+     * @param {?{file: File, promptOnly:boolean}} commandData  Optional bag of arguments:
      *      file - File to close; assumes the current document if not specified.
      *      promptOnly - If true, only displays the relevant confirmation UI and does NOT actually
      *          close the document. This is useful when chaining file-close together with other user
@@ -842,10 +842,10 @@ define(function (require, exports, module) {
         }
         
         // utility function for handleFileClose: closes document & removes from working set
-        function doClose(fileEntry) {
+        function doClose(file) {
             if (!promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeFullEditor(fileEntry);
+                DocumentManager.closeFullEditor(file);
                 
                 EditorManager.focusEditor();
             }
@@ -930,8 +930,8 @@ define(function (require, exports, module) {
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
                         handleFileSave({doc: doc})
-                            .done(function (newFileEntry) {
-                                doClose(newFileEntry);
+                            .done(function (newFile) {
+                                doClose(newFile);
                                 result.resolve();
                             })
                             .fail(function () {

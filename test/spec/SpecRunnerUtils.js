@@ -140,7 +140,7 @@ define(function (require, exports, module) {
         
     
     /**
-     * Resolves a path string to a FileEntry or DirectoryEntry
+     * Resolves a path string to a File or Directory
      * @param {!string} path Path to a file or directory
      * @return {$.Promise} A promise resolved when the file/directory is found or
      *     rejected when any error occurs.
@@ -694,7 +694,7 @@ define(function (require, exports, module) {
     
     /**
      * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!FileEntry} entry File to open
+     * @param {!File} entry File to open
      * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
      *  the file text without offset markup, the original file content, and the corresponding
      *  file entry.
@@ -775,7 +775,7 @@ define(function (require, exports, module) {
     
     /**
      * Copy a file source path to a destination
-     * @param {!FileEntry} source Entry for the source file to copy
+     * @param {!File} source Entry for the source file to copy
      * @param {!string} destination Destination path to copy the source file
      * @param {?{parseOffsets:boolean}} options parseOffsets allows optional
      *     offset markup parsing. File is written to the destination path
@@ -801,7 +801,7 @@ define(function (require, exports, module) {
                     offsets = parseInfo.offsets;
                 }
                 
-                // create the new FileEntry
+                // create the new File
                 createTextFile(destination, text, FileSystem).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
                 }).fail(function (err) {
@@ -817,7 +817,7 @@ define(function (require, exports, module) {
     
     /**
      * Copy a directory source to a destination
-     * @param {!DirectoryEntry} source Entry for the source directory to copy
+     * @param {!Directory} source Directory for the source directory to copy
      * @param {!string} destination Destination path to copy the source directory
      * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
      *     parseOffsets - allows optional offset markup parsing. File is written to the
