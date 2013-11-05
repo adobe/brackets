@@ -20,8 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
+
 define({
 
     /**
@@ -31,9 +33,9 @@ define({
     // General file io error strings
     "GENERIC_ERROR"                     : "(hata {0})",
     "NOT_FOUND_ERR"                     : "Dosya bulunamadı.",
-    "NOT_READABLE_ERR"                  : "Dosya okunabilir değil.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Klasör değişikliği için yetkiniz yok.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Dosya değişikliği için yetkiniz yok.",
+    "NOT_READABLE_ERR"                  : "<br /><br />Dosya üzerinde değişiklik yapmak için yetkiniz yok.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "<br /><br />Klasör değişikliği için yetkiniz yok.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "<br /><br />Dosya değişikliği için yetkiniz yok.",
     "FILE_EXISTS_ERR"                   : "Aynı isimde bir dosya var.",
     "FILE"                              : "Dosya",
     "DIRECTORY"                         : "Klasör",
@@ -46,14 +48,14 @@ define({
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Dosya açılamadı",
-    "ERROR_OPENING_FILE"                : "<span class='dialog-filename'>{0}</span> dosyası açılırken bir hata oluştu. {1}",
+    "ERROR_OPENING_FILE"                : "<span class='dialog-filename'>{0}</span>  açılırken bir hata oluştu. {1}",
     "ERROR_OPENING_FILES"               : "Şu dosyalar açılamadı:",
     "ERROR_RELOADING_FILE_TITLE"        : "Değişiklikler hafızadan okunurken hata oluştu.",
-    "ERROR_RELOADING_FILE"              : "<span class='dialog-filename'>{0}</span> dosyası yenilenirken bir hata oluştu. {1}",
+    "ERROR_RELOADING_FILE"              : "<span class='dialog-filename'>{0}</span>  yenilenirken bir hata oluştu. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Dosya kaydedilirken hata",
-    "ERROR_SAVING_FILE"                 : "<span class='dialog-filename'>{0}</span> dosyası kaydedilirken bir hata oluştu. {1}",
+    "ERROR_SAVING_FILE"                 : "<span class='dialog-filename'>{0}</span>  kaydedilirken bir hata oluştu. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Dosya ismi değiştirilirken hata",
-    "ERROR_RENAMING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyasının ismi değiştirilirken bir hata oluştu. {1}",
+    "ERROR_RENAMING_FILE"               : "<span class='dialog-filename'>{0}</span>  yeniden adlandırılırken bir hata oluştu. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Dosya silinemedi",
     "ERROR_DELETING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyası silinirken bir hata oluştu. {1}",
     "INVALID_FILENAME_TITLE"            : "Geçersiz dosya ismi",
@@ -83,7 +85,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Canlı Önizlemeyi sunucu taraflı dosyalarınız ile açmak istiyorsanız, lütfen bu proje için kullanılabilir bir yol belirtiniz.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Canlı geliştirme için sunucu çalıştırılamadı. Lütfen tekrar deneyin.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} Canlı Önizleme için tarayıcınıza bağlanarak projenizin örnek görüntüsünü açıyor. Değişiklik yaptığınız sayfayı kaydettiğiniz anda tarayıcı otomatik yenileme yapar.<br /><br />{APP_NAME} programının bu versiyonunda, Canlı Önizleme özelliği sndece <strong>CSS dosyaları</strong> değişikliğine izin veriyor yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />Canlı Önizleme sadece <strong>Google Chrome</strong> üzerinde çalışır.<br /><br />(Bu mesaj sadece bir defa gösterilecektir.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} Canlı Önizleme için tarayıcınıza bağlanarak projenizin örnek görüntüsünü açıyor.<br /><br /> Değişiklik yaptığınız sayfayı kaydettiğinizde tarayıcıda otomatik yenileme yaparak size dosyanızn son halini gösterir.<br />{APP_NAME} programının bu versiyonunda, Canlı Önizleme özelliği sndece <strong>CSS dosyaları</strong> değişikliğinde otomatik yenileme yapıyor yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />Canlı Önizleme sadece <strong>Google Chrome</strong> üzerinde çalışır.<br /><br />(Bu mesaj sadece bir defa gösterilecektir.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Canlı Önizleme",
@@ -103,7 +105,7 @@ define({
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Dosyalardaki değişiklikleri kaydetmek istiyor musunuz?",
     "EXT_MODIFIED_TITLE"                : "Harici değişiklikler",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Silmeyi onayla",
-    "CONFIRM_FOLDER_DELETE"             : " <span class='dialog-filename'>{0}</span> klasörünü silmek istediğinizden eminmisiniz?",
+    "CONFIRM_FOLDER_DELETE"             : " <span class='dialog-filename'>{0}</span> klasörünü silmek istediğinizden emin misiniz?",
     "FILE_DELETED_TITLE"                : "Dosya Silindi",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> dosyası dışarıdan değiştirildi ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Hangi versiyonun kalmasını istiyorsunuz?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> dosyası hafızadan silind ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Değişikliklerin kalmasını istiyor musunuz?",
@@ -116,8 +118,8 @@ define({
     "WITH"                              : "İle",
     "BUTTON_YES"                        : "Evet",
     "BUTTON_NO"                         : "Hayır",
-    "BUTTON_REPLACE_ALL"                : "Hepsini\u2026",
-    "BUTTON_STOP"                       : "Durdur",
+    "BUTTON_REPLACE_ALL"                : "Tümünü Değiştir",
+    "BUTTON_STOP"                       : "İptal",
     "BUTTON_REPLACE"                    : "Değiştir",
 
     "BUTTON_NEXT"                       : "\u25B6",
@@ -184,7 +186,7 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Satır",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Hata",
+    "ERRORS_PANEL_TITLE"                    : "{0} Hataları",
     "SINGLE_ERROR"                          : "1 {0} Hata",
     "MULTIPLE_ERRORS"                       : "{1} {0} Hata",
     "NO_ERRORS"                             : "{0} hata - Tebrikler!",
@@ -196,31 +198,31 @@ define({
     /**
      * Command Name Constants
      */
+    //
     // File menu commands
-
     "FILE_MENU"                         : "Dosya",
     "CMD_FILE_NEW_UNTITLED"             : "Yeni",
     "CMD_FILE_NEW"                      : "Yeni Dosya",
     "CMD_FILE_NEW_FOLDER"               : "Yeni Klasör",
-    "CMD_FILE_OPEN"                     : "Aç\u2026",
+    "CMD_FILE_OPEN"                     : "Aç",
     "CMD_ADD_TO_WORKING_SET"            : "Calışılan Dosyalarıma Ekle",
     "CMD_OPEN_DROPPED_FILES"            : "Sürüklenen Dosyaları Aç",
-    "CMD_OPEN_FOLDER"                   : "Klasörü Aç:\u2026",
+    "CMD_OPEN_FOLDER"                   : "Klasör Aç",
     "CMD_FILE_CLOSE"                    : "Kapat",
     "CMD_FILE_CLOSE_ALL"                : "Tümünü Kapat",
     "CMD_FILE_CLOSE_LIST"               : "Listeyi Kapat",
     "CMD_FILE_CLOSE_OTHERS"             : "Diğerlerini Kapat",
-    "CMD_FILE_CLOSE_ABOVE"              : "Yukarıdakileri kapat",
-    "CMD_FILE_CLOSE_BELOW"              : "Aşağıdakileri Kapat",
+    "CMD_FILE_CLOSE_ABOVE"              : "üsttekileri Kapat",
+    "CMD_FILE_CLOSE_BELOW"              : "Alttakileri Kapat",
     "CMD_FILE_SAVE"                     : "Kaydet",
     "CMD_FILE_SAVE_ALL"                 : "Tümünü Kaydet",
-    "CMD_FILE_SAVE_AS"                  : "Farklı Kaydet\u2026",
+    "CMD_FILE_SAVE_AS"                  : "Farklı Kaydet",
     "CMD_LIVE_FILE_PREVIEW"             : "Canlı Önizleme",
-    "CMD_PROJECT_SETTINGS"              : "Proje Ayarları\u2026",
+    "CMD_PROJECT_SETTINGS"              : "Proje Ayarları",
     "CMD_FILE_RENAME"                   : "Yeniden Adlandır",
     "CMD_FILE_DELETE"                   : "Sil",
-    "CMD_INSTALL_EXTENSION"             : "Uzantı Yükle\u2026",
-    "CMD_EXTENSION_MANAGER"             : "Uzantı Yönetimi\u2026",
+    "CMD_INSTALL_EXTENSION"             : "Uzantı Yükle",
+    "CMD_EXTENSION_MANAGER"             : "Uzantı Yönetimi",
     "CMD_FILE_REFRESH"                  : "Yenile",
     "CMD_QUIT"                          : "Çık",
     // Used in native File menu on Windows
@@ -237,13 +239,13 @@ define({
     "CMD_SELECT_LINE"                   : "Satırı Seç",
     "CMD_FIND"                          : "Bul",
     "CMD_FIND_IN_FILES"                 : "Dosyalarda Bul",
-    "CMD_FIND_IN_SUBTREE"               : "\u2026 klasöründe bul",
+    "CMD_FIND_IN_SUBTREE"               : "Klasörde Bul",
     "CMD_FIND_NEXT"                     : "Sonrakini Bul",
     "CMD_FIND_PREVIOUS"                 : "Öncekini Bul",
     "CMD_REPLACE"                       : "Değiştir",
     "CMD_INDENT"                        : "Girinti Ekle",
     "CMD_UNINDENT"                      : "Girintiyi Geri Al",
-    "CMD_DUPLICATE"                     : "Eşini Oluştur",
+    "CMD_DUPLICATE"                     : "Satırı Kopyala",
     "CMD_DELETE_LINES"                  : "Satır Sil",
     "CMD_COMMENT"                       : "Seçili satıra yorum etiketi ekle/kaldır",
     "CMD_BLOCK_COMMENT"                 : "Seçili bloğa yorum etiketi ekle/kaldır",
@@ -251,7 +253,7 @@ define({
     "CMD_LINE_DOWN"                     : "Satırı Aşağı Taşı",
     "CMD_OPEN_LINE_ABOVE"               : "Üste Yeni Satır",
     "CMD_OPEN_LINE_BELOW"               : "Alta Yeni Satır",
-    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Parantezleri otomatik Kapat",
+    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Parantezleri Otomatik Kapat",
     "CMD_SHOW_CODE_HINTS"               : "Kod İpuçlarını Göster",
 
     // View menu commands
@@ -281,11 +283,11 @@ define({
     "CMD_GOTO_FIRST_PROBLEM"            : "İlk Hataya/Uyarıya Git",
     "CMD_TOGGLE_QUICK_EDIT"             : "Hızlı Düzenle",
     "CMD_TOGGLE_QUICK_DOCS"             : "Hızlı Yardım",
-
     "CMD_QUICK_EDIT_PREV_MATCH"         : "Önceki Eşleşme",
     "CMD_QUICK_EDIT_NEXT_MATCH"         : "Sonraki Eşleşme",
     "CMD_NEXT_DOC"                      : "Sonraki Dosya",
     "CMD_PREV_DOC"                      : "Önceki Dosya",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"       : "Yeni Kural",
     "CMD_SHOW_IN_TREE"                  : "Dosya Listesinde Göster",
     "CMD_SHOW_IN_OS"                    : "Bulunduğu Konumu Aç",
 
@@ -300,11 +302,6 @@ define({
     "CMD_TWITTER"                       : "{TWITTER_NAME} Twitter'da",
     "CMD_ABOUT"                         : "{APP_TITLE} Hakkında",
 
-
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                  : "Pencereyi Kapat",
-    "CMD_ABORT_QUIT"                    : "Çıkışı İptal Et",
-
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "deneysel sürüm",
     "DEVELOPMENT_BUILD"                 : "geliştime sürümü",
@@ -312,6 +309,7 @@ define({
     "DONT_SAVE"                         : "Kaydetme",
     "SAVE"                              : "Kaydet",
     "CANCEL"                            : "İptal",
+    "DELETE"                            : "Sil",
     "RELOAD_FROM_DISK"                  : "Hafızadan Yenile",
     "KEEP_CHANGES_IN_EDITOR"            : "Değişiklikleri Editörde Tut",
     "CLOSE_DONT_SAVE"                   : "Kaydetmeden Kapat",
@@ -370,7 +368,7 @@ define({
     "MISSING_MAIN"                      : "Paket main.js dosyası içermiyor.",
     "EXTENSION_ALREADY_INSTALLED"       : "Bu uzantı önceden kurulu bir uzantı yerine geçecek. Mevcut uzantının üzerine yazlısın mı?",
     "EXTENSION_SAME_VERSION"            : "Bu uzantı önceden yüklenmiş. Mevcut uzantının üzerine yazlısın mı?",
-    "EXTENSION_OLDER_VERSION"           : "Yüklemeye çalıştığınız Uzantı sürümü {0} yüklü uzantınızdan daha eski ({1}). Mevcut uzantının üzerine yazlısın mı?",
+    "EXTENSION_OLDER_VERSION"           : "Yüklemeye çalıştığınız uzantının sürümü {0} yüklü uzantınızdan daha eski ({1}). Mevcut uzantının üzerine yazlısın mı?",
     "DOWNLOAD_ID_IN_USE"                : "Dahili Hata: İndirme kimliği kullanılmakta.",
     "NO_SERVER_RESPONSE"                : "Sunucuya bağlanılamıyor.",
     "BAD_HTTP_STATUS"                   : "Dosya sunucuda bulunamadı (HTTP {0}).",
@@ -387,6 +385,8 @@ define({
     "EXTENSION_DATE"                    : "Tarih",
     "EXTENSION_INCOMPATIBLE_NEWER"      : "Bu uzantıyı kullanabilmek için {APP_NAME}'in daha yeni bir sürümünü kullanmalısınız.",
     "EXTENSION_INCOMPATIBLE_OLDER"      : "Bu uzantı şimdilik {APP_NAME}'in eski versiyonlarıyla çalşabilir.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Uzantını {0} versiyonunu kullanabilmeniz için {APP_NAME}'in daha yeni bir sürümünü kurmalısınız. Ama daha eski olan {1} versiyonunu kurabilirsiniz.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Uzantını {0} versiyonu sadece {APP_NAME}'in eski sürümleriyle uyumlu. Ama daha eski olan {1} versiyonunu kurabilirsiniz.",
     "EXTENSION_NO_DESCRIPTION"          : "Açıklama Yok",
     "EXTENSION_MORE_INFO"               : "Daha fazla bilgi...",
     "EXTENSION_ERROR"                   : "Uzantı hatası",
@@ -410,11 +410,11 @@ define({
     "CHANGE_AND_QUIT"                   : "Uzantıları Değiştir ve Çık",
     "UPDATE_AND_QUIT"                   : "Uzantıları Güncelle ve Çık",
     "EXTENSION_NOT_INSTALLED"           : "Uzantı kaldırılamıyor {0} çünkü yüklenmedi.",
-    "NO_EXTENSIONS"                     : "Henüz yüklenmiş uzantı yok.<br>Başlamak için Mevcut butonuna basın.",
+    "NO_EXTENSIONS"                     : "Henüz kurulmuş uzantı yok.<br>Başlamak için Yükle butonuna basın.",
     "NO_EXTENSION_MATCHES"              : "Aramanızla eşlenşen uzantı bulunamadı.",
     "REGISTRY_SANITY_CHECK_WARNING"     : "Bilinmeyen kaynaklardan uzantı yüklerken dikkatli olun.",
     "EXTENSIONS_INSTALLED_TITLE"        : "Kurulu",
-    "EXTENSIONS_AVAILABLE_TITLE"        : "Mevcut",
+    "EXTENSIONS_AVAILABLE_TITLE"        : "Yükle",
     "EXTENSIONS_UPDATES_TITLE"          : "Güncellemeler",
 
     "INLINE_EDITOR_NO_MATCHES"          : "Eşleşme yok.",
@@ -446,30 +446,30 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"           : "Sistem Varsayılanı",
 
     // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                         : "Czech",
-    "LOCALE_DE"                         : "German",
-    "LOCALE_EN"                         : "English",
-    "LOCALE_ES"                         : "Spanish",
-    "LOCALE_FI"                         : "Finnish",
-    "LOCALE_FR"                         : "French",
-    "LOCALE_IT"                         : "Italian",
-    "LOCALE_JA"                         : "Japanese",
-    "LOCALE_NB"                         : "Norwegian",
-    "LOCALE_PL"                         : "Polish",
-    "LOCALE_PT_BR"                      : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                      : "Portuguese",
-    "LOCALE_RU"                         : "Russian",
-    "LOCALE_SK"                         : "Slovak",
-    "LOCALE_SR"                         : "Serbian",
-    "LOCALE_SV"                         : "Swedish",
-    "LOCALE_TR"                         : "Türkçe",
-    "LOCALE_ZH_CN"                      : "Chinese, simplified",
-    "LOCALE_HU"                         : "Hungarian",
+    "LOCALE_CS"                                 : "Czech",
+    "LOCALE_DE"                                 : "German",
+    "LOCALE_EN"                                 : "English",
+    "LOCALE_ES"                                 : "Spanish",
+    "LOCALE_FI"                                 : "Finnish",
+    "LOCALE_FR"                                 : "French",
+    "LOCALE_IT"                                 : "Italian",
+    "LOCALE_JA"                                 : "Japanese",
+    "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_FA_IR"                              : "Persian-Farsi",
+    "LOCALE_PL"                                 : "Polish",
+    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
+    "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RU"                                 : "Russian",
+    "LOCALE_SK"                                 : "Slovak",
+    "LOCALE_SR"                                 : "Serbian",
+    "LOCALE_SV"                                 : "Swedish",
+    "LOCALE_TR"                                 : "Turkish",
+    "LOCALE_ZH_CN"                              : "Chinese, simplified",
+    "LOCALE_HU"                                 : "Hungarian",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"         : "Süre",
     "INLINE_TIMING_EDITOR_PROGRESSION"  : "İlerleme",
-
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Geçerli Renk",
@@ -487,6 +487,7 @@ define({
 
     // extensions/default/JSLint
     "JSLINT_NAME"                       : "JSLint Yazım Denetimi",
+    //
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"             : "Hızlı Önizleme",
 
