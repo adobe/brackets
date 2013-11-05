@@ -20,13 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
+/*jslint regexp:true*/
 /*global module, require, process*/
 
 module.exports = function (grunt) {
     "use strict";
 
     var child_process   = require("child_process"),
+        http            = require("http"),
+        https           = require("https"),
         q               = require("q"),
+        querystring     = require("querystring"),
         qexec           = q.denodeify(child_process.exec);
     
     // task: build-num
@@ -36,7 +40,7 @@ module.exports = function (grunt) {
             num,
             branch,
             sha,
-            opts = { cwd: process.cwd(), maxBuffer: 1024*1024 },
+            opts = { cwd: process.cwd(), maxBuffer: 1024 * 1024 },
             version = grunt.config("pkg").version;
         
         qexec("git log --format=%h", opts).then(function (stdout, stderr) {
@@ -61,5 +65,84 @@ module.exports = function (grunt) {
             grunt.log.writeln(err);
             done(false);
         });
+    });
+    
+    // task: cla-check-pull
+    grunt.registerTask("cla-check-pull", "Check if a given GitHub user has signed the CLA", function () {
+        var done    = this.async(),
+            body    = "",
+            number  = grunt.option("pull") || process.env.TRAVIS_PULL_REQUEST || 0;
+        
+        if (!number) {
+            grunt.log.writeln("Missing pull request number. Use 'grunt cla-check-pull --pull=<NUMBER>'.");
+            done(false);
+            return;
+        }
+            
+        https.get("https://api.github.com/repos/adobe/brackets/issues/" + number, function (res) {
+            res.on("data", function (chunk) {
+                body += chunk;
+            });
+            
+            res.on("end", function () {
+                var json = JSON.parse(body);
+                
+                grunt.option("user", json.user.login);
+                grunt.task.run("cla-check");
+                done();
+            });
+            
+            res.on("error", function (err) {
+                grunt.log.writeln(err);
+                done(false);
+            });
+        });
+    });
+
+    // task: cla-check
+    grunt.registerTask("cla-check", "Check if a given GitHub user has signed the CLA", function () {
+        var done    = this.async(),
+            user    = grunt.option("user") || "",
+            body    = "",
+            options = {},
+            postdata = querystring.stringify({contributor: user}),
+            request;
+        
+        if (!user) {
+            grunt.log.writeln("Missing user name. Use 'grunt cla-check --user=<GITHUB USER NAME>'.");
+            done(false);
+            return;
+        }
+        
+        options.host    = "dev.brackets.io";
+        options.path    = "/cla/brackets/check.cfm";
+        options.method  = "POST";
+        options.headers = {
+            "Content-Type"      : "application/x-www-form-urlencoded",
+            "Content-Length"    : postdata.length
+        };
+        
+        request = http.request(options, function (res) {
+            res.on("data", function (chunk) {
+                body += chunk;
+            });
+            
+            res.on("end", function () {
+                if (body.match(/.*REJECTED.*/)) {
+                    grunt.log.error(user + " has NOT submitted the contributor license agreement");
+                    done(false);
+                } else {
+                    grunt.log.writeln(user + " has submitted the contributor license agreement");
+                    done();
+                }
+            });
+            
+            res.on("error", function (err) {
+                grunt.log.writeln(err);
+                done(false);
+            });
+        });
+        
+        request.write(postdata);
     });
 };
