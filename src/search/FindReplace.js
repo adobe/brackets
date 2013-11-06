@@ -118,7 +118,7 @@ define(function (require, exports, module) {
     }
 
     function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) { return dollars.length % 2 === 1 ? dollars.substr(1) + ((match.hasOwnProperty("result") ? match.result[index] : match[index]) || "") : dollars + index; });
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) { return dollars.length % 2 === 1 ? dollars.substr(1) + ((match.hasOwnProperty("result") ? match.result[parseInt(index, 10)] : match[parseInt(index, 10)]) || "") : dollars + index; });
         replaceWith = replaceWith.replace(/\$\$/g, "$$");
         return replaceWith;
     }
