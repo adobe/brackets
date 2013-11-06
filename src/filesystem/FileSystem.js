@@ -493,6 +493,30 @@ define(function (require, exports, module) {
         }
     };
     
+    FileSystem.prototype.find = function (entry, options, callback) {
+        if (this._impl.hasOwnProperty("find")) {
+            this._impl.find(entry, options, callback);
+        } else {
+            var filter = options.filter || /\*/,
+                excludeFiles = options.excludeFiles,
+                excludeDirectories = options.excludeDirectories,
+                results = [],
+                visitor = function (entry) {
+                    if (filter.test(entry.fullPath)) {
+                        if ((entry.isFile && !excludeFiles) ||
+                                (entry.isDirectory && !excludeDirectories)) {
+                            results.push(entry);
+                        }
+                        return true;
+                    }
+                    return false;
+                };
+            
+            entry.visit(visitor, function (err) {
+                callback(err || results);
+            });
+        }
+    };
     
     /**
      * @private
