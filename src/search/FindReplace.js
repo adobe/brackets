@@ -143,8 +143,8 @@ define(function (require, exports, module) {
                 // no need to scroll if the line with the match is in view
                 centerOptions = Editor.BOUNDARY_IGNORE_TOP;
             }
-            editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
             cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
+            editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
             state.findNextCalled = true;
