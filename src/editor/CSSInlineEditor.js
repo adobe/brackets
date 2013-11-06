@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
         ProjectManager          = require("project/ProjectManager"),
-        LanguageManager         = require("language/LanguageManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),

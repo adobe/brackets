@@ -821,6 +821,13 @@ define(function (require, exports, module) {
         var currentEditor = EditorManager.getActiveEditor(),
             initialString = currentEditor && currentEditor.getSelectedText();
 
+        if (dialog && !dialog.closed && dialog.hasOwnProperty("modalBar") && dialog.modalBar) {
+            // The modalBar was already up. When creating the new modalBar, copy the
+            // current query instead of using the passed-in selected text.
+            initialString = dialog.getDialogTextField().val();
+            dialog.modalBar.close(true, false);
+        }
+
         dialog             = new FindInFilesDialog();
         searchResults      = {};
         currentStart       = 0;
