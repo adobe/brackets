@@ -60,7 +60,7 @@ define(function (require, exports, module) {
 
     var MAX_HINTS           = 30,  // how often to reset the tern server
         LARGE_LINE_CHANGE   = 100,
-        LARGE_LINE_COUNT    = 250,
+        LARGE_LINE_COUNT    = 2000,
         OFFSET_ZERO         = {line: 0, ch: 0};
 
     /**

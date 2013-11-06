@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                                 if (doc) {
                                     DocumentManager.addToWorkingSet(doc.file);
                                 }
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath);
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);

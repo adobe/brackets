@@ -193,8 +193,8 @@ define(function (require, exports, module) {
     var queryDialog = Strings.CMD_FIND +
             ": <input type='text' style='width: 10em'/>" +
             "<div class='navigator'>" +
-                "<button id='find-prev' class='btn no-focus' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
-                "<button id='find-next' class='btn no-focus' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
+                "<button id='find-prev' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
+                "<button id='find-next' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
             "</div>" +
             "<div class='message'>" +
                 "<span id='find-counter'></span> " +

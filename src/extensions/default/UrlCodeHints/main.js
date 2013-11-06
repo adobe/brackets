@@ -139,9 +139,10 @@ define(function (require, exports, module) {
                             // convert to doc relative path
                             var entryStr = entry.fullPath.replace(docDir, "");
 
-                            // code hints show the same strings that are inserted into text,
-                            // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr));
+                            // code hints show the unencoded string so the
+                            // choices are easier to read.  The encoded string
+                            // will still be inserted into the editor.
+                            unfiltered.push(entryStr);
                         }
                     });
 
@@ -225,7 +226,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Determines whether font hints are available in the current editor
+     * Determines whether url hints are available in the current editor
      * context.
      *
      * @param {Editor} editor
@@ -361,7 +362,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns a list of availble font hints, if possible, for the current
+     * Returns a list of available url hints, if possible, for the current
      * editor context.
      *
      * @return {jQuery.Deferred|{
@@ -504,6 +505,10 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
         var mode = this.editor.getModeForSelection();
+        
+        // Encode the string just prior to inserting the hint into the editor
+        completion = encodeURI(completion);
+        
         if (mode === "html") {
             return this.insertHtmlHint(completion);
         } else if (mode === "css") {
@@ -753,5 +758,12 @@ define(function (require, exports, module) {
 
         // For unit testing
         exports.hintProvider = urlHints;
+    });
+
+    $(ProjectManager).on("projectFilesChange", function (event, projectRoot) {
+        // Cache may or may not be stale. Main benefit of cache is to limit async lookups
+        // during typing. File tree updates cannot happen during typing, so it's probably
+        // not worth determining whether cache may still be valid. Just delete it.
+        exports.hintProvider.cachedHints = null;
     });
 });

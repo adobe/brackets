@@ -450,7 +450,7 @@ define(function (require, exports, module) {
                         $previewContainer.find(".image-preview > img").on("load", function () {
                             $previewContent
                                 .append("<div class='img-size'>" +
-                                            this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
+                                            this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
                                         "</div>"
                                     );
                             $previewContainer.show();
