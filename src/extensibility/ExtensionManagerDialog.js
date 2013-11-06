@@ -191,6 +191,7 @@ define(function (require, exports, module) {
                 $(this).tab("show");
             });
         
+        // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount
         function updateNotificationIcon(index) {
             var model = models[index],
                 $notificationIcon = $dlg.find(".nav-tabs li").eq(index).find(".notification");

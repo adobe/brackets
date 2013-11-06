@@ -407,6 +407,10 @@ define(function (require, exports, module) {
         });
     };
     
+    /**
+     * @private
+     * Updates notifyCount based on number of extensions with an update available
+     */
     InstalledViewModel.prototype._countUpdates = function () {
         var self = this;
         this.notifyCount = 0;
