@@ -1063,7 +1063,7 @@ define(function (require, exports, module) {
         // guarantees that handlers run in the order they are added.
         result.done(function () {
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(list, (clearCurrentDoc || true));
+                DocumentManager.removeListFromWorkingSet(list, clearCurrentDoc);
             }
         });
         
@@ -1080,7 +1080,7 @@ define(function (require, exports, module) {
      */
     function handleFileCloseAll(commandData) {
         return _doCloseDocumentList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly)).done(function () {
+                                    (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }
@@ -1088,7 +1088,7 @@ define(function (require, exports, module) {
     }
     
     function handleFileCloseList(commandData) {
-        return _doCloseDocumentList((commandData && commandData.documentList), false).done(function () {
+        return _doCloseDocumentList((commandData && commandData.documentList), false, false).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }
