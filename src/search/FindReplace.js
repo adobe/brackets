@@ -471,7 +471,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/(\$+)(\d)/g, function (w, d, i) { return d.length % 2 === 1 ? d.substr(1) + match.result[i] : d + i; }).replace(/\$\$/g, "$$");
+                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) { return dollars.length % 2 === 1 ? dollars.substr(1) + (match.result[index] || "") : dollars + index; }).replace(/\$\$/g, "$$");
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -561,7 +561,7 @@ define(function (require, exports, module) {
                 };
                 var doReplace = function (match) {
                     cursor.replace(typeof query === "string" ? text :
-                                        text.replace(/(\$+)(\d)/g, function (w, d, i) { return d.length % 2 === 1 ? d.substr(1) + match[i] : d + i; }).replace(/\$\$/g, "$$"));
+                                        text.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) { return dollars.length % 2 === 1 ? dollars.substr(1) + (match[index] || "") : dollars + index; }).replace(/\$\$/g, "$$"));
                     advance();
                 };
                 advance();
