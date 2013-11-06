@@ -506,6 +506,10 @@
         }
       });
 
+      // Brackets monkeypatch: don't trigger item focus/unfocus events on mouseenter/mouseleave, since we don't
+      // want to select an item just by mousing over it. We just want an ordinary hover highlight, which we apply
+      // through CSS directly.
+/*
       //bind events to results container
       $(options.resultsContainer).delegate(options.resultElement, "mouseenter.smart_autocomplete", function(){
         var old_selection = options.currentSelection || 0;
@@ -524,6 +528,7 @@
       $(options.resultsContainer).delegate(options.resultElement, "mouseleave.smart_autocomplete", function(){
         $(options.context).trigger("itemUnfocus", [this] );
       });
+*/
 
       $(options.resultsContainer).delegate(options.resultElement, "mousedown.smart_autocomplete", function(){
         $(options.context).trigger("itemSelect", [this]);
