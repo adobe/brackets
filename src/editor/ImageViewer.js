@@ -65,8 +65,8 @@ define(function (require, exports, module) {
 
         if (currentPath === oldRelPath) {
             var newRelName = ProjectManager.makeProjectRelativeIfPossible(newName);
-            $("#img-path").text(newRelName);
-            $("#img-path").attr("title", newRelName);
+            $("#img-path").html(newRelName)
+                .attr("title", newRelName);
         }
     }
 
@@ -96,8 +96,8 @@ define(function (require, exports, module) {
     function render(fullPath) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
-        $("#img-path").text(relPath);
-        $("#img-path").attr("title", relPath);
+        $("#img-path").html(relPath)
+                .attr("title", relPath);
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
@@ -111,14 +111,14 @@ define(function (require, exports, module) {
                         sizeString = " &mdash; " + StringUtils.prettyPrintBytes(metadata.size, 2);
                     }
                     var dimensionAndSize = dimensionString + sizeString;
-                    $("#img-data").html(dimensionAndSize);
-                    $("#img-data").attr("title", dimensionAndSize
+                    $("#img-data").html(dimensionAndSize)
+                        .attr("title", dimensionAndSize
                                         .replace("&times;", "x")
                                         .replace("&mdash;", "-"));
                 },
                 function (error) {
-                    $("#img-data").html(dimensionString);
-                    $("#img-data").attr("title", dimensionString).replace("&times;", "x");
+                    $("#img-data").html(dimensionString)
+                        .attr("title", dimensionString).replace("&times;", "x");
                 }
             );
             $("#image-holder").show();
