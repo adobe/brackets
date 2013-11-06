@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waits, waitsForDone, spyOn */
+/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, beforeFirst, afterLast, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -57,18 +57,7 @@ define(function (require, exports, module) {
         });
     });
     
-    /**
-     * Returns an Editor suitable for use in isolation, given a Document.
-     *
-     * @param {Document} doc - the document to be contained by the new Editor
-     * @return {Editor} - the mock editor object
-     */
-    function createMockEditor(doc) {
-        return SpecRunnerUtils.createMockEditorForDocument(doc);
-    }
-
     describe("JavaScript Code Hinting", function () {
-
         /*
          * Ask provider for hints at current cursor position; expect it to
          * return some
@@ -436,10 +425,10 @@ define(function (require, exports, module) {
 
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
-                testEditor = createMockEditor(testDoc);
+                testEditor = SpecRunnerUtils.createMockEditorForDocument(testDoc);
                 preTestText = testDoc.getText();
-                
                 waitsForDone(ScopeManager._readyPromise());
+                waitsForDone(ScopeManager._maybeReset(JSCodeHints.getSession(), testDoc, true));
             });
         }
 
@@ -457,7 +446,18 @@ define(function (require, exports, module) {
         }
 
         describe("JavaScript Code Hinting Basic", function () {
-
+            beforeFirst(function () {
+                brackets.configureJSCodeHints({
+                    noReset: true
+                });
+            });
+            
+            afterLast(function () {
+                brackets.configureJSCodeHints({
+                    noReset: false
+                });
+            });
+            
             beforeEach(function () {
                 setupTest(testPath, false);
             });
@@ -725,7 +725,7 @@ define(function (require, exports, module) {
                 var start   = { line: 6, ch: 0 },
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 };
-
+                
                 testDoc.replaceRange("A1.", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -896,7 +896,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should list function defined from .prototype", function () {
+            it("should list function defined from .prototype", function () {
                 var start = { line: 59, ch: 5 };
                 
                 testEditor.setCursorPos(start);
@@ -904,10 +904,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     hintsPresentExact(hintObj, ["calc"]);
                 });
-                
             });
 
-            xit("should list function type defined from .prototype", function () {
+            it("should list function type defined from .prototype", function () {
                 var start = { line: 59, ch: 10 };
                 testEditor.setCursorPos(start);
                 runs(function () {
@@ -915,7 +914,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should list function inherited from super class", function () {
+            it("should list function inherited from super class", function () {
                 var start = { line: 79, ch: 11 };
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);

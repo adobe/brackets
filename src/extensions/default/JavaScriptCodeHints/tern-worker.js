@@ -26,6 +26,8 @@
 
 importScripts("thirdparty/requirejs/require.js");
 
+var config = {};
+
 (function () {
     "use strict";
     
@@ -473,7 +475,6 @@ importScripts("thirdparty/requirejs/require.js");
              * the offset into the file where we want completions for
              */
             function handleFunctionType(fileInfo, offset) {
-                
                 var request = buildRequest(fileInfo, "type", offset),
                     error;
                     
@@ -482,7 +483,12 @@ importScripts("thirdparty/requirejs/require.js");
                 var fnType = "";
                 try {
                     ternServer.request(request, function (error, data) {
-
+                        
+                        if (error) {
+                            _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + error);
+                            return;
+                        }
+                        
                         var file = ternServer.findFile(fileInfo.name);
 
                         // convert query from partial to full offsets
@@ -497,6 +503,7 @@ importScripts("thirdparty/requirejs/require.js");
                         Infer.resetGuessing();
                         var type = Infer.expressionType(expr);
                         type = type.getFunctionType() || type.getType();
+                        
                         if (type) {
                             fnType = getParameters(type);
                         } else {
@@ -506,7 +513,7 @@ importScripts("thirdparty/requirejs/require.js");
                     });
                 } catch (e) {
                     error = e.message;
-                    _log("Error thrown in tern_worker:" + error);
+                    _log("Error thrown in tern_worker:" + error + "\n" + e.stack);
                 }
 
                 // Post a message back to the main thread with the completions
@@ -565,10 +572,27 @@ importScripts("thirdparty/requirejs/require.js");
                 });
             }
             
+            /**
+             * Updates the configuration, typically for debugging purposes.
+             * Keys set in the config object passed in are merged into the
+             * configuration.
+             *
+             * @param {Object} configUpdate updated config keys
+             */
+            function setConfig(configUpdate) {
+                Object.keys(configUpdate).forEach(function (key) {
+                    config[key] = configUpdate[key];
+                });
+            }
+            
             self.addEventListener("message", function (e) {
                 var file, text, offset,
                     request = e.data,
                     type = request.type;
+                
+                if (config.debug) {
+                    _log("Message received " + type);
+                }
                 
                 if (type === MessageIds.TERN_INIT_MSG) {
                     
@@ -597,6 +621,8 @@ importScripts("thirdparty/requirejs/require.js");
                     getTernProperties(request.fileInfo, offset, MessageIds.TERN_GET_GUESSES_MSG);
                 } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
                     handleUpdateFile(request.path, request.text);
+                } else if (type === MessageIds.SET_CONFIG) {
+                    setConfig(request.config);
                 } else {
                     _log("Unknown message: " + JSON.stringify(request));
                 }

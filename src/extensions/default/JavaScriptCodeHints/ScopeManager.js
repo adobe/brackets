@@ -61,7 +61,9 @@ define(function (require, exports, module) {
         LARGE_LINE_CHANGE   = 100,
         LARGE_LINE_COUNT    = 2000,
         OFFSET_ZERO         = {line: 0, ch: 0};
-
+    
+    var config = {};
+    
     /**
      *  An array of library names that contain JavaScript builtins definitions.
      *
@@ -168,7 +170,9 @@ define(function (require, exports, module) {
      * the message will not be posted until initialization is complete
      */
     function postMessage(msg) {
-        currentWorker.postMessage(msg);
+        if (currentWorker) {
+            currentWorker.postMessage(msg);
+        }
     }
 
     /**
@@ -778,6 +782,9 @@ define(function (require, exports, module) {
          */
         function postMessage(msg) {
             addFilesPromise.done(function (ternWorker) {
+                if (config.debug) {
+                    console.debug("Sending message", msg);
+                }
                 ternWorker.postMessage(msg);
             });
         }
@@ -788,6 +795,9 @@ define(function (require, exports, module) {
          */
         function _postMessageByPass(msg) {
             ternPromise.done(function (ternWorker) {
+                if (config.debug) {
+                    console.debug("Sending message", msg);
+                }
                 ternWorker.postMessage(msg);
             });
         }
@@ -949,10 +959,15 @@ define(function (require, exports, module) {
     
                 numAddedFiles += files.length;
                 ternPromise.done(function (worker) {
-                    worker.postMessage({
+                    var msg = {
                         type        : MessageIds.TERN_ADD_FILES_MSG,
                         files       : files
-                    });
+                    };
+                    
+                    if (config.debug) {
+                        console.debug("Sending message", msg);
+                    }
+                    worker.postMessage(msg);
                 });
     
             } else {
@@ -1059,6 +1074,10 @@ define(function (require, exports, module) {
             _ternWorker = new Worker(path);
     
             _ternWorker.addEventListener("message", function (e) {
+                if (config.debug) {
+                    console.debug("Message received", e);
+                }
+                
                 var response = e.data,
                     type = response.type;
     
@@ -1084,6 +1103,11 @@ define(function (require, exports, module) {
                 }
             });
             
+            // Set the initial configuration for the worker
+            _ternWorker.postMessage({
+                type: MessageIds.SET_CONFIG,
+                config: brackets.configureJSCodeHints.config
+            });
         }
         /**
          * Create a new tern server.
@@ -1096,12 +1120,17 @@ define(function (require, exports, module) {
             numInitialFiles = files.length;
 
             ternPromise.done(function (worker) {
-                worker.postMessage({
+                var msg = {
                     type        : MessageIds.TERN_INIT_MSG,
                     dir         : dir,
                     files       : files,
                     env         : ternEnvironment
-                });
+                };
+                
+                if (config.debug) {
+                    console.debug("Sending message", msg);
+                }
+                worker.postMessage(msg);
             });
             rootTernDir = dir + "/";
         }
@@ -1259,7 +1288,7 @@ define(function (require, exports, module) {
         return this;
     }
 
-    var reseting = false;
+    var resettingDeferred = null;
 
     /**
      * reset the tern worker thread, if necessary.  
@@ -1268,26 +1297,53 @@ define(function (require, exports, module) {
      * the web worker instance, and start a new one.  To avoid a performance
      * hit when we do this we start up a new worker, and don't kill the old
      * one unitl the new one is initialized.
+     *
+     * During debugging, you can turn this automatic resetting behavior off
+     * by running this in the console:
+     * brackets.configureJSCodeHints({ noReset: true })
+     *
+     * This function is also used in unit testing with the "force" flag to
+     * reset the worker for each test to start with a clean environment.
+     *
+     * @param {Session} session
+     * @param {Document} document
+     * @param {boolean} force true to force a reset regardless of how long since the last one
+     * @return {Promise} resolved when the new worker is ready (the new worker is passed to the callback)
      */
-    function maybeReset(session, document) {
+    function _maybeReset(session, document, force) {
         var newWorker;
         // if we're in the middle of a reset, don't have to check
         // the new worker will be online soon
-        if (!reseting) {
-            if (++_hintCount > MAX_HINTS) {
-                reseting = true;
+        if (!resettingDeferred) {
+            
+            // We don't reset if the debugging flag is set
+            // because it's easier to debug if the worker isn't
+            // getting shut down all the time.
+            if (force || (!config.noReset && ++_hintCount > MAX_HINTS)) {
+                if (config.debug) {
+                    console.debug("Resetting tern worker");
+                }
+                
+                resettingDeferred = new $.Deferred();
                 newWorker = new TernWorker();
                 newWorker.handleEditorChange(session, document, null);
                 newWorker.whenReady(function () {
                     // tell the old worker to shut down
                     currentWorker.closeWorker();
                     currentWorker = newWorker;
+                    resettingDeferred.resolve(currentWorker);
                     // all done reseting
-                    reseting = false;
+                    resettingDeferred = null;
                 });
                 _hintCount = 0;
+            } else {
+                var d = new $.Deferred();
+                d.resolve(currentWorker);
+                return d.promise();
             }
         }
+        
+        return resettingDeferred.promise();
     }
 
     /**
@@ -1338,7 +1394,7 @@ define(function (require, exports, module) {
             fileInfo = getFileInfo(session),
             offset = getOffset(session, fileInfo, null);
 
-        maybeReset(session, document);
+        _maybeReset(session, document);
 
         hintPromise = getTernHints(fileInfo, offset, sessionType.property);
 
@@ -1372,6 +1428,9 @@ define(function (require, exports, module) {
         var changed = documentChanges;
         if (changed === null) {
             documentChanges = changed = {from: changeList.from.line, to: changeList.from.line};
+            if (config.debug) {
+                console.debug("ScopeManager: document has changed");
+            }
         }
 
         var end = changeList.from.line + (changeList.text.length - 1);
@@ -1438,12 +1497,26 @@ define(function (require, exports, module) {
         initPreferences(projectRootPath);
     }
     
-    
     /** Used to avoid timing bugs in unit tests */
     function _readyPromise() {
         return deferredPreferences;
     }
+    
+    /**
+     * @private
+     * 
+     * Update the configuration in the worker.
+     */
+    function _setConfig(configUpdate) {
+        config = brackets.configureJSCodeHints.config;
+        postMessage({
+            type: MessageIds.SET_CONFIG,
+            config: configUpdate
+        });
+    }
 
+    exports._setConfig = _setConfig;
+    exports._maybeReset = _maybeReset;
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
     exports.getTernHints = getTernHints;
