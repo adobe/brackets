@@ -80,8 +80,8 @@ define(function (require, exports, module) {
         var $cursorInfo = $("<div id='cursor-info'>").appendTo($("#img")).hide();
         
         $("#img-preview").on("mousemove", function (e) {
-            var x = Math.floor(e.offsetX * 100 / _scale),
-                y = Math.floor(e.offsetY * 100 / _scale),
+            var x = _scale ? Math.floor(e.offsetX * 100 / _scale) : e.offsetX,
+                y = _scale ? Math.floor(e.offsetY * 100 / _scale) : e.offsetY,
                 tip = "x: ",
                 position = $("#img-preview").position(),
                 left = e.offsetX + position.left,
@@ -101,18 +101,19 @@ define(function (require, exports, module) {
                 tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
             }
             
+            // For some reason we're getting -1 for e.offset when hovering over the very 
+            // first pixel of a scaled image. So adjust x to 0 if it is negative.
+            if (x < 0) {
+                x = 0;
+                xyDigitDelta--;     // Skip the minus sign in x coordinate
+            }
+            
             // Pad non-breaking spaces before x coordinate so that x and y are vertically aligned.
             while (xyDigitDelta < 0) {
                 tip += "&nbsp;";
                 xyDigitDelta++;
             }
 
-            // For some reason we're getting -1 for e.offset when hovering over the very 
-            // first pixel of a scaled image. So adjust x to 0 if it is negative.
-            if (x < 0) {
-                x = 0;
-            }
-            
             tip += x + " px<br>y: ";
 
             // Pad non-breaking spaces before y coordinate so that x and y are vertically aligned.
