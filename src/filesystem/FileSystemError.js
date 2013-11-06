@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         NOT_READABLE        : "NotReadable",
         NOT_WRITABLE        : "NotWritable",
         OUT_OF_SPACE        : "OutOfSpace",
+        TOO_MANY_ENTRIES    : "TooManyEntries",
         ALREADY_EXISTS      : "AlreadyExists"
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
