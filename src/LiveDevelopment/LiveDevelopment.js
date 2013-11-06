@@ -799,8 +799,19 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-            deferred.resolve();
+            // Need to do this in order to trigger the corresponding CloseLiveBrowser cleanups required on 
+            // the native Mac side
+            var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
+            closeDeferred.done(function () {
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            }).fail(function (err) {
+                if (err) {
+                    reason +=  " (" + err + ")";
+                }
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            });
         }
 
         if (_openDeferred) {
@@ -1034,7 +1045,7 @@ define(function LiveDevelopment(require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_OK) {
                         // User has chosen to reload Chrome, quit the running instance
                         _setStatus(STATUS_INACTIVE);
-                        NativeApp.closeLiveBrowser()
+                        _close()
                             .done(function () {
                                 browserStarted = false;
                                 window.setTimeout(function () {
@@ -1049,7 +1060,17 @@ define(function LiveDevelopment(require, exports, module) {
                                 _openDeferred.reject("CLOSE_LIVE_BROWSER");
                             });
                     } else {
-                        _openDeferred.reject("CANCEL");
+                        _close()
+                            .done(function () {
+                                browserStarted = false;
+                                _openDeferred.reject("CANCEL");
+                            })
+                            .fail(function (err) {
+                                // Report error?
+                                _setStatus(STATUS_ERROR);
+                                browserStarted = false;
+                                _openDeferred.reject("CLOSE_LIVE_BROWSER");
+                            });
                     }
                 });
 
