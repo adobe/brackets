@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, $, window, Mustache */
 define(function (require, exports, module) {
     "use strict";
     
@@ -36,15 +36,18 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils");
     
-    var _naturalWidth = 0;
+    var _naturalWidth = 0,
+        _scale = 100;
     
     /** Update the scale element, i.e. on resize 
      *  @param {!string} currentWidth actual width of image in view
      */
     function _updateScale(currentWidth) {
         if (currentWidth < _naturalWidth) {
-            var scale = Math.floor(currentWidth / _naturalWidth * 100);
-            $("#img-scale").text(scale + "%")
+            _scale = currentWidth / _naturalWidth * 100;
+            $("#img-scale").text(Math.floor(_scale) + "%")
+                // Keep the position of the image scale div relative to the image.
+                .css("left", $("#img-preview").position().left + 5)
                 .show();
         } else {
             $("#img-scale").hide();
@@ -69,6 +72,68 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Create a DOM node to show the image coordinates under the cursor
+     * and two event handlers -- mousemove handler to show the cursor info
+     * and mouseleave handler to hide the cursor info
+     */
+    function _addCursorInfoTip() {
+        var $cursorInfo = $("<div id='cursor-info'>").appendTo($("#img")).hide();
+        
+        $("#img-preview").on("mousemove", function (e) {
+            var x = Math.floor(e.offsetX * 100 / _scale),
+                y = Math.floor(e.offsetY * 100 / _scale),
+                tip = "x: ",
+                position = $("#img-preview").position(),
+                left = e.offsetX + position.left,
+                top = e.offsetY + position.top,
+                xyDigitDelta = x.toString().length - y.toString().length,
+                windowWidth = $(window).width(),
+                fourDigitImageWidth = _naturalWidth.toString().length === 4,
+                infoWidth1 = 112,       // info div width 96px + vertical toolbar width 16px
+                infoWidth2 = 120,       // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
+                tipOffsetX = 6,         // adjustment for info div left from x coordinate of cursor
+                tipOffsetY = -48,       // adjustment for info div top from y coordinate of cursor
+                tipMinusOffsetX1 = -84, // for less than 4-digit image width
+                tipMinusOffsetX2 = -92; // for 4-digit image width 
+            
+            if ((e.pageX + infoWidth1) > windowWidth ||
+                    (fourDigitImageWidth && (e.pageX + infoWidth2) > windowWidth)) {
+                tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
+            }
+            
+            // Pad non-breaking spaces before x coordinate so that x and y are vertically aligned.
+            while (xyDigitDelta < 0) {
+                tip += "&nbsp;";
+                xyDigitDelta++;
+            }
+
+            // For some reason we're getting -1 for e.offset when hovering over the very 
+            // first pixel of a scaled image. So adjust x to 0 if it is negative.
+            if (x < 0) {
+                x = 0;
+            }
+            
+            tip += x + " px<br>y: ";
+
+            // Pad non-breaking spaces before y coordinate so that x and y are vertically aligned.
+            while (xyDigitDelta > 0) {
+                tip += "&nbsp;";
+                xyDigitDelta--;
+            }
+            tip += y + " px";
+
+            $cursorInfo.html(tip).css({
+                left: left + tipOffsetX,
+                top: top + tipOffsetY
+            }).show();
+        });
+        
+        $("#img-preview").on("mouseleave", function () {
+            $cursorInfo.hide();
+        });
+    }
+    
+    /**
      * creates a DOM node to place in the editor-holder
      * in order to display an image.
      * @param {!string} fullPath  path to image file
@@ -87,9 +152,10 @@ define(function (require, exports, module) {
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
     }
     
-    /** Perform decorations on the view that require loading the image in the browser,
-     *  i.e. getting actual and natural width and height andplacing the scale sticker
-     *   @param {!string} fullPath path to the image file
+    /** 
+     * Perform decorations on the view that require loading the image in the browser,
+     * i.e. getting actual and natural width and height andplacing the scale sticker
+     * @param {!string} fullPath path to the image file
      */
     function render(fullPath) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
@@ -120,8 +186,10 @@ define(function (require, exports, module) {
             $(EditorManager).on("removeCustomViewer", _removeListeners);
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
             _updateScale($(this).width());
+            _addCursorInfoTip();
         });
     }
+    
     exports.getCustomViewHolder = getCustomViewHolder;
     exports.render              = render;
 });

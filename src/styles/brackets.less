@@ -235,6 +235,7 @@ a, img {
         .box-align(center);
         background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
+
     /* Image Preview */
     #image-holder {
         overflow: hidden;
@@ -285,12 +286,13 @@ a, img {
     #img-path {
         margin: 0 0 15px;
     }
+    
     #img {
         position: relative;
+        cursor: crosshair;
     }
     
     #img-scale {
-        display: none;
         display: block;
         position: absolute;
         top: 5px;
@@ -301,6 +303,21 @@ a, img {
         color: #fff;
         border-radius: 3px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    #cursor-info {
+        display: block;
+        position: absolute;
+        text-align: left;
+        white-space: nowrap;
+        padding: 6px 8px;
+        color: #fff;
+        background-color: rgba(0, 0, 0, 0.8);
+        font-size: 11px;
+        font-family: SourceCodePro;
+        line-height: 13px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
     }
 }
 
