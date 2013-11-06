@@ -432,6 +432,7 @@ define({
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload {APP_NAME}",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without User Extensions",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",

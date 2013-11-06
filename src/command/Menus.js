@@ -468,7 +468,8 @@ define(function (require, exports, module) {
      */
     Menu.prototype.removeMenuDivider = function (menuItemID) {
         var menuItem,
-            $HTMLMenuItem;
+            $HTMLMenuItem,
+            dividerID;
         
         if (!menuItemID) {
             console.error("removeMenuDivider(): missing required parameters: menuItemID");
@@ -497,7 +498,8 @@ define(function (require, exports, module) {
                 return;
             }
         } else {
-            brackets.app.removeMenuItem(menuItemID, function (err) {
+            dividerID = menuItemID.substring(menuItemID.lastIndexOf("brackets-menuDivider-"));
+            brackets.app.removeMenuItem(dividerID, function (err) {
                 if (err) {
                     console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
                 }
@@ -624,7 +626,7 @@ define(function (require, exports, module) {
                 // For sections, pass in the marker for that section. 
                 relativeID = relativeID.sectionMarker;
             }
-            
+
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 switch (err) {
                 case NO_ERROR:
@@ -947,7 +949,7 @@ define(function (require, exports, module) {
         // Remove all of the menu items in the menu
         menu = getMenu(id);
         
-        CollectionUtils.forEach(menuItemMap, function (value, key) {
+        _.forEach(menuItemMap, function (value, key) {
             if (key.substring(0, id.length) === id) {
                 if (value.isDivider) {
                     menu.removeMenuDivider(key);
