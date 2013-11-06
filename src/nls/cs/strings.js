@@ -418,7 +418,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádné CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
   
     /**
