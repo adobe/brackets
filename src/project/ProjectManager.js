@@ -1390,34 +1390,84 @@ define(function (require, exports, module) {
      *   the rename is finished.
      */
     function renameItem(oldName, newName, isFolder) {
-        var result = new $.Deferred();
-        
-        if (oldName === newName) {
-            result.resolve();
-            return result;
-        }
-        
-        // TODO: This should call FileEntry.moveTo(), but that isn't implemented
-        // yet. For now, call directly to the low-level fs.rename()
-        brackets.fs.rename(oldName, newName, function (err) {
-            if (!err) {
-                // Update all nodes in the project tree.
+        var result = new $.Deferred(),
+            tempRenameAttemptCounter = 0,
+
+            tempRenameCaseSensitive = function(oldName, newName, isFolder) {
+
+                // Because brackets.fs.rename is case insensitive, to perform
+                // a case-sensitive rename we must first give the file some
+                // other temporary name before giving it its new case-adjusted name
+                brackets.fs.rename(oldName, (newName + tempRenameAttemptCounter), function (err) {
+                    if (err) {
+
+                        // The temporary name didn't work because a file already
+                        // exists with that name in the directory
+                        // We will now increment the counter by one, so we can
+                        // try the rename again with a different temporary name.
+                        // This process will repeat until a unique temporary
+                        // file name is achieved
+                        tempRenameAttemptCounter++;
+                        tempRenameCaseSensitive(oldName, newName, isFolder);
+                    } else {
+
+                        // The file has been successfully given its temporary name.
+                        // Now we give it its desired case-sensitive name
+                        oldName = newName + tempRenameAttemptCounter;
+                        updateProjectTree();
+                        rename(oldName, newName, isFolder);
+                    }
+                });
+            },
+
+            rename = function(oldName, newName, isFolder) {
+
+                // TODO: This should call FileEntry.moveTo(), but that isn't implemented
+                // yet. For now, call directly to the low-level fs.rename()
+                brackets.fs.rename(oldName, newName, function (err) {
+                    if (!err) {
+                        // Rename successful
+                        updateProjectTree();
+                    } else {
+                        // Show an error alert
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_RENAMING_FILE_TITLE,
+                            StringUtils.format(
+                                Strings.ERROR_RENAMING_FILE,
+                                StringUtils.breakableUrl(newName),
+                                err === brackets.fs.ERR_FILE_EXISTS ?
+                                        Strings.FILE_EXISTS_ERR :
+                                        FileUtils.getFileErrorString(err)
+                            )
+                        );
+
+                        result.reject(err);
+                    }
+                });
+
+                return result;
+            },
+
+            updateProjectTree = function() {
+
+                // Update all nodes in the project tree
                 // All other updating is done by DocumentManager.notifyPathNameChanged() below
                 var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
                     i;
-                
+
                 for (i = 0; i < nodes.length; i++) {
                     var node = $(nodes[i]);
                     FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName, isFolder);
                 }
-                
+
                 // Notify that one of the project files has changed
                 $(exports).triggerHandler("projectFilesChange");
-                
+
                 // Tell the document manager about the name change. This will update
                 // all of the model information and send notification to all views
                 DocumentManager.notifyPathNameChanged(oldName, newName, isFolder);
-                
+
                 // Finally, re-open the selected document
                 if (EditorManager.getCurrentlyViewedPath()) {
                     FileViewController.openAndSelectDocument(
@@ -1425,29 +1475,31 @@ define(function (require, exports, module) {
                         FileViewController.getFileSelectionFocus()
                     );
                 }
-                
+
                 _redraw(true);
 
                 result.resolve();
-            } else {
-                // Show an error alert
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_RENAMING_FILE_TITLE,
-                    StringUtils.format(
-                        Strings.ERROR_RENAMING_FILE,
-                        StringUtils.breakableUrl(newName),
-                        err === brackets.fs.ERR_FILE_EXISTS ?
-                                Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err)
-                    )
-                );
-                
-                result.reject(err);
-            }
-        });
-        
-        return result;
+            };
+
+        if (oldName === newName) {
+
+            // Identical file name; do nothing
+            result.resolve();
+            return result;
+
+        } else if (oldName.toLowerCase() === newName.toLowerCase()) {
+
+            // Same file name with a different case
+            // Must create a temporary name for the file before renaming
+            // because brackets.fs.rename is case insensitive
+            tempRenameCaseSensitive(oldName, newName, isFolder);
+
+        } else {
+
+            // Different file name; proceed with the rename
+            rename(oldName, newName, isFolder);
+
+        }
     }
     
     /**
