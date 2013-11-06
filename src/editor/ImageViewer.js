@@ -118,7 +118,7 @@ define(function (require, exports, module) {
                 },
                 function (error) {
                     $("#img-data").html(dimensionString)
-                        .attr("title", dimensionString).replace("&times;", "x");
+                        .attr("title", dimensionString.replace("&times;", "x"));
                 }
             );
             $("#image-holder").show();
