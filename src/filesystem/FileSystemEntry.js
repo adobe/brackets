@@ -250,7 +250,7 @@ define(function (require, exports, module) {
             maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
         
-        if (maxEntriesCounter.value-- < 0 || maxDepth-- < 0) {
+        if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
             callback(failFast ? FileSystemError.TOO_MANY_ENTRIES : null);
             return;
         }
