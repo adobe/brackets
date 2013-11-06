@@ -1092,8 +1092,46 @@ a, img {
     .line {
         text-align: right;  // make line number line up with editor line numbers
     }
+
+    td {
+        padding-left: 3px;
+        vertical-align: baseline;
+    }
+
+    .line-number {
+        color: @tc-light-weight-quiet-text;
+        font-family: SourceCodePro;
+        font-size: 11px;
+        padding: 0 10px 0 14px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .line-text {
+        white-space: nowrap;
+        width: auto;
+    }
+
+    .line-snippet {
+        white-space: nowrap;
+        width: 100%;
+        padding-left: 10px;
+    }
 }
 
+#problems-panel .disclosure-triangle {
+    .jstree-sprite;
+    display: inline-block;
+    &.expanded {
+        // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
+        // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
+        background-position: 7px 5px;
+        -webkit-transform: translateZ(0) rotate(90deg);
+    }
+    &.collapsed {
+        background-position: 7px 5px;
+    }
+}
 
 /* Line up label text and input text */
 label input {

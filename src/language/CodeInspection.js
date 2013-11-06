@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         FileUtils               = require("file/FileUtils"),
+        CollectionUtils         = require("utils/CollectionUtils"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -54,6 +55,8 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
+        Menus                   = require("command/Menus"),
+        Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
     
@@ -123,6 +126,12 @@ define(function (require, exports, module) {
      * @type {?Array.<Object>}
      */
     var _lastResult;
+
+    /**
+     * @private
+     * @type {?Array.<Command>}
+     */
+    var _allInspectorCommands = [];
     
     /**
      * Enable or disable the "Go to First Error" command
@@ -133,7 +142,57 @@ define(function (require, exports, module) {
         _gotoEnabled = gotoEnabled;
     }
     
+    /**
+     * Construct a preference key for the provider.
+     * limitation: this function doesn't account for provider with the same name, which could
+     * result in preferences from one provider overwritten with the ones from another.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function getProviderPrefKey(provider) {
+        return "provider." + provider.name + ".enabled";
+    }
+
+    /**
+     * Check if a given provider is enabled.
+     * Return true if enabled, false otherwise.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function getProviderState(provider) {
+        return _prefs.getValue(getProviderPrefKey(provider));
+    }
     
+    /**
+     * Create a menu entry for the given provider/code inspector.
+     * The command that is created for this menu entry will be stored for later use. The event handler for this new menu item will handle the enable/disable toggle for the provider/code inspector.
+     *
+     * @param {name:string, scanFile:function(string, string):Object} provider
+     */
+    function addMenuEntryForProvider(provider) {
+        var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
+            commandString = "command.inspector." + provider.name;
+
+        var inspectorCommand = CommandManager.register(menuString, commandString, function () {
+            this.setChecked(!this.getChecked());
+
+            _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
+
+            // update results
+            run();
+        });
+
+        _allInspectorCommands.push(inspectorCommand);
+//
+//        // add a new MenuItem for each inspector
+//        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+//        viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
+//
+//        var providerState = getProviderState(provider);
+//        inspectorCommand.setChecked(providerState);
+//        inspectorCommand.setEnabled(_enabled);
+    }
+
     /**
      * The provider is passed the text of the file and its fullPath. Providers should not assume
      * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
@@ -146,12 +205,20 @@ define(function (require, exports, module) {
      * If type is unspecified, Type.WARNING is assumed.
      */
     function register(languageId, provider) {
-        if (_providers[languageId]) {
-            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
+        if (!_providers[languageId]) {
+            _providers[languageId] = [];
         }
-        _providers[languageId] = provider;
+
+        _providers[languageId].push(provider);
+
+        addMenuEntryForProvider(provider);
     }
 
+    function unregisterAll() {
+        CollectionUtils.forEach(_providers, function (languageId) { delete _providers[languageId]; });
+        _providers = {};
+    }
+    
     /**
      * Returns a provider for given file path, if one is available.
      * Decision is made depending on the file extension.
@@ -174,9 +241,10 @@ define(function (require, exports, module) {
      */
     function inspectFile(fileEntry, provider) {
         var response = new $.Deferred();
-        provider = provider || getProviderForPath(fileEntry.fullPath);
+        // TODO: handle list case
+        var providerList = provider || getProviderForPath(fileEntry.fullPath);
 
-        if (!provider) {
+        if (!providerList && !providerList.length) {
             response.resolve(null);
             return response.promise();
         }
@@ -193,18 +261,32 @@ define(function (require, exports, module) {
         fileTextPromise
             .done(function (fileText) {
                 var result,
-                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+                    perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + fileEntry.fullPath);
+//                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
 
-                try {
-                    result = provider.scanFile(fileText, fileEntry.fullPath);
-                } catch (err) {
-                    console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
+                var masterPromise = Async.doInParallel_aggregateResults(providerList, function (provider, providerNum) {
+                    var result = new $.Deferred();
+                    
+                    try {
+                        var scanResult = provider.scanFile(fileText, fileEntry.fullPath);
+                        result.resolve(scanResult);
+                    } catch (err) {
+                        console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
+                        response.reject(err);
+                        return;
+                    }
+        
+                    return result.promise();
+                });
+
+                masterPromise.done(function (results) {
+                    response.resolve(results);
+                }).fail(function (err) {
                     response.reject(err);
-                    return;
-                }
-
+                });
+                
                 PerfUtils.addMeasurement(perfTimerInspector);
-                response.resolve(result);
+//                response.resolve(result);
             })
             .fail(function (err) {
                 console.error("[CodeInspection] Could not read file for inspection: " + fileEntry.fullPath);
@@ -228,65 +310,95 @@ define(function (require, exports, module) {
         }
         
         var currentDoc = DocumentManager.getCurrentDocument(),
-            provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
+            providerList = currentDoc && getProviderForPath(currentDoc.file.fullPath);
         
-        if (provider) {
-            inspectFile(currentDoc.file, provider).then(function (result) {
+        if (providerList && providerList.length) {
+            var numProblems = 0;
+            var aborted = false;
+            var _numProblemsReportedByProvider = 0;
+            var allErrors = { errors: [] };
+            
+            inspectFile(currentDoc.file, providerList.slice(0)).then(function (results) {
                 // check if current document wasn't changed while inspectFile was running
                 if (currentDoc !== DocumentManager.getCurrentDocument()) {
                     return;
                 }
 
-                _lastResult = result;
+                // Aggregate all results
+                var errors = results.reduce(function (a, item) { return a + (item.results ? item.results.errors.length : 0); }, 0);
+                
+                _lastResult = results;
+                _lastResult.errors = errors;
 
-                if (!result || !result.errors.length) {
+//                if (!result || !result.errors.length) {
+                if (!results ||  !errors) {
                     Resizer.hide($problemsPanel);
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, provider.name));
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, "provider.name"));
                     setGotoEnabled(false);
                     return;
                 }
 
-                var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-
                 // Augment error objects with additional fields needed by Mustache template
-                var numProblems = 0;
-                result.errors.forEach(function (error) {
-                    error.friendlyLine = error.pos.line + 1;
-                    error.codeSnippet = currentDoc.getLine(error.pos.line);
-                    error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
-                    
-                    if (error.type !== Type.META) {
-                        numProblems++;
+                results.forEach(function (result) {
+                    _numProblemsReportedByProvider = 0;
+                    var provider = result.item;
+
+                    if (result.results) {
+                        result.results.errors.forEach(function (error) {
+                            error.friendlyLine = error.pos.line + 1;
+                            error.codeSnippet = currentDoc.getLine(error.pos.line);
+                            error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                            
+                            if (error.type !== Type.META) {
+                                numProblems++;
+                                _numProblemsReportedByProvider++;
+                            }
+                        });
+    
+                        // if the code inspector was unable to process the whole file, we keep track to show a different status
+                        if (result && result.aborted) {
+                            aborted = true;
+                        }
+    
+                        allErrors.errors.push({
+                            providerName: provider.name,
+                            results:      result.results.errors,
+                            numProblems: _numProblemsReportedByProvider
+                        });
                     }
                 });
-                
-                // Update results table
-                var html = Mustache.render(ResultsTemplate, {reportList: result.errors});
-                
-                $problemsPanelTable
-                    .empty()
-                    .append(html)
-                    .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
-                
-                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
-                if (!_collapsed) {
-                    Resizer.show($problemsPanel);
-                }
-                
-                if (numProblems === 1 && !result.aborted) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
-                } else {
-                    // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
-                    if (result.aborted) {
-                        numProblems += "+";
-                    }
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
-                        StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
-                }
-                setGotoEnabled(true);
-
-                PerfUtils.addMeasurement(perfTimerDOM);
             });
+
+            // Update results table
+//                var html = Mustache.render(ResultsTemplate, {reportList: results.errors});
+            var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
+            var provider = {name: "Code Inspection"};
+
+            var html = Mustache.render(ResultsTemplate, {reportList: allErrors.errors});
+            
+            $problemsPanelTable
+                .empty()
+                .append(html)
+                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
+            
+            $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
+            if (!_collapsed) {
+                Resizer.show($problemsPanel);
+            }
+            
+            if (numProblems === 1 && !aborted) {
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
+            } else {
+                // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
+                if (aborted) {
+                    numProblems += "+";
+                }
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
+                    StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
+            }
+            setGotoEnabled(true);
+
+            PerfUtils.addMeasurement(perfTimerDOM);
         } else {
             // No provider for current file
             _lastResult = null;
@@ -358,7 +470,7 @@ define(function (require, exports, module) {
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
-            if (_lastResult && _lastResult.errors.length) {
+            if (_lastResult && _lastResult.errors) {
                 Resizer.show($problemsPanel);
             }
         }
@@ -396,13 +508,25 @@ define(function (require, exports, module) {
 
                 $selectedRow  = $(e.currentTarget);
                 $selectedRow.addClass("selected");
-                var lineTd    = $selectedRow.find(".line-number");
-                var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
-                var character = lineTd.data("character");
 
-                var editor = EditorManager.getCurrentFullEditor();
-                editor.setCursorPos(line, character, true);
-                EditorManager.focusEditor();
+                // This is a inspector title row, expand/collapse on click
+                if ($selectedRow.hasClass("inspector-section")) {
+                    // Clicking the inspector title section header collapses/expands result rows
+                    $selectedRow.nextUntil(".inspector-section").toggle();
+
+                    var $triangle = $(".disclosure-triangle", $selectedRow);
+                    $triangle.toggleClass("expanded").toggleClass("collapsed");
+                } else {
+                    // This is a problem marker row, show the result on click
+                    // Grab the required position data
+                    var lineTd    = $selectedRow.find(".line-number");
+                    var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
+                    var character = lineTd.data("character");
+    
+                    var editor = EditorManager.getCurrentFullEditor();
+                    editor.setCursorPos(line, character, true);
+                    EditorManager.focusEditor();
+                }
             });
 
         $("#problems-panel .close").click(function () {
@@ -416,7 +540,8 @@ define(function (require, exports, module) {
         
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
-            if (_lastResult && _lastResult.errors.length) {
+//            if (_lastResult && _lastResult.errors.length) {
+            if (_lastResult) {
                 toggleCollapsed();
             }
         });
@@ -427,6 +552,8 @@ define(function (require, exports, module) {
         toggleCollapsed(_prefs.getValue("collapsed"));
     });
     
+    // Testing
+    exports.unregisterAll = unregisterAll;
     
     // Public API
     exports.register      = register;
