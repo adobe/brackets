@@ -199,8 +199,6 @@ define(function (require, exports, module) {
                     this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
                 }
                 callback(err);  // notify caller
-            } catch (ex) {
-                console.warn("Unhandled exception in callback: ", ex);
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }

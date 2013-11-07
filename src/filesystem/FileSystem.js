@@ -151,8 +151,6 @@ define(function (require, exports, module) {
                 var callbackArgs = arguments;
                 try {
                     request.cb.apply(null, callbackArgs);
-                } catch (ex) {
-                    console.warn("Unhandled exception in callback: ", ex);
                 } finally {
                     // Process the remaining watch/unwatch requests
                     this._watchRequests.shift();
