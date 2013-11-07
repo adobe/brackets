@@ -291,10 +291,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @param {function(?string)} callback Callback resolved, possibly with an error string.
+     * @param {function(?string)=} callback Callback resolved, possibly with an error string.
      */
     FileSystem.prototype.init = function (impl, callback) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
+        
+        callback = callback || function () {};
         
         this._impl = impl;
         this._impl.init(function (err) {
@@ -306,7 +308,7 @@ define(function (require, exports, module) {
             // Initialize watchers
             this._impl.initWatchers(this._enqueueWatchResult.bind(this));
             callback(null);
-        });
+        }.bind(this));
     };
     
     /**
