@@ -693,6 +693,7 @@ define(function (require, exports, module) {
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
+                callback(err);
                 return;
             }
             

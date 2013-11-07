@@ -98,12 +98,12 @@ define(function (require, exports, module) {
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
-            var dimensionString = _naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+            var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
             var file = FileSystem.getFileForPath(fullPath);
             file.stat(function (err, stat) {
                 if (err) {
-                    $("#img-data").text(dimensionString);
+                    $("#img-data").html(dimensionString);
                 } else {
                     var sizeString = "";
                     if (stat.size) {

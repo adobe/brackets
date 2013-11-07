@@ -502,6 +502,154 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("FileSystemEntry.visit", function () {
+            function getContentsCallback() {
+                var callback = function (err, contents) {
+                    callback.error = err;
+                    callback.contents = contents;
+                    callback.wasCalled = true;
+                };
+                return callback;
+            }
+            
+            beforeEach(function () {
+                function initEntry(entry, command, args) {
+                    var cb = getContentsCallback();
+                    
+                    args.push(cb);
+                    runs(function () {
+                        entry[command].apply(entry, args);
+                    });
+                    waitsFor(function () { return cb.wasCalled; });
+                    runs(function () {
+                        expect(cb.error).toBeFalsy();
+                    });
+                }
+
+                function initDir(path) {
+                    initEntry(fileSystem.getDirectoryForPath(path), "create", []);
+                }
+                
+                function initFile(path) {
+                    initEntry(fileSystem.getFileForPath(path), "write", ["abc"]);
+                }
+                
+                initDir("/visit/");
+                initFile("/visit/file.txt");
+                initDir("/visit/subdir1/");
+                initDir("/visit/subdir2/");
+                initFile("/visit/subdir1/subfile11.txt");
+                initFile("/visit/subdir1/subfile12.txt");
+                initFile("/visit/subdir2/subfile21.txt");
+                initFile("/visit/subdir2/subfile22.txt");
+            });
+            
+            it("should visit all entries by default", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(8);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should visit with a specified maximum depth", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, {maxDepth: 1}, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(4);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should visit with a specified maximum number of entries", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, {maxEntries: 4}, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBe(FileSystemError.TOO_MANY_ENTRIES);
+                    expect(Object.keys(results).length).toBe(4);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should visit only children of directories admitted by the filter", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return entry.name === "visit" || /1$/.test(entry.name);
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(6);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+        });
         
         describe("Event timing", function () {
             

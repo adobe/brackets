@@ -36,7 +36,6 @@ define(function (require, exports, module) {
         FileSystem      = require("filesystem/FileSystem");
     
     describe("LanguageManager", function () {
-        this.category = "integration";
         
         beforeEach(function () {
             waitsForDone(LanguageManager.ready, "LanguageManager ready", 10000);
@@ -403,6 +402,7 @@ define(function (require, exports, module) {
         });
         
         describe("rename file extension", function () {
+            this.category = "integration";
 
             it("should update the document's language when a file is renamed", function () {
                 var tempDir     = SpecRunnerUtils.getTempDirectory(),
@@ -475,7 +475,6 @@ define(function (require, exports, module) {
                 });
                 waitsForDone(renameDeferred.promise(), "old file rename");
                 
-                var unlinkDeferred = $.Deferred();
                 runs(function () {
                     html = LanguageManager.getLanguage("html");
                     
@@ -490,16 +489,7 @@ define(function (require, exports, module) {
                     
                     // cleanup
                     doc.releaseRef();
-
-                    oldFile.unlink(function (err) {
-                        if (err) {
-                            unlinkDeferred.reject(err);
-                        } else {
-                            unlinkDeferred.resolve();
-                        }
-                    });
                 });
-                waitsForDone(unlinkDeferred.promise(), "new file unlink");
                 
                 SpecRunnerUtils.closeTestWindow();
                 

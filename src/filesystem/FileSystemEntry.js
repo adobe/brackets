@@ -28,6 +28,11 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var FileSystemError = require("filesystem/FileSystemError");
+    
+    var VISIT_DEFAULT_MAX_DEPTH = 10,
+        VISIT_DEFAULT_MAX_ENTRIES = 30000;
+    
     /* Counter to give every entry a unique id */
     var nextId = 0;
     
@@ -231,39 +236,36 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Visit this entry and its descendents with the supplied visitor function.
+     * Private helper function for FileSystemEntry.visit that requires sanitized options.
      *
+     * @private
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{failFast: boolean=, maxDepth: number=}=} options - An optional set of options.
+     * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
      * @param {function(?string)=} callback Callback with single "error" parameter.
      */
-    FileSystemEntry.prototype.visit = function (visitor, options, callback) {
-        var DEFAULT_MAX_DEPTH = 100;
+    FileSystemEntry.prototype._visitHelper = function (visitor, options, callback) {
+        var failFast = options.failFast,
+            maxDepth = options.maxDepth,
+            maxEntriesCounter = options.maxEntriesCounter;
         
-        if (typeof options === "function") {
-            callback = options;
-            options = {};
-        } else if (options === undefined) {
-            options = {};
+        if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
+            callback(failFast ? FileSystemError.TOO_MANY_ENTRIES : null);
+            return;
         }
         
-        callback = callback || function () {};
-
-        var maxDepth = typeof options.maxDepth === "number" ? options.maxDepth : DEFAULT_MAX_DEPTH,
-            continueTraversal = visitor(this) && maxDepth-- > 0;
-        
-        if (this.isFile || !continueTraversal) {
+        if (!visitor(this) || this.isFile) {
             callback(null);
             return;
         }
         
         this.getContents(function (err, entries) {
             var counter = entries ? entries.length : 0,
-                newOptions = {
+                nextOptions = {
+                    failFast: failFast,
                     maxDepth: maxDepth,
-                    failFast: options.maxDepth
+                    maxEntriesCounter: maxEntriesCounter
                 };
 
             if (err || counter === 0) {
@@ -272,19 +274,67 @@ define(function (require, exports, module) {
             }
             
             entries.forEach(function (entry) {
-                entry.visit(visitor, newOptions, function (err) {
-                    if (err && options.failFast) {
+                entry._visitHelper(visitor, nextOptions, function (err) {
+                    if (err && failFast) {
                         counter = 0;
                         callback(err);
                         return;
                     }
                     
                     if (--counter === 0) {
-                        callback(options.failFast ? err : null);
+                        callback(failFast ? err : null);
                     }
                 });
             });
         }.bind(this));
+    };
+    
+    /**
+     * Visit this entry and its descendents with the supplied visitor function.
+     *
+     * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
+     *      applied to descendent FileSystemEntry objects. If the function returns false for
+     *      a particular Directory entry, that directory's descendents will not be visited.
+     * @param {{failFast: boolean=, maxDepth: number=, maxEntries: number=}=} options - An optional set of options.
+     * @param {function(?string)=} callback Callback with single "error" parameter.
+     */
+    FileSystemEntry.prototype.visit = function (visitor, options, callback) {
+        if (typeof options === "function") {
+            callback = options;
+            options = {};
+        } else if (options === undefined) {
+            options = {};
+        }
+        
+        if (options.failFast === undefined) {
+            options.failFast = false;
+        }
+        
+        if (options.maxDepth === undefined) {
+            options.maxDepth = VISIT_DEFAULT_MAX_DEPTH;
+        }
+        
+        if (options.maxEntries === undefined) {
+            options.maxEntries = VISIT_DEFAULT_MAX_ENTRIES;
+        }
+
+        options.maxEntriesCounter = { value: options.maxEntries };
+        
+        this._visitHelper(visitor, options, function (err) {
+            if (callback) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                if (options.maxEntriesCounter.value < 0) {
+                    callback(FileSystemError.TOO_MANY_ENTRIES);
+                    return;
+                }
+                
+                callback(null);
+            }
+        });
     };
     
     // Export this class

@@ -876,12 +876,26 @@ define(function (require, exports, module) {
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
+    /**
+     * Error dialog when max files in index is hit
+     * @return {Dialog}
+     */
+    function _showMaxFilesDialog() {
+        return Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.ERROR_MAX_FILES_TITLE,
+            Strings.ERROR_MAX_FILES
+        );
+    }
+    
     function _watchProjectRoot(rootPath) {
         FileSystem.on("change", _fileSystemChange);
         FileSystem.on("rename", _fileSystemRename);
 
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
-            if (err) {
+            if (err === FileSystemError.TOO_MANY_ENTRIES) {
+                _showMaxFilesDialog();
+            } else if (err) {
                 console.error("Error watching project root: ", rootPath, err);
             }
         });
