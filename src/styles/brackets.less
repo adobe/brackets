@@ -1097,14 +1097,18 @@ a, img {
         list-style: none;
         cursor: default;
         padding: 6px 10px;
-    }
+        
+        &:nth-child(odd) {
+            background-color: @tc-lighter-gray;
+        }
+        
+        &:hover {
+            background-color: @tc-hover-highlight;
+        }
 
-    li:nth-child(odd) {
-        background-color: @tc-lighter-gray;
-    }
-
-    li.smart_autocomplete_highlight {
-        background-color: @tc-highlight;
+        &.smart_autocomplete_highlight {
+            background-color: @tc-highlight;
+        }
     }
 }
 
