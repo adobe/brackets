@@ -218,6 +218,9 @@ define(function (require, exports, module) {
         
         file.exists(function (exists) {
             if (exists) {
+                // If the SpecRunner.html file exists, enable the menu item.
+                // (menu item is already disabled, so no need to disable if the
+                // file doesn't exist).
                 CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
             }
         });
