@@ -468,7 +468,7 @@ define({
 	"LOCALE_HU": "Hongrois",
     
     // extensions/default/InlineTimingFunctionEditor
-	"INLINE_TIMING_EDITOR_TIME": "Durée",
+	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor

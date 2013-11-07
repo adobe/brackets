@@ -468,7 +468,7 @@ define({
 	"LOCALE_HU": "ハンガリー語",
     
     // extensions/default/InlineTimingFunctionEditor
-	"INLINE_TIMING_EDITOR_TIME": "時刻",
+	"INLINE_TIMING_EDITOR_TIME": "時間",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor
