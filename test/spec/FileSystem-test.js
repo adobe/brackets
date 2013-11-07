@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, setTimeout */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             function generateCbWrapper(cb) {
                 function cbReadyToRun() {
                     var _args = arguments;
-                    setTimeout(function () {
+                    window.setTimeout(function () {
                         cb.apply(null, _args);
                     }, ms);
                 }
@@ -90,8 +90,15 @@ define(function (require, exports, module) {
             }
             return generateCbWrapper;
         }
-        
-        
+    
+        function getContentsCallback() {
+            var callback = function (err, contents) {
+                callback.error = err;
+                callback.contents = contents;
+                callback.wasCalled = true;
+            };
+            return callback;
+        }
         
         describe("Path normalization", function () {
             // Auto-prepended to both origPath & normPath in all the test helpers below
@@ -272,6 +279,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb.error).toBeFalsy();
                     expect(file.fullPath).toBe("/file1-renamed.txt");
+                    expect(fileSystem.getFileForPath("/file1-renamed.txt")).toBe(file);
+                    expect(fileSystem.getFileForPath("/file1.txt")).not.toBe(file);
                 });
             });
             
@@ -320,15 +329,6 @@ define(function (require, exports, module) {
         
         
         describe("Read directory", function () {
-            function getContentsCallback() {
-                var callback = function (err, contents) {
-                    callback.error = err;
-                    callback.contents = contents;
-                    callback.wasCalled = true;
-                };
-                return callback;
-            }
-            
             it("should read a Directory", function () {
                 var directory = fileSystem.getDirectoryForPath("/subdir/"),
                     cb = getContentsCallback();
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
                 function delayedCallback(cb) {
                     return function () {
                         var args = arguments;
-                        setTimeout(function () {
+                        window.setTimeout(function () {
                             cbCount++;
                             cb.apply(null, args);
                         }, 300);
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
                 
                 // Verify initial contents
                 runs(function () {
-                    file.readAsText(firstReadCB);
+                    file.read(firstReadCB);
                 });
                 waitsFor(function () { return firstReadCB.wasCalled; });
                 runs(function () {
@@ -450,7 +450,7 @@ define(function (require, exports, module) {
                 
                 // Verify new contents
                 runs(function () {
-                    file.readAsText(secondReadCB);
+                    file.read(secondReadCB);
                 });
                 waitsFor(function () { return secondReadCB.wasCalled; });
                 runs(function () {
@@ -464,7 +464,7 @@ define(function (require, exports, module) {
                     cb = readCallback();
                 
                 runs(function () {
-                    file.readAsText(cb);
+                    file.read(cb);
                 });
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
@@ -492,7 +492,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    file.readAsText(readCb);
+                    file.read(readCb);
                 });
                 waitsFor(function () { return readCb.wasCalled; });
                 runs(function () {
@@ -502,6 +502,145 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("FileSystemEntry.visit", function () {
+            beforeEach(function () {
+                function initEntry(entry, command, args) {
+                    var cb = getContentsCallback();
+                    
+                    args.push(cb);
+                    runs(function () {
+                        entry[command].apply(entry, args);
+                    });
+                    waitsFor(function () { return cb.wasCalled; });
+                    runs(function () {
+                        expect(cb.error).toBeFalsy();
+                    });
+                }
+
+                function initDir(path) {
+                    initEntry(fileSystem.getDirectoryForPath(path), "create", []);
+                }
+                
+                function initFile(path) {
+                    initEntry(fileSystem.getFileForPath(path), "write", ["abc"]);
+                }
+                
+                initDir("/visit/");
+                initFile("/visit/file.txt");
+                initDir("/visit/subdir1/");
+                initDir("/visit/subdir2/");
+                initFile("/visit/subdir1/subfile11.txt");
+                initFile("/visit/subdir1/subfile12.txt");
+                initFile("/visit/subdir2/subfile21.txt");
+                initFile("/visit/subdir2/subfile22.txt");
+            });
+            
+            it("should visit all entries by default", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(8);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should visit with a specified maximum depth", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, {maxDepth: 1}, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(4);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should visit with a specified maximum number of entries", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, {maxEntries: 4}, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBe(FileSystemError.TOO_MANY_ENTRIES);
+                    expect(Object.keys(results).length).toBe(4);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should visit only children of directories admitted by the filter", function () {
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return entry.name === "visit" || /1$/.test(entry.name);
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(6);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+        });
         
         describe("Event timing", function () {
             

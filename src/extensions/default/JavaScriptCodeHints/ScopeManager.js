@@ -89,6 +89,8 @@ define(function (require, exports, module) {
                     }).fail(function (error) {
                         console.log("failed to read tern config file " + i);
                     });
+                } else {
+                    console.log("failed to read tern config file " + i);
                 }
             });
         });

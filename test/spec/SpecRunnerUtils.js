@@ -81,6 +81,7 @@ define(function (require, exports, module) {
                 if (err === FileSystemError.NOT_FOUND && silent) {
                     result.resolve();
                 } else {
+                    console.error("Unable to remove " + fullPath, err);
                     result.reject(err);
                 }
             }
@@ -241,24 +242,6 @@ define(function (require, exports, module) {
         waitsForDone(deferred, "Create temp directory", 500);
     }
     
-    /**
-     * @private
-     */
-    function _stat(pathname) {
-        var deferred = new $.Deferred();
-        
-        FileSystem.resolve(pathname, function (err, entry) {
-            if (err) {
-                deferred.reject(err);
-                return;
-            }
-            
-            deferred.resolve(entry);
-        });
-                
-        return deferred;
-    }
-    
     function _resetPermissionsOnSpecialTempFolders() {
         var i,
             folders = [],
@@ -271,19 +254,19 @@ define(function (require, exports, module) {
         promise = Async.doSequentially(folders, function (folder) {
             var deferred = new $.Deferred();
             
-            _stat(folder)
-                .done(function () {
+            FileSystem.resolve(folder, function (err, entry) {
+                if (!err) {
                     // Change permissions if the directory exists
                     chmod(folder, "777").then(deferred.resolve, deferred.reject);
-                })
-                .fail(function (err) {
+                } else {
                     if (err === FileSystemError.NOT_FOUND) {
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {
                         deferred.reject();
                     }
-                });
+                }
+            });
             
             return deferred.promise();
         }, true);

@@ -886,6 +886,13 @@ define(function (require, exports, module) {
         if (entry && entry.isDirectory) {
             var resultsChanged = false;
             
+            // This is a temporary watcher implementation that needs to be updated
+            // once we have our final watcher API. Specifically, we will be adding
+            // 'added' and 'removed' parameters to this function to easily determine
+            // which files/folders have been added or removed.
+            //
+            // In the meantime, do a quick check for directory changed events to see
+            // if any of the search results files have been deleted.
             if (searchResultsPanel.isVisible()) {
                 entry.getContents(function (err, contents) {
                     if (!err) {

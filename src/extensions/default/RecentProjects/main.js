@@ -280,10 +280,10 @@ define(function (require, exports, module) {
      */
     function _handleListEvents() {
         $dropdown
-            .on("click", "a", function (e) {
-                var $link       = $(e.target).closest("a"),
-                    id          = $link.attr("id"),
-                    path        = $link.data("path");
+            .on("click", "a", function () {
+                var $link = $(this),
+                    id    = $link.attr("id"),
+                    path  = $link.data("path");
                 
                 if (path) {
                     ProjectManager.openProject(path)

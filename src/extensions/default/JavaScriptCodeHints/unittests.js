@@ -744,12 +744,10 @@ define(function (require, exports, module) {
                     end     = { line: 6, ch: 8 },
                     endplus = { line: 6, ch: 12 };
                 
-                runs(function () {
-                    testDoc.replaceRange("A1.prop", start, start);
-                    testEditor.setCursorPos(middle);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
-                });
+                testDoc.replaceRange("A1.prop", start, start);
+                testEditor.setCursorPos(middle);
+                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
                 
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);

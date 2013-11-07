@@ -106,7 +106,7 @@ define(function (require, exports, module) {
                     $("#img-data").html(dimensionString);
                 } else {
                     var sizeString = "";
-                    if (stat && stat.size) {
+                    if (stat.size) {
                         sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
                     }
                     $("#img-data").html(dimensionString + sizeString);

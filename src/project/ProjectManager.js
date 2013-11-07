@@ -90,7 +90,6 @@ define(function (require, exports, module) {
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
      * @type {RegExp}
      */
-
     var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|^\.hgignore$/;
 
     /**
@@ -771,7 +770,7 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        dirEntry.getContents(function (err, contents) {
+        dirEntry.getContents(function (err, contents, stats, statsErrs) {
             if (err) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
@@ -785,6 +784,10 @@ define(function (require, exports, module) {
                 // Reject the render promise so we can move on.
                 deferred.reject();
             } else {
+                if (statsErrs) {
+                    // some but not all entries failed to load, so render what we can
+                    console.warn("Error reading a subset of folder " + dirEntry);
+                }
                 processEntries(contents);
             }
         });
@@ -892,6 +895,8 @@ define(function (require, exports, module) {
         FileSystem.watch(FileSystem.getDirectoryForPath(rootPath), _shouldShowName, function (err) {
             if (err === FileSystemError.TOO_MANY_ENTRIES) {
                 _showMaxFilesDialog();
+            } else if (err) {
+                console.error("Error watching project root: ", rootPath, err);
             }
         });
     }
@@ -908,7 +913,7 @@ define(function (require, exports, module) {
 
             FileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
-                    console.log("Error unwatching project root: ", _projectRoot.fullPath, err);
+                    console.error("Error unwatching project root: ", _projectRoot.fullPath, err);
                 }
             });
         }
@@ -1379,10 +1384,10 @@ define(function (require, exports, module) {
                             var file = FileSystem.getFileForPath(newItemPath);
                             
                             file.write("", function (err) {
-                                if (!err) {
-                                    successCallback(file);
-                                } else {
+                                if (err) {
                                     errorCallback(err);
+                                } else {
+                                    successCallback(file);
                                 }
                             });
                         }

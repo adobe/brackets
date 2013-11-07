@@ -27,7 +27,7 @@
 
 /**
  * Represents a file that will never exist on disk - a placeholder backing file for untitled Documents. NO ONE
- * other than DocumentManager should create insteances of InMemoryFile. It is valid to test for one (`instanceof
+ * other than DocumentManager should create instances of InMemoryFile. It is valid to test for one (`instanceof
  * InMemoryFile`), but it's better to check `doc.isUntitled` where possible.
  * 
  * Attempts to read/write an InMemoryFile will always fail, and exists() always yields false. InMemoryFile.fullPath
@@ -59,12 +59,12 @@ define(function (require, exports, module) {
      *
      * Read a file as text. 
      *
-     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
+     * @param {object=} options Currently unused.
      * @param {function (number, string, object)} callback
      */
-    InMemoryFile.prototype.readAsText = function (encoding, callback) {
-        if (typeof (encoding) === "function") {
-            callback = encoding;
+    InMemoryFile.prototype.read = function (options, callback) {
+        if (typeof (options) === "function") {
+            callback = options;
         }
         callback(FileSystemError.NOT_FOUND);
     };

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         this._fileSystem = fileSystem;
         this._id = nextId++;
     }
-        
+    
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
     Object.defineProperties(FileSystemEntry.prototype, {
         "fullPath": {
@@ -86,11 +86,13 @@ define(function (require, exports, module) {
     
     /**
      * Cached stat object for this file.
+     * @type {?FileSystemStats}
      */
     FileSystemEntry.prototype._stat = null;
 
     /**
      * Parent file system.
+     * @type {!FileSystem}
      */
     FileSystemEntry.prototype._fileSystem = null;
 
@@ -142,6 +144,14 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Clear any cached data for this entry
+     * @private
+     */
+    FileSystemEntry.prototype._clearCachedData = function () {
+        this._stat = undefined;
+    };
+    
+    /**
      * Helpful toString for debugging purposes
      */
     FileSystemEntry.prototype.toString = function () {
@@ -160,8 +170,8 @@ define(function (require, exports, module) {
     /**
      * Returns the stats for the entry.
      *
-     * @param {function (?string, FileSystemStats=)} callback Callback with "error" and "stat" 
-     *     parameters.
+     * @param {function (?string, FileSystemStats=)} callback Callback with a
+     *      FileSystemError string or FileSystemStats object.
      */
     FileSystemEntry.prototype.stat = function (callback) {
         this._impl.stat(this._path, function (err, stat) {
@@ -176,7 +186,8 @@ define(function (require, exports, module) {
      * Rename this entry.
      *
      * @param {string} newFullPath New path & name for this entry.
-     * @param {function (?string)=} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single FileSystemError
+     *      string parameter.
      */
     FileSystemEntry.prototype.rename = function (newFullPath, callback) {
         callback = callback || function () {};
@@ -188,6 +199,8 @@ define(function (require, exports, module) {
                     this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
                 }
                 callback(err);  // notify caller
+            } catch (ex) {
+                console.warn("Unhandled exception in callback: ", ex);
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }
@@ -198,11 +211,14 @@ define(function (require, exports, module) {
      * Unlink (delete) this entry. For Directories, this will delete the directory
      * and all of its contents. 
      *
-     * @param {function (?string)=} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single FileSystemError
+     *      string parameter.
      */
     FileSystemEntry.prototype.unlink = function (callback) {
         callback = callback || function () {};
-        this._stat = null;
+        
+        this._clearCachedData();
+        
         this._impl.unlink(this._path, function (err) {
             if (!err) {
                 this._fileSystem._index.removeEntry(this);
@@ -216,7 +232,8 @@ define(function (require, exports, module) {
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
      *
-     * @param {function (?string)=} callback Callback with a single "error" parameter.
+     * @param {function (?string)=} callback Callback with a single FileSystemError
+     *      string parameter.
      */
     FileSystemEntry.prototype.moveToTrash = function (callback) {
         callback = callback || function () {};
@@ -225,7 +242,8 @@ define(function (require, exports, module) {
             return;
         }
         
-        this._stat = null;
+        this._clearCachedData();
+        
         this._impl.moveToTrash(this._path, function (err) {
             if (!err) {
                 this._fileSystem._index.removeEntry(this);
@@ -243,14 +261,14 @@ define(function (require, exports, module) {
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
      * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
-     * @param {function(?string)=} callback Callback with single "error" parameter.
+     * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
     FileSystemEntry.prototype._visitHelper = function (visitor, options, callback) {
         var failFast = options.failFast,
             maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
         
-        if (maxEntriesCounter.value-- < 0 || maxDepth-- < 0) {
+        if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
             callback(failFast ? FileSystemError.TOO_MANY_ENTRIES : null);
             return;
         }
@@ -269,7 +287,7 @@ define(function (require, exports, module) {
                 };
 
             if (err || counter === 0) {
-                callback(err);
+                callback(failFast ? err : null);
                 return;
             }
             
@@ -282,7 +300,7 @@ define(function (require, exports, module) {
                     }
                     
                     if (--counter === 0) {
-                        callback(failFast ? err : null);
+                        callback(null);
                     }
                 });
             });
@@ -295,8 +313,8 @@ define(function (require, exports, module) {
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{failFast: boolean=, maxDepth: number=, maxEntries: number=}=} options - An optional set of options.
-     * @param {function(?string)=} callback Callback with single "error" parameter.
+     * @param {{failFast: boolean=, maxDepth: number=, maxEntries: number=}=} options
+     * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
     FileSystemEntry.prototype.visit = function (visitor, options, callback) {
         if (typeof options === "function") {

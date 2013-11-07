@@ -143,7 +143,8 @@ define(function (require, exports, module) {
     }
 
     function exists(path, callback) {
-        callback(!!_data[path]);
+        var cb = _getCallback("exists", path, callback);
+        cb(!!_data[path]);
     }
     
     function readdir(path, callback) {
@@ -272,18 +273,21 @@ define(function (require, exports, module) {
             options = null;
         }
         
-        var cb = _getCallback("writeFile", path, callback),
-            notify = _getNotification("writeFile", path, _sendWatcherNotification);
-        
-        if (!_data[path]) {
-            _data[path] = {
-                isFile: true
-            };
-        }
-        _data[path].contents = data;
-        _data[path].mtime = Date.now();
-        cb(null);
-        notify(path);
+        exists(path, function (exists) {
+            var cb = _getCallback("writeFile", path, callback),
+                notification = exists ? _sendWatcherNotification : _sendDirectoryWatcherNotification,
+                notify = _getNotification("writeFile", path, notification);
+            
+            if (!_data[path]) {
+                _data[path] = {
+                    isFile: true
+                };
+            }
+            _data[path].contents = data;
+            _data[path].mtime = Date.now();
+            cb(null);
+            notify(path);
+        });
     }
     
     function unlink(path, callback) {

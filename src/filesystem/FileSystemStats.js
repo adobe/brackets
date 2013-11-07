@@ -26,7 +26,7 @@
 /*global define */
 
 /**
- * The FileSystemStats represents a particular file's stats.
+ * The FileSystemStats represents a particular FileSystemEntry's stats.
  */
 define(function (require, exports, module) {
     "use strict";
