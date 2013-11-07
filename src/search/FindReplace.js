@@ -118,7 +118,14 @@ define(function (require, exports, module) {
     }
 
     function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) { return dollars.length % 2 === 1 ? dollars.substr(1) + ((match.hasOwnProperty("result") ? match.result[parseInt(index, 10)] : match[parseInt(index, 10)]) || "") : dollars + index; });
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) {
+            var parsedIndex = parseInt(index, 10);
+            if (dollars.length % 2 === 1 && parsedIndex !== 0) {
+                return dollars.substr(1) + (match[parsedIndex] || "");
+            } else {
+                return whole;
+            }
+        });
         replaceWith = replaceWith.replace(/\$\$/g, "$$");
         return replaceWith;
     }
@@ -477,7 +484,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : parseDollars(replaceWith, match);
+                        rw    = typeof replaceWhat === "string" ? replaceWith : parseDollars(replaceWith, match.result);
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
