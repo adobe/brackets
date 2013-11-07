@@ -84,6 +84,8 @@ define(function (require, exports, module) {
 
         // Initialize the watch/unwatch request queue
         this._watchRequests = [];
+        
+        this._watchResults = [];
     }
     
     /**
@@ -115,7 +117,7 @@ define(function (require, exports, module) {
      * Queue of arguments to invoke _handleWatchResult() with; triggered once _writeCount drops to zero
      * @type {!Array.<{path:string, stat:Object}>}
      */
-    FileSystem.prototype._watchResults = [];
+    FileSystem.prototype._watchResults = null;
     
     /** Process all queued watcher results, by calling _handleWatchResult() on each */
     FileSystem.prototype._triggerWatchCallbacksNow = function () {
