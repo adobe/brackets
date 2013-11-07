@@ -42,8 +42,10 @@ define(function (require, exports, module) {
     
     /**
      * Master index
+     * 
+     * @type{object{string: File|Directory}} Maps a fullPath to a File or Directory object
      */
-    FileIndex.prototype._index = {};
+    FileIndex.prototype._index = null;
     
     /**
      * Clear the file index cache.

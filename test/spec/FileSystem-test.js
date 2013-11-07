@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, setTimeout */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             function generateCbWrapper(cb) {
                 function cbReadyToRun() {
                     var _args = arguments;
-                    setTimeout(function () {
+                    window.setTimeout(function () {
                         cb.apply(null, _args);
                     }, ms);
                 }
@@ -90,8 +90,15 @@ define(function (require, exports, module) {
             }
             return generateCbWrapper;
         }
-        
-        
+    
+        function getContentsCallback() {
+            var callback = function (err, contents) {
+                callback.error = err;
+                callback.contents = contents;
+                callback.wasCalled = true;
+            };
+            return callback;
+        }
         
         describe("Path normalization", function () {
             // Auto-prepended to both origPath & normPath in all the test helpers below
@@ -272,6 +279,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb.error).toBeFalsy();
                     expect(file.fullPath).toBe("/file1-renamed.txt");
+                    expect(fileSystem.getFileForPath("/file1-renamed.txt")).toBe(file);
+                    expect(fileSystem.getFileForPath("/file1.txt")).not.toBe(file);
                 });
             });
             
@@ -320,15 +329,6 @@ define(function (require, exports, module) {
         
         
         describe("Read directory", function () {
-            function getContentsCallback() {
-                var callback = function (err, contents) {
-                    callback.error = err;
-                    callback.contents = contents;
-                    callback.wasCalled = true;
-                };
-                return callback;
-            }
-            
             it("should read a Directory", function () {
                 var directory = fileSystem.getDirectoryForPath("/subdir/"),
                     cb = getContentsCallback();
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
                 function delayedCallback(cb) {
                     return function () {
                         var args = arguments;
-                        setTimeout(function () {
+                        window.setTimeout(function () {
                             cbCount++;
                             cb.apply(null, args);
                         }, 300);
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
                 
                 // Verify initial contents
                 runs(function () {
-                    file.readAsText(firstReadCB);
+                    file.read(firstReadCB);
                 });
                 waitsFor(function () { return firstReadCB.wasCalled; });
                 runs(function () {
@@ -450,7 +450,7 @@ define(function (require, exports, module) {
                 
                 // Verify new contents
                 runs(function () {
-                    file.readAsText(secondReadCB);
+                    file.read(secondReadCB);
                 });
                 waitsFor(function () { return secondReadCB.wasCalled; });
                 runs(function () {
@@ -464,7 +464,7 @@ define(function (require, exports, module) {
                     cb = readCallback();
                 
                 runs(function () {
-                    file.readAsText(cb);
+                    file.read(cb);
                 });
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
@@ -492,7 +492,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    file.readAsText(readCb);
+                    file.read(readCb);
                 });
                 waitsFor(function () { return readCb.wasCalled; });
                 runs(function () {
@@ -503,15 +503,6 @@ define(function (require, exports, module) {
         });
         
         describe("FileSystemEntry.visit", function () {
-            function getContentsCallback() {
-                var callback = function (err, contents) {
-                    callback.error = err;
-                    callback.contents = contents;
-                    callback.wasCalled = true;
-                };
-                return callback;
-            }
-            
             beforeEach(function () {
                 function initEntry(entry, command, args) {
                     var cb = getContentsCallback();

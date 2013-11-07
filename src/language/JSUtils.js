@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 
                 file.stat(function (err, stat) {
                     if (!err) {
-                        result.resolve(fileInfo.JSUtils.timestamp === stat.mtime);
+                        result.resolve(fileInfo.JSUtils.timestamp.getTime() === stat.mtime.getTime());
                     } else {
                         result.reject(err);
                     }

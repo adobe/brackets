@@ -505,7 +505,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // Create a scheme script file
-                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: SpecRunnerUtils.getTempDirectory() + "/file.scheme" });
+                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/file.scheme" });
                     
                     // Initial language will be unknown (scheme is not a default language)
                     unknown = LanguageManager.getLanguage("unknown");
@@ -555,7 +555,7 @@ define(function (require, exports, module) {
                     promise;
                 
                 // Create a foo script file
-                doc = SpecRunnerUtils.createMockActiveDocument({ filename: SpecRunnerUtils.getTempDirectory() + "/test.foo" });
+                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo" });
                 
                 // Initial language will be unknown (foo is not a default language)
                 unknown = LanguageManager.getLanguage("unknown");

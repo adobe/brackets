@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -58,19 +58,29 @@ define(function (require, exports, module) {
     File.prototype._contents = null;
     
     /**
-     * Read a file as text. 
-     *
-     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
-     * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
-     *              error code, the file's contents, and the file's new stats.
+     * Clear any cached data for this file
+     * @private
      */
-    File.prototype.readAsText = function (encoding, callback) {
-        if (typeof (encoding) === "function") {
-            callback = encoding;
-            encoding = null;
+    File.prototype._clearCachedData = function () {
+        this.parentClass._clearCachedData.apply(this);
+        this._contents = undefined;
+    };
+
+    
+    /**
+     * Read a file.
+     *
+     * @param {object=} options Currently unused.
+     * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
+     *              FileSystemError string or the file's contents and its stats.
+     */
+    File.prototype.read = function (options, callback) {
+        if (typeof (options) === "function") {
+            callback = options;
+            options = {};
         }
         
-        this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
+        this._impl.readFile(this._path, options, function (err, data, stat) {
             if (!err) {
                 this._stat = stat;
                 // this._contents = data;
@@ -83,21 +93,21 @@ define(function (require, exports, module) {
      * Write a file.
      *
      * @param {string} data Data to write.
-     * @param {string=} encoding Encoding for data. Defaults to UTF-8.
+     * @param {object=} options Currently unused.
      * @param {!function (?string, FileSystemStats=)=} callback Callback that is passed the
-     *              error code and the file's new stats if the write is sucessful.
+     *              FileSystemError string or the file's new stats.
      */
-    File.prototype.write = function (data, encoding, callback) {
-        if (typeof (encoding) === "function") {
-            callback = encoding;
-            encoding = "utf8";
+    File.prototype.write = function (data, options, callback) {
+        if (typeof (options) === "function") {
+            callback = options;
+            options = {};
         }
         
         callback = callback || function () {};
         
         this._fileSystem._beginWrite();
         
-        this._impl.writeFile(this._path, data, encoding ? {encoding: encoding} : {}, function (err, stat) {
+        this._impl.writeFile(this._path, data, options, function (err, stat) {
             try {
                 if (!err) {
                     this._stat = stat;

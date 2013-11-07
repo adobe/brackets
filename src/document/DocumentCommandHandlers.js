@@ -776,6 +776,14 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
+     *
+     * @return {$.Promise}
+     */
     function saveAll() {
         return _saveFileList(DocumentManager.getWorkingSet());
     }

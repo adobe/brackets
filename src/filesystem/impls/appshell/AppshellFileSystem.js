@@ -190,7 +190,7 @@ define(function (require, exports, module) {
                     stats[idx] = err || stat;
                     count--;
                     if (count <= 0) {
-                        callback(err, contents, stats);
+                        callback(null, contents, stats);
                     }
                 });
             });
@@ -225,14 +225,13 @@ define(function (require, exports, module) {
         // No need to fake a file-watcher result here: FileSystem already updates index on rename()
     }
     
+    /*
+     * Note: if either the read or the stat call fails then neither the read data
+     * or stat will be passed back, and the call should be considered to have failed.
+     * If both calls fail, the error from the read call is passed back.
+     */
     function readFile(path, options, callback) {
-        var encoding = "utf8";
-        
-        if (typeof options === "function") {
-            callback = options;
-        } else {
-            encoding = options.encoding || "utf8";
-        }
+        var encoding = options.encoding || "utf8";
         
         // Execute the read and stat calls in parallel
         var done = false, data, stat, err;
@@ -244,7 +243,7 @@ define(function (require, exports, module) {
             }
             
             if (done) {
-                callback(err, _data, stat);
+                callback(err, err ? null : _data, stat);
             } else {
                 done = true;
                 data = _data;
@@ -253,7 +252,7 @@ define(function (require, exports, module) {
 
         exports.stat(path, function (_err, _stat) {
             if (done) {
-                callback(_err, data, _stat);
+                callback(_err, _err ? null : data, _stat);
             } else {
                 done = true;
                 stat = _stat;
@@ -263,13 +262,7 @@ define(function (require, exports, module) {
     }
     
     function writeFile(path, data, options, callback) {
-        var encoding = "utf8";
-        
-        if (typeof options === "function") {
-            callback = options;
-        } else {
-            encoding = options.encoding || "utf8";
-        }
+        var encoding = options.encoding || "utf8";
         
         exists(path, function (alreadyExists) {
             appshell.fs.writeFile(path, data, encoding, function (err) {

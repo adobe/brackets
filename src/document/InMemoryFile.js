@@ -59,12 +59,12 @@ define(function (require, exports, module) {
      *
      * Read a file as text. 
      *
-     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
+     * @param {object=} options Currently unused.
      * @param {function (number, string, object)} callback
      */
-    InMemoryFile.prototype.readAsText = function (encoding, callback) {
-        if (typeof (encoding) === "function") {
-            callback = encoding;
+    InMemoryFile.prototype.read = function (options, callback) {
+        if (typeof (options) === "function") {
+            callback = options;
         }
         callback(FileSystemError.NOT_FOUND);
     };

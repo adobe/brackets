@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -36,6 +36,8 @@ define(function (require, exports, module) {
      *
      * This class should *not* be instantiated directly. Use FileSystem.getDirectoryForPath,
      * FileSystem.resolve, or Directory.getContents to create an instance of this class.
+     *
+     * Note: Directory.fullPath always has a trailing slash.
      *
      * See the FileSystem class for more details.
      *
@@ -71,6 +73,17 @@ define(function (require, exports, module) {
     Directory.prototype._contentsStatsErrors = null;
     
     /**
+     * Clear any cached data for this directory
+     * @private
+     */
+    Directory.prototype._clearCachedData = function () {
+        this.parentClass._clearCachedData.apply(this);
+        this._contents = undefined;
+        this._contentsStats = undefined;
+        this._contentsStatsErrors = undefined;
+    };
+    
+    /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
@@ -101,14 +114,12 @@ define(function (require, exports, module) {
         this._contentsCallbacks = [callback];
         
         this._impl.readdir(this.fullPath, function (err, contents, stats) {
-            this._contentsStatsErrors = undefined;
-            
             if (err) {
-                this._contents = undefined;
-                this._contentsStats = undefined;
+                this._clearCachedData();
             } else {
                 this._contents = [];
                 this._contentsStats = [];
+                this._contentsStatsErrors = undefined;
                 
                 contents.forEach(function (name, index) {
                     var entryPath = this.fullPath + name,
@@ -133,7 +144,7 @@ define(function (require, exports, module) {
                                 // to file content may be messaged EITHER as a watcher change 
                                 // directly on that file, OR as a watcher change to its parent dir)
                                 // TODO: move this to FileSystem._handleWatchResult()?
-                                entry._contents = undefined;
+                                entry._clearCachedData();
                             } else {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
@@ -167,8 +178,8 @@ define(function (require, exports, module) {
     /**
      * Create a directory
      *
-     * @param {function (?string, FileSystemStats=)=} callback Callback resolved with an error
-     *      string or the stat object for the created directory.
+     * @param {function (?string, FileSystemStats=)=} callback Callback resolved with a
+     *      FileSystemError string or the stat object for the created directory.
      */
     Directory.prototype.create = function (callback) {
         callback = callback || function () {};

@@ -745,7 +745,7 @@ define(function (require, exports, module) {
         if (doc) {
             result.resolve(doc.getText());
         } else {
-            file.readAsText(function (err, contents) {
+            file.read(function (err, contents) {
                 if (err) {
                     result.reject(err);
                 } else {

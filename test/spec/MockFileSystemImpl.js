@@ -143,7 +143,8 @@ define(function (require, exports, module) {
     }
 
     function exists(path, callback) {
-        callback(!!_data[path]);
+        var cb = _getCallback("exists", path, callback);
+        cb(!!_data[path]);
     }
     
     function readdir(path, callback) {
