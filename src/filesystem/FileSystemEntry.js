@@ -269,7 +269,7 @@ define(function (require, exports, module) {
                 };
 
             if (err || counter === 0) {
-                callback(err);
+                callback(failFast ? err : null);
                 return;
             }
             
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
                     }
                     
                     if (--counter === 0) {
-                        callback(failFast ? err : null);
+                        callback(null);
                     }
                 });
             });
