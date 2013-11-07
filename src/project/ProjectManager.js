@@ -770,7 +770,7 @@ define(function (require, exports, module) {
         }
         
         // Fetch dirEntry's contents
-        dirEntry.getContents(function (err, contents, statsErrs) {
+        dirEntry.getContents(function (err, contents, stats, statsErrs) {
             if (err) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
