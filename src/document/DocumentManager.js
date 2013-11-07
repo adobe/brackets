@@ -630,8 +630,8 @@ define(function (require, exports, module) {
         var id;
         
         // Need to walk all open documents and check for matching path. We can't
-        // use getFileForPath(fullPath).id since that won't match untitled 
-        // documents...
+        // use getFileForPath(fullPath).id since the file it returns won't match
+        // an Untitled document's InMemoryFile.
         for (id in _openDocuments) {
             if (_openDocuments.hasOwnProperty(id)) {
                 if (_openDocuments[id].file.fullPath === fullPath) {
@@ -658,56 +658,60 @@ define(function (require, exports, module) {
      *      with a FileSystemError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var file            = FileSystem.getFileForPath(fullPath),
-            doc             = getOpenDocumentForPath(fullPath),
-            pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
+        var doc             = getOpenDocumentForPath(fullPath);
 
         if (doc) {
             // use existing document
             return new $.Deferred().resolve(doc).promise();
-        } else if (pendingPromise) {
-            // wait for the result of a previous request
-            return pendingPromise;
         } else {
-            var result = new $.Deferred(),
-                promise = result.promise();
             
+            // Should never get here if the fullPath refers to an Untitled document
             if (fullPath.indexOf(_untitledDocumentPath) === 0) {
                 console.error("getDocumentForPath called for non-open untitled document: " + fullPath);
-                result.reject();
-                return promise;
+                return new $.Deferred().reject().promise();
             }
             
-            // log this document's Promise as pending
-            getDocumentForPath._pendingDocumentPromises[file.id] = promise;
-
-            // create a new document
-            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-
-            result.done(function () {
-                PerfUtils.addMeasurement(perfTimerName);
-            }).fail(function () {
-                PerfUtils.finalizeMeasurement(perfTimerName);
-            });
-
-            FileUtils.readAsText(file)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[file.id];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new DocumentModule.Document(file, readTimestamp, rawText);
-                            
-                    // This is a good point to clean up any old dangling Documents
-                    _gcDocuments();
-                    
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+            var file            = FileSystem.getFileForPath(fullPath),
+                pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
             
-            return promise;
+            if (pendingPromise) {
+                // wait for the result of a previous request
+                return pendingPromise;
+            } else {
+                var result = new $.Deferred(),
+                    promise = result.promise();
+                
+                // log this document's Promise as pending
+                getDocumentForPath._pendingDocumentPromises[file.id] = promise;
+    
+                // create a new document
+                var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+    
+                result.done(function () {
+                    PerfUtils.addMeasurement(perfTimerName);
+                }).fail(function () {
+                    PerfUtils.finalizeMeasurement(perfTimerName);
+                });
+    
+                FileUtils.readAsText(file)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[file.id];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new DocumentModule.Document(file, readTimestamp, rawText);
+                                
+                        // This is a good point to clean up any old dangling Documents
+                        _gcDocuments();
+                        
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        result.reject(fileError);
+                    });
+                
+                return promise;
+            }
         }
     }
     

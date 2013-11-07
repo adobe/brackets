@@ -192,29 +192,21 @@ define(function (require, exports, module) {
     function testExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
             extensionPath = config.baseUrl + "/" + entryPoint + ".js";
-
-        var fileExists = false, statComplete = false;
-        var file = FileSystem.getFileForPath(extensionPath);
         
-        file.stat(function (err, stat) {
-            if (!err) {
-                statComplete = true;
-                if (stat.isFile) {
-                    // unit test file exists
-                    var extensionRequire = brackets.libRequire.config({
-                        context: name,
-                        baseUrl: config.baseUrl,
-                        paths: $.extend({}, config.paths, globalConfig)
-                    });
-        
-                    // console.log("[Extension] loading unit test " + config.baseUrl);
-                    extensionRequire([entryPoint], function () {
-                        // console.log("[Extension] loaded unit tests " + config.baseUrl);
-                        result.resolve();
-                    });
-                } else {
-                    result.reject();
-                }
+        FileSystem.resolve(extensionPath, function (err, entry) {
+            if (!err && entry.isFile) {
+                // unit test file exists
+                var extensionRequire = brackets.libRequire.config({
+                    context: name,
+                    baseUrl: config.baseUrl,
+                    paths: $.extend({}, config.paths, globalConfig)
+                });
+    
+                // console.log("[Extension] loading unit test " + config.baseUrl);
+                extensionRequire([entryPoint], function () {
+                    // console.log("[Extension] loaded unit tests " + config.baseUrl);
+                    result.resolve();
+                });
             } else {
                 result.reject();
             }

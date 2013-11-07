@@ -142,7 +142,7 @@ define(function (require, exports, module) {
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
-        FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, contents) {
+        FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
             if (!err) {
                 var $dialog,
                     $submit,
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
                 languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
-                contents.forEach(function (entry) {
+                entries.forEach(function (entry) {
                     if (entry.isDirectory) {
                         var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
                         

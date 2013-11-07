@@ -27,7 +27,7 @@
 
 /**
  * Represents a file that will never exist on disk - a placeholder backing file for untitled Documents. NO ONE
- * other than DocumentManager should create insteances of InMemoryFile. It is valid to test for one (`instanceof
+ * other than DocumentManager should create instances of InMemoryFile. It is valid to test for one (`instanceof
  * InMemoryFile`), but it's better to check `doc.isUntitled` where possible.
  * 
  * Attempts to read/write an InMemoryFile will always fail, and exists() always yields false. InMemoryFile.fullPath

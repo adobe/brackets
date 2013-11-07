@@ -75,17 +75,21 @@ define(function (require, exports, module) {
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        ProjectManager.getAllFiles().done(function (files) {
-            JSUtils.findMatchingFunctions(functionName, files)
-                .done(function (functions) {
-                    PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                    result.resolve(functions);
-                })
-                .fail(function () {
-                    PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                    result.reject();
-                });
-        });
+        ProjectManager.getAllFiles()
+            .done(function (files) {
+                JSUtils.findMatchingFunctions(functionName, files)
+                    .done(function (functions) {
+                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        result.resolve(functions);
+                    })
+                    .fail(function () {
+                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        result.reject();
+                    });
+            })
+            .fail(function () {
+                result.reject();
+            });
         
         return result.promise();
     }
