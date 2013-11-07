@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, setTimeout */
+/*global define, $ */
 
 /**
  * FileSystem is a model object representing a complete file system. This object creates
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
     
     /**
      * The low-level file system implementation used by this object. 
-     * This is set in the constructor and cannot be changed.
+     * This is set in the init() function and cannot be changed.
      */
     FileSystem.prototype._impl = null;
     
@@ -123,7 +123,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._triggerWatchCallbacksNow = function () {
         this._watchResults.forEach(function (info) {
             this._handleWatchResult(info.path, info.stat);
-        }.bind(this));
+        }, this);
         this._watchResults.length = 0;
     };
     
@@ -149,13 +149,15 @@ define(function (require, exports, module) {
             request.fn.call(null, function () {
                 // Apply the given callback
                 var callbackArgs = arguments;
-                setTimeout(function () {
+                try {
                     request.cb.apply(null, callbackArgs);
-                }, 0);
-                
-                // Process the remaining watch/unwatch requests
-                this._watchRequests.shift();
-                this._dequeueWatchRequest();
+                } catch (ex) {
+                    console.warn("Unhandled exception in callback: ", ex);
+                } finally {
+                    // Process the remaining watch/unwatch requests
+                    this._watchRequests.shift();
+                    this._dequeueWatchRequest();
+                }
             }.bind(this));
         }
     };
@@ -295,10 +297,16 @@ define(function (require, exports, module) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
         
         this._impl = impl;
-        this._impl.init(callback);
-
-        // Initialize watchers
-        this._impl.initWatchers(this._enqueueWatchResult.bind(this));
+        this._impl.init(function (err) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            
+            // Initialize watchers
+            this._impl.initWatchers(this._enqueueWatchResult.bind(this));
+            callback(null);
+        });
     };
     
     /**

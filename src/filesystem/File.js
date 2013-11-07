@@ -104,6 +104,8 @@ define(function (require, exports, module) {
                     // this._contents = data;
                 }
                 callback(err, stat);
+            } catch (ex) {
+                console.warn("Unhandled exception in callback: ", ex);
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }

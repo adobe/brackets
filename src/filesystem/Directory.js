@@ -155,8 +155,12 @@ define(function (require, exports, module) {
             
             // Invoke all saved callbacks
             currentCallbacks.forEach(function (cb) {
-                cb(err, this._contents, this._contentsStats, this._contentsStatsErrors);
-            }.bind(this));
+                try {
+                    cb(err, this._contents, this._contentsStats, this._contentsStatsErrors);
+                } catch (ex) {
+                    console.warn("Unhandled exception in callback: ", ex);
+                }
+            }, this);
         }.bind(this));
     };
     

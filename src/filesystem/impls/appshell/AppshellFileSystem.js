@@ -207,10 +207,14 @@ define(function (require, exports, module) {
                 callback(_mapError(err));
             } else {
                 stat(path, function (err, stat) {
-                    callback(err, stat);
-                    
-                    // Fake a file-watcher result until real watchers respond quickly
-                    _changeCallback(_parentPath(path));
+                    try {
+                        callback(err, stat);
+                    } catch (ex) {
+                        console.warn("Unhandled exception in callback: ", ex);
+                    } finally {
+                        // Fake a file-watcher result until real watchers respond quickly
+                        _changeCallback(_parentPath(path));
+                    }
                 });
             }
         });
@@ -273,13 +277,17 @@ define(function (require, exports, module) {
                     callback(_mapError(err));
                 } else {
                     stat(path, function (err, stat) {
-                        callback(err, stat);
-                        
-                        // Fake a file-watcher result until real watchers respond quickly
-                        if (alreadyExists) {
-                            _changeCallback(path, stat);        // existing file modified
-                        } else {
-                            _changeCallback(_parentPath(path)); // new file created
+                        try {
+                            callback(err, stat);
+                        } catch (ex) {
+                            console.warn("Unhandled exception in callback: ", ex);
+                        } finally {
+                            // Fake a file-watcher result until real watchers respond quickly
+                            if (alreadyExists) {
+                                _changeCallback(path, stat);        // existing file modified
+                            } else {
+                                _changeCallback(_parentPath(path)); // new file created
+                            }
                         }
                     });
                 }
@@ -290,19 +298,27 @@ define(function (require, exports, module) {
     
     function unlink(path, callback) {
         appshell.fs.unlink(path, function (err) {
-            callback(_mapError(err));
-            
-            // Fake a file-watcher result until real watchers respond quickly
-            _changeCallback(_parentPath(path));
+            try {
+                callback(_mapError(err));
+            } catch (ex) {
+                console.warn("Unhandled exception in callback: ", ex);
+            } finally {
+                // Fake a file-watcher result until real watchers respond quickly
+                _changeCallback(_parentPath(path));
+            }
         });
     }
     
     function moveToTrash(path, callback) {
         appshell.fs.moveToTrash(path, function (err) {
-            callback(_mapError(err));
-            
-            // Fake a file-watcher result until real watchers respond quickly
-            _changeCallback(_parentPath(path));
+            try {
+                callback(_mapError(err));
+            } catch (ex) {
+                console.warn("Unhandled exception in callback: ", ex);
+            } finally {
+                // Fake a file-watcher result until real watchers respond quickly
+                _changeCallback(_parentPath(path));
+            }
         });
     }
     
