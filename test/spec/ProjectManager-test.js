@@ -302,7 +302,7 @@ define(function (require, exports, module) {
 
             it("should delete the selected folder and all items in it.", function () {
                 var complete       = false,
-                    newFolderName  = testPath + "/toDelete",
+                    newFolderName  = testPath + "/toDelete/",
                     rootFolderName = newFolderName,
                     rootFolderEntry,
                     error,
@@ -355,10 +355,9 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
-                    var newFolder;
-                    
-                    newFolderName += "/toDelete1/";
-                    newFolder = FileSystem.getDirectoryForPath(newFolderName);
+                    newFolderName += "toDelete1/";
+
+                    var newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
                     newFolder.stat(function (err, _stat) {
                         error = err;
