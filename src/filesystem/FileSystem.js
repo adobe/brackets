@@ -206,15 +206,18 @@ define(function (require, exports, module) {
         }
         
         var visitor = function (child) {
-            if (child.isDirectory || child === watchedRoot.entry) {
-                watchPaths.push(child.fullPath);
-            }
+            if (watchedRoot.filter(child.name)) {
+                if (child.isDirectory || child === watchedRoot.entry) {
+                    watchPaths.push(child.fullPath);
+                }
+                
+                if (!shouldWatch) {
+                    allChildren.push(child);
+                }
             
-            if (!shouldWatch) {
-                allChildren.push(child);
+                return true;
             }
-            
-            return watchedRoot.filter(child.name);
+            return false;
         }.bind(this);
         
         entry.visit(visitor, function (err) {
