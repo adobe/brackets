@@ -239,11 +239,8 @@ define(function (require, exports, module) {
         // compute scrollbars
         this.$relatedContainer.height(this.$related.height());
 
-        // Update the position of the selected marker now that we're laid out, and then
-        // set it to animate for future updates.
-        this._updateSelectedMarker().done(function () {
-            self.$selectedMarker.addClass("animate");
-        });
+        // Set the initial position of the selected marker now that we're laid out.
+        this._updateSelectedMarker(false);
 
         // Call super
         MultiRangeInlineEditor.prototype.parentClass.onAdded.apply(this, arguments);
@@ -316,7 +313,7 @@ define(function (require, exports, module) {
             // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
             this.sizeInlineWidgetToContents(true, false);
     
-            this._updateSelectedMarker();
+            this._updateSelectedMarker(true);
         }
         
         this._updateCommands();
@@ -378,7 +375,7 @@ define(function (require, exports, module) {
         // If the selected range is below, we need to update the index
         if (index < this._selectedRangeIndex) {
             this._selectedRangeIndex--;
-            this._updateSelectedMarker();
+            this._updateSelectedMarker(true);
         }
         
         if (this._ranges.length === 1) {
@@ -434,7 +431,7 @@ define(function (require, exports, module) {
         this._updateCommands();
     };
 
-    MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
+    MultiRangeInlineEditor.prototype._updateSelectedMarker = function (animate) {
         if (this._selectedRangeIndex < 0) {
             return new $.Deferred().resolve().promise();
         }
@@ -449,8 +446,10 @@ define(function (require, exports, module) {
                 itemTop = $rangeItem.position().top,
                 scrollTop = self.$relatedContainer.scrollTop();
             
-            self.$selectedMarker.css("top", itemTop);
-            self.$selectedMarker.height($rangeItem.outerHeight());
+            self.$selectedMarker
+                .toggleClass("animate", animate)
+                .css("top", itemTop)
+                .height($rangeItem.outerHeight());
             
             if (containerHeight <= 0) {
                 return;
@@ -612,6 +611,15 @@ define(function (require, exports, module) {
         if (widgetHeight) {
             this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
         }
+    };
+    
+    /**
+     * Called when the editor containing the inline is made visible. Updates UI based on
+     * state that might have changed while the editor was hidden.
+     */
+    MultiRangeInlineEditor.prototype.onParentShown = function () {
+        MultiRangeInlineEditor.prototype.parentClass.onParentShown.apply(this, arguments);
+        this._updateSelectedMarker(false);
     };
     
     /**
