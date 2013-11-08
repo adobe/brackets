@@ -117,6 +117,19 @@ define(function (require, exports, module) {
         }
     }
 
+    function parseDollars(replaceWith, match) {
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) {
+            var parsedIndex = parseInt(index, 10);
+            if (dollars.length % 2 === 1 && parsedIndex !== 0) {
+                return dollars.substr(1) + (match[parsedIndex] || "");
+            } else {
+                return whole;
+            }
+        });
+        replaceWith = replaceWith.replace(/\$\$/g, "$");
+        return replaceWith;
+    }
+
     function findNext(editor, rev) {
         var cm = editor._codeMirror;
         var found = true;
@@ -472,7 +485,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/g, function (w, i) { return match.result[i]; });
+                        rw    = typeof replaceWhat === "string" ? replaceWith : parseDollars(replaceWith, match.result);
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -561,8 +574,7 @@ define(function (require, exports, module) {
                     });
                 };
                 var doReplace = function (match) {
-                    cursor.replace(typeof query === "string" ? text :
-                                        text.replace(/\$(\d)/g, function (w, i) { return match[i]; }));
+                    cursor.replace(typeof query === "string" ? text : parseDollars(text, match));
                     advance();
                 };
                 advance();

@@ -756,6 +756,379 @@ define(function (require, exports, module) {
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
+
+            it("should find a regexp and replace it with $0n (leading zero)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$02:$01");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $0 (literal)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$0_:$01");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/\$0_:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $n (empty subexpression)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)(.*)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$3$2:$1");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $nn (n has two digits)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/()()()()()()()()()()(modules)\\/()()()(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$15:$11");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $$n (not a subexpression, escaped dollar)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$$2_$$10:$2");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/\$2_\$10:Foo/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $$$n (correct subexpression)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$2$$$1");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+        });
+
+        describe("Search -> Replace All", function () {
+            it("should find all regexps and replace them with $n", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$2:$1");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-all").is(":visible")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 34});
+                    expect(/Bar:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 34});
+                    expect(/Baz:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find all regexps and replace them with $n (empty subexpression)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)(.*)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$3$2:$1");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-all").is(":visible")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 34});
+                    expect(/Bar:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 34});
+                    expect(/Baz:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $nn (n has two digits)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/()()()()()()()()()()(modules)\\/()()()(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$15:$11");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-all").is(":visible")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 34});
+                    expect(/Bar:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 34});
+                    expect(/Baz:modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $$n (not a subexpression, escaped dollar)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$$2_$$10:$2");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-all").is(":visible")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/\$2_\$10:Foo/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 34});
+                    expect(/\$2_\$10:Bar/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 34});
+                    expect(/\$2_\$10:Baz/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find a regexp and replace it with $$$n (correct subexpression)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("$2$$$1");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-all").is(":visible")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection(expectedMatch.start, expectedMatch.end);
+                    expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 34});
+                    expect(/Bar\$modules/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 34});
+                    expect(/Baz\$modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
         });
     });
     
