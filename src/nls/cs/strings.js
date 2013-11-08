@@ -92,7 +92,8 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhled: Spouštění\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Zrušit živý náhled",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled: Klikněte pro odpojení (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Živý náhled (uložte soubor)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Živý náhled (neaktualizováno kvůli chybě v syntaxi)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Živý náhled byl zrušen, protože byly otevřeny vývojářské nástroje prohlížeče",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Živý náhled byl zrušen, protože dokument byl zavřen v prohlížeči",
@@ -121,6 +122,11 @@ define({
     "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradit",
 
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "Další shoda",
+    "BUTTON_PREV_HINT"                  : "Předchozí shoda",
+
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
     "CHOOSE_FOLDER"                     : "Vybrat složku",
@@ -145,8 +151,6 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "řádek: {0}",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
 
@@ -176,10 +180,20 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Změnit počet mezer použitých pro odsazení",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Změnit šířku tabulátoru",
-    "STATUSBAR_SPACES"                      : "mezery",
-    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru",
+    "STATUSBAR_SPACES"                      : "Mezery:",
+    "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
+
+    // CodeInspection: chyby/varování
+    "ERRORS_PANEL_TITLE"                    : "{0} chyby",
+    "SINGLE_ERROR"                          : "1 {0} chyba",
+    "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
+    "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
+    "LINT_DISABLED"                         : "Lintování je vypnuto",
+    "NO_LINT_AVAILABLE"                     : "Žádný linter není dostupný pro {0}",
+    "NOTHING_TO_LINT"                       : "Nic k lintování",
+
 
     /**
      * Příkazy
@@ -192,9 +206,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Přidat k pracovní sadě",
+    "CMD_OPEN_DROPPED_FILES"              : "Otevřít opuštěné soubory",
     "CMD_OPEN_FOLDER"                     : "Otevřít složku\u2026",
     "CMD_FILE_CLOSE"                      : "Zavřít",
     "CMD_FILE_CLOSE_ALL"                  : "Zavřít vše",
+    "CMD_FILE_CLOSE_LIST"                 : "Zavřít seznam",
+    "CMD_FILE_CLOSE_OTHERS"               : "Zavřít ostatní",
+    "CMD_FILE_CLOSE_ABOVE"                : "Zavřít ostatní výše",
+    "CMD_FILE_CLOSE_BELOW"                : "Zavřít ostatní níže",
     "CMD_FILE_SAVE"                       : "Uložit",
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
@@ -250,6 +269,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla řádků",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Řadit podle typu",
@@ -260,10 +280,12 @@ define({
     "CMD_QUICK_OPEN"                      : "Rychle otevřít",
     "CMD_GOTO_LINE"                       : "Přejít na řádek",
     "CMD_GOTO_DEFINITION"                 : "Přejít na funkci",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Přejít na první chybu/varování",
     "CMD_TOGGLE_QUICK_EDIT"               : "Rychlá úprava",
     "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nové pravidlo",
     "CMD_NEXT_DOC"                        : "Další dokument",
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
@@ -279,12 +301,6 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
-
-
-    // Speciální příkazy spustěné pomocí shell
-    "CMD_CLOSE_WINDOW"                    : "Zavřít okno",
-    "CMD_ABORT_QUIT"                      : "Zrušit",
-    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
@@ -319,6 +335,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
+      // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Nové pravidlo",
+  
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
     "UPDATE"                               : "Aktualizovat",
@@ -366,6 +385,8 @@ define({
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Tento doplněk požaduje novější verzi {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Tento doplněk funguje pouze ve starší verzi {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Verze {0} tohoto doplňku vyžaduje novější verzi {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Verze {0} tohoto doplňku funguje pouze se starší verzí {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
@@ -396,6 +417,10 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
+    "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
+  
     /**
      * Jména jednotek
      */
@@ -435,12 +460,18 @@ define({
     "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
     "LOCALE_PT_PT"                              : "Portugalsky",
     "LOCALE_RU"                                 : "Rusky",
+    "LOCALE_SK"                                 : "Slovensky",
+	"LOCALE_SR"									: "Srbština",
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_FI"                                 : "Finsky",
     "LOCALE_ZH_CN"                              : "Čínsky",
     "LOCALE_HU"                                 : "Maďarsky",
 
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
+  
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",
@@ -451,21 +482,18 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (použito {1} krát)",
 
     // extensions/default/JavaScriptCodeHints
-    "CMD_JUMPTO_DEFINITION"               : "Přejít na definici",
+    "CMD_JUMPTO_DEFINITION"                     : "Přejít na definici",
     "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
     "NO_ARGUMENTS"                              : "<žádné parametry>",
 
     // extensions/default/JSLint
-    "CMD_JSLINT"                           : "Povolit JSLint",
-    "CMD_JSLINT_FIRST_ERROR"               : "Přejít na první JSLint chybu",
-    "JSLINT_ERRORS"                        : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint chyb",
-    "JSLINT_NO_ERRORS"                     : "Žádné JSLint chyby - výborně!",
-    "JSLINT_DISABLED"                      : "JSLint je vypnut nebo nefunguje s tímto souborem.",
+    "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Rychlý náhled",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Rychlý náhled",
+
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Více"

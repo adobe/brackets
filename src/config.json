@@ -18,8 +18,8 @@
         "linting.enabled_by_default": true
     },
     "name": "Brackets",
-    "version": "0.32.0-0",
-    "apiVersion": "0.32.0",
+    "version": "0.34.0-0",
+    "apiVersion": "0.34.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
@@ -32,9 +32,9 @@
     },
     "devDependencies": {
         "grunt": "0.4.1",
-        "jasmine-node": "1.9.1",
-        "grunt-contrib-jasmine-node": "0.1.0",
-        "grunt-cli": "0.1.6",
+        "jasmine-node": "1.11.0",
+        "grunt-jasmine-node": "0.1.0",
+        "grunt-cli": "0.1.9",
         "phantomjs": "1.9.0-1",
         "grunt-lib-phantomjs": "0.3.0",
         "grunt-contrib-jshint": "0.6.0",

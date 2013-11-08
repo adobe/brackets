@@ -213,7 +213,7 @@ define(function (require, exports, module) {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         inline.colorEditor.setColorFromString("rgb(20, 20, 20)");
-                        expect(inline.getCurrentRange()).not.toBeNull();
+                        expect(inline.getCurrentRange()).toBeTruthy();
                     });
                 });
     

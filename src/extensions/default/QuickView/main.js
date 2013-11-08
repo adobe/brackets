@@ -450,7 +450,7 @@ define(function (require, exports, module) {
                         $previewContainer.find(".image-preview > img").on("load", function () {
                             $previewContent
                                 .append("<div class='img-size'>" +
-                                            this.naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
+                                            this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
                                         "</div>"
                                     );
                             $previewContainer.show();
@@ -562,11 +562,11 @@ define(function (require, exports, module) {
             editor;
         
         for (i = 0; i < inlines.length; i++) {
-            var $inlineDiv = inlines[i].$editorsDiv,  // see MultiRangeInlineEditor
-                $otherDiv  = inlines[i].$htmlContent;
+            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()),  // see MultiRangeInlineEditor
+                $otherDiv = inlines[i].$htmlContent;
             
-            if ($inlineDiv && divContainsMouse($inlineDiv, event)) {
-                editor = inlines[i].editors[0];
+            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, event)) {
+                editor = inlines[i].editor;
                 break;
             } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
                 // Mouse inside unsupported inline editor like Quick Docs or Color Editor
@@ -594,10 +594,16 @@ define(function (require, exports, module) {
             }
             lastPos = pos;
             
+            // No preview if mouse is past last char on line
+            if (pos.ch >= editor.document.getLine(pos.line).length) {
+                hidePreview();
+                return;
+            }
+            
             // Is there already a popover provider and range?
             if (popoverState) {
                 if (popoverState.start && popoverState.end &&
-                        editor.posWithinRange(pos, popoverState.start, popoverState.end)) {
+                        editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
                     // That one's still relevant - nothing more to do
                     return;
                 } else {
@@ -605,12 +611,6 @@ define(function (require, exports, module) {
                     showImmediately = popoverState.visible;
                     hidePreview();
                 }
-            }
-            
-            // No preview if mouse is past last char on line
-            if (pos.ch >= editor.document.getLine(pos.line).length) {
-                hidePreview();
-                return;
             }
             
             // Initialize popoverState

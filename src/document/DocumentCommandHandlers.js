@@ -32,12 +32,13 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
+        InMemoryFile        = require("document/InMemoryFile"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
@@ -45,8 +46,10 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
+        DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        LanguageManager     = require("language/LanguageManager");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -168,8 +171,10 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will be resolved with a
-     *  document for the specified file path, or rejected if the file can not be read.
+     * @return {$.Promise} a jQuery promise that will either
+     * - be resolved with a document for the specified file path or
+     * - be resolved without document, i.e. when an image is displayed or
+     * - be rejected if the file can not be read.
      */
     function doOpen(fullPath, silent) {
         var result = new $.Deferred();
@@ -182,27 +187,44 @@ define(function (require, exports, module) {
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
-            
-            // Load the file if it was never open before, and then switch to it in the UI
-            DocumentManager.getDocumentForPath(fullPath)
-                .done(function (doc) {
-                    DocumentManager.setCurrentDocument(doc);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    function _cleanup() {
-                        // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
-                        EditorManager.focusEditor();
-                        result.reject();
-                    }
-                    
-                    if (silent) {
-                        _cleanup();
-                    } else {
-                        FileUtils.showFileOpenError(fileError.name, fullPath).done(_cleanup);
-                    }
-                });
+
+            var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
+            if (viewProvider) {
+                EditorManager.showCustomViewer(viewProvider, fullPath);
+                result.resolve();
+            } else {
+                // Load the file if it was never open before, and then switch to it in the UI
+                DocumentManager.getDocumentForPath(fullPath)
+                    .done(function (doc) {
+                        DocumentManager.setCurrentDocument(doc);
+                        result.resolve(doc);
+                    })
+                    .fail(function (fileError) {
+                        function _cleanup() {
+                            if (EditorManager.showingCustomViewerForPath(fullPath)) {
+                                // We get here only after the user renames a file that makes it no longer belong to a
+                                // custom viewer but the file is still showing in the current custom viewer. This only
+                                // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
+                                // message that in turn calls _cleanup() after the user clicks OK in the message box.
+                                // So we need to explicitly close the currently viewing image file whose filename is  
+                                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
+                                // the previously opened text file or show no-editor if none exists.
+                                EditorManager.notifyPathDeleted(fullPath);
+                            } else {
+                                // For performance, we do lazy checking of file existence, so it may be in working set
+                                DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullPath));
+                                EditorManager.focusEditor();
+                            }
+                            result.reject();
+                        }
+                        
+                        if (silent) {
+                            _cleanup();
+                        } else {
+                            FileUtils.showFileOpenError(fileError, fullPath).done(_cleanup);
+                        }
+                    });
+            }
         }
 
         return result.promise();
@@ -221,7 +243,8 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @return {$.Promise} a jQuery promise that will be resolved with a new
-     *  document for the specified file path, or rejected if the file can not be read.
+     * document for the specified file path or be resolved without document, i.e. when an image is displayed, 
+     * or rejected if the file can not be read.
      */
     function _doOpenWithOptionalPath(fullPath, silent) {
         var result;
@@ -234,22 +257,27 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                null, function (paths) {
+            FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
+                if (!err) {
                     if (paths.length > 0) {
                         // Add all files to the working set without verifying that
                         // they still exist on disk (for faster opening)
-                        var filesToOpen = [];
-                        paths.forEach(function (file) {
-                            filesToOpen.push(new NativeFileSystem.FileEntry(file));
+                        var filesToOpen = [],
+                            filteredPaths = DragAndDrop.filterFilesToOpen(paths);
+                        
+                        filteredPaths.forEach(function (file) {
+                            filesToOpen.push(FileSystem.getFileForPath(file));
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
-                        doOpen(paths[paths.length - 1], silent)
+                        doOpen(filteredPaths[filteredPaths.length - 1], silent)
                             .done(function (doc) {
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(doc.file.fullPath);
-                                
-                                DocumentManager.addToWorkingSet(doc.file);
+                                //  doc may be null, i.e. if an image has been opened.
+                                // Then we do not add the opened file to the working set.
+                                if (doc) {
+                                    DocumentManager.addToWorkingSet(doc.file);
+                                }
+                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -257,7 +285,8 @@ define(function (require, exports, module) {
                         // Reject if the user canceled the dialog
                         result.reject();
                     }
-                });
+                }
+            });
         } else {
             result = doOpen(fullPath, silent);
         }
@@ -327,14 +356,19 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the working set.
+     * Opens the given file, makes it the current document, AND adds it to the working set 
+     * only if the file does not have a custom viewer.
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
      *   working set list (defaults to last); optional flag to force working set redraw
      */
     function handleFileAddToWorkingSet(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
-            DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+            // When opening a file with a custom viewer, we get a null doc.
+            // So check it before we add it to the working set.
+            if (doc) {
+                DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
+            }
         });
     }
 
@@ -351,7 +385,6 @@ define(function (require, exports, module) {
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
         var suggestedName = baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt;
-        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
 
         result.progress(function attemptNewName(suggestedName) {
             if (_nextUntitledIndexToUse > 99) {
@@ -359,32 +392,18 @@ define(function (require, exports, module) {
                 result.reject();
                 return;
             }
-
-            //check this name
-            var successCallback = function (entry) {
-                //file exists, notify to the next progress
-                result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
-            };
-            var errorCallback = function (error) {
-                //most likely error is FNF, user is better equiped to handle the rest
-                result.resolve(suggestedName);
-            };
             
-            if (isFolder) {
-                dirEntry.getDirectory(
-                    suggestedName,
-                    {},
-                    successCallback,
-                    errorCallback
-                );
-            } else {
-                dirEntry.getFile(
-                    suggestedName,
-                    {},
-                    successCallback,
-                    errorCallback
-                );
-            }
+            var path = dir + "/" + suggestedName;
+            var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
+            
+            entry.exists(function (exists) {
+                if (exists) {
+                    //file exists, notify to the next progress
+                    result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
+                } else {
+                    result.resolve(suggestedName);
+                }
+            });
         });
 
         //kick it off
@@ -420,7 +439,7 @@ define(function (require, exports, module) {
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDir,
             selected = ProjectManager.getSelectedItem();
-        if ((!selected) || (selected instanceof NativeFileSystem.InaccessibleFileEntry)) {
+        if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
         
@@ -491,46 +510,34 @@ define(function (require, exports, module) {
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
-     * @return {$.Promise} a promise that is resolved with the FileEntry of docToSave (to mirror
+     * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
     function doSave(docToSave) {
         var result = new $.Deferred(),
-            fileEntry = docToSave.file;
+            file = docToSave.file;
         
         function handleError(error) {
-            _showSaveFileError(error.name, fileEntry.fullPath)
+            _showSaveFileError(error, file.fullPath)
                 .done(function () {
                     result.reject(error);
                 });
         }
-
+            
         if (docToSave.isDirty) {
             var writeError = false;
             
-            fileEntry.createWriter(
-                function (writer) {
-                    writer.onwriteend = function () {
-                        // Per spec, onwriteend is called after onerror too
-                        if (!writeError) {
-                            docToSave.notifySaved();
-                            result.resolve(fileEntry);
-                        }
-                    };
-                    writer.onerror = function (error) {
-                        writeError = true;
-                        handleError(error);
-                    };
-
-                    // We don't want normalized line endings, so it's important to pass true to getText()
-                    writer.write(docToSave.getText(true));
-                },
-                function (error) {
-                    handleError(error);
-                }
-            );
+            // We don't want normalized line endings, so it's important to pass true to getText()
+            FileUtils.writeText(file, docToSave.getText(true))
+                .done(function () {
+                    docToSave.notifySaved();
+                    result.resolve(file);
+                })
+                .fail(function (err) {
+                    handleError(err);
+                });
         } else {
-            result.resolve(fileEntry);
+            result.resolve(file);
         }
         result.always(function () {
             EditorManager.focusEditor();
@@ -542,7 +549,7 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a NativeFileError if the
+     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileSystemError if the
      *      file cannot be read (after showing an error dialog to the user).
      */
     function doRevert(doc) {
@@ -554,7 +561,7 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error.name, doc.file.fullPath)
+                FileUtils.showFileOpenError(error, doc.file.fullPath)
                     .done(function () {
                         result.reject(error);
                     });
@@ -573,7 +580,7 @@ define(function (require, exports, module) {
      * @param {?{cursorPos:!Object, selection:!Object, scrollPos:!Object}} settings - properties of
      *      the original document's editor that need to be carried over to the new document
      *      i.e. scrollPos, cursorPos and text selection
-     * @return {$.Promise} a promise that is resolved with the saved file's FileEntry. Rejected in
+     * @return {$.Promise} a promise that is resolved with the saved document's File. Rejected in
      *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
     function _doSaveAs(doc, settings) {
@@ -583,7 +590,7 @@ define(function (require, exports, module) {
             result = new $.Deferred();
         
         function _doSaveAfterSaveDialog(path) {
-            var newFile = new NativeFileSystem.FileEntry(path);
+            var newFile;
             
             // Reconstruct old doc's editor's view state, & finally resolve overall promise
             function _configureEditorAndResolve() {
@@ -631,6 +638,7 @@ define(function (require, exports, module) {
             }
             
             // First, write document's current text to new file
+            newFile = FileSystem.getFileForPath(path);
             FileUtils.writeText(newFile, doc.getText()).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
@@ -649,7 +657,7 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
             }).fail(function (error) {
-                _showSaveFileError(error.name, path)
+                _showSaveFileError(error, path)
                     .done(function () {
                         result.reject(error);
                     });
@@ -671,11 +679,13 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
-            NativeFileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName,
-                _doSaveAfterSaveDialog,
-                function (error) {
-                    result.reject(error);
-                });
+            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selection) {
+                if (!err) {
+                    _doSaveAfterSaveDialog(selection);
+                } else {
+                    result.reject(err);
+                }
+            });
         } else {
             result.reject();
         }
@@ -685,7 +695,7 @@ define(function (require, exports, module) {
     /**
      * Saves the given file. If no file specified, assumes the current document.
      * @param {?{doc: ?Document}} commandData  Document to close, or null
-     * @return {$.Promise} resolved with the saved file's FileEntry (which MAY DIFFER from the doc
+     * @return {$.Promise} resolved with the saved document's File (which MAY DIFFER from the doc
      *   passed in, if the doc was untitled). Rejected in case of IO error (after error dialog
      *   dismissed), or if doc was untitled and the Save dialog was canceled (will be rejected with
      *   USER_CANCELED object).
@@ -718,19 +728,25 @@ define(function (require, exports, module) {
     /**
      * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
      * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown and the other files wait to save until it is dismissed; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed.
+     * shown but after dismissing we continue saving the other files; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed (the error given is the
+     * first one encountered). If the user cancels any Save As dialog (for untitled files), the
+     * Promise is immediately rejected.
      *
-     * @return {$.Promise}
+     * @param {!Array.<File>} fileList
+     * @return {!$.Promise} Resolved with {!Array.<File>}, which may differ from 'fileList'
+     *      if any of the files were Unsaved documents. Or rejected with {?FileSystemError}.
      */
-    function saveAll() {
+    function _saveFileList(fileList) {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
-        var userCanceled = false;
+        var userCanceled = false,
+            filesAfterSave = [];
+            
         return Async.doSequentially(
-            DocumentManager.getWorkingSet(),
+            fileList,
             function (file) {
-                // Abort remaining saves if user canceled any Save dialog
+                // Abort remaining saves if user canceled any Save As dialog
                 if (userCanceled) {
                     return (new $.Deferred()).reject().promise();
                 }
@@ -738,19 +754,38 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     var savePromise = handleFileSave({doc: doc});
-                    savePromise.fail(function (error) {
-                        if (error === USER_CANCELED) {
-                            userCanceled = true;
-                        }
-                    });
+                    savePromise
+                        .done(function (newFile) {
+                            filesAfterSave.push(newFile);
+                        })
+                        .fail(function (error) {
+                            if (error === USER_CANCELED) {
+                                userCanceled = true;
+                            }
+                        });
                     return savePromise;
                 } else {
                     // working set entry that was never actually opened - ignore
+                    filesAfterSave.push(file);
                     return (new $.Deferred()).resolve().promise();
                 }
             },
-            false
-        );
+            false  // if any save fails, continue trying to save other files anyway; then reject at end
+        ).then(function () {
+            return filesAfterSave;
+        });
+    }
+    
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
+     *
+     * @return {$.Promise}
+     */
+    function saveAll() {
+        return _saveFileList(DocumentManager.getWorkingSet());
     }
     
     /**
@@ -793,7 +828,7 @@ define(function (require, exports, module) {
      * Closes the specified file: removes it from the working set, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
-     * @param {?{file: FileEntry, promptOnly:boolean}} commandData  Optional bag of arguments:
+     * @param {?{file: File, promptOnly:boolean}} commandData  Optional bag of arguments:
      *      file - File to close; assumes the current document if not specified.
      *      promptOnly - If true, only displays the relevant confirmation UI and does NOT actually
      *          close the document. This is useful when chaining file-close together with other user
@@ -804,7 +839,10 @@ define(function (require, exports, module) {
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
-        var file, promptOnly, _forceClose;
+        var file,
+            promptOnly,
+            _forceClose;
+        
         if (commandData) {
             file        = commandData.file;
             promptOnly  = commandData.promptOnly;
@@ -812,23 +850,49 @@ define(function (require, exports, module) {
         }
         
         // utility function for handleFileClose: closes document & removes from working set
-        function doClose(fileEntry) {
+        function doClose(file) {
             if (!promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeFullEditor(fileEntry);
-            
+                DocumentManager.closeFullEditor(file);
+                
                 EditorManager.focusEditor();
             }
         }
-        
-        
+
         var result = new $.Deferred(), promise = result.promise();
         
-        // Default to current document if doc is null
-        if (!file) {
-            if (DocumentManager.getCurrentDocument()) {
-                file = DocumentManager.getCurrentDocument().file;
+        function doCloseCustomViewer() {
+            if (!promptOnly) {
+                var nextFile = DocumentManager.getNextPrevFile(1);
+                if (nextFile) {
+                    // opening a text file will automatically close the custom viewer.
+                    // This is done in the currentDocumentChange handler in EditorManager
+                    doOpen(nextFile.fullPath).always(function () {
+                        EditorManager.focusEditor();
+                        result.resolve();
+                    });
+                } else {
+                    EditorManager.closeCustomViewer();
+                    result.resolve();
+                }
             }
+        }
+
+        // Close custom viewer if, either
+        // - a custom viewer is currently displayed and no file specified in command data
+        // - a custom viewer is currently displayed and the file specified in command data 
+        //   is the file in the custom viewer
+        if (!DocumentManager.getCurrentDocument()) {
+            if ((EditorManager.getCurrentlyViewedPath() && !file) ||
+                    (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
+                doCloseCustomViewer();
+                return promise;
+            }
+        }
+        
+        // Default to current document if doc is null
+        if (!file && DocumentManager.getCurrentDocument()) {
+            file = DocumentManager.getCurrentDocument().file;
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
@@ -874,8 +938,8 @@ define(function (require, exports, module) {
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // "Save" case: wait until we confirm save has succeeded before closing
                         handleFileSave({doc: doc})
-                            .done(function (newFileEntry) {
-                                doClose(newFileEntry);
+                            .done(function (newFile) {
+                                doClose(newFile);
                                 result.resolve();
                             })
                             .fail(function () {
@@ -909,20 +973,11 @@ define(function (require, exports, module) {
         return promise;
     }
     
-    /**
-     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
-     * that unsaved changes are confirmed once, in bulk.
-     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
-     *          actually close any documents. This is useful when chaining close-all together with
-     *          other user prompts that may be cancelable.
-     * @return {$.Promise} a promise that is resolved when all files are closed
-     */
-    function handleFileCloseAll(commandData) {
-        var result = new $.Deferred(),
-            promptOnly = commandData && commandData.promptOnly;
+    function _doCloseDocumentList(list, promptOnly, clearCurrentDoc) {
+        var result      = new $.Deferred(),
+            unsavedDocs = [];
         
-        var unsavedDocs = [];
-        DocumentManager.getWorkingSet().forEach(function (file) {
+        list.forEach(function (file) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
@@ -985,13 +1040,14 @@ define(function (require, exports, module) {
                         result.reject();
                     } else if (id === Dialogs.DIALOG_BTN_OK) {
                         // Save all unsaved files, then if that succeeds, close all
-                        saveAll().done(function () {
-                            result.resolve();
+                        _saveFileList(list).done(function (listAfterSave) {
+                            // List of files after save may be different, if any were Untitled
+                            result.resolve(listAfterSave);
                         }).fail(function () {
                             result.reject();
                         });
                     } else {
-                        // "Don't Save" case--we can just go ahead and close all  files.
+                        // "Don't Save" case--we can just go ahead and close all files.
                         result.resolve();
                     }
                 });
@@ -1000,13 +1056,39 @@ define(function (require, exports, module) {
         // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
-        result.done(function () {
+        result.done(function (listAfterSave) {
+            listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                DocumentManager.closeAll();
+                DocumentManager.removeListFromWorkingSet(listAfterSave, (clearCurrentDoc || true));
             }
         });
         
         return result.promise();
+    }
+    
+    /**
+     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
+     * that unsaved changes are confirmed once, in bulk.
+     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
+     *          actually close any documents. This is useful when chaining close-all together with
+     *          other user prompts that may be cancelable.
+     * @return {$.Promise} a promise that is resolved when all files are closed
+     */
+    function handleFileCloseAll(commandData) {
+        return _doCloseDocumentList(DocumentManager.getWorkingSet(),
+                                    (commandData && commandData.promptOnly)).done(function () {
+            if (!DocumentManager.getCurrentDocument()) {
+                EditorManager.closeCustomViewer();
+            }
+        });
+    }
+    
+    function handleFileCloseList(commandData) {
+        return _doCloseDocumentList((commandData && commandData.documentList), false).done(function () {
+            if (!DocumentManager.getCurrentDocument()) {
+                EditorManager.closeCustomViewer();
+            }
+        });
     }
     
     /**
@@ -1233,6 +1315,7 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
 
     if (brackets.platform === "win") {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);

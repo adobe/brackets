@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -39,15 +39,18 @@ require.config({
 define(function (require, exports, module) {
     'use strict';
     
+    var _ = require("thirdparty/lodash");
+    
     // Utility dependency
     var AppInit                 = require("utils/AppInit"),
+        CodeHintManager         = require("editor/CodeHintManager"),
         Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
         Menus                   = require("command/Menus"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
@@ -86,6 +89,9 @@ define(function (require, exports, module) {
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
+    // Initialize the file system
+    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    
     // parse URL parameters
     params.parse();
     resultsPath = params.get("resultsPath");
@@ -147,19 +153,21 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        brackets.fs.stat(path, function (err, stat) {
-            if (err === brackets.fs.ERR_NOT_FOUND) {
-                // file not found, write the new file with xml content
-                brackets.fs.writeFile(path, text, NativeFileSystem._FSEncodings.UTF8, function (err) {
-                    if (err) {
-                        _writeResults.reject();
-                    } else {
-                        _writeResults.resolve();
-                    }
-                });
-            } else {
+        var file = FileSystem.getFileForPath(path);
+        
+        file.exists(function (exists) {
+            if (exists) {
                 // file exists, do not overwrite
                 _writeResults.reject();
+            } else {
+                // file not found, write the new file with xml content
+                FileUtils.writeText(file, text)
+                    .done(function () {
+                        _writeResults.resolve();
+                    })
+                    .fail(function (err) {
+                        _writeResults.reject(err);
+                    });
             }
         });
     }
@@ -167,7 +175,7 @@ define(function (require, exports, module) {
     /**
      * Listener for UnitTestReporter "runnerEnd" event. Attached only if
      * "resultsPath" URL parameter exists. Does not overwrite existing file.
-     * 
+     *
      * @param {!$.Event} event
      * @param {!UnitTestReporter} reporter
      */
@@ -176,11 +184,11 @@ define(function (require, exports, module) {
             writeResults(resultsPath, reporter.toJSON());
         }
 
-        _writeResults.always(function () { window.close(); });
+        _writeResults.always(function () { brackets.app.quit(); });
     }
 
     /**
-     * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
+     * Patch JUnitXMLReporter to use FileSystem and to consolidate all results
      * into a single file.
      */
     function _patchJUnitReporter() {
@@ -263,7 +271,7 @@ define(function (require, exports, module) {
     
     function init() {
         // Start up the node connection, which is held in the
-        // _nodeConnectionDeferred module variable. (Use 
+        // _nodeConnectionDeferred module variable. (Use
         // _nodeConnectionDeferred.done() to access it.
         
         // This is in SpecRunner rather than SpecRunnerUtils because the hope
@@ -410,6 +418,6 @@ define(function (require, exports, module) {
     brackets.testing = {
         getNodeConnectionDeferred: getNodeConnectionDeferred
     };
-
+    
     init();
 });

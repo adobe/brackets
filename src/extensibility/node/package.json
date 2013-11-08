@@ -3,7 +3,7 @@
   "description": "Used in the management of Brackets extensions",
   "version": "0.32.0",
   "dependencies": {
-    "decompress-zip": "https://github.com/bower/decompress-zip/archive/705ca19e9843b409b2d01fd3e31285b305753e59.tar.gz",
+    "decompress-zip": "0.0.2",
     "semver": "2.x",
     "fs-extra": "0.6.x",
     "async": "0.2.x",

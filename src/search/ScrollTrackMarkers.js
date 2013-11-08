@@ -33,9 +33,10 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("thirdparty/lodash");
+    
     var Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager"),
-        Async               = require("utils/Async");
+        EditorManager       = require("editor/EditorManager");
     
     
     /** @const @type {number} Height (and width) or scrollbar up/down arrow button on Win */
@@ -126,13 +127,13 @@ define(function (require, exports, module) {
             _calcScaling();
             
             // Update tickmarks during window resize (whenever resizing has paused/stopped for > 1/3 sec)
-            $(window).on("resize.ScrollTrackMarkers", Async.whenIdle(300, function () {
+            $(window).on("resize.ScrollTrackMarkers", _.debounce(function () {
                 if (marks.length) {
                     _calcScaling();
                     $(".tickmark-track", editor.getRootElement()).empty();
                     _renderMarks(marks);
                 }
-            }));
+            }), 300);
             
         } else {
             console.assert(editor === curEditor);

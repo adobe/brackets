@@ -51,9 +51,15 @@ define(function (require, exports, module) {
     /**
      * Moves the given context backwards by one token.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {boolean=} precise If code is being edited, use true (default) for accuracy.
+     *      If parsing unchanging code, use false to use cache for performance.
      * @return {boolean} whether the context changed
      */
-    function movePrevToken(ctx) {
+    function movePrevToken(ctx, precise) {
+        if (precise === undefined) {
+            precise = true;
+        }
+        
         if (ctx.pos.ch <= 0 || ctx.token.start <= 0) {
             //move up a line
             if (ctx.pos.line <= 0) {
@@ -64,17 +70,23 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, true);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
         return true;
     }
     
     /**
      * Moves the given context forward by one token.
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {boolean=} precise If code is being edited, use true (default) for accuracy.
+     *      If parsing unchanging code, use false to use cache for performance.
      * @return {boolean} whether the context changed
      */
-    function moveNextToken(ctx) {
+    function moveNextToken(ctx, precise) {
         var eol = ctx.editor.getLine(ctx.pos.line).length;
+        if (precise === undefined) {
+            precise = true;
+        }
+        
         if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
             //move down a line
             if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
@@ -85,7 +97,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, true);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
         return true;
     }
     

@@ -120,10 +120,8 @@ module.exports = function (grunt) {
                 }
             }
         },
-        'jasmine-node': {
-            run: {
-                spec: 'src/extensibility/node/spec/'
-            }
+        'jasmine_node': {
+            projectRoot: 'src/extensibility/node/spec/'
         },
         jshint: {
             all: [
@@ -152,14 +150,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-jasmine-node');
+    grunt.loadNpmTasks('grunt-jasmine-node');
     
     // task: install
     grunt.registerTask('install', ['write-config']);
 
     // task: test
-//    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine-node']);
+    grunt.registerTask('test', ['jshint:all', 'jasmine']);
+//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
 
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json

@@ -29,12 +29,12 @@ define(function (require, exports, module) {
     'use strict';
 
     var DocumentManager,        // loaded from brackets.test
-        FileIndexManager,       // loaded from brackets.test
         FileViewController,     // loaded from brackets.test
+        ProjectManager,         // loaded from brackets.test
 
         JSUtils             = require("language/JSUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/JSUtils-test-files"),
@@ -48,13 +48,13 @@ define(function (require, exports, module) {
         return this.actual.functionName.trim() === expected;
     };
 
-    var simpleJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/simple.js");
-    var trickyJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/tricky.js");
-    var invalidJsFileEntry  = new NativeFileSystem.FileEntry(testPath + "/invalid.js");
-    var jQueryJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
-    var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/braceEnd.js");
-    var eofJsFileEntry      = new NativeFileSystem.FileEntry(testPath + "/eof.js");
-    var eof2JsFileEntry     = new NativeFileSystem.FileEntry(testPath + "/eof2.js");
+    var simpleJsFileEntry   = FileSystem.getFileForPath(testPath + "/simple.js");
+    var trickyJsFileEntry   = FileSystem.getFileForPath(testPath + "/tricky.js");
+    var invalidJsFileEntry  = FileSystem.getFileForPath(testPath + "/invalid.js");
+    var jQueryJsFileEntry   = FileSystem.getFileForPath(testPath + "/jquery-1.7.js");
+    var braceEndJsFileEntry = FileSystem.getFileForPath(testPath + "/braceEnd.js");
+    var eofJsFileEntry      = FileSystem.getFileForPath(testPath + "/eof.js");
+    var eof2JsFileEntry     = FileSystem.getFileForPath(testPath + "/eof2.js");
 
     function init(spec, fileEntry) {
         if (fileEntry) {
@@ -411,10 +411,10 @@ define(function (require, exports, module) {
 
             it("should find the first instance of the pushStack function", function () {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
-                expect(funcNames).not.toBe(null);
+                expect(funcNames).toBeTruthy();
                 expect(funcNames.length).toBeGreaterThan(0);
                 
-                expect(funcNames[0]).not.toBe(null);
+                expect(funcNames[0]).toBeTruthy();
                 expect(funcNames[0].lineStart).toBe(243);
                 expect(funcNames[0].lineEnd).toBe(267);
             });
@@ -452,8 +452,8 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 var brackets        = testWindow.brackets;
                 DocumentManager     = brackets.test.DocumentManager;
-                FileIndexManager    = brackets.test.FileIndexManager;
                 FileViewController  = brackets.test.FileViewController;
+                ProjectManager      = brackets.test.ProjectManager;
                 JSUtils             = brackets.test.JSUtils;
 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -462,9 +462,9 @@ define(function (require, exports, module) {
 
         afterEach(function () {
             DocumentManager     = null;
-            FileIndexManager    = null;
             FileViewController  = null;
             JSUtils             = null;
+            ProjectManager      = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -490,12 +490,11 @@ define(function (require, exports, module) {
             runs(function () {
                 var result = new $.Deferred();
                 
-                FileIndexManager.getFileInfoList("all")
-                    .done(function (fileInfos) {
-                        invokeFind(fileInfos)
-                            .done(function (functionsResult) { functions = functionsResult; })
-                            .then(result.resolve, result.reject);
-                    });
+                ProjectManager.getAllFiles().done(function (files) {
+                    invokeFind(files)
+                        .done(function (functionsResult) { functions = functionsResult; })
+                        .then(result.resolve, result.reject);
+                });
                 
                 waitsForDone(result, "Index and invoke JSUtils.findMatchingFunctions()");
             });

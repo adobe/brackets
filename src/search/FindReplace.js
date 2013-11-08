@@ -117,6 +117,19 @@ define(function (require, exports, module) {
         }
     }
 
+    function parseDollars(replaceWith, match) {
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) {
+            var parsedIndex = parseInt(index, 10);
+            if (dollars.length % 2 === 1 && parsedIndex !== 0) {
+                return dollars.substr(1) + (match[parsedIndex] || "");
+            } else {
+                return whole;
+            }
+        });
+        replaceWith = replaceWith.replace(/\$\$/g, "$");
+        return replaceWith;
+    }
+
     function findNext(editor, rev) {
         var cm = editor._codeMirror;
         var found = true;
@@ -143,6 +156,7 @@ define(function (require, exports, module) {
                 // no need to scroll if the line with the match is in view
                 centerOptions = Editor.BOUNDARY_IGNORE_TOP;
             }
+            cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
             editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
             state.posFrom = cursor.from();
             state.posTo = cursor.to();
@@ -193,8 +207,8 @@ define(function (require, exports, module) {
     var queryDialog = Strings.CMD_FIND +
             ": <input type='text' style='width: 10em'/>" +
             "<div class='navigator'>" +
-                "<button id='find-prev' class='btn' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
-                "<button id='find-next' class='btn' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
+                "<button id='find-prev' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
+                "<button id='find-next' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
             "</div>" +
             "<div class='message'>" +
                 "<span id='find-counter'></span> " +
@@ -410,19 +424,19 @@ define(function (require, exports, module) {
      * @param {Editor} editor - Currently active editor that was used to invoke this action.
      * @param {string|RegExp} replaceWhat - Query that will be passed into CodeMirror Cursor to search for results.
      * @param {string} replaceWith - String that should be used to replace chosen results.
-     * @param {?function} replaceFunction - If replaceWhat is a RegExp, than this function is used to replace matches in that RegExp.
      */
-    function _showReplaceAllPanel(editor, replaceWhat, replaceWith, replaceFunction) {
+    function _showReplaceAllPanel(editor, replaceWhat, replaceWith) {
         var results = [],
             cm      = editor._codeMirror,
             cursor  = getSearchCursor(cm, replaceWhat),
             from,
             to,
             line,
-            multiLine;
+            multiLine,
+            matchResult = cursor.findNext();
 
         // Collect all results from document
-        while (cursor.findNext()) {
+        while (matchResult) {
             from      = cursor.from();
             to        = cursor.to();
             line      = editor.document.getLine(from.line);
@@ -435,12 +449,15 @@ define(function (require, exports, module) {
                 line:      from.line + 1,
                 pre:       line.slice(0, from.ch),
                 highlight: line.slice(from.ch, multiLine ? undefined : to.ch),
-                post:      multiLine ? "\u2026" : line.slice(to.ch)
+                post:      multiLine ? "\u2026" : line.slice(to.ch),
+                result:    matchResult
             });
 
             if (results.length >= REPLACE_ALL_MAX) {
                 break;
             }
+            
+            matchResult = cursor.findNext();
         }
 
         // This text contains some formatting, so all the strings are assumed to be already escaped
@@ -468,7 +485,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : replaceWith.replace(/\$(\d)/, replaceFunction);
+                        rw    = typeof replaceWhat === "string" ? replaceWith : parseDollars(replaceWith, match.result);
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -508,7 +525,7 @@ define(function (require, exports, module) {
             '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL +
             '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
 
-    function replace(editor, all) {
+    function replace(editor) {
         var cm = editor._codeMirror;
         createModalBar(replaceQueryDialog, true);
         $(modalBar).on("commit", function (e, query) {
@@ -524,62 +541,43 @@ define(function (require, exports, module) {
             createModalBar(replacementQueryDialog, true, false);
             $(modalBar).on("commit", function (e, text) {
                 text = text || "";
-                var match,
-                    fnMatch = function (w, i) { return match[i]; };
-                if (all) {
-                    cm.compoundChange(function () {
-                        cm.operation(function () {
-                            var cursor = getSearchCursor(cm, query);
-                            while (cursor.findNext()) {
-                                if (typeof query !== "string") {
-                                    match = cm.getRange(cursor.from(), cursor.to()).match(query);
-                                    cursor.replace(text.replace(/\$(\d)/, fnMatch));
-                                } else {
-                                    cursor.replace(text);
-                                }
-                            }
-                        });
-                    });
-                } else {
-                    clearSearch(cm);
-                    var cursor = getSearchCursor(cm, query, cm.getCursor(true));
-                    var advance = function () {
-                        var start = cursor.from(),
-                            match = cursor.findNext();
-                        if (!match) {
-                            cursor = getSearchCursor(cm, query);
-                            match = cursor.findNext();
-                            if (!match ||
-                                    (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
-                                // No more matches, so destroy modalBar
-                                modalBar = null;
-                                return;
-                            }
+                clearSearch(cm);
+                var cursor = getSearchCursor(cm, query, cm.getCursor(true));
+                var advance = function () {
+                    var start = cursor.from(),
+                        match = cursor.findNext();
+                    if (!match) {
+                        cursor = getSearchCursor(cm, query);
+                        match = cursor.findNext();
+                        if (!match ||
+                                (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
+                            // No more matches, so destroy modalBar
+                            modalBar = null;
+                            return;
                         }
-                        editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
-                        createModalBar(doReplaceConfirm, true, false);
-                        modalBar.getRoot().on("click", function (e) {
-                            var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
-                            modalBar.close(true, animate);
-                            if (e.target.id === "replace-yes") {
-                                doReplace(match);
-                            } else if (e.target.id === "replace-no") {
-                                advance();
-                            } else if (e.target.id === "replace-all") {
-                                _showReplaceAllPanel(editor, query, text, fnMatch);
-                            } else if (e.target.id === "replace-stop") {
-                                // Destroy modalBar on stop
-                                modalBar = null;
-                            }
-                        });
-                    };
-                    var doReplace = function (match) {
-                        cursor.replace(typeof query === "string" ? text :
-                                            text.replace(/\$(\d)/, fnMatch));
-                        advance();
-                    };
+                    }
+                    editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
+                    createModalBar(doReplaceConfirm, true, false);
+                    modalBar.getRoot().on("click", function (e) {
+                        var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
+                        modalBar.close(true, animate);
+                        if (e.target.id === "replace-yes") {
+                            doReplace(match);
+                        } else if (e.target.id === "replace-no") {
+                            advance();
+                        } else if (e.target.id === "replace-all") {
+                            _showReplaceAllPanel(editor, query, text);
+                        } else if (e.target.id === "replace-stop") {
+                            // Destroy modalBar on stop
+                            modalBar = null;
+                        }
+                    });
+                };
+                var doReplace = function (match) {
+                    cursor.replace(typeof query === "string" ? text : parseDollars(text, match));
                     advance();
-                }
+                };
+                advance();
             });
         });
 

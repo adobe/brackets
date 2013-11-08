@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,9 +33,9 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         }
 
         var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
-
+        
         // get relative path from query string
         // TODO: handle site-root relative
         var queryDir = "";
@@ -121,7 +121,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var self = this;
+            var directory = FileSystem.getDirectoryForPath(targetDir),
+                self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -131,17 +132,17 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
-                fs.root.createReader().readEntries(function (entries) {
-
-                    entries.forEach(function (entry) {
+            directory.getContents(function (err, contents) {
+                if (!err) {
+                    contents.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
                             // convert to doc relative path
                             var entryStr = entry.fullPath.replace(docDir, "");
 
-                            // code hints show the same strings that are inserted into text,
-                            // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr));
+                            // code hints show the unencoded string so the
+                            // choices are easier to read.  The encoded string
+                            // will still be inserted into the editor.
+                            unfiltered.push(entryStr);
                         }
                     });
 
@@ -170,7 +171,7 @@ define(function (require, exports, module) {
                             }
                         }
                     }
-                });
+                }
             });
 
             return self.cachedHints.deferred;
@@ -201,7 +202,7 @@ define(function (require, exports, module) {
 
     /**
      * Helper function that determines the possible value hints for a given html tag/attribute name pair
-     * 
+     *
      * @param {{queryStr: string}} query
      * The current query
      *
@@ -225,7 +226,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Determines whether font hints are available in the current editor
+     * Determines whether url hints are available in the current editor
      * context.
      *
      * @param {Editor} editor
@@ -320,49 +321,48 @@ define(function (require, exports, module) {
             tokenType;
 
         this.editor = editor;
-        if (implicitChar === null) {
-            tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
-            query = null;
-            tokenType = tagInfo.position.tokenType;
-             
-            if (tokenType === HTMLUtils.ATTR_VALUE) {
+        
+        tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
+        query = null;
+        tokenType = tagInfo.position.tokenType;
+        
+        if (tokenType === HTMLUtils.ATTR_VALUE) {
                 
-                // Verify that attribute name has hintable values
-                if (htmlAttrs[tagInfo.attr.name]) {
+            // Verify that attribute name has hintable values
+            if (htmlAttrs[tagInfo.attr.name]) {
                 
-                    if (tagInfo.position.offset >= 0) {
-                        query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
-                    } else {
-                        // We get negative offset for a quoted attribute value with some leading whitespaces 
-                        // as in <a rel= "rtl" where the cursor is just to the right of the "=".
-                        // So just set the queryStr to an empty string. 
-                        query = "";
+                if (tagInfo.position.offset >= 0) {
+                    query = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                } else {
+                    // We get negative offset for a quoted attribute value with some leading whitespaces
+                    // as in <a rel= "rtl" where the cursor is just to the right of the "=".
+                    // So just set the queryStr to an empty string.
+                    query = "";
+                }
+                
+                var hintsAndSortFunc = this._getUrlHints({queryStr: query});
+                var hints = hintsAndSortFunc.hints;
+                if (hints instanceof Array) {
+                    // If we got synchronous hints, check if we have something we'll actually use
+                    var i, foundPrefix = false;
+                    for (i = 0; i < hints.length; i++) {
+                        if (hints[i].indexOf(query) === 0) {
+                            foundPrefix = true;
+                            break;
+                        }
                     }
-                
-                    var hintsAndSortFunc = this._getUrlHints({queryStr: query});
-                    var hints = hintsAndSortFunc.hints;
-                    if (hints instanceof Array) {
-                        // If we got synchronous hints, check if we have something we'll actually use
-                        var i, foundPrefix = false;
-                        for (i = 0; i < hints.length; i++) {
-                            if (hints[i].indexOf(query) === 0) {
-                                foundPrefix = true;
-                                break;
-                            }
-                        }
-                        if (!foundPrefix) {
-                            query = null;
-                        }
+                    if (!foundPrefix) {
+                        query = null;
                     }
                 }
             }
-
-            return (query !== null);
         }
+
+        return (query !== null);
     };
 
     /**
-     * Returns a list of availble font hints, if possible, for the current
+     * Returns a list of available url hints, if possible, for the current
      * editor context.
      *
      * @return {jQuery.Deferred|{
@@ -371,11 +371,11 @@ define(function (require, exports, module) {
      *              selectInitial: boolean,
      *              handleWideResults: boolean}}
      * Null if the provider wishes to end the hinting session. Otherwise, a
-     * response object that provides 
+     * response object that provides
      * 1. a sorted array hints that consists of strings
-     * 2. a string match that is used by the manager to emphasize matching 
-     *    substrings when rendering the hint list 
-     * 3. a boolean that indicates whether the first result, if one exists, should be 
+     * 2. a string match that is used by the manager to emphasize matching
+     *    substrings when rendering the hint list
+     * 3. a boolean that indicates whether the first result, if one exists, should be
      *    selected by default in the hint list window.
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
@@ -505,6 +505,10 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
         var mode = this.editor.getModeForSelection();
+        
+        // Encode the string just prior to inserting the hint into the editor
+        completion = encodeURI(completion);
+        
         if (mode === "html") {
             return this.insertHtmlHint(completion);
         } else if (mode === "css") {
@@ -516,9 +520,9 @@ define(function (require, exports, module) {
 
     /**
      * Get distance between 2 positions.
-     * 
+     *
      * Assumption: pos2 >= pos1
-     * 
+     *
      * Note that this function is designed to work on CSSUtils info.values array,
      * so this could be made a method if that is converted to an object.
      *
@@ -555,7 +559,7 @@ define(function (require, exports, module) {
 
     /**
      * Finds next position in array of specified char.
-     * 
+     *
      * Note that this function is designed to work on CSSUtils info.values array,
      * so this could be made a method if that is converted to an object.
      *
@@ -755,4 +759,13 @@ define(function (require, exports, module) {
         // For unit testing
         exports.hintProvider = urlHints;
     });
+    
+    function _clearCachedHints() {
+        // Cache may or may not be stale. Main benefit of cache is to limit async lookups
+        // during typing. File tree updates cannot happen during typing, so it's probably
+        // not worth determining whether cache may still be valid. Just delete it.
+        exports.hintProvider.cachedHints = null;
+    }
+    FileSystem.on("change", _clearCachedHints);
+    FileSystem.on("rename", _clearCachedHints);
 });

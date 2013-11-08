@@ -39,7 +39,7 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async");
 
@@ -192,11 +192,9 @@ define(function (require, exports, module) {
     function testExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
             extensionPath = config.baseUrl + "/" + entryPoint + ".js";
-
-        var fileExists = false, statComplete = false;
-        brackets.fs.stat(extensionPath, function (err, stat) {
-            statComplete = true;
-            if (err === brackets.fs.NO_ERROR && stat.isFile()) {
+        
+        FileSystem.resolve(extensionPath, function (err, entry) {
+            if (!err && entry.isFile) {
                 // unit test file exists
                 var extensionRequire = brackets.libRequire.config({
                     context: name,
@@ -231,48 +229,40 @@ define(function (require, exports, module) {
     function _loadAll(directory, config, entryPoint, processExtension) {
         var result = new $.Deferred();
         
-        NativeFileSystem.requestNativeFileSystem(directory,
-            function (fs) {
-                fs.root.createReader().readEntries(
-                    function (entries) {
-                        var i,
-                            extensions = [];
-                        
-                        for (i = 0; i < entries.length; i++) {
-                            if (entries[i].isDirectory) {
-                                // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
-                                // Also, load sub-extensions defined in package.json.
-                                extensions.push(entries[i].name);
-                            }
-                        }
-
-                        if (extensions.length === 0) {
-                            result.resolve();
-                            return;
-                        }
-                        
-                        Async.doInParallel(extensions, function (item) {
-                            var extConfig = {
-                                baseUrl: config.baseUrl + "/" + item,
-                                paths: config.paths
-                            };
-                            return processExtension(item, extConfig, entryPoint);
-                        }).always(function () {
-                            // Always resolve the promise even if some extensions had errors
-                            result.resolve();
-                        });
-                    },
-                    function (error) {
-                        console.error("[Extension] Error -- could not read native directory: " + directory);
-                        result.reject();
+        FileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
+            if (!err) {
+                var i,
+                    extensions = [];
+                
+                for (i = 0; i < contents.length; i++) {
+                    if (contents[i].isDirectory) {
+                        // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
+                        // Also, load sub-extensions defined in package.json.
+                        extensions.push(contents[i].name);
                     }
-                );
-            },
-            function (error) {
-                console.error("[Extension] Error -- could not open native directory: " + directory);
+                }
+
+                if (extensions.length === 0) {
+                    result.resolve();
+                    return;
+                }
+                
+                Async.doInParallel(extensions, function (item) {
+                    var extConfig = {
+                        baseUrl: config.baseUrl + "/" + item,
+                        paths: config.paths
+                    };
+                    return processExtension(item, extConfig, entryPoint);
+                }).always(function () {
+                    // Always resolve the promise even if some extensions had errors
+                    result.resolve();
+                });
+            } else {
+                console.error("[Extension] Error -- could not read native directory: " + directory);
                 result.reject();
-            });
-        
+            }
+        });
+               
         return result.promise();
     }
     
@@ -311,9 +301,9 @@ define(function (require, exports, module) {
     /**
      * Load extensions.
      *
-     * @param {?string} A list containing references to extension source
-     *      location. A source location may be either (a) a folder path
-     *      relative to src/extensions or (b) an absolute path.
+     * @param {?Array.<string>} A list containing references to extension source
+     *      location. A source location may be either (a) a folder name inside
+     *      src/extensions or (b) an absolute path.
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function init(paths) {
@@ -323,13 +313,12 @@ define(function (require, exports, module) {
         }
         
         if (!paths) {
-            paths = "default,dev," + getUserExtensionPath();
+            paths = ["default", "dev", getUserExtensionPath()];
         }
 
         // Load extensions before restoring the project
         
-        // Create a new DirectoryEntry and call getDirectory() on the user extension
-        // directory. If the directory doesn't exist, it will be created.
+        // Get a Directory for the user extension directory and create it if it doesn't exist.
         // Note that this is an async call and there are no success or failure functions passed
         // in. If the directory *doesn't* exist, it will be created. Extension loading may happen
         // before the directory is finished being created, but that is okay, since the extension
@@ -337,15 +326,13 @@ define(function (require, exports, module) {
         // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
         // during extension loading.
         var extensionPath = getUserExtensionPath();
-        new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
-                                                           {create: true});
+        FileSystem.getDirectoryForPath(extensionPath).create();
         
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
-        new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
-                                                           {create: true});
+        FileSystem.getDirectoryForPath(disabledExtensionPath).create();
         
-        var promise = Async.doInParallel(paths.split(","), function (item) {
+        var promise = Async.doSequentially(paths, function (item) {
             var extensionPath = item;
             
             // If the item has "/" in it, assume it is a full path. Otherwise, load
@@ -355,7 +342,7 @@ define(function (require, exports, module) {
             }
             
             return loadAllExtensionsInNativeDirectory(extensionPath);
-        });
+        }, false);
         
         promise.always(function () {
             _init = true;

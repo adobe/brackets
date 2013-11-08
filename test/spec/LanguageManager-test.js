@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         DocumentManager = require("document/DocumentManager"),
         PathUtils       = require("thirdparty/path-utils/path-utils.min"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        FileUtils       = require("file/FileUtils");
+        FileSystem      = require("filesystem/FileSystem");
     
     describe("LanguageManager", function () {
         
@@ -98,10 +98,10 @@ define(function (require, exports, module) {
                     coffee = LanguageManager.getLanguage("coffeescript");
                 
                 // check basic language support
-                expect(html).not.toBeNull();
-                expect(LanguageManager.getLanguage("css")).not.toBeNull();
-                expect(LanguageManager.getLanguage("javascript")).not.toBeNull();
-                expect(LanguageManager.getLanguage("json")).not.toBeNull();
+                expect(html).toBeTruthy();
+                expect(LanguageManager.getLanguage("css")).toBeTruthy();
+                expect(LanguageManager.getLanguage("javascript")).toBeTruthy();
+                expect(LanguageManager.getLanguage("json")).toBeTruthy();
                 
                 // check html mode
                 var def = {
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
             it("should map identifiers to languages", function () {
                 var html = LanguageManager.getLanguage("html");
                 
-                expect(html).not.toBe(null);
+                expect(html).toBeTruthy();
                 expect(LanguageManager.getLanguage("DoesNotExist")).toBe(undefined);
             });
             
@@ -402,37 +402,98 @@ define(function (require, exports, module) {
         });
         
         describe("rename file extension", function () {
-            
+            this.category = "integration";
+
             it("should update the document's language when a file is renamed", function () {
-                var javascript  = LanguageManager.getLanguage("javascript"),
-                    html        = LanguageManager.getLanguage("html"),
-                    doc         = SpecRunnerUtils.createMockActiveDocument({ filename: "foo.js", language: "javascript" }),
-                    spy         = jasmine.createSpy("languageChanged event handler");
+                var tempDir     = SpecRunnerUtils.getTempDirectory(),
+                    oldFilename = tempDir + "/foo.js",
+                    newFilename = tempDir + "/dummy.html",
+                    spy         = jasmine.createSpy("languageChanged event handler"),
+                    javascript,
+                    html,
+                    oldFile,
+                    doc;
                 
-                // sanity check language
-                expect(doc.getLanguage()).toBe(javascript);
+                var DocumentManager,
+                    FileSystem,
+                    LanguageManager,
+                    _$;
                 
-                // Documents are only 'active' while referenced; they won't be maintained by DocumentManager
-                // for global updates like rename otherwise.
-                doc.addRef();
+                SpecRunnerUtils.createTempDirectory();
                 
-                // listen for event
-                $(doc).on("languageChanged", spy);
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    // Load module instances from brackets.test
+                    FileSystem = w.brackets.test.FileSystem;
+                    LanguageManager = w.brackets.test.LanguageManager;
+                    DocumentManager = w.brackets.test.DocumentManager;
+                    _$ = w.$;
+                });
                 
-                // trigger a rename
-                DocumentManager.notifyPathNameChanged(doc.file.name, "dummy.html", false);
+                var writeDeferred = $.Deferred();
+                runs(function () {
+                    oldFile = FileSystem.getFileForPath(oldFilename);
+                    oldFile.write("", function (err) {
+                        if (err) {
+                            writeDeferred.reject(err);
+                        } else {
+                            writeDeferred.resolve();
+                        }
+                    });
+                });
+                waitsForDone(writeDeferred.promise(), "old file creation");
+
+                SpecRunnerUtils.loadProjectInTestWindow(tempDir);
                 
-                // language should change
-                expect(doc.getLanguage()).toBe(html);
-                expect(spy).toHaveBeenCalled();
-                expect(spy.callCount).toEqual(1);
+                runs(function () {
+                    waitsForDone(DocumentManager.getDocumentForPath(oldFilename).done(function (_doc) {
+                        doc = _doc;
+                    }), "get document");
+                });
+
+                var renameDeferred = $.Deferred();
+                runs(function () {
+                    javascript = LanguageManager.getLanguage("javascript");
+                    
+                    // sanity check language
+                    expect(doc.getLanguage()).toBe(javascript);
+                    
+                    // Documents are only 'active' while referenced; they won't be maintained by DocumentManager
+                    // for global updates like rename otherwise.
+                    doc.addRef();
+                    
+                    // listen for event
+                    _$(doc).on("languageChanged", spy);
+                   
+                    // trigger a rename
+                    oldFile.rename(newFilename, function (err) {
+                        if (err) {
+                            renameDeferred.reject(err);
+                        } else {
+                            renameDeferred.resolve();
+                        }
+                    });
+                });
+                waitsForDone(renameDeferred.promise(), "old file rename");
                 
-                // check callback args (arg 0 is a jQuery event)
-                expect(spy.mostRecentCall.args[1]).toBe(javascript);
-                expect(spy.mostRecentCall.args[2]).toBe(html);
+                runs(function () {
+                    html = LanguageManager.getLanguage("html");
+                    
+                    // language should change
+                    expect(doc.getLanguage()).toBe(html);
+                    expect(spy).toHaveBeenCalled();
+                    expect(spy.callCount).toEqual(1);
+                    
+                    // check callback args (arg 0 is a jQuery event)
+                    expect(spy.mostRecentCall.args[1]).toBe(javascript);
+                    expect(spy.mostRecentCall.args[2]).toBe(html);
+                    
+                    // cleanup
+                    doc.releaseRef();
+                });
                 
-                // cleanup
-                doc.releaseRef();
+                SpecRunnerUtils.closeTestWindow();
+                
+                SpecRunnerUtils.removeTempDirectory();
             });
 
             it("should update the document's language when a language is added", function () {
@@ -444,7 +505,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // Create a scheme script file
-                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "file.scheme" });
+                    doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/file.scheme" });
                     
                     // Initial language will be unknown (scheme is not a default language)
                     unknown = LanguageManager.getLanguage("unknown");
@@ -494,7 +555,7 @@ define(function (require, exports, module) {
                     promise;
                 
                 // Create a foo script file
-                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "test.foo" });
+                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo" });
                 
                 // Initial language will be unknown (foo is not a default language)
                 unknown = LanguageManager.getLanguage("unknown");

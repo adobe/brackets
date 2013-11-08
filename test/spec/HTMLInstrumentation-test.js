@@ -30,8 +30,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils           = require("file/FileUtils"),
+    var FileUtils           = require("file/FileUtils"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         HTMLSimpleDOM       = require("language/HTMLSimpleDOM"),
         RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
@@ -403,7 +402,7 @@ define(function (require, exports, module) {
         },
         querySelectorAll: function (query) {
             var match = bracketsIdQuery.exec(query);
-            expect(match).not.toBeNull();
+            expect(match).toBeTruthy();
             if (!match) {
                 return [];
             }

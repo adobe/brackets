@@ -31,10 +31,30 @@
  *
  */
 
-/* Variable OVerride */
+/* Variable Overrides */
 
-@tooltipBackground:       #fff;
-@tooltipArrowColor:       @tooltipBackground;
+@tooltipBackground: #fff;
+@tooltipArrowColor: @tooltipBackground;
+
+/* Links */
+
+a {
+    color: @tc-link;
+    text-decoration: none;
+}
+
+a:hover {
+    color: @tc-link-hover;
+    text-decoration: underline;
+}
+
+a:focus {
+    color: @tc-link-hover;
+    outline: 0;
+    border-radius: 3px;
+    box-shadow: @tc-input-glow;
+    text-decoration: none;
+}
 
 .panel {
     .vbox;
@@ -247,8 +267,14 @@
     // Menu dropdown appearance
     .dropdown-menu {
         top: 34px; // Offset from top of menubar item
-
         margin-top: 0;
+        
+        // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
+        // the menu item label and keyboard shortcut. This takes away the "gotta get narrower" pressure.
+        // This technique won't work on all browsers; see comments in #4593 for alternative options.
+        width: -webkit-max-content;
+        width: -moz-max-content;
+
         background-color: @bc-white;
         .border-radius(0 0 3px 3px);
         box-shadow: @tc-dropdown-shadow;
@@ -374,16 +400,111 @@
     margin: 0;
 }
 
+/* Stylesheet button & dropdown styles */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    position: relative;
+    top: -1px;
+}
+
+.stylesheet-button.btn-mini.btn-dropdown {
+    padding-right: 24px;
+}
+
+.stylesheet-button.btn-dropdown::after {
+    content: "";
+    display: block;
+    height: 0px;
+    width: 0px;
+    position: absolute;
+    right: 6px;
+    top: 7px;
+
+    /* dropdown triangle */
+    border-top: 4px solid @tc-gray-component-triangle;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+}
+
+.stylesheet-dropdown {
+    &.dropdown-menu:focus {
+        outline: none;
+    }
+    
+    &.dropdown-menu {
+        border: none;
+        border-radius: @tc-control-border-radius;
+        padding: 0;
+        position: absolute;
+        display: block;
+        box-shadow: @tc-dropdown-shadow;
+        max-height: 160px;
+        overflow-y: auto;
+        max-width: none;
+        min-width: 200px;
+        z-index: @z-index-brackets-stylesheet-menu;
+    }
+    
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    &.dropdown-menu li a {
+        padding: 1px 15px 1px 15px;
+    }
+    
+    &.dropdown-menu .stylesheet-link {
+        display: block;
+    }
+    
+    .stylesheet-name {
+        color: @tc-text;
+    }
+    
+    .stylesheet-dir {
+        color: @tc-quiet-text;
+    }
+    
+    &.dropdown-menu a.selected {
+        background: @tc-highlight;
+        color: @bc-black !important;
+    }
+
+    &.dropdown-menu a:not(.selected):hover {
+         background: none;
+    }
+}
+
+
 /* Dialog-related styles */
+
+.modal-wrapper {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: auto;
+    display: table;
+}
+
+.modal-inner-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+}
 
 .modal {
     background-color: @tc-gray-panel;
-    width: auto;
+    min-width: 200px;
+    position: relative;
+    top: 0;
+    margin: auto;
 }
 
 .modal .close {
     cursor: default;
-    margin: 10px 5px 0 0;
+    margin: 7px 5px 0 0;
 }
 
 .modal-header {
@@ -392,11 +513,15 @@
     border-bottom: 1px solid @tc-gray-panel-separator;
 }
 
-.modal-body, .modal-header {
+.modal-body {
+    background-color: @tc-gray-panel;
+}
+
+.modal-body, .modal-header, .modal-footer {
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
        to allow the overall modal to take the width of the footer */
-    width: 580px;
+    width: auto;
 }
 
 .modal-footer {
@@ -404,6 +529,7 @@
     background-color: @tc-gray-panel;
     border-top: 1px solid @tc-gray-panel-separator;
     box-shadow: none;
+    padding: 10px 15px 12px;
     white-space: nowrap;
 }
 
@@ -433,16 +559,6 @@
     }
 }
 
-// Work around #4568: SourceSans is much fainter on Win than Mac, especially small text with "light" font-weight.
-// We fix some of the most egregious cases by using a heavier font-weight only on Win (and because that's usually
-// overkill, we also make the color paler to dial it back down a bit).
-.less-faint-on-win() {
-    body.platform-win & {
-        font-weight: normal;
-        color: #2e2e2e;
-    }
-}
-
 .modal-body ul {
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
@@ -462,18 +578,17 @@
     color: @tc-light-weight-text;
     margin-bottom: 0;
     margin-top: 0;
-    font-size: 26px;
-    line-height: 40px;
-    font-weight: @font-weight-light;
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: normal;
 }
 
 .dialog-message {
-    color: @tc-light-weight-text;
+    color: @tc-text;
     font-size: 14px;
     line-height: 20px;
     margin-bottom: 20px;
-    font-weight: @font-weight-light;
-    .less-faint-on-win();
+    font-weight: normal;
 }
 
 .dialog-message li {
@@ -502,10 +617,7 @@
 .dialog-filename {
     word-wrap: break-word;
 
-    font-weight: normal;
-    body.platform-win & {  // maintain contrast next to ".less-faint-on-win()" workaround
-        font-weight: @font-weight-semibold;
-    }
+    font-weight: @font-weight-semibold;
 }
 
 /* Any Dialog text in this style is automatically turned into a link that opens in the browser. Use href for the link's target. */
@@ -558,9 +670,6 @@ a[href^="http"] {
     width: 400px;
 }
 
-.install-extension-dialog {
-    margin-top: -125px;
-}
 .install-extension-dialog .modal-body input.url {
     margin: 10px 0;
     width: 550px;
@@ -568,17 +677,13 @@ a[href^="http"] {
 
 /* Extension Manager dialog */
 .extension-manager-dialog {
-    top: 50%;
-    left: 50%;
-    margin-top: -275px;
-    margin-left: -350px;
     background-color: #d4d7d7;
-
+    width: 760px;
+    
     .modal-header {
         border-bottom: none;
         padding: 0;
-        width: auto;
-
+        
         .nav-tabs {
             margin: 0;
             border-color: #c3c6c5;
@@ -622,6 +727,20 @@ a[href^="http"] {
                 background-color: #dfe2e2;
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
             }
+            
+            > li {
+                position: relative;  // for positioning .notification icon
+                > .notification {
+                    display: none;  // hidden by default
+                    background-color: #91CC41;
+                    color: white;
+                    border-radius: 16px;
+                    padding: 0 5px;
+                    position: absolute;
+                    right: 19px;
+                    top: 8px;
+                }
+            }
         }
 
         /* Search box */
@@ -663,12 +782,11 @@ a[href^="http"] {
         }
     }
     .modal-body {
-        width: 730px;
         height: 400px;
         overflow-y: scroll;
-        padding: 0;
         background-color: @tc-gray-panel;
-
+        padding: 0;
+        
         .empty-message {
             position: absolute;
             top: 50%;
@@ -699,19 +817,17 @@ a[href^="http"] {
                 width: 220px;
             }
             .ext-name {
+                color: @tc-text;
                 display: block;
-                color: #000;
                 font-size: 15px;
-                font-weight: @font-weight-light;
-                .less-faint-on-win();
+                font-weight: normal;
                 .user-select(text);
                 cursor: text;
             }
             .ext-desc {
-                color: #000;
-                font-weight: @font-weight-light;
-                .less-faint-on-win();
                 width: auto;
+                color: @tc-text;
+                font-weight: normal;
                 .user-select(text);
                 cursor: text;
             }
@@ -790,7 +906,6 @@ a[href^="http"] {
     .dialog-message {
         font-size: 14px;
         line-height: 17px;
-        .less-faint-on-win();
 
         // Enable text selection
         cursor: auto;
@@ -817,8 +932,10 @@ input[type="color"],
 .uneditable-input {
     background-color: @tc-input-background;
     border: 1px solid @tc-input-border;
-    color: @tc-text;
+    color: @tc-light-weight-text;
     font-size: (@baseFontSize + 1px);
+    font-weight: normal;
+    -webkit-font-smoothing: antialiased;
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
     .transition(~"border linear 0s, box-shadow linear 0s");
@@ -832,7 +949,6 @@ input[type="color"],
     &:focus {
         outline: 0;
         background-color: @tc-input-background;
-        color: @tc-text;
         text-shadow: none;
         border: 1px solid @tc-gray-component-focused-border;
         box-shadow: @tc-input-inner-shadow, @tc-input-glow;
@@ -897,7 +1013,7 @@ input[type="color"],
     background-color: @tc-button-background;
     text-shadow: @tc-text-shadow;
     color: @tc-text;
-    cursor: default;    
+    cursor: default;
     font-size: (@baseFontSize + 1);
     font-weight: @font-weight-semibold;
     line-height: normal;
@@ -914,7 +1030,7 @@ input[type="color"],
     // Focus state for keyboard and accessibility
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        box-shadow: @tc-button-highlight, @tc-input-glow;
         color: @tc-text;
         outline: none;
     }
@@ -969,6 +1085,11 @@ input[type="color"],
     font-size: 11px;
     font-weight: normal;
     line-height: 14px;
+    &:focus {
+        border: 1px solid @tc-gray-component-focused-border;
+        box-shadow: @tc-button-highlight, @tc-input-small-glow;
+        outline: none;
+    }
 }
 
 /* Tables */
@@ -988,7 +1109,7 @@ input[type="color"],
 .table-striped tbody {
     tr:nth-child(odd) td,
     tr:nth-child(odd) th {
-        background-color: #e6e9e9; // TopCoat palette
+        background-color: @tc-lighter-gray; // TopCoat palette
     }
     tr:nth-child(even) td,
     tr:nth-child(even) th {

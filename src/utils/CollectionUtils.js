@@ -29,21 +29,18 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
 
     /**
      * Returns the first index in 'array' for which isMatch() returns true, or -1 if none
      * @param {!Array.<*>|jQueryObject} array
      * @param {!function(*, Number):boolean} isMatch Passed (item, index), same as with forEach()
+     * @deprecated
      */
     function indexOf(array, isMatch) {
-        // Old-fashioned loop, instead of Array.some, to support jQuery "arrays"
-        var i;
-        for (i = 0; i < array.length; i++) {
-            if (isMatch(array[i], i)) {
-                return i;
-            }
-        }
-        return -1;
+        console.warn("CollectionUtils.indexOf is deprecated. Use _.findIndex instead.");
+        return _.findIndex(array, isMatch);
     }
     
     /**
@@ -52,15 +49,11 @@ define(function (require, exports, module) {
      * property making it look like an array.
      * @param {*} object The object or array to iterate over.
      * @param {function(value, key)} callback The function that will be executed on every object.
+     * @deprecated
      */
     function forEach(object, callback) {
-        var keys = Object.keys(object),
-            len = keys.length,
-            i;
-        
-        for (i = 0; i < len; i++) {
-            callback(object[keys[i]], keys[i]);
-        }
+        console.warn("CollectionUtils.forEach is deprecated. Use _.forEach instead.");
+        _.forEach(object, callback);
     }
     
     /**
@@ -71,18 +64,11 @@ define(function (require, exports, module) {
      * @param {*} object The object or array to iterate over.
      * @param {function(value, key)} callback The function that will be executed on every object.
      * @return {boolean}
+     * @deprecated
      */
     function some(object, callback) {
-        var keys = Object.keys(object),
-            len = keys.length,
-            i;
-        
-        for (i = 0; i < len; i++) {
-            if (callback(object[keys[i]], keys[i])) {
-                return true;
-            }
-        }
-        return false;
+        console.warn("CollectionUtils.some is deprecated. Use _.some instead.");
+        return _.some(object, callback);
     }
     
     /**
@@ -93,9 +79,11 @@ define(function (require, exports, module) {
      * @param {*} object The object to test
      * @param {string} property The name of the property to query
      * @return {boolean} True if the object contains the property
+     * @deprecated
      */
     function hasProperty(object, property) {
-        return Object.prototype.hasOwnProperty.call(object, property);
+        console.warn("CollectionUtils.hasProperty is deprecated. Use _.has instead.");
+        return _.has(object, property);
     }
     
     // Define public API

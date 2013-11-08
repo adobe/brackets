@@ -131,9 +131,9 @@ define(function (require, exports, module) {
         var cm = this.editor._codeMirror;
 
         if (cursor) {
-            return cm.getTokenAt(cursor, true);
+            return cm.getTokenAt(cursor);
         } else {
-            return cm.getTokenAt(this.getCursor(), true);
+            return cm.getTokenAt(this.getCursor());
         }
     };
 

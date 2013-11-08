@@ -21,7 +21,7 @@
     "css": {
         "name": "CSS",
         "mode": "css",
-        "fileExtensions": ["css"],
+        "fileExtensions": ["css", "css.erb"],
         "blockComment": ["/*", "*/"]
     },
 
@@ -36,17 +36,17 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master","cshtml","vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
     "ejs": {
         "name": "EJS",
         "mode": ["htmlembedded", "application/x-ejs"],
-        "fileExtensions": ["ejs"],
+        "fileExtensions": ["ejs", "dust"],
         "blockComment": ["<!--", "-->"]
     },
-
+    
     "erb_html": {
         "name": "Embedded Ruby",
         "mode": ["htmlembedded", "application/x-erb"],
@@ -67,6 +67,13 @@
         "mode": "vbscript",
         "fileExtensions": ["vbs"],
         "lineComment": ["'", "REM"]
+    },
+
+    "vb": {
+        "name": "VB",
+        "mode": ["vb", "text/x-vb"],
+        "fileExtensions": ["vb"],
+        "lineComment": ["'"]
     },
 
     "json": {
@@ -108,7 +115,7 @@
     "csharp": {
         "name": "C#",
         "mode": ["clike", "text/x-csharp"],
-        "fileExtensions": ["cs", "cshtml", "asax", "ashx"],
+        "fileExtensions": ["cs", "asax", "ashx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -155,7 +162,8 @@
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
-        "fileExtensions": ["rb", "ru", "gemspec", "rake"]
+        "fileExtensions": ["rb", "ru", "gemspec", "rake"],
+        "fileNames": ["Gemfile", "Rakefile"]
     },
 
     "python": {
@@ -211,5 +219,11 @@
         "mode": ["shell", "text/x-sh"],
         "fileExtensions": ["sh"],
         "lineComment": ["#"]
+    },
+  
+    "image": {
+        "name": "Image",
+        "mode": ["null", "text/plain"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"]
     }
 }

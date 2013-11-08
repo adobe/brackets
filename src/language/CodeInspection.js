@@ -135,24 +135,6 @@ define(function (require, exports, module) {
     
     
     /**
-     * The provider is passed the text of the file and its fullPath. Providers should not assume
-     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
-     * that the file on disk matches the text given (file may have unsaved changes).
-     *
-     * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     *
-     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
-     * If type is unspecified, Type.WARNING is assumed.
-     */
-    function register(languageId, provider) {
-        if (_providers[languageId]) {
-            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
-        }
-        _providers[languageId] = provider;
-    }
-
-    /**
      * Returns a provider for given file path, if one is available.
      * Decision is made depending on the file extension.
      *
@@ -168,35 +150,26 @@ define(function (require, exports, module) {
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file that is currently opened.
      *
-     * @param {!FileEntry} fileEntry File that will be inspected for errors.
+     * @param {!File} file File that will be inspected for errors.
      * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
      * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array, aborted:boolean}
      */
-    function inspectFile(fileEntry, provider) {
+    function inspectFile(file, provider) {
         var response = new $.Deferred();
-        provider = provider || getProviderForPath(fileEntry.fullPath);
+        provider = provider || getProviderForPath(file.fullPath);
 
         if (!provider) {
             response.resolve(null);
             return response.promise();
         }
 
-        var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath),
-            fileTextPromise;
-
-        if (doc) {
-            fileTextPromise = new $.Deferred().resolve(doc.getText());
-        } else {
-            fileTextPromise = FileUtils.readAsText(fileEntry);
-        }
-
-        fileTextPromise
+        DocumentManager.getDocumentText(file)
             .done(function (fileText) {
                 var result,
-                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
 
                 try {
-                    result = provider.scanFile(fileText, fileEntry.fullPath);
+                    result = provider.scanFile(fileText, file.fullPath);
                 } catch (err) {
                     console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
                     response.reject(err);
@@ -207,7 +180,7 @@ define(function (require, exports, module) {
                 response.resolve(result);
             })
             .fail(function (err) {
-                console.error("[CodeInspection] Could not read file for inspection: " + fileEntry.fullPath);
+                console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
                 response.reject(err);
             });
 
@@ -301,6 +274,26 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * The provider is passed the text of the file and its fullPath. Providers should not assume
+     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
+     * that the file on disk matches the text given (file may have unsaved changes).
+     *
+     * @param {string} languageId
+     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     *
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
+     * If type is unspecified, Type.WARNING is assumed.
+     */
+    function register(languageId, provider) {
+        if (_providers[languageId]) {
+            console.warn("Overwriting existing inspection/linting provider for language " + languageId);
+        }
+        _providers[languageId] = provider;
+        
+        run();  // in case a file of this type is open currently
+    }
+
     /**
      * Update DocumentManager listeners.
      */

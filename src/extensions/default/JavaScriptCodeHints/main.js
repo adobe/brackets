@@ -26,6 +26,8 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = brackets.getModule("thirdparty/lodash");
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
@@ -36,7 +38,6 @@ define(function (require, exports, module) {
         AppInit              = brackets.getModule("utils/AppInit"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         PerfUtils            = brackets.getModule("utils/PerfUtils"),
-        StringUtils          = brackets.getModule("utils/StringUtils"),
         StringMatch          = brackets.getModule("utils/StringMatch"),
         LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
@@ -131,10 +132,10 @@ define(function (require, exports, module) {
                     token.stringRanges.forEach(function (item) {
                         if (item.matched) {
                             $hintObj.append($("<span>")
-                                .append(StringUtils.htmlEscape(item.text))
+                                .append(_.escape(item.text))
                                 .addClass("matched-hint"));
                         } else {
-                            $hintObj.append(StringUtils.htmlEscape(item.text));
+                            $hintObj.append(_.escape(item.text));
                         }
                     });
                 } else {

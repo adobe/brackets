@@ -30,9 +30,11 @@ define(function (require, exports, module) {
     
     var ProjectManager,     // Load from brackets.test
         CommandManager,     // Load from brackets.test
+        FileSystem,         // Load from brackets.test
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Commands            = require("command/Commands"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
 
@@ -52,6 +54,7 @@ define(function (require, exports, module) {
                 brackets       = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
                 CommandManager = testWindow.brackets.test.CommandManager;
+                FileSystem     = testWindow.brackets.test.FileSystem;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
@@ -80,8 +83,10 @@ define(function (require, exports, module) {
 
                 var error, stat, complete = false;
                 var filePath = testPath + "/Untitled.js";
+                var file = FileSystem.getFileForPath(filePath);
+                
                 runs(function () {
-                    brackets.fs.stat(filePath, function (err, _stat) {
+                    file.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -90,21 +95,21 @@ define(function (require, exports, module) {
 
                 waitsFor(function () { return complete; }, 1000);
 
-                var unlinkError = brackets.fs.NO_ERROR;
+                var unlinkError = null;
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isFile()).toBe(true);
+                    expect(stat.isFile).toBe(true);
 
                     // delete the new file
                     complete = false;
-                    brackets.fs.unlink(filePath, function (err) {
+                    file.unlink(function (err) {
                         unlinkError = err;
                         complete = true;
                     });
                 });
                 waitsFor(
                     function () {
-                        return complete && (unlinkError === brackets.fs.NO_ERROR);
+                        return complete && (unlinkError === null);
                     },
                     "unlink() failed to cleanup Untitled.js, err=" + unlinkError,
                     1000
@@ -224,7 +229,7 @@ define(function (require, exports, module) {
         describe("deleteItem", function () {
             it("should delete the selected file in the project tree", function () {
                 var complete    = false,
-                    newFileName = testPath + "/delete_me.js",
+                    newFile     = FileSystem.getFileForPath(testPath + "/delete_me.js"),
                     selectedFile,
                     error,
                     stat;
@@ -233,7 +238,7 @@ define(function (require, exports, module) {
                 // by explicitly deleting the test file if it exists.
                 runs(function () {
                     complete = false;
-                    brackets.fs.unlink(newFileName, function (err) {
+                    newFile.unlink(function (err) {
                         complete = true;
                     });
                 });
@@ -249,7 +254,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.fs.stat(newFileName, function (err, _stat) {
+                    newFile.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -260,7 +265,7 @@ define(function (require, exports, module) {
                 // Verify the existence of the new file and make sure it is selected in the project tree.
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isFile()).toBe(true);
+                    expect(stat.isFile).toBe(true);
                     selectedFile = ProjectManager.getSelectedItem();
                     expect(selectedFile.fullPath).toBe(testPath + "/delete_me.js");
                 });
@@ -278,7 +283,7 @@ define(function (require, exports, module) {
                 // Verify that file no longer exists.
                 runs(function () {
                     complete = false;
-                    brackets.fs.stat(newFileName, function (err, _stat) {
+                    newFile.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -287,7 +292,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, 1000);
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(FileSystemError.NOT_FOUND);
 
                     // Verify that some other file is selected in the project tree.
                     var curSelectedFile = ProjectManager.getSelectedItem();
@@ -306,8 +311,9 @@ define(function (require, exports, module) {
                 // Make sure we don't have any test files/folders left from previous failure 
                 // by explicitly deleting the root test folder if it exists.
                 runs(function () {
+                    var rootFolder = FileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
-                    brackets.fs.moveToTrash(rootFolderName, function (err) {
+                    rootFolder.moveToTrash(function (err) {
                         complete = true;
                     });
                 });
@@ -322,8 +328,9 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
+                    var newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
-                    brackets.fs.stat(newFolderName, function (err, _stat) {
+                    newFolder.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -333,7 +340,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isDirectory()).toBe(true);
+                    expect(stat.isDirectory).toBe(true);
 
                     rootFolderEntry = ProjectManager.getSelectedItem();
                     expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
@@ -349,8 +356,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     newFolderName += "toDelete1/";
+
+                    var newFolder = FileSystem.getDirectoryForPath(newFolderName);
                     complete = false;
-                    brackets.fs.stat(newFolderName, function (err, _stat) {
+                    newFolder.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -360,7 +369,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isDirectory()).toBe(true);
+                    expect(stat.isDirectory).toBe(true);
                 });
 
                 // Create a file in the sub folder just created.
@@ -372,8 +381,9 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 runs(function () {
+                    var file = FileSystem.getFileForPath(newFolderName + "/toDelete2.txt");
                     complete = false;
-                    brackets.fs.stat(newFolderName + "toDelete2.txt", function (err, _stat) {
+                    file.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -383,7 +393,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBeFalsy();
-                    expect(stat.isFile()).toBe(true);
+                    expect(stat.isFile).toBe(true);
                 });
                 
                 // Delete the root folder and all files/folders in it.
@@ -397,8 +407,9 @@ define(function (require, exports, module) {
 
                 // Verify that the root folder no longer exists.
                 runs(function () {
+                    var rootFolder = FileSystem.getDirectoryForPath(rootFolderName);
                     complete = false;
-                    brackets.fs.stat(rootFolderName, function (err, _stat) {
+                    rootFolder.stat(function (err, _stat) {
                         error = err;
                         stat = _stat;
                         complete = true;
@@ -407,7 +418,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, 1000);
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(FileSystemError.NOT_FOUND);
 
                     // Verify that some other file is selected in the project tree.
                     var curSelectedFile = ProjectManager.getSelectedItem();

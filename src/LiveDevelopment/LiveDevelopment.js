@@ -65,6 +65,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     require("utils/Global");
 
+    var _ = require("thirdparty/lodash");
+
     // Status Codes
     var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
     var STATUS_INACTIVE       = exports.STATUS_INACTIVE       =  0;
@@ -80,9 +82,9 @@ define(function LiveDevelopment(require, exports, module) {
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -566,7 +568,7 @@ define(function LiveDevelopment(require, exports, module) {
             // After (1) the interstitial page loads, (2) then browser navigation
             // to the base URL is completed, and (3) the agents finish loading
             // gather related documents and finally set status to STATUS_ACTIVE.
-            var doc = _getCurrentDocument();
+            var doc = (_liveDocument) ? _liveDocument.doc : null;
 
             if (doc) {
                 var status = STATUS_ACTIVE,
@@ -607,6 +609,128 @@ define(function LiveDevelopment(require, exports, module) {
 
         // resolve/reject the open() promise after agents complete
         result.then(_openDeferred.resolve, _openDeferred.reject);
+
+        return result.promise();
+    }
+
+    /**
+     * @private
+     * Determine an index file that can be used to start Live Development.
+     * This function will inspect all files in a project to find the closest index file
+     * available for currently opened document. We are searching for these files:
+     *  - index.html
+     *  - index.htm
+     * 
+     * If the project is configured with a custom base url for live developmment, then
+     * the list of possible index files is extended to contain these index files too:
+     *  - index.php
+     *  - index.php3
+     *  - index.php4
+     *  - index.php5
+     *  - index.phtm
+     *  - index.phtml
+     *  - index.cfm
+     *  - index.cfml
+     *  - index.asp
+     *  - index.aspx
+     *  - index.jsp
+     *  - index.jspx
+     *  - index.shm
+     *  - index.shml
+     * 
+     * If a file was found, the promise will be resolved with the full path to this file. If no file
+     * was found in the whole project tree, the promise will be resolved with null.
+     * 
+     * @return {jQuery.Promise} A promise that is resolved with a full path
+     * to a file if one could been determined, or null if there was no suitable index
+     * file.
+     */
+    function _getInitialDocFromCurrent() {
+        var doc = _getCurrentDocument(),
+            refPath,
+            i;
+
+        // TODO: FileUtils.getParentFolder()
+        function getParentFolder(path) {
+            return path.substring(0, path.lastIndexOf('/', path.length - 2) + 1);
+        }
+
+        function getFilenameWithoutExtension(filename) {
+            var index = filename.lastIndexOf(".");
+            return index === -1 ? filename : filename.slice(0, index);
+        }
+
+        // Is the currently opened document already a file we can use for Live Development?
+        if (doc) {
+            refPath = doc.file.fullPath;
+            if (FileUtils.isStaticHtmlFileExt(refPath) || FileUtils.isServerHtmlFileExt(refPath)) {
+                return new $.Deferred().resolve(doc);
+            }
+        }
+
+        var result = new $.Deferred();
+
+        var baseUrl = ProjectManager.getBaseUrl(),
+            hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
+
+        ProjectManager.getAllFiles().done(function (allFiles) {
+            var projectRoot = ProjectManager.getProjectRoot().fullPath,
+                containingFolder,
+                indexFileFound = false,
+                stillInProjectTree = true;
+            
+            if (refPath) {
+                containingFolder = FileUtils.getDirectoryPath(refPath);
+            } else {
+                containingFolder = projectRoot;
+            }
+            
+            var filteredFiltered = allFiles.filter(function (item) {
+                var parent = getParentFolder(item.fullPath);
+                
+                return (containingFolder.indexOf(parent) === 0);
+            });
+            
+            var filterIndexFile = function (fileInfo) {
+                if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
+                    if (getFilenameWithoutExtension(fileInfo.name) === "index") {
+                        if (hasOwnServerForLiveDevelopment) {
+                            if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                    (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+                                return true;
+                            }
+                        } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
+                            return true;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            };
+
+            while (!indexFileFound && stillInProjectTree) {
+                i = _.findIndex(filteredFiltered, filterIndexFile);
+
+                // We found no good match
+                if (i === -1) {
+                    // traverse the directory tree up one level
+                    containingFolder = getParentFolder(containingFolder);
+                    // Are we still inside the project?
+                    if (containingFolder.indexOf(projectRoot) === -1) {
+                        stillInProjectTree = false;
+                    }
+                } else {
+                    indexFileFound = true;
+                }
+            }
+
+            if (i !== -1) {
+                DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
+                return;
+            }
+            
+            result.resolve(null);
+        });
 
         return result.promise();
     }
@@ -674,8 +798,19 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-            deferred.resolve();
+            // Need to do this in order to trigger the corresponding CloseLiveBrowser cleanups required on 
+            // the native Mac side
+            var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
+            closeDeferred.done(function () {
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            }).fail(function (err) {
+                if (err) {
+                    reason +=  " (" + err + ")";
+                }
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            });
         }
 
         if (_openDeferred) {
@@ -819,17 +954,18 @@ define(function LiveDevelopment(require, exports, module) {
             // parallel.
             loadAgents();
 
-            var doc = _getCurrentDocument();
-            if (doc) {
-                // Navigate from interstitial to the document
-                // Fires a frameNavigated event
-                Inspector.Page.navigate(doc.url);
-            } else {
-                // Unlikely that we would get to this state where
-                // a connection is in process but there is no current
-                // document
-                close();
-            }
+            _getInitialDocFromCurrent().done(function (doc) {
+                if (doc) {
+                    // Navigate from interstitial to the document
+                    // Fires a frameNavigated event
+                    Inspector.Page.navigate(doc.url);
+                } else {
+                    // Unlikely that we would get to this state where
+                    // a connection is in process but there is no current
+                    // document
+                    close();
+                }
+            });
         });
     }
     
@@ -908,7 +1044,7 @@ define(function LiveDevelopment(require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_OK) {
                         // User has chosen to reload Chrome, quit the running instance
                         _setStatus(STATUS_INACTIVE);
-                        NativeApp.closeLiveBrowser()
+                        _close()
                             .done(function () {
                                 browserStarted = false;
                                 window.setTimeout(function () {
@@ -923,7 +1059,17 @@ define(function LiveDevelopment(require, exports, module) {
                                 _openDeferred.reject("CLOSE_LIVE_BROWSER");
                             });
                     } else {
-                        _openDeferred.reject("CANCEL");
+                        _close()
+                            .done(function () {
+                                browserStarted = false;
+                                _openDeferred.reject("CANCEL");
+                            })
+                            .fail(function (err) {
+                                // Report error?
+                                _setStatus(STATUS_ERROR);
+                                browserStarted = false;
+                                _openDeferred.reject("CLOSE_LIVE_BROWSER");
+                            });
                     }
                 });
 
@@ -943,7 +1089,7 @@ define(function LiveDevelopment(require, exports, module) {
                         var message;
 
                         _setStatus(STATUS_ERROR);
-                        if (err === NativeFileError.NOT_FOUND_ERR) {
+                        if (err === FileSystemError.NOT_FOUND) {
                             message = Strings.ERROR_CANT_FIND_CHROME;
                         } else {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
@@ -974,12 +1120,13 @@ define(function LiveDevelopment(require, exports, module) {
     
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
-    function _doLaunchAfterServerReady(doc) {
+    function _doLaunchAfterServerReady(initialDoc) {
         // update status
         _setStatus(STATUS_CONNECTING);
         
         // create live document
-        _liveDocument = _createDocument(doc, EditorManager.getCurrentFullEditor());
+        initialDoc._ensureMasterEditor();
+        _liveDocument = _createDocument(initialDoc, initialDoc._masterEditor);
 
         // start listening for requests
         _server.add(_liveDocument);
@@ -1037,18 +1184,31 @@ define(function LiveDevelopment(require, exports, module) {
     /** Open the Connection and go live */
     function open() {
         _openDeferred = new $.Deferred();
-
-        var doc = _getCurrentDocument(),
-            prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject();
         
-        // wait for server (StaticServer, Base URL or file:)
-        prepareServerPromise.done(function (result) {
-            _doLaunchAfterServerReady(doc);
-        });
-      
-        prepareServerPromise.fail(function () {
-            _showWrongDocError();
-            _openDeferred.reject();
+        // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
+        // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
+        _getInitialDocFromCurrent().done(function (doc) {
+            var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject(),
+                otherDocumentsInWorkingFiles;
+
+            if (doc && !doc._masterEditor) {
+                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
+                DocumentManager.addToWorkingSet(doc.file);
+
+                if (!otherDocumentsInWorkingFiles) {
+                    DocumentManager.setCurrentDocument(doc);
+                }
+            }
+
+            // wait for server (StaticServer, Base URL or file:)
+            prepareServerPromise
+                .done(function () {
+                    _doLaunchAfterServerReady(doc);
+                })
+                .fail(function () {
+                    _showWrongDocError();
+                    _openDeferred.reject();
+                });
         });
 
         return _openDeferred.promise();
@@ -1181,8 +1341,9 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     // For unit testing
-    exports.launcherUrl         = launcherUrl;
-    exports._getServer          = _getServer;
+    exports.launcherUrl               = launcherUrl;
+    exports._getServer                = _getServer;
+    exports._getInitialDocFromCurrent = _getInitialDocFromCurrent;
 
     // Export public functions
     exports.agents              = agents;

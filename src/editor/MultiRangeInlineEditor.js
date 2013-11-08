@@ -39,6 +39,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("thirdparty/lodash");
+    
     // Load dependent modules
     var TextRange           = require("document/TextRange").TextRange,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -46,8 +48,9 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         CommandManager      = require("command/CommandManager"),
-        PerfUtils           = require("utils/PerfUtils"),
-        StringUtils         = require("utils/StringUtils");
+        PerfUtils           = require("utils/PerfUtils");
+    
+    var _prevMatchCmd, _nextMatchCmd;
 
     /**
      * Remove trailing "px" from a style size value.
@@ -74,8 +77,11 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.textRange = null;
     SearchResultItem.prototype.$listItem = null;
     
-    function _updateRangeLabel(listItem, range) {
-        var text = StringUtils.htmlEscape(range.name) + " <span class='related-file'>— " + StringUtils.htmlEscape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
+    function _updateRangeLabel(listItem, range, labelCB) {
+        if (labelCB) {
+            range.name = labelCB(range.textRange);
+        }
+        var text = _.escape(range.name) + " <span class='related-file'>— " + _.escape(range.textRange.document.file.name) + " : " + (range.textRange.startLine + 1) + "</span>";
         listItem.html(text);
         listItem.attr("title", listItem.text());
     }
@@ -83,9 +89,13 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text ranges to display.
+     * @param {function(): $.Promise} messageCB An optional callback that returns a promise that will be resolved with a message to show
+     *      when no matches are available.
+     * @param {function(range): string} labelCB An optional callback that returns an updated label string for the given range. Called
+     *      when we detect that the content of one of the ranges has changed.
      * @extends {InlineTextEditor}
      */
-    function MultiRangeInlineEditor(ranges) {
+    function MultiRangeInlineEditor(ranges, messageCB, labelCB) {
         InlineTextEditor.call(this);
         
         // Store the results to show in the range list. This creates TextRanges bound to the Document,
@@ -93,6 +103,8 @@ define(function (require, exports, module) {
         this._ranges = ranges.map(function (rangeResult) {
             return new SearchResultItem(rangeResult);
         });
+        this._messageCB = messageCB;
+        this._labelCB = labelCB;
         
         this._selectedRangeIndex = -1;
     }
@@ -100,14 +112,54 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.constructor = MultiRangeInlineEditor;
     MultiRangeInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
     
-    MultiRangeInlineEditor.prototype.$editorsDiv = null;
+    MultiRangeInlineEditor.prototype.$messageDiv = null;
     MultiRangeInlineEditor.prototype.$relatedContainer = null;
     MultiRangeInlineEditor.prototype.$related = null;
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
+    MultiRangeInlineEditor.prototype.$rangeList = null;
     
     /** @type {Array.<SearchResultItem>} */
     MultiRangeInlineEditor.prototype._ranges = null;
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
+    MultiRangeInlineEditor.prototype._messageCB = null;
+    MultiRangeInlineEditor.prototype._labelCB = null;
+    
+    /**
+     * @private
+     * Add a new range to the range list UI.
+     * @param {SearchResultItem} range The range to add.
+     * @param {number=} index Where to add the range in the list. Defaults to the end.
+     */
+    MultiRangeInlineEditor.prototype._createListItem = function (range, index) {
+        var self = this,
+            $rangeItem = $("<li/>"),
+            $rangeListChildren = this.$rangeList.children();
+        
+        if (index === undefined || index === $rangeListChildren.length) {
+            $rangeItem.appendTo(this.$rangeList);
+        } else {
+            $rangeItem.insertBefore($rangeListChildren.get(index));
+        }
+        
+        _updateRangeLabel($rangeItem, range);
+        $rangeItem.mousedown(function () {
+            self.setSelectedIndex(self._ranges.indexOf(range));
+        });
+
+        range.$listItem = $rangeItem;
+        
+        // Update list item as TextRange changes
+        $(range.textRange).on("change", function () {
+            _updateRangeLabel($rangeItem, range);
+        }).on("contentChange", function () {
+            _updateRangeLabel($rangeItem, range, self._labelCB);
+        });
+        
+        // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
+        $(range.textRange).on("lostSync", function () {
+            self._removeRange(range);
+        });
+    };
 
     /** 
      * @override
@@ -117,65 +169,63 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
         MultiRangeInlineEditor.prototype.parentClass.load.apply(this, arguments);
         
-        // Container to hold all editors
-        var self = this;
-
-        // Create DOM to hold editors and related list
-        this.$editorsDiv = $(window.document.createElement("div")).addClass("inlineEditorHolder");
+        // Create the message area
+        this.$messageDiv = $("<div/>")
+            .addClass("inline-editor-message");
         
         // Prevent touch scroll events from bubbling up to the parent editor.
-        this.$editorsDiv.on("mousewheel.MultiRangeInlineEditor", function (e) {
+        this.$editorHolder.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
         });
 
         // Outer container for border-left and scrolling
-        this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");
+        this.$relatedContainer = $("<div/>").addClass("related-container");
         
         // List "selection" highlight
-        this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
+        this.$selectedMarker = $("<div/>").appendTo(this.$relatedContainer).addClass("selection");
 
         // Inner container
-        this.$related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
+        this.$related = $("<div/>").appendTo(this.$relatedContainer).addClass("related");
         
         // Range list
-        var $rangeList = $(window.document.createElement("ul")).appendTo(this.$related);
+        this.$rangeList = $("<ul/>").appendTo(this.$related);
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
-        this._ranges.forEach(function (range) {
-            // Create list item UI
-            var $rangeItem = $(window.document.createElement("li")).appendTo($rangeList);
-            _updateRangeLabel($rangeItem, range);
-            $rangeItem.mousedown(function () {
-                self.setSelectedIndex(self._ranges.indexOf(range));
-            });
-
-            range.$listItem = $rangeItem;
-            
-            // Update list item as TextRange changes
-            $(range.textRange).on("change", function () {
-                _updateRangeLabel($rangeItem, range);
-            });
-            
-            // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
-            $(range.textRange).on("lostSync", function () {
-                self._removeRange(range);
-            });
-        });
-        
-        // select the first range
-        self.setSelectedIndex(0);
+        this._ranges.forEach(this._createListItem, this);
         
         if (this._ranges.length > 1) {      // attach to main container
-            this.$htmlContent.append(this.$relatedContainer);
+            this.$wrapper.before(this.$relatedContainer);
         }
-        this.$htmlContent.append(this.$editorsDiv);
                 
+        if (this._ranges.length) {
+            // select the first range
+            this.setSelectedIndex(0);
+        } else {
+            // force the message div to show
+            this.setSelectedIndex(-1);
+        }
+        
         // Listen for clicks directly on us, so we can set focus back to the editor
         var clickHandler = this._onClick.bind(this);
         this.$htmlContent.on("click.MultiRangeInlineEditor", clickHandler);
         // Also handle mouseup in case the user drags a little bit
         this.$htmlContent.on("mouseup.MultiRangeInlineEditor", clickHandler);
+        
+        // Update the rule list navigation menu items when we gain/lose focus.
+        this.$htmlContent
+            .on("focusin.MultiRangeInlineEditor", this._updateCommands.bind(this))
+            .on("focusout.MultiRangeInlineEditor", this._updateCommands.bind(this));
+    };
+    
+    /**
+     * @private
+     * Updates the enablement for the rule list navigation commands.
+     */
+    MultiRangeInlineEditor.prototype._updateCommands = function () {
+        var enabled = (this.hasFocus() && this._ranges.length > 1);
+        _prevMatchCmd.setEnabled(enabled && this._selectedRangeIndex > 0);
+        _nextMatchCmd.setEnabled(enabled && this._selectedRangeIndex !== -1 && this._selectedRangeIndex < this._ranges.length - 1);
     };
     
     /**
@@ -200,58 +250,76 @@ define(function (require, exports, module) {
 
         // Editor must be at least as tall as the related list
         this._updateEditorMinHeight();
+        
+        // Set the initial inline widget height
+        this.sizeInlineWidgetToContents(true, false);
+        
+        this._updateCommands();
     };
 
     /**
      * Specify the range that is shown in the editor.
      *
-     * @param {!number} index The index of the range to select.
+     * @param {!number} index The index of the range to select, or -1 to deselect all.
+     * @param {boolean} force Whether to re-select the item even if we think it's already selected
+     *     (used if the range list has changed).
      */
-    MultiRangeInlineEditor.prototype.setSelectedIndex = function (index) {
-        var newIndex = Math.min(Math.max(0, index), this._ranges.length - 1),
+    MultiRangeInlineEditor.prototype.setSelectedIndex = function (index, force) {
+        var newIndex = Math.min(Math.max(-1, index), this._ranges.length - 1),
             self = this;
         
-        if (newIndex === this._selectedRangeIndex) {
+        if (!force && newIndex !== -1 && newIndex === this._selectedRangeIndex) {
             return;
         }
 
         // Remove selected class(es)
         var $previousItem = (this._selectedRangeIndex >= 0) ? this._ranges[this._selectedRangeIndex].$listItem : null;
-        
         if ($previousItem) {
             $previousItem.removeClass("selected");
         }
         
+        // Clear our listeners on the previous editor since it'll be destroyed in setInlineContent().
+        if (this.editor) {
+            $(this.editor).off(".MultiRangeInlineEditor");
+        }
+
         this._selectedRangeIndex = newIndex;
         
-        var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
+        if (newIndex === -1) {
+            // show the message div
+            this.setInlineContent(null);
+            if (this._messageCB) {
+                this._messageCB().done(function (msg) {
+                    self.$messageDiv.html(msg);
+                });
+            } else {
+                this.$messageDiv.text(Strings.INLINE_EDITOR_NO_MATCHES);
+            }
+            this.$htmlContent.append(this.$messageDiv);
+            this.sizeInlineWidgetToContents(true, false);
+        } else {
+            this.$messageDiv.remove();
+            
+            var range = this._getSelectedRange();
+            range.$listItem.addClass("selected");
+    
+            // Add new editor
+            this.setInlineContent(range.textRange.document, range.textRange.startLine, range.textRange.endLine);
+            this.editor.focus();
+    
+            this._updateEditorMinHeight();
+            this.editor.refresh();
+            
+            // Ensure the cursor position is visible in the host editor as the user is arrowing around.
+            $(this.editor).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
+            
+            // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
+            this.sizeInlineWidgetToContents(true, false);
+    
+            this._updateSelectedMarker();
+        }
         
-        this._ranges[this._selectedRangeIndex].$listItem.addClass("selected");
-
-        // Remove previous editors
-        this.editors.forEach(function (editor) {
-            $(self.editors[0]).off(".MultiRangeInlineEditor");
-            editor.destroy(); //release ref on Document
-        });
-        
-        this.editors = [];
-        this.$editorsDiv.children().remove();
-
-        // Add new editor
-        var range = this._getSelectedRange();
-        this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
-        this.editors[0].focus();
-
-        this._updateEditorMinHeight();
-        this.editors[0].refresh();
-        
-        // Ensure the cursor position is visible in the host editor as the user is arrowing around.
-        $(this.editors[0]).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
-
-        // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
-        this.sizeInlineWidgetToContents(true, false);
-
-        this._updateSelectedMarker();
+        this._updateCommands();
     };
     
     /**
@@ -260,6 +328,10 @@ define(function (require, exports, module) {
      * widget.
      */
     MultiRangeInlineEditor.prototype._updateEditorMinHeight = function () {
+        if (!this.editor) {
+            return;
+        }
+        
         // Set the scroller's min-height to the natural height of the rule list, so the editor
         // always stays at least as tall as the rule list.
         var ruleListNaturalHeight = this.$related.outerHeight(),
@@ -274,7 +346,7 @@ define(function (require, exports, module) {
         // * we want the wrapper's actual height to remain "auto"
         // * if we set a min-height on the wrapper, the scroller's height: 100% doesn't
         //   respect it (height: 100% doesn't seem to work properly with min-height on the parent)
-        $(this.editors[0].getScrollerElement())
+        $(this.editor.getScrollerElement())
             .css("min-height", (ruleListNaturalHeight - headerHeight) + "px");
     };
 
@@ -308,9 +380,65 @@ define(function (require, exports, module) {
             this._selectedRangeIndex--;
             this._updateSelectedMarker();
         }
+        
+        if (this._ranges.length === 1) {
+            this.$relatedContainer.remove();
+        }
+        
+        this._updateCommands();
+    };
+    
+    /**
+     * Adds a new range to the inline editor and selects it. The range will be inserted
+     * immediately below the last range for the same document, or at the end of the list
+     * if there are no other ranges for that document.
+     * @param {string} name The label for the new range.
+     * @param {Document} doc The document the range is in.
+     * @param {number} lineStart The starting line of the range, 0-based, inclusive.
+     * @param {number} lineEnd The ending line of the range, 0-based, inclusive.
+     */
+    MultiRangeInlineEditor.prototype.addAndSelectRange = function (name, doc, lineStart, lineEnd) {
+        var newRange = new SearchResultItem({
+                name: name,
+                document: doc,
+                lineStart: lineStart,
+                lineEnd: lineEnd
+            }),
+            i;
+        
+        // Insert the new range after the last range from the same doc, or at the
+        // end of the list.
+        for (i = this._ranges.length - 1; i >= 0; i--) {
+            if (this._ranges[i].textRange.document === doc) {
+                break;
+            }
+        }
+        if (i === -1) {
+            i = this._ranges.length;
+        } else {
+            i++;
+        }
+        this._ranges.splice(i, 0, newRange);
+        
+        // Add the new range to the UI and select it. This should load the associated range
+        // into the editor.
+        this._createListItem(newRange, i);
+        this.setSelectedIndex(i, true);
+
+        // Ensure that the rule list becomes visible if it wasn't already and we have
+        // more than one rule.
+        if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
+            this.$wrapper.before(this.$relatedContainer);
+        }
+
+        this._updateCommands();
     };
 
     MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
+        if (this._selectedRangeIndex < 0) {
+            return new $.Deferred().resolve().promise();
+        }
+        
         var result = new $.Deferred(),
             $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
@@ -360,7 +488,7 @@ define(function (require, exports, module) {
 
         // Remove event handlers
         this.$htmlContent.off(".MultiRangeInlineEditor");
-        this.$editorsDiv.off(".MultiRangeInlineEditor");
+        this.$editorHolder.off(".MultiRangeInlineEditor");
     };
     
     /**
@@ -369,7 +497,11 @@ define(function (require, exports, module) {
      * restoring focus and the insertion point.
      */
     MultiRangeInlineEditor.prototype._onClick = function (event) {
-        var childEditor = this.editors[0],
+        if (!this.editor) {
+            return;
+        }
+        
+        var childEditor = this.editor,
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
         
@@ -378,7 +510,8 @@ define(function (require, exports, module) {
         }
         
         // Ignore clicks in editor and clicks on filename link
-        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$editorsDiv))) {
+        // Check clicks on filename link in the context of the current inline widget.
+        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$htmlContent))) {
             childEditor.focus();
             // Only set the cursor if the click isn't in the range list.
             if (!containsClick(this.$relatedContainer)) {
@@ -397,9 +530,13 @@ define(function (require, exports, module) {
      * vertical scroll position of the host editor to ensure that the cursor is visible.
      */
     MultiRangeInlineEditor.prototype._ensureCursorVisible = function () {
-        if ($.contains(this.editors[0].getRootElement(), window.document.activeElement)) {
+        if (!this.editor) {
+            return;
+        }
+        
+        if ($.contains(this.editor.getRootElement(), window.document.activeElement)) {
             var hostScrollPos = this.hostEditor.getScrollPos(),
-                cursorCoords = this.editors[0]._codeMirror.cursorCoords();
+                cursorCoords = this.editor._codeMirror.cursorCoords();
             
             // Vertically, we want to set the scroll position relative to the overall host editor, not
             // the lineSpace of the widget itself. We don't want to modify the horizontal scroll position.
@@ -435,21 +572,25 @@ define(function (require, exports, module) {
      * @return {!SearchResultItem}
      */
     MultiRangeInlineEditor.prototype._getSelectedRange = function () {
-        return this._ranges[this._selectedRangeIndex];
+        return this._selectedRangeIndex >= 0 ? this._ranges[this._selectedRangeIndex] : null;
     };
 
     /**
      * Display the next range in the range list
      */
     MultiRangeInlineEditor.prototype._selectNextRange = function () {
-        this.setSelectedIndex(this._selectedRangeIndex + 1);
+        if (this._selectedRangeIndex < this._ranges.length - 1) {
+            this.setSelectedIndex(this._selectedRangeIndex + 1);
+        }
     };
     
     /**
      *  Display the previous range in the range list
      */
     MultiRangeInlineEditor.prototype._selectPreviousRange = function () {
-        this.setSelectedIndex(this._selectedRangeIndex - 1);
+        if (this._selectedRangeIndex > 0) {
+            this.setSelectedIndex(this._selectedRangeIndex - 1);
+        }
     };
 
     /**
@@ -463,8 +604,10 @@ define(function (require, exports, module) {
         // We use "call" rather than "apply" here since ensureVisibility was an argument added just for this override.
         MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this, force);
         
-        // Size the widget height to the max between the editor content and the related ranges list
-        var widgetHeight = Math.max(this.$related.height(), this.$editorsDiv.height());
+        // Size the widget height to the max between the editor/message content and the related ranges list
+        var widgetHeight = Math.max(this.$related.height(),
+                                    this.$header.outerHeight() +
+                                        (this._selectedRangeIndex === -1 ? this.$messageDiv.outerHeight() : this.$editorHolder.height()));
 
         if (widgetHeight) {
             this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
@@ -478,16 +621,16 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.refresh = function () {
         MultiRangeInlineEditor.prototype.parentClass.refresh.apply(this, arguments);
         this.sizeInlineWidgetToContents(true);
-        this.editors.forEach(function (editor) {
-            editor.refresh();
-        });
+        if (this.editor) {
+            this.editor.refresh();
+        }
     };
 
     /**
      * Returns the currently focused MultiRangeInlineEditor.
      * @returns {MultiRangeInlineEditor}
      */
-    function _getFocusedMultiRangeInlineEditor() {
+    function getFocusedMultiRangeInlineEditor() {
         var focusedWidget = EditorManager.getFocusedInlineWidget();
         if (focusedWidget instanceof MultiRangeInlineEditor) {
             return focusedWidget;
@@ -500,7 +643,7 @@ define(function (require, exports, module) {
      * Previous Range command handler
      */
     function _previousRange() {
-        var focusedMultiRangeInlineEditor = _getFocusedMultiRangeInlineEditor();
+        var focusedMultiRangeInlineEditor = getFocusedMultiRangeInlineEditor();
         if (focusedMultiRangeInlineEditor) {
             focusedMultiRangeInlineEditor._selectPreviousRange();
         }
@@ -510,14 +653,17 @@ define(function (require, exports, module) {
      * Next Range command handler
      */
     function _nextRange() {
-        var focusedMultiRangeInlineEditor = _getFocusedMultiRangeInlineEditor();
+        var focusedMultiRangeInlineEditor = getFocusedMultiRangeInlineEditor();
         if (focusedMultiRangeInlineEditor) {
             focusedMultiRangeInlineEditor._selectNextRange();
         }
     }
     
-    CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH,      Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
-    CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH,      Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
+    _prevMatchCmd = CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH, Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
+    _prevMatchCmd.setEnabled(false);
+    _nextMatchCmd = CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH, Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
+    _nextMatchCmd.setEnabled(false);
 
     exports.MultiRangeInlineEditor = MultiRangeInlineEditor;
+    exports.getFocusedMultiRangeInlineEditor = getFocusedMultiRangeInlineEditor;
 });
