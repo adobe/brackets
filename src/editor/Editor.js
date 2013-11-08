@@ -1157,7 +1157,6 @@ define(function (require, exports, module) {
             // called back right away. (The animation would happen later when we switch
             // back to the editor.)
             if (self.isFullyVisible()) {
-                console.log("animating removal");
                 AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
                     .done(finishRemoving);
                 inlineWidget.$htmlContent.height(0);
