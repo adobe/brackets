@@ -54,11 +54,12 @@ define(function (require, exports, module) {
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
-        PanelManager          = require("view/PanelManager"),
-        FileIndexManager      = require("project/FileIndexManager"),
-        FileViewController    = require("project/FileViewController"),
-        NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
+        FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
+        FileViewController    = require("project/FileViewController"),
+        PerfUtils             = require("utils/PerfUtils"),
+        InMemoryFile          = require("document/InMemoryFile"),
+        PanelManager          = require("view/PanelManager"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
@@ -69,7 +70,8 @@ define(function (require, exports, module) {
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
     
-    /** @cost Constants used to define the maximum results show per page and found in a single file */
+    /** @const Constants used to define the maximum results show per page and found in a single file */
+
     var RESULTS_PER_PAGE = 100,
         FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400;
@@ -92,7 +94,7 @@ define(function (require, exports, module) {
     /** @type {RegExp} The current search query regular expression */
     var currentQueryExpr = null;
     
-    /** @type {Array.<FileEntry>} An array of the files where it should look or null/empty to search the entire project */
+    /** @type {Array.<File>} An array of the files where it should look or null/empty to search the entire project */
     var currentScope = null;
     
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
@@ -609,18 +611,18 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @param {!FileInfo} fileInfo  File in question
-     * @param {?Entry} scope  Search scope, or null if whole project
+     * @param {!File} file File in question
+     * @param {?Entry} scope Search scope, or null if whole project
      * @return {boolean}
      */
-    function _inScope(fileInfo, scope) {
+    function _inScope(file, scope) {
         if (scope) {
             if (scope.isDirectory) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
-                return fileInfo.fullPath.indexOf(scope.fullPath) === 0;
+                return file.fullPath.indexOf(scope.fullPath) === 0;
             } else {
-                return fileInfo.fullPath === scope.fullPath;
+                return file.fullPath === scope.fullPath;
             }
         }
         return true;
@@ -666,23 +668,26 @@ define(function (require, exports, module) {
             dialog = null;
             return;
         }
-        FileIndexManager.getFileInfoList("all")
+        
+        var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
+            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
+        
+        ProjectManager.getAllFiles(true)
             .done(function (fileListResult) {
-                Async.doInParallel(fileListResult, function (fileInfo) {
+                Async.doInParallel(fileListResult, function (file) {
                     var result = new $.Deferred();
                     
-                    if (!_inScope(fileInfo, currentScope)) {
+                    if (!_inScope(file, currentScope)) {
                         result.resolve();
                     } else {
-                        // Search one file
-                        DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                            .done(function (doc) {
-                                _addSearchMatches(fileInfo.fullPath, doc.getText(), currentQueryExpr);
+                        DocumentManager.getDocumentText(file)
+                            .done(function (text) {
+                                _addSearchMatches(file.fullPath, text, currentQueryExpr);
                                 result.resolve();
                             })
                             .fail(function (error) {
-                                // Error reading this file. This is most likely because the file isn't a text file.
-                                // Resolve here so we move on to the next file.
+                                // Always resolve. If there is an error, this file
+                                // is skipped and we move on to the next file.
                                 result.resolve();
                             });
                     }
@@ -692,11 +697,13 @@ define(function (require, exports, module) {
                         // Done searching all files: show results
                         _showSearchResults();
                         StatusBar.hideBusyIndicator();
+                        PerfUtils.addMeasurement(perfTimer);
                         $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
                     })
                     .fail(function () {
                         console.log("find in files failed.");
                         StatusBar.hideBusyIndicator();
+                        PerfUtils.finalizeMeasurement(perfTimer);
                     });
             });
     }
@@ -799,7 +806,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (scope instanceof NativeFileSystem.InaccessibleFileEntry) {
+        if (scope instanceof InMemoryFile) {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
                 CommandManager.execute(Commands.EDIT_FIND);
             });
@@ -867,25 +874,47 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Deletes the results from the deleted file and updates the results list, if required
+     * Handle a FileSystem "change" event
      * @param {$.Event} event
-     * @param {string} path
+     * @param {FileSystemEntry} entry
      */
-    function _pathDeletedHandler(event, path) {
-        var resultsChanged = false;
-        
-        if (searchResultsPanel.isVisible()) {
-            // Update the search results
-            _.forEach(searchResults, function (item, fullPath) {
-                if (FileUtils.isAffectedWhenRenaming(fullPath, path)) {
-                    delete searchResults[fullPath];
-                    resultsChanged = true;
-                }
-            });
+    function _fileSystemChangeHandler(event, entry) {
+        if (entry && entry.isDirectory) {
+            var resultsChanged = false;
             
-            // Restore the results if needed
-            if (resultsChanged) {
-                _restoreSearchResults();
+            // This is a temporary watcher implementation that needs to be updated
+            // once we have our final watcher API. Specifically, we will be adding
+            // 'added' and 'removed' parameters to this function to easily determine
+            // which files/folders have been added or removed.
+            //
+            // In the meantime, do a quick check for directory changed events to see
+            // if any of the search results files have been deleted.
+            if (searchResultsPanel.isVisible()) {
+                entry.getContents(function (err, contents) {
+                    if (!err) {
+                        var _includesPath = function (fullPath) {
+                            return _.some(contents, function (item) {
+                                return item.fullPath === fullPath;
+                            });
+                        };
+                        
+                        // Update the search results
+                        _.forEach(searchResults, function (item, fullPath) {
+                            if (fullPath.lastIndexOf("/") === entry.fullPath.length - 1) {
+                                // The changed directory includes this entry. Make sure the file still exits.
+                                if (!_includesPath(fullPath)) {
+                                    delete searchResults[fullPath];
+                                    resultsChanged = true;
+                                }
+                            }
+                        });
+                        
+                        // Restore the results if needed
+                        if (resultsChanged) {
+                            _restoreSearchResults();
+                        }
+                    }
+                });
             }
         }
     }
@@ -904,8 +933,9 @@ define(function (require, exports, module) {
     
     // Initialize: register listeners
     $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
-    $(DocumentManager).on("pathDeleted",       _pathDeletedHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
+    
+    FileSystem.on("change", _fileSystemChangeHandler);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);

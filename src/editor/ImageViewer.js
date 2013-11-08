@@ -30,11 +30,11 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        FileSystem          = require("filesystem/FileSystem");
     
     var _naturalWidth = 0;
     
@@ -103,24 +103,22 @@ define(function (require, exports, module) {
             _naturalWidth = this.naturalWidth;
             var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            fileEntry.getMetadata(
-                function (metadata) {
+            var file = FileSystem.getFileForPath(fullPath);
+            file.stat(function (err, stat) {
+                if (err) {
+                    $("#img-data").html(dimensionString);
+                } else {
                     var sizeString = "";
-                    if (metadata && metadata.size) {
-                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(metadata.size, 2);
+                    if (stat.size) {
+                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
                     }
                     var dimensionAndSize = dimensionString + sizeString;
                     $("#img-data").html(dimensionAndSize)
                         .attr("title", dimensionAndSize
                                         .replace("&times;", "x")
                                         .replace("&mdash;", "-"));
-                },
-                function (error) {
-                    $("#img-data").html(dimensionString)
-                        .attr("title", dimensionString.replace("&times;", "x"));
                 }
-            );
+            });
             $("#image-holder").show();
             // listen to resize to  update the scale sticker
             $(PanelManager).on("editorAreaResize", _onEditorAreaResize);

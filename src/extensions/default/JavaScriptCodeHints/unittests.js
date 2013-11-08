@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waits, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,8 +32,8 @@ define(function (require, exports, module) {
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         Editor               = brackets.getModule("editor/Editor").Editor,
         EditorManager        = brackets.getModule("editor/EditorManager"),
+        FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
-        NativeFileSystem     = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints          = require("main"),
@@ -425,7 +425,7 @@ define(function (require, exports, module) {
             }
         }
 
-        function setupTest(path, primePump) {
+        function setupTest(path, primePump) { // FIXME: primePump argument ignored even though used below
             DocumentManager.getDocumentForPath(path).done(function (doc) {
                 testDoc = doc;
             });
@@ -438,6 +438,8 @@ define(function (require, exports, module) {
             runs(function () {
                 testEditor = createMockEditor(testDoc);
                 preTestText = testDoc.getText();
+                
+                waitsForDone(ScopeManager._readyPromise());
             });
         }
 
@@ -741,7 +743,7 @@ define(function (require, exports, module) {
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 },
                     endplus = { line: 6, ch: 12 };
-
+                
                 testDoc.replaceRange("A1.prop", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1541,23 +1543,24 @@ define(function (require, exports, module) {
             function getPreferences(path) {
                 preferences = null;
 
-                NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
-                    FileUtils.readAsText(fileEntry).done(function (text) {
-                        var configObj = null;
-                        try {
-                            configObj = JSON.parse(text);
-                        } catch (e) {
-                            // continue with null configObj
-                            console.log(e);
-                        }
-                        preferences = new Preferences(configObj);
-                    }).fail(function (error) {
+                FileSystem.resolve(path, function (err, file) {
+                    if (!err) {
+                        FileUtils.readAsText(file).done(function (text) {
+                            var configObj = null;
+                            try {
+                                configObj = JSON.parse(text);
+                            } catch (e) {
+                                // continue with null configObj
+                                console.log(e);
+                            }
+                            preferences = new Preferences(configObj);
+                        }).fail(function (error) {
+                            preferences = new Preferences();
+                        });
+                    } else {
                         preferences = new Preferences();
-                    });
-                }, function (error) {
-                    preferences = new Preferences();
+                    }
                 });
-
             }
 
             // Test preferences file with no entries. Preferences should contain

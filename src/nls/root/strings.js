@@ -67,8 +67,8 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 

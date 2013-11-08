@@ -34,10 +34,10 @@ define(function (require, exports, module) {
         DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,         // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
+        FileSystem,              // loaded from brackets.test
         FileViewController,      // loaded from brackets.test
         EditorManager,           // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
-        NativeFileSystem         = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils                = require("file/FileUtils"),
         StringUtils              = require("utils/StringUtils"),
         Editor                   = require("editor/Editor");
@@ -66,6 +66,7 @@ define(function (require, exports, module) {
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
+                FileSystem              = testWindow.brackets.test.FileSystem;
                 FileViewController      = testWindow.brackets.test.FileViewController;
                 EditorManager           = testWindow.brackets.test.EditorManager;
             });
@@ -184,7 +185,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -221,7 +222,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -262,7 +263,7 @@ define(function (require, exports, module) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -325,7 +326,7 @@ define(function (require, exports, module) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, "");  // "" means cancel
                     });
 
@@ -428,7 +429,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
@@ -468,7 +469,7 @@ define(function (require, exports, module) {
                     });
                     
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
@@ -496,7 +497,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -551,7 +552,7 @@ define(function (require, exports, module) {
                     });
                     
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -663,7 +664,7 @@ define(function (require, exports, module) {
                 // confirm file contents
                 var actualContent = null, error = -1;
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(filePath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(filePath))
                         .done(function (actualText) {
                             expect(actualText).toBe(TEST_JS_NEW_CONTENT);
                         });
@@ -672,7 +673,7 @@ define(function (require, exports, module) {
 
                 // reset file contents
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(filePath), TEST_JS_CONTENT);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(filePath), TEST_JS_CONTENT);
                     waitsForDone(promise, "Revert test file");
                 });
             });
@@ -687,11 +688,11 @@ define(function (require, exports, module) {
                 
                 // create test files (Git rewrites line endings, so these can't be kept in src control)
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(crlfPath), crlfText);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(crlfPath), crlfText);
                     waitsForDone(promise, "Create CRLF test file");
                 });
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(lfPath), lfText);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(lfPath), lfText);
                     waitsForDone(promise, "Create LF test file");
                 });
                 
@@ -721,7 +722,7 @@ define(function (require, exports, module) {
                 
                 // verify file contents
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(crlfPath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
                         });
@@ -729,7 +730,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(lfPath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(lfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
                         });
@@ -772,7 +773,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -810,7 +811,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -846,7 +847,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback("Error", undefined);
                     });
 
@@ -891,7 +892,7 @@ define(function (require, exports, module) {
                     // save the file opened above to a different filename
                     DocumentManager.setCurrentDocument(targetDoc);
                     
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 

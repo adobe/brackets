@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
-        FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = require("project/ProjectManager"),
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants
@@ -947,8 +946,7 @@ define(function (require, exports, module) {
     
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
-        var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+        var result          = new $.Deferred();
         
         // Load one CSS file and search its contents
         function _loadFileAndScan(fullPath, selector) {
@@ -970,13 +968,14 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
         
-        // Load index of all CSS files; then process each CSS file in turn (see above)
-        cssFilesResult.done(function (fileInfos) {
-            Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _loadFileAndScan(fileInfo.fullPath, selector);
-            })
-                .then(result.resolve, result.reject);
-        });
+        ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"))
+            .done(function (cssFiles) {
+                // Load index of all CSS files; then process each CSS file in turn (see above)
+                Async.doInParallel(cssFiles, function (fileInfo, number) {
+                    return _loadFileAndScan(fileInfo.fullPath, selector);
+                })
+                    .then(result.resolve, result.reject);
+            });
         
         return result.promise();
     }

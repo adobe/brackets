@@ -38,11 +38,10 @@ define(function (require, exports, module) {
     
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        FileIndexManager    = brackets.getModule("project/FileIndexManager"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
@@ -81,16 +80,18 @@ define(function (require, exports, module) {
             library;
 
         files.forEach(function (i) {
-            NativeFileSystem.resolveNativeFileSystemPath(path + i, function (fileEntry) {
-                FileUtils.readAsText(fileEntry).done(function (text) {
-                    library = JSON.parse(text);
-                    builtinLibraryNames.push(library["!name"]);
-                    ternEnvironment.push(library);
-                }).fail(function (error) {
+            FileSystem.resolve(path + i, function (err, file) {
+                if (!err) {
+                    FileUtils.readAsText(file).done(function (text) {
+                        library = JSON.parse(text);
+                        builtinLibraryNames.push(library["!name"]);
+                        ternEnvironment.push(library);
+                    }).fail(function (error) {
+                        console.log("failed to read tern config file " + i);
+                    });
+                } else {
                     console.log("failed to read tern config file " + i);
-                });
-            }, function (error) {
-                console.log("failed to read tern config file " + i);
+                }
             });
         });
     }
@@ -125,28 +126,30 @@ define(function (require, exports, module) {
 
         var path = projectRootPath + Preferences.FILE_NAME;
 
-        NativeFileSystem.resolveNativeFileSystemPath(path, function (fileEntry) {
-            FileUtils.readAsText(fileEntry).done(function (text) {
-                var configObj = null;
-                try {
-                    configObj = JSON.parse(text);
-                } catch (e) {
-                    // continue with null configObj which will result in
-                    // default settings.
-                    console.log("Error parsing preference file: " + path);
-                    if (e instanceof SyntaxError) {
-                        console.log(e.message);
+        FileSystem.resolve(path, function (err, file) {
+            if (!err) {
+                FileUtils.readAsText(file).done(function (text) {
+                    var configObj = null;
+                    try {
+                        configObj = JSON.parse(text);
+                    } catch (e) {
+                        // continue with null configObj which will result in
+                        // default settings.
+                        console.log("Error parsing preference file: " + path);
+                        if (e instanceof SyntaxError) {
+                            console.log(e.message);
+                        }
                     }
-                }
-                preferences = new Preferences(configObj);
-                deferredPreferences.resolve();
-            }).fail(function (error) {
+                    preferences = new Preferences(configObj);
+                    deferredPreferences.resolve();
+                }).fail(function (error) {
+                    preferences = new Preferences();
+                    deferredPreferences.resolve();
+                });
+            } else {
                 preferences = new Preferences();
                 deferredPreferences.resolve();
-            });
-        }, function (error) {
-            preferences = new Preferences();
-            deferredPreferences.resolve();
+            }
         });
     }
 
@@ -185,43 +188,45 @@ define(function (require, exports, module) {
      */
     function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
         var files = [];
-
-        NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
-            var reader = dirEntry.createReader();
-
-            reader.readEntries(function (entries) {
-                entries.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
-                    var path    = entry.fullPath,
-                        split   = HintUtils.splitPath(path),
-                        file    = split.file;
-
-                    if (fileCallback && entry.isFile) {
-
-                        if (file.indexOf(".") > 0) { // ignore .dotfiles
-                            var languageID = LanguageManager.getLanguageForPath(path).getId();
-                            if (languageID === HintUtils.LANGUAGE_ID) {
-                                fileCallback(path);
+        
+        FileSystem.resolve(dir, function (err, directory) {
+            if (!err && directory.isDirectory) {
+                directory.getContents(function (err, contents) {
+                    if (!err) {
+                        contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
+                            var path    = entry.fullPath,
+                                split   = HintUtils.splitPath(path),
+                                file    = split.file;
+        
+                            if (fileCallback && entry.isFile) {
+        
+                                if (file.indexOf(".") > 0) { // ignore .dotfiles
+                                    var languageID = LanguageManager.getLanguageForPath(path).getId();
+                                    if (languageID === HintUtils.LANGUAGE_ID) {
+                                        fileCallback(path);
+                                    }
+                                }
+                            } else if (directoryCallback && entry.isDirectory) {
+                                var dirName = HintUtils.splitPath(split.dir).file;
+                                if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
+                                    directoryCallback(entry.fullPath);
+                                }
                             }
+                        });
+                        doneCallback();
+                    } else {
+                        if (errorCallback) {
+                            errorCallback(err);
                         }
-                    } else if (directoryCallback && entry.isDirectory) {
-                        var dirName = HintUtils.splitPath(split.dir).file;
-                        if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
-                            directoryCallback(entry.fullPath);
-                        }
+                        console.log("Unable to refresh directory: ", err);
                     }
                 });
-                doneCallback();
-            }, function (err) {
+            } else {
                 if (errorCallback) {
                     errorCallback(err);
                 }
-                console.log("Unable to refresh directory: ", err);
-            });
-        }, function (err) {
-            if (errorCallback) {
-                errorCallback(err);
+                console.log("Directory \"%s\" does not exist", dir);
             }
-            console.log("Directory \"%s\" does not exist", dir);
         });
     }
 
@@ -825,20 +830,26 @@ define(function (require, exports, module) {
     
             /**
              * Helper function to get the text of a given document and send it to tern.
-             * If we successfully get the document from the DocumentManager then the text of 
-             * the document will be sent to the tern worker.
-             * The Promise for getDocumentForPath is returned so that custom fail functions can be
-             * used.
+             * If DocumentManager successfully gets the file's text then we'll send it to the tern worker.
+             * The Promise for getDocumentText() is returned so that custom fail functions can be used.
              *
              * @param {string} filePath - the path of the file to get the text of
-             * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentForPath 
+             * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
              */
             function getDocText(filePath) {
-                return DocumentManager.getDocumentForPath(filePath).done(function (document) {
+                if (!FileSystem.isAbsolutePath(filePath)) {
+                    return new $.Deferred().reject();
+                }
+                
+                var file = FileSystem.getFileForPath(filePath),
+                    promise = DocumentManager.getDocumentText(file);
+                
+                promise.done(function (docText) {
                     resolvedFiles[name] = filePath;
                     numResolvedFiles++;
-                    replyWith(name, getTextFromDocument(document));
+                    replyWith(name, filterText(docText));
                 });
+                return promise;
             }
             
             /**
@@ -850,29 +861,29 @@ define(function (require, exports, module) {
             function findNameInProject() {
                 // check for any files in project that end with the right path.
                 var fileName = HintUtils.splitPath(name).file;
-                FileIndexManager.getFilenameMatches("all", fileName)
-                    .done(function (files) {
-                        var file;
-                        files = files.filter(function (file) {
-                            var pos = file.fullPath.length - name.length;
-                            return pos === file.fullPath.lastIndexOf(name);
-                        });
-                        
-                        if (files.length === 1) {
-                            file = files[0];
-                        }
-                        if (file) {
-                            getDocText(file.fullPath).fail(function () {
-                                replyWith(name, "");
-                            });
-                        } else {
-                            replyWith(name, "");
-                        }
-                        
-                    })
-                    .fail(function () {
-                        replyWith(name, "");
+                
+                function _fileFilter(entry) {
+                    return entry.name === fileName;
+                }
+                
+                ProjectManager.getAllFiles(_fileFilter).done(function (files) {
+                    var file;
+                    files = files.filter(function (file) {
+                        var pos = file.fullPath.length - name.length;
+                        return pos === file.fullPath.lastIndexOf(name);
                     });
+                    
+                    if (files.length === 1) {
+                        file = files[0];
+                    }
+                    if (file) {
+                        getDocText(file.fullPath).fail(function () {
+                            replyWith(name, "");
+                        });
+                    } else {
+                        replyWith(name, "");
+                    }
+                });
             }
     
             getDocText(name).fail(function () {
@@ -1426,6 +1437,12 @@ define(function (require, exports, module) {
     function handleProjectOpen(projectRootPath) {
         initPreferences(projectRootPath);
     }
+    
+    
+    /** Used to avoid timing bugs in unit tests */
+    function _readyPromise() {
+        return deferredPreferences;
+    }
 
     exports.getBuiltins = getBuiltins;
     exports.getResolvedPath = getResolvedPath;
@@ -1438,5 +1455,6 @@ define(function (require, exports, module) {
     exports.requestParameterHint = requestParameterHint;
     exports.handleProjectClose = handleProjectClose;
     exports.handleProjectOpen = handleProjectOpen;
+    exports._readyPromise = _readyPromise;
 
 });
