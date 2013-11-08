@@ -446,7 +446,7 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
     // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tschechisch",
+    "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EN"                                 : "Englisch",
     "LOCALE_ES"                                 : "Spanisch",
@@ -489,7 +489,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
+    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
