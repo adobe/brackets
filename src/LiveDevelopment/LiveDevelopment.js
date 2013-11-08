@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, FileError */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -1090,7 +1090,7 @@ define(function LiveDevelopment(require, exports, module) {
                         var message;
 
                         _setStatus(STATUS_ERROR);
-                        if (err === NativeFileError.NOT_FOUND_ERR) {
+                        if (err === FileError.NOT_FOUND_ERR) {
                             message = Strings.ERROR_CANT_FIND_CHROME;
                         } else {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
