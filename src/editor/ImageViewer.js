@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils");
     
     var _naturalWidth = 0,
-        _scale = 100;
+        _scale = 100,
+        _scaleDivInfo = null;   // coordinates of hidden scale sticker
     
     /** Update the scale element, i.e. on resize 
      *  @param {!string} currentWidth actual width of image in view
@@ -72,68 +73,124 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a DOM node to show the image coordinates under the cursor
-     * and two event handlers -- mousemove handler to show the cursor info
-     * and mouseleave handler to hide the cursor info
+     * Check mouse entering/exiting the scale sticker. 
+     * Hide it when entering and show it again when exiting.
+     *
+     * @param {MouseEvent} e mouse move/leave event
+     * @return {boolean} true if mouse entering into the scale sticker
      */
-    function _addCursorInfoTip() {
-        var $cursorInfo = $("<div id='cursor-info'>").appendTo($("#img")).hide();
-        
-        $("#img-preview").on("mousemove", function (e) {
-            var x = _scale ? Math.floor(e.offsetX * 100 / _scale) : e.offsetX,
-                y = _scale ? Math.floor(e.offsetY * 100 / _scale) : e.offsetY,
-                tip = "x: ",
-                position = $("#img-preview").position(),
-                left = e.offsetX + position.left,
-                top = e.offsetY + position.top,
-                xyDigitDelta = x.toString().length - y.toString().length,
-                windowWidth = $(window).width(),
-                fourDigitImageWidth = _naturalWidth.toString().length === 4,
-                infoWidth1 = 112,       // info div width 96px + vertical toolbar width 16px
-                infoWidth2 = 120,       // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
-                tipOffsetX = 6,         // adjustment for info div left from x coordinate of cursor
-                tipOffsetY = -48,       // adjustment for info div top from y coordinate of cursor
-                tipMinusOffsetX1 = -84, // for less than 4-digit image width
-                tipMinusOffsetX2 = -92; // for 4-digit image width 
+    function _handleMouseEnterOrExitScaleSticker(e) {
+        var imagePos = $("#img-preview").position(),
+            scaleDivPos = $("#img-scale").position(),
+            left = e.offsetX + imagePos.left,
+            top = e.offsetY + imagePos.top,
+            mouseInScaleDiv = $(e.target).is("#img-scale");
             
-            if ((e.pageX + infoWidth1) > windowWidth ||
-                    (fourDigitImageWidth && (e.pageX + infoWidth2) > windowWidth)) {
-                tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
+        if (mouseInScaleDiv) {
+            // Handle mouse inside image scale div.
+            // But hide it only if the pixel under mouse is also in the image.
+            if ((e.offsetX + scaleDivPos.left) < (imagePos.left + $("#img-preview").width()) &&
+                    (e.offsetY + scaleDivPos.top) < (imagePos.top + $("#img-preview").height())) {
+                // Remember image scale div coordinates before hiding it.
+                _scaleDivInfo = {left: scaleDivPos.left,
+                                 top: scaleDivPos.top,
+                                 right: scaleDivPos.left + $("#img-scale").width(),
+                                 bottom: scaleDivPos.top + $("#img-scale").height()};
+                $("#img-scale").hide();
             }
-            
-            // For some reason we're getting -1 for e.offset when hovering over the very 
-            // first pixel of a scaled image. So adjust x to 0 if it is negative.
-            if (x < 0) {
-                x = 0;
-                xyDigitDelta--;     // Skip the minus sign in x coordinate
+        } else if (_scaleDivInfo) {
+            // See whether the cursor is no longer inside the hidden scale div.
+            // If so, show it again.
+            if ((left < _scaleDivInfo.left || left > _scaleDivInfo.right) ||
+                    (top < _scaleDivInfo.top || top > _scaleDivInfo.bottom)) {
+                _scaleDivInfo = null;
+                $("#img-scale").show();
             }
-            
-            // Pad non-breaking spaces before x coordinate so that x and y are vertically aligned.
-            while (xyDigitDelta < 0) {
-                tip += "&nbsp;";
-                xyDigitDelta++;
-            }
-
-            tip += x + " px<br>y: ";
-
-            // Pad non-breaking spaces before y coordinate so that x and y are vertically aligned.
-            while (xyDigitDelta > 0) {
-                tip += "&nbsp;";
-                xyDigitDelta--;
-            }
-            tip += y + " px";
-
-            $cursorInfo.html(tip).css({
-                left: left + tipOffsetX,
-                top: top + tipOffsetY
-            }).show();
-        });
-        
-        $("#img-preview").on("mouseleave", function () {
-            $cursorInfo.hide();
-        });
+        }
+        return mouseInScaleDiv;
     }
     
+    /**
+     * Show image coordinates under the mouse cursor
+     *
+     * @param {MouseEvent} e mouse move event
+     */
+    function _showImageTip(e) {
+        // Don't show image tip if _scale is close to zero.
+        // since we won't have enough room to show tip anyway.
+        if (Math.floor(_scale) === 0) {
+            return;
+        }
+        
+        var x = Math.floor(e.offsetX * 100 / _scale),
+            y = Math.floor(e.offsetY * 100 / _scale),
+            spacePadding = "",
+            imagePos = $("#img-preview").position(),
+            left = e.offsetX + imagePos.left,
+            top = e.offsetY + imagePos.top,
+            xyDigitDelta = x.toString().length - y.toString().length,
+            windowWidth = $(window).width(),
+            fourDigitImageWidth = _naturalWidth.toString().length === 4,
+            infoWidth1 = 112,       // info div width 96px + vertical toolbar width 16px
+            infoWidth2 = 120,       // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
+            tipOffsetX = 6,         // adjustment for info div left from x coordinate of cursor
+            tipOffsetY = -48,       // adjustment for info div top from y coordinate of cursor
+            tipMinusOffsetX1 = -84, // for less than 4-digit image width
+            tipMinusOffsetX2 = -92; // for 4-digit image width 
+        
+        if (_handleMouseEnterOrExitScaleSticker(e)) {
+            // If we're in the scale sticker, then just return.
+            return;
+        }
+        
+        // Check whether to show the image tip on the left.
+        if ((e.pageX + infoWidth1) > windowWidth ||
+                (fourDigitImageWidth && (e.pageX + infoWidth2) > windowWidth)) {
+            tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
+        }
+        
+        // For some reason we're getting -1 for e.offset when hovering over the very 
+        // first pixel of a scaled image. So adjust x to 0 if it is negative.
+        if (x < 0) {
+            x = 0;
+            xyDigitDelta--;     // Skip the minus sign in x coordinate
+        }
+        
+        // Pad non-breaking spaces before x coordinate so that x and y are vertically aligned.
+        while (xyDigitDelta < 0) {
+            spacePadding += "&nbsp;";
+            xyDigitDelta++;
+        }
+        $("#x-coordinate").html("x: " + spacePadding + x + " px");
+
+        spacePadding = "";
+        // Pad non-breaking spaces before y coordinate so that x and y are vertically aligned.
+        while (xyDigitDelta > 0) {
+            spacePadding += "&nbsp;";
+            xyDigitDelta--;
+        }
+        $("#y-coordinate").html("y: " + spacePadding + y + " px");
+
+        $("#img-tip").css({
+            left: left + tipOffsetX,
+            top: top + tipOffsetY
+        }).show();
+    }
+    
+    /**
+     * Show image coordinates under the mouse cursor
+     *
+     * @param {MouseEvent} e mouse leave event
+     */
+    function _hideImageTip(e) {
+        $("#img-tip").hide();
+        
+        // Ensure image scale div is visible when mouse is outside of the image.
+        if ($(e.target).is("#img-preview")) {
+            $("#img-scale").show();
+        }
+    }
+
     /**
      * creates a DOM node to place in the editor-holder
      * in order to display an image.
@@ -151,6 +208,8 @@ define(function (require, exports, module) {
     function _removeListeners() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
+        $("#img").off("mousemove", "#img-preview, #img-scale", _showImageTip)
+                 .off("mouseleave", "#img-preview, #img-scale", _hideImageTip);
     }
     
     /** 
@@ -186,8 +245,12 @@ define(function (require, exports, module) {
             // listen to removal to stop listening to resize events
             $(EditorManager).on("removeCustomViewer", _removeListeners);
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
+
+            $("#img-tip").hide();
+            $("#img").on("mousemove", "#img-preview, #img-scale", _showImageTip)
+                     .on("mouseleave", "#img-preview, #img-scale", _hideImageTip);
+
             _updateScale($(this).width());
-            _addCursorInfoTip();
         });
     }
     
