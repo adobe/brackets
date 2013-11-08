@@ -64,7 +64,9 @@ define(function (require, exports, module) {
             currentPath = $("#img-path").text();
 
         if (currentPath === oldRelPath) {
-            $("#img-path").text(ProjectManager.makeProjectRelativeIfPossible(newName));
+            var newRelName = ProjectManager.makeProjectRelativeIfPossible(newName);
+            $("#img-path").text(newRelName)
+                .attr("title", newRelName);
         }
     }
 
@@ -94,7 +96,8 @@ define(function (require, exports, module) {
     function render(fullPath) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
-        $("#img-path").text(relPath);
+        $("#img-path").text(relPath)
+                .attr("title", relPath);
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
@@ -109,7 +112,11 @@ define(function (require, exports, module) {
                     if (stat.size) {
                         sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
                     }
-                    $("#img-data").html(dimensionString + sizeString);
+                    var dimensionAndSize = dimensionString + sizeString;
+                    $("#img-data").html(dimensionAndSize)
+                        .attr("title", dimensionAndSize
+                                        .replace("&times;", "x")
+                                        .replace("&mdash;", "-"));
                 }
             });
             $("#image-holder").show();
