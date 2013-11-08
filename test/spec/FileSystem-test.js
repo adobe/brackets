@@ -197,12 +197,19 @@ define(function (require, exports, module) {
                 expect(file.name).toBe("file3.txt");
                 expect(directory.name).toBe("foo");
             });
-            it("should have a parentPath property", function () {
+            it("should have a parentPath property if it is not a root directory", function () {
                 var file = fileSystem.getFileForPath("/subdir/file3.txt"),
                     directory = fileSystem.getDirectoryForPath("/subdir/foo/");
                 
                 expect(file.parentPath).toBe("/subdir/");
                 expect(directory.parentPath).toBe("/subdir/");
+            });
+            it("should not have a parentPath property if it is a root directory", function () {
+                var unixRootDir = fileSystem.getDirectoryForPath("/"),
+                    winRootDir = fileSystem.getDirectoryForPath("B:");
+                
+                expect(unixRootDir.parentPath).toBeNull();
+                expect(winRootDir.parentPath).toBeNull();
             });
         });
         
