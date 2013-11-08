@@ -67,8 +67,8 @@ define({
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
 	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
 
@@ -468,7 +468,7 @@ define({
 	"LOCALE_HU": "Hongrois",
     
     // extensions/default/InlineTimingFunctionEditor
-	"INLINE_TIMING_EDITOR_TIME": "Durée",
+	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor

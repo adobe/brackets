@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
-    require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
+    require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),

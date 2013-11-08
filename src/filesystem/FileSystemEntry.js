@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var FileSystemError = require("filesystem/FileSystemError");
     
-    var VISIT_DEFAULT_MAX_DEPTH = 10,
+    var VISIT_DEFAULT_MAX_DEPTH = 100,
         VISIT_DEFAULT_MAX_ENTRIES = 30000;
     
     /* Counter to give every entry a unique id */
@@ -199,8 +199,6 @@ define(function (require, exports, module) {
                     this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
                 }
                 callback(err);  // notify caller
-            } catch (ex) {
-                console.warn("Unhandled exception in callback: ", ex);
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }

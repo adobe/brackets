@@ -171,9 +171,12 @@ define(function (require, exports, module) {
     window.waitsForDone = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
+        promise.fail(function (err) {
+            expect("[" + operationName + "] promise rejected with: " + err).toBe(null);
+        });
         waitsFor(function () {
             return promise.state() === "resolved";
-        }, "success " + operationName, timeout);
+        }, "success [" + operationName + "]", timeout);
     };
 
     /**

@@ -209,8 +209,6 @@ define(function (require, exports, module) {
                 stat(path, function (err, stat) {
                     try {
                         callback(err, stat);
-                    } catch (ex) {
-                        console.warn("Unhandled exception in callback: ", ex);
                     } finally {
                         // Fake a file-watcher result until real watchers respond quickly
                         _changeCallback(_parentPath(path));
@@ -272,8 +270,6 @@ define(function (require, exports, module) {
                     stat(path, function (err, stat) {
                         try {
                             callback(err, stat);
-                        } catch (ex) {
-                            console.warn("Unhandled exception in callback: ", ex);
                         } finally {
                             // Fake a file-watcher result until real watchers respond quickly
                             if (alreadyExists) {
@@ -293,8 +289,6 @@ define(function (require, exports, module) {
         appshell.fs.unlink(path, function (err) {
             try {
                 callback(_mapError(err));
-            } catch (ex) {
-                console.warn("Unhandled exception in callback: ", ex);
             } finally {
                 // Fake a file-watcher result until real watchers respond quickly
                 _changeCallback(_parentPath(path));
@@ -306,8 +300,6 @@ define(function (require, exports, module) {
         appshell.fs.moveToTrash(path, function (err) {
             try {
                 callback(_mapError(err));
-            } catch (ex) {
-                console.warn("Unhandled exception in callback: ", ex);
             } finally {
                 // Fake a file-watcher result until real watchers respond quickly
                 _changeCallback(_parentPath(path));
