@@ -65,7 +65,7 @@ define(function (require, exports, module) {
 
         if (currentPath === oldRelPath) {
             var newRelName = ProjectManager.makeProjectRelativeIfPossible(newName);
-            $("#img-path").html(newRelName)
+            $("#img-path").text(newRelName)
                 .attr("title", newRelName);
         }
     }
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
     function render(fullPath) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
-        $("#img-path").html(relPath)
+        $("#img-path").text(relPath)
                 .attr("title", relPath);
         $("#img-preview").on("load", function () {
             // add dimensions and size
