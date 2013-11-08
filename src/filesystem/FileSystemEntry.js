@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var FileSystemError = require("filesystem/FileSystemError");
     
-    var VISIT_DEFAULT_MAX_DEPTH = 10,
+    var VISIT_DEFAULT_MAX_DEPTH = 100,
         VISIT_DEFAULT_MAX_ENTRIES = 30000;
     
     /* Counter to give every entry a unique id */
