@@ -76,7 +76,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        FileIndexManager        = require("project/FileIndexManager"),
+        FileSystem              = require("filesystem/FileSystem"),
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
@@ -89,7 +89,6 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
@@ -114,8 +113,17 @@ define(function (require, exports, module) {
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
     
+    // Compatibility shims for filesystem API migration
+    require("project/FileIndexManager");
+    require("file/NativeFileSystem");
+    require("file/NativeFileError");
+    
     PerfUtils.addMeasurement("brackets module dependencies resolved");
+    
 
+    // Initialize the file system
+    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    
     // Local variables
     var params = new UrlParams();
     
@@ -141,7 +149,7 @@ define(function (require, exports, module) {
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
             FileSyncManager         : FileSyncManager,
-            FileIndexManager        : FileIndexManager,
+            FileSystem              : FileSystem,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
@@ -162,6 +170,7 @@ define(function (require, exports, module) {
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            LanguageManager         : LanguageManager,
             doneLoading             : false
         };
 
@@ -172,7 +181,7 @@ define(function (require, exports, module) {
             
     function _onReady() {
         PerfUtils.addMeasurement("window.document Ready");
-        
+
         EditorManager.setEditorHolder($("#editor-holder"));
 
         // Let the user know Brackets doesn't run in a web browser yet
@@ -223,12 +232,14 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                            
-                            dirEntry.getFile("index.html", {}, function (fileEntry) {
-                                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.then(deferred.resolve, deferred.reject);
-                            }, deferred.reject);
+                            FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
+                                if (!err) {
+                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
+                                    promise.then(deferred.resolve, deferred.reject);
+                                } else {
+                                    deferred.reject();
+                                }
+                            });
                         } else {
                             deferred.resolve();
                         }
@@ -333,8 +344,9 @@ define(function (require, exports, module) {
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
+            // This call to syncOpenDocuments() *should* be a no-op now that we have
+            // file watchers, but is still here as a safety net.
             FileSyncManager.syncOpenDocuments();
-            FileIndexManager.markDirty();
         });
         
         // Prevent unhandled middle button clicks from triggering native behavior

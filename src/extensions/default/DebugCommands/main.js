@@ -35,8 +35,8 @@ define(function (require, exports, module) {
         KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
         Menus                  = brackets.getModule("command/Menus"),
         Editor                 = brackets.getModule("editor/Editor").Editor,
+        FileSystem             = brackets.getModule("filesystem/FileSystem"),
         FileUtils              = brackets.getModule("file/FileUtils"),
-        NativeFileSystem       = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
         NativeApp              = brackets.getModule("utils/NativeApp"),
@@ -141,8 +141,9 @@ define(function (require, exports, module) {
     
     function _handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
-        NativeFileSystem.requestNativeFileSystem(stringsPath, function (fs) {
-            fs.root.createReader().readEntries(function (entries) {
+        
+        FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
+            if (!err) {
                 var $dialog,
                     $submit,
                     $select,
@@ -150,19 +151,19 @@ define(function (require, exports, module) {
                     curLocale = (brackets.isLocaleDefault() ? null : brackets.getLocale()),
                     languages = [];
                 
-                function setLanguage(event) {
+                var setLanguage = function (event) {
                     locale = $select.val();
                     $submit.prop("disabled", locale === (curLocale || ""));
-                }
+                };
                 
                 // returns the localized label for the given locale
                 // or the locale, if nothing found
-                function getLocalizedLabel(locale) {
+                var getLocalizedLabel = function (locale) {
                     var key  = "LOCALE_" + locale.toUpperCase().replace("-", "_"),
                         i18n = Strings[key];
                     
                     return i18n === undefined ? locale : i18n;
-                }
+                };
 
                 // add system default
                 languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
@@ -201,7 +202,7 @@ define(function (require, exports, module) {
                 $select = $dialog.find("select");
                 
                 $select.on("change", setLanguage).val(curLocale);
-            });
+            }
         });
     }
     
@@ -211,18 +212,18 @@ define(function (require, exports, module) {
         }
 
         // Check for the SpecRunner.html file
-        var fileEntry = new NativeFileSystem.FileEntry(
+        var file = FileSystem.getFileForPath(
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        fileEntry.getMetadata(
-            function (metadata) {
-                // If we sucessfully got the metadata for the SpecRunner.html file, 
-                // enable the menu item
+        file.exists(function (exists) {
+            if (exists) {
+                // If the SpecRunner.html file exists, enable the menu item.
+                // (menu item is already disabled, so no need to disable if the
+                // file doesn't exist).
                 CommandManager.get(DEBUG_RUN_UNIT_TESTS).setEnabled(true);
-            },
-            function (error) {} /* menu already disabled, ignore errors */
-        );
+            }
+        });
     }
 	
 	

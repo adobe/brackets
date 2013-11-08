@@ -42,13 +42,12 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
-        NativeFileSystem          = require("file/NativeFileSystem").NativeFileSystem,
-        NativeFileError           = require("file/NativeFileError"),
         SpecRunnerUtils           = require("spec/SpecRunnerUtils"),
         NativeApp                 = require("utils/NativeApp"),
         Dialogs                   = require("widgets/Dialogs"),
         CommandManager            = require("command/CommandManager"),
         Commands                  = require("command/Commands"),
+        FileSystem                = require("filesystem/FileSystem"),
         Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
@@ -609,6 +608,7 @@ define(function (require, exports, module) {
                 it("should unmark an extension for update, deleting the package and raising an event", function () {
                     var id = "registered-extension",
                         filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath(filename),
                         calledId;
                     runs(function () {
                         $(model).on("change", function (e, id) {
@@ -620,10 +620,10 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE"
                         });
                         calledId = null;
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         ExtensionManager.removeUpdate(id);
                         expect(calledId).toBe(id);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                     });
                 });
@@ -652,7 +652,8 @@ define(function (require, exports, module) {
                 
                 it("should update extensions marked for update", function () {
                     var id = "registered-extension",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath("/path/to/downloaded/file.zip");
                     runs(function () {
                         ExtensionManager.updateFromDownload({
                             localPath: filename,
@@ -660,14 +661,14 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE"
                         });
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         var d = $.Deferred();
                         spyOn(Package, "installUpdate").andReturn(d.promise());
                         d.resolve();
                         waitsForDone(ExtensionManager.updateExtensions());
                     });
                     runs(function () {
-                        expect(brackets.fs.unlink).not.toHaveBeenCalled();
+                        expect(file.unlink).not.toHaveBeenCalled();
                         expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                     });
                 });
@@ -1242,7 +1243,8 @@ define(function (require, exports, module) {
                 
                 it("should undo marking an extension for update", function () {
                     var id = "mock-extension-3",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath(filename);
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
@@ -1251,11 +1253,11 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE",
                             localPath: filename
                         });
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         $undoLink.click();
                         expect(ExtensionManager.isMarkedForUpdate(id)).toBe(false);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
                     });
@@ -1396,7 +1398,8 @@ define(function (require, exports, module) {
                     
                     it("should not update extensions or quit if the user hits Cancel on the confirmation dialog", function () {
                         var id = "mock-extension-3",
-                            filename = "/path/to/downloaded/file.zip";
+                            filename = "/path/to/downloaded/file.zip",
+                            file = FileSystem.getFileForPath(filename);
                         mockLoadExtensions(["user/" + id]);
                         setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                         runs(function () {
@@ -1406,14 +1409,14 @@ define(function (require, exports, module) {
                                 installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
                             });
                             expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
-                            spyOn(brackets.fs, "unlink");
+                            spyOn(file, "unlink");
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
-                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                            expect(file.unlink).toHaveBeenCalled();
                         });
                     });
                     

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21,33 +21,28 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
 
 /**
- * @deprecated
- * This is a compatibility shim for legacy Brackets APIs that will be removed soon. These
- * error codes are *never* returned anymore. Use error codes in FileSystemError instead.
+ * FileSystemError describes the errors that can occur when using the FileSystem, File,
+ * and Directory modules.
+ *
+ * Error values are strings. Any "falsy" value: null, undefined or "" means "no error".
  */
-define(function () {
+define(function (require, exports, module) {
     "use strict";
-   
-    /**
-     * @deprecated
-     */
-    var NativeFileError = {};
-    
-    NativeFileError.NOT_FOUND_ERR = "NotFoundError";
-    NativeFileError.SECURITY_ERR = "SecurityError";
-    NativeFileError.ABORT_ERR = "AbortError";
-    NativeFileError.NOT_READABLE_ERR = "NotReadableError";
-    NativeFileError.NO_MODIFICATION_ALLOWED_ERR = "NoModificationAllowedError";
-    NativeFileError.INVALID_STATE_ERR = "InvalidStateError";
-    NativeFileError.SYNTAX_ERR = "SyntaxError";
-    NativeFileError.INVALID_MODIFICATION_ERR = "InvalidModificationError";
-    NativeFileError.QUOTA_EXCEEDED_ERR = "QuotaExceededError";
-    NativeFileError.TYPE_MISMATCH_ERR = "TypeMismatchError";
-    NativeFileError.PATH_EXISTS_ERR = "PathExistsError";
-    
-    return NativeFileError;
+
+    module.exports = {
+        UNKNOWN             : "Unknown",
+        INVALID_PARAMS      : "InvalidParams",
+        NOT_FOUND           : "NotFound",
+        NOT_READABLE        : "NotReadable",
+        NOT_WRITABLE        : "NotWritable",
+        OUT_OF_SPACE        : "OutOfSpace",
+        TOO_MANY_ENTRIES    : "TooManyEntries",
+        ALREADY_EXISTS      : "AlreadyExists"
+        // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
+    };
 });
