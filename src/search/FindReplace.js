@@ -126,9 +126,7 @@ define(function (require, exports, module) {
                 return whole;
             }
         });
-        // we need to escape (\$) these chars in the regexp to avoid to get these parsed as
-        // normal regexp anchors
-        replaceWith = replaceWith.replace(/\$\$/g, "$$");
+        replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
     }
 
