@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
         DocumentManager = require("document/DocumentManager"),
+        FileSystem      = require("filesystem/FileSystem"),
         EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
@@ -100,34 +101,34 @@ define(function (require, exports, module) {
         var errorFiles = [],
             filteredFiles = filterFilesToOpen(files);
         
-        return Async.doInParallel(filteredFiles, function (file, idx) {
+        return Async.doInParallel(filteredFiles, function (path, idx) {
             var result = new $.Deferred();
             
-            // Only open files
-            brackets.fs.stat(file, function (err, stat) {
-                if (!err && stat.isFile()) {
+            // Only open files.
+            FileSystem.resolve(path, function (err, item) {
+                if (!err && item.isFile) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
                     if (idx < filteredFiles.length - 1) {
-                        if (DocumentManager.findInWorkingSet(file) !== -1) {
+                        if (DocumentManager.findInWorkingSet(path) !== -1) {
                             result.resolve();
                             return;
                         }
                     }
                     
                     CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
-                                           {fullPath: file, silent: true})
+                                           {fullPath: path, silent: true})
                         .done(function () {
                             result.resolve();
                         })
                         .fail(function () {
-                            errorFiles.push(file);
+                            errorFiles.push(path);
                             result.reject();
                         });
-                } else if (!err && stat.isDirectory() && filteredFiles.length === 1) {
+                } else if (!err && item.isDirectory && filteredFiles.length === 1) {
                     // One folder was dropped, open it.
-                    ProjectManager.openProject(file)
+                    ProjectManager.openProject(path)
                         .done(function () {
                             result.resolve();
                         })
@@ -136,7 +137,7 @@ define(function (require, exports, module) {
                             result.reject();
                         });
                 } else {
-                    errorFiles.push(file);
+                    errorFiles.push(path);
                     result.reject();
                 }
             });

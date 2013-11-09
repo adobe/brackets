@@ -37,10 +37,10 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+        FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         KeyEvent                = brackets.getModule("utils/KeyEvent"),
         FileUtils               = brackets.getModule("file/FileUtils"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         Strings                 = brackets.getModule("strings"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
@@ -60,7 +60,6 @@ define(function (require, exports, module) {
         $dropdownToggle,
         $dropdown,
         $links;
-    
     
     /**
      * Get the stored list of recent projects, fixing up paths as appropriate.
@@ -293,11 +292,11 @@ define(function (require, exports, module) {
                             var recentProjects = getRecentProjects(),
                                 index = recentProjects.indexOf(path);
                             if (index !== -1) {
-                                NativeFileSystem.requestNativeFileSystem(path,
-                                    function () {},
-                                    function () {
+                                FileSystem.resolve(path, function (err, item) {
+                                    if (err) {
                                         recentProjects.splice(index, 1);
-                                    });
+                                    }
+                                });
                             }
                         });
                     closeDropdown();
@@ -305,6 +304,7 @@ define(function (require, exports, module) {
                 } else if (id === "open-folder-link") {
                     CommandManager.execute(Commands.FILE_OPEN_FOLDER);
                 }
+                
             })
             .on("mouseenter", "a", function () {
                 if ($dropdownItem) {

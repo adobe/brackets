@@ -342,7 +342,7 @@ define(function (require, exports, module) {
     
     /**
      * HTML formats a file entry name  for display in the sidebar.
-     * @param {!FileEntry} entry File entry to display
+     * @param {!File} entry File entry to display
      * @return {string} HTML formatted string
      */
     function getFileEntryDisplay(entry) {

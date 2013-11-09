@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         PreferencesDialogs      = require("preferences/PreferencesDialogs"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
         DefaultDialogs          = require("widgets/DefaultDialogs"),
         FileServer              = require("LiveDevelopment/Servers/FileServer").FileServer,
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
                 instrumentedHtml = "",
                 elementIds = {},
                 testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
-                WellFormedFileEntry = new NativeFileSystem.FileEntry(testPath + "/wellformed.html");
+                WellFormedFileEntry = FileSystem.getFileForPath(testPath + "/wellformed.html");
           
             function init(fileEntry) {
                 if (fileEntry) {
@@ -974,7 +974,6 @@ define(function (require, exports, module) {
     
     describe("Default HTML Document", function () {
         var brackets,
-            FileIndexManager,
             LiveDevelopment,
             ProjectManager,
             testWindow;
@@ -986,7 +985,6 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     brackets = testWindow.brackets;
                     LiveDevelopment = brackets.test.LiveDevelopment;
-                    FileIndexManager = brackets.test.FileIndexManager;
                     ProjectManager = brackets.test.ProjectManager;
                 });
             });
@@ -994,7 +992,6 @@ define(function (require, exports, module) {
         
         afterLast(function () {
             brackets         = null;
-            FileIndexManager = null;
             LiveDevelopment  = null;
             ProjectManager   = null;
             testWindow       = null;
@@ -1002,9 +999,8 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
 
-        function loadFileAndUpdateFileIndex(fileToLoadIntoEditor) {
+        function loadFile(fileToLoadIntoEditor) {
             runs(function () {
-                FileIndexManager.markDirty();
                 waitsForDone(SpecRunnerUtils.openProjectFiles([fileToLoadIntoEditor]), "SpecRunnerUtils.openProjectFiles " + fileToLoadIntoEditor);
             });
         }
@@ -1043,7 +1039,7 @@ define(function (require, exports, module) {
                     indexFile = "sub/sub2/index.html";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-1");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
@@ -1068,7 +1064,7 @@ define(function (require, exports, module) {
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-2");
                 
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
@@ -1092,7 +1088,7 @@ define(function (require, exports, module) {
                     indexFile = "index.html";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-3");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
@@ -1116,7 +1112,7 @@ define(function (require, exports, module) {
                     indexFile = "sub/sub2/index.html";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-4");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
@@ -1140,7 +1136,7 @@ define(function (require, exports, module) {
                     indexFile = "sub/index.html";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-5");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
@@ -1163,7 +1159,7 @@ define(function (require, exports, module) {
                 var cssFile = "top2/test.css";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-6");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
@@ -1215,7 +1211,7 @@ define(function (require, exports, module) {
                     indexFile = "sub/sub2/index.php";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-1");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:1111/");
@@ -1240,7 +1236,7 @@ define(function (require, exports, module) {
                     indexFile = "sub/index.php";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-2");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:2222/");
@@ -1265,7 +1261,7 @@ define(function (require, exports, module) {
                     indexFile = "index.php";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-3");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
 
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:3333/");
@@ -1290,7 +1286,7 @@ define(function (require, exports, module) {
                     indexFile = "sub/index.php";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-5");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:5555/");
@@ -1314,7 +1310,7 @@ define(function (require, exports, module) {
                 var cssFile = "top2/test.css";
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-6");
-                loadFileAndUpdateFileIndex(cssFile);
+                loadFile(cssFile);
                 
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:6666/");
