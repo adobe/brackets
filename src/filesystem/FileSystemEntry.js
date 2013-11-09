@@ -261,7 +261,7 @@ define(function (require, exports, module) {
      * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    FileSystemEntry.prototype._visitHelper = function (visitor, options, callback) {
+    FileSystemEntry.prototype._visitHelper = function (visitor, options, realPaths, callback) {
         var failFast = options.failFast,
             maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
@@ -276,7 +276,22 @@ define(function (require, exports, module) {
             return;
         }
         
-        this.getContents(function (err, entries) {
+        this.getContents(function (err, entries, entriesStats) {
+            entries = entries.filter(function (entry, index) {
+                var stats = entriesStats[index];
+                if (stats.isFile || !stats.realPath) {
+                    return true;
+                } else {
+                    if (realPaths.hasOwnProperty(stats.realPath)) {
+                        console.warn("Cyclic link detected: ", entry.fullPath, stats.realPath);
+                        return false;
+                    } else {
+                        realPaths[stats.realPath] = true;
+                        return true;
+                    }
+                }
+            });
+            
             var counter = entries ? entries.length : 0,
                 nextOptions = {
                     failFast: failFast,
@@ -290,7 +305,7 @@ define(function (require, exports, module) {
             }
             
             entries.forEach(function (entry) {
-                entry._visitHelper(visitor, nextOptions, function (err) {
+                entry._visitHelper(visitor, nextOptions, realPaths, function (err) {
                     if (err && failFast) {
                         counter = 0;
                         callback(err);
@@ -336,7 +351,7 @@ define(function (require, exports, module) {
 
         options.maxEntriesCounter = { value: options.maxEntries };
         
-        this._visitHelper(visitor, options, function (err) {
+        this._visitHelper(visitor, options, {}, function (err) {
             if (callback) {
                 if (err) {
                     callback(err);
@@ -350,7 +365,7 @@ define(function (require, exports, module) {
                 
                 callback(null);
             }
-        });
+        }.bind(this));
     };
     
     // Export this class
