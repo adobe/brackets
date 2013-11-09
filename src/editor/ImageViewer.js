@@ -124,11 +124,9 @@ define(function (require, exports, module) {
         
         var x = Math.floor(e.offsetX * 100 / _scale),
             y = Math.floor(e.offsetY * 100 / _scale),
-            spacePadding = "",
             imagePos = $("#img-preview").position(),
             left = e.offsetX + imagePos.left,
             top = e.offsetY + imagePos.top,
-            xyDigitDelta = x.toString().length - y.toString().length,
             windowWidth = $(window).width(),
             fourDigitImageWidth = _naturalWidth.toString().length === 4,
             infoWidth1 = 112,       // info div width 96px + vertical toolbar width 16px
@@ -153,23 +151,10 @@ define(function (require, exports, module) {
         // first pixel of a scaled image. So adjust x to 0 if it is negative.
         if (x < 0) {
             x = 0;
-            xyDigitDelta--;     // Skip the minus sign in x coordinate
         }
-        
-        // Pad non-breaking spaces before x coordinate so that x and y are vertically aligned.
-        while (xyDigitDelta < 0) {
-            spacePadding += "&nbsp;";
-            xyDigitDelta++;
-        }
-        $("#x-coordinate").html("x: " + spacePadding + x + " px");
 
-        spacePadding = "";
-        // Pad non-breaking spaces before y coordinate so that x and y are vertically aligned.
-        while (xyDigitDelta > 0) {
-            spacePadding += "&nbsp;";
-            xyDigitDelta--;
-        }
-        $("#y-coordinate").html("y: " + spacePadding + y + " px");
+        $("#x-value").text(x + "px");
+        $("#y-value").text(y + "px");
 
         $("#img-tip").css({
             left: left + tipOffsetX,
