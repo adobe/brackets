@@ -631,12 +631,14 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
+    -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
+    -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
 }
 
