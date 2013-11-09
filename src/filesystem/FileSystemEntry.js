@@ -138,7 +138,13 @@ define(function (require, exports, module) {
         }
         this._name = parts[parts.length - 1];
         parts.pop(); // Remove name
-        this._parentPath = parts.join("/") + "/";
+        
+        if (parts.length > 0) {
+            this._parentPath = parts.join("/") + "/";
+        } else {
+            // root directories have no parent path
+            this._parentPath = null;
+        }
 
         this._path = newPath;
     };

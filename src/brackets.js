@@ -25,18 +25,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
-require.config({
-    paths: {
-        "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
-    },
-    // Use custom brackets property until CEF sets the correct navigator.language
-    // NOTE: When we change to navigator.language here, we also should change to
-    // navigator.language in ExtensionLoader (when making require contexts for each
-    // extension).
-    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
-});
-
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
@@ -119,10 +107,9 @@ define(function (require, exports, module) {
     require("file/NativeFileError");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
-    
 
     // Initialize the file system
-    FileSystem.init(require("filesystem/impls/node/NodeFileSystem"));
+    FileSystem.init(require("fileSystemImpl"));
     
     // Local variables
     var params = new UrlParams();

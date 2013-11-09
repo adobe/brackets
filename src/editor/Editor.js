@@ -1137,6 +1137,12 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             self = this;
 
+        function finishRemoving() {
+            self._codeMirror.removeLineWidget(inlineWidget.info);
+            self._removeInlineWidgetInternal(inlineWidget);
+            deferred.resolve();
+        }
+            
         if (!inlineWidget.closePromise) {
             var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
             
@@ -1146,13 +1152,17 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                .done(function () {
-                    self._codeMirror.removeLineWidget(inlineWidget.info);
-                    self._removeInlineWidgetInternal(inlineWidget);
-                    deferred.resolve();
-                });
-            inlineWidget.$htmlContent.height(0);
+            // If we're not visible (in which case the widget will have 0 client height),
+            // don't try to do the animation, because nothing will happen and we won't get
+            // called back right away. (The animation would happen later when we switch
+            // back to the editor.)
+            if (self.isFullyVisible()) {
+                AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                    .done(finishRemoving);
+                inlineWidget.$htmlContent.height(0);
+            } else {
+                finishRemoving();
+            }
             inlineWidget.closePromise = deferred.promise();
         }
         return inlineWidget.closePromise;

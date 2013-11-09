@@ -184,7 +184,7 @@ define(function (require, exports, module) {
             writeResults(resultsPath, reporter.toJSON());
         }
 
-        _writeResults.always(function () { window.close(); });
+        _writeResults.always(function () { brackets.app.quit(); });
     }
 
     /**
