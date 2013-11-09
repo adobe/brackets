@@ -235,6 +235,7 @@ define(function (require, exports, module) {
             $("#img").on("mousemove", "#img-preview, #img-scale", _showImageTip)
                      .on("mouseleave", "#img-preview, #img-scale", _hideImageTip);
 
+            _scale = 100;   // initialize to 100
             _updateScale($(this).width());
         });
     }
