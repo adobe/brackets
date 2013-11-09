@@ -77,15 +77,14 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
     var Async                = require("utils/Async"),
-        FileIndexManager     = require("project/FileIndexManager"),
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -569,7 +568,7 @@ define(function LiveDevelopment(require, exports, module) {
             // After (1) the interstitial page loads, (2) then browser navigation
             // to the base URL is completed, and (3) the agents finish loading
             // gather related documents and finally set status to STATUS_ACTIVE.
-            var doc = _liveDocument.doc;
+            var doc = (_liveDocument) ? _liveDocument.doc : null;
 
             if (doc) {
                 var status = STATUS_ACTIVE,
@@ -674,7 +673,7 @@ define(function LiveDevelopment(require, exports, module) {
         var baseUrl = ProjectManager.getBaseUrl(),
             hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
 
-        FileIndexManager.getFileInfoList("all").done(function (allFiles) {
+        ProjectManager.getAllFiles().done(function (allFiles) {
             var projectRoot = ProjectManager.getProjectRoot().fullPath,
                 containingFolder,
                 indexFileFound = false,
@@ -1090,7 +1089,7 @@ define(function LiveDevelopment(require, exports, module) {
                         var message;
 
                         _setStatus(STATUS_ERROR);
-                        if (err === NativeFileError.NOT_FOUND_ERR) {
+                        if (err === FileSystemError.NOT_FOUND) {
                             message = Strings.ERROR_CANT_FIND_CHROME;
                         } else {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);

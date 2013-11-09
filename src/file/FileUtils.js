@@ -33,82 +33,58 @@ define(function (require, exports, module) {
 
     require("utils/Global");
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        NativeFileError     = require("file/NativeFileError"),
+    var FileSystemError     = require("filesystem/FileSystemError"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        Encodings           = NativeFileSystem.Encodings;
+        StringUtils         = require("utils/StringUtils");
 
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
+     * @param {!File} file File to read
      * @return {$.Promise} a jQuery promise that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a NativeFileError if
+     *  file's text content plus its timestamp, or rejected with a FileSystemError if
      *  the file can not be read.
      */
-    function readAsText(fileEntry) {
-        var result = new $.Deferred(),
-            reader;
+    function readAsText(file) {
+        var result = new $.Deferred();
 
         // Measure performance
-        var perfTimerName = PerfUtils.markStart("readAsText:\t" + fileEntry.fullPath);
+        var perfTimerName = PerfUtils.markStart("readAsText:\t" + file.fullPath);
         result.always(function () {
             PerfUtils.addMeasurement(perfTimerName);
         });
 
         // Read file
-        reader = new NativeFileSystem.FileReader();
-        fileEntry.file(function (file) {
-            reader.onload = function (event) {
-                var text = event.target.result;
-                
-                fileEntry.getMetadata(
-                    function (metadata) {
-                        result.resolve(text, metadata.modificationTime);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
-            };
-
-            reader.onerror = function (event) {
-                result.reject(event.target.error);
-            };
-
-            reader.readAsText(file, Encodings.UTF8);
-        }, function (error) {
-            result.reject(error);
+        file.read(function (err, data, stat) {
+            if (!err) {
+                result.resolve(data, stat.mtime);
+            } else {
+                result.reject(err);
+            }
         });
-
+        
         return result.promise();
     }
     
     /**
      * Asynchronously writes a file as UTF-8 encoded text.
-     * @param {!FileEntry} fileEntry
+     * @param {!File} file File to write
      * @param {!string} text
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a NativeFileError.
+     * file writing completes, or rejected with a FileSystemError.
      */
-    function writeText(fileEntry, text) {
+    function writeText(file, text) {
         var result = new $.Deferred();
         
-        fileEntry.createWriter(function (fileWriter) {
-            fileWriter.onwriteend = function (e) {
+        file.write(text, function (err) {
+            if (!err) {
                 result.resolve();
-            };
-            fileWriter.onerror = function (err) {
+            } else {
                 result.reject(err);
-            };
-
-            // TODO (issue #241): NativeFileSystem.BlobBulder
-            fileWriter.write(text);
-        }, function (error) {
-            result.reject(error);
+            }
         });
         
         return result.promise();
@@ -167,11 +143,11 @@ define(function (require, exports, module) {
         // displayed with a generic "(error N)" message.
         var result;
 
-        if (name === NativeFileError.NOT_FOUND_ERR) {
+        if (name === FileSystemError.NOT_FOUND) {
             result = Strings.NOT_FOUND_ERR;
-        } else if (name === NativeFileError.NOT_READABLE_ERR) {
+        } else if (name === FileSystemError.NOT_READABLE) {
             result = Strings.NOT_READABLE_ERR;
-        } else if (name === NativeFileError.NO_MODIFICATION_ALLOWED_ERR) {
+        } else if (name === FileSystemError.NOT_WRITABLE) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
@@ -228,7 +204,7 @@ define(function (require, exports, module) {
     /**
      * Removes the trailing slash from a path, if it has one.
      * Warning: this differs from the format of most paths used in Brackets! Use paths ending in "/"
-     * normally, as this is the format used by DirectoryEntry.fullPath.
+     * normally, as this is the format used by Directory.fullPath.
      * 
      * @param {string} path
      * @return {string}
@@ -243,14 +219,14 @@ define(function (require, exports, module) {
     
     /**
      * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by DirectoryEntry.fullPath actually DOES include the trailing "/"
+     * used by Directory.fullPath actually DOES include the trailing "/"
      * @deprecated
      * 
      * @param {string} path
      * @return {string}
      */
     function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like DirectoryEntry.fullPath");
+        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
         return stripTrailingSlash(path);
     }
     
@@ -304,52 +280,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Checks wheter a path is affected by a rename operation.
-     * A path is affected if the object being renamed is a file and the given path refers
-     * to that file or if the object being renamed is a directory and a prefix of the path.
-     * Always checking for prefixes can create conflicts:
-     * renaming file "foo" should not affect file "foobar/baz" even though "foo" is a prefix of "foobar".
-     * @param {!string} path The path potentially affected
-     * @param {!string} oldName An object's name before renaming
-     * @param {!string} newName An object's name after renaming
-     * @param {?boolean} isFolder Whether the renamed object is a folder or not
-     */
-    function isAffectedWhenRenaming(path, oldName, newName, isFolder) {
-        isFolder = isFolder || oldName.slice(-1) === "/";
-        return (isFolder && path.indexOf(oldName) === 0) || (!isFolder && path === oldName);
-    }
-    
-    /**
-     * Update a file entry path after a file/folder name change.
-     * @param {FileEntry} entry The FileEntry or DirectoryEntry to update
-     * @param {string} oldName The full path of the old name
-     * @param {string} newName The full path of the new name
-     * @return {boolean} Returns true if the file entry was updated
-     */
-    function updateFileEntryPath(entry, oldName, newName, isFolder) {
-        if (isAffectedWhenRenaming(entry.fullPath, oldName, newName, isFolder)) {
-            var oldFullPath = entry.fullPath;
-            var fullPath = oldFullPath.replace(oldName, newName);
-            entry.fullPath = fullPath;
-            
-            // TODO: Should this be a method on Entry instead?
-            entry.name = null; // default if extraction fails
-            if (fullPath) {
-                var pathParts = fullPath.split("/");
-                
-                // Extract name from the end of the fullPath (account for trailing slash(es))
-                while (!entry.name && pathParts.length) {
-                    entry.name = pathParts.pop();
-                }
-            }
-            
-            return true;
-        }
-        
-        return false;
-    }
-
-    /**
      * Get the file extension (excluding ".") given a path OR a bare filename.
      * Returns "" for names with no extension. If the name starts with ".", the
      * full remaining text is considered the extension.
@@ -367,20 +297,6 @@ define(function (require, exports, module) {
         }
 
         return baseName.substr(idx + 1);
-    }
-
-    /**
-     * Similar to getFileExtension(), but includes the leading "." in the returned value.
-     * @deprecated Use getFileExtension() instead. This API will be removed soon.
-     */
-    function getFilenameExtension(fullPath) {
-        console.error("Warning: FileUtils.getFilenameExtension() is deprecated. Use FileUtils.getFileExtension() (which omits the '.') instead.");
-        
-        var ext = getFileExtension(fullPath);
-        if (ext !== "") {
-            ext = "." + ext;
-        }
-        return ext;
     }
 
     /** @const - hard-coded for now, but may want to make these preferences */
@@ -474,13 +390,10 @@ define(function (require, exports, module) {
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
-    exports.isAffectedWhenRenaming         = isAffectedWhenRenaming;
-    exports.updateFileEntryPath            = updateFileEntryPath;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getFileExtension               = getFileExtension;
-    exports.getFilenameExtension           = getFilenameExtension;
     exports.compareFilenames               = compareFilenames;
 });

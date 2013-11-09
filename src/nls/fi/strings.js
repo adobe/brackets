@@ -135,12 +135,12 @@ define({
     "NO_UPDATE_TITLE"                   : "Olet ajantasalla!",
     "NO_UPDATE_MESSAGE"                 : "Käytät uusinta versiota sovelluksesta {APP_NAME}.",
     
-    "FIND_REPLACE_TITLE_PART1"          : "Korvaa \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" merkkijonolla \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    "FIND_REPLACE_TITLE_PART1"          : "Korvaa ”",
+    "FIND_REPLACE_TITLE_PART2"          : "” merkkijonolla ”",
+    "FIND_REPLACE_TITLE_PART3"          : "” &mdash; {2} {0} {1}",
 
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" löytyi",
+    "FIND_IN_FILES_TITLE_PART1"         : "”",
+    "FIND_IN_FILES_TITLE_PART2"         : "” löytyi",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "kohteesta <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "projektissa",
@@ -330,8 +330,8 @@ define({
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun URL-osoite",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Käyttääksesi paikallista palvelinta anna URL, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
-    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei saa sisältää hakuparametreja, kuten \"{0}\".",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei saa sisältää ristikkomerkkejä, kuten \"{0}\".",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei saa sisältää hakuparametreja, kuten ”{0}”.",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei saa sisältää ristikkomerkkejä, kuten ”{0}”.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten '{0}', täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
     
@@ -343,7 +343,7 @@ define({
     "UPDATE"                               : "Päivitä",
     "REMOVE"                               : "Poista",
     "OVERWRITE"                            : "Ylikirjoita",
-    "CANT_REMOVE_DEV"                      : "Laajennukset \"dev\"-kansiossa on poistettava käsin.",
+    "CANT_REMOVE_DEV"                      : "Laajennukset ”dev”-kansiossa on poistettava käsin.",
     "CANT_UPDATE"                          : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa.",
     "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
     "UPDATE_EXTENSION_TITLE"               : "Päivitä laajennus",
@@ -410,7 +410,7 @@ define({
     "CHANGE_AND_QUIT"                      : "Muuta laajennuksia ja poistu",
     "UPDATE_AND_QUIT"                      : "Päivitä laajennukset ja poistu",
     "EXTENSION_NOT_INSTALLED"              : "Ei voida poistaa laajennusta {0}, koska sitä ei ole asennettu.",
-    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta \"Asenna URL-osoitteesta\" -painiketta alhaalta aloittaaksesi.",
+    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta ”Asenna URL-osoitteesta” -painiketta alhaalta aloittaaksesi.",
     "NO_EXTENSION_MATCHES"                 : "Mikään laajennus ei vastannut hakuasi.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Asennettu",
@@ -418,7 +418,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Vastaavuuksia ei saatavilla.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta \"Uusi sääntö\" luodaksesi uuden.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta ”Uusi sääntö” luodaksesi uuden.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projektissasi ei ole tyylitiedostoja.<br>Luo sellainen lisätäksesi CSS-sääntöjä.",
     
     /**

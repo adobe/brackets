@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
         NativeApp       = require("utils/NativeApp"),
+        FileSystem,
         Strings;
 
     describe("Install Extension Dialog", function () {
@@ -44,6 +45,7 @@ define(function (require, exports, module) {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
                 Strings = testWindow.require("strings");
+                FileSystem = testWindow.brackets.test.FileSystem;
             });
         });
         
@@ -725,14 +727,15 @@ define(function (require, exports, module) {
                     installer = makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
-                var packageFilename = "/path/to/downloaded/package.zip";
+                var packageFilename = "/path/to/downloaded/package.zip",
+                    file = FileSystem.getFileForPath(packageFilename);
                 deferred.resolve({
                     installationStatus: "ALREADY_INSTALLED",
                     localPath: packageFilename
                 });
-                spyOn(testWindow.brackets.fs, "unlink");
+                spyOn(file, "unlink");
                 fields.$cancelButton.click();
-                expect(testWindow.brackets.fs.unlink).toHaveBeenCalledWith(packageFilename, jasmine.any(Function));
+                expect(file.unlink).toHaveBeenCalled();
                 expect(fields.$dlg.is(":visible")).toBe(false);
             });
             
@@ -741,19 +744,20 @@ define(function (require, exports, module) {
                     installer = makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
-                var packageFilename = "/path/to/downloaded/package.zip";
+                var packageFilename = "/path/to/downloaded/package.zip",
+                    file = FileSystem.getFileForPath(packageFilename);
                 deferred.resolve({
                     installationStatus: "ALREADY_INSTALLED",
                     localPath: packageFilename
                 });
-                spyOn(testWindow.brackets.fs, "unlink");
+                spyOn(file, "unlink");
                 var dialogDone = false;
                 dialog._dialogDeferred.done(function (result) {
                     dialogDone = true;
                     expect(result.installationStatus).toBe("ALREADY_INSTALLED");
                 });
                 fields.$okButton.click();
-                expect(testWindow.brackets.fs.unlink).not.toHaveBeenCalled();
+                expect(file.unlink).not.toHaveBeenCalled();
                 expect(fields.$dlg.is(":visible")).toBe(false);
                 expect(dialogDone).toBe(true);
             });
