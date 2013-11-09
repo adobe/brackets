@@ -70,6 +70,10 @@
     }
     &.jstree-closed, &.jstree-open {
         margin-left: 10px;
+        > ul {
+            -webkit-animation: jstree 90ms cubic-bezier(.01, .91, 0, .99) 1;
+            -webkit-transform-origin: 0 0;
+        }
         > a {
             color: @project-panel-text-2;
         }
@@ -77,6 +81,11 @@
     &.jstree-leaf {
         margin-left: 10px;
     }
+}
+
+@-webkit-keyframes jstree {
+    0%   { opacity: 0.5; -webkit-transform: translate3d(0, 0, 0) scale(0.5); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .jstree ins {
