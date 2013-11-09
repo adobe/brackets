@@ -191,13 +191,36 @@ define(function (require, exports, module) {
                 $(this).tab("show");
             });
         
+        // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount
+        function updateNotificationIcon(index) {
+            var model = models[index],
+                $notificationIcon = $dlg.find(".nav-tabs li").eq(index).find(".notification");
+            if (model.notifyCount) {
+                $notificationIcon.text(model.notifyCount);
+                $notificationIcon.show();
+            } else {
+                $notificationIcon.hide();
+            }
+        }
+        
         // Initialize models and create a view for each model
         var modelInitPromise = Async.doInParallel(models, function (model, index) {
             var view    = new ExtensionManagerView(),
-                promise = view.initialize(model);
+                promise = view.initialize(model),
+                lastNotifyCount;
             
             promise.always(function () {
                 views[index] = view;
+                
+                lastNotifyCount = model.notifyCount;
+                updateNotificationIcon(index);
+            });
+            
+            $(model).on("change", function () {
+                if (lastNotifyCount !== model.notifyCount) {
+                    lastNotifyCount = model.notifyCount;
+                    updateNotificationIcon(index);
+                }
             });
             
             return promise;

@@ -270,23 +270,34 @@ a, img {
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
         max-height: 90%;
     }
+
+    #img-header {
+        display: inline-block;
+        width: 100%;
+        height: 38px;
+        margin-bottom: 15px;
+    }
     
     #img-data,
     #img-path {
         text-align: left;
         .user-select(text);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;        
     }
     
     #img-data::selection,
     #img-path::selection {
         background: @selection-color-focused;
     }
-    
-    #img-path {
-        margin: 0 0 15px;
-    }
+
     #img {
         position: relative;
+        
+        /* These properties keep the img percentage sticky */
+        display: inline-block;
+        min-width: 1px;
     }
     
     #img-scale {
@@ -297,9 +308,10 @@ a, img {
         left: 5px;
         width: 40px;
         text-align: center;
-        background-color: rgba(0,0,0,0.8);
-        color: white;
-        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
 }
 
@@ -711,7 +723,7 @@ a, img {
                 .bracket-sprite;
                 display: inline-block;
                 background-position: -32px 2px;
-                padding-top: 3px;
+                padding-top: 5px;
             }
 
             .line-number {
@@ -1088,14 +1100,18 @@ a, img {
         list-style: none;
         cursor: default;
         padding: 6px 10px;
-    }
+        
+        &:nth-child(odd) {
+            background-color: @tc-lighter-gray;
+        }
+        
+        &:hover {
+            background-color: @tc-hover-highlight;
+        }
 
-    li:nth-child(odd) {
-        background-color: @tc-lighter-gray;
-    }
-
-    li.smart_autocomplete_highlight {
-        background-color: @tc-highlight;
+        &.smart_autocomplete_highlight {
+            background-color: @tc-highlight;
+        }
     }
 }
 
