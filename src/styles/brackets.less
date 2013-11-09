@@ -1073,6 +1073,10 @@ a, img {
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
     box-shadow: @tc-dropdown-shadow;
+    opacity: 0;
+    -webkit-animation: autocomplete 90ms cubic-bezier(.01, .91, 0, .99) 190ms 1;
+    -webkit-animation-fill-mode: forwards;
+    -webkit-transform-origin: 0 0;
 
     // so that border won't show when height is 0.
     box-sizing: border-box;
@@ -1111,6 +1115,11 @@ a, img {
             background-color: @tc-highlight;
         }
     }
+}
+
+@-webkit-keyframes autocomplete {
+    0%   { opacity: 0.6; -webkit-transform: translate3d(0, 0, 0) scale(0.6); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .quicksearch-pathmatch,
