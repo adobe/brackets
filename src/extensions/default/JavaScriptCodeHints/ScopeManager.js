@@ -172,65 +172,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     *  For each file in a directory get a callback with the path of the javascript
-     *  file or directory.
-     *
-     *  dotfiles are ignored.
-     *
-     * @param {string} dir - directory in which to list the files.
-     * @param {function()} doneCallback - called after all of the files have
-     * been listed.
-     * @param {function(string)} fileCallback - callback for javascript files.
-     * The function is passed the full path name of the file.
-     * @param {!function(string)=} directoryCallback - callback for directory
-     * files. The function is passed the full path name of the file (optional).
-     * @param {!function(string)=} errorCallback - Callback for errors (optional).
-     */
-    function forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback, errorCallback) {
-        var files = [];
-        
-        FileSystem.resolve(dir, function (err, directory) {
-            if (!err && directory.isDirectory) {
-                directory.getContents(function (err, contents) {
-                    if (!err) {
-                        contents.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
-                            var path    = entry.fullPath,
-                                split   = HintUtils.splitPath(path),
-                                file    = split.file;
-        
-                            if (fileCallback && entry.isFile) {
-        
-                                if (file.indexOf(".") > 0) { // ignore .dotfiles
-                                    var languageID = LanguageManager.getLanguageForPath(path).getId();
-                                    if (languageID === HintUtils.LANGUAGE_ID) {
-                                        fileCallback(path);
-                                    }
-                                }
-                            } else if (directoryCallback && entry.isDirectory) {
-                                var dirName = HintUtils.splitPath(split.dir).file;
-                                if (dirName.indexOf(".") !== 0) { // ignore .dotfiles
-                                    directoryCallback(entry.fullPath);
-                                }
-                            }
-                        });
-                        doneCallback();
-                    } else {
-                        if (errorCallback) {
-                            errorCallback(err);
-                        }
-                        console.log("Unable to refresh directory: ", err);
-                    }
-                });
-            } else {
-                if (errorCallback) {
-                    errorCallback(err);
-                }
-                console.log("Directory \"%s\" does not exist", dir);
-            }
-        });
-    }
-
-    /**
      * Test if the directory should be excluded from analysis.
      *
      * @param {!string} path - full directory path.
@@ -265,39 +206,6 @@ define(function (require, exports, module) {
         var file = HintUtils.splitPath(path).file;
 
         return excludes.test(file);
-    }
-
-    /**
-     *  Get a list of javascript files in a given directory.
-     *
-     * @param {string} dir - directory to list the files of.
-     * @param {function(Array.<string>)} successCallback - callback with
-     * array of file path names.
-     * @param {function(Array.<string>)} errorCallback - callback for
-     * when an error occurs.
-     */
-    function getFilesInDirectory(dir, successCallback, errorCallback) {
-        var files = []; // file names without paths.
-
-        /**
-         *  Call the success callback with all of the found files.
-         */
-        function doneCallback() {
-            successCallback(files);
-        }
-
-        /**
-         *  Add files to global list.
-         *
-         * @param path - full path of file.
-         */
-        function fileCallback(path) {
-            if (!isFileExcluded(path)) {
-                files.push(path);
-            }
-        }
-
-        forEachFileInDirectory(dir, doneCallback, fileCallback, null, errorCallback);
     }
 
     /**
@@ -971,74 +879,32 @@ define(function (require, exports, module) {
          * added to tern.
          */
         function addAllFilesAndSubdirectories(dir, doneCallback) {
-    
-            var numDirectoriesLeft = 1;        // number of directories to process
-    
-            /**
-             *  Add the files in the directory and subdirectories of a given directory
-             *  to tern, excluding the rootTernDir).
-             *
-             * @param {string} dir - the root directory to add.
-             * @param {function()} successCallback - callback when
-             * done processing files.
-             */
-            function addAllFilesRecursively(dir, successCallback) {
-    
-                var files = [],
-                    dirs = [];
-    
-                function doneCallback() {
-                    numDirectoriesLeft--;
-    
-                    if (!stopAddingFiles && files.length > 0 &&
-                            (dir + "/") !== rootTernDir) {
-                        addFilesToTern(files);
-                    }
-    
-                    if (!stopAddingFiles) {
-                        dirs.forEach(function (path) {
-                            var dir = HintUtils.splitPath(path).dir;
-                            if (!stopAddingFiles) {
-                                numDirectoriesLeft++;
-                                addAllFilesRecursively(dir, successCallback);
+            FileSystem.resolve(dir, function (err, directory) {
+                function visitor(entry) {
+                    if (entry.isFile) {
+                        if (!isFileExcluded(entry.fullPath) && entry.name.indexOf(".") !== 0) { // ignore .dotfiles
+                            var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
+                            if (languageID === HintUtils.LANGUAGE_ID) {
+                                addFilesToTern([entry.fullPath]);
                             }
-                        });
-                    }
-    
-                    if (numDirectoriesLeft === 0) {
-                        successCallback();
-                    }
-                }
-    
-                /**
-                 *  Add files to global list.
-                 *
-                 * @param path - full path of file.
-                 */
-                function fileCallback(path) {
-                    if (!isFileExcluded(path)) {
-                        files.push(path);
+                        }
+                    } else {
+                        return !isDirectoryExcluded(entry.fullPath) &&
+                            entry.name.indexOf(".") !== 0 &&
+                            !stopAddingFiles;
                     }
                 }
-    
-                /**
-                 *  For each directory, add all the files in its subdirectory.
-                 *
-                 * @param path
-                 */
-                function directoryCallback(path) {
-                    if (!isDirectoryExcluded(path) &&
-                            path !== rootTernDir) {
-                        dirs.push(path);
-                    }
+                
+                if (err) {
+                    return;
                 }
-    
-                dir = FileUtils.stripTrailingSlash(dir);
-                forEachFileInDirectory(dir, doneCallback, fileCallback, directoryCallback);
-            }
-    
-            addAllFilesRecursively(dir, function () {
-                doneCallback();
+                
+                if (dir === FileSystem.getDirectoryForPath(rootTernDir)) {
+                    doneCallback();
+                    return;
+                }
+                
+                directory.visit(visitor, doneCallback);
             });
         }
             
@@ -1164,40 +1030,58 @@ define(function (require, exports, module) {
 
             ensurePreferences();
             deferredPreferences.done(function () {
-                getFilesInDirectory(dir, function (files) {
-                    initTernServer(dir, files);
-
-                    var hintsPromise = primePump(path);
-                    hintsPromise.done(function () {
-                        if (!usingModules()) {
-                            // Read the subdirectories of the new file's directory.
-                            // Read them first in case there are too many files to
-                            // read in the project.
-                            addAllFilesAndSubdirectories(dir, function () {
-                                // If the file is in the project root, then read
-                                // all the files under the project root.
-                                var currentDir = (dir + "/");
-                                if (projectRoot && currentDir !== projectRoot &&
-                                        currentDir.indexOf(projectRoot) === 0) {
-                                    addAllFilesAndSubdirectories(projectRoot, function () {
-                                        // prime the pump again but this time don't wait
-                                        // for completion.
-                                        primePump(path);
-
-                                        addFilesDeferred.resolveWith(null, [_ternWorker]);
-                                    });
-                                } else {
-                                    addFilesDeferred.resolveWith(null, [_ternWorker]);
-                                }
-                            });
-                        } else {
-                            addFilesDeferred.resolveWith(null, [_ternWorker]);
+                FileSystem.resolve(dir, function (err, directory) {
+                    if (err) {
+                        addFilesDeferred.resolveWith(null);
+                        return;
+                    }
+                    
+                    directory.getContents(function (err, contents) {
+                        if (err) {
+                            addFilesDeferred.resolveWith(null);
+                            return;
                         }
+                        
+                        var files = contents
+                            .filter(function (entry) {
+                                return entry.isFile && !isFileExcluded(entry.fullPath);
+                            })
+                            .map(function (entry) {
+                                return entry.fullPath;
+                            });
+                        
+                        initTernServer(dir, files);
+
+                        var hintsPromise = primePump(path);
+                        hintsPromise.done(function () {
+                            if (!usingModules()) {
+                                // Read the subdirectories of the new file's directory.
+                                // Read them first in case there are too many files to
+                                // read in the project.
+                                addAllFilesAndSubdirectories(dir, function () {
+                                    // If the file is in the project root, then read
+                                    // all the files under the project root.
+                                    var currentDir = (dir + "/");
+                                    if (projectRoot && currentDir !== projectRoot &&
+                                            currentDir.indexOf(projectRoot) === 0) {
+                                        addAllFilesAndSubdirectories(projectRoot, function () {
+                                            // prime the pump again but this time don't wait
+                                            // for completion.
+                                            primePump(path);
+    
+                                            addFilesDeferred.resolveWith(null, [_ternWorker]);
+                                        });
+                                    } else {
+                                        addFilesDeferred.resolveWith(null, [_ternWorker]);
+                                    }
+                                });
+                            } else {
+                                addFilesDeferred.resolveWith(null, [_ternWorker]);
+                            }
+                        });
                     });
-                }, function () {
-                    addFilesDeferred.resolveWith(null);
                 });
-            }).fail(function () {});
+            });
         }
 
         /**
