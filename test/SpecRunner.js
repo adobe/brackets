@@ -32,15 +32,14 @@ require.config({
         "perf"      : "../test/perf",
         "spec"      : "../test/spec",
         "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n",
-        "lodash"    : "thirdparty/lodash.custom.min"
+        "i18n"      : "thirdparty/i18n/i18n"
     }
 });
 
 define(function (require, exports, module) {
     'use strict';
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     // Utility dependency
     var AppInit                 = require("utils/AppInit"),
@@ -49,9 +48,9 @@ define(function (require, exports, module) {
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
         Menus                   = require("command/Menus"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
@@ -90,6 +89,9 @@ define(function (require, exports, module) {
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
 
+    // Initialize the file system
+    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
+    
     // parse URL parameters
     params.parse();
     resultsPath = params.get("resultsPath");
@@ -151,19 +153,21 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        brackets.fs.stat(path, function (err, stat) {
-            if (err === brackets.fs.ERR_NOT_FOUND) {
-                // file not found, write the new file with xml content
-                brackets.fs.writeFile(path, text, NativeFileSystem._FSEncodings.UTF8, function (err) {
-                    if (err) {
-                        _writeResults.reject();
-                    } else {
-                        _writeResults.resolve();
-                    }
-                });
-            } else {
+        var file = FileSystem.getFileForPath(path);
+        
+        file.exists(function (exists) {
+            if (exists) {
                 // file exists, do not overwrite
                 _writeResults.reject();
+            } else {
+                // file not found, write the new file with xml content
+                FileUtils.writeText(file, text)
+                    .done(function () {
+                        _writeResults.resolve();
+                    })
+                    .fail(function (err) {
+                        _writeResults.reject(err);
+                    });
             }
         });
     }
@@ -180,11 +184,11 @@ define(function (require, exports, module) {
             writeResults(resultsPath, reporter.toJSON());
         }
 
-        _writeResults.always(function () { window.close(); });
+        _writeResults.always(function () { brackets.app.quit(); });
     }
 
     /**
-     * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
+     * Patch JUnitXMLReporter to use FileSystem and to consolidate all results
      * into a single file.
      */
     function _patchJUnitReporter() {
@@ -414,6 +418,6 @@ define(function (require, exports, module) {
     brackets.testing = {
         getNodeConnectionDeferred: getNodeConnectionDeferred
     };
-
+    
     init();
 });

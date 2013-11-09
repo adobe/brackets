@@ -27,13 +27,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager       = require("editor/EditorManager"),
+    var DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
+        FileSystem          = require("filesystem/FileSystem");
     
     var _naturalWidth = 0;
     
@@ -56,21 +57,36 @@ define(function (require, exports, module) {
     }
         
     /**
+     * Update file name if necessary
+     */
+    function _onFileNameChange(e, oldName, newName) {
+        var oldRelPath = ProjectManager.makeProjectRelativeIfPossible(oldName),
+            currentPath = $("#img-path").text();
+
+        if (currentPath === oldRelPath) {
+            var newRelName = ProjectManager.makeProjectRelativeIfPossible(newName);
+            $("#img-path").text(newRelName)
+                .attr("title", newRelName);
+        }
+    }
+
+    /**
      * creates a DOM node to place in the editor-holder
      * in order to display an image.
      * @param {!string} fullPath  path to image file
      * @return {JQuery}
      *
      */
-    function getImageHolder(fullPath) {
+    function getCustomViewHolder(fullPath) {
         return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
     }
     
     /** 
      *    
      */
-    function _removeListener() {
+    function _removeListeners() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
+        $(DocumentManager).off("fileNameChange", _onFileNameChange);
     }
     
     /** Perform decorations on the view that require loading the image in the browser,
@@ -80,33 +96,38 @@ define(function (require, exports, module) {
     function render(fullPath) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
-        $("#img-path").text(relPath);
+        $("#img-path").text(relPath)
+                .attr("title", relPath);
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
-            var dimensionString = _naturalWidth + " x " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+            var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            fileEntry.getMetadata(
-                function (metadata) {
+            var file = FileSystem.getFileForPath(fullPath);
+            file.stat(function (err, stat) {
+                if (err) {
+                    $("#img-data").html(dimensionString);
+                } else {
                     var sizeString = "";
-                    if (metadata && metadata.size) {
-                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(metadata.size, 2);
+                    if (stat.size) {
+                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
                     }
-                    $("#img-data").html(dimensionString + sizeString);
-                },
-                function (error) {
-                    $("#img-data").text(dimensionString);
+                    var dimensionAndSize = dimensionString + sizeString;
+                    $("#img-data").html(dimensionAndSize)
+                        .attr("title", dimensionAndSize
+                                        .replace("&times;", "x")
+                                        .replace("&mdash;", "-"));
                 }
-            );
+            });
             $("#image-holder").show();
             // listen to resize to  update the scale sticker
             $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
             // listen to removal to stop listening to resize events
-            $(EditorManager).on("removeCustomViewer", _removeListener);
+            $(EditorManager).on("removeCustomViewer", _removeListeners);
+            $(DocumentManager).on("fileNameChange", _onFileNameChange);
             _updateScale($(this).width());
         });
     }
-    exports.getImageHolder      = getImageHolder;
+    exports.getCustomViewHolder = getCustomViewHolder;
     exports.render              = render;
 });

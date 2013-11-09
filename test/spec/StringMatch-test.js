@@ -29,7 +29,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var StringMatch = require("utils/StringMatch");
     

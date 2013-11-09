@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = brackets.getModule("lodash");
+    var _ = brackets.getModule("thirdparty/lodash");
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),

@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
         Package          = require("extensibility/Package"),
@@ -116,6 +116,12 @@ define(function (require, exports, module) {
      * An optional message to display to the user
      */
     ExtensionManagerViewModel.prototype.message = null;
+    
+    /**
+     * @type {number}
+     * Number to show in tab's notification icon. No icon shown if 0.
+     */
+    ExtensionManagerViewModel.prototype.notifyCount = 0;
     
     /**
      * @private {$.Promise}
@@ -374,6 +380,8 @@ define(function (require, exports, module) {
             });
         this._sortFullSet();
         this._setInitialFilter();
+        this._countUpdates();
+        
         return new $.Deferred().resolve().promise();
     };
     
@@ -401,6 +409,20 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Updates notifyCount based on number of extensions with an update available
+     */
+    InstalledViewModel.prototype._countUpdates = function () {
+        var self = this;
+        this.notifyCount = 0;
+        this.sortedFullSet.forEach(function (key) {
+            if (self.extensions[key].installInfo.updateAvailable) {
+                self.notifyCount++;
+            }
+        });
+    };
+    
+    /**
+     * @private
      * Updates the initial set and filter as necessary when the status of an extension changes,
      * and notifies listeners of the change.
      * @param {$.Event} e The jQuery event object.
@@ -412,6 +434,7 @@ define(function (require, exports, module) {
         if (index !== -1 && !this.extensions[id].installInfo) {
             // This was in our set, but was uninstalled. Remove it.
             this.sortedFullSet.splice(index, 1);
+            this._countUpdates();  // may also affect update count
             refilter = true;
         } else if (index === -1 && this.extensions[id].installInfo) {
             // This was not in our set, but is now installed. Add it and resort.
@@ -422,6 +445,12 @@ define(function (require, exports, module) {
         if (refilter) {
             this.filter(this._lastQuery || "", true);
         }
+        
+        if (this.extensions[id].installInfo) {
+            // If our count of available updates may have been affected, re-count
+            this._countUpdates();
+        }
+        
         ExtensionManagerViewModel.prototype._handleStatusChange.call(this, e, id);
     };
     

@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit              = require("utils/AppInit"),
+        FileSystem           = require("filesystem/FileSystem"),
         FileUtils            = require("file/FileUtils"),
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
@@ -311,9 +312,7 @@ define(function (require, exports, module) {
                             result.localPath = downloadResult.localPath;
                             d.resolve(result);
                         } else {
-                            brackets.fs.unlink(downloadResult.localPath, function (err) {
-                                // ignore errors
-                            });
+                            FileSystem.getFileForPath(downloadResult.localPath).unlink();
                             if (result.errors && result.errors.length > 0) {
                                 // Validation errors - for now, only return the first one
                                 state = STATE_FAILED;
@@ -332,9 +331,7 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
                         state = STATE_FAILED;
-                        brackets.fs.unlink(downloadResult.localPath, function (err) {
-                            // ignore errors
-                        });
+                        FileSystem.getFileForPath(downloadResult.localPath).unlink();
                         d.reject(err);  // TODO: needs to be err.message ?
                     });
             })
@@ -422,7 +419,7 @@ define(function (require, exports, module) {
                 d.reject(error);
             })
             .always(function () {
-                brackets.fs.unlink(path, function () { });
+                FileSystem.getFileForPath(path).unlink();
             });
         return d.promise();
     }

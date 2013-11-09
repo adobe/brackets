@@ -290,9 +290,8 @@ define(function (require, exports, module) {
      * @param {Event} e Mouse move event
      * @param {number} x New horizontal position
      * @param {number} y New vertical position
-     * @param {left: number, top: number, width: number, height: number} curveBoundingBox
      */
-    function handlePointMove(e, x, y, curveBoundingBox) {
+    function handlePointMove(e, x, y) {
         var self = e.target,
             bezierEditor = self.bezierEditor;
 
@@ -323,7 +322,7 @@ define(function (require, exports, module) {
         // Constrain time (x-axis) to 0 to 1 range. Progression (y-axis) is
         // theoretically not constrained, although canvas to drawing curve is
         // arbitrarily constrained to -0.5 to 1.5 range.
-        x = Math.min(Math.max(0, x), curveBoundingBox.width);
+        x = Math.min(Math.max(0, x), WIDTH_MAIN);
 
         if (bezierEditor.dragElement) {
             $(bezierEditor.dragElement).css({
@@ -348,13 +347,16 @@ define(function (require, exports, module) {
      * @param {Element} canvas <canvas> element
      * @param {number} x Horizontal position
      * @param {number} y Vertical position
-     * @param {left: number, top: number, width: number, height: number} curveBoundingBox
      */
-    function updateTimeProgression(curve, x, y, curveBoundingBox) {
-        var height = curveBoundingBox.height;
+    function updateTimeProgression(curve, x, y) {
+        var percentX = Math.round(100 * x / WIDTH_MAIN),
+            percentY = Math.round(100 * ((HEIGHT_MAIN - y) / HEIGHT_MAIN));
 
-        curve.parentNode.setAttribute("data-time", Math.round(100 * x / curveBoundingBox.width));
-        curve.parentNode.setAttribute("data-progression", Math.round(100 * (3 * height / 4 - y) / (height * 0.5) - 50));
+        // Constrain horizontal percentage to [0, 100] range
+        percentX = Math.min(Math.max(0, percentX), 100);
+
+        curve.parentNode.setAttribute("data-time", percentX);
+        curve.parentNode.setAttribute("data-progression", percentY);
     }
 
     /**
@@ -371,14 +373,14 @@ define(function (require, exports, module) {
             x = e.pageX - left,
             y = e.pageY - top - HEIGHT_ABOVE;
 
-        updateTimeProgression(self, x, y, curveBoundingBox);
+        updateTimeProgression(self, x, y);
 
         if (bezierEditor.dragElement) {
             if (e.pageX === 0 && e.pageY === 0) {
                 return;
             }
 
-            handlePointMove(e, x, y, curveBoundingBox);
+            handlePointMove(e, x, y);
         }
     }
 
@@ -396,13 +398,13 @@ define(function (require, exports, module) {
             x = e.pageX - left,
             y = e.pageY - top - HEIGHT_ABOVE;
 
-        updateTimeProgression(bezierEditor.curve, x, y, curveBoundingBox);
+        updateTimeProgression(bezierEditor.curve, x, y);
 
         if (e.pageX === 0 && e.pageY === 0) {
             return;
         }
 
-        handlePointMove(e, x, y, curveBoundingBox);
+        handlePointMove(e, x, y);
     }
 
     /**
@@ -450,7 +452,7 @@ define(function (require, exports, module) {
             var $this = $(e.target),
                 left = parseInt($this.css("left"), 10),
                 top  = parseInt($this.css("top"), 10),
-                offset = (e.shiftKey ? 20 : 2),
+                offset = (e.shiftKey ? 15 : 3),
                 newVal;
 
             switch (code) {
@@ -527,16 +529,19 @@ define(function (require, exports, module) {
         // redraw canvas
         this._updateCanvas();
 
-        this.curve.addEventListener("click", _curveClick, false);
-        this.curve.addEventListener("mousemove", _curveMouseMove, false);
-        this.P1.addEventListener("mousemove", _pointMouseMove, false);
-        this.P2.addEventListener("mousemove", _pointMouseMove, false);
-        this.P1.addEventListener("mousedown", _pointMouseDown, false);
-        this.P2.addEventListener("mousedown", _pointMouseDown, false);
-        this.P1.addEventListener("mouseup", _pointMouseUp, false);
-        this.P2.addEventListener("mouseup", _pointMouseUp, false);
-        this.P1.addEventListener("keydown", _pointKeyDown, false);
-        this.P2.addEventListener("keydown", _pointKeyDown, false);
+        $(this.curve)
+            .on("click", _curveClick)
+            .on("mousemove", _curveMouseMove);
+        $(this.P1)
+            .on("mousemove", _pointMouseMove)
+            .on("mousedown", _pointMouseDown)
+            .on("mouseup", _pointMouseUp)
+            .on("keydown", _pointKeyDown);
+        $(this.P2)
+            .on("mousemove", _pointMouseMove)
+            .on("mousedown", _pointMouseDown)
+            .on("mouseup", _pointMouseUp)
+            .on("keydown", _pointKeyDown);
     }
 
     /**
@@ -546,16 +551,19 @@ define(function (require, exports, module) {
 
         this.P1.bezierEditor = this.P2.bezierEditor = this.curve.bezierEditor = null;
 
-        this.curve.removeEventListener("click", _curveClick, false);
-        this.curve.removeEventListener("mousemove", _curveMouseMove, false);
-        this.P1.removeEventListener("mousemove", _pointMouseMove, false);
-        this.P2.removeEventListener("mousemove", _pointMouseMove, false);
-        this.P1.removeEventListener("mousedown", _pointMouseDown, false);
-        this.P2.removeEventListener("mousedown", _pointMouseDown, false);
-        this.P1.removeEventListener("mouseup", _pointMouseUp, false);
-        this.P2.removeEventListener("mouseup", _pointMouseUp, false);
-        this.P1.removeEventListener("keydown", _pointKeyDown, false);
-        this.P2.removeEventListener("keydown", _pointKeyDown, false);
+        $(this.curve)
+            .off("click", _curveClick)
+            .off("mousemove", _curveMouseMove);
+        $(this.P1)
+            .off("mousemove", _pointMouseMove)
+            .off("mousedown", _pointMouseDown)
+            .off("mouseup", _pointMouseUp)
+            .off("keydown", _pointKeyDown);
+        $(this.P2)
+            .off("mousemove", _pointMouseMove)
+            .off("mousedown", _pointMouseDown)
+            .off("mouseup", _pointMouseUp)
+            .off("keydown", _pointKeyDown);
     };
 
 
@@ -611,20 +619,20 @@ define(function (require, exports, module) {
             // handle special cases of cubic-bezier calls
             switch (match[0]) {
             case "linear":
-                return [ 0, 0, 1, 1 ];
+                return [ "0", "0", "1", "1" ];
             case "ease":
-                return [ 0.25, 0.1, 0.25, 1 ];
+                return [ ".25", ".1", ".25", "1" ];
             case "ease-in":
-                return [ 0.42, 0, 1, 1 ];
+                return [ ".42", "0", "1", "1" ];
             case "ease-out":
-                return [ 0, 0, 0.58, 1 ];
+                return [ "0", "0", ".58", "1" ];
             case "ease-in-out":
-                return [ 0.42, 0, 0.58, 1 ];
+                return [ ".42", "0", ".58", "1" ];
             }
         }
 
         window.console.log("brackets-cubic-bezier: getCubicBezierCoords() passed invalid RegExp match array");
-        return [ 0, 0, 0, 0 ];
+        return [ "0", "0", "0", "0" ];
     };
 
     /**
