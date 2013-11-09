@@ -540,13 +540,15 @@ a, img {
 }
 
 .sidebar-selection {
-    background: url("images/active_back.png") no-repeat top right;
+    background: @tc-sidebar-selection;
+    border-top: 1px solid @tc-sidebar-selection-highlight;
+    border-bottom: 1px solid @tc-sidebar-selection-shadow;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
-    background: url("images/active_back.png");
+    background: @tc-sidebar-selection;
     width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
@@ -559,11 +561,11 @@ a, img {
 
     border-top: @sidebar-triangle-size solid transparent;
     border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid #2D2E30;
+    border-left: @sidebar-triangle-size solid @tc-sidebar-selection;
 
     display: block;
     position: absolute;
-    top: -1px;
+    top: 0;
     right: -9px;
     width: 0;
     height: 0;
