@@ -18,11 +18,14 @@
     left: 7px;
     width: 16px;
     height: 16px;
-    background-image: url("close-btn.svg");
-    background-position: 0 0;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 15px;
+    text-align: center;
 }
+
 .trash-icon:hover {
-    background-position: -15px 0;
+    color: rgba(0, 0, 0, 1);
 }
 
 #project-dropdown-toggle {

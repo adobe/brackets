@@ -116,7 +116,7 @@ define(function (require, exports, module) {
      * Create the "delete" button that shows up when you hover over a project.
      */
     function renderDelete() {
-        return $("<div id='recent-folder-delete' class='trash-icon'></div>")
+        return $("<div id='recent-folder-delete' class='trash-icon'>&times;</div>")
             .mouseup(function (e) {
                 // Don't let the click bubble upward.
                 e.stopPropagation();
