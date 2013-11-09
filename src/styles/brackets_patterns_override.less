@@ -500,6 +500,7 @@ a:focus {
     position: relative;
     top: 0;
     margin: auto;
+    -webkit-animation: modal 270ms cubic-bezier(.05, .97, .33, 1.03) 1;
 }
 
 .modal .close {
@@ -570,7 +571,18 @@ a:focus {
 }
 .last-backdrop {
     /* Only show the last modal backdrop */
-    opacity: 0.5;
+    -webkit-animation: backdrop 280ms linear 1;
+    opacity: 0.4;
+}
+
+@-webkit-keyframes backdrop {
+    0%   { opacity: 0; -webkit-transform: translateZ(0); }
+    100% { opacity: 0.4; -webkit-transform: translateZ(0); }
+}
+
+@-webkit-keyframes modal {
+    0%   { opacity: 0; -webkit-transform: translateZ(0) scale(0); }
+    100% { opacity: 1; -webkit-transform: translateZ(0) scale(1); }
 }
 
 
