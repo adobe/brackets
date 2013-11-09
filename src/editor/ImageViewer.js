@@ -205,6 +205,7 @@ define(function (require, exports, module) {
     function render(fullPath) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
+        _scale = 100;   // initialize to 100
         $("#img-path").text(relPath);
         $("#img-preview").on("load", function () {
             // add dimensions and size
@@ -235,7 +236,6 @@ define(function (require, exports, module) {
             $("#img").on("mousemove", "#img-preview, #img-scale", _showImageTip)
                      .on("mouseleave", "#img-preview, #img-scale", _hideImageTip);
 
-            _scale = 100;   // initialize to 100
             _updateScale($(this).width());
         });
     }
