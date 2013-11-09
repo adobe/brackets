@@ -549,6 +549,8 @@ a, img {
 
 .sidebar-selection-triangle {
     background: @tc-sidebar-selection;
+    border-top: 1px solid @tc-sidebar-selection-highlight;
+    border-bottom: 1px solid @tc-sidebar-selection-shadow;    
     width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
@@ -565,7 +567,7 @@ a, img {
 
     display: block;
     position: absolute;
-    top: 0;
+    top: -1px;
     right: -9px;
     width: 0;
     height: 0;
