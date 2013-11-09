@@ -60,7 +60,6 @@ The following languages have been contributed by the Brackets community:
 * Polish (pl)
 * Brazilian Portuguese (pt-br)
 * Portuguese (pt-pt)
-* English (root)
 * Russian (ru)
 * Slovak (sk)
 * Serbian (sr)
