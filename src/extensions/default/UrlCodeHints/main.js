@@ -33,9 +33,9 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         }
 
         var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
-
+        
         // get relative path from query string
         // TODO: handle site-root relative
         var queryDir = "";
@@ -121,7 +121,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var self = this;
+            var directory = FileSystem.getDirectoryForPath(targetDir),
+                self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -131,10 +132,9 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
-                fs.root.createReader().readEntries(function (entries) {
-
-                    entries.forEach(function (entry) {
+            directory.getContents(function (err, contents) {
+                if (!err) {
+                    contents.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
                             // convert to doc relative path
                             var entryStr = entry.fullPath.replace(docDir, "");
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
                             }
                         }
                     }
-                });
+                }
             });
 
             return self.cachedHints.deferred;
@@ -759,11 +759,13 @@ define(function (require, exports, module) {
         // For unit testing
         exports.hintProvider = urlHints;
     });
-
-    $(ProjectManager).on("projectFilesChange", function (event, projectRoot) {
+    
+    function _clearCachedHints() {
         // Cache may or may not be stale. Main benefit of cache is to limit async lookups
         // during typing. File tree updates cannot happen during typing, so it's probably
         // not worth determining whether cache may still be valid. Just delete it.
         exports.hintProvider.cachedHints = null;
-    });
+    }
+    FileSystem.on("change", _clearCachedHints);
+    FileSystem.on("rename", _clearCachedHints);
 });

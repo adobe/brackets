@@ -349,8 +349,14 @@ define(function (require, exports, module) {
      * @param {number} y Vertical position
      */
     function updateTimeProgression(curve, x, y) {
-        curve.parentNode.setAttribute("data-time", Math.round(100 * x / WIDTH_MAIN));
-        curve.parentNode.setAttribute("data-progression", Math.round(100 * ((HEIGHT_MAIN - y) / HEIGHT_MAIN)));
+        var percentX = Math.round(100 * x / WIDTH_MAIN),
+            percentY = Math.round(100 * ((HEIGHT_MAIN - y) / HEIGHT_MAIN));
+
+        // Constrain horizontal percentage to [0, 100] range
+        percentX = Math.min(Math.max(0, percentX), 100);
+
+        curve.parentNode.setAttribute("data-time", percentX);
+        curve.parentNode.setAttribute("data-progression", percentY);
     }
 
     /**

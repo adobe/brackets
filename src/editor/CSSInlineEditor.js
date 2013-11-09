@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
-        FileIndexManager        = require("project/FileIndexManager"),
+        ProjectManager          = require("project/ProjectManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
@@ -49,6 +49,10 @@ define(function (require, exports, module) {
     var _newRuleCmd,
         _newRuleHandlers = [];
 
+    function _getCSSFilesInProject() {
+        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"));
+    }
+    
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
@@ -277,7 +281,7 @@ define(function (require, exports, module) {
          */
         function _getNoRulesMsg() {
             var result = new $.Deferred();
-            FileIndexManager.getFileInfoList("css").done(function (fileInfos) {
+            _getCSSFilesInProject().done(function (fileInfos) {
                 result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
             });
             return result;
@@ -395,7 +399,7 @@ define(function (require, exports, module) {
                 result.resolve(cssInlineEditor);
 
                 // Now that dialog has been built, collect list of stylesheets
-                var stylesheetsPromise = FileIndexManager.getFileInfoList("css");
+                var stylesheetsPromise = _getCSSFilesInProject();
                 
                 // After both the stylesheets are loaded and the inline editor has been added to the DOM,
                 // update the UI accordingly. (Those can happen in either order, so we need to wait for both.)

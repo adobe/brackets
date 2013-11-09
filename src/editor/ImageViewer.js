@@ -30,11 +30,11 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PanelManager        = require("view/PanelManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        FileSystem          = require("filesystem/FileSystem");
     
     var _naturalWidth = 0,
         _scale = 100,
@@ -68,7 +68,9 @@ define(function (require, exports, module) {
             currentPath = $("#img-path").text();
 
         if (currentPath === oldRelPath) {
-            $("#img-path").text(ProjectManager.makeProjectRelativeIfPossible(newName));
+            var newRelName = ProjectManager.makeProjectRelativeIfPossible(newName);
+            $("#img-path").text(newRelName)
+                .attr("title", newRelName);
         }
     }
 
@@ -206,25 +208,29 @@ define(function (require, exports, module) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
         _scale = 100;   // initialize to 100
-        $("#img-path").text(relPath);
+        $("#img-path").text(relPath)
+                .attr("title", relPath);
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
             var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            fileEntry.getMetadata(
-                function (metadata) {
-                    var sizeString = "";
-                    if (metadata && metadata.size) {
-                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(metadata.size, 2);
-                    }
-                    $("#img-data").html(dimensionString + sizeString);
-                },
-                function (error) {
+            var file = FileSystem.getFileForPath(fullPath);
+            file.stat(function (err, stat) {
+                if (err) {
                     $("#img-data").html(dimensionString);
+                } else {
+                    var sizeString = "";
+                    if (stat.size) {
+                        sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
+                    }
+                    var dimensionAndSize = dimensionString + sizeString;
+                    $("#img-data").html(dimensionAndSize)
+                        .attr("title", dimensionAndSize
+                                        .replace("&times;", "x")
+                                        .replace("&mdash;", "-"));
                 }
-            );
+            });
             $("#image-holder").show();
             // listen to resize to  update the scale sticker
             $(PanelManager).on("editorAreaResize", _onEditorAreaResize);

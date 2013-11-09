@@ -93,7 +93,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Adds directory names to elements representing passed files in working tree
-     * @param {Array.<FileEntry>} filesList - list of FileEntries with the same filename
+     * @param {Array.<File>} filesList - list of Files with the same filename
      */
     function _addDirectoryNamesToWorkingTreeFiles(filesList) {
         // filesList must have at least two files in it for this to make sense
@@ -465,7 +465,7 @@ define(function (require, exports, module) {
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
-     * @param {FileEntry} file
+     * @param {File} file
      * @return {HTMLLIElement} newListItem
      */
     function _createNewListItem(file) {
@@ -517,7 +517,7 @@ define(function (require, exports, module) {
     /**
      * Finds the listItem item assocated with the file. Returns null if not found.
      * @private
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @return {HTMLLIItem}
      */
     function _findListItemFromFile(file) {
@@ -607,7 +607,7 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry} file
+     * @param {File} file
      * @param {boolean=} suppressRedraw If true, suppress redraw
      */
     function _handleFileRemoved(file, suppressRedraw) {
