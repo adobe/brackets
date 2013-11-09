@@ -1068,13 +1068,9 @@ a, img {
 /* Quick Open search bar & dropdown */
 
 .smart_autocomplete_container {
-
-    // the borders show up even if the container is empty, must set height to zero using JS.
-    border: 1px solid @tc-gray-panel-border;
-
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
-    box-shadow: @tc-normal-shadow-bottom;
+    box-shadow: @tc-dropdown-shadow;
 
     // so that border won't show when height is 0.
     box-sizing: border-box;
