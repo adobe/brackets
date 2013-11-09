@@ -1141,7 +1141,7 @@ define(function (require, exports, module) {
             self._codeMirror.removeLineWidget(inlineWidget.info);
             self._removeInlineWidgetInternal(inlineWidget);
             deferred.resolve();
-        }   
+        }
             
         if (!inlineWidget.closePromise) {
             var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
