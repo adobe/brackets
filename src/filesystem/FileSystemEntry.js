@@ -267,7 +267,7 @@ define(function (require, exports, module) {
      * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    FileSystemEntry.prototype._visitHelper = function (visitor, options, callback) {
+    FileSystemEntry.prototype._visitHelper = function (visitor, options, realPaths, callback) {
         var failFast = options.failFast,
             maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
@@ -282,21 +282,41 @@ define(function (require, exports, module) {
             return;
         }
         
-        this.getContents(function (err, entries) {
-            var counter = entries ? entries.length : 0,
-                nextOptions = {
-                    failFast: failFast,
-                    maxDepth: maxDepth,
-                    maxEntriesCounter: maxEntriesCounter
-                };
-
-            if (err || counter === 0) {
+        this.getContents(function (err, entries, entriesStats) {
+            if (err) {
                 callback(failFast ? err : null);
                 return;
             }
             
+            // Do not traverse symbolic links with the same realPath repeatedly
+            entries = entries.filter(function (entry, index) {
+                var stats = entriesStats[index],
+                    realPath = stats.realPath;
+                
+                if (stats.isFile || !realPath) {
+                    return true;
+                }
+
+                if (!realPaths.hasOwnProperty(realPath)) {
+                    realPaths[realPath] = true;
+                    return true;
+                }
+            });
+            
+            var counter = entries.length;
+            if (counter === 0) {
+                callback(null);
+                return;
+            }
+            
+            var nextOptions = {
+                failFast: failFast,
+                maxDepth: maxDepth,
+                maxEntriesCounter: maxEntriesCounter
+            };
+            
             entries.forEach(function (entry) {
-                entry._visitHelper(visitor, nextOptions, function (err) {
+                entry._visitHelper(visitor, nextOptions, realPaths, function (err) {
                     if (err && failFast) {
                         counter = 0;
                         callback(err);
@@ -342,7 +362,7 @@ define(function (require, exports, module) {
 
         options.maxEntriesCounter = { value: options.maxEntries };
         
-        this._visitHelper(visitor, options, function (err) {
+        this._visitHelper(visitor, options, {}, function (err) {
             if (callback) {
                 if (err) {
                     callback(err);

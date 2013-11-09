@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         this._isDirectory = !options.isFile;
         this._mtime = options.mtime;
         this._size = options.size;
+        this._realPath = options.realPath;
     }
     
     // Add "isFile", "isDirectory", "mtime" and "size" getters
@@ -59,6 +60,10 @@ define(function (require, exports, module) {
         "size": {
             get: function () { return this._size; },
             set: function () { throw new Error("Cannot set size"); }
+        },
+        "realPath": {
+            get: function () { return this._realPath; },
+            set: function () { throw new Error("Cannot set realPath"); }
         }
     });
     
@@ -85,6 +90,14 @@ define(function (require, exports, module) {
      * @type {Number}
      */
     FileSystemStats.prototype._size = null;
+    
+    /**
+     * The canonical path of this file or directory ONLY if it is a symbolic link,
+     * and null otherwise.
+     * 
+     * @type {?string}
+     */
+    FileSystemStats.prototype._realPath = null;
 
     module.exports = FileSystemStats;
 });
