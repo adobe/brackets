@@ -282,7 +282,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Executes a series of tasks in parallel, saving up error info from any that fail along the way.
+     * Executes a series of tasks in parallel, saving up result info from any that succeeds along the way.
      * Returns a Promise that is only resolved/rejected once all tasks are complete. This is
      * essentially a wrapper around doInParallel(..., false).
      *

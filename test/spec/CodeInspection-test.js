@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, spyOn */
+/*global define, describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waitsFor, runs, brackets, waitsForDone, spyOn, xit */
 
 define(function (require, exports, module) {
     "use strict";
@@ -46,7 +46,7 @@ define(function (require, exports, module) {
             expect($("#problems-panel").is(":visible")).toBe(visible);
         };
 
-        beforeEach(function () {
+        beforeFirst(function () {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
@@ -66,8 +66,12 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testFolder);
             });
         });
-        
+
         afterEach(function () {
+            testWindow.closeAllFiles();
+        });
+        
+        afterLast(function () {
             testWindow    = null;
             $             = null;
             brackets      = null;
@@ -78,143 +82,153 @@ define(function (require, exports, module) {
 //            CodeInspection._setProviderState({name: 'JSLint'}, previousState);
         });
         
-        it("should run one linter when a javascript document opens", function () {
-            var called = false,
-                promise;
-            
-            CodeInspection.unregisterAll();
-            CodeInspection.register("javascript", {
-                name: "text linter",
-                scanFile: function (text, fullPath) { called = true; return {errors: []}; }
-            });
-
-            runs(function () {
-                var simpleTextFileEntry = new NativeFileSystem.FileEntry(testFolder + "/errors.js");
-                promise = CodeInspection.inspectFile(simpleTextFileEntry);
-                
-                waitsForDone(promise, "file linting", 5000);
-            });
-            
-            runs(function () {
-                expect(called).toBeTruthy();
-            });
-        });
-        
-        it("should run two linters when a javascript document opens", function () {
-            var linterOneCalled = false,
-                linterTwoCalled = false,
-                promise;
-            
-            CodeInspection.unregisterAll();
-            CodeInspection.register("javascript", {
-                name: "text linter 1",
-                scanFile: function (text, fullPath) { linterOneCalled = true; return {errors: []}; }
-            });
-            CodeInspection.register("javascript", {
-                name: "text linter 2",
-                scanFile: function (text, fullPath) { linterTwoCalled = true; return {errors: []}; }
-            });
-
-            runs(function () {
-                var simpleTextFileEntry = new NativeFileSystem.FileEntry(testFolder + "/errors.js");
-                promise = CodeInspection.inspectFile(simpleTextFileEntry);
-                
-                waitsForDone(promise, "file linting", 5000);
-            });
-            
-            runs(function () {
-                expect(linterOneCalled).toBeTruthy();
-                expect(linterTwoCalled).toBeTruthy();
-            });
-        });
-
-        it("should run one linter when a javascript document opens and return some errors", function () {
-            var called = false,
-                result,
-                promise;
-
-            var lintResult = {
-                pos: { line: 2, ch: 3 },
-                message: "Some errors here and there",
-                type: CodeInspection.Type.WARNING
+        function createCodeInspector(name, result) {
+            return {
+                called: false,
+                name: name,
+                // arguments to this function: text, fullPath
+                // omit the warning
+                scanFile: function () { this.called = true; return {errors: result}; }
             };
-
-            CodeInspection.unregisterAll();
-            CodeInspection.register("javascript", {
-                name: "text linter",
-                scanFile: function (text, fullPath) {
-                    called = true;
-                    return {
-                        errors: [lintResult]
-                    };
-                }
+        }
+        
+        describe("Unit level tests", function () {
+            var simpleJavascriptFileEntry;
+            
+            beforeEach(function () {
+                CodeInspection.unregisterAll();
+                simpleJavascriptFileEntry = new NativeFileSystem.FileEntry(testFolder + "/errors.js");
             });
+            
+            it("should run one linter when a javascript document opens", function () {
+                var codeInspector = createCodeInspector("text linter", []);
+                CodeInspection.register("javascript", codeInspector);
 
-            runs(function () {
-                var simpleTextFileEntry = new NativeFileSystem.FileEntry(testFolder + "/errors.js");
-                promise = CodeInspection.inspectFile(simpleTextFileEntry);
-                promise.done(function (lintingResult) {
-                    result = lintingResult;
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+
+                    waitsForDone(promise, "file linting", 5000);
+                });
+
+                runs(function () {
+                    expect(codeInspector.called).toBeTruthy();
+                });
+            });
+            
+            it("should run two linters when a javascript document opens", function () {
+                var codeInspector1 = createCodeInspector("text linter 1", []);
+                var codeInspector2 = createCodeInspector("text linter 2", []);
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    
+                    waitsForDone(promise, "file linting", 5000);
                 });
                 
-                waitsForDone(promise, "file linting", 5000);
+                runs(function () {
+                    expect(codeInspector1.called).toBeTruthy();
+                    expect(codeInspector2.called).toBeTruthy();
+                });
             });
-            
-            runs(function () {
-                expect(called).toBeTruthy();
-                expect(result.length).toEqual(1);
-                expect(result[0].item.name).toEqual("text linter");
-                expect(result[0].results.errors.length).toEqual(1);
-            });
-        });
-        
-        it("should run two linter when a javascript document opens and return some errors", function () {
-            var result,
-                promise;
-
-            var lintResult = {
-                pos: { line: 2, ch: 3 },
-                message: "Some errors here and there",
-                type: CodeInspection.Type.WARNING
-            };
-
-            CodeInspection.unregisterAll();
-            CodeInspection.register("javascript", {
-                name: "text linter 1",
-                scanFile: function (text, fullPath) {
-                    return {
-                        errors: [lintResult]
-                    };
-                }
-            });
-
-            CodeInspection.register("javascript", {
-                name: "text linter 2",
-                scanFile: function (text, fullPath) {
-                    return {
-                        errors: [lintResult]
-                    };
-                }
-            });
-
-            runs(function () {
-                var simpleTextFileEntry = new NativeFileSystem.FileEntry(testFolder + "/errors.js");
-                promise = CodeInspection.inspectFile(simpleTextFileEntry);
-                promise.done(function (lintingResult) {
-                    result = lintingResult;
+    
+            it("should run one linter when a javascript document opens and return some errors", function () {
+                var result;
+    
+                var lintResult = {
+                    pos: { line: 2, ch: 3 },
+                    message: "Some errors here and there",
+                    type: CodeInspection.Type.WARNING
+                };
+    
+                var codeInspector1 = createCodeInspector("javascript linter", [lintResult]);
+                CodeInspection.register("javascript", codeInspector1);
+    
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    promise.done(function (lintingResult) {
+                        result = lintingResult;
+                    });
+                    
+                    waitsForDone(promise, "file linting", 5000);
                 });
                 
-                waitsForDone(promise, "file linting", 5000);
+                runs(function () {
+                    expect(codeInspector1.called).toBeTruthy();
+                    expect(result.length).toEqual(1);
+                    expect(result[0].item.name).toEqual("javascript linter");
+                    expect(result[0].results.errors.length).toEqual(1);
+                });
             });
             
-            runs(function () {
-                expect(result.length).toEqual(2);
-                expect(result[0].results.errors.length).toEqual(1);
-                expect(result[1].results.errors.length).toEqual(1);
+            it("should run two linter when a javascript document opens and return some errors", function () {
+                var result;
+    
+                var lintResult = {
+                    pos: { line: 2, ch: 3 },
+                    message: "Some errors here and there",
+                    type: CodeInspection.Type.WARNING
+                };
+    
+                var codeInspector1 = createCodeInspector("javascript linter 1", [lintResult]);
+                var codeInspector2 = createCodeInspector("javascript linter 2", [lintResult]);
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    promise.done(function (lintingResult) {
+                        result = lintingResult;
+                    });
+                    
+                    waitsForDone(promise, "file linting", 5000);
+                });
+                
+                runs(function () {
+                    expect(result.length).toEqual(2);
+                    expect(result[0].results.errors.length).toEqual(1);
+                    expect(result[1].results.errors.length).toEqual(1);
+                });
+            });
+
+            it("should not call any other linter for javascript document", function () {
+                var codeInspector1 = createCodeInspector("any other linter linter 1", []);
+                CodeInspection.register("whatever", codeInspector1);
+
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    
+                    waitsForDone(promise, "file linting", 5000);
+                });
+                
+                runs(function () {
+                    expect(codeInspector1.called).toBeFalsy();
+                });
+            });
+
+            it("should call linter even if linting on save is disabled", function () {
+                var codeInspector1 = createCodeInspector("javascript linter 1", []);
+                CodeInspection.register("javascript", codeInspector1);
+
+                CodeInspection.toggleEnabled(false);
+                
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    
+                    waitsForDone(promise, "file linting", 5000);
+                });
+                
+                runs(function () {
+                    expect(codeInspector1.called).toBeTruthy();
+                    
+                    CodeInspection.toggleEnabled(true);
+                });
             });
         });
-        
-        describe("Check the Code Inspection UI", function () {
+
+        describe("Code Inspection UI", function () {
             beforeEach(function () {
                 CodeInspection.unregisterAll();
                 
@@ -239,6 +253,27 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect($("#problems-panel").is(":visible")).toBe(true);
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+                });
+            });
+
+            it("should not show the problems panel when there is no linting error", function () {
+//                brackets.app.showDeveloperTools();
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                
+                CodeInspection.unregisterAll();
+                CodeInspection.register("javascript", {
+                    name: "text linter 1",
+                    scanFile: function (text, fullPath) {
+                        return {
+                            errors: []
+                        };
+                    }
+                });
+                
+                runs(function () {
+                    expect($("#problems-panel").is(":visible")).toBe(false);
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
                 });

@@ -241,8 +241,7 @@ define(function (require, exports, module) {
      */
     function inspectFile(fileEntry, provider) {
         var response = new $.Deferred();
-        // TODO: handle list case
-        var providerList = provider || getProviderForPath(fileEntry.fullPath);
+        var providerList = (provider || getProviderForPath(fileEntry.fullPath)) || [];
 
         if (!providerList && !providerList.length) {
             response.resolve(null);
@@ -260,13 +259,13 @@ define(function (require, exports, module) {
 
         fileTextPromise
             .done(function (fileText) {
-                var result,
-                    perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + fileEntry.fullPath);
-//                    perfTimerInspector = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + fileEntry.fullPath);
 
                 var masterPromise = Async.doInParallel_aggregateResults(providerList, function (provider, providerNum) {
                     var result = new $.Deferred();
-                    
+
+                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+
                     try {
                         var scanResult = provider.scanFile(fileText, fileEntry.fullPath);
                         result.resolve(scanResult);
@@ -275,6 +274,8 @@ define(function (require, exports, module) {
                         response.reject(err);
                         return;
                     }
+                    
+                    PerfUtils.addMeasurement(perfTimerProvider);
         
                     return result.promise();
                 });
@@ -286,7 +287,6 @@ define(function (require, exports, module) {
                 });
                 
                 PerfUtils.addMeasurement(perfTimerInspector);
-//                response.resolve(result);
             })
             .fail(function (err) {
                 console.error("[CodeInspection] Could not read file for inspection: " + fileEntry.fullPath);
@@ -318,20 +318,22 @@ define(function (require, exports, module) {
             var _numProblemsReportedByProvider = 0;
             var allErrors = { errors: [] };
             
-            inspectFile(currentDoc.file, providerList.slice(0)).then(function (results) {
+            // run all the provider in parallel
+            inspectFile(currentDoc.file, providerList).then(function (results) {
                 // check if current document wasn't changed while inspectFile was running
                 if (currentDoc !== DocumentManager.getCurrentDocument()) {
                     return;
                 }
 
-                // Aggregate all results
+                // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.results ? item.results.errors.length : 0); }, 0);
                 
+                // save for later and make the amount of errors easily available
                 _lastResult = results;
                 _lastResult.errors = errors;
 
-//                if (!result || !result.errors.length) {
-                if (!results ||  !errors) {
+                if (!results || !errors) {
+                    _lastResult = null;
                     Resizer.hide($problemsPanel);
                     StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, "provider.name"));
                     setGotoEnabled(false);
@@ -356,7 +358,7 @@ define(function (require, exports, module) {
                         });
     
                         // if the code inspector was unable to process the whole file, we keep track to show a different status
-                        if (result && result.aborted) {
+                        if (result.results.aborted) {
                             aborted = true;
                         }
     
@@ -370,33 +372,35 @@ define(function (require, exports, module) {
             });
 
             // Update results table
-//                var html = Mustache.render(ResultsTemplate, {reportList: results.errors});
             var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-            var provider = {name: "Code Inspection"};
 
-            var html = Mustache.render(ResultsTemplate, {reportList: allErrors.errors});
-            
-            $problemsPanelTable
-                .empty()
-                .append(html)
-                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
-            
-            $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, provider.name));
-            if (!_collapsed) {
-                Resizer.show($problemsPanel);
-            }
-            
-            if (numProblems === 1 && !aborted) {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, provider.name));
-            } else {
-                // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
-                if (aborted) {
-                    numProblems += "+";
+            if (numProblems) {
+                var html = Mustache.render(ResultsTemplate, {reportList: allErrors.errors});
+                
+                $problemsPanelTable
+                    .empty()
+                    .append(html)
+                    .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
+                
+                // Update the title
+                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.CODE_INSPECTION_PANEL_TITLE));
+                
+                if (!_collapsed) {
+                    Resizer.show($problemsPanel);
                 }
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
-                    StringUtils.format(Strings.MULTIPLE_ERRORS, provider.name, numProblems));
+                
+                if (numProblems === 1 && !aborted) {
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, Strings.CODE_INSPECTION_PANEL_TITLE));
+                } else {
+                    // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
+                    if (aborted) {
+                        numProblems += "+";
+                    }
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
+                        StringUtils.format(Strings.MULTIPLE_ERRORS, Strings.CODE_INSPECTION_PANEL_TITLE, numProblems));
+                }
+                setGotoEnabled(true);
             }
-            setGotoEnabled(true);
 
             PerfUtils.addMeasurement(perfTimerDOM);
         } else {
@@ -540,12 +544,10 @@ define(function (require, exports, module) {
         
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
-//            if (_lastResult && _lastResult.errors.length) {
-            if (_lastResult) {
+            if (_lastResult && _lastResult.errors) {
                 toggleCollapsed();
             }
         });
-        
         
         // Set initial UI state
         toggleEnabled(_prefs.getValue("enabled"));
