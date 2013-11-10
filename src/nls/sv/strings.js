@@ -326,7 +326,7 @@ define({
     "OVERWRITE"                            : "Skriv över",
     "CANT_REMOVE_DEV"                      : "Till i mappen \"dev\" raderas manuellt.",
     "CANT_UPDATE"                          : "Uppdateringen är inte kompatibel med denna version av {APP_NAME}.",
-    "INSTALL_EXTENSION_TITLE"              : "Inställera tillägg",
+    "INSTALL_EXTENSION_TITLE"              : "Installera tillägg",
     "UPDATE_EXTENSION_TITLE"               : "Uppdatera tillägg",
     "INSTALL_EXTENSION_LABEL"              : "Tilläggets URL",
     "INSTALL_EXTENSION_HINT"               : "URL till tilläggets zip-fil eller GitHub-repository",
