@@ -118,15 +118,18 @@ define(function (require, exports, module) {
     }
 
     function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) {
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
             var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1 && parsedIndex !== 0) {
-                return dollars.substr(1) + (match[parsedIndex] || "");
-            } else {
-                return whole;
+            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
+                if (index === "&") { // handle $&
+                    return dollars.substr(1) + (match[0] || "");
+                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
+                    return dollars.substr(1) + (match[parsedIndex] || "");
+                }
             }
+            return whole;
         });
-        replaceWith = replaceWith.replace(/\$\$/g, "$");
+        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
         return replaceWith;
     }
 
