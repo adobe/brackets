@@ -226,6 +226,7 @@ define(function (require, exports, module) {
         // dirty indicator, with file path stored on it
         var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
+            .html("&bull;")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         

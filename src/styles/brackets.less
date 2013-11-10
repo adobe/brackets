@@ -646,41 +646,44 @@ a, img {
     -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
 }
 
-/** Classes for icons from bracketSprites.png
+/** Unicode Icon container
 */
-.bracket-sprite {
-    background-image: url("images/close_btn.svg");
-    background-repeat: no-repeat;
-    background-color: transparent;
-    vertical-align: middle;
-    width: 15px;
+.unicode-icon-container {
+    display: inline-block;
+    width: 16px;
     height: 16px;
+    font-size: 20px;
+    line-height: 15px;
+    text-align: center;
 }
-
 
 .file-status-icon {
     margin: 2px 0 0 8px;
-    .bracket-sprite;
-    display: inline-block;
     position: absolute;
     left: 0px;
     top: 1px;
 
-    &.dirty {
-        background-position: -30px 1px;
+    &.dirty:before,
+    &.can-close:before {
+        .unicode-icon-container;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    &.dirty:before {
+        content: "\2022";
+        line-height: 11px;
+    }
+    
+    &.can-close:before {
+        content: "\00D7";
+    }
+    
+    &.can-close:hover:before {
+        color: rgba(255, 255, 255, 0.7);
     }
 
-    &.can-close {
-        background-position: 0 0;
-    }
-
-    &.can-close:hover {
-        background-position: -15px 0;
-    }
-
-    &.can-close:active {
-        background-position: -15px 0;
-        opacity: @tc-icon-down;
+    &.can-close:active:before {
+        color: rgba(255, 255, 255, 0.3);
     }
 }
 
@@ -726,10 +729,11 @@ a, img {
             cursor: pointer;
 
             .dirty-indicator {
-                .bracket-sprite;
-                display: inline-block;
-                background-position: -32px 2px;
-                padding-top: 5px;
+                .unicode-icon-container;
+                color: @tc-quiet-text;
+                overflow: hidden;
+                position: relative;
+                top: 1px;
             }
 
             .line-number {
