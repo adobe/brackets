@@ -181,7 +181,9 @@
     "lua": {
         "name": "Lua",
         "mode": "lua",
-        "fileExtensions": ["lua"]
+        "fileExtensions": ["lua"],
+        "blockComment": ["--[[", "]]"],
+        "lineComment": ["--"]
     },
 
     "sql": {
