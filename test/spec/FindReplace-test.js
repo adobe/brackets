@@ -942,6 +942,37 @@ define(function (require, exports, module) {
                     expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
+
+            it("should find a regexp and replace it with $& (whole match)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("_$&-$2$$&");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":visible")).toBe(true);
+                    tw$("#replace-yes").click();
+                    tw$("#replace-stop").click();
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
+                    expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
         });
 
         describe("Search -> Replace All", function () {
@@ -1019,7 +1050,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should find a regexp and replace it with $nn (n has two digits)", function () {
+            it("should find all regexps and replace them with $nn (n has two digits)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
                     enterSearchText("/()()()()()()()()()()(modules)\\/()()()(\\w+)/");
@@ -1056,7 +1087,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should find a regexp and replace it with $$n (not a subexpression, escaped dollar)", function () {
+            it("should find all regexps and replace them with $$n (not a subexpression, escaped dollar)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
                     enterSearchText("/(modules)\\/(\\w+)/");
@@ -1093,7 +1124,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should find a regexp and replace it with $$$n (correct subexpression)", function () {
+            it("should find all regexps and replace them with $$$n (correct subexpression)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
                     enterSearchText("/(modules)\\/(\\w+)/");
@@ -1127,6 +1158,43 @@ define(function (require, exports, module) {
                     
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 34});
                     expect(/Baz\$modules/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+
+            it("should find all regexps and replace them with $& (whole match)", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("/(modules)\\/(\\w+)/");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    enterSearchText("_$&-$2$$&");
+                    pressEnter();
+                });
+
+                waitsForSearchBarReopen();
+
+                runs(function () {
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
+                    expectSelection(expectedMatch);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-all").is(":visible")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
+                    expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: 23}, {line: LINE_FIRST_REQUIRE + 1, ch: 41});
+                    expect(/_modules\/Bar-Bar\$&/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: 23}, {line: LINE_FIRST_REQUIRE + 2, ch: 41});
+                    expect(/_modules\/Baz-Baz\$&/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
         });
