@@ -235,6 +235,7 @@ a, img {
         .box-align(center);
         background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
+
     /* Image Preview */
     #image-holder {
         overflow: hidden;
@@ -291,17 +292,17 @@ a, img {
     #img-path::selection {
         background: @selection-color-focused;
     }
-
+    
     #img {
         position: relative;
-        
-        /* These properties keep the img percentage sticky */
-        display: inline-block;
-        min-width: 1px;
     }
     
+    .img-guide,
+    #img-preview {
+        cursor: none;
+    }
+
     #img-scale {
-        display: none;
         display: block;
         position: absolute;
         top: 5px;
@@ -312,6 +313,50 @@ a, img {
         color: #fff;
         border-radius: 3px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    #img-tip {
+        display: block;
+        position: absolute;
+        text-align: left;
+        white-space: nowrap;
+        padding: 6px 9px;
+        color: #fff;
+        background-color: rgba(0, 0, 0, 0.8);
+        font-size: 11px;
+        font-family: SourceCodePro;
+        line-height: 13px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+    }
+    
+    #x-value,
+    #y-value {
+        text-align: right;
+    }
+    
+    .tip-container {
+        border: 0;
+    }
+    
+    #horiz-guide {
+        background-image: url("images/horizontal-dash.svg");
+        background-repeat: repeat-x;
+        width: 8px;
+        height: 1px;
+    }
+
+    #vert-guide {
+        background-image: url("images/vertical-dash.svg");
+        background-repeat: repeat-y;
+        width: 1px;
+        height: 8px;
+    }
+    
+    #horiz-guide,
+    #vert-guide {
+        position: absolute;
+        display: block;
     }
 }
 
