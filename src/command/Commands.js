@@ -43,7 +43,9 @@ define(function (require, exports, module) {
     exports.FILE_SAVE_AS                = "file.saveAs";                // DocumentCommandHandlers.js   handleFileSaveAs()
     exports.FILE_CLOSE                  = "file.close";                 // DocumentCommandHandlers.js   handleFileClose()
     exports.FILE_CLOSE_ALL              = "file.close_all";             // DocumentCommandHandlers.js   handleFileCloseAll()
+    exports.FILE_CLOSE_LIST             = "file.close_list";            // DocumentCommandHandlers.js   handleFileCloseList()
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // DocumentCommandHandlers.js   handleFileAddToWorkingSet()
+    exports.FILE_OPEN_DROPPED_FILES     = "file.openDroppedFiles";      // DragAndDrop.js               openDroppedFiles()
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";       // LiveDevelopment/main.js      _handleGoLiveCommand()
     exports.FILE_LIVE_HIGHLIGHT         = "file.previewHighlight";      // LiveDevelopment/main.js      _handlePreviewHighlightCommand()
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";       // ProjectManager.js            _projectSettings()
@@ -115,6 +117,7 @@ define(function (require, exports, module) {
     exports.TOGGLE_QUICK_DOCS           = "navigate.toggleQuickDocs";   // EditorManager.js             _toggleInlineWidget()
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";         // MultiRangeInlineEditor.js    _nextRange()
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";     // MultiRangeInlineEditor.js    _previousRange()
+    exports.CSS_QUICK_EDIT_NEW_RULE     = "navigate.newRule";           // CSSInlineEditor.js           _handleNewRule()
 
     // HELP
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";        // HelpCommandHandlers.js       _handleCheckForUpdates()

@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -37,10 +37,10 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+        FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         KeyEvent                = brackets.getModule("utils/KeyEvent"),
         FileUtils               = brackets.getModule("file/FileUtils"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         Strings                 = brackets.getModule("strings"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
@@ -48,8 +48,6 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var prefs = PreferencesManager.getPreferenceStorage(module);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.brackets-recent-projects");
     
     /** @const {string} Recent Projects commands ID */
     var TOGGLE_DROPDOWN = "recentProjects.toggle";
@@ -63,16 +61,17 @@ define(function (require, exports, module) {
         $dropdown,
         $links;
     
-    
     /**
-     * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
+     * Get the stored list of recent projects, fixing up paths as appropriate.
+     * Warning: unlike most paths in Brackets, these lack a trailing "/"
      */
     function getRecentProjects() {
         var recentProjects = prefs.getValue("recentProjects") || [],
             i;
         
         for (i = 0; i < recentProjects.length; i++) {
-            recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
+            // We have to canonicalize & then de-canonicalize the path here, since our pref format uses no trailing "/"
+            recentProjects[i] = FileUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i] + "/"));
         }
         return recentProjects;
     }
@@ -81,7 +80,7 @@ define(function (require, exports, module) {
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+        var root = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
         
@@ -179,6 +178,35 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Deletes the selected item and
+     * move the focus to next item in list.
+     * 
+     * @return {boolean} TRUE if project is removed
+     */
+    function removeSelectedItem(e) {
+        var recentProjects = getRecentProjects(),
+            $cacheItem = $dropdownItem,
+            index = recentProjects.indexOf($cacheItem.data("path"));
+
+        // When focus is not on project item
+        if (index === -1) {
+            return false;
+        }
+
+        // remove project
+        recentProjects.splice(index, 1);
+        prefs.setValue("recentProjects", recentProjects);
+        checkHovers(e.pageX, e.pageY);
+
+        if (recentProjects.length === 1) {
+            $dropdown.find(".divider").remove();
+        }
+        selectNextItem(+1);
+        $cacheItem.closest("li").remove();
+        return true;
+    }
+
+    /**
      * Handles the Key Down events
      * @param {KeyboardEvent} event
      * @return {boolean} True if the key was handled
@@ -201,6 +229,13 @@ define(function (require, exports, module) {
                 $dropdownItem.trigger("click");
             }
             keyHandled = true;
+            break;
+        case KeyEvent.DOM_VK_BACK_SPACE:
+        case KeyEvent.DOM_VK_DELETE:
+            if ($dropdownItem) {
+                removeSelectedItem(event);
+                keyHandled = true;
+            }
             break;
         }
         
@@ -257,11 +292,11 @@ define(function (require, exports, module) {
                             var recentProjects = getRecentProjects(),
                                 index = recentProjects.indexOf(path);
                             if (index !== -1) {
-                                NativeFileSystem.requestNativeFileSystem(path,
-                                    function () {},
-                                    function () {
+                                FileSystem.resolve(path, function (err, item) {
+                                    if (err) {
                                         recentProjects.splice(index, 1);
-                                    });
+                                    }
+                                });
                             }
                         });
                     closeDropdown();
@@ -269,6 +304,7 @@ define(function (require, exports, module) {
                 } else if (id === "open-folder-link") {
                     CommandManager.execute(Commands.FILE_OPEN_FOLDER);
                 }
+                
             })
             .on("mouseenter", "a", function () {
                 if ($dropdownItem) {
@@ -321,7 +357,7 @@ define(function (require, exports, module) {
      */
     function renderList() {
         var recentProjects = getRecentProjects(),
-            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+            currentProject = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             templateVars   = {
                 projectList : [],
                 Strings     : Strings
@@ -393,7 +429,11 @@ define(function (require, exports, module) {
         // Have to do this stopProp to avoid the html click handler from firing when this returns.
         e.stopPropagation();
         
-        showDropdown();
+        if ($dropdown) {
+            closeDropdown(); //close if it's already visible
+        } else {
+            showDropdown();
+        }
     }
     
     /**

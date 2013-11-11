@@ -189,16 +189,7 @@ define(function (require, exports, module) {
             return response.promise();
         }
 
-        var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath),
-            fileTextPromise;
-
-        if (doc) {
-            fileTextPromise = new $.Deferred().resolve(doc.getText());
-        } else {
-            fileTextPromise = FileUtils.readAsText(fileEntry);
-        }
-
-        fileTextPromise
+        DocumentManager.getDocumentText(fileEntry)
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + fileEntry.fullPath);
 

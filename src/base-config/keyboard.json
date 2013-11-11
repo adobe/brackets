@@ -270,6 +270,9 @@
             "displayKey": "Alt-↓"
         }
     ],
+    "navigate.newRule":  [
+        "Cmd-Alt-N"
+    ],
     "file.rename":  [
         "F2"
     ]

@@ -235,6 +235,84 @@ a, img {
         .box-align(center);
         background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
+    /* Image Preview */
+    #image-holder {
+        overflow: hidden;
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+        text-align: center;
+        display: none;
+        #img-centering {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -50px; /* Offset as vertical align takes image metadata into account */
+            max-width: 90%;
+            max-height: 90%;
+        }
+        #img-data {
+            font-weight: @font-weight-semibold;
+        }
+    }
+    
+    #image-holder:before {
+        content: '';
+        display: inline-block;
+        height: 100%;
+        margin-right: -0.25em; /* Adjusts for spacing */
+        vertical-align: middle;
+    }
+    
+    #img-preview {
+        background: url(images/preview_bg.png);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
+        max-height: 90%;
+    }
+
+    #img-header {
+        display: inline-block;
+        width: 100%;
+        height: 38px;
+        margin-bottom: 15px;
+    }
+    
+    #img-data,
+    #img-path {
+        text-align: left;
+        .user-select(text);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;        
+    }
+    
+    #img-data::selection,
+    #img-path::selection {
+        background: @selection-color-focused;
+    }
+
+    #img {
+        position: relative;
+        
+        /* These properties keep the img percentage sticky */
+        display: inline-block;
+        min-width: 1px;
+    }
+    
+    #img-scale {
+        display: none;
+        display: block;
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        width: 40px;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
 }
 
 .vert-resizer {
@@ -383,6 +461,7 @@ a, img {
     background: #3C3F41;
     color: @project-panel-text-2;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 #sidebar {
@@ -404,6 +483,7 @@ a, img {
     padding: 8px 0 9px 12px;
     font-size: 13px;
     color: @project-panel-text-2;
+    overflow: hidden;
 }
 
 #open-files-container {
@@ -581,7 +661,7 @@ a, img {
     top: 1px;
 
     &.dirty {
-        background-position: -30px 0;
+        background-position: -30px 1px;
     }
 
     &.can-close {
@@ -599,11 +679,16 @@ a, img {
 }
 
 /* Styles for inline editors */
+
+.inline-text-editor {
+    line-height: 0px;
+}
+
 .inline-widget {
     position: relative;
     overflow: hidden;
 
-    background-color: @inline-background-color-1;
+    background-color: @tc-lighter-gray;
     min-width: 250px;
     cursor: default;
 
@@ -621,12 +706,14 @@ a, img {
     }
 
     .inline-editor-header {
-        padding: 10px 10px 0px 10px;
+        display: inline-block;
+        padding: 10px 10px 0px 40px;
 
         .filename {
+            vertical-align: middle;
             font-family: @sansFontFamily;
-            font-size: 1.1em;
-            color: @inline-color-1;
+            font-size: 13px;
+            color: @bc-black;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
             // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
@@ -635,8 +722,8 @@ a, img {
             .dirty-indicator {
                 .bracket-sprite;
                 display: inline-block;
-                background-position: -32px 0;
-                padding-top: 3px;
+                background-position: -32px 2px;
+                padding-top: 5px;
             }
 
             .line-number {
@@ -669,9 +756,17 @@ a, img {
         background-color: transparent;
 
         .CodeMirror-linenumbers {
-            background-color: @inline-background-color-1;
+            background-color: @tc-lighter-gray;
         }
     }
+
+    .close {
+        position: absolute;
+        left: 15px;
+        top: 10px;
+        margin-right: 30px;
+    }
+
 }
 
 /* CSSInlineEditor rule list */
@@ -749,6 +844,15 @@ a, img {
             transition: color 0.1s ease-out .15s;
         }
     }
+}
+
+.inline-editor-message {
+    color: @tc-input-placeholder-text;
+    font-family: @sansFontFamily;
+    font-size: 12px;
+    line-height: 17px;
+    height: 20px;
+    padding: 10px 0 40px 50px;
 }
 
 /* This text is used to force the code editor's font to be loaded early on if it's a
@@ -905,10 +1009,10 @@ a, img {
         }
     }
 
-    .navigator {    
-        display: none;        
-        button {    
-            margin: 2px 1px 3px;   
+    .navigator {
+        display: none;
+        button {
+            margin: 2px 1px 3px;
         }
     }
 }
@@ -996,14 +1100,18 @@ a, img {
         list-style: none;
         cursor: default;
         padding: 6px 10px;
-    }
+        
+        &:nth-child(odd) {
+            background-color: @tc-lighter-gray;
+        }
+        
+        &:hover {
+            background-color: @tc-hover-highlight;
+        }
 
-    li:nth-child(odd) {
-        background-color: #e6e9e9;
-    }
-
-    li.smart_autocomplete_highlight {
-        background-color: @tc-highlight;
+        &.smart_autocomplete_highlight {
+            background-color: @tc-highlight;
+        }
     }
 }
 

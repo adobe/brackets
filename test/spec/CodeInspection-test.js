@@ -27,8 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var SpecRunnerUtils   = require("spec/SpecRunnerUtils"),
-        NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem;
+    var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
+        FileSystem       = require("filesystem/FileSystem");
 
     describe("Code Inspection", function () {
         this.category = "integration";
@@ -54,7 +54,6 @@ define(function (require, exports, module) {
                 scanFile: function () { this.called = true; return {errors: result}; }
             };
         }
-
 
         beforeFirst(function () {
             runs(function () {
@@ -91,7 +90,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 CodeInspection.unregisterAll();
-                simpleJavascriptFileEntry = new NativeFileSystem.FileEntry(testFolder + "/errors.js");
+                simpleJavascriptFileEntry = new FileSystem.getFileForPath(testFolder + "/errors.js");
             });
 
             it("should run one linter when a javascript document opens", function () {
@@ -259,8 +258,6 @@ define(function (require, exports, module) {
                         type: CodeInspection.Type.META
                     }
                 ];
-
-                brackets.app.showDeveloperTools();
 
                 var codeInspector = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector);

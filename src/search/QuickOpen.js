@@ -40,8 +40,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileIndexManager    = require("project/FileIndexManager"),
-        DocumentManager     = require("document/DocumentManager"),
+    var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
@@ -523,7 +522,7 @@ define(function (require, exports, module) {
     }
 
     function searchFileList(query, matcher) {
-        // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
+        // The file index may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
             // Smart Autocomplete allows us to return a Promise instead...
             var asyncResult = new $.Deferred();
@@ -840,9 +839,9 @@ define(function (require, exports, module) {
 
         this.setSearchFieldValue(prefix, initialString);
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
+        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = FileIndexManager.getFileInfoList("all")
+        fileListPromise = ProjectManager.getAllFiles(true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;

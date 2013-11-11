@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CollectionUtils = require("utils/CollectionUtils");
+    var _ = require("thirdparty/lodash");
     
     /**
      * Convert between URL querystring and name/value pairs. Decodes and encodes URL parameters.
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
         var strs = [],
             self = this;
         
-        CollectionUtils.forEach(self._store, function (value, key) {
+        _.forEach(self._store, function (value, key) {
             strs.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
         });
         

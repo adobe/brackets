@@ -124,7 +124,7 @@ define(function (require, exports, module) {
             });
             
             runs(function () {
-                myEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editors[0];
+                myEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
             });
         }
         

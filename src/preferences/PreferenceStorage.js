@@ -31,8 +31,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PreferencesManager = require("preferences/PreferencesManager"),
-        CollectionUtils    = require("utils/CollectionUtils");
+    var _ = require("thirdparty/lodash");
+    
+    var PreferencesManager = require("preferences/PreferencesManager");
     
     /**
      * @private
@@ -145,7 +146,7 @@ define(function (require, exports, module) {
             error = null;
         
         // validate all name/value pairs before committing
-        CollectionUtils.some(obj, function (value, key) {
+        _.some(obj, function (value, key) {
             try {
                 _validateJSONPair(key, value);
             } catch (err) {
@@ -163,13 +164,13 @@ define(function (require, exports, module) {
         
         // delete all exiting properties if not appending
         if (!append) {
-            CollectionUtils.forEach(this._json, function (value, key) {
+            _.forEach(this._json, function (value, key) {
                 delete self._json[key];
             });
         }
         
         // copy properties from incoming JSON object
-        CollectionUtils.forEach(obj, function (value, key) {
+        _.forEach(obj, function (value, key) {
             self._json[key] = value;
         });
         

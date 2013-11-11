@@ -83,7 +83,7 @@ define(function (require, exports, module) {
             var editor = EditorManager.getCurrentFullEditor();
             return {
                 editor: editor,
-                inline: editor.getInlineWidgets()[0].editors[0]
+                inline: editor.getInlineWidgets()[0].editor
             };
         }
         

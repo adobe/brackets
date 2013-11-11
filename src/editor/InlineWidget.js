@@ -41,10 +41,18 @@ define(function (require, exports, module) {
         
         // create the outer wrapper div
         this.htmlContent = window.document.createElement("div");
-        this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
+        this.$htmlContent = $(this.htmlContent).addClass("inline-widget").attr("tabindex", "-1");
         this.$htmlContent.append("<div class='shadow top' />")
-            .append("<div class='shadow bottom' />");
-        
+            .append("<div class='shadow bottom' />")
+            .append("<a href='#' class='close no-focus'>&times;</a>");
+
+        // create the close button
+        this.$closeBtn = this.$htmlContent.find(".close");
+        this.$closeBtn.click(function (e) {
+            self.close();
+            e.stopImmediatePropagation();
+        });
+
         this.$htmlContent.on("keydown", function (e) {
             if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 self.close();
@@ -93,7 +101,7 @@ define(function (require, exports, module) {
      * to set the initial height of the widget and animate it open.
      */
     InlineWidget.prototype.onAdded = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("add");
     };
 
     /**

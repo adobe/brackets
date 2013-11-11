@@ -32,6 +32,8 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
@@ -39,7 +41,6 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         Menus                 = require("command/Menus"),
         FileViewController    = require("project/FileViewController"),
-        CollectionUtils       = require("utils/CollectionUtils"),
         ViewUtils             = require("utils/ViewUtils");
     
     
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Adds directory names to elements representing passed files in working tree
-     * @param {Array.<FileEntry>} filesList - list of FileEntries with the same filename
+     * @param {Array.<File>} filesList - list of Files with the same filename
      */
     function _addDirectoryNamesToWorkingTreeFiles(filesList) {
         // filesList must have at least two files in it for this to make sense
@@ -118,7 +119,7 @@ define(function (require, exports, module) {
         // This function is used to loop through map and resolve duplicate names
         var processMap = function (map) {
             var didSomething = false;
-            CollectionUtils.forEach(map, function (arr, key) {
+            _.forEach(map, function (arr, key) {
                 // length > 1 means we have duplicates that need to be resolved
                 if (arr.length > 1) {
                     arr.forEach(function (index) {
@@ -184,7 +185,7 @@ define(function (require, exports, module) {
         });
 
         // Go through the map and solve the arrays with length over 1. Ignore the rest.
-        CollectionUtils.forEach(map, function (value) {
+        _.forEach(map, function (value) {
             if (value.length > 1) {
                 _addDirectoryNamesToWorkingTreeFiles(value);
             }
@@ -464,7 +465,7 @@ define(function (require, exports, module) {
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
-     * @param {FileEntry} file
+     * @param {File} file
      * @return {HTMLLIElement} newListItem
      */
     function _createNewListItem(file) {
@@ -516,7 +517,7 @@ define(function (require, exports, module) {
     /**
      * Finds the listItem item assocated with the file. Returns null if not found.
      * @private
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @return {HTMLLIItem}
      */
     function _findListItemFromFile(file) {
@@ -606,7 +607,7 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry} file
+     * @param {File} file
      * @param {boolean=} suppressRedraw If true, suppress redraw
      */
     function _handleFileRemoved(file, suppressRedraw) {
