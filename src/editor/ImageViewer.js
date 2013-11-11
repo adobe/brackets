@@ -78,38 +78,53 @@ define(function (require, exports, module) {
      * Check mouse entering/exiting the scale sticker. 
      * Hide it when entering and show it again when exiting.
      *
-     * @param {MouseEvent} e mouse move/leave event
-     * @return {boolean} true if mouse entering into the scale sticker
+     * @param {number} offsetX mouse offset from the left of the previewing image
+     * @param {number} offsetY mouseoffset from the top of the previewing image
      */
-    function _handleMouseEnterOrExitScaleSticker(e) {
-        var imagePos = $("#img-preview").position(),
-            scaleDivPos = $("#img-scale").position(),
-            left = e.offsetX + imagePos.left,
-            top = e.offsetY + imagePos.top,
-            mouseInScaleDiv = $(e.target).is("#img-scale");
-            
-        if (mouseInScaleDiv) {
+    function _handleMouseEnterOrExitScaleSticker(offsetX, offsetY) {
+        var imagePos       = $("#img-preview").position(),
+            scaleDivPos    = $("#img-scale").position(),
+            imgWidth       = $("#img-preview").width(),
+            imgHeight      = $("#img-preview").height(),
+            scaleDivLeft,
+            scaleDivTop,
+            scaleDivRight,
+            scaleDivBottom;
+        
+        if (_scaleDivInfo) {
+            scaleDivLeft   = _scaleDivInfo.left;
+            scaleDivTop    = _scaleDivInfo.top;
+            scaleDivRight  = _scaleDivInfo.right;
+            scaleDivBottom = _scaleDivInfo.bottom;
+        } else {
+            scaleDivLeft   = scaleDivPos.left;
+            scaleDivTop    = scaleDivPos.top;
+            scaleDivRight  = $("#img-scale").width() - scaleDivLeft;
+            scaleDivBottom = $("#img-scale").height() - scaleDivTop;
+        }
+        
+        if ((offsetX >= scaleDivLeft && offsetX <= scaleDivRight) &&
+                (offsetY >= scaleDivTop && offsetY <= scaleDivBottom)) {
             // Handle mouse inside image scale div.
             // But hide it only if the pixel under mouse is also in the image.
-            if ((e.offsetX + scaleDivPos.left) < (imagePos.left + $("#img-preview").width()) &&
-                    (e.offsetY + scaleDivPos.top) < (imagePos.top + $("#img-preview").height())) {
+            if (offsetX < (imagePos.left + imgWidth) &&
+                    offsetY < (imagePos.top + imgHeight)) {
                 // Remember image scale div coordinates before hiding it.
                 _scaleDivInfo = {left: scaleDivPos.left,
                                  top: scaleDivPos.top,
-                                 right: scaleDivPos.left + $("#img-scale").width(),
-                                 bottom: scaleDivPos.top + $("#img-scale").height()};
+                                 right: scaleDivRight,
+                                 bottom: scaleDivBottom};
                 $("#img-scale").hide();
             }
         } else if (_scaleDivInfo) {
             // See whether the cursor is no longer inside the hidden scale div.
             // If so, show it again.
-            if ((left < _scaleDivInfo.left || left > _scaleDivInfo.right) ||
-                    (top < _scaleDivInfo.top || top > _scaleDivInfo.bottom)) {
+            if ((offsetX < _scaleDivInfo.left || offsetX > _scaleDivInfo.right) ||
+                    (offsetY < _scaleDivInfo.top || offsetY > _scaleDivInfo.bottom)) {
                 _scaleDivInfo = null;
                 $("#img-scale").show();
             }
         }
-        return mouseInScaleDiv;
     }
     
     /**
@@ -124,21 +139,62 @@ define(function (require, exports, module) {
             return;
         }
         
-        var x = Math.floor(e.offsetX * 100 / _scale),
-            y = Math.floor(e.offsetY * 100 / _scale),
-            imagePos = $("#img-preview").position(),
-            left = e.offsetX + imagePos.left,
-            top = e.offsetY + imagePos.top,
-            windowWidth = $(window).width(),
+        var x                   = Math.floor(e.offsetX * 100 / _scale),
+            y                   = Math.floor(e.offsetY * 100 / _scale),
+            $target             = $(e.target),
+            targetPos           = $target.position(),
+            tipPos              = $("#img-tip").position(),
+            imagePos            = $("#img-preview").position(),
+            scaleDivPos         = $("#img-scale").position(),
+            left                = e.offsetX + imagePos.left,
+            top                 = e.offsetY + imagePos.top,
+            width               = $("#img-preview").width(),
+            height              = $("#img-preview").height(),
+            windowWidth         = $(window).width(),
             fourDigitImageWidth = _naturalWidth.toString().length === 4,
-            infoWidth1 = 112,       // info div width 96px + vertical toolbar width 16px
-            infoWidth2 = 120,       // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
-            tipOffsetX = 6,         // adjustment for info div left from x coordinate of cursor
-            tipOffsetY = -48,       // adjustment for info div top from y coordinate of cursor
-            tipMinusOffsetX1 = -84, // for less than 4-digit image width
-            tipMinusOffsetX2 = -92; // for 4-digit image width 
+            infoWidth1          = 112,    // info div width 96px + vertical toolbar width 16px
+            infoWidth2          = 120,    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
+            tipOffsetX          = 10,     // adjustment for info div left from x coordinate of cursor
+            tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
+            tipMinusOffsetX1    = -84,    // for less than 4-digit image width
+            tipMinusOffsetX2    = -90;    // for 4-digit image width 
         
-        if (_handleMouseEnterOrExitScaleSticker(e)) {
+        // Adjust left, top, x and y based on which element contains the cursor.
+        // Return if the target element is no longer available as in the case of
+        // a vertical guide that has its left equals to zero.
+        if ($target.is(".img-guide")) {
+            if ($target.is("#vert-guide")) {
+                if (targetPos.left === 0) {
+                    return;
+                }
+                left = targetPos.left;
+                x = Math.floor(left * 100 / _scale);
+            } else {
+                if (targetPos.top === 0) {
+                    return;
+                }
+                top = targetPos.top;
+                y = Math.floor(top * 100 / _scale);
+            }
+        } else if (!$target.is("#img-preview")) {
+            if ($target.is("#img-scale")) {
+                left = scaleDivPos.left + e.offsetX;
+                top = scaleDivPos.top + e.offsetY;
+                x = Math.floor(left * 100 / _scale);
+                y = Math.floor(top * 100 / _scale);
+            } else if (tipPos.left && tipPos.top) {
+                // Cursor must be inside the image tip.
+                left = tipPos.left + e.offsetX;
+                top = tipPos.top + e.offsetY;
+                x = Math.floor(left * 100 / _scale);
+                y = Math.floor(top * 100 / _scale);
+            } else {
+                return;
+            }
+        }
+
+        _handleMouseEnterOrExitScaleSticker(left, top);
+        if ($(e.target).is("#img-scale")) {
             // If we're in the scale sticker, then just return.
             return;
         }
@@ -162,6 +218,18 @@ define(function (require, exports, module) {
             left: left + tipOffsetX,
             top: top + tipOffsetY
         }).show();
+        
+        $("#horiz-guide").css({
+            left: imagePos.left,
+            top: top,
+            width: width - 1
+        }).show();
+        
+        $("#vert-guide").css({
+            left: left,
+            top: imagePos.top,
+            height: height - 1
+        }).show();
     }
     
     /**
@@ -170,11 +238,25 @@ define(function (require, exports, module) {
      * @param {MouseEvent} e mouse leave event
      */
     function _hideImageTip(e) {
-        $("#img-tip").hide();
+        var $target   = $(e.target),
+            targetPos = $target.position(),
+            imagePos  = $("#img-preview").position(),
+            right     = imagePos.left + $("#img-preview").width(),
+            bottom    = imagePos.top + $("#img-preview").height(),
+            offsetX   = e.offsetX,
+            offsetY   = e.offsetY;
         
-        // Ensure image scale div is visible when mouse is outside of the image.
-        if ($(e.target).is("#img-preview")) {
-            $("#img-scale").show();
+        if ($target.is(".img-guide")) {
+            offsetX = targetPos.left + offsetX;
+            offsetY = targetPos.top + offsetY;
+        }
+        
+        // Hide image tip and guides only if the cursor is outside of the image.
+        if (offsetX < imagePos.left || offsetX >= right ||
+                offsetY < imagePos.top || offsetY >= bottom) {
+            $("#img-tip").hide();
+            $(".img-guide").hide();
+//            $("#img-scale").show();
         }
     }
 
@@ -195,8 +277,8 @@ define(function (require, exports, module) {
     function _removeListeners() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
-        $("#img").off("mousemove", "#img-preview, #img-scale", _showImageTip)
-                 .off("mouseleave", "#img-preview, #img-scale", _hideImageTip);
+        $("#img").off("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
+                 .off("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
     }
     
     /** 
@@ -239,8 +321,9 @@ define(function (require, exports, module) {
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
             $("#img-tip").hide();
-            $("#img").on("mousemove", "#img-preview, #img-scale", _showImageTip)
-                     .on("mouseleave", "#img-preview, #img-scale", _hideImageTip);
+            $(".img-guide").hide();
+            $("#img").on("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
+                     .on("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
 
             _updateScale($(this).width());
         });

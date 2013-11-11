@@ -297,9 +297,9 @@ a, img {
         position: relative;
     }
     
+    .img-guide,
     #img-preview {
-        cursor: url("images/crosshair_cursor.png") 11 11, auto; /* for non-webkit-fallback */
-        cursor: -webkit-image-set( url("images/crosshair_cursor.png") 1x, url("images/crosshair_cursor@2x.png") 2x ) 11 11, auto;
+        cursor: none;
     }
     
     #img-scale {
@@ -337,6 +337,26 @@ a, img {
     
     .tip-container {
         border: 0;
+    }
+    
+    #horiz-guide {
+        background-image: url("images/horizontal-dash.svg");
+        background-repeat: repeat-x;
+        width: 8px;
+        height: 1px;
+    }
+
+    #vert-guide {
+        background-image: url("images/vertical-dash.svg");
+        background-repeat: repeat-y;
+        width: 1px;
+        height: 8px;
+    }
+    
+    #horiz-guide,
+    #vert-guide {
+        position: absolute;
+        display: block;
     }
 }
 
