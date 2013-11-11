@@ -368,12 +368,12 @@ define(function (require, exports, module) {
                     dupeList.push(fileInfos[i]);
 
                     // Lookahead for more dupes
-                    while (i++ < fileInfos.length &&
+                    while (++i < fileInfos.length &&
                             _sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
                         dupeList.push(fileInfos[i]);
                     }
 
-                    // Add a subdir to each dupe
+                    // Get minimum subdir to make each unique
                     displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
 
                     // Add a subdir to each dupe entry
