@@ -298,6 +298,8 @@ define(function (require, exports, module) {
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
         _scale = 100;   // initialize to 100
+        _scaleDivInfo = null;
+        
         $("#img-path").text(relPath)
                 .attr("title", relPath);
         $("#img-preview").on("load", function () {
@@ -306,6 +308,7 @@ define(function (require, exports, module) {
             var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             // get image size
             var file = FileSystem.getFileForPath(fullPath);
+            var minimumPixels = 20;     // for showing crosshair cursor
             file.stat(function (err, stat) {
                 if (err) {
                     $("#img-data").html(dimensionString);
@@ -328,20 +331,21 @@ define(function (require, exports, module) {
             $(EditorManager).on("removeCustomViewer", _removeListeners);
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
-            // If the image size is too narrow in width or height, then 
-            // show the crosshair cursor since guides are almost invisible
-            // in narrow images.
-            if (this.naturalWidth < 20 || this.naturalHeight < 20) {
-                $("#img-preview").css("cursor", "crosshair");
-                $(".img-guide").css("cursor", "crosshair");
-            }
-
             $("#img-tip").hide();
             $(".img-guide").hide();
             $("#img").on("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
                      .on("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
 
             _updateScale($(this).width());
+            minimumPixels = Math.floor(minimumPixels * 100 / _scale);
+
+            // If the image size is too narrow in width or height, then 
+            // show the crosshair cursor since guides are almost invisible
+            // in narrow images.
+            if (this.naturalWidth < minimumPixels || this.naturalHeight < minimumPixels) {
+                $("#img-preview").css("cursor", "crosshair");
+                $(".img-guide").css("cursor", "crosshair");
+            }
         });
     }
     
