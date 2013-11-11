@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     var Directory           = require("filesystem/Directory"),
         File                = require("filesystem/File"),
         FileSystem          = require("filesystem/FileSystem"),
+        FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
@@ -644,6 +645,67 @@ define(function (require, exports, module) {
                     expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
                     expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
                     expect(results["/visit/subdir2/subfile21.txt"]).not.toBeTruthy();
+                    expect(results["/"]).not.toBeTruthy();
+                });
+            });
+            
+            it("should converge when visiting directories with symlink cycles", function () {
+                
+                function addSymbolicLink(dir, name, target) {
+
+                    // Add the symbolic link to the base directory
+                    MockFileSystemImpl.when("readdir", dir, { callback: function (cb) {
+                        return function (err, contents, contentsStats, contentsStatsErrors) {
+                            contents.push("/" + name);
+                            contentsStats.push(new FileSystemStats({
+                                isFile: false,
+                                mtime: new Date(),
+                                realpath: target
+                            }));
+                            
+                            cb(err, contents, contentsStats, contentsStatsErrors);
+                        };
+                    }});
+                    
+                    // use the target's contents when listing the contents of the link
+                    MockFileSystemImpl.when("readdir", dir + name + "/", { callback: function (cb) {
+                        return function (err, contents, contentsStats, contentsStatsErrors) {
+                            MockFileSystemImpl.readdir(target, cb);
+                        };
+                    }});
+                    
+                    // clear cached data for the base directory so readdir will be called
+                    fileSystem.getDirectoryForPath(dir)._clearCachedData();
+                }
+                
+                addSymbolicLink("/visit/subdir1/", "subdir2link", "/visit/subdir2/");
+                addSymbolicLink("/visit/subdir2/", "subdir1link", "/visit/subdir1/");
+
+                var directory = fileSystem.getDirectoryForPath("/visit/"),
+                    results = {},
+                    visitor = function (entry) {
+                        results[entry.fullPath] = entry;
+                        return true;
+                    };
+                
+                var cb = getContentsCallback();
+                runs(function () {
+                    directory.visit(visitor, cb);
+                });
+                waitsFor(function () { return cb.wasCalled; });
+                runs(function () {
+                    expect(cb.error).toBeFalsy();
+                    expect(Object.keys(results).length).toBe(12);
+                    expect(results["/visit/"]).toBeTruthy();
+                    expect(results["/visit/file.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile11.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
+                    expect(results["/visit/subdir1/subdir2link/subdir1link/subdir2link/"]).not.toBeTruthy();
+                    expect(results["/visit/subdir1/subdir1link/subdir2link/subdir1link/"]).not.toBeTruthy();
                     expect(results["/"]).not.toBeTruthy();
                 });
             });

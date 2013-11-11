@@ -283,32 +283,37 @@ define(function (require, exports, module) {
         }
         
         this.getContents(function (err, entries, entriesStats) {
-            entries = entries.filter(function (entry, index) {
-                var stats = entriesStats[index];
-                if (stats.isFile || !stats.realPath) {
-                    return true;
-                } else {
-                    if (realPaths.hasOwnProperty(stats.realPath)) {
-                        console.warn("Cyclic link detected: ", entry.fullPath, stats.realPath);
-                        return false;
-                    } else {
-                        realPaths[stats.realPath] = true;
-                        return true;
-                    }
-                }
-            });
-            
-            var counter = entries ? entries.length : 0,
-                nextOptions = {
-                    failFast: failFast,
-                    maxDepth: maxDepth,
-                    maxEntriesCounter: maxEntriesCounter
-                };
-
-            if (err || counter === 0) {
+            if (err) {
                 callback(failFast ? err : null);
                 return;
             }
+            
+            // Do not traverse symbolic links with the same realPaths repeatedly
+            entries = entries.filter(function (entry, index) {
+                var stats = entriesStats[index],
+                    realPath = stats.realPath;
+                
+                if (stats.isFile || !realPath) {
+                    return true;
+                }
+
+                if (!realPaths.hasOwnProperty(realPath)) {
+                    realPaths[realPath] = true;
+                    return true;
+                }
+            });
+            
+            var counter = entries.length;
+            if (counter === 0) {
+                callback(null);
+                return;
+            }
+            
+            var nextOptions = {
+                failFast: failFast,
+                maxDepth: maxDepth,
+                maxEntriesCounter: maxEntriesCounter
+            };
             
             entries.forEach(function (entry) {
                 entry._visitHelper(visitor, nextOptions, realPaths, function (err) {
