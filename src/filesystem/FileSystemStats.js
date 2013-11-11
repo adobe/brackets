@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         this._isDirectory = !options.isFile;
         this._mtime = options.mtime;
         this._size = options.size;
-        this._realPath = options.realpath;
+        this._realPath = options.realPath;
     }
     
     // Add "isFile", "isDirectory", "mtime" and "size" getters
@@ -92,7 +92,8 @@ define(function (require, exports, module) {
     FileSystemStats.prototype._size = null;
     
     /**
-     * The canonical path of this file ONLY if it is a symbolic link, or null otherwise.
+     * The canonical path of this file or directory ONLY if it is a symbolic link,
+     * and null otherwise.
      * 
      * @type {?string}
      */

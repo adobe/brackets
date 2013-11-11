@@ -660,7 +660,7 @@ define(function (require, exports, module) {
                             contentsStats.push(new FileSystemStats({
                                 isFile: false,
                                 mtime: new Date(),
-                                realpath: target
+                                realPath: target
                             }));
                             
                             cb(err, contents, contentsStats, contentsStatsErrors);

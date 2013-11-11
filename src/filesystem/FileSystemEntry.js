@@ -288,7 +288,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            // Do not traverse symbolic links with the same realPaths repeatedly
+            // Do not traverse symbolic links with the same realPath repeatedly
             entries = entries.filter(function (entry, index) {
                 var stats = entriesStats[index],
                     realPath = stats.realPath;

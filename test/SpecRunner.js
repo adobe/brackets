@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    // Utility dependency
+    // Utility dependencies
     var AppInit                 = require("utils/AppInit"),
         CodeHintManager         = require("editor/CodeHintManager"),
         Global                  = require("utils/Global"),
@@ -58,12 +58,17 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         NativeApp               = require("utils/NativeApp");
 
-    // Load modules that self-register and just need to get included in the main project
+    // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");
     
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
     require("utils/ExtensionUtils");
+    
+    // Also load compatibility shims for now, in case legacy extensions are still using old file APIs
+    require("project/FileIndexManager");
+    require("file/NativeFileSystem");
+    require("file/NativeFileError");
     
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");
