@@ -193,19 +193,17 @@ define(function (require, exports, module) {
     /**
      * Test if the file should be excluded from analysis.
      *
-     * @param {!string} path - full directory path.
+     * @param {!File} file - file to test for exclusion.
      * @return {boolean} true if excluded, false otherwise.
      */
-    function isFileExcluded(path) {
+    function isFileExcluded(file) {
         var excludes = preferences.getExcludedFiles();
 
         if (!excludes) {
             return false;
         }
 
-        var file = HintUtils.splitPath(path).file;
-
-        return excludes.test(file);
+        return excludes.test(file.name);
     }
 
     /**
@@ -768,7 +766,7 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = HintUtils.splitPath(name).file;
+                var fileName = name.substring(name.lastIndexOf("/"));
                 
                 function _fileFilter(entry) {
                     return entry.name === fileName;
@@ -882,7 +880,7 @@ define(function (require, exports, module) {
             FileSystem.resolve(dir, function (err, directory) {
                 function visitor(entry) {
                     if (entry.isFile) {
-                        if (!isFileExcluded(entry.fullPath) && entry.name.indexOf(".") !== 0) { // ignore .dotfiles
+                        if (!isFileExcluded(entry) && entry.name.indexOf(".") !== 0) { // ignore .dotfiles
                             var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
                             if (languageID === HintUtils.LANGUAGE_ID) {
                                 addFilesToTern([entry.fullPath]);
@@ -993,11 +991,10 @@ define(function (require, exports, module) {
          * @param {Document} previousDocument - the document the editor has changed from
          */
         function doEditorChange(session, document, previousDocument) {
-            var path        = document.file.fullPath,
-                split       = HintUtils.splitPath(path),
-                dir         = split.dir,
+            var file        = document.file,
+                path        = file.fullPath,
+                dir         = file.parentPath,
                 files       = [],
-                file        = split.file,
                 pr;
     
             var addFilesDeferred = $.Deferred();
@@ -1044,7 +1041,7 @@ define(function (require, exports, module) {
                         
                         var files = contents
                             .filter(function (entry) {
-                                return entry.isFile && !isFileExcluded(entry.fullPath);
+                                return entry.isFile && !isFileExcluded(entry);
                             })
                             .map(function (entry) {
                                 return entry.fullPath;
