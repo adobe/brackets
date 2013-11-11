@@ -96,14 +96,31 @@ define(function (require, exports, module) {
             scaleDivTop    = _scaleDivInfo.top;
             scaleDivRight  = _scaleDivInfo.right;
             scaleDivBottom = _scaleDivInfo.bottom;
+            
+            if ((imgWidth + imagePos.left) < scaleDivRight) {
+                scaleDivRight = imgWidth + imagePos.left;
+            }
+            
+            if ((imgHeight + imagePos.top) < scaleDivBottom) {
+                scaleDivBottom = imgHeight + imagePos.top;
+            }
+            
         } else {
             scaleDivLeft   = scaleDivPos.left;
             scaleDivTop    = scaleDivPos.top;
-            scaleDivRight  = $("#img-scale").width() - scaleDivLeft;
-            scaleDivBottom = $("#img-scale").height() - scaleDivTop;
+            scaleDivRight  = $("#img-scale").width() + scaleDivLeft;
+            scaleDivBottom = $("#img-scale").height() + scaleDivTop;
         }
         
-        if ((offsetX >= scaleDivLeft && offsetX <= scaleDivRight) &&
+        if (_scaleDivInfo) {
+            // See whether the cursor is no longer inside the hidden scale div.
+            // If so, show it again.
+            if ((offsetX < scaleDivLeft || offsetX > scaleDivRight) ||
+                    (offsetY < scaleDivTop || offsetY > scaleDivBottom)) {
+                _scaleDivInfo = null;
+                $("#img-scale").show();
+            }
+        } else if ((offsetX >= scaleDivLeft && offsetX <= scaleDivRight) &&
                 (offsetY >= scaleDivTop && offsetY <= scaleDivBottom)) {
             // Handle mouse inside image scale div.
             // But hide it only if the pixel under mouse is also in the image.
@@ -115,14 +132,6 @@ define(function (require, exports, module) {
                                  right: scaleDivRight,
                                  bottom: scaleDivBottom};
                 $("#img-scale").hide();
-            }
-        } else if (_scaleDivInfo) {
-            // See whether the cursor is no longer inside the hidden scale div.
-            // If so, show it again.
-            if ((offsetX < _scaleDivInfo.left || offsetX > _scaleDivInfo.right) ||
-                    (offsetY < _scaleDivInfo.top || offsetY > _scaleDivInfo.bottom)) {
-                _scaleDivInfo = null;
-                $("#img-scale").show();
             }
         }
     }
@@ -156,7 +165,7 @@ define(function (require, exports, module) {
             infoWidth2          = 120,    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
             tipOffsetX          = 10,     // adjustment for info div left from x coordinate of cursor
             tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
-            tipMinusOffsetX1    = -84,    // for less than 4-digit image width
+            tipMinusOffsetX1    = -82,    // for less than 4-digit image width
             tipMinusOffsetX2    = -90;    // for 4-digit image width 
         
         // Adjust left, top, x and y based on which element contains the cursor.
@@ -256,7 +265,6 @@ define(function (require, exports, module) {
                 offsetY < imagePos.top || offsetY >= bottom) {
             $("#img-tip").hide();
             $(".img-guide").hide();
-//            $("#img-scale").show();
         }
     }
 
@@ -319,6 +327,14 @@ define(function (require, exports, module) {
             // listen to removal to stop listening to resize events
             $(EditorManager).on("removeCustomViewer", _removeListeners);
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
+
+            // If the image size is too narrow in width or height, then 
+            // show the crosshair cursor since guides are almost invisible
+            // in narrow images.
+            if (this.naturalWidth < 20 || this.naturalHeight < 20) {
+                $("#img-preview").css("cursor", "crosshair");
+                $(".img-guide").css("cursor", "crosshair");
+            }
 
             $("#img-tip").hide();
             $(".img-guide").hide();
