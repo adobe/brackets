@@ -482,33 +482,33 @@ var config = {};
 
                 var fnType = "";
                 try {
-                    ternServer.request(request, function (error, data) {
+                    ternServer.request(request, function (ternError, data) {
                         
-                        if (error) {
-                            _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + error);
-                            return;
-                        }
-                        
-                        var file = ternServer.findFile(fileInfo.name);
-
-                        // convert query from partial to full offsets
-                        var newOffset = offset;
-                        if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
-                            newOffset = {line: offset.line + fileInfo.offsetLines, ch: offset.ch};
-                        }
-
-                        request = buildRequest(createEmptyUpdate(fileInfo.name), "type", newOffset);
-
-                        var expr = Tern.findQueryExpr(file, request.query);
-                        Infer.resetGuessing();
-                        var type = Infer.expressionType(expr);
-                        type = type.getFunctionType() || type.getType();
-                        
-                        if (type) {
-                            fnType = getParameters(type);
+                        if (ternError) {
+                            _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + ternError);
+                            error = ternError.toString();
                         } else {
-                            error = "No parameter type found";
-                            _log(error);
+                            var file = ternServer.findFile(fileInfo.name);
+    
+                            // convert query from partial to full offsets
+                            var newOffset = offset;
+                            if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
+                                newOffset = {line: offset.line + fileInfo.offsetLines, ch: offset.ch};
+                            }
+    
+                            request = buildRequest(createEmptyUpdate(fileInfo.name), "type", newOffset);
+    
+                            var expr = Tern.findQueryExpr(file, request.query);
+                            Infer.resetGuessing();
+                            var type = Infer.expressionType(expr);
+                            type = type.getFunctionType() || type.getType();
+                            
+                            if (type) {
+                                fnType = getParameters(type);
+                            } else {
+                                ternError = "No parameter type found";
+                                _log(ternError);
+                            }
                         }
                     });
                 } catch (e) {

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, beforeFirst, afterLast, spyOn */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, beforeFirst, afterLast, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -447,13 +447,13 @@ define(function (require, exports, module) {
 
         describe("JavaScript Code Hinting Basic", function () {
             beforeFirst(function () {
-                brackets.configureJSCodeHints({
+                brackets._configureJSCodeHints({
                     noReset: true
                 });
             });
             
             afterLast(function () {
-                brackets.configureJSCodeHints({
+                brackets._configureJSCodeHints({
                     noReset: false
                 });
             });
@@ -1441,7 +1441,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            // bug: wait for tern
+            // bug: wait for fix in tern
             xit("should read methods created in submodule", function () {
                 var start = { line: 19, ch: 15 };
 

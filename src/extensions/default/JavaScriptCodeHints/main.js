@@ -777,7 +777,7 @@ define(function (require, exports, module) {
         brackets._jsCodeHintsHelper = quickEditHelper;
         
         // Configuration function used for debugging
-        brackets.configureJSCodeHints = setConfig;
+        brackets._configureJSCodeHints = setConfig;
   
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         

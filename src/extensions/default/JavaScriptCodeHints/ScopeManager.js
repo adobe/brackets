@@ -1106,7 +1106,7 @@ define(function (require, exports, module) {
             // Set the initial configuration for the worker
             _ternWorker.postMessage({
                 type: MessageIds.SET_CONFIG,
-                config: brackets.configureJSCodeHints.config
+                config: config
             });
         }
         /**
@@ -1300,7 +1300,7 @@ define(function (require, exports, module) {
      *
      * During debugging, you can turn this automatic resetting behavior off
      * by running this in the console:
-     * brackets.configureJSCodeHints({ noReset: true })
+     * brackets._configureJSCodeHints({ noReset: true })
      *
      * This function is also used in unit testing with the "force" flag to
      * reset the worker for each test to start with a clean environment.
@@ -1308,7 +1308,8 @@ define(function (require, exports, module) {
      * @param {Session} session
      * @param {Document} document
      * @param {boolean} force true to force a reset regardless of how long since the last one
-     * @return {Promise} resolved when the new worker is ready (the new worker is passed to the callback)
+     * @return {Promise} Promise resolved when the worker is ready. 
+     *                   The new (or current, if there was no reset) worker is passed to the callback.
      */
     function _maybeReset(session, document, force) {
         var newWorker;
@@ -1508,7 +1509,7 @@ define(function (require, exports, module) {
      * Update the configuration in the worker.
      */
     function _setConfig(configUpdate) {
-        config = brackets.configureJSCodeHints.config;
+        config = brackets._configureJSCodeHints.config;
         postMessage({
             type: MessageIds.SET_CONFIG,
             config: configUpdate
