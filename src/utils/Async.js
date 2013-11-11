@@ -286,10 +286,11 @@ define(function (require, exports, module) {
      * Returns a Promise that is only resolved/rejected once all tasks are complete. This is
      * essentially a wrapper around doInParallel(..., false).
      *
-     * If one or more tasks failed, the entire "master" promise is rejected at the end - with one
+     * If one or more tasks failed, the entire "master" promise is rejected at the end without any further details.
+     * Otherwise the promise gets resolved with the results from all tasks
      * argument: an array objects, one per failed task. Each error object contains:
      *  - item -- the entry in items whose task failed
-     *  - error -- the first argument passed to the fail() handler when the task failed
+     *  - result -- the first argument passed to the done() handler when the task succeeds
      *
      * @param {!Array.<*>} items
      * @param {!function(*, number):Promise} beginProcessItem
