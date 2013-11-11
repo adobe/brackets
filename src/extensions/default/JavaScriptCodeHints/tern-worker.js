@@ -574,15 +574,11 @@ var config = {};
             
             /**
              * Updates the configuration, typically for debugging purposes.
-             * Keys set in the config object passed in are merged into the
-             * configuration.
              *
-             * @param {Object} configUpdate updated config keys
+             * @param {Object} configUpdate new configuration
              */
             function setConfig(configUpdate) {
-                Object.keys(configUpdate).forEach(function (key) {
-                    config[key] = configUpdate[key];
-                });
+                config = configUpdate;
             }
             
             self.addEventListener("message", function (e) {
