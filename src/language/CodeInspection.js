@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -38,7 +38,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var Commands                = require("command/Commands"),
         PanelManager            = require("view/PanelManager"),
@@ -59,13 +59,13 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
-    
+
     var INDICATOR_ID = "status-inspection",
         defaultPrefs = {
             enabled: brackets.config["linting.enabled_by_default"],
             collapsed: false
         };
-    
+
     /** Values for problem's 'type' property */
     var Type = {
         /** Unambiguous error, such as a syntax error */
@@ -75,13 +75,13 @@ define(function (require, exports, module) {
         /** Inspector unable to continue, code too complex for static analysis, etc. Not counted in error/warning tally. */
         META: "problem_type_meta"
     };
-    
+
     /**
      * @private
      * @type {PreferenceStorage}
      */
     var _prefs = null;
-    
+
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
@@ -89,20 +89,20 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _enabled = true;
-    
+
     /**
      * When collapsed, the errors panel is closed but the status bar icon is kept up to date.
      * @private
      * @type {boolean}
      */
     var _collapsed = false;
-    
+
     /**
      * @private
      * @type {$.Element}
      */
     var $problemsPanel;
-    
+
     /**
      * @private
      * @type {$.Element}
@@ -114,13 +114,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _gotoEnabled = false;
-    
+
     /**
      * @private
      * @type {Object.<string, {name:string, scanFile:function(string, string):Object}>}
      */
     var _providers = {};
-    
+
     /**
      * @private
      * @type {?Array.<Object>}
@@ -128,69 +128,12 @@ define(function (require, exports, module) {
     var _lastResult;
 
     /**
-     * @private
-     * @type {?Array.<Command>}
-     */
-    var _allInspectorCommands = [];
-    
-    /**
      * Enable or disable the "Go to First Error" command
      * @param {boolean} gotoEnabled Whether it is enabled.
      */
     function setGotoEnabled(gotoEnabled) {
         CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_PROBLEM).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
-    }
-    
-    /**
-     * Construct a preference key for the provider.
-     * limitation: this function doesn't account for provider with the same name, which could
-     * result in preferences from one provider overwritten with the ones from another.
-     *
-     * @param {name:string, scanFile:function(string, string):Object} provider
-     */
-    function getProviderPrefKey(provider) {
-        return "provider." + provider.name + ".enabled";
-    }
-
-    /**
-     * Check if a given provider is enabled.
-     * Return true if enabled, false otherwise.
-     *
-     * @param {name:string, scanFile:function(string, string):Object} provider
-     */
-    function getProviderState(provider) {
-        return _prefs.getValue(getProviderPrefKey(provider));
-    }
-    
-    /**
-     * Create a menu entry for the given provider/code inspector.
-     * The command that is created for this menu entry will be stored for later use. The event handler for this new menu item will handle the enable/disable toggle for the provider/code inspector.
-     *
-     * @param {name:string, scanFile:function(string, string):Object} provider
-     */
-    function addMenuEntryForProvider(provider) {
-        var menuString    = StringUtils.format(Strings.CMD_VIEW_ENABLE_INSPECTOR, provider.name),
-            commandString = "command.inspector." + provider.name;
-
-        var inspectorCommand = CommandManager.register(menuString, commandString, function () {
-            this.setChecked(!this.getChecked());
-
-            _prefs.setValue(getProviderPrefKey(provider), this.getChecked());
-
-            // update results
-            run();
-        });
-
-        _allInspectorCommands.push(inspectorCommand);
-//
-//        // add a new MenuItem for each inspector
-//        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-//        viewMenu.addMenuItem(inspectorCommand, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
-//
-//        var providerState = getProviderState(provider);
-//        inspectorCommand.setChecked(providerState);
-//        inspectorCommand.setEnabled(_enabled);
     }
 
     /**
@@ -210,15 +153,13 @@ define(function (require, exports, module) {
         }
 
         _providers[languageId].push(provider);
-
-        addMenuEntryForProvider(provider);
     }
 
     function unregisterAll() {
         CollectionUtils.forEach(_providers, function (languageId) { delete _providers[languageId]; });
         _providers = {};
     }
-    
+
     /**
      * Returns a provider for given file path, if one is available.
      * Decision is made depending on the file extension.
@@ -261,7 +202,7 @@ define(function (require, exports, module) {
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + fileEntry.fullPath);
 
-                var masterPromise = Async.doInParallel_aggregateResults(providerList, function (provider, providerNum) {
+                var masterPromise = Async.doInParallel_aggregateResults(providerList, function (provider) {
                     var result = new $.Deferred();
 
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
@@ -274,9 +215,9 @@ define(function (require, exports, module) {
                         response.reject(err);
                         return;
                     }
-                    
+
                     PerfUtils.addMeasurement(perfTimerProvider);
-        
+
                     return result.promise();
                 });
 
@@ -285,7 +226,7 @@ define(function (require, exports, module) {
                 }).fail(function (err) {
                     response.reject(err);
                 });
-                
+
                 PerfUtils.addMeasurement(perfTimerInspector);
             })
             .fail(function (err) {
@@ -308,16 +249,16 @@ define(function (require, exports, module) {
             setGotoEnabled(false);
             return;
         }
-        
+
         var currentDoc = DocumentManager.getCurrentDocument(),
             providerList = currentDoc && getProviderForPath(currentDoc.file.fullPath);
-        
+
         if (providerList && providerList.length) {
             var numProblems = 0;
             var aborted = false;
             var _numProblemsReportedByProvider = 0;
             var allErrors = { errors: [] };
-            
+
             // run all the provider in parallel
             inspectFile(currentDoc.file, providerList).then(function (results) {
                 // check if current document wasn't changed while inspectFile was running
@@ -327,7 +268,7 @@ define(function (require, exports, module) {
 
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.results ? item.results.errors.length : 0); }, 0);
-                
+
                 // save for later and make the amount of errors easily available
                 _lastResult = results;
                 _lastResult.errors = errors;
@@ -350,18 +291,18 @@ define(function (require, exports, module) {
                             error.friendlyLine = error.pos.line + 1;
                             error.codeSnippet = currentDoc.getLine(error.pos.line);
                             error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
-                            
+
                             if (error.type !== Type.META) {
                                 numProblems++;
                                 _numProblemsReportedByProvider++;
                             }
                         });
-    
+
                         // if the code inspector was unable to process the whole file, we keep track to show a different status
                         if (result.results.aborted) {
                             aborted = true;
                         }
-    
+
                         allErrors.errors.push({
                             providerName: provider.name,
                             results:      result.results.errors,
@@ -376,19 +317,19 @@ define(function (require, exports, module) {
 
             if (numProblems) {
                 var html = Mustache.render(ResultsTemplate, {reportList: allErrors.errors});
-                
+
                 $problemsPanelTable
                     .empty()
                     .append(html)
                     .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
-                
+
                 // Update the title
                 $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.CODE_INSPECTION_PANEL_TITLE));
-                
+
                 if (!_collapsed) {
                     Resizer.show($problemsPanel);
                 }
-                
+
                 if (numProblems === 1 && !aborted) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, Strings.CODE_INSPECTION_PANEL_TITLE));
                 } else {
@@ -416,7 +357,7 @@ define(function (require, exports, module) {
             setGotoEnabled(false);
         }
     }
-    
+
     /**
      * Update DocumentManager listeners.
      */
@@ -436,7 +377,7 @@ define(function (require, exports, module) {
             $(DocumentManager).off(".codeInspection");
         }
     }
-    
+
     /**
      * Enable or disable all inspection.
      * @param {?boolean} enabled Enabled state. If omitted, the state is toggled.
@@ -446,31 +387,30 @@ define(function (require, exports, module) {
             enabled = !_enabled;
         }
         _enabled = enabled;
-        
+
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
         _prefs.setValue("enabled", _enabled);
-    
+
         // run immediately
         run();
     }
-    
-    
-    /** 
+
+    /**
      * Toggle the collapsed state for the panel. This explicitly collapses the panel (as opposed to
      * the auto collapse due to files with no errors & filetypes with no provider). When explicitly
      * collapsed, the panel will not reopen automatically on switch files or save.
-     * 
+     *
      * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
      */
     function toggleCollapsed(collapsed) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
-        
+
         _collapsed = collapsed;
         _prefs.setValue("collapsed", _collapsed);
-        
+
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
@@ -479,7 +419,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /** Command to go to the first Error/Warning */
     function handleGotoFirstProblem() {
         run();
@@ -487,22 +427,22 @@ define(function (require, exports, module) {
             $problemsPanel.find("tr:first-child").trigger("click");
         }
     }
-    
-    
+
+
     // Register command handlers
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
-    
+
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-    
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
         var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
-        
+
         var $selectedRow;
         $problemsPanelTable = $problemsPanel.find(".table-container")
             .on("click", "tr", function (e) {
@@ -526,7 +466,7 @@ define(function (require, exports, module) {
                     var lineTd    = $selectedRow.find(".line-number");
                     var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
                     var character = lineTd.data("character");
-    
+
                     var editor = EditorManager.getCurrentFullEditor();
                     editor.setCursorPos(line, character, true);
                     EditorManager.focusEditor();
@@ -536,27 +476,27 @@ define(function (require, exports, module) {
         $("#problems-panel .close").click(function () {
             toggleCollapsed(true);
         });
-        
+
         // Status bar indicator - icon & tooltip updated by run()
         var statusIconHtml = Mustache.render("<div id=\"status-inspection\">&nbsp;</div>", Strings);
         $(statusIconHtml).insertBefore("#status-language");
         StatusBar.addIndicator(INDICATOR_ID, $("#status-inspection"));
-        
+
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
             if (_lastResult && _lastResult.errors) {
                 toggleCollapsed();
             }
         });
-        
+
         // Set initial UI state
         toggleEnabled(_prefs.getValue("enabled"));
         toggleCollapsed(_prefs.getValue("collapsed"));
     });
-    
+
     // Testing
     exports.unregisterAll = unregisterAll;
-    
+
     // Public API
     exports.register      = register;
     exports.Type          = Type;
