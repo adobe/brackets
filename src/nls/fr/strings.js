@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "Erreurs {0}",
+	"ERRORS_PANEL_TITLE_SINGLE": "[7365058] !é={0} Issues=!",
+	"ERRORS_PANEL_TITLE_MULTI": "[7365057] !é=Lint Issues=!",
 	"SINGLE_ERROR": "1 erreur {0}",
 	"MULTIPLE_ERRORS": "{1} erreurs {0}",
 	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
