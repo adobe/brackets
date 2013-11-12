@@ -103,21 +103,6 @@ define(function (require, exports, module) {
     function hintableKey(key) {
         return (key === null || key === "." || maybeIdentifier(key));
     }
-
-    /**
-     * Divide a path into directory and filename parts
-     * 
-     * @param {string} path - a URI with directories separated by /
-     * @return {{dir: string, file: string}} - a pair of strings that
-     *      correspond to the directory and filename of the given path.
-     */
-    function splitPath(path) {
-        var index   = path.lastIndexOf("/"),
-            dir     = (index === -1) ? "" : path.substring(0, index),
-            file    = path.substring(index + 1, path.length);
-        
-        return {dir: dir, file: file };
-    }
     
     /*
      * Get a JS-hints-specific event name. Used to prevent event namespace
@@ -203,7 +188,6 @@ define(function (require, exports, module) {
     exports.hintable                    = hintable;
     exports.hintableKey                 = hintableKey;
     exports.maybeIdentifier             = maybeIdentifier;
-    exports.splitPath                   = splitPath;
     exports.eventName                   = eventName;
     exports.annotateLiterals            = annotateLiterals;
     exports.isSupportedLanguage         = isSupportedLanguage;
