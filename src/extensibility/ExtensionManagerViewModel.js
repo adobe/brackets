@@ -186,26 +186,38 @@ define(function (require, exports, module) {
      *     query's filter.
      */
     ExtensionManagerViewModel.prototype.filter = function (query, force) {
-        var self = this, initialList, newFilterSet = [];
+        var self = this, initialList;
         if (!force && this._lastQuery && query.indexOf(this._lastQuery) === 0) {
             // This is the old query with some new letters added, so we know we can just
-            // search in the current filter set.
+            // search in the current filter set. (This is true even if query has spaces).
             initialList = this.filterSet;
         } else {
             // This is a new query, so start with the full list.
             initialList = this.sortedFullSet;
         }
         
-        query = query.toLowerCase();
-        initialList.forEach(function (id) {
-            var entry = self._getEntry(id);
-            if (entry && self._entryMatchesQuery(entry, query)) {
-                newFilterSet.push(id);
-            }
-        });
+        var keywords = query.toLowerCase().split(/\s+/);
+        
+        // Takes 'extensionList' and returns a version filtered to only those that match 'keyword'
+        function filterForKeyword(extensionList, word) {
+            var filteredList = [];
+            extensionList.forEach(function (id) {
+                var entry = self._getEntry(id);
+                if (entry && self._entryMatchesQuery(entry, word)) {
+                    filteredList.push(id);
+                }
+            });
+            return filteredList;
+        }
+        
+        // "AND" the keywords together: successively filter down the result set by each keyword in turn
+        var i, currentList = initialList;
+        for (i = 0; i < keywords.length; i++) {
+            currentList = filterForKeyword(currentList, keywords[i]);
+        }
         
         this._lastQuery = query;
-        this.filterSet = newFilterSet;
+        this.filterSet = currentList;
 
         this._updateMessage();
 
