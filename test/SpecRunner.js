@@ -80,7 +80,6 @@ define(function (require, exports, module) {
     var selectedSuites,
         params                  = new UrlParams(),
         reporter,
-        _nodeConnectionDeferred = new $.Deferred(),
         reporterView,
         _writeResults           = new $.Deferred(),
         _writeResultsPromise    = _writeResults.promise(),
@@ -275,39 +274,6 @@ define(function (require, exports, module) {
     }
     
     function init() {
-        // Start up the node connection, which is held in the
-        // _nodeConnectionDeferred module variable. (Use
-        // _nodeConnectionDeferred.done() to access it.
-        
-        // This is in SpecRunner rather than SpecRunnerUtils because the hope
-        // is to hook up jasmine-node tests in this test runner.
-        
-        // TODO: duplicates code from StaticServer
-        // TODO: can this be done lazily?
-        
-        var connectionTimeout = setTimeout(function () {
-            console.error("[SpecRunner] Timed out while trying to connect to node");
-            _nodeConnectionDeferred.reject();
-        }, NODE_CONNECTION_TIMEOUT);
-        
-        var _nodeConnection = new NodeConnection();
-        _nodeConnection.connect(true).then(function () {
-            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
-            
-            _nodeConnection.loadDomains(domainPath, true)
-                .then(
-                    function () {
-                        clearTimeout(connectionTimeout);
-                        _nodeConnectionDeferred.resolve(_nodeConnection);
-                    },
-                    function () { // Failed to connect
-                        console.error("[SpecRunner] Failed to connect to node", arguments);
-                        clearTimeout(connectionTimeout);
-                        _nodeConnectionDeferred.reject();
-                    }
-                );
-        });
-
         selectedSuites = (params.get("suite") || localStorage.getItem("SpecRunner.suite") || "unit").split(",");
         
         // Create a top-level filter to show/hide performance and extensions tests
@@ -410,19 +376,29 @@ define(function (require, exports, module) {
         }, true);
     }
 
-    /**
-     * Allows access to the deferred that manages the node connection for tests.
-     *
-     * @return {jQuery.Deferred} The deferred that manages the node connection
-     */
-    function getNodeConnectionDeferred() {
-        return _nodeConnectionDeferred;
+    function connectToTestDomain() {
+        var _nodeConnectionDeferred = new $.Deferred(),
+            _nodeConnection = new NodeConnection();
+
+        _nodeConnection.connect(true).then(function () {
+            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
+            
+            _nodeConnection.loadDomains(domainPath, true)
+                .then(init, function () {
+                    // Failed to connect
+                    console.error("[SpecRunner] Failed to connect to node", arguments);
+                    
+                    var container = $('<div class="container-fluid">');
+                    container.append('<div class="alert alert-error">Failed to connect to Node</div>');
+                    
+                    $(window.document.body).append(container);
+                });
+        });
+
+        Async.withTimeout(_nodeConnectionDeferred.promise(), NODE_CONNECTION_TIMEOUT);
+        
+        brackets.testing = { nodeConnection: _nodeConnection };
     }
     
-    // this is used by SpecRunnerUtils
-    brackets.testing = {
-        getNodeConnectionDeferred: getNodeConnectionDeferred
-    };
-    
-    init();
+    connectToTestDomain();
 });
