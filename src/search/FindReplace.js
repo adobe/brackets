@@ -572,6 +572,30 @@ define(function (require, exports, module) {
                             modalBar = null;
                         }
                     });
+                    modalBar.getRoot().on("keyup", function (e) {
+                        if (e.keyCode == 27 /*ESC*/ || e.keyCode == 89 /*Y*/ || e.keyCode == 65 /*A*/ || e.keyCode == 78 /*N*/ || e.keyCode == 83 /*S*/) {
+                            if (e.keyCode == 27) {
+                                modalBar.prepareClose();
+                                modalBar.close();
+                            }
+                            if (e.keyCode == 89) {
+                                doReplace(match);
+                            }
+                            if (e.keyCode == 65) {
+                                _showReplaceAllPanel(editor, query, text);
+                            }
+                            if (e.keyCode == 78) {
+                                advance();
+                            }
+                            if (e.keyCode == 83) {
+                                modalBar.prepareClose();
+                                modalBar.close();
+                            }
+                        }
+                        // if (e.keyCode == 89)
+                        //     doReplace(match);
+                        // }
+                    });
                 };
                 var doReplace = function (match) {
                     cursor.replace(typeof query === "string" ? text : parseDollars(text, match));
