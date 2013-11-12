@@ -157,9 +157,10 @@ define(function (require, exports, module) {
                     isFile: stats.isFile(),
                     mtime: stats.mtime,
                     size: stats.size,
-                    realPath: stats.realPath
+                    realPath: stats.realPath,
+                    hash: stats.mtime.getTime()
                 };
-                    
+                
                 var fsStats = new FileSystemStats(options);
                 
                 callback(null, fsStats);
@@ -270,15 +271,10 @@ define(function (require, exports, module) {
         });
     }
     
-    function writeFile(path, data, options, callback) {
+    function writeFile(path, data, hash, options, callback) {
         var encoding = options.encoding || "utf8";
         
-        exists(path, function (err, alreadyExists) {
-            if (err) {
-                callback(err);
-                return;
-            }
-            
+        function _finishWrite(alreadyExists) {
             appshell.fs.writeFile(path, data, encoding, function (err) {
                 if (err) {
                     callback(_mapError(err));
@@ -297,8 +293,28 @@ define(function (require, exports, module) {
                     });
                 }
             });
-        });
+        }
         
+        stat(path, function (err, stats) {
+            if (err) {
+                switch (err) {
+                case FileSystemError.NOT_FOUND:
+                    _finishWrite(false);
+                    break;
+                default:
+                    callback(err);
+                }
+                return;
+            }
+            
+            if (hash !== stats._hash) {
+                console.warn("Blind write attempted: ", path, stats._hash, hash);
+                callback(FileSystemError.CONTENTS_MODIFIED);
+                return;
+            }
+            
+            _finishWrite(path, data, encoding, true, callback);
+        });
     }
     
     function unlink(path, callback) {

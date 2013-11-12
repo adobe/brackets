@@ -387,6 +387,14 @@ define(function (require, exports, module) {
     FileSystem.isAbsolutePath = function (fullPath) {
         return (fullPath[0] === "/" || fullPath[1] === ":");
     };
+
+    function _appendTrailingSlash(path) {
+        if (path[path.length - 1] !== "/") {
+            path += "/";
+        }
+
+        return path;
+    }
     
     /*
      * Matches continguous groups of forward slashes
@@ -430,9 +438,7 @@ define(function (require, exports, module) {
         
         if (isDirectory) {
             // Make sure path DOES include trailing slash
-            if (path[path.length - 1] !== "/") {
-                path += "/";
-            }
+            path = _appendTrailingSlash(path);
         }
         
         if (isUNCPath) {
@@ -489,20 +495,32 @@ define(function (require, exports, module) {
      *      with a FileSystemError string or with the entry for the provided path.
      */
     FileSystem.prototype.resolve = function (path, callback) {
-        // No need to normalize path here: assume underlying stat() does it internally,
-        // and it will be normalized anyway when ingested by get*ForPath() afterward
+        var normalizedPath = _normalizePath(path, false),
+            item = this._index.getEntry(normalizedPath);
+
+        if (!item) {
+            normalizedPath = _appendTrailingSlash(normalizedPath);
+            item = this._index.getEntry(normalizedPath);
+        }
+        
+        if (item && item._stat) {
+            callback(null, item, item._stat);
+            return;
+        }
         
         this._impl.stat(path, function (err, stat) {
-            var item;
-            
-            if (!err) {
-                if (stat.isFile) {
-                    item = this.getFileForPath(path);
-                } else {
-                    item = this.getDirectoryForPath(path);
-                }
+            if (err) {
+                callback(err);
+                return;
             }
-            callback(err, item, stat);
+            
+            if (stat.isFile) {
+                item = this.getFileForPath(path);
+            } else {
+                item = this.getDirectoryForPath(path);
+            }
+            
+            callback(null, item, stat);
         }.bind(this));
     };
     
@@ -583,9 +601,7 @@ define(function (require, exports, module) {
             // This is a "wholesale" change event
             // Clear all caches (at least those that won't do a stat() double-check before getting used)
             this._index.visitAll(function (entry) {
-                if (entry.isDirectory) {
-                    entry._clearCachedData();
-                }
+                entry._clearCachedData();
             });
             
             fireChangeEvent(null);
