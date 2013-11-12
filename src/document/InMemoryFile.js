@@ -88,7 +88,7 @@ define(function (require, exports, module) {
     // Stub out invalid calls inherited from FileSystemEntry
     
     InMemoryFile.prototype.exists = function (callback) {
-        callback(false);
+        callback(null, false);
     };
     
     InMemoryFile.prototype.stat = function (callback) {

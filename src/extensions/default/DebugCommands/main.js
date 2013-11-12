@@ -216,8 +216,8 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        file.exists(function (exists) {
-            if (exists) {
+        file.exists(function (err, exists) {
+            if (!err && exists) {
                 // If the SpecRunner.html file exists, enable the menu item.
                 // (menu item is already disabled, so no need to disable if the
                 // file doesn't exist).

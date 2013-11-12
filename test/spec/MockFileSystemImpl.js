@@ -144,7 +144,7 @@ define(function (require, exports, module) {
 
     function exists(path, callback) {
         var cb = _getCallback("exists", path, callback);
-        cb(!!_data[path]);
+        cb(null, !!_data[path]);
     }
     
     function readdir(path, callback) {
@@ -273,9 +273,15 @@ define(function (require, exports, module) {
             options = null;
         }
         
-        exists(path, function (exists) {
-            var cb = _getCallback("writeFile", path, callback),
-                notification = exists ? _sendWatcherNotification : _sendDirectoryWatcherNotification,
+        exists(path, function (err, exists) {
+            var cb = _getCallback("writeFile", path, callback);
+            
+            if (err) {
+                cb(err);
+                return;
+            }
+            
+            var notification = exists ? _sendWatcherNotification : _sendDirectoryWatcherNotification,
                 notify = _getNotification("writeFile", path, notification);
             
             if (!_data[path]) {

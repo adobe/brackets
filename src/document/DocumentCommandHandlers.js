@@ -396,7 +396,12 @@ define(function (require, exports, module) {
             var path = dir + "/" + suggestedName;
             var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
             
-            entry.exists(function (exists) {
+            entry.exists(function (err, exists) {
+                if (err) {
+                    result.reject(err);
+                    return;
+                }
+                
                 if (exists) {
                     //file exists, notify to the next progress
                     result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
