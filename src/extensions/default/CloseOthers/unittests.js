@@ -28,12 +28,11 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils		= brackets.getModule("file/FileUtils"),
-        CommandManager,
-        Commands,
-        Dialogs,
-        EditorManager,
-        DocumentManager,
+		FileUtils		= brackets.getModule("file/FileUtils"),
+		CommandManager,
+		Commands,
+        Menus,
+		DocumentManager,
         FileSystem;
 
     describe("CloseOthers", function () {
@@ -87,9 +86,8 @@ define(function (require, exports, module) {
 					brackets		= testWindow.brackets;
                     DocumentManager = testWindow.brackets.test.DocumentManager;
                     CommandManager  = testWindow.brackets.test.CommandManager;
-                    EditorManager   = testWindow.brackets.test.EditorManager;
-                    Dialogs			= testWindow.brackets.test.Dialogs;
-					Commands        = testWindow.brackets.test.Commands;
+                    Commands        = testWindow.brackets.test.Commands;
+                    Menus           = testWindow.brackets.test.Menus;
                     FileSystem      = testWindow.brackets.test.FileSystem;
                 });
             });
@@ -121,23 +119,35 @@ define(function (require, exports, module) {
             testWindow    = null;
             $             = null;
             brackets      = null;
-            EditorManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
-
         function runCloseOthers() {
             var ws = DocumentManager.getWorkingSet(),
+                cm = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
                 promise;
 
             if (ws.length > docSelectIndex) {
                 DocumentManager.getDocumentForPath(ws[docSelectIndex].fullPath).done(function (doc) {
                     DocumentManager.setCurrentDocument(doc);
+
+                    /*
+                    "Close Others" extension removes unnecessary menus AND add necessary menus on workingset by listening
+                    `beforeContextMenuOpen` event. For that, we have to open workinget's context menu. Then only this extension
+                    will populate necessary context menu items.
+
+                    `pageX` and `pageY` can be any number. our only intention is to open context menu. but it can open at anywhere.
+                    */
+                    cm.open({pageX: 0, pageY: 0});
                 });
 
                 promise = CommandManager.execute(cmdToRun);
                 waitsForDone(promise, cmdToRun);
             }
+            
+            runs(function () {
+                expect(DocumentManager.getCurrentDocument()).not.toBe(null);
+            });
         }
 
         it("Close others", function () {
@@ -145,10 +155,12 @@ define(function (require, exports, module) {
             cmdToRun       = "file.close_others";
 
             runs(runCloseOthers);
-			
-			runs(function () {
-				expect(DocumentManager.getWorkingSet().length).toEqual(1);
-			});
+            
+            //we created 5 files and selected 3rd file (index = 2), then we ran "close others". 
+            //At this point we should have only one file in working set.
+            runs(function () {
+                expect(DocumentManager.getWorkingSet().length).toEqual(1);
+            });
         });
 
         it("Close others above", function () {
@@ -156,7 +168,9 @@ define(function (require, exports, module) {
             cmdToRun       = "file.close_above";
 
             runs(runCloseOthers);
-
+            
+            //we created 5 files and selected 3rd file (index = 2), then we ran "close others above". 
+            //At this point we should have only 3 files in working set.
             runs(function () {
                 expect(DocumentManager.getWorkingSet().length).toEqual(3);
             });
@@ -168,6 +182,8 @@ define(function (require, exports, module) {
 
             runs(runCloseOthers);
 
+            //we created 5 files and selected 2nd file (index = 1), then we ran "close others below". 
+            //At this point we should have only 2 files in working set.
             runs(function () {
                 expect(DocumentManager.getWorkingSet().length).toEqual(2);
             });

@@ -33,22 +33,24 @@ define(function (require, exports, module) {
         dm                = brackets.getModule("document/DocumentManager"),
         docCH             = brackets.getModule("document/DocumentCommandHandlers"),
         strings           = brackets.getModule("i18n!nls/strings"),
-        settings          = JSON.parse(require("text!settings.json")),
-        working_set_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
+        workingSetCmenu   = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
         close_others      = "file.close_others",
         close_above       = "file.close_above",
         close_below       = "file.close_below";
-
-    function handleClose(mode) {
+    
+    /*
+    This function collects files based on passing command (close_others/above/below) and execute 'FILE_CLOSE_LIST'.
+    */
+    function handleClose(cmd) {
 
         var targetIndex = dm.findInWorkingSet(dm.getCurrentDocument().file.fullPath),
             workingSet   = dm.getWorkingSet().slice(0),
-            start = (mode === close_below) ? (targetIndex + 1) : 0,
-            end   = (mode === close_above) ? (targetIndex) : (workingSet.length),
+            start = (cmd === close_below) ? (targetIndex + 1) : 0,
+            end   = (cmd === close_above) ? (targetIndex) : (workingSet.length),
             docList = [],
             i;
         
-        if (mode === close_others) {
+        if (cmd === close_others) {
             end--;
             workingSet.splice(targetIndex, 1);
         }
@@ -59,25 +61,67 @@ define(function (require, exports, module) {
         
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {documentList: docList});
     }
-
-    if (settings.close_below) {
-        CommandManager.register(strings.CMD_FILE_CLOSE_BELOW, close_below, function () {
-            handleClose(close_below);
-        });
-        working_set_cmenu.addMenuItem(close_below, "", Menus.AFTER, Commands.FILE_CLOSE);
+    
+    /*
+    Pass 'command id' and it'll let you know, whether contextmenu item for that command is existing or not.
+    */
+    function isMenuThere(cmd) {
+        return Menus.getMenuItem(workingSetCmenu.id + "-" + cmd) ? true : false;
     }
-
-    if (settings.close_others) {
-        CommandManager.register(strings.CMD_FILE_CLOSE_OTHERS, close_others, function () {
-            handleClose(close_others);
-        });
-        working_set_cmenu.addMenuItem(close_others, "", Menus.AFTER, Commands.FILE_CLOSE);
-    }
-
-    if (settings.close_above) {
-        CommandManager.register(strings.CMD_FILE_CLOSE_ABOVE, close_above, function () {
-            handleClose(close_above);
-        });
-        working_set_cmenu.addMenuItem(close_above, "", Menus.AFTER, Commands.FILE_CLOSE);
-    }
+    
+    /*
+    This function is responsible for add/remove context menus based on current file selection.
+    If there is only one file in working set, we won't show any of the three (Close Others, Close Others Above/Below).
+    If there is more than one file, but selected file is first / last in working set, we will show only "Close Others".
+    In other cases we will show all three.
+    */
+    $(workingSetCmenu).on("beforeContextMenuOpen", function () {
+        var targetIndex = dm.findInWorkingSet(dm.getCurrentDocument().file.fullPath),
+            closeOthers = (dm.getWorkingSet().length > 1),
+            closeOthersAbove = (targetIndex > 0),
+            closeOthersBelow = (targetIndex < dm.getWorkingSet().length - 1);
+        
+        if (closeOthersAbove && closeOthersBelow) {
+            if (!isMenuThere(close_above)) {
+                
+                CommandManager.register(strings.CMD_FILE_CLOSE_ABOVE, close_above, function () {
+                    handleClose(close_above);
+                });
+                workingSetCmenu.addMenuItem(close_above, "", Menus.AFTER, Commands.FILE_CLOSE);
+            }
+            
+            if (!isMenuThere(close_below)) {
+                CommandManager.register(strings.CMD_FILE_CLOSE_BELOW, close_below, function () {
+                    handleClose(close_below);
+                });
+                workingSetCmenu.addMenuItem(close_below, "", Menus.BEFORE, Commands.FILE_SAVE);
+            }
+        } else {
+            if (isMenuThere(close_above)) {
+                workingSetCmenu.removeMenuItem(close_above);
+            }
+            
+            if (isMenuThere(close_below)) {
+                workingSetCmenu.removeMenuItem(close_below);
+            }
+        }
+        
+        if (closeOthers) {
+            if (!isMenuThere(close_others)) {
+                CommandManager.register(strings.CMD_FILE_CLOSE_OTHERS, close_others, function () {
+                    handleClose(close_others);
+                });
+                
+                if (isMenuThere(close_above)) { //if "Close Others Above" exists add "Close Others" next to it
+                    workingSetCmenu.addMenuItem(close_others, "", Menus.AFTER, close_above);
+                } else {                        //else add "Close Others" next to "Close"
+                    workingSetCmenu.addMenuItem(close_others, "", Menus.AFTER, Commands.FILE_CLOSE);
+                }
+            }
+        } else {
+            if (isMenuThere(close_others)) {
+                workingSetCmenu.removeMenuItem(close_others);
+            }
+        }
+    });
 });
