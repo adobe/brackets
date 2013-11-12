@@ -54,7 +54,6 @@ define(function (require, exports, module) {
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
     
-    
     /**
      * Delete a path
      * @param {string} fullPath
@@ -110,6 +109,10 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    function testDomain() {
+        return brackets.testing.nodeConnection.domains.testing;
+    }
+    
     /**
      * Remove a directory (recursively) or file
      *
@@ -117,28 +120,19 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
      */
     function remove(path) {
-        var d = new $.Deferred();
-        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred
-            .done(function (connection) {
-                if (connection.connected()) {
-                    connection.domains.testing.remove(path)
-                        .done(function () {
-                            d.resolve();
-                        })
-                        .fail(function () {
-                            d.reject();
-                        });
-                } else {
-                    d.reject();
-                }
-            })
-            .fail(function () {
-                d.reject();
-            });
-        return d.promise();
+        return testDomain().remove(path);
     }
-        
+    
+    /**
+     * Copy a directory (recursively) or file
+     *
+     * @param {!string}     src     Path to copy
+     * @param {!string}     dest    Destination directory
+     * @return {$.Promise} Resolved when the path is copied, rejected if there was a problem
+     */
+    function copy(src, dest) {
+        return testDomain().copy(src, dest);
+    }
     
     /**
      * Resolves a path string to a File or Directory
@@ -1248,6 +1242,7 @@ define(function (require, exports, module) {
 
     exports.chmod                           = chmod;
     exports.remove                          = remove;
+    exports.copy                            = copy;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
