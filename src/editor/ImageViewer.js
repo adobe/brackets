@@ -34,9 +34,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        FileSystem          = require("filesystem/FileSystem"),
-        FileSystemError     = require("filesystem/FileSystemError"),
-        FileUtils           = require("file/FileUtils");
+        FileSystem          = require("filesystem/FileSystem");
     
     var _naturalWidth = 0,
         _fullPath,
