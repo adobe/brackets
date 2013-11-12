@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem");
     
     var _naturalWidth = 0,
-        _fullPath,
         _scale = 100,
         _scaleDivInfo = null;   // coordinates of hidden scale sticker
     
@@ -297,7 +296,6 @@ define(function (require, exports, module) {
      * @param {!string} fullPath path to the image file
      */
     function render(fullPath) {
-        _fullPath = fullPath;
         var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
         _scale = 100;   // initialize to 100
