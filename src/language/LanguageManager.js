@@ -680,38 +680,54 @@ define(function (require, exports, module) {
         // track languages that are currently loading
         _pendingLanguages[id] = language;
         
-        language._loadAndSetMode(definition.mode).done(function () {
-            // register language file extensions after mode has loaded
+        if (definition.isBinary) {
+            // register language file extensions for binary file extensions
             if (fileExtensions) {
                 for (i = 0, l = fileExtensions.length; i < l; i++) {
                     language.addFileExtension(fileExtensions[i]);
                 }
             }
-            
-            // register language file names after mode has loaded
-            if (fileNames) {
-                for (i = 0, l = fileNames.length; i < l; i++) {
-                    language.addFileName(fileNames[i]);
-                }
-            }
-                
-            // globally associate mode to language
-            _setLanguageForMode(language.getMode(), language);
-            
-            // finally, store language to _language map
             _languages[language.getId()] = language;
-            
-            // fire an event to notify DocumentManager of the new language
-            _triggerLanguageAdded(language);
-            
-            result.resolve(language);
-        }).fail(function (error) {
-            console.error(error);
-            result.reject(error);
-        }).always(function () {
             // delete from pending languages after success and failure
             delete _pendingLanguages[id];
-        });
+            result.resolve(language);
+            // Not notifying DocumentManager via event LanguageAdded, because DocumentManager
+            // does not care about binary files.
+        } else {
+
+            language._loadAndSetMode(definition.mode).done(function () {
+                // register language file extensions after mode has loaded
+                if (fileExtensions) {
+                    for (i = 0, l = fileExtensions.length; i < l; i++) {
+                        language.addFileExtension(fileExtensions[i]);
+                    }
+                }
+                
+                // register language file names after mode has loaded
+                if (fileNames) {
+                    for (i = 0, l = fileNames.length; i < l; i++) {
+                        language.addFileName(fileNames[i]);
+                    }
+                }
+                    
+                // globally associate mode to language
+                _setLanguageForMode(language.getMode(), language);
+                
+                // finally, store language to _language map
+                _languages[language.getId()] = language;
+                
+                // fire an event to notify DocumentManager of the new language
+                _triggerLanguageAdded(language);
+                
+                result.resolve(language);
+            }).fail(function (error) {
+                console.error(error);
+                result.reject(error);
+            }).always(function () {
+                // delete from pending languages after success and failure
+                delete _pendingLanguages[id];
+            });
+        }
         
         return result.promise();
     }
