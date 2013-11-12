@@ -455,6 +455,7 @@ define({
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
 	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_NL": "オランダ語",
 	"LOCALE_FA_IR": "ペルシャ語-ファルシ語",
 	"LOCALE_PL": "ポーランド語",
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",

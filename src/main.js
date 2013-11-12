@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -21,41 +21,34 @@
  * 
  */
 
+/**
+ * The boostrapping module for brackets. This module sets up the require 
+ * configuration and loads the brackets module.
+ */
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global require, define, window, brackets, navigator */
+
+require.config({
+    paths: {
+        "text"              : "thirdparty/text/text",
+        "i18n"              : "thirdparty/i18n/i18n",
+        
+        // The file system implementation. Change this value to use different 
+        // implementations (e.g. cloud-based storage).
+        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+    },
+    // Use custom brackets property until CEF sets the correct navigator.language
+    // NOTE: When we change to navigator.language here, we also should change to
+    // navigator.language in ExtensionLoader (when making require contexts for each
+    // extension).
+    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+});
 
 define(function (require, exports, module) {
-    
     "use strict";
     
-    // Code that needs to display user strings should call require("strings") to load
-    // src/strings.js. This file will dynamically load strings.js for the specified brackets.locale.
-    //
-    // See the README.md file in this folder for information on how to add a new translation for
-    // another language or locale.
-    //
-    // TODO: dynamically populate the local prefix list below?
-    module.exports = {
-        root: true,
-        "cs": true,
-        "de": true,
-        "es": true,
-		"fa-ir": true,
-        "fi": true,
-        "fr": true,
-        "hu": true,
-        "it": true,
-        "ja": true,
-        "nb": true,
-        "nl": true,
-        "pl": true,
-        "pt-br": true,
-        "pt-pt": true,
-        "ru": true,
-        "sk": true,
-		"sr": true,
-        "sv": true,
-        "tr": true,
-        "zh-cn": true
-    };
+    // Load the brackets module. This is a self-running module that loads and runs the entire application.
+    require("brackets");
 });
+

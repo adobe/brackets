@@ -299,20 +299,6 @@ define(function (require, exports, module) {
         return baseName.substr(idx + 1);
     }
 
-    /**
-     * Similar to getFileExtension(), but includes the leading "." in the returned value.
-     * @deprecated Use getFileExtension() instead. This API will be removed soon.
-     */
-    function getFilenameExtension(fullPath) {
-        console.error("Warning: FileUtils.getFilenameExtension() is deprecated. Use FileUtils.getFileExtension() (which omits the '.') instead.");
-        
-        var ext = getFileExtension(fullPath);
-        if (ext !== "") {
-            ext = "." + ext;
-        }
-        return ext;
-    }
-
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
@@ -409,6 +395,5 @@ define(function (require, exports, module) {
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getFileExtension               = getFileExtension;
-    exports.getFilenameExtension           = getFilenameExtension;
     exports.compareFilenames               = compareFilenames;
 });
