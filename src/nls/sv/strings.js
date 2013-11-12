@@ -462,6 +462,7 @@ define({
     "LOCALE_PL"                                 : "Polska",
     "LOCALE_PT_BR"                              : "Portugisiska, Brasilien",
     "LOCALE_PT_PT"                              : "Portugisiska",
+    "LOCALE_RO"                                 : "Rumänska",
     "LOCALE_RU"                                 : "Ryska",
     "LOCALE_SK"                                 : "Slovakiska",
     "LOCALE_SR"                                 : "Serbiska",
