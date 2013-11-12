@@ -282,25 +282,6 @@ define(function (require, exports, module) {
         return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
     }
     
-    function _removeViewIfFileDeleted(fileExists) {
-        if (!fileExists) {
-            FileUtils.showFileOpenError(FileSystemError.NOT_FOUND, _fullPath).done(
-                function () {
-                    EditorManager.notifyPathDeleted();
-                }
-            );
-        }
-    }
-    
-    /** 
-     * Makes sure that the file in view is present in the file system
-     *  Close and warn if file is gone.
-     */
-    function _checkFileExists() {
-        var file = FileSystem.getFileForPath(_fullPath);
-        file.exists(_removeViewIfFileDeleted);
-    }
-    
     /** 
      * sign off listeners when editor manager closes
      * the image viewer
@@ -308,7 +289,6 @@ define(function (require, exports, module) {
     function _removeListeners() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
-        window.removeEventListener("focus", _checkFileExists);
         $("#img").off("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
                  .off("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
     }
@@ -363,9 +343,6 @@ define(function (require, exports, module) {
 
             _updateScale($(this).width());
 
-            // make sure the file in display is still there when window gets focus.
-            // close and warn if the file is gone.
-            window.addEventListener("focus", _checkFileExists);
             minimumPixels = Math.floor(minimumPixels * 100 / _scale);
 
             // If the image size is too narrow in width or height, then 

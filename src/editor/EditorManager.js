@@ -81,6 +81,8 @@ define(function (require, exports, module) {
     var _$currentCustomViewer = null;
     /** @type {?Object} view provider */
     var _currentViewProvider = null;
+    /** Helper function defined as var to satisfy JSLint order constraints */
+    var _checkFileExists;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -628,6 +630,7 @@ define(function (require, exports, module) {
     
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
+        window.removeEventListener("focus", _checkFileExists);
         $(exports).triggerHandler("removeCustomViewer");
         if (_$currentCustomViewer) {
             _$currentCustomViewer.remove();
@@ -635,17 +638,7 @@ define(function (require, exports, module) {
         _$currentCustomViewer = null;
         _currentViewProvider = null;
     }
-    
-    /** 
-     * Closes the customViewer currently displayed, shows the NoEditor view
-     * and notifies the ProjectManager to update the file selection
-     */
-    function closeCustomViewer() {
-        _removeCustomViewer();
-        _setCurrentlyViewedPath();
-        _showNoEditor();
-    }
-    
+
     /** 
      * Clears custom viewer for a file with a given path and displays 
      * an alternate file or the no editor view. 
@@ -666,15 +659,44 @@ define(function (require, exports, module) {
                 _setCurrentlyViewedPath();
             }
         }
-        if (fullPath) {
-            if (_currentlyViewedPath === fullPath) {
-                openAlternateFile();
-            }
-        } else {
+        if (!fullPath || _currentlyViewedPath === fullPath) {
             openAlternateFile();
         }
     }
+    
+    function _showErrorAndNotify(fullPath) {
+        FileUtils.showFileOpenError(FileSystemError.NOT_FOUND, fullPath).done(
+            function () {
+                notifyPathDeleted();
+            }
+        );
+    }
 
+    function _removeViewIfFileDeleted(fileExists) {
+        if (!fileExists) {
+            _showErrorAndNotify(getCurrentlyViewedPath());
+        }
+    }
+    
+    /** 
+     * Makes sure that the file in view is present in the file system
+     * Close and warn if file is gone.
+     */
+    _checkFileExists = function () {
+        var file = FileSystem.getFileForPath(getCurrentlyViewedPath());
+        file.exists(_removeViewIfFileDeleted);
+    };
+    
+    /** 
+     * Closes the customViewer currently displayed, shows the NoEditor view
+     * and notifies the ProjectManager to update the file selection
+     */
+    function closeCustomViewer() {
+        _removeCustomViewer();
+        _setCurrentlyViewedPath();
+        _showNoEditor();
+    }
+    
     /** 
      * Append custom view to editor-holder
      * @param {!Object} provider  custom view provider
@@ -683,11 +705,7 @@ define(function (require, exports, module) {
     function showCustomViewer(provider, fullPath) {
         function _doShow(fileExists) {
             if (!fileExists) {
-                FileUtils.showFileOpenError(FileSystemError.NOT_FOUND, fullPath).done(
-                    function () {
-                        notifyPathDeleted();
-                    }
-                );
+                _showErrorAndNotify(fullPath);
             } else {
                 // Don't show the same custom view again if file path
                 // and view provider are still the same.
@@ -712,7 +730,9 @@ define(function (require, exports, module) {
                 
                 // add path, dimensions and file size to the view after loading image
                 provider.render(fullPath);
-                
+                // make sure the file in display is still there when window gets focus.
+                // close and warn if the file is gone.
+                window.addEventListener("focus", _checkFileExists);
                 _setCurrentlyViewedPath(fullPath);
             }
         }
