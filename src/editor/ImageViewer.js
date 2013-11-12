@@ -177,26 +177,26 @@ define(function (require, exports, module) {
                     return;
                 }
                 left = targetPos.left;
-                x = Math.floor(left * 100 / _scale);
+                x = Math.floor((left - imagePos.left) * 100 / _scale);
             } else {
                 if (targetPos.top === 0) {
                     return;
                 }
                 top = targetPos.top;
-                y = Math.floor(top * 100 / _scale);
+                y = Math.floor((top - imagePos.top) * 100 / _scale);
             }
         } else if (!$target.is("#img-preview")) {
             if ($target.is("#img-scale")) {
                 left = scaleDivPos.left + e.offsetX;
                 top = scaleDivPos.top + e.offsetY;
-                x = Math.floor(left * 100 / _scale);
-                y = Math.floor(top * 100 / _scale);
+                x = Math.floor((left - imagePos.left) * 100 / _scale);
+                y = Math.floor((top - imagePos.top) * 100 / _scale);
             } else if (tipPos.left && tipPos.top) {
                 // Cursor must be inside the image tip.
                 left = tipPos.left + e.offsetX;
                 top = tipPos.top + e.offsetY;
-                x = Math.floor(left * 100 / _scale);
-                y = Math.floor(top * 100 / _scale);
+                x = Math.floor((left - imagePos.left) * 100 / _scale);
+                y = Math.floor((top - imagePos.top) * 100 / _scale);
             } else {
                 return;
             }
@@ -252,17 +252,12 @@ define(function (require, exports, module) {
             imagePos  = $("#img-preview").position(),
             right     = imagePos.left + $("#img-preview").width(),
             bottom    = imagePos.top + $("#img-preview").height(),
-            offsetX   = e.offsetX,
-            offsetY   = e.offsetY;
-        
-        if ($target.is(".img-guide")) {
-            offsetX = targetPos.left + offsetX;
-            offsetY = targetPos.top + offsetY;
-        }
+            x         = targetPos.left + e.offsetX,
+            y         = targetPos.top + e.offsetY;
         
         // Hide image tip and guides only if the cursor is outside of the image.
-        if (offsetX < imagePos.left || offsetX >= right ||
-                offsetY < imagePos.top || offsetY >= bottom) {
+        if (x < imagePos.left || x >= right ||
+                y < imagePos.top || y >= bottom) {
             $("#img-tip").hide();
             $(".img-guide").hide();
         }
