@@ -462,6 +462,7 @@ define({
     "LOCALE_PL"                                 : "Polish",
     "LOCALE_PT_BR"                              : "Portuguese, Brazil",
     "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RO"                                 : "Romanian",
     "LOCALE_RU"                                 : "Russian",
     "LOCALE_SK"                                 : "Slovak",
     "LOCALE_SR"                                 : "Serbian",

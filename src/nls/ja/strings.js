@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "{0} のエラー",
+	"ERRORS_PANEL_TITLE_SINGLE": "!能=[7365058] {0} Issues_=!",
+	"ERRORS_PANEL_TITLE_MULTI": "!能=[7365057] Lint Issues_=!",
 	"SINGLE_ERROR": "1 個の {0} エラー",
 	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
 	"NO_ERRORS": "{0} エラーはありません - Good job!",
