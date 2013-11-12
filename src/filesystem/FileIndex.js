@@ -96,6 +96,8 @@ define(function (require, exports, module) {
             }
         }
         
+        entry._clearCachedData();
+        
         delete this._index[path];
         
         for (property in entry) {

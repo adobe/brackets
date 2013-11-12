@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         this._isDirectory = !options.isFile;
         this._mtime = options.mtime;
         this._size = options.size;
+        this._hash = options.hash;
     }
     
     // Add "isFile", "isDirectory", "mtime" and "size" getters
