@@ -1059,7 +1059,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(listAfterSave, (clearCurrentDoc || true));
+                DocumentManager.removeListFromWorkingSet(listAfterSave, clearCurrentDoc);
             }
         });
         
@@ -1076,7 +1076,7 @@ define(function (require, exports, module) {
      */
     function handleFileCloseAll(commandData) {
         return _doCloseDocumentList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly)).done(function () {
+                                    (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }
@@ -1084,7 +1084,7 @@ define(function (require, exports, module) {
     }
     
     function handleFileCloseList(commandData) {
-        return _doCloseDocumentList((commandData && commandData.documentList), false).done(function () {
+        return _doCloseDocumentList((commandData && commandData.documentList), false, false).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }
