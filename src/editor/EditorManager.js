@@ -664,7 +664,8 @@ define(function (require, exports, module) {
         }
     }
     
-    function _showErrorAndNotify(fullPath) {
+    function _showErrorAndNotify(err, fullPath) {
+        var errorToShow = (err !== null) ? err : FileSystemError.NOT_FOUND;
         FileUtils.showFileOpenError(FileSystemError.NOT_FOUND, fullPath).done(
             function () {
                 notifyPathDeleted();
@@ -703,7 +704,7 @@ define(function (require, exports, module) {
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
     function showCustomViewer(provider, fullPath) {
-        function _doShow(fileExists) {
+        function _doShow(err, fileExists) {
             if (!fileExists) {
                 _showErrorAndNotify(fullPath);
             } else {
