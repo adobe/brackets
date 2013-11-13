@@ -706,7 +706,7 @@ define(function (require, exports, module) {
     function showCustomViewer(provider, fullPath) {
         function _doShow(err, fileExists) {
             if (!fileExists) {
-                _showErrorAndNotify(fullPath);
+                _showErrorAndNotify(err, fullPath);
             } else {
                 // Don't show the same custom view again if file path
                 // and view provider are still the same.
