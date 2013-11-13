@@ -142,6 +142,12 @@ module.exports = function (grunt) {
             mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
             win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe",
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
+        },
+        apify: {
+            options: {
+                title: "Brackets"
+            },
+            docs: {}
         }
     });
 
@@ -151,6 +157,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-jasmine-node');
+    grunt.loadNpmTasks('grunt-apify');
     
     // task: install
     grunt.registerTask('install', ['write-config']);
