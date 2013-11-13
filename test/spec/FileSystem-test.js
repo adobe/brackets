@@ -409,7 +409,8 @@ define(function (require, exports, module) {
                     cbCalled = false;
                 
                 runs(function () {
-                    directory.exists(function (exists) {
+                    directory.exists(function (err, exists) {
+                        expect(err).toBeFalsy();
                         expect(exists).toBe(false);
                         cbCalled = true;
                     });
@@ -421,7 +422,8 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    directory.exists(function (exists) {
+                    directory.exists(function (err, exists) {
+                        expect(err).toBeFalsy();
                         expect(exists).toBe(true);
                     });
                 });
@@ -487,7 +489,8 @@ define(function (require, exports, module) {
                     newContents = "New file contents";
                 
                 runs(function () {
-                    file.exists(function (exists) {
+                    file.exists(function (err, exists) {
+                        expect(err).toBeFalsy();
                         expect(exists).toBe(false);
                         cbCalled = true;
                     });
