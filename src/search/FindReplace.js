@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
+        KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
@@ -573,28 +574,26 @@ define(function (require, exports, module) {
                         }
                     });
                     modalBar.getRoot().on("keyup", function (e) {
-                        if (e.keyCode === 27 /*ESC*/ || e.keyCode === 89 /*Y*/ || e.keyCode === 65 /*A*/ || e.keyCode === 78 /*N*/ || e.keyCode === 83 /*S*/) {
-                            if (e.keyCode === 27) {
-                                modalBar.prepareClose();
+                        switch(e.keyCode)
+                        {
+                            case KeyEvent.DOM_VK_ESCAPE:
                                 modalBar.close();
-                            }
-                            if (e.keyCode === 89) {
+                                break;
+                            case KeyEvent.DOM_VK_Y:
                                 doReplace(match);
-                            }
-                            if (e.keyCode === 65) {
+                                break;
+                            case KeyEvent.DOM_VK_A:
                                 _showReplaceAllPanel(editor, query, text);
-                            }
-                            if (e.keyCode === 78) {
+                                break;
+                            case KeyEvent.DOM_VK_N:
                                 advance();
-                            }
-                            if (e.keyCode === 83) {
-                                modalBar.prepareClose();
+                                break;
+                            case KeyEvent.DOM_VK_S:
                                 modalBar.close();
-                            }
+                                break;
+                            default:
+                                break;
                         }
-                        // if (e.keyCode == 89)
-                        //     doReplace(match);
-                        // }
                     });
                 };
                 var doReplace = function (match) {
