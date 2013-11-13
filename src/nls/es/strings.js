@@ -187,6 +187,8 @@ define({
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "Errores de {0}",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Problemas",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Problemas sintácticos",
     "SINGLE_ERROR"                          : "1 Error de {0}",
     "MULTIPLE_ERRORS"                       : "{1} Errores de {0}",
     "NO_ERRORS"                             : "No hay errores de {0}. ¡Buen trabajo!",
@@ -456,9 +458,12 @@ define({
     "LOCALE_IT"                                 : "Italiano",
     "LOCALE_JA"                                 : "Japonés",
     "LOCALE_NB"                                 : "Noruego",
+    "LOCALE_NL"                                 : "Holandés",
+    "LOCALE_FA_IR"                              : "Persa-Farsi",
     "LOCALE_PL"                                 : "Polaco",
     "LOCALE_PT_BR"                              : "Portugués, Brasil",
     "LOCALE_PT_PT"                              : "Portugués",
+    "LOCALE_RO"                                 : "Rumano",
     "LOCALE_RU"                                 : "Ruso",
     "LOCALE_SK"                                 : "Eslovaco",
 	"LOCALE_SR"									: "Serbio",
