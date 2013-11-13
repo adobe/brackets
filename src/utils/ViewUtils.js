@@ -27,6 +27,8 @@
 
 define(function (require, exports, module) {
     "use strict";
+
+    var _ = require("thirdparty/lodash");
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -356,15 +358,76 @@ define(function (require, exports, module) {
         return name;
     }
     
+    /**
+     * Determine the minimum directory path to distinguish duplicate file names
+     * for each file in list.
+     *
+     * @param {Array.<File>} files - list of Files with the same filename
+     * @return {Array.<string>} directory paths to match list of files
+     */
+    function getDirNamesForDuplicateFiles(files) {
+        // Must have at least two files in list for this to make sense
+        if (files.length <= 1) {
+            return [];
+        }
+
+        // First collect paths from the list of files and fill map with them
+        var map = {}, filePaths = [], displayPaths = [];
+        files.forEach(function (file, index) {
+            var fp = file.fullPath.split("/");
+            fp.pop(); // Remove the filename itself
+            displayPaths[index] = fp.pop();
+            filePaths[index] = fp;
+
+            if (!map[displayPaths[index]]) {
+                map[displayPaths[index]] = [index];
+            } else {
+                map[displayPaths[index]].push(index);
+            }
+        });
+
+        // This function is used to loop through map and resolve duplicate names
+        var processMap = function (map) {
+            var didSomething = false;
+            _.forEach(map, function (arr, key) {
+                // length > 1 means we have duplicates that need to be resolved
+                if (arr.length > 1) {
+                    arr.forEach(function (index) {
+                        if (filePaths[index].length !== 0) {
+                            displayPaths[index] = filePaths[index].pop() + "/" + displayPaths[index];
+                            didSomething = true;
+
+                            if (!map[displayPaths[index]]) {
+                                map[displayPaths[index]] = [index];
+                            } else {
+                                map[displayPaths[index]].push(index);
+                            }
+                        }
+                    });
+                }
+                delete map[key];
+            });
+            return didSomething;
+        };
+
+        var repeat;
+        do {
+            repeat = processMap(map);
+        } while (repeat);
+
+        return displayPaths;
+    }
+
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
     // Define public API
-    exports.SCROLL_SHADOW_HEIGHT    = SCROLL_SHADOW_HEIGHT;
-    exports.addScrollerShadow       = addScrollerShadow;
-    exports.removeScrollerShadow    = removeScrollerShadow;
-    exports.sidebarList             = sidebarList;
-    exports.scrollElementIntoView   = scrollElementIntoView;
-    exports.getFileEntryDisplay     = getFileEntryDisplay;
-    exports.toggleClass             = toggleClass;
+    exports.SCROLL_SHADOW_HEIGHT         = SCROLL_SHADOW_HEIGHT;
+    exports.addScrollerShadow            = addScrollerShadow;
+    exports.removeScrollerShadow         = removeScrollerShadow;
+    exports.sidebarList                  = sidebarList;
+    exports.scrollElementIntoView        = scrollElementIntoView;
+    exports.getFileEntryDisplay          = getFileEntryDisplay;
+    exports.toggleClass                  = toggleClass;
+    exports.getDirNamesForDuplicateFiles = getDirNamesForDuplicateFiles;
 });
