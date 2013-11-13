@@ -665,7 +665,7 @@ define(function (require, exports, module) {
     }
     
     function _showErrorAndNotify(err, fullPath) {
-        var errorToShow = (err !== null) ? err : FileSystemError.NOT_FOUND;
+        var errorToShow = err || FileSystemError.NOT_FOUND;
         FileUtils.showFileOpenError(FileSystemError.NOT_FOUND, fullPath).done(
             function () {
                 notifyPathDeleted();
