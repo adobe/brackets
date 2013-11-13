@@ -377,44 +377,33 @@ define(function (require, exports, module) {
      * Ensures the suggested file name doesn't already exit.
      * @param {string} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
-     * @param {string} fileExt  The file extension
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
      *   the given base name
      */
-    function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
-        var result = new $.Deferred();
-        var suggestedName = baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt;
-
-        result.progress(function attemptNewName(suggestedName) {
-            if (_nextUntitledIndexToUse > 99) {
-                //we've tried this enough
-                result.reject();
-                return;
-            }
-            
-            var path = dir + "/" + suggestedName;
-            var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
+    function _getUntitledFileSuggestion(dir, baseFileName, isFolder) {
+        var suggestedName   = baseFileName + "-" + _nextUntitledIndexToUse++,
+            deferred        = $.Deferred();
+        
+        if (_nextUntitledIndexToUse > 99) {
+            //we've tried this enough            
+            deferred.reject();
+        } else {
+            var path = dir + "/" + suggestedName,
+                entry = isFolder ? FileSystem.getDirectoryForPath(path) :
+                        FileSystem.getFileForPath(path);
             
             entry.exists(function (err, exists) {
-                if (err) {
-                    result.reject(err);
-                    return;
-                }
-                
-                if (exists) {
-                    //file exists, notify to the next progress
-                    result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
+                if (err || exists) {
+                    _getUntitledFileSuggestion(dir, baseFileName, isFolder)
+                        .then(deferred.resolve, deferred.reject);
                 } else {
-                    result.resolve(suggestedName);
+                    deferred.resolve(suggestedName);
                 }
             });
-        });
+        }
 
-        //kick it off
-        result.notify(suggestedName);
-
-        return result.promise();
+        return deferred.promise();
     }
 
     /**
@@ -455,16 +444,13 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, "", isFolder);
-        var createWithSuggestedName = function (suggestedName) {
-            ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
-                .then(deferred.resolve, deferred.reject, deferred.notify)
+        function createWithSuggestedName(suggestedName) {
+            return ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
-        };
-
-        deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled"); });
-        return deferred;
+        }
+        
+        return _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder)
+            .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 
     /**
