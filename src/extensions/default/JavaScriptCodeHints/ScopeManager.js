@@ -688,6 +688,11 @@ define(function (require, exports, module) {
          */
         function postMessage(msg) {
             addFilesPromise.done(function (ternWorker) {
+                // If an error came up during file handling, bail out now
+                if (!ternWorker) {
+                    return;
+                }
+                
                 if (config.debug) {
                     console.debug("Sending message", msg);
                 }
@@ -1058,12 +1063,14 @@ define(function (require, exports, module) {
             deferredPreferences.done(function () {
                 FileSystem.resolve(dir, function (err, directory) {
                     if (err) {
+                        console.error("Error resolving", dir);
                         addFilesDeferred.resolveWith(null);
                         return;
                     }
                     
                     directory.getContents(function (err, contents) {
                         if (err) {
+                            console.error("Error getting contents for", directory);
                             addFilesDeferred.resolveWith(null);
                             return;
                         }
@@ -1136,6 +1143,11 @@ define(function (require, exports, module) {
         function closeWorker() {
             function terminateWorker() {
                 var worker = _ternWorker;
+                
+                // Worker can be null if an error condition came up previously
+                if (!worker) {
+                    return;
+                }
                 setTimeout(function () {
                     // give pending requests a chance to finish
                     worker.terminate();
