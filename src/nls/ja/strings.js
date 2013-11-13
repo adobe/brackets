@@ -462,6 +462,7 @@ define({
 	"LOCALE_PL": "ポーランド語",
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RO": "ルーマニア語",
 	"LOCALE_RU": "ロシア語",
 	"LOCALE_SK": "スロバキア語",
 	"LOCALE_SR": "セルビア語",
