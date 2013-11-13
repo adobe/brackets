@@ -159,7 +159,12 @@ define(function (require, exports, module) {
         // check if the file already exists
         var file = FileSystem.getFileForPath(path);
         
-        file.exists(function (exists) {
+        file.exists(function (err, exists) {
+            if (err) {
+                _writeResults.reject(err);
+                return;
+            }
+            
             if (exists) {
                 // file exists, do not overwrite
                 _writeResults.reject();
