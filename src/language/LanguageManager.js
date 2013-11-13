@@ -99,7 +99,7 @@
  *
  * You can also defines binary file types, i.e. Brackets supports image files by default, 
  * such as *.jpg, *.png etc.
- * Binary files do not require mode because modes are specific to code mirror, which
+ * Binary files do not require mode because modes are specific to CodeMirror, which
  * only handles text based file types.
  * To register a binary language the isBinary flag must be set, i.e.
  *     LanguageManager.defineLanguage("audio", {
@@ -683,7 +683,6 @@ define(function (require, exports, module) {
             l;
         
         function _finishRegisteringLanguage() {
-            // register language file extensions for binary file extensions
             if (fileExtensions) {
                 for (i = 0, l = fileExtensions.length; i < l; i++) {
                     language.addFileExtension(fileExtensions[i]);
