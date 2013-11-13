@@ -280,7 +280,8 @@ define(function (require, exports, module) {
     }
     
     /** 
-     *    
+     * sign off listeners when editor manager closes
+     * the image viewer
      */
     function _removeListeners() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
@@ -288,7 +289,7 @@ define(function (require, exports, module) {
         $("#img").off("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
                  .off("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
     }
-    
+
     /** 
      * Perform decorations on the view that require loading the image in the browser,
      * i.e. getting actual and natural width and height andplacing the scale sticker
@@ -337,6 +338,7 @@ define(function (require, exports, module) {
                      .on("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
 
             _updateScale($(this).width());
+
             minimumPixels = Math.floor(minimumPixels * 100 / _scale);
 
             // If the image size is too narrow in width or height, then 
