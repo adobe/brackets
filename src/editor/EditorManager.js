@@ -674,7 +674,7 @@ define(function (require, exports, module) {
 
     function _removeViewIfFileDeleted(fileExists) {
         if (!fileExists) {
-            _showErrorAndNotify(getCurrentlyViewedPath());
+            notifyPathDeleted();
         }
     }
     
