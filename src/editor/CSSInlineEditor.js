@@ -330,18 +330,6 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * Helper function to add a sub-directory to string displayed in list
-         */
-        function _addSubDir(fileInfo) {
-            var dirSplit = fileInfo.fullPath.split("/"),
-                index = dirSplit.length - fileInfo.subDirCount - 2;
-            
-            fileInfo.subDirStr = dirSplit.slice(index, dirSplit.length - 1).join("/");
-            fileInfo.subDirCount++;
-        }
-        
-        /**
-         * @private
          * Prepare file list for display
          */
         function _prepFileList(fileInfos) {
@@ -352,7 +340,6 @@ define(function (require, exports, module) {
             // Add subdir field to each entry
             fileInfos.forEach(function (fileInfo) {
                 fileInfo.subDirStr = "";
-                fileInfo.subDirCount = 0;
             });
 
             // Add directory path to files with the same name so they can be
@@ -369,7 +356,7 @@ define(function (require, exports, module) {
 
                     // Lookahead for more dupes
                     while (++i < fileInfos.length &&
-                            _sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
+                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
                         dupeList.push(fileInfos[i]);
                     }
 

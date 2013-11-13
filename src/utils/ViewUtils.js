@@ -30,8 +30,7 @@ define(function (require, exports, module) {
 
     var _ = require("thirdparty/lodash");
     
-    var _FILE_KEY = "file",
-        SCROLL_SHADOW_HEIGHT = 5;
+    var SCROLL_SHADOW_HEIGHT = 5;
     
     /**
      * @private
@@ -361,20 +360,20 @@ define(function (require, exports, module) {
     
     /**
      * Determine the minimum directory path to distinguish duplicate file names
-     * for each entry in fil elist.
+     * for each file in list.
      *
-     * @param {Array.<File>} filesList - list of Files with the same filename
-     * @return {Array.string} directory paths to match list of files
+     * @param {Array.<File>} files - list of Files with the same filename
+     * @return {Array.<string>} directory paths to match list of files
      */
-    function getDirNamesForDuplicateFiles(filesList) {
-        // filesList must have at least two files in it for this to make sense
-        if (filesList.length <= 1) {
+    function getDirNamesForDuplicateFiles(files) {
+        // Must have at least two files in list for this to make sense
+        if (files.length <= 1) {
             return [];
         }
 
         // First collect paths from the list of files and fill map with them
         var map = {}, filePaths = [], displayPaths = [];
-        filesList.forEach(function (file, index) {
+        files.forEach(function (file, index) {
             var fp = file.fullPath.split("/");
             fp.pop(); // Remove the filename itself
             displayPaths[index] = fp.pop();
