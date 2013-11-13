@@ -172,8 +172,8 @@ define(function (require, exports, module) {
      * during the test, in which case the state of the entry should be considered
      * unknown.
      *
-     * @param {function (?string, boolean)} callback Callback with an error string
-     *      or a boolean indicating whether or not the file exists.
+     * @param {function (?string, boolean)} callback Callback with a FileSystemError
+     *      string or a boolean indicating whether or not the file exists.
      */
     FileSystemEntry.prototype.exists = function (callback) {
         this._impl.exists(this._path, callback);
