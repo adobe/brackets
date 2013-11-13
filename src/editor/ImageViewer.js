@@ -55,8 +55,14 @@ define(function (require, exports, module) {
         }
     }
     
+    function _hideGuidesAndTip() {
+        $("#img-tip").hide();
+        $(".img-guide").hide();
+    }
+    
     /** handle editor resize event, i.e. update scale sticker */
     function _onEditorAreaResize() {
+        _hideGuidesAndTip();
         _updateScale($("#img-preview").width());
     }
         
@@ -258,8 +264,7 @@ define(function (require, exports, module) {
         // Hide image tip and guides only if the cursor is outside of the image.
         if (x < imagePos.left || x >= right ||
                 y < imagePos.top || y >= bottom) {
-            $("#img-tip").hide();
-            $(".img-guide").hide();
+            _hideGuidesAndTip();
         }
     }
 
