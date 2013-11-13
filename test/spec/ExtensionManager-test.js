@@ -448,6 +448,17 @@ define(function (require, exports, module) {
                     expect(model.filterSet).toEqual(["item-5", "find-uniq1-in-name"]); // sorted in reverse publish date order
                 });
                 
+                it("should 'AND' space-separated search terms", function () {
+                    model.filter("UNIQ2 in author name");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 name");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 name author");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 uniq3");
+                    expect(model.filterSet).toEqual([]);
+                });
+                
                 it("should return correct results when subsequent queries are longer versions of previous queries", function () {
                     model.filter("uniqin1and5");
                     model.filter("uniqin1and5-2");
@@ -458,6 +469,19 @@ define(function (require, exports, module) {
                     model.filter("uniq1");
                     model.filter("");
                     expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+                });
+                
+                it("longer versions of previous queries, and not, should also work with spaces", function () {
+                    model.filter("name");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name uniq");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name uniq2");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("name uniq");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
                 });
                 
                 it("should trigger filter event when filter changes", function () {

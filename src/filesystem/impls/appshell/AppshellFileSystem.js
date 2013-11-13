@@ -164,10 +164,15 @@ define(function (require, exports, module) {
     function exists(path, callback) {
         stat(path, function (err) {
             if (err) {
-                callback(false);
-            } else {
-                callback(true);
+                if (err === FileSystemError.NOT_FOUND) {
+                    callback(null, false);
+                } else {
+                    callback(err);
+                }
+                return;
             }
+
+            callback(null, true);
         });
     }
     
@@ -262,7 +267,12 @@ define(function (require, exports, module) {
     function writeFile(path, data, options, callback) {
         var encoding = options.encoding || "utf8";
         
-        exists(path, function (alreadyExists) {
+        exists(path, function (err, alreadyExists) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            
             appshell.fs.writeFile(path, data, encoding, function (err) {
                 if (err) {
                     callback(_mapError(err));

@@ -972,7 +972,7 @@ define(function (require, exports, module) {
             }
             // Point at a real folder structure on local disk
             var rootEntry = FileSystem.getDirectoryForPath(rootPath);
-            rootEntry.exists(function (exists) {
+            rootEntry.exists(function (err, exists) {
                 if (exists) {
                     var projectRootChanged = (!_projectRoot || !rootEntry) ||
                         _projectRoot.fullPath !== rootEntry.fullPath;
@@ -1021,7 +1021,7 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.breakableUrl(rootPath),
-                            FileSystemError.NOT_FOUND
+                            err || FileSystemError.NOT_FOUND
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default

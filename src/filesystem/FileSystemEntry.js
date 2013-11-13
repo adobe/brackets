@@ -165,9 +165,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Check to see if the entry exists on disk.
+     * Check to see if the entry exists on disk. Note that there will NOT be an
+     * error returned if the file does not exist on the disk; in that case the
+     * error parameter will be null and the boolean will be false. The error 
+     * parameter will only be truthy when an unexpected error was encountered
+     * during the test, in which case the state of the entry should be considered
+     * unknown.
      *
-     * @param {function (boolean)} callback Callback with a single parameter.
+     * @param {function (?string, boolean)} callback Callback with a FileSystemError
+     *      string or a boolean indicating whether or not the file exists.
      */
     FileSystemEntry.prototype.exists = function (callback) {
         this._impl.exists(this._path, callback);

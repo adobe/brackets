@@ -396,7 +396,12 @@ define(function (require, exports, module) {
             var path = dir + "/" + suggestedName;
             var entry = isFolder ? FileSystem.getDirectoryForPath(path) : FileSystem.getFileForPath(path);
             
-            entry.exists(function (exists) {
+            entry.exists(function (err, exists) {
+                if (err) {
+                    result.reject(err);
+                    return;
+                }
+                
                 if (exists) {
                     //file exists, notify to the next progress
                     result.notify(baseFileName + "-" + _nextUntitledIndexToUse++ + fileExt);
@@ -1059,7 +1064,7 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(listAfterSave, (clearCurrentDoc || true));
+                DocumentManager.removeListFromWorkingSet(listAfterSave, clearCurrentDoc);
             }
         });
         
@@ -1076,7 +1081,7 @@ define(function (require, exports, module) {
      */
     function handleFileCloseAll(commandData) {
         return _doCloseDocumentList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly)).done(function () {
+                                    (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }
@@ -1084,7 +1089,7 @@ define(function (require, exports, module) {
     }
     
     function handleFileCloseList(commandData) {
-        return _doCloseDocumentList((commandData && commandData.documentList), false).done(function () {
+        return _doCloseDocumentList((commandData && commandData.documentList), false, false).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }
