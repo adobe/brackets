@@ -573,7 +573,7 @@ define(function (require, exports, module) {
                         }
                     });
                     modalBar.getRoot().on("keyup", function (e) {
-                        if (e.keyCode == 27 /*ESC*/ || e.keyCode == 89 /*Y*/ || e.keyCode == 65 /*A*/ || e.keyCode == 78 /*N*/ || e.keyCode == 83 /*S*/) {
+                        if (e.keyCode === 27 /*ESC*/ || e.keyCode === 89 /*Y*/ || e.keyCode === 65 /*A*/ || e.keyCode === 78 /*N*/ || e.keyCode === 83 /*S*/) {
                             if (e.keyCode === 27) {
                                 modalBar.prepareClose();
                                 modalBar.close();
