@@ -294,6 +294,44 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Determine how much of an element rect is clipped in view.
+     *
+     * @param {!DOMElement} $view - A jQuery scrolling container
+     * @param {!Object} elementRect - rectangle of element's default position/size
+     */
+    function getElementClipSize($view, elementRect) {
+        var delta,
+            clip = { top: 0, right: 0, bottom: 0, left: 0 },
+            viewOffset = $view.offset() || { top: 0, left: 0},
+            viewScroller = $view.get(0);
+
+        delta = (elementRect.top + elementRect.height) - (viewOffset.top + $view.height());
+        if (delta > 0) {
+            // below viewport
+            clip.bottom = delta;
+        }
+
+        delta = viewOffset.top - elementRect.top;
+        if (delta > 0) {
+            // above viewport
+            clip.top = delta;
+        }
+
+        delta = viewOffset.left - elementRect.left;
+        if (delta > 0) {
+            // left of viewport
+            clip.left = delta;
+        }
+
+        delta = (elementRect.left + elementRect.width) - (viewOffset.left + $view.width());
+        if (delta > 0) {
+            clip.right = delta;
+        }
+
+        return clip;
+    }
+
+    /**
      * Within a scrolling DOMElement, if necessary, scroll element into viewport.
      *
      * To Perform the minimum amount of scrolling necessary, cases should be handled as follows:
@@ -308,7 +346,7 @@ define(function (require, exports, module) {
      *
      * @param {!DOMElement} $view - A jQuery scrolling container
      * @param {!DOMElement} $element - A jQuery element
-     * @param {?boolean} scrollHorizontal - whether to also scroll horizonally
+     * @param {?boolean} scrollHorizontal - whether to also scroll horizontally
      */
     function scrollElementIntoView($view, $element, scrollHorizontal) {
         var viewOffset = $view.offset(),
@@ -317,25 +355,27 @@ define(function (require, exports, module) {
             elementOffset = $element.offset();
 
         // scroll minimum amount
-        var delta = (elementOffset.top + $element.height()) - (viewOffset.top + $view.height());
+        var elementRect = {
+                top:    elementOffset.top,
+                left:   elementOffset.left,
+                height: $element.height(),
+                width:  $element.width()
+            },
+            clip = getElementClipSize($view, elementRect);
         
-        if (delta > 0) {
+        if (clip.bottom > 0) {
             // below viewport
-            $view.scrollTop($view.scrollTop() + delta);
-        } else {
-            delta = viewOffset.top - elementOffset.top;
-            
-            if (delta > 0) {
-                // above viewport
-                $view.scrollTop($view.scrollTop() - delta);
-            }
+            $view.scrollTop($view.scrollTop() + clip.bottom);
+        } else if (clip.top > 0) {
+            // above viewport
+            $view.scrollTop($view.scrollTop() - clip.top);
         }
 
         if (scrollHorizontal) {
-            if (elementOffset.left < 0) {
-                $view.scrollLeft($view.scrollLeft() + elementOffset.left);
-            } else if (elementOffset.left + $element.width() >= viewOffset.left + $view.width()) {
-                $view.scrollLeft(elementOffset.left - viewOffset.left);
+            if (clip.left > 0) {
+                $view.scrollLeft($view.scrollLeft() - clip.left);
+            } else if (clip.right > 0) {
+                $view.scrollLeft($view.scrollLeft() + clip.right);
             }
         }
     }
@@ -365,6 +405,7 @@ define(function (require, exports, module) {
     exports.removeScrollerShadow    = removeScrollerShadow;
     exports.sidebarList             = sidebarList;
     exports.scrollElementIntoView   = scrollElementIntoView;
+    exports.getElementClipSize      = getElementClipSize;
     exports.getFileEntryDisplay     = getFileEntryDisplay;
     exports.toggleClass             = toggleClass;
 });
