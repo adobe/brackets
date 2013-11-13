@@ -664,15 +664,22 @@ define(function (require, exports, module) {
         }
     }
     
+    /*
+     * show a generic error or File Not Found in modal error dialog
+     */
     function _showErrorAndNotify(err, fullPath) {
         var errorToShow = err || FileSystemError.NOT_FOUND;
-        FileUtils.showFileOpenError(FileSystemError.NOT_FOUND, fullPath).done(
+        FileUtils.showFileOpenError(errorToShow, fullPath).done(
             function () {
                 notifyPathDeleted();
             }
         );
     }
 
+    /*
+     * callback function passed to file.exists. If file in view does
+     * not exist the current view will be replaced.
+     */
     function _removeViewIfFileDeleted(err, fileExists) {
         if (!fileExists) {
             notifyPathDeleted();
