@@ -212,7 +212,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                : "Tümünü Kapat",
     "CMD_FILE_CLOSE_LIST"               : "Listeyi Kapat",
     "CMD_FILE_CLOSE_OTHERS"             : "Diğerlerini Kapat",
-    "CMD_FILE_CLOSE_ABOVE"              : "üsttekileri Kapat",
+    "CMD_FILE_CLOSE_ABOVE"              : "Üsttekileri Kapat",
     "CMD_FILE_CLOSE_BELOW"              : "Alttakileri Kapat",
     "CMD_FILE_SAVE"                     : "Kaydet",
     "CMD_FILE_SAVE_ALL"                 : "Tümünü Kaydet",
