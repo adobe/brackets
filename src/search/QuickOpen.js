@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          languageIds: ?Array.<string>,
+     *          languageIds: Array.<string>,
      *          done: ?function(),
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. Defaults to all language IDs.
+     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. To allow any language, pass []. Required.
      * done - called when quick open is complete. Plug-in should clear its internal state. Optional.
      * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query. Required.
      * match - takes a query string and returns true if this plug-in wants to provide
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
      *      a <LI> item to insert into the displayed search results. Optional.
      * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
      *          for available options). Optional.
-     * label - if provided, the label to show before the query field.
+     * label - if provided, the label to show before the query field. Optional.
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
@@ -135,7 +135,7 @@ define(function (require, exports, module) {
         
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
-            pluginDef.languageIds || [],
+            pluginDef.languageIds,
             pluginDef.done,
             pluginDef.search,
             pluginDef.match,
