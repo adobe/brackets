@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waitsFor, runs, brackets, waitsForDone, spyOn, xit */
+/*global define, describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waitsFor, runs, brackets, waitsForDone, spyOn, xit, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -46,13 +46,16 @@ define(function (require, exports, module) {
         };
 
         function createCodeInspector(name, result) {
-            return {
-                called: false,
+            var provider = {
                 name: name,
                 // arguments to this function: text, fullPath
                 // omit the warning
-                scanFile: function () { this.called = true; return {errors: result}; }
+                scanFile: function () { return {errors: result}; }
             };
+
+            spyOn(provider, "scanFile").andCallThrough();
+
+            return provider;
         }
 
         beforeFirst(function () {
@@ -93,7 +96,7 @@ define(function (require, exports, module) {
                 simpleJavascriptFileEntry = new FileSystem.getFileForPath(testFolder + "/errors.js");
             });
 
-            it("should run one linter when a javascript document opens", function () {
+            it("should run a single registered linter", function () {
                 var codeInspector = createCodeInspector("text linter", []);
                 CodeInspection.register("javascript", codeInspector);
 
@@ -104,11 +107,11 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(codeInspector.called).toBeTruthy();
+                    expect(codeInspector.scanFile).toHaveBeenCalled();
                 });
             });
 
-            it("should run two linters when a javascript document opens", function () {
+            it("should run two linters", function () {
                 var codeInspector1 = createCodeInspector("text linter 1", []);
                 var codeInspector2 = createCodeInspector("text linter 2", []);
 
@@ -122,12 +125,12 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(codeInspector1.called).toBeTruthy();
-                    expect(codeInspector2.called).toBeTruthy();
+                    expect(codeInspector1.scanFile).toHaveBeenCalled();
+                    expect(codeInspector2.scanFile).toHaveBeenCalled();
                 });
             });
 
-            it("should run one linter when a javascript document opens and return some errors", function () {
+            it("should run one linter return some errors", function () {
                 var result;
 
                 var lintResult = {
@@ -149,14 +152,14 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(codeInspector1.called).toBeTruthy();
+                    expect(codeInspector1.scanFile).toHaveBeenCalled();
                     expect(result.length).toEqual(1);
                     expect(result[0].item.name).toEqual("javascript linter");
                     expect(result[0].results.errors.length).toEqual(1);
                 });
             });
 
-            it("should run two linter when a javascript document opens and return some errors", function () {
+            it("should run two linter and return some errors", function () {
                 var result;
 
                 var lintResult = {
@@ -197,7 +200,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(codeInspector1.called).toBeFalsy();
+                    expect(codeInspector1.scanFile).not.toHaveBeenCalled();
                 });
             });
 
@@ -214,9 +217,26 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(codeInspector1.called).toBeTruthy();
+                    expect(codeInspector1.scanFile).toHaveBeenCalled();
 
                     CodeInspection.toggleEnabled(true);
+                });
+            });
+
+            it("should return no result if there is no linter registered", function () {
+                var expectedResult;
+
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    promise.done(function (result) {
+                        expectedResult = result;
+                    });
+
+                    waitsForDone(promise, "file linting", 5000);
+                });
+
+                runs(function () {
+                    expect(expectedResult).toBeNull();
                 });
             });
         });
@@ -255,7 +275,8 @@ define(function (require, exports, module) {
                     {
                         pos: { line: 1, ch: 5 },
                         message: "Stopping. (33% scanned).",
-                        type: CodeInspection.Type.META
+                        type: CodeInspection.Type.META,
+                        aborted: true
                     }
                 ];
 
@@ -268,6 +289,10 @@ define(function (require, exports, module) {
                     expect($("#problems-panel").is(":visible")).toBe(true);
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    // tooltip will contain + in the title if the inspection was aborted
+                    expect(tooltip.lastIndexOf("+")).not.toBe(-1);
                 });
             });
 
@@ -286,7 +311,7 @@ define(function (require, exports, module) {
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
 
                 runs(function () {
-                    expect(codeInspector.called).toBeFalsy();
+                    expect(codeInspector.scanFile).not.toHaveBeenCalled();
                     expect($("#problems-panel").is(":visible")).toBe(false);
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);

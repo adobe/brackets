@@ -46,7 +46,6 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         FileUtils               = require("file/FileUtils"),
-        CollectionUtils         = require("utils/CollectionUtils"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -55,7 +54,6 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar"),
-        Menus                   = require("command/Menus"),
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
@@ -117,7 +115,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {Object.<string, {name:string, scanFile:function(string, string):Object}>}
+     * @type {Object.<string, Array.<{name:string, scanFile:function(string, string>):Object}>>}
      */
     var _providers = {};
 
@@ -126,6 +124,12 @@ define(function (require, exports, module) {
      * @type {?Array.<Object>}
      */
     var _lastResult;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var _hasErrors;
 
     /**
      * Enable or disable the "Go to First Error" command
@@ -155,19 +159,18 @@ define(function (require, exports, module) {
         _providers[languageId].push(provider);
     }
 
-    function unregisterAll() {
-        CollectionUtils.forEach(_providers, function (languageId) { delete _providers[languageId]; });
+    function _unregisterAll() {
         _providers = {};
     }
 
     /**
-     * Returns a provider for given file path, if one is available.
+     * Returns a list of provider for given file path, if available.
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     * @return ?{Array.<{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}}>} provider
      */
-    function getProviderForPath(filePath) {
+    function getProvidersForPath(filePath) {
         return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
     }
 
@@ -176,30 +179,30 @@ define(function (require, exports, module) {
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file that is currently opened.
      *
-     * @param {!FileEntry} fileEntry File that will be inspected for errors.
+     * @param {!File} file File that will be inspected for errors.
      * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array, aborted:boolean}
+     * @return {$.Promise} a jQuery promise that will be resolved with Array.<{ item: string, results: ?{!errors:Array, aborted:boolean}}>
      */
-    function inspectFile(fileEntry, provider) {
+    function inspectFile(file, provider) {
         var response = new $.Deferred();
-        var providerList = (provider || getProviderForPath(fileEntry.fullPath)) || [];
+        var providerList = (provider || getProvidersForPath(file.fullPath)) || [];
 
-        if (!providerList && !providerList.length) {
+        if (!providerList.length) {
             response.resolve(null);
             return response.promise();
         }
 
-        DocumentManager.getDocumentText(fileEntry)
+        DocumentManager.getDocumentText(file)
             .done(function (fileText) {
-                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + fileEntry.fullPath);
+                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath);
 
                 var masterPromise = Async.doInParallel_aggregateResults(providerList, function (provider) {
                     var result = new $.Deferred();
 
-                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + fileEntry.fullPath);
+                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
 
                     try {
-                        var scanResult = provider.scanFile(fileText, fileEntry.fullPath);
+                        var scanResult = provider.scanFile(fileText, file.fullPath);
                         result.resolve(scanResult);
                     } catch (err) {
                         console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
@@ -221,7 +224,7 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(perfTimerInspector);
             })
             .fail(function (err) {
-                console.error("[CodeInspection] Could not read file for inspection: " + fileEntry.fullPath);
+                console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
                 response.reject(err);
             });
 
@@ -242,12 +245,12 @@ define(function (require, exports, module) {
         }
 
         var currentDoc = DocumentManager.getCurrentDocument(),
-            providerList = currentDoc && getProviderForPath(currentDoc.file.fullPath);
+            providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath);
 
         if (providerList && providerList.length) {
             var numProblems = 0;
             var aborted = false;
-            var _numProblemsReportedByProvider = 0;
+            var numProblemsReportedByProvider = 0;
             var allErrors = { errors: [] };
 
             // run all the provider in parallel
@@ -262,19 +265,19 @@ define(function (require, exports, module) {
 
                 // save for later and make the amount of errors easily available
                 _lastResult = results;
-                _lastResult.errors = errors;
+                _hasErrors = errors;
 
                 if (!results || !errors) {
                     _lastResult = null;
                     Resizer.hide($problemsPanel);
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, "provider.name"));
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, Strings.CODE_INSPECTION_PANEL_TITLE));
                     setGotoEnabled(false);
                     return;
                 }
 
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (result) {
-                    _numProblemsReportedByProvider = 0;
+                    numProblemsReportedByProvider = 0;
                     var provider = result.item;
 
                     if (result.results) {
@@ -285,19 +288,18 @@ define(function (require, exports, module) {
 
                             if (error.type !== Type.META) {
                                 numProblems++;
-                                _numProblemsReportedByProvider++;
+                                numProblemsReportedByProvider++;
+                            }
+                            // if the code inspector was unable to process the whole file, we keep track to show a different status
+                            if (error.aborted) {
+                                aborted = true;
                             }
                         });
-
-                        // if the code inspector was unable to process the whole file, we keep track to show a different status
-                        if (result.results.aborted) {
-                            aborted = true;
-                        }
 
                         allErrors.errors.push({
                             providerName: provider.name,
                             results:      result.results.errors,
-                            numProblems: _numProblemsReportedByProvider
+                            numProblems:  numProblemsReportedByProvider
                         });
                     }
                 });
@@ -405,7 +407,7 @@ define(function (require, exports, module) {
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
-            if (_lastResult && _lastResult.errors) {
+            if (_lastResult && _hasErrors) {
                 Resizer.show($problemsPanel);
             }
         }
@@ -475,7 +477,7 @@ define(function (require, exports, module) {
 
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
-            if (_lastResult && _lastResult.errors) {
+            if (_lastResult && _hasErrors) {
                 toggleCollapsed();
             }
         });
@@ -486,7 +488,7 @@ define(function (require, exports, module) {
     });
 
     // Testing
-    exports.unregisterAll = unregisterAll;
+    exports.unregisterAll = _unregisterAll;
 
     // Public API
     exports.register      = register;
