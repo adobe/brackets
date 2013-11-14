@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         TERN_CALLED_FUNC_TYPE_MSG   = "FunctionType",
         TERN_PRIME_PUMP_MSG         = "PrimePump",
         TERN_GET_GUESSES_MSG        = "GetGuesses",
-        TERN_WORKER_READY           = "WorkerReady";
+        TERN_WORKER_READY           = "WorkerReady",
+        SET_CONFIG                  = "SetConfig";
 
     // Message parameter constants
     var TERN_FILE_INFO_TYPE_PART    = "part",
@@ -57,6 +58,7 @@ define(function (require, exports, module) {
     exports.TERN_FILE_INFO_TYPE_PART    = TERN_FILE_INFO_TYPE_PART;
     exports.TERN_FILE_INFO_TYPE_FULL    = TERN_FILE_INFO_TYPE_FULL;
     exports.TERN_FILE_INFO_TYPE_EMPTY   = TERN_FILE_INFO_TYPE_EMPTY;
+    exports.SET_CONFIG                  = SET_CONFIG;
 });
 
 
