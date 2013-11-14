@@ -717,7 +717,7 @@ define(function (require, exports, module) {
         function _doShow(err, fileExists) {
             if (!fileExists) {
                 _showErrorAndNotify(err, fullPath);
-                result.reject();
+                result.resolve();
             } else {
                 // Don't show the same custom view again if file path
                 // and view provider are still the same.

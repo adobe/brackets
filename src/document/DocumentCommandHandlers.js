@@ -190,11 +190,9 @@ define(function (require, exports, module) {
 
             var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
             if (viewProvider) {
-                EditorManager.showCustomViewer(viewProvider, fullPath).done(function () {
+                EditorManager.showCustomViewer(viewProvider, fullPath).always(function () {
                     result.resolve();
-                }).fail(function () {
-                    result.reject();
-                });
+                }); 
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
