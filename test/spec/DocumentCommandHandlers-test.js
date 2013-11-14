@@ -1068,8 +1068,14 @@ define(function (require, exports, module) {
 
         describe("Opens image file and validates EditorManager APIs", function () {
             it("should return null after opening an image", function () {
-                var path = testPath + "/couz.png";
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: path }).done(function (result) {
+                var path = testPath + "/couz.png",
+                    promise;
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+
+                runs(function () {
                     expect(EditorManager.getActiveEditor()).toEqual(null);
                     expect(EditorManager.getCurrentFullEditor()).toEqual(null);
                     expect(EditorManager.getFocusedEditor()).toEqual(null);
@@ -1082,11 +1088,12 @@ define(function (require, exports, module) {
         
         describe("Open image file while a text file is open", function () {
             it("should fire currentDocumentChange and activeEditorChange events", function () {
-
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
-
+                
+                docChangeListener.callCount = 0;
+                activeEditorChangeListener.callCount = 0;
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
@@ -1184,8 +1191,14 @@ define(function (require, exports, module) {
         
         describe("Opens text file and validates EditorManager APIs", function () {
             it("should return an editor after opening a text file", function () {
-                var path = testPath + "/test.js";
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: path }).done(function (result) {
+                var path = testPath + "/test.js",
+                    promise;
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                
+                runs(function () {
                     var e = EditorManager.getActiveEditor();
                     expect(e.document.file.fullPath).toBe(path);
                     
