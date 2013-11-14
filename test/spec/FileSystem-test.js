@@ -695,17 +695,15 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    expect(Object.keys(results).length).toBe(12);
+                    expect(Object.keys(results).length).toBe(8);
                     expect(results["/visit/"]).toBeTruthy();
                     expect(results["/visit/file.txt"]).toBeTruthy();
-                    expect(results["/visit/subdir1/"]).toBeTruthy();
-                    expect(results["/visit/subdir2/"]).toBeTruthy();
-                    expect(results["/visit/subdir1/subfile11.txt"]).toBeTruthy();
-                    expect(results["/visit/subdir1/subfile12.txt"]).toBeTruthy();
-                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
-                    expect(results["/visit/subdir2/subfile21.txt"]).toBeTruthy();
-                    expect(results["/visit/subdir1/subdir2link/subdir1link/subdir2link/"]).not.toBeTruthy();
-                    expect(results["/visit/subdir1/subdir1link/subdir2link/subdir1link/"]).not.toBeTruthy();
+                    expect(results["/visit/subdir1/"] || results["/visit/subdir2/subdir1link/"]).toBeTruthy();
+                    expect(results["/visit/subdir2/"] || results["/visit/subdir1/subdir2link/"]).toBeTruthy();
+                    expect(results["/visit/subdir1/"] && results["/visit/subdir2/subdir1link/"]).not.toBeTruthy();
+                    expect(results["/visit/subdir2/"] && results["/visit/subdir1/subdir2link/"]).not.toBeTruthy();
+                    expect(results["/visit/subdir1/subdir2link/subdir1link/"]).not.toBeTruthy();
+                    expect(results["/visit/subdir1/subdir1link/subdir2link/"]).not.toBeTruthy();
                     expect(results["/"]).not.toBeTruthy();
                 });
             });
