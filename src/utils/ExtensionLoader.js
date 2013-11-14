@@ -244,17 +244,6 @@ define(function (require, exports, module) {
                         // Also, load sub-extensions defined in package.json.
                         extensions.push(contents[i].name);
                     }
-<<<<<<< HEAD
-                );
-            },
-            function (error) {
-                console.error("[Extension] Error -- could not open native directory: " + directory);
-
-                // Silently ignore error
-                result.resolve();
-            });
-        
-=======
                 }
 
                 if (extensions.length === 0) {
@@ -278,7 +267,6 @@ define(function (require, exports, module) {
             }
         });
                
->>>>>>> master
         return result.promise();
     }
     
@@ -342,14 +330,7 @@ define(function (require, exports, module) {
         // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
         // during extension loading.
         var extensionPath = getUserExtensionPath();
-<<<<<<< HEAD
-
-        if (extensionPath) {
-            new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath, {create: true});
-        }
-=======
         FileSystem.getDirectoryForPath(extensionPath).create();
->>>>>>> master
         
         // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
