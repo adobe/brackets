@@ -701,7 +701,7 @@ define(function (require, exports, module) {
      */
     function closeCustomViewer() {
         _removeCustomViewer();
-        _currentlyViewedPath = "";
+        _currentlyViewedPath = null;
         _showNoEditor();
     }
     
