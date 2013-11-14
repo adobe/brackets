@@ -97,6 +97,9 @@ define(function (require, exports, module) {
         var $sidebar = $("#sidebar");
         if ($sidebar) {
             $sidebar.data("maxsize", editorAreaWidth + $sidebar.width() - MIN_WIDTH_EDITOR_AREA);
+
+            // set the minimum width of the frame window
+            brackets.app.setMinWindowWidth($sidebar.width() + MIN_WIDTH_EDITOR_AREA);
         }
     }
     
@@ -254,4 +257,5 @@ define(function (require, exports, module) {
     exports.createBottomPanel    = createBottomPanel;
     exports._notifyLayoutChange  = _notifyLayoutChange;
     exports._setMockDOM          = _setMockDOM;
+    exports.MIN_WIDTH_EDITOR_AREA = MIN_WIDTH_EDITOR_AREA;
 });
