@@ -647,33 +647,52 @@ define(function (require, exports, module) {
      * If param fullpath is provided then only if fullpath matches 
      * the currently viewed file an alternate file will be opened.
      * @param {?string} fullPath - file path of deleted file.
+     * @return {!Promise} A promise resolved after we opening an alternate file
+     * or showing no editor view.     
      */
     function notifyPathDeleted(fullPath) {
+        var result = new $.Deferred();
         function openAlternateFile() {
             var fileToOpen = DocumentManager.getNextPrevFile(1);
             if (fileToOpen) {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath}).always(function () {
+                    result.resolve();
+                });
             } else {
                 _removeCustomViewer();
                 _showNoEditor();
                 _setCurrentlyViewedPath();
+                result.resolve();
             }
         }
         if (!fullPath || _currentlyViewedPath === fullPath) {
             openAlternateFile();
+        } else {
+            result.resolve();
         }
+        return result.promise();
     }
     
     /*
      * show a generic error or File Not Found in modal error dialog
+     * @param {!String} err - to display if file exists test failed
+     * @param {!String} fullPath - path to display if file exists test failed
+     * @return {!Promise} A promise resolved after we opening an alternate file
+     * or showing no editor view.
      */
     function _showErrorAndNotify(err, fullPath) {
-        var errorToShow = err || FileSystemError.NOT_FOUND;
+        var result = new $.Deferred(),
+            errorToShow = err || FileSystemError.NOT_FOUND;
+        
         FileUtils.showFileOpenError(errorToShow, fullPath).done(
             function () {
-                notifyPathDeleted();
+                notifyPathDeleted().done(function () {
+                    result.resolve();
+                });
             }
         );
+
+        return result.promise();
     }
 
     /*
@@ -709,15 +728,16 @@ define(function (require, exports, module) {
      * Append custom view to editor-holder
      * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
-     * @return {!Promise} A promise resolved after image is displayed, rejected when 
-     *   image file not found.
+     * @return {!Promise} A promise resolved after image is displayed, also resolved
+     * if image file not found.
      */
     function showCustomViewer(provider, fullPath) {
         var result = new $.Deferred();
         function _doShow(err, fileExists) {
             if (!fileExists) {
-                _showErrorAndNotify(err, fullPath);
-                result.resolve();
+                _showErrorAndNotify(err, fullPath).always(function () {
+                    result.resolve();
+                });
             } else {
                 // Don't show the same custom view again if file path
                 // and view provider are still the same.
