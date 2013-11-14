@@ -458,6 +458,7 @@ define({
     "LOCALE_IT"                                 : "Italiană",
     "LOCALE_JA"                                 : "Japoneză",
     "LOCALE_NB"                                 : "Norvegiană",
+    "LOCALE_NL"                                 : "Olandeză",
     "LOCALE_PL"                                 : "Poloneză",
     "LOCALE_PT_BR"                              : "Portugheza braziliană",
     "LOCALE_PT_PT"                              : "Portugheză",
