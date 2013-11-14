@@ -677,8 +677,8 @@ define(function (require, exports, module) {
      * show a generic error or File Not Found in modal error dialog
      * @param {!String} err - to display if file exists test failed
      * @param {!String} fullPath - path to display if file exists test failed
-     * @return {!Promise} A promise resolved after we opening an alternate file
-     * or showing no editor view.
+     * @return {!Promise} A promise resolved after showing a modal file open error
+     *   and opening an alternate file or showing no editor view.
      */
     function _showErrorAndNotify(err, fullPath) {
         var result = new $.Deferred(),
@@ -698,20 +698,37 @@ define(function (require, exports, module) {
     /*
      * callback function passed to file.exists. If file in view does
      * not exist the current view will be replaced.
+     * @return {!Promise} A promise resolved after propagating an
+     *   error if the file exists test failed or immediately if the test succeeds
      */
     function _removeViewIfFileDeleted(err, fileExists) {
+        var result = new $.Deferred();
         if (!fileExists) {
-            notifyPathDeleted();
+            notifyPathDeleted().always(function () {
+                result.resolve();
+            });
+        } else {
+            result.resolve();
         }
+        return result.promise();
     }
     
     /** 
      * Makes sure that the file in view is present in the file system
      * Close and warn if file is gone.
+     * @return {!Promise} A promise resolved after checking if file exists
+     *   and propagating the error or resolving immediately if file is ok.
      */
     _checkFileExists = function () {
+        var result = new $.Deferred();
+        
         var file = FileSystem.getFileForPath(getCurrentlyViewedPath());
-        file.exists(_removeViewIfFileDeleted);
+        file.exists(function (err, fileExists) {
+            _removeViewIfFileDeleted(err, fileExists).always(function () {
+                result.resolve();
+            });
+        });
+        return result.promise();
     };
     
     /** 
