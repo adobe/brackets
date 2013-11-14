@@ -261,13 +261,15 @@ define(function (require, exports, module) {
      * Private helper function for FileSystemEntry.visit that requires sanitized options.
      *
      * @private
+     * @param {FileSystemStats} stats - the stats for this entry
+     * @param {{string: boolean}} visitedPaths - the set of fullPaths that have already been visited
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
      * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    FileSystemEntry.prototype._visitHelper = function (visitor, options, realPaths, callback) {
+    FileSystemEntry.prototype._visitHelper = function (stats, visitedPaths, visitor, options, callback) {
         var failFast = options.failFast,
             maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
@@ -275,6 +277,17 @@ define(function (require, exports, module) {
         if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
             callback(failFast ? FileSystemError.TOO_MANY_ENTRIES : null);
             return;
+        }
+        
+        if (this.isDirectory) {
+            var visitedPath = stats.realPath || this.fullPath;
+    
+            if (visitedPaths.hasOwnProperty(visitedPath)) {
+                callback(failFast ? FileSystemError.LINK_CYCLE : null);
+                return;
+            }
+            
+            visitedPaths[visitedPath] = true;
         }
         
         if (!visitor(this) || this.isFile) {
@@ -288,21 +301,6 @@ define(function (require, exports, module) {
                 return;
             }
             
-            // Do not traverse symbolic links with the same realPath repeatedly
-            entries = entries.filter(function (entry, index) {
-                var stats = entriesStats[index],
-                    realPath = stats.realPath;
-                
-                if (stats.isFile || !realPath) {
-                    return true;
-                }
-
-                if (!realPaths.hasOwnProperty(realPath)) {
-                    realPaths[realPath] = true;
-                    return true;
-                }
-            });
-            
             var counter = entries.length;
             if (counter === 0) {
                 callback(null);
@@ -315,8 +313,8 @@ define(function (require, exports, module) {
                 maxEntriesCounter: maxEntriesCounter
             };
             
-            entries.forEach(function (entry) {
-                entry._visitHelper(visitor, nextOptions, realPaths, function (err) {
+            entries.forEach(function (entry, index) {
+                entry._visitHelper(entriesStats[index], visitedPaths, visitor, nextOptions, function (err) {
                     if (err && failFast) {
                         counter = 0;
                         callback(err);
@@ -362,21 +360,28 @@ define(function (require, exports, module) {
 
         options.maxEntriesCounter = { value: options.maxEntries };
         
-        this._visitHelper(visitor, options, {}, function (err) {
-            if (callback) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                
-                if (options.maxEntriesCounter.value < 0) {
-                    callback(FileSystemError.TOO_MANY_ENTRIES);
-                    return;
-                }
-                
-                callback(null);
+        this.stat(function (err, stats) {
+            if (err) {
+                callback(err);
+                return;
             }
-        });
+            
+            this._visitHelper(stats, {}, visitor, options, function (err) {
+                if (callback) {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    
+                    if (options.maxEntriesCounter.value < 0) {
+                        callback(FileSystemError.TOO_MANY_ENTRIES);
+                        return;
+                    }
+                    
+                    callback(null);
+                }
+            }.bind(this));
+        }.bind(this));
     };
     
     // Export this class
