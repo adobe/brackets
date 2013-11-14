@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
@@ -64,7 +64,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands           = require("command/Commands"),
+    var CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),

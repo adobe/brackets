@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -114,7 +114,8 @@ define(function (require, exports, module) {
     
     
     // Dependencies
-    var Async                 = require("utils/Async"),
+    var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     

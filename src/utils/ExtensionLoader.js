@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, brackets, window */
+/*global define, $, brackets, window */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.

@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var TokenUtils = require("utils/TokenUtils");
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror"),
+        TokenUtils = require("utils/TokenUtils");
     
     //constants
     var TAG_NAME = "tagName",
