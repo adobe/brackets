@@ -31,7 +31,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
 
     /**
      * Format a string by replacing placeholder symbols with passed in arguments.

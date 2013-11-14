@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     /**
      * Convert between URL querystring and name/value pairs. Decodes and encodes URL parameters.

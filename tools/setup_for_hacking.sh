@@ -8,7 +8,7 @@ if [[ "$platform" == 'Linux' ]]; then
    default_app_directory='/opt/brackets';
    symlink='dev';
 elif [[ "$platform" == 'Darwin' ]]; then # MAC OSX
-   default_app_directory='/Applications/Brackets Sprint 31.app';
+   default_app_directory='/Applications/Brackets.app';
    symlink='Contents/dev';
 else
    # Warn for unknown operating system?

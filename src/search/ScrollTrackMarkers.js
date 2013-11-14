@@ -33,7 +33,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     var Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager");

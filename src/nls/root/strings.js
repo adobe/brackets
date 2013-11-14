@@ -67,8 +67,8 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Errors",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Issues",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Lint Issues",
     "SINGLE_ERROR"                          : "1 {0} Error",
     "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
     "NO_ERRORS"                             : "No {0} errors - good job!",
@@ -455,11 +457,15 @@ define({
     "LOCALE_IT"                                 : "Italian",
     "LOCALE_JA"                                 : "Japanese",
     "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_NL"                                 : "Dutch",
+    "LOCALE_FA_IR"                              : "Persian-Farsi",
     "LOCALE_PL"                                 : "Polish",
     "LOCALE_PT_BR"                              : "Portuguese, Brazil",
     "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RO"                                 : "Romanian",
     "LOCALE_RU"                                 : "Russian",
     "LOCALE_SK"                                 : "Slovak",
+    "LOCALE_SR"                                 : "Serbian",
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",

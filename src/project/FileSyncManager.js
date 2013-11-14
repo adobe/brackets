@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileUtils           = require("file/FileUtils"),
-        NativeFileError     = require("file/NativeFileError");
+        FileSystemError     = require("filesystem/FileSystemError");
 
     
     /**
@@ -100,34 +100,39 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             // Check file timestamp / existence
-            doc.file.getMetadata(
-                function (metadata) {
-                    // Does file's timestamp differ from last sync time on the Document?
-                    if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
-                        if (doc.isDirty) {
-                            editConflicts.push(doc);
-                        } else {
-                            toReload.push(doc);
-                        }
-                    }
-                    result.resolve();
-                },
-                function (error) {
-                    // File has been deleted externally
-                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
-                        if (doc.isDirty) {
-                            deleteConflicts.push(doc);
-                        } else {
-                            toClose.push(doc);
+            
+            if (doc.isUntitled()) {
+                result.resolve();
+            } else {
+                doc.file.stat(function (err, stat) {
+                    if (!err) {
+                        // Does file's timestamp differ from last sync time on the Document?
+                        if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
+                            if (doc.isDirty) {
+                                editConflicts.push(doc);
+                            } else {
+                                toReload.push(doc);
+                            }
                         }
                         result.resolve();
                     } else {
-                        // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking modification status of " + doc.file.fullPath, error.name);
-                        result.reject();
+                        // File has been deleted externally
+                        if (err === FileSystemError.NOT_FOUND) {
+                            if (doc.isDirty) {
+                                deleteConflicts.push(doc);
+                            } else {
+                                toClose.push(doc);
+                            }
+                            result.resolve();
+                        } else {
+                            // Some other error fetching metadata: treat as a real error
+                            console.log("Error checking modification status of " + doc.file.fullPath, err);
+                            result.reject();
+                        }
                     }
-                }
-            );
+                });
+            }
+
             return result.promise();
         }
         
@@ -149,23 +154,22 @@ define(function (require, exports, module) {
         function checkWorkingSetFile(file) {
             var result = new $.Deferred();
             
-            file.getMetadata(
-                function (metadata) {
+            file.stat(function (err, stat) {
+                if (!err) {
                     // File still exists
                     result.resolve();
-                },
-                function (error) {
+                } else {
                     // File has been deleted externally
-                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
+                    if (err === FileSystemError.NOT_FOUND) {
                         DocumentManager.notifyFileDeleted(file);
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.fullPath, error.name);
+                        console.log("Error checking for deletion of " + file.fullPath, err);
                         result.reject();
                     }
                 }
-            );
+            });
             return result.promise();
         }
         
@@ -189,7 +193,7 @@ define(function (require, exports, module) {
             doc.refreshText(text, readTimestamp);
         });
         promise.fail(function (error) {
-            console.log("Error reloading contents of " + doc.file.fullPath, error.name);
+            console.log("Error reloading contents of " + doc.file.fullPath, error);
         });
         return promise;
     }
@@ -217,7 +221,7 @@ define(function (require, exports, module) {
             StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
                 StringUtils.breakableUrl(doc.file.fullPath),
-                FileUtils.getFileErrorString(error.name)
+                FileUtils.getFileErrorString(error)
             )
         );
     }

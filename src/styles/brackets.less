@@ -235,6 +235,7 @@ a, img {
         .box-align(center);
         background: @background-color-3 url('images/no_content_bg.svg') no-repeat center 45%;
     }
+
     /* Image Preview */
     #image-holder {
         overflow: hidden;
@@ -270,11 +271,21 @@ a, img {
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.36);
         max-height: 90%;
     }
+
+    #img-header {
+        display: block;
+        width: 100%;
+        height: 38px;
+        margin-bottom: 15px;
+    }
     
     #img-data,
     #img-path {
         text-align: left;
         .user-select(text);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;        
     }
     
     #img-data::selection,
@@ -282,24 +293,70 @@ a, img {
         background: @selection-color-focused;
     }
     
-    #img-path {
-        margin: 0 0 15px;
-    }
     #img {
         position: relative;
     }
     
+    .img-guide,
+    #img-preview {
+        cursor: none;
+    }
+
     #img-scale {
-        display: none;
         display: block;
         position: absolute;
         top: 5px;
         left: 5px;
         width: 40px;
         text-align: center;
-        background-color: rgba(0,0,0,0.8);
-        color: white;
-        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    
+    #img-tip {
+        display: block;
+        position: absolute;
+        text-align: left;
+        white-space: nowrap;
+        padding: 6px 9px;
+        color: #fff;
+        background-color: rgba(0, 0, 0, 0.8);
+        font-size: 11px;
+        font-family: SourceCodePro;
+        line-height: 13px;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+    }
+    
+    #x-value,
+    #y-value {
+        text-align: right;
+    }
+    
+    .tip-container {
+        border: 0;
+    }
+    
+    #horiz-guide {
+        background-image: url("images/horizontal-dash.svg");
+        background-repeat: repeat-x;
+        width: 8px;
+        height: 1px;
+    }
+
+    #vert-guide {
+        background-image: url("images/vertical-dash.svg");
+        background-repeat: repeat-y;
+        width: 1px;
+        height: 8px;
+    }
+    
+    #horiz-guide,
+    #vert-guide {
+        position: absolute;
+        display: block;
     }
 }
 
@@ -449,6 +506,7 @@ a, img {
     background: #3C3F41;
     color: @project-panel-text-2;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 #sidebar {
@@ -470,6 +528,7 @@ a, img {
     padding: 8px 0 9px 12px;
     font-size: 13px;
     color: @project-panel-text-2;
+    overflow: hidden;
 }
 
 #open-files-container {
@@ -665,6 +724,11 @@ a, img {
 }
 
 /* Styles for inline editors */
+
+.inline-text-editor {
+    line-height: 0px;
+}
+
 .inline-widget {
     position: relative;
     overflow: hidden;
@@ -687,11 +751,13 @@ a, img {
     }
 
     .inline-editor-header {
+        display: inline-block;
         padding: 10px 10px 0px 40px;
 
         .filename {
+            vertical-align: middle;
             font-family: @sansFontFamily;
-            font-size: 1.1em;
+            font-size: 13px;
             color: @bc-black;
 
             // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
@@ -702,7 +768,7 @@ a, img {
                 .bracket-sprite;
                 display: inline-block;
                 background-position: -32px 2px;
-                padding-top: 3px;
+                padding-top: 5px;
             }
 
             .line-number {
@@ -1079,14 +1145,18 @@ a, img {
         list-style: none;
         cursor: default;
         padding: 6px 10px;
-    }
+        
+        &:nth-child(odd) {
+            background-color: @tc-lighter-gray;
+        }
+        
+        &:hover {
+            background-color: @tc-hover-highlight;
+        }
 
-    li:nth-child(odd) {
-        background-color: @tc-lighter-gray;
-    }
-
-    li.smart_autocomplete_highlight {
-        background-color: @tc-highlight;
+        &.smart_autocomplete_highlight {
+            background-color: @tc-highlight;
+        }
     }
 }
 

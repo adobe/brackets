@@ -67,8 +67,8 @@ define({
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
 	"ERROR_IN_BROWSER": "{APP_NAME} は HTML で構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリのアプリケーションシェルを使用してください。",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "ファイルのインデックス時にエラーが発生しました。",
 	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
 
@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "{0} のエラー",
+	"ERRORS_PANEL_TITLE_SINGLE": "!能=[7365058] {0} Issues_=!",
+	"ERRORS_PANEL_TITLE_MULTI": "!能=[7365057] Lint Issues_=!",
 	"SINGLE_ERROR": "1 個の {0} エラー",
 	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
 	"NO_ERRORS": "{0} エラーはありません - Good job!",
@@ -455,18 +457,22 @@ define({
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
 	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_NL": "オランダ語",
+	"LOCALE_FA_IR": "ペルシャ語-ファルシ語",
 	"LOCALE_PL": "ポーランド語",
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RO": "ルーマニア語",
 	"LOCALE_RU": "ロシア語",
 	"LOCALE_SK": "スロバキア語",
+	"LOCALE_SR": "セルビア語",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
     
     // extensions/default/InlineTimingFunctionEditor
-	"INLINE_TIMING_EDITOR_TIME": "時刻",
+	"INLINE_TIMING_EDITOR_TIME": "時間",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor

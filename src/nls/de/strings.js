@@ -68,7 +68,7 @@ define({
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
 
-    // FileIndexManager error string
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
     "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Dateien wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt ausgeführt.",
 
@@ -188,6 +188,8 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Probleme",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Linting-Probleme",
     "SINGLE_ERROR"                          : "1 {0} Fehler",
     "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
     "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
@@ -206,6 +208,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
+    "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
@@ -284,6 +287,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Neue Regel",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
@@ -322,7 +326,7 @@ define({
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
-    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
+    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier sind einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
@@ -383,6 +387,8 @@ define({
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Die Version {0} dieser Erweiterung benötigt eine neuere Version von {APP_NAME}. Sie können jedoch die ältere Version {1} installieren.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Die Version {0} dieser Erweiterung funktioniert nur mit älteren Versionen von {APP_NAME}. Sie können jedoch die ältere Version {1} installieren.",
     "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
@@ -442,20 +448,24 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
     // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tschechisch",
+    "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EN"                                 : "Englisch",
     "LOCALE_ES"                                 : "Spanisch",
+    "LOCALE_FA_IR"                              : "Persisch (Farsi)",
     "LOCALE_FI"                                 : "Finnisch",
     "LOCALE_FR"                                 : "Französisch",
     "LOCALE_IT"                                 : "Italienisch",
     "LOCALE_JA"                                 : "Japanisch",
     "LOCALE_NB"                                 : "Norwegisch",
+    "LOCALE_NL"                                 : "Niederländisch",
     "LOCALE_PL"                                 : "Polnisch",
     "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
     "LOCALE_PT_PT"                              : "Portugiesisch",
+    "LOCALE_RO"                                 : "Rumänisch",
     "LOCALE_RU"                                 : "Russisch",
     "LOCALE_SK"                                 : "Slowakisch",
+    "LOCALE_SR"                                 : "Serbisch",
     "LOCALE_SV"                                 : "Schwedisch",
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
@@ -483,7 +493,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
+    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
