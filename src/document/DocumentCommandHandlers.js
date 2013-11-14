@@ -192,7 +192,7 @@ define(function (require, exports, module) {
             if (viewProvider) {
                 EditorManager.showCustomViewer(viewProvider, fullPath).always(function () {
                     result.resolve();
-                }); 
+                });
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
