@@ -107,17 +107,18 @@ module.exports = function (grunt) {
                 options: {
                     // `name` and `out` is set by grunt-usemin
                     baseUrl: 'src',
-                    optimize: 'none',
+                    optimize: 'uglify2',
                     // TODO: Figure out how to make sourcemaps work with grunt-usemin
                     // https://github.com/yeoman/grunt-usemin/issues/30
-                    //generateSourceMaps: true,
+                    generateSourceMaps: true,
+                    useSourceUrl: true,
                     // required to support SourceMaps
                     // http://requirejs.org/docs/errors.html#sourcemapcomments
-                    preserveLicenseComments: true,
+                    preserveLicenseComments: false,
                     useStrict: true,
                     // Disable closure, we want define/require to be globals
-                    wrap: false
-                    //uglify2: {} // https://github.com/mishoo/UglifyJS2
+                    wrap: false,
+                    uglify2: {} // https://github.com/mishoo/UglifyJS2
                 }
             }
         },
@@ -300,7 +301,7 @@ module.exports = function (grunt) {
         'requirejs',
         'concat',
         'cssmin',
-        'uglify',
+        /*'uglify',*/
         'copy',
         'usemin'
     ]);
