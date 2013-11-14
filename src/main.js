@@ -21,23 +21,33 @@
  * 
  */
 
+/**
+ * The boostrapping module for brackets. This module sets up the require 
+ * configuration and loads the brackets module.
+ */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, window, brackets, navigator */
-(function () {
+/*global require, define, window, brackets, navigator */
+
+require.config({
+    paths: {
+        "text"              : "thirdparty/text/text",
+        "i18n"              : "thirdparty/i18n/i18n",
+        
+        // The file system implementation. Change this value to use different 
+        // implementations (e.g. cloud-based storage).
+        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+    },
+    // Use custom brackets property until CEF sets the correct navigator.language
+    // NOTE: When we change to navigator.language here, we also should change to
+    // navigator.language in ExtensionLoader (when making require contexts for each
+    // extension).
+    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+});
+
+define(function (require, exports, module) {
     "use strict";
-
-    require.config({
-        paths: {
-            "text"      : "thirdparty/text/text",
-            "i18n"      : "thirdparty/i18n/i18n"
-        }
-    });
-
-    // hack for r.js optimization
-    require.config({
-        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
-    });
-
-    require(["brackets"], function (brackets) {});
-}());
+    
+    // Load the brackets module. This is a self-running module that loads and runs the entire application.
+    require("brackets");
+});

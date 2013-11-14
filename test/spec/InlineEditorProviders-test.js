@@ -30,13 +30,11 @@ define(function (require, exports, module) {
     
     var Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
-        FileIndexManager,   // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
         InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
-        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         KeyEvent         = require("utils/KeyEvent"),
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
@@ -168,7 +166,6 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
-                    FileIndexManager    = testWindow.brackets.test.FileIndexManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
@@ -623,7 +620,6 @@ define(function (require, exports, module) {
                 });
             });
             
-            
             describe("Inline Editor syncing from disk", function () {
                 
                 it("should close inline editor when file deleted on disk", function () {
@@ -632,7 +628,8 @@ define(function (require, exports, module) {
                         savedTempCSSFile = false;
 
                     runs(function () {
-                        var promise = SpecRunnerUtils.createTextFile(tempPath + "/tempCSS.css", "#anotherDiv {}")
+                        // Important: must create file using test window's FS so that it sees the new file right away
+                        var promise = SpecRunnerUtils.createTextFile(tempPath + "/tempCSS.css", "#anotherDiv {}", testWindow.brackets.test.FileSystem)
                             .done(function (entry) {
                                 fileToWrite = entry;
                             })
@@ -645,9 +642,6 @@ define(function (require, exports, module) {
                     
                     // Open inline editor for that file
                     runs(function () {
-                        // force FileIndexManager to re-sync and pick up the new tempCSS.css file
-                        FileIndexManager.markDirty();
-                        
                         initInlineTest("test1.html", 6, true);
                     });
                     // initInlineTest() inserts a waitsFor() automatically, so must end runs() block here
@@ -811,7 +805,6 @@ define(function (require, exports, module) {
                     });
                 });
             });
-            
             
             describe("Inline Editor range updating", function () {
                 

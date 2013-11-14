@@ -1,11 +1,11 @@
 <div class="extension-manager-dialog modal">
     <div class="modal-header">
         <ul class="nav nav-tabs">
-            <li><a href="#installed" class="installed" data-toggle="tab"><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a></li>
             {{#showRegistry}}
                 <li><a href="#registry" class="registry" data-toggle="tab"><img src="styles/images/extension-manager-registry.svg"/><br/>{{Strings.EXTENSIONS_AVAILABLE_TITLE}}</a></li>
                 <!--<li><a href="#updates" class="updates" data-toggle="tab"><img src="styles/images/extension-manager-updates.svg"/><br/>{{Strings.EXTENSIONS_UPDATES_TITLE}}</a></li>-->
             {{/showRegistry}}
+            <li><a href="#installed" class="installed" data-toggle="tab"><img src="styles/images/extension-manager-installed.svg"/><br/>{{Strings.EXTENSIONS_INSTALLED_TITLE}}</a><span class="notification"></span></li>
         </ul>
         <div>
             <button class="search-clear"></button>

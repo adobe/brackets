@@ -93,7 +93,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Adds directory names to elements representing passed files in working tree
-     * @param {Array.<FileEntry>} filesList - list of FileEntries with the same filename
+     * @param {Array.<File>} filesList - list of Files with the same filename
      */
     function _addDirectoryNamesToWorkingTreeFiles(filesList) {
         // filesList must have at least two files in it for this to make sense
@@ -101,49 +101,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        // First collect paths from the list of files and fill map with them
-        var map = {}, filePaths = [], displayPaths = [];
-        filesList.forEach(function (file, index) {
-            var fp = file.fullPath.split("/");
-            fp.pop(); // Remove the filename itself
-            displayPaths[index] = fp.pop();
-            filePaths[index] = fp;
-
-            if (!map[displayPaths[index]]) {
-                map[displayPaths[index]] = [index];
-            } else {
-                map[displayPaths[index]].push(index);
-            }
-        });
-
-        // This function is used to loop through map and resolve duplicate names
-        var processMap = function (map) {
-            var didSomething = false;
-            _.forEach(map, function (arr, key) {
-                // length > 1 means we have duplicates that need to be resolved
-                if (arr.length > 1) {
-                    arr.forEach(function (index) {
-                        if (filePaths[index].length !== 0) {
-                            displayPaths[index] = filePaths[index].pop() + "/" + displayPaths[index];
-                            didSomething = true;
-
-                            if (!map[displayPaths[index]]) {
-                                map[displayPaths[index]] = [index];
-                            } else {
-                                map[displayPaths[index]].push(index);
-                            }
-                        }
-                    });
-                }
-                delete map[key];
-            });
-            return didSomething;
-        };
-
-        var repeat;
-        do {
-            repeat = processMap(map);
-        } while (repeat);
+        var displayPaths = ViewUtils.getDirNamesForDuplicateFiles(filesList);
 
         // Go through open files and add directories to appropriate entries
         $openFilesContainer.find("ul > li").each(function () {
@@ -465,7 +423,7 @@ define(function (require, exports, module) {
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
-     * @param {FileEntry} file
+     * @param {File} file
      * @return {HTMLLIElement} newListItem
      */
     function _createNewListItem(file) {
@@ -517,7 +475,7 @@ define(function (require, exports, module) {
     /**
      * Finds the listItem item assocated with the file. Returns null if not found.
      * @private
-     * @param {!FileEntry} file
+     * @param {!File} file
      * @return {HTMLLIItem}
      */
     function _findListItemFromFile(file) {
@@ -607,7 +565,7 @@ define(function (require, exports, module) {
 
     /** 
      * @private
-     * @param {FileEntry} file
+     * @param {File} file
      * @param {boolean=} suppressRedraw If true, suppress redraw
      */
     function _handleFileRemoved(file, suppressRedraw) {
