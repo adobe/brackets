@@ -1068,15 +1068,16 @@ define(function (require, exports, module) {
 
         describe("Opens image file and validates EditorManager APIs", function () {
             it("should return null after opening an image", function () {
-                var path = testPath + "/couz.png";
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: path }).done(function (result) {
-                    expect(EditorManager.getActiveEditor()).toEqual(null);
-                    expect(EditorManager.getCurrentFullEditor()).toEqual(null);
-                    expect(EditorManager.getFocusedEditor()).toEqual(null);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
-                    var d = DocumentManager.getCurrentDocument();
-                    expect(d).toEqual(null);
-                });
+                var path = testPath + "/couz.png",
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path }).done(function (result) {
+                        expect(EditorManager.getActiveEditor()).toEqual(null);
+                        expect(EditorManager.getCurrentFullEditor()).toEqual(null);
+                        expect(EditorManager.getFocusedEditor()).toEqual(null);
+                        expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                        var d = DocumentManager.getCurrentDocument();
+                        expect(d).toEqual(null);
+                    });
+                waitsForDone(promise, Commands.FILE_OPEN);
             });
         });
         
@@ -1086,6 +1087,8 @@ define(function (require, exports, module) {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
+                docChangeListener.callCount = 0;
+                activeEditorChangeListener.callCount = 0;
 
 
                 runs(function () {

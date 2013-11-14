@@ -701,7 +701,7 @@ define(function (require, exports, module) {
      */
     function closeCustomViewer() {
         _removeCustomViewer();
-        _setCurrentlyViewedPath();
+        _currentlyViewedPath = "";
         _showNoEditor();
     }
     
@@ -709,16 +709,21 @@ define(function (require, exports, module) {
      * Append custom view to editor-holder
      * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
+     * @return {!Promise} A promise resolved after image is displayed, rejected when 
+     *   image file not found.
      */
     function showCustomViewer(provider, fullPath) {
+        var result = new $.Deferred();
         function _doShow(err, fileExists) {
             if (!fileExists) {
                 _showErrorAndNotify(err, fullPath);
+                result.reject();
             } else {
                 // Don't show the same custom view again if file path
                 // and view provider are still the same.
                 if (_currentlyViewedPath === fullPath &&
                         _currentViewProvider === provider) {
+                    result.resolve();
                     return;
                 }
                 
@@ -742,10 +747,13 @@ define(function (require, exports, module) {
                 // close and warn if the file is gone.
                 window.addEventListener("focus", _checkFileExists);
                 _setCurrentlyViewedPath(fullPath);
+                result.resolve();
             }
         }
         var file = FileSystem.getFileForPath(fullPath);
         file.exists(_doShow);
+        
+        return result.promise();
     }
                
 
