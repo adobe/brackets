@@ -60,7 +60,10 @@ define(function (require, exports, module) {
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        FileUtils           = require("file/FileUtils");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -78,6 +81,8 @@ define(function (require, exports, module) {
     var _$currentCustomViewer = null;
     /** @type {?Object} view provider */
     var _currentViewProvider = null;
+    /** Helper function defined as var to satisfy JSLint order constraints */
+    var _checkFileExists;
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -625,6 +630,7 @@ define(function (require, exports, module) {
     
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
+        window.removeEventListener("focus", _checkFileExists);
         $(exports).triggerHandler("removeCustomViewer");
         if (_$currentCustomViewer) {
             _$currentCustomViewer.remove();
@@ -632,6 +638,62 @@ define(function (require, exports, module) {
         _$currentCustomViewer = null;
         _currentViewProvider = null;
     }
+
+    /** 
+     * Clears custom viewer for a file with a given path and displays 
+     * an alternate file or the no editor view. 
+     * If no param fullpath is passed an alternate file will be opened 
+     * regardless of the current value of _currentlyViewedPath.
+     * If param fullpath is provided then only if fullpath matches 
+     * the currently viewed file an alternate file will be opened.
+     * @param {?string} fullPath - file path of deleted file.
+     */
+    function notifyPathDeleted(fullPath) {
+        function openAlternateFile() {
+            var fileToOpen = DocumentManager.getNextPrevFile(1);
+            if (fileToOpen) {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
+            } else {
+                _removeCustomViewer();
+                _showNoEditor();
+                _setCurrentlyViewedPath();
+            }
+        }
+        if (!fullPath || _currentlyViewedPath === fullPath) {
+            openAlternateFile();
+        }
+    }
+    
+    /*
+     * show a generic error or File Not Found in modal error dialog
+     */
+    function _showErrorAndNotify(err, fullPath) {
+        var errorToShow = err || FileSystemError.NOT_FOUND;
+        FileUtils.showFileOpenError(errorToShow, fullPath).done(
+            function () {
+                notifyPathDeleted();
+            }
+        );
+    }
+
+    /*
+     * callback function passed to file.exists. If file in view does
+     * not exist the current view will be replaced.
+     */
+    function _removeViewIfFileDeleted(err, fileExists) {
+        if (!fileExists) {
+            notifyPathDeleted();
+        }
+    }
+    
+    /** 
+     * Makes sure that the file in view is present in the file system
+     * Close and warn if file is gone.
+     */
+    _checkFileExists = function () {
+        var file = FileSystem.getFileForPath(getCurrentlyViewedPath());
+        file.exists(_removeViewIfFileDeleted);
+    };
     
     /** 
      * Closes the customViewer currently displayed, shows the NoEditor view
@@ -642,39 +704,50 @@ define(function (require, exports, module) {
         _setCurrentlyViewedPath();
         _showNoEditor();
     }
-
+    
     /** 
      * Append custom view to editor-holder
      * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
     function showCustomViewer(provider, fullPath) {
-        // Don't show the same custom view again if file path
-        // and view provider are still the same.
-        if (_currentlyViewedPath === fullPath &&
-                _currentViewProvider === provider) {
-            return;
+        function _doShow(err, fileExists) {
+            if (!fileExists) {
+                _showErrorAndNotify(err, fullPath);
+            } else {
+                // Don't show the same custom view again if file path
+                // and view provider are still the same.
+                if (_currentlyViewedPath === fullPath &&
+                        _currentViewProvider === provider) {
+                    return;
+                }
+                
+                // Clean up currently viewing document or custom viewer
+                DocumentManager._clearCurrentDocument();
+                _removeCustomViewer();
+            
+                // Hide the not-editor or reset current editor
+                $("#not-editor").css("display", "none");
+                _nullifyEditor();
+        
+                _currentViewProvider = provider;
+                _$currentCustomViewer = provider.getCustomViewHolder(fullPath);
+        
+                // place in window
+                $("#editor-holder").append(_$currentCustomViewer);
+                
+                // add path, dimensions and file size to the view after loading image
+                provider.render(fullPath);
+                // make sure the file in display is still there when window gets focus.
+                // close and warn if the file is gone.
+                window.addEventListener("focus", _checkFileExists);
+                _setCurrentlyViewedPath(fullPath);
+            }
         }
-        
-        // Clean up currently viewing document or custom viewer
-        DocumentManager._clearCurrentDocument();
-        _removeCustomViewer();
-    
-        // Hide the not-editor or reset current editor
-        $("#not-editor").css("display", "none");
-        _nullifyEditor();
-
-        _currentViewProvider = provider;
-        _$currentCustomViewer = provider.getCustomViewHolder(fullPath);
-
-        // place in window
-        $("#editor-holder").append(_$currentCustomViewer);
-        
-        // add path, dimensions and file size to the view after loading image
-        provider.render(fullPath);
-        
-        _setCurrentlyViewedPath(fullPath);
+        var file = FileSystem.getFileForPath(fullPath);
+        file.exists(_doShow);
     }
+               
 
     /**
      * Check whether the given file is currently open in a custom viewer.
@@ -714,23 +787,6 @@ define(function (require, exports, module) {
         }
         
         return null;
-    }
-    
-    /** 
-     * Clears custom viewer for a file with a given path and displays 
-     * either a file from the working set or the no editor view.
-     * @param {!string} fullPath - file path of deleted file.
-     */
-    function notifyPathDeleted(fullPath) {
-        if (_currentlyViewedPath === fullPath) {
-            var fileToOpen = DocumentManager.getNextPrevFile(1);
-            if (fileToOpen) {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
-            } else {
-                _removeCustomViewer();
-                _showNoEditor();
-            }
-        }
     }
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
