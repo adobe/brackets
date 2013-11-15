@@ -283,7 +283,7 @@ define(function (require, exports, module) {
             }
             
             var exists = !!stats;
-            if (exists && hash !== stats._hash) {
+            if (exists && hash !== stats._hash && !options.blind) {
                 cb(FileSystemError.CONTENTS_MODIFIED);
                 return;
             }

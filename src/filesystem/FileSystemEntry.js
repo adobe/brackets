@@ -89,7 +89,7 @@ define(function (require, exports, module) {
      * @type {?FileSystemStats}
      */
     FileSystemEntry.prototype._stat = null;
-
+    
     /**
      * Parent file system.
      * @type {!FileSystem}
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
      */
     FileSystemEntry.prototype.exists = function (callback) {
         if (this._stat) {
-            callback(true);
+            callback(null, true);
             return;
         }
         

@@ -306,7 +306,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (hash !== stats._hash) {
+            if (hash !== stats._hash && !options.blind) {
                 console.warn("Blind write attempted: ", path, stats._hash, hash);
                 callback(FileSystemError.CONTENTS_MODIFIED);
                 return;

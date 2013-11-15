@@ -708,7 +708,7 @@ define(function (require, exports, module) {
                         changeDone = true;
                     });
                     
-                    testFile.write("Foobar", function (err) {
+                    testFile.write("Foobar", { blind: true }, function (err) {
                         expect(err).toBeFalsy();
                         writeDone = true;
                     });
@@ -751,11 +751,11 @@ define(function (require, exports, module) {
                     
                     // We always *start* both operations together, synchronously
                     // What varies is when the impl callbacks for for each op, and when the impl's watcher notices each op
-                    fileSystem.getFileForPath("/file1.txt").write("Foobar 1", function (err) {
+                    fileSystem.getFileForPath("/file1.txt").write("Foobar 1", { blind: true }, function (err) {
                         expect(err).toBeFalsy();
                         write1Done = true;
                     });
-                    fileSystem.getFileForPath("/file2.txt").write("Foobar 2", function (err) {
+                    fileSystem.getFileForPath("/file2.txt").write("Foobar 2", { blind: true }, function (err) {
                         expect(err).toBeFalsy();
                         write2Done = true;
                     });
