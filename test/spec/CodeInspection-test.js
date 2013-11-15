@@ -351,6 +351,48 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should run two linter and display two expanded collapsible sections in the errors panel", function () {
+                var lintResult = {
+                    pos: { line: 1, ch: 3 },
+                    message: "Some errors here and there",
+                    type: CodeInspection.Type.WARNING
+                };
+
+                var codeInspector1 = createCodeInspector("javascript linter 1", [lintResult]);
+                var codeInspector2 = createCodeInspector("javascript linter 2", [lintResult]);
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+
+                runs(function () {
+                    var $inspectorSections = $(".inspector-section td");
+                    expect($inspectorSections.length).toEqual(2);
+                    expect($inspectorSections[0].innerHTML.lastIndexOf("javascript linter 1 (1)")).not.toBe(-1);
+                    expect($inspectorSections[1].innerHTML.lastIndexOf("javascript linter 2 (1)")).not.toBe(-1);
+
+                    var $expandedInspectorSections = $inspectorSections.find(".expanded");
+                    expect($expandedInspectorSections.length).toEqual(2);
+                });
+            });
+
+            it("should run the linter and display no collapsible header section in the errors panel", function () {
+                var lintResult = {
+                    pos: { line: 1, ch: 3 },
+                    message: "Some errors here and there",
+                    type: CodeInspection.Type.WARNING
+                };
+
+                var codeInspector1 = createCodeInspector("javascript linter 1", [lintResult]);
+                CodeInspection.register("javascript", codeInspector1);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+
+                runs(function () {
+                    expect($(".inspector-section").is(":visible")).toBeFalsy();
+                });
+            });
+
             it("status icon should not toggle Errors panel when no errors present", function () {
                 var codeInspector = createCodeInspector("javascript linter", []);
                 CodeInspection.register("javascript", codeInspector);

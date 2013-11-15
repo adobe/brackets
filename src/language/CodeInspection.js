@@ -39,6 +39,8 @@
 define(function (require, exports, module) {
     "use strict";
 
+    var _ = require("thirdparty/lodash");
+
     // Load dependent modules
     var Commands                = require("command/Commands"),
         PanelManager            = require("view/PanelManager"),
@@ -186,6 +188,7 @@ define(function (require, exports, module) {
     function inspectFile(file, provider) {
         var response = new $.Deferred();
         var providerList = (provider || getProvidersForPath(file.fullPath)) || [];
+        var results = [];
 
         if (!providerList.length) {
             response.resolve(null);
@@ -196,14 +199,12 @@ define(function (require, exports, module) {
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath);
 
-                var masterPromise = Async.doInParallel_aggregateResults(providerList, function (provider) {
-                    var result = new $.Deferred();
-
+                _.forEach(providerList, function (provider) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
 
                     try {
                         var scanResult = provider.scanFile(fileText, file.fullPath);
-                        result.resolve(scanResult);
+                        results.push({ item: provider, results: scanResult });
                     } catch (err) {
                         console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
                         response.reject(err);
@@ -211,15 +212,9 @@ define(function (require, exports, module) {
                     }
 
                     PerfUtils.addMeasurement(perfTimerProvider);
-
-                    return result.promise();
                 });
-
-                masterPromise.done(function (results) {
-                    response.resolve(results);
-                }).fail(function (err) {
-                    response.reject(err);
-                });
+                
+                response.resolve(results);
 
                 PerfUtils.addMeasurement(perfTimerInspector);
             })
@@ -251,7 +246,8 @@ define(function (require, exports, module) {
             var numProblems = 0;
             var aborted = false;
             var numProblemsReportedByProvider = 0;
-            var allErrors = { errors: [] };
+            var allErrors = [];
+            var html;
 
             // run all the provider in parallel
             inspectFile(currentDoc.file, providerList).then(function (results) {
@@ -296,21 +292,21 @@ define(function (require, exports, module) {
                             }
                         });
 
-                        allErrors.errors.push({
+                        allErrors.push({
                             providerName: provider.name,
                             results:      result.results.errors,
                             numProblems:  numProblemsReportedByProvider
                         });
                     }
                 });
+                
+                html = Mustache.render(ResultsTemplate, {reportList: allErrors});
             });
 
             // Update results table
             var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
 
             if (numProblems) {
-                var html = Mustache.render(ResultsTemplate, {reportList: allErrors.errors});
-
                 $problemsPanelTable
                     .empty()
                     .append(html)
@@ -337,6 +333,13 @@ define(function (require, exports, module) {
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
+            
+            // don't show a header if there is only one provider available for this file type
+            if (providerList.length === 1) {
+                $problemsPanelTable.find(".inspector-section").hide();
+            } else {
+                $problemsPanelTable.find(".inspector-section").show();
+            }
         } else {
             // No provider for current file
             _lastResult = null;
