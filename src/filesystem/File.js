@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     
     /*
@@ -58,7 +58,14 @@ define(function (require, exports, module) {
     File.prototype._contents = null;
     
     /**
-     * Clear any cached data for this file
+     * Consistency hash for this file. Reads and writes update this value, and
+     * writes confirm the hash before overwriting existing files.
+     */
+    File.prototype._hash = null;
+    
+    /**
+     * Clear any cached data for this file. Note that this explicitly does NOT
+     * clear the file's hash.
      * @private
      */
     File.prototype._clearCachedData = function () {
@@ -93,6 +100,7 @@ define(function (require, exports, module) {
             }
 
             this._stat = stat;
+            this._hash = stat._hash;
             this._contents = data;
             
             callback(err, data, stat);
@@ -117,9 +125,7 @@ define(function (require, exports, module) {
         
         this._fileSystem._beginWrite();
         
-        var hash = this._stat ? this._stat._hash : null;
-        
-        this._impl.writeFile(this._path, data, hash, options, function (err, stat) {
+        this._impl.writeFile(this._path, data, this._hash, options, function (err, stat) {
             try {
                 if (err) {
                     this._clearCachedData();
@@ -128,6 +134,7 @@ define(function (require, exports, module) {
                 }
 
                 this._stat = stat;
+                this._hash = stat._hash;
                 this._contents = data;
                 
                 callback(err, stat);
