@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
         FileViewController  = require("project/FileViewController"),
         InMemoryFile        = require("document/InMemoryFile"),
@@ -178,7 +179,43 @@ define(function (require, exports, module) {
      */
     function doOpen(fullPath, silent) {
         var result = new $.Deferred();
-
+        
+        // workaround for https://github.com/adobe/brackets/issues/6001
+        // TODO should be removed once bug is closed.
+        // if we are already displaying a file do nothing but resolve immediately.
+        // this fixes timing issues in test cases.
+        if (EditorManager.getCurrentlyViewedPath() === fullPath) {
+            result.resolve(DocumentManager.getCurrentDocument());
+            return result.promise();
+        }
+        
+        function _cleanup(fullFilePath) {
+            if (!fullFilePath || EditorManager.showingCustomViewerForPath(fullFilePath)) {
+                // We get here only after the user renames a file that makes it no longer belong to a
+                // custom viewer but the file is still showing in the current custom viewer. This only
+                // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
+                // message that in turn calls _cleanup() after the user clicks OK in the message box.
+                // So we need to explicitly close the currently viewing image file whose filename is  
+                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
+                // the previously opened text file or show no-editor if none exists.
+                EditorManager.notifyPathDeleted(fullFilePath);
+            } else {
+                // For performance, we do lazy checking of file existence, so it may be in working set
+                DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullFilePath));
+                EditorManager.focusEditor();
+            }
+            result.reject();
+        }
+        function _showErrorAndCleanUp(fileError, fullFilePath) {
+            if (silent) {
+                _cleanup(fullFilePath);
+            } else {
+                FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
+                    _cleanup(fullFilePath);
+                });
+            }
+        }
+        
         if (!fullPath) {
             console.error("doOpen() called without fullPath");
             result.reject();
@@ -190,8 +227,17 @@ define(function (require, exports, module) {
 
             var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
             if (viewProvider) {
-                EditorManager.showCustomViewer(viewProvider, fullPath);
-                result.resolve();
+                var file = FileSystem.getFileForPath(fullPath);
+                file.exists(function (fileError, fileExists) {
+                    if (fileExists) {
+                        EditorManager.showCustomViewer(viewProvider, fullPath);
+                        result.resolve();
+                    } else {
+                        fileError = fileError || FileSystemError.NOT_FOUND;
+                        _showErrorAndCleanUp(fileError);
+                    }
+                });
+                
             } else {
                 // Load the file if it was never open before, and then switch to it in the UI
                 DocumentManager.getDocumentForPath(fullPath)
@@ -200,29 +246,7 @@ define(function (require, exports, module) {
                         result.resolve(doc);
                     })
                     .fail(function (fileError) {
-                        function _cleanup() {
-                            if (EditorManager.showingCustomViewerForPath(fullPath)) {
-                                // We get here only after the user renames a file that makes it no longer belong to a
-                                // custom viewer but the file is still showing in the current custom viewer. This only
-                                // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
-                                // message that in turn calls _cleanup() after the user clicks OK in the message box.
-                                // So we need to explicitly close the currently viewing image file whose filename is  
-                                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
-                                // the previously opened text file or show no-editor if none exists.
-                                EditorManager.notifyPathDeleted(fullPath);
-                            } else {
-                                // For performance, we do lazy checking of file existence, so it may be in working set
-                                DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullPath));
-                                EditorManager.focusEditor();
-                            }
-                            result.reject();
-                        }
-                        
-                        if (silent) {
-                            _cleanup();
-                        } else {
-                            FileUtils.showFileOpenError(fileError, fullPath).done(_cleanup);
-                        }
+                        _showErrorAndCleanUp(fileError, fullPath);
                     });
             }
         }
