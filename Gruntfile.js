@@ -89,15 +89,23 @@ module.exports = function (grunt) {
                         expand: true,
                         dest: 'dist/styles',
                         cwd: 'src/styles',
-                        src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*']
+                        src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*']
                     }
                 ]
             }
         },
         less: {
-            css: {
+            dist: {
                 files: {
-                    "src/styles/brackets.css": "src/styles/brackets.less"
+                    "src/styles/brackets.min.css": "src/styles/brackets.less"
+                },
+                options: {
+                    compress: true,
+                    sourceMap: true,
+                    sourceMapFilename: 'src/styles/brackets.min.css.map',
+                    outputSourceFiles: true,
+                    sourceMapRootpath: '',
+                    sourceMapBasepath: 'src/styles'
                 }
             }
         },
@@ -139,8 +147,7 @@ module.exports = function (grunt) {
             options: {
                 dirs: ['dist']
             },
-            html: ['dist/{,*/}*.html'],
-            css: ['dist/styles/{,*/}*.css']
+            html: ['dist/{,*/}*.html']
         },
         htmlmin: {
             dist: {
@@ -300,7 +307,7 @@ module.exports = function (grunt) {
         'htmlmin',
         'requirejs',
         'concat',
-        'cssmin',
+        /*'cssmin',*/
         /*'uglify',*/
         'copy',
         'usemin'
