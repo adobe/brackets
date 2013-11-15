@@ -1091,9 +1091,6 @@ define(function (require, exports, module) {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
-                
-                docChangeListener.callCount = 0;
-                activeEditorChangeListener.callCount = 0;
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);

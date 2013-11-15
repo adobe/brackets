@@ -181,7 +181,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         // workaround for https://github.com/adobe/brackets/issues/6001
-        // TODO shoukld be removed once bug is closed.
+        // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
         if (EditorManager.getCurrentlyViewedPath() === fullPath) {
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
             }
             result.reject();
         }
-        function _showErrorUnlessSilentAndCleanUp(fileError, fullFilePath) {
+        function _showErrorAndCleanUp(fileError, fullFilePath) {
             if (silent) {
                 _cleanup(fullFilePath);
             } else {
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     } else {
                         fileError = fileError || FileSystemError.NOT_FOUND;
-                        _showErrorUnlessSilentAndCleanUp(fileError);
+                        _showErrorAndCleanUp(fileError);
                     }
                 });
                 
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
                         result.resolve(doc);
                     })
                     .fail(function (fileError) {
-                        _showErrorUnlessSilentAndCleanUp(fileError, fullPath);
+                        _showErrorAndCleanUp(fileError, fullPath);
                     });
             }
         }
