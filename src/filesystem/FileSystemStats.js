@@ -33,14 +33,24 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
-     * @param {{isFile: boolean, mtime: Date, size: Number}} options
+     * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string}} options
      */
     function FileSystemStats(options) {
-        this._isFile = options.isFile;
-        this._isDirectory = !options.isFile;
+        var isFile = options.isFile;
+        
+        this._isFile = isFile;
+        this._isDirectory = !isFile;
         this._mtime = options.mtime;
         this._size = options.size;
-        this._realPath = options.realPath;
+        
+        var realPath = options.realPath;
+        if (realPath) {
+            if (!isFile && realPath[realPath.length - 1] !== "/") {
+                realPath += "/";
+            }
+        
+            this._realPath = realPath;
+        }
     }
     
     // Add "isFile", "isDirectory", "mtime" and "size" getters
