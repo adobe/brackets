@@ -42,20 +42,27 @@ define(function (require, exports, module) {
      * @param {string} url
      */
     UrlParams.prototype.parse = function (url) {
-        if (url) {
-            url = url.substring(url.indexOf("?") + 1);
-        } else {
-            url = window.document.location.search.substring(1);
-        }
-        
-        var urlParams = url.split("&"),
+        var searchString = "",
+            urlParams,
             p,
             self = this;
         
-        urlParams.forEach(function (param) {
-            p = param.split("=");
-            self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-        });
+        if (!url) {
+            searchString = window.document.location.search.substring(1);
+        } else if (url.indexOf("?") !== -1) {
+            searchString = url.substring(url.indexOf("?") + 1);
+        }
+        
+        if (searchString) {
+            urlParams = searchString.split("&");
+            
+            urlParams.forEach(function (param) {
+                p = param.split("=");
+                self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+            });
+        } else {
+            self._store = {};
+        }
     };
     
     /**
@@ -68,15 +75,33 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Retreive a value by name
+     * Retrieve a value by name
      * @param {!string} name
+     * @return {string}
      */
     UrlParams.prototype.get = function (name) {
         return this._store[name];
     };
     
     /**
+     * Remove a name/value string pair
+     * @param {!string} name
+     */
+    UrlParams.prototype.remove = function (name) {
+        delete this._store[name];
+    };
+    
+    /**
+     * Returns true if the parameter list is empty, else returns false.
+     * @return {boolean}
+     */
+    UrlParams.prototype.isEmpty = function (name) {
+        return _.isEmpty(this._store);
+    };
+    
+    /**
      * Encode name/value pairs as URI components.
+     * @return {string}
      */
     UrlParams.prototype.toString = function () {
         var strs = [],
@@ -88,7 +113,7 @@ define(function (require, exports, module) {
         
         return strs.join("&");
     };
-
+    
     // Define public API
     exports.UrlParams = UrlParams;
 });
