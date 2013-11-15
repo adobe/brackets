@@ -290,8 +290,8 @@ module.exports = function (grunt) {
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
 
-    // Default task.
-    grunt.registerTask('default', [
+    // task: build
+    grunt.registerTask('build', [
         'test',
         'clean',
         'less',
@@ -305,4 +305,7 @@ module.exports = function (grunt) {
         'copy',
         'usemin'
     ]);
+
+    // Default task.
+    grunt.registerTask('default', ['test']);
 };
