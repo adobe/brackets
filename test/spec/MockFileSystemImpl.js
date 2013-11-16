@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function writeFile(path, data, hash, options, callback) {
+    function writeFile(path, data, options, callback) {
         if (typeof (options) === "function") {
             callback = options;
             options = null;
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
             }
             
             var exists = !!stats;
-            if (exists && hash !== stats._hash && !options.blind) {
+            if (exists && options.hasOwnProperty("hash") && options.hash !== stats._hash) {
                 cb(FileSystemError.CONTENTS_MODIFIED);
                 return;
             }
