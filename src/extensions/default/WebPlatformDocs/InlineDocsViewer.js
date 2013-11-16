@@ -32,10 +32,12 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load Brackets modules
-    var InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
-        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
-        Strings         = brackets.getModule("strings"),
-        NativeApp       = brackets.getModule("utils/NativeApp");
+    var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget,
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
+        KeyEvent            = brackets.getModule("utils/KeyEvent"),
+        NativeApp           = brackets.getModule("utils/NativeApp"),
+        Strings             = brackets.getModule("strings");
     
     // Load template
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");
@@ -84,6 +86,7 @@ define(function (require, exports, module) {
         this._handleWheelScroll     = this._handleWheelScroll.bind(this);
         
         this.$wrapperDiv.find(".scroller").on("mousewheel", this._handleWheelScroll);
+        this._keydownHook = this._keydownHook.bind(this);
     }
     
     InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
@@ -92,6 +95,30 @@ define(function (require, exports, module) {
     
     InlineDocsViewer.prototype.$wrapperDiv = null;
     
+    /**
+     * Convert keydown events into navigation actions.
+     *
+     * @param {KeyBoardEvent} keyEvent
+     * @param {boolean} scrollingUp Is event to scroll up?
+     * @param {DOMElement} scroller Element to scroll
+     * @return {boolean} indication whether key was handled
+     */
+    InlineDocsViewer.prototype._handleScrolling = function (event, scrollingUp, scroller) {
+        // We need to block the event from both the host CodeMirror code (by stopping bubbling) and the
+        // browser's native behavior (by preventing default). We preventDefault() *only* when the docs
+        // scroller is at its limit (when an ancestor would get scrolled instead); otherwise we'd block
+        // normal scrolling of the docs themselves.
+        event.stopPropagation();
+        if (scrollingUp && scroller.scrollTop === 0) {
+            event.preventDefault();
+            return true;
+        } else if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
+            event.preventDefault();
+            return true;
+        }
+        
+        return false;
+    };
     
     /** Don't allow scrollwheel/trackpad to bubble up to host editor - makes scrolling docs painful */
     InlineDocsViewer.prototype._handleWheelScroll = function (event) {
@@ -103,16 +130,49 @@ define(function (require, exports, module) {
             return;
         }
         
-        // We need to block the event from both the host CodeMirror code (by stopping bubbling) and the
-        // browser's native behavior (by preventing default). We preventDefault() *only* when the docs
-        // scroller is at its limit (when an ancestor would get scrolled instead); otherwise we'd block
-        // normal scrolling of the docs themselves.
-        event.stopPropagation();
-        if (scrollingUp && scroller.scrollTop === 0) {
-            event.preventDefault();
-        } else if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
-            event.preventDefault();
+        this._handleScrolling(event, scrollingUp, scroller);
+    };
+    
+    
+    /**
+     * Convert keydown events into navigation actions.
+     *
+     * @param {KeyBoardEvent} keyEvent
+     * @return {boolean} indication whether key was handled
+     */
+    InlineDocsViewer.prototype._keydownHook = function (event) {
+        var keyCode,
+            scrollingUp,
+            scroller = this.$wrapperDiv.find(".scroller")[0];
+
+        // Only handle keys when scroller is the target
+        if (scroller !== event.target) {
+            return false;
         }
+
+        if (event.type === "keydown") {
+            keyCode = event.keyCode;
+            if (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP) {
+                scrollingUp = true;
+            } else if (keyCode === KeyEvent.DOM_VK_DOWN || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
+                scrollingUp = false;
+            } else {
+                return false;   // not scrolling
+            }
+            
+            // If content has no scrollbar, let host editor scroll normally
+            if (scroller.clientHeight >= scroller.scrollHeight) {
+                return false;
+            }
+            
+            if (this._handleScrolling(event, scrollingUp, scroller)) {
+                // We handled this event
+                return true;
+            }
+        }
+        
+        // If we didn't handle it, let other global keydown hooks handle it.
+        return false;
     };
     
     
@@ -125,12 +185,14 @@ define(function (require, exports, module) {
 
         // Set focus
         this.$wrapperDiv.find(".scroller")[0].focus();
+        KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
     };
     
     InlineDocsViewer.prototype.onClosed = function () {
         InlineDocsViewer.prototype.parentClass.onClosed.apply(this, arguments);
         
         $(window).off("resize", this._sizeEditorToContent);
+        KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };
     
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
