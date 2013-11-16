@@ -72,7 +72,6 @@ define(function (require, exports, module) {
         this.parentClass._clearCachedData.apply(this);
         this._contents = undefined;
     };
-
     
     /**
      * Read a file.
@@ -99,9 +98,12 @@ define(function (require, exports, module) {
                 return;
             }
 
-            this._stat = stat;
-            this._hash = stat._hash;
-            this._contents = data;
+            // Only cache the stats for and contents of watched files
+            if (this._isWatched) {
+                this._stat = stat;
+                this._hash = stat._hash;
+                this._contents = data;
+            }
             
             callback(err, data, stat);
         }.bind(this));
@@ -122,22 +124,33 @@ define(function (require, exports, module) {
         }
         
         callback = callback || function () {};
+
+        // Hashes are only saved for watched files; the first disjunct is an optimization
+        var watched = this._isWatched;
         
+        // Request a consistency check if the file is watched and the write is not blind
+        if (watched && !options.blind) {
+            options.hash = this._hash;
+        }
+
         this._fileSystem._beginWrite();
         
-        this._impl.writeFile(this._path, data, this._hash, options, function (err, stat) {
+        this._impl.writeFile(this._path, data, options, function (err, stat) {
             try {
                 if (err) {
                     this._clearCachedData();
                     callback(err);
                     return;
                 }
-
-                this._stat = stat;
-                this._hash = stat._hash;
-                this._contents = data;
                 
-                callback(err, stat);
+                // Only cache the stats for and contents of watched files
+                if (watched) {
+                    this._stat = stat;
+                    this._hash = stat._hash;
+                    this._contents = data;
+                }
+                
+                callback(null, stat);
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }

@@ -113,15 +113,15 @@ define(function (require, exports, module) {
         
         this._contentsCallbacks = [callback];
         
-        this._impl.readdir(this.fullPath, function (err, contents, stats) {
+        this._impl.readdir(this.fullPath, function (err, entries, stats) {
+            var contents = [],
+                contentsStats = [],
+                contentsStatsErrors;
+            
             if (err) {
                 this._clearCachedData();
             } else {
-                this._contents = [];
-                this._contentsStats = [];
-                this._contentsStatsErrors = undefined;
-                
-                contents.forEach(function (name, index) {
+                entries.forEach(function (name, index) {
                     var entryPath = this.fullPath + name,
                         entry;
                     
@@ -131,10 +131,10 @@ define(function (require, exports, module) {
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {
                             // entryStats is an error string
-                            if (this._contentsStatsErrors === undefined) {
-                                this._contentsStatsErrors = {};
+                            if (contentsStatsErrors === undefined) {
+                                contentsStatsErrors = {};
                             }
-                            this._contentsStatsErrors[entryPath] = entryStats;
+                            contentsStatsErrors[entryPath] = entryStats;
                         } else {
                             // entryStats is a FileSystemStats object
                             if (entryStats.isFile) {
@@ -149,13 +149,22 @@ define(function (require, exports, module) {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
                             
-                            entry._stat = entryStats;
-                            this._contents.push(entry);
-                            this._contentsStats.push(entryStats);
+                            if (entry._isWatched) {
+                                entry._stat = entryStats;
+                            }
+                            
+                            contents.push(entry);
+                            contentsStats.push(entryStats);
                         }
                     
                     }
                 }, this);
+                
+                if (this._isWatched) {
+                    this._contents = contents;
+                    this._contentsStats = contentsStats;
+                    this._contentsStatsErrors = contentsStatsErrors;
+                }
             }
             
             // Reset the callback list before we begin calling back so that
@@ -167,7 +176,7 @@ define(function (require, exports, module) {
             // Invoke all saved callbacks
             currentCallbacks.forEach(function (cb) {
                 try {
-                    cb(err, this._contents, this._contentsStats, this._contentsStatsErrors);
+                    cb(err, contents, contentsStats, contentsStatsErrors);
                 } catch (ex) {
                     console.warn("Unhandled exception in callback: ", ex);
                 }
@@ -184,11 +193,17 @@ define(function (require, exports, module) {
     Directory.prototype.create = function (callback) {
         callback = callback || function () {};
         this._impl.mkdir(this._path, function (err, stat) {
-            if (!err) {
+            if (err) {
+                this._clearCachedData();
+                callback(err);
+                return;
+            }
+            
+            if (this._isWatched) {
                 this._stat = stat;
             }
 
-            callback(err, stat);
+            callback(null, stat);
         }.bind(this));
     };
     

@@ -270,7 +270,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function writeFile(path, data, hash, options, callback) {
+    function writeFile(path, data, options, callback) {
         var encoding = options.encoding || "utf8";
         
         function _finishWrite(alreadyExists) {
@@ -306,13 +306,13 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (hash !== stats._hash && !options.blind) {
-                console.warn("Blind write attempted: ", path, stats._hash, hash);
+            if (options.hasOwnProperty("hash") && options.hash !== stats._hash) {
+                console.warn("Blind write attempted: ", path, stats._hash, options.hash);
                 callback(FileSystemError.CONTENTS_MODIFIED);
                 return;
             }
             
-            _finishWrite(path, data, encoding, true, callback);
+            _finishWrite(true);
         });
     }
     

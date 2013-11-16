@@ -222,11 +222,7 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
         var watchPaths = [],
-            allChildren;
-        
-        if (!shouldWatch) {
             allChildren = [];
-        }
         
         var visitor = function (child) {
             if (watchedRoot.filter(child.name)) {
@@ -234,9 +230,7 @@ define(function (require, exports, module) {
                     watchPaths.push(child.fullPath);
                 }
                 
-                if (!shouldWatch) {
-                    allChildren.push(child);
-                }
+                allChildren.push(child);
             
                 return true;
             }
@@ -267,6 +261,9 @@ define(function (require, exports, module) {
                     watchPaths.forEach(function (path, index) {
                         this._impl.watchPath(path);
                     }, this);
+                    allChildren.forEach(function (child) {
+                        child._setWatched();
+                    });
                 } else {
                     watchPaths.forEach(function (path, index) {
                         this._impl.unwatchPath(path);
@@ -788,6 +785,10 @@ define(function (require, exports, module) {
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
+
+    // Private methods
+    exports._findWatchedRootForPath = _wrap(FileSystem.prototype._findWatchedRootForPath);
+
     
     // Export "on" and "off" methods
     
