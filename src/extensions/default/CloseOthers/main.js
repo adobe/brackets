@@ -60,6 +60,33 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {documentList: docList});
     }
 
+    function _currentDocChangedHandler() {
+        var doc = dm.getCurrentDocument();
+        
+        if (doc) {
+            var docIndex   = dm.findInWorkingSet(doc.file.fullPath),
+                workingSet = dm.getWorkingSet().slice(0);
+            
+            if (docIndex === workingSet.length - 1) { // hide "Close Others Below" when the last file in Working Files is selected
+                CommandManager.get(close_below).setEnabled(false);
+            } else {
+                CommandManager.get(close_below).setEnabled(true);
+            }
+            
+            if (workingSet.length === 1) { // hide "Close Others" when there is only one file in Working Files
+                CommandManager.get(close_others).setEnabled(false);
+            } else {
+                CommandManager.get(close_others).setEnabled(true);
+            }
+            
+            if (docIndex === 0) { // hide "Close Others Above" when the first file in Working Files is selected
+                CommandManager.get(close_above).setEnabled(false);
+            } else {
+                CommandManager.get(close_above).setEnabled(true);
+            }
+        }
+    }
+
     if (settings.close_below) {
         CommandManager.register(strings.CMD_FILE_CLOSE_BELOW, close_below, function () {
             handleClose(close_below);
@@ -80,4 +107,7 @@ define(function (require, exports, module) {
         });
         working_set_cmenu.addMenuItem(close_above, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
+
+    // Add a document change handler
+    $(dm).on("currentDocumentChange", _currentDocChangedHandler);
 });
