@@ -574,8 +574,7 @@ define(function (require, exports, module) {
                         }
                     });
                     modalBar.getRoot().on("keyup", function (e) {
-                        switch(e.keyCode)
-                        {
+                        switch (e.keyCode) {
                         case KeyEvent.DOM_VK_ESCAPE:
                             modalBar.close();
                             break;
@@ -590,8 +589,6 @@ define(function (require, exports, module) {
                             break;
                         case KeyEvent.DOM_VK_S:
                             modalBar.close();
-                            break;
-                        default:
                             break;
                         }
                     });
