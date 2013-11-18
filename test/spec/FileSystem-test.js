@@ -34,19 +34,7 @@ define(function (require, exports, module) {
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
     describe("FileSystem", function () {
-        
-        // Setup
-        
-        var fileSystem;
-        
-        beforeEach(function () {
-            // Create an FS instance for testing
-            MockFileSystemImpl.reset();
-            fileSystem = new FileSystem._FileSystem();
-            fileSystem.init(MockFileSystemImpl);
-            fileSystem.watch(fileSystem.getDirectoryForPath("/"), function () {return true; }, function () {});
-        });
-        
+                        
         // Callback factories
         function resolveCallback() {
             var callback = function (err, entry) {
@@ -74,6 +62,24 @@ define(function (require, exports, module) {
             };
             return callback;
         }
+
+        function writeCallback() {
+            var callback = function (err, stat) {
+                callback.error = err;
+                callback.stat = stat;
+                callback.wasCalled = true;
+            };
+            return callback;
+        }
+        
+        function getContentsCallback() {
+            var callback = function (err, contents) {
+                callback.error = err;
+                callback.contents = contents;
+                callback.wasCalled = true;
+            };
+            return callback;
+        }
         
         // Utilities
         
@@ -90,15 +96,28 @@ define(function (require, exports, module) {
             }
             return generateCbWrapper;
         }
-    
-        function getContentsCallback() {
-            var callback = function (err, contents) {
-                callback.error = err;
-                callback.contents = contents;
-                callback.wasCalled = true;
-            };
-            return callback;
+        
+        // Setup
+        
+        var fileSystem;
+        
+        function permissiveFilter() {
+            return true;
         }
+
+        beforeEach(function () {
+            // Create an FS instance for testing
+            MockFileSystemImpl.reset();
+            fileSystem = new FileSystem._FileSystem();
+            fileSystem.init(MockFileSystemImpl);
+            
+            var cb = errorCallback();
+            fileSystem.watch(fileSystem.getDirectoryForPath("/"), permissiveFilter, cb);
+            waitsFor(function () { return cb.wasCalled; });
+            runs(function () {
+                expect(cb.error).toBeFalsy();
+            });
+        });
         
         describe("Path normalization", function () {
             // Auto-prepended to both origPath & normPath in all the test helpers below
@@ -808,6 +827,286 @@ define(function (require, exports, module) {
             });
         });
         
-        
+        describe("File contents caching", function () {
+            var filename = "/file1.txt",
+                readCalls,
+                writeCalls;
+            
+            beforeEach(function () {
+                readCalls = 0;
+                writeCalls = 0;
+                
+                MockFileSystemImpl.when("readFile", filename, {
+                    callback: function (cb) {
+                        return function () {
+                            var args = arguments;
+                            readCalls++;
+                            cb.apply(undefined, args);
+                        };
+                    }
+                });
+                
+                MockFileSystemImpl.when("writeFile", filename, {
+                    callback: function (cb) {
+                        return function () {
+                            var args = arguments;
+                            writeCalls++;
+                            cb.apply(undefined, args);
+                        };
+                    }
+                });
+            });
+            
+            it("should only read from the impl once", function () {
+                var file = fileSystem.getFileForPath(filename),
+                    cb1 = readCallback(),
+                    cb2 = readCallback();
+                
+                // confirm empty cached data and then read
+                runs(function () {
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(0);
+                    
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and cached data and then read again
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(cb1.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    file.read(cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm no impl read and cached data
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(cb2.stat).toBe(cb1.stat);
+                    expect(cb2.data).toBe(cb1.data);
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb2.stat);
+                    expect(file._contents).toBe(cb2.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1); // The impl should NOT be called a second time
+                });
+            });
+            
+            it("should support blind writes", function () {
+                var file = fileSystem.getFileForPath(filename),
+                    cb1 = writeCallback(),
+                    cb2 = writeCallback(),
+                    newFileContent = "Computer programming is an exact science";
+                
+                // confirm empty cached data and then write blindly
+                runs(function () {
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(writeCalls).toBe(0);
+                    
+                    file.write(newFileContent, cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm error, empty cache and then force write
+                runs(function () {
+                    expect(cb1.error).toBe(FileSystemError.CONTENTS_MODIFIED);
+                    expect(cb1.stat).toBeFalsy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(writeCalls).toBe(1);
+                    
+                    file.write(newFileContent, { blind: true }, cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl write and updated cache
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(cb2.stat).toBeTruthy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb2.stat);
+                    expect(file._contents).toBe(newFileContent);
+                    expect(file._hash).toBeTruthy();
+                    expect(writeCalls).toBe(2);
+                });
+            });
+            
+            it("should persist data on write and update cached data", function () {
+                var file = fileSystem.getFileForPath(filename),
+                    cb1 = readCallback(),
+                    cb2 = writeCallback(),
+                    newFileContent = "I propose to consider the question, 'Can machines think?'",
+                    savedHash;
+                
+                // confirm empty cached data and then read
+                runs(function () {
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(0);
+                    expect(writeCalls).toBe(0);
+                    
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and cached data and then write
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(cb1.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    expect(writeCalls).toBe(0);
+                    
+                    savedHash = file._hash;
+                    file.write(newFileContent, cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl write and updated cache
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(cb2.stat).not.toBe(cb1.stat);
+                    expect(cb2.stat).toBeTruthy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb2.stat);
+                    expect(file._contents).toBe(newFileContent);
+                    expect(file._hash).not.toBe(savedHash);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    expect(writeCalls).toBe(1);
+                });
+            });
+            
+            it("should invalidate cached data on change", function () {
+                var file = fileSystem.getFileForPath(filename),
+                    cb1 = readCallback(),
+                    cb2 = readCallback(),
+                    fileChanged = false,
+                    savedHash;
+                
+                // confirm empty cached data and then read
+                runs(function () {
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(0);
+                    
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and cached data and then fire a synthetic change event
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(cb1.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    savedHash = file._hash;
+                    
+                    $(fileSystem).on("change", function (event, filename) {
+                        fileChanged = true;
+                    });
+                    
+                    // Fire a whole-sale change event
+                    fileSystem._handleWatchResult(null);
+                });
+                waitsFor(function () { return fileChanged; });
+                
+                // confirm now-empty cached data and then read
+                runs(function () {
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy(); // contents and stat should be cleared
+                    expect(file._hash).toBe(savedHash); // but hash should not be cleared
+                    
+                    file.read(cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl read and new cached data
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(file._isWatched).toBe(true);
+                    expect(file._stat).toBe(cb2.stat);
+                    expect(file._contents).toBe(cb2.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(2); // The impl should have been called a second time
+                });
+            });
+            
+            it("should not cache data for unwatched files", function () {
+                var file,
+                    cb0 = errorCallback(),
+                    cb1 = readCallback(),
+                    cb2 = readCallback();
+                
+                // unwatch root directory
+                runs(function () {
+                    fileSystem.unwatch(fileSystem.getDirectoryForPath("/"), cb0);
+                });
+                waitsFor(function () { return cb0.wasCalled; });
+                
+                // confirm empty cached data and then read
+                runs(function () {
+                    expect(cb0.error).toBeFalsy();
+                    
+                    file = fileSystem.getFileForPath(filename);
+                    
+                    expect(file._isWatched).toBe(false);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(0);
+                    
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read, empty cached data and then read again
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._isWatched).toBe(false);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(1);
+                    
+                    file.read(cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl read and empty cached data
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(file._isWatched).toBe(false);
+                    expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(2);
+                });
+            });
+            
+        });
     });
 });

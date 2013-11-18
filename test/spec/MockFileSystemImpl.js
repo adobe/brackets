@@ -112,9 +112,9 @@ define(function (require, exports, module) {
         return stat;
     }
     
-    function _sendWatcherNotification(path) {
+    function _sendWatcherNotification(path, stats) {
         if (_watcherCallback) {
-            _watcherCallback(path);
+            _watcherCallback(path, stats);
         }
     }
     
@@ -301,8 +301,9 @@ define(function (require, exports, module) {
             
             _data[path].contents = data;
             _data[path].mtime = new Date();
-            cb(null, _getStat(path));
-            notify(path);
+            var newStat = _getStat(path);
+            cb(null, newStat);
+            notify(path, newStat);
         });
     }
     
