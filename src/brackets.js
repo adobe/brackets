@@ -55,6 +55,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
     require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/multiselect");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
