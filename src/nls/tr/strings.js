@@ -204,10 +204,10 @@ define({
     "CMD_FILE_NEW_UNTITLED"             : "Yeni",
     "CMD_FILE_NEW"                      : "Yeni Dosya",
     "CMD_FILE_NEW_FOLDER"               : "Yeni Klasör",
-    "CMD_FILE_OPEN"                     : "Aç",
+    "CMD_FILE_OPEN"                     : "Aç\u2026",
     "CMD_ADD_TO_WORKING_SET"            : "Calışılan Dosyalarıma Ekle",
     "CMD_OPEN_DROPPED_FILES"            : "Sürüklenen Dosyaları Aç",
-    "CMD_OPEN_FOLDER"                   : "Klasör Aç",
+    "CMD_OPEN_FOLDER"                   : "Klasör Aç\u2026",
     "CMD_FILE_CLOSE"                    : "Kapat",
     "CMD_FILE_CLOSE_ALL"                : "Tümünü Kapat",
     "CMD_FILE_CLOSE_LIST"               : "Listeyi Kapat",
@@ -216,13 +216,13 @@ define({
     "CMD_FILE_CLOSE_BELOW"              : "Alttakileri Kapat",
     "CMD_FILE_SAVE"                     : "Kaydet",
     "CMD_FILE_SAVE_ALL"                 : "Tümünü Kaydet",
-    "CMD_FILE_SAVE_AS"                  : "Farklı Kaydet",
+    "CMD_FILE_SAVE_AS"                  : "Farklı Kaydet\u2026",
     "CMD_LIVE_FILE_PREVIEW"             : "Canlı Önizleme",
-    "CMD_PROJECT_SETTINGS"              : "Proje Ayarları",
+    "CMD_PROJECT_SETTINGS"              : "Proje Ayarları\u2026",
     "CMD_FILE_RENAME"                   : "Yeniden Adlandır",
     "CMD_FILE_DELETE"                   : "Sil",
     "CMD_INSTALL_EXTENSION"             : "Uzantı Yükle",
-    "CMD_EXTENSION_MANAGER"             : "Uzantı Yönetimi",
+    "CMD_EXTENSION_MANAGER"             : "Uzantı Yönetimi\u2026",
     "CMD_FILE_REFRESH"                  : "Yenile",
     "CMD_QUIT"                          : "Çık",
     // Used in native File menu on Windows
@@ -239,7 +239,7 @@ define({
     "CMD_SELECT_LINE"                   : "Satırı Seç",
     "CMD_FIND"                          : "Bul",
     "CMD_FIND_IN_FILES"                 : "Dosyalarda Bul",
-    "CMD_FIND_IN_SUBTREE"               : "Klasörde Bul",
+    "CMD_FIND_IN_SUBTREE"               : "Klasörde Bul\u2026",
     "CMD_FIND_NEXT"                     : "Sonrakini Bul",
     "CMD_FIND_PREVIOUS"                 : "Öncekini Bul",
     "CMD_REPLACE"                       : "Değiştir",
@@ -254,7 +254,7 @@ define({
     "CMD_OPEN_LINE_ABOVE"               : "Üste Yeni Satır",
     "CMD_OPEN_LINE_BELOW"               : "Alta Yeni Satır",
     "CMD_TOGGLE_CLOSE_BRACKETS"         : "Parantezleri Otomatik Kapat",
-    "CMD_SHOW_CODE_HINTS"               : "Kod İpuçlarını Göster",
+    "CMD_SHOW_CODE_HINTS"               : "Kod ipuçlarını göster",
 
     // View menu commands
     "VIEW_MENU"                         : "Görünüm",
@@ -482,7 +482,7 @@ define({
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"             : "Tanıma Atla",
-    "CMD_SHOW_PARAMETER_HINT"           : "Parametre ipucunu göster",
+    "CMD_SHOW_PARAMETER_HINT"           : "Parametre ipuçlarını göster",
     "NO_ARGUMENTS"                      : "<parametre yok>",
 
     // extensions/default/JSLint
