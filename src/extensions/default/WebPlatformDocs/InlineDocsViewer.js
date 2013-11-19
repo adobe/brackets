@@ -96,9 +96,9 @@ define(function (require, exports, module) {
     InlineDocsViewer.prototype.$wrapperDiv = null;
     
     /**
-     * Convert keydown events into navigation actions.
+     * Handle scrolling.
      *
-     * @param {KeyBoardEvent} keyEvent
+     * @param {Event} event Keyboard event or mouse scrollwheel event
      * @param {boolean} scrollingUp Is event to scroll up?
      * @param {DOMElement} scroller Element to scroll
      * @return {boolean} indication whether key was handled
