@@ -130,7 +130,7 @@ define(function (require, exports, module) {
      */
     function _getCursor(cm, start) {
         return _copyPos(cm.getCursor(start));
-    };
+    }
 
     /**
      * @private
