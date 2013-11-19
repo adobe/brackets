@@ -388,8 +388,11 @@ define(function (require, exports, module) {
         return (fullPath[0] === "/" || fullPath[1] === ":");
     };
     
-    // Matches continguous groups of forward slashes
-    var _duplicatedSlashRE = /\/{2,}/g;
+    /*
+     * Matches continguous groups of forward slashes
+     * @const
+     */
+    var _DUPLICATED_SLASH_RE = /\/{2,}/g;
     
     /**
      * Returns a canonical version of the path: no duplicated "/"es, no ".."s,
@@ -405,10 +408,10 @@ define(function (require, exports, module) {
         }
         
         var normalizeUNCPaths = this._impl && this._impl.normalizeUNCPaths,
-            isUNCPath = normalizeUNCPaths && path.search(_duplicatedSlashRE) === 0;
+            isUNCPath = normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
         
         // Remove duplicated "/"es
-        path = path.replace(_duplicatedSlashRE, "/");
+        path = path.replace(_DUPLICATED_SLASH_RE, "/");
         
         // Remove ".." segments
         if (path.indexOf("..") !== -1) {
