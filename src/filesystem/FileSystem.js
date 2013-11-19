@@ -407,8 +407,7 @@ define(function (require, exports, module) {
             throw new Error("Paths must be absolute: '" + path + "'");  // expect only absolute paths
         }
         
-        var normalizeUNCPaths = this._impl && this._impl.normalizeUNCPaths,
-            isUNCPath = normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
+        var isUNCPath = this._impl.normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
         
         // Remove duplicated "/"es
         path = path.replace(_DUPLICATED_SLASH_RE, "/");
@@ -814,4 +813,7 @@ define(function (require, exports, module) {
     
     // Create the singleton instance
     _instance = new FileSystem();
+    
+    // Initialize the singleton instance
+    _instance.init(require("fileSystemImpl"));
 });
