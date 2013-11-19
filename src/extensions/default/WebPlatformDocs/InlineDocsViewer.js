@@ -84,8 +84,9 @@ define(function (require, exports, module) {
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
         this._handleWheelScroll     = this._handleWheelScroll.bind(this);
-        
-        this.$wrapperDiv.find(".scroller").on("mousewheel", this._handleWheelScroll);
+
+        this.$scroller = this.$wrapperDiv.find(".scroller");
+        this.$scroller.on("mousewheel", this._handleWheelScroll);
         this._keydownHook = this._keydownHook.bind(this);
     }
     
@@ -94,6 +95,7 @@ define(function (require, exports, module) {
     InlineDocsViewer.prototype.parentClass = InlineWidget.prototype;
     
     InlineDocsViewer.prototype.$wrapperDiv = null;
+    InlineDocsViewer.prototype.$scroller = null;
     
     /**
      * Handle scrolling.
@@ -141,17 +143,30 @@ define(function (require, exports, module) {
      * @return {boolean} indication whether key was handled
      */
     InlineDocsViewer.prototype._keydownHook = function (event) {
-        var keyCode,
+        var keyCode = event.keyCode,
             scrollingUp,
-            scroller = this.$wrapperDiv.find(".scroller")[0];
+            scroller,
+            $container;
 
-        // Only handle keys when scroller is the target
-        if (scroller !== event.target) {
+        // Quick check of keys we're interested in
+        switch (keyCode) {
+        case KeyEvent.DOM_VK_UP:
+        case KeyEvent.DOM_VK_PAGE_UP:
+        case KeyEvent.DOM_VK_DOWN:
+        case KeyEvent.DOM_VK_PAGE_DOWN:
+            break;
+        default:
+            return false;
+        }
+
+        $container = $(event.target).closest(".css-prop-defn");
+
+        // Only handle keys when target is inside doc viewer
+        if ($container.length === 0 || $container[0] !== this.$wrapperDiv[0]) {
             return false;
         }
 
         if (event.type === "keydown") {
-            keyCode = event.keyCode;
             if (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                 scrollingUp = true;
             } else if (keyCode === KeyEvent.DOM_VK_DOWN || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
@@ -161,6 +176,7 @@ define(function (require, exports, module) {
             }
             
             // If content has no scrollbar, let host editor scroll normally
+            scroller = this.$scroller[0];
             if (scroller.clientHeight >= scroller.scrollHeight) {
                 return false;
             }
@@ -184,7 +200,7 @@ define(function (require, exports, module) {
         $(window).on("resize", this._sizeEditorToContent);
 
         // Set focus
-        this.$wrapperDiv.find(".scroller")[0].focus();
+        this.$scroller[0].focus();
         KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
     };
     
