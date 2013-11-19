@@ -102,7 +102,7 @@ define({
     
     "SAVE_CLOSE_TITLE"                  : "Salvare modificări",
     "SAVE_CLOSE_MESSAGE"                : "Doriți să salvați modificările făcute în documentul <span class='dialog-filename'>{0}</span>?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Doriți să salvați modificările din fișierele următoare?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "Doriți să salvați modificările din următoarele fișiere?",
     "EXT_MODIFIED_TITLE"                : "Modificări externe",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmare ștergere dosar",
     "CONFIRM_FOLDER_DELETE"             : "Sunteți sigur că doriți să ștergeți dosarul <span class='dialog-filename'>{0}</span>?",
@@ -376,12 +376,12 @@ define({
     "BAD_HTTP_STATUS"                      : "Fișierul nu a fost găsit pe server (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Imposibil de salvat descărcarea într-un fișier temporar.",
     "ERROR_LOADING"                        : "Extensia a întîlnit o eroare la lansare.",
-    "MALFORMED_URL"                        : "URL-ul e invalid. Verificați dacă l-ați introdus corect.",
+    "MALFORMED_URL"                        : "URL-ul e invalid. Verificați corectitudinea URL-ului introdus.",
     "UNSUPPORTED_PROTOCOL"                 : "URL-ul trebuie să fie un URL HTTP sau HTTPS.",
     "UNKNOWN_ERROR"                        : "Eroare internă necunoscută.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager de extensii",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Imposibil de accesat registrul extensiilor. Încercați mai târziu.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "La moment este imposibil de accesat registrul extensiilor. Încercați mai târziu.",
     "INSTALL_FROM_URL"                     : "Instalare din URL\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Dată",
