@@ -440,4 +440,7 @@ define(function (require, exports, module) {
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
     exports.unwatchAll      = unwatchAll;
+    
+    // Only perform UNC path normalization on Windows
+    exports.normalizeUNCPaths = appshell.platform === "win";
 });
