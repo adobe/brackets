@@ -385,13 +385,13 @@ define(function (require, exports, module) {
         var suggestedName   = baseFileName + "-" + _nextUntitledIndexToUse++,
             deferred        = $.Deferred();
         
-        if (_nextUntitledIndexToUse > 99) {
+        if (_nextUntitledIndexToUse > 9999) {
             //we've tried this enough            
             deferred.reject();
         } else {
             var path = dir + "/" + suggestedName,
-                entry = isFolder ? FileSystem.getDirectoryForPath(path) :
-                        FileSystem.getFileForPath(path);
+                entry = isFolder ? FileSystem.getDirectoryForPath(path)
+                                 : FileSystem.getFileForPath(path);
             
             entry.exists(function (err, exists) {
                 if (err || exists) {
