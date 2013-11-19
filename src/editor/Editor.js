@@ -113,6 +113,27 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Create a copy of the given CodeMirror position
+     * @param {!CodeMirror.Pos} pos 
+     * @return {CodeMirror.Pos}
+     */
+    function _copyPos(pos) {
+        return new CodeMirror.Pos(pos.line, pos.ch);
+    }
+    
+    /**
+     * @private
+     * Return a copy of the CodeMirror instance's cursor position
+     * @param {!CodeMirror} cm
+     * @param {?string} start Optional end position of selection "from", "to", "head" or "anchor"
+     * @return {CodeMirror.Pos}
+     */
+    function _getCursor(cm, start) {
+        return _copyPos(cm.getCursor(start));
+    };
+
+    /**
+     * @private
      * Handle Tab key press.
      * @param {!CodeMirror} instance CodeMirror instance.
      */
@@ -126,8 +147,8 @@ define(function (require, exports, module) {
         // 3. If the selection is after the first non-space character, and is an
         //    insertion point, insert a tab character or the appropriate number
         //    of spaces to pad to the nearest tab boundary.
-        var from = instance.getCursor(true),
-            to = instance.getCursor(false),
+        var from = _getCursor(instance, "from"),
+            to = _getCursor(instance, "to"),
             line = instance.getLine(from.line),
             indentAuto = false,
             insertTab = false;
@@ -146,8 +167,8 @@ define(function (require, exports, module) {
             // already been at the correct indentation level as far as CM is concerned, so insert 
             // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                var newFrom = instance.getCursor(true),
-                    newTo = instance.getCursor(false);
+                var newFrom = _getCursor(instance, "from"),
+                    newTo = _getCursor(instance, "to");
                 if (newFrom.line === from.line && newFrom.ch === from.ch &&
                         newTo.line === to.line && newTo.ch === to.ch) {
                     insertTab = true;
@@ -186,7 +207,7 @@ define(function (require, exports, module) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
             var indentUnit = instance.getOption("indentUnit"),
-                cursor     = instance.getCursor(),
+                cursor     = _getCursor(instance),
                 jump       = cursor.ch % indentUnit,
                 line       = instance.getLine(cursor.line);
 
@@ -240,7 +261,7 @@ define(function (require, exports, module) {
             var keyStr = String.fromCharCode(event.which || event.keyCode);
             if (/[\]\{\}\)]/.test(keyStr)) {
                 // If all text before the cursor is whitespace, auto-indent it
-                var cursor = instance.getCursor();
+                var cursor = _getCursor(instance);
                 var lineStr = instance.getLine(cursor.line);
                 var nonWS = lineStr.search(/\S/);
                 
@@ -296,7 +317,6 @@ define(function (require, exports, module) {
      * @type {Array.<Editor>}
      */
     var _instances = [];
-    
     
     /**
      * @constructor
@@ -732,7 +752,6 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     };
     
-    
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
@@ -741,7 +760,7 @@ define(function (require, exports, module) {
      * @return !{line:number, ch:number}
      */
     Editor.prototype.getCursorPos = function (expandTabs) {
-        var cursor = this._codeMirror.getCursor();
+        var cursor = _getCursor(this._codeMirror);
         
         if (expandTabs) {
             cursor.ch = this.getColOffset(cursor);
@@ -884,8 +903,8 @@ define(function (require, exports, module) {
      * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     Editor.prototype.getSelection = function () {
-        var selStart = this._codeMirror.getCursor(true),
-            selEnd   = this._codeMirror.getCursor(false);
+        var selStart = _getCursor(this._codeMirror, "from"),
+            selEnd   = _getCursor(this._codeMirror, "to");
         return { start: selStart, end: selEnd };
     };
     
