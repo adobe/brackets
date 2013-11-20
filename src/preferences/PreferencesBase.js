@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils         = require("file/FileUtils"),
-        NativeFileSystem  = require("file/NativeFileSystem").NativeFileSystem,
+        FileSystem        = require("filesystem/FileSystem"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
         CollectionUtils   = require("utils/CollectionUtils"),
         _                 = require("thirdparty/lodash"),
@@ -202,7 +202,8 @@ define(function (require, exports, module) {
             var path = this.path;
             var createIfNew = this.createIfNew;
             
-            brackets.fs.readFile(path, NativeFileSystem._FSEncodings.UTF8, function (err, text) {
+            var prefFile = FileSystem.getFileForPath(path);
+            prefFile.read({}, function (err, text) {
                 if (err) {
                     if (createIfNew) {
                         result.resolve({});
@@ -224,8 +225,10 @@ define(function (require, exports, module) {
         save: function (newData) {
             var result = $.Deferred();
             var path = this.path;
+            var prefFile = FileSystem.getFileForPath(path);
+            
             try {
-                brackets.fs.writeFile(path, JSON.stringify(newData, null, 4), NativeFileSystem._FSEncodings.UTF8, function (err) {
+                prefFile.write(JSON.stringify(newData, null, 4), {}, function (err) {
                     if (err) {
                         result.reject("Unable to save prefs at " + path + " " + err);
                     } else {
@@ -506,7 +509,8 @@ define(function (require, exports, module) {
             var deferred = $.Deferred();
             
             scope.load()
-                .then(function () {
+                .then(function (data) {
+                    scope.setData("default", data);
                     deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {

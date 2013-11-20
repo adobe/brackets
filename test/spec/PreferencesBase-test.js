@@ -30,8 +30,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var PreferencesBase         = require("preferences/PreferencesBase"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        FileUtils               = require("file/FileUtils"),
+        FileSystem              = require("filesystem/FileSystem").FileSystem,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files");
@@ -509,16 +508,6 @@ define(function (require, exports, module) {
                 expect(pm.getValue("spaceUnits")).toBe(2);
                 expect(pm.getValue("useTabChar")).toBe(true);
                 expect(pm.getValue("tabSize")).toBe(8);
-                
-                // Test the default for the addBefore argument.
-                pm = new PreferencesBase.PreferencesManager();
-                pm.definePreference("spaceUnits", "number", 4);
-                
-                pm.addScope("user", userScope);
-                pm.addScope("project", projectScope);
-                expect(pm.getValue("spaceUnits")).toBe(2);
-                pm.removeScope("project");
-                expect(pm.getValue("spaceUnits")).toBe(8);
             });
             
             it("handles asynchronously loaded scopes", function () {
@@ -550,8 +539,8 @@ define(function (require, exports, module) {
                 
                 var pm = new PreferencesBase.PreferencesManager();
                 pm.definePreference("testKey", "number", 0);
-                pm.addScope("storage1", new PreferencesBase.Scope(storage1), "storage2");
-                pm.addScope("storage2", new PreferencesBase.Scope(storage2), "default");
+                pm.addScope("storage1", new PreferencesBase.Scope(storage1));
+                pm.addScope("storage2", new PreferencesBase.Scope(storage2));
                 
                 expect(pm.getValue("testKey")).toBe(0);
                 
@@ -713,49 +702,46 @@ define(function (require, exports, module) {
         });
         
         describe("File Storage", function () {
-            var settingsFile = testPath + "/brackets.settings.json",
-                newSettingsFile = testPath + "/new.settings.json",
+            var settingsFile = FileSystem.getFileForPath(testPath + "/brackets.settings.json"),
+                newSettingsFile = FileSystem.getFileForPath(testPath + "/new.settings.json"),
                 filestorage,
                 originalText;
             
             beforeFirst(function () {
                 var deferred = $.Deferred();
-                NativeFileSystem.resolveNativeFileSystemPath(settingsFile, function (entry) {
-                    FileUtils.readAsText(entry)
-                        .then(function (text) {
-                            originalText = text;
-                            deferred.resolve();
-                        })
-                        .fail(function (error) {
-                            deferred.reject(error);
-                        });
-                }, function (error) {
-                    deferred.reject(error);
+                settingsFile.read({}, function (err, text) {
+                    if (err) {
+                        deferred.reject(err);
+                        return;
+                    }
+                    originalText = text;
+                    deferred.resolve();
                 });
                 waitsForDone(deferred.promise());
             });
             
             beforeEach(function () {
-                filestorage = new PreferencesBase.FileStorage(settingsFile);
+                filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
             });
             
             afterEach(function () {
                 var deferred = $.Deferred();
-                NativeFileSystem.resolveNativeFileSystemPath(settingsFile, function (entry) {
-                    FileUtils.writeText(entry, originalText)
-                        .then(function () {
-                            deferred.resolve();
-                        })
-                        .fail(function (error) {
-                            deferred.reject(error);
-                        });
-                }, function (error) {
-                    deferred.reject(error);
+                settingsFile.write(originalText, {}, function (err) {
+                    if (err) {
+                        deferred.reject(err);
+                    } else {
+                        deferred.resolve();
+                    }
                 });
                 waitsForDone(deferred.promise());
+                
+                var deleted = false;
                 runs(function () {
-                    brackets.fs.unlink(newSettingsFile);
+                    newSettingsFile.unlink(function () {
+                        deleted = true;
+                    });
                 });
+                waitsFor(deleted);
             });
             
             it("can load preferences from disk", function () {
@@ -789,7 +775,7 @@ define(function (require, exports, module) {
             });
             
             it("can create a new pref file", function () {
-                var filestorage = new PreferencesBase.FileStorage(newSettingsFile, true);
+                var filestorage = new PreferencesBase.FileStorage(newSettingsFile.fullPath, true);
                 var pm = new PreferencesBase.PreferencesManager();
                 var newScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("new", newScope), "adding scope");
@@ -803,9 +789,9 @@ define(function (require, exports, module) {
                     
                     var deferred = $.Deferred();
                     runs(function () {
-                        brackets.fs.stat(newSettingsFile, function (err, stats) {
-                            if (err) {
-                                deferred.reject();
+                        newSettingsFile.exists(function (err, exists) {
+                            if (err || !exists) {
+                                deferred.reject(err);
                             } else {
                                 deferred.resolve();
                             }
