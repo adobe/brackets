@@ -206,8 +206,13 @@ define(function (require, exports, module) {
         if (!excludes) {
             return false;
         }
-
-        return file.name[0] === "." || excludes.test(file.name);
+        
+        var languageID = LanguageManager.getLanguageForPath(file.fullPath).getId();
+        if (languageID === HintUtils.LANGUAGE_ID) {
+            return file.name[0] === "." || excludes.test(file.name);
+        }
+        
+        return true;
     }
 
     /**
@@ -900,14 +905,12 @@ define(function (require, exports, module) {
             FileSystem.resolve(dir, function (err, directory) {
                 function visitor(entry) {
                     if (entry.isFile) {
-                        if (!isFileExcluded(entry)) { // ignore .dotfiles
-                            var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
-                            if (languageID === HintUtils.LANGUAGE_ID) {
-                                addFilesToTern([entry.fullPath]);
-                            }
+                        if (!isFileExcluded(entry)) { // ignore .dotfiles and non-.js files
+                            addFilesToTern([entry.fullPath]);
                         }
                     } else {
                         return !isDirectoryExcluded(entry.fullPath) &&
+                            entry.name.indexOf(".") !== 0 &&
                             !stopAddingFiles;
                     }
                 }
