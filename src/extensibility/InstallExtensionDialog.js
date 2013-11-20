@@ -138,7 +138,7 @@ define(function (require, exports, module) {
             this.$inputArea.hide();
             this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
-                .append("<span class='spinner spin'/>");
+                .append("<span class='spinner spin' style='margin-left: 10px'/>");
             this.$msgArea.show();
             this.$okButton.prop("disabled", true);
             this._installer.install(url)
