@@ -42,13 +42,12 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
-        NativeFileSystem          = require("file/NativeFileSystem").NativeFileSystem,
-        NativeFileError           = require("file/NativeFileError"),
         SpecRunnerUtils           = require("spec/SpecRunnerUtils"),
         NativeApp                 = require("utils/NativeApp"),
         Dialogs                   = require("widgets/Dialogs"),
         CommandManager            = require("command/CommandManager"),
         Commands                  = require("command/Commands"),
+        FileSystem                = require("filesystem/FileSystem"),
         Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
@@ -449,6 +448,17 @@ define(function (require, exports, module) {
                     expect(model.filterSet).toEqual(["item-5", "find-uniq1-in-name"]); // sorted in reverse publish date order
                 });
                 
+                it("should 'AND' space-separated search terms", function () {
+                    model.filter("UNIQ2 in author name");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 name");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 name author");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 uniq3");
+                    expect(model.filterSet).toEqual([]);
+                });
+                
                 it("should return correct results when subsequent queries are longer versions of previous queries", function () {
                     model.filter("uniqin1and5");
                     model.filter("uniqin1and5-2");
@@ -459,6 +469,19 @@ define(function (require, exports, module) {
                     model.filter("uniq1");
                     model.filter("");
                     expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+                });
+                
+                it("longer versions of previous queries, and not, should also work with spaces", function () {
+                    model.filter("name");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name uniq");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name uniq2");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("name uniq");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
                 });
                 
                 it("should trigger filter event when filter changes", function () {
@@ -609,6 +632,7 @@ define(function (require, exports, module) {
                 it("should unmark an extension for update, deleting the package and raising an event", function () {
                     var id = "registered-extension",
                         filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath(filename),
                         calledId;
                     runs(function () {
                         $(model).on("change", function (e, id) {
@@ -620,10 +644,10 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE"
                         });
                         calledId = null;
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         ExtensionManager.removeUpdate(id);
                         expect(calledId).toBe(id);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                     });
                 });
@@ -652,7 +676,8 @@ define(function (require, exports, module) {
                 
                 it("should update extensions marked for update", function () {
                     var id = "registered-extension",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath("/path/to/downloaded/file.zip");
                     runs(function () {
                         ExtensionManager.updateFromDownload({
                             localPath: filename,
@@ -660,14 +685,14 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE"
                         });
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         var d = $.Deferred();
                         spyOn(Package, "installUpdate").andReturn(d.promise());
                         d.resolve();
                         waitsForDone(ExtensionManager.updateExtensions());
                     });
                     runs(function () {
-                        expect(brackets.fs.unlink).not.toHaveBeenCalled();
+                        expect(file.unlink).not.toHaveBeenCalled();
                         expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                     });
                 });
@@ -1040,11 +1065,18 @@ define(function (require, exports, module) {
                                     item.metadata.name === "mock-legacy-extension") {
                                 expect(view).toHaveText(item.metadata.name);
                                 expect($button.length).toBe(1);
+                                
+                                // But no update button
+                                var $updateButton = $("button.update[data-extension-id=" + item.metadata.name + "]", view.$el);
+                                expect($updateButton.length).toBe(0);
                             } else {
                                 expect(view).not.toHaveText(item.metadata.name);
                                 expect($button.length).toBe(0);
                             }
                         });
+                        
+                        // And no overall update icon overlay
+                        expect(model.notifyCount).toBe(0);
                     });
                 });
                 
@@ -1172,6 +1204,7 @@ define(function (require, exports, module) {
                         var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
                         expect($button.length).toBe(1);
                         expect($button.prop("disabled")).toBeFalsy();
+                        expect(model.notifyCount).toBe(1);
                         
                         expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
                     });
@@ -1189,6 +1222,7 @@ define(function (require, exports, module) {
                         var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
                         expect($button.length).toBe(1);
                         expect($button.prop("disabled")).toBeTruthy();
+                        expect(model.notifyCount).toBe(1);
                         
                         expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
                         expect($(".alert.warning", view.$el).length).toBe(0);
@@ -1206,6 +1240,7 @@ define(function (require, exports, module) {
                         var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
                         expect($button.length).toBe(1);
                         expect($button.prop("disabled")).toBeTruthy();
+                        expect(model.notifyCount).toBe(1);
                         
                         expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
                         expect($(".alert.warning", view.$el).length).toBe(0);
@@ -1232,7 +1267,8 @@ define(function (require, exports, module) {
                 
                 it("should undo marking an extension for update", function () {
                     var id = "mock-extension-3",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath(filename);
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
@@ -1241,11 +1277,11 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE",
                             localPath: filename
                         });
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         $undoLink.click();
                         expect(ExtensionManager.isMarkedForUpdate(id)).toBe(false);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
                     });
@@ -1386,7 +1422,8 @@ define(function (require, exports, module) {
                     
                     it("should not update extensions or quit if the user hits Cancel on the confirmation dialog", function () {
                         var id = "mock-extension-3",
-                            filename = "/path/to/downloaded/file.zip";
+                            filename = "/path/to/downloaded/file.zip",
+                            file = FileSystem.getFileForPath(filename);
                         mockLoadExtensions(["user/" + id]);
                         setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                         runs(function () {
@@ -1396,14 +1433,14 @@ define(function (require, exports, module) {
                                 installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
                             });
                             expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
-                            spyOn(brackets.fs, "unlink");
+                            spyOn(file, "unlink");
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
                             dialogDeferred.resolve("cancel");
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
                             expect(didQuit).toBe(false);
-                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                            expect(file.unlink).toHaveBeenCalled();
                         });
                     });
                     

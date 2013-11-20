@@ -30,11 +30,11 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
-        FileIndexManager        = brackets.getModule("project/FileIndexManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
-        PerfUtils               = brackets.getModule("utils/PerfUtils");
+        PerfUtils               = brackets.getModule("utils/PerfUtils"),
+        ProjectManager          = brackets.getModule("project/ProjectManager");
     
     /**
      * Return the token string that is at the specified position.
@@ -73,11 +73,11 @@ define(function (require, exports, module) {
     function _findInProject(functionName) {
         var result = new $.Deferred();
         
-        FileIndexManager.getFileInfoList("all")
-            .done(function (fileInfos) {
-                PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                
-                JSUtils.findMatchingFunctions(functionName, fileInfos)
+        PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+        
+        ProjectManager.getAllFiles()
+            .done(function (files) {
+                JSUtils.findMatchingFunctions(functionName, files)
                     .done(function (functions) {
                         PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                         result.resolve(functions);
