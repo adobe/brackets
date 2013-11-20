@@ -201,18 +201,21 @@ define(function (require, exports, module) {
      * @return {boolean} true if excluded, false otherwise.
      */
     function isFileExcluded(file) {
+        if (file.name[0] === ".") {
+            return true;
+        }
+        
+        var languageID = LanguageManager.getLanguageForPath(file.fullPath).getId();
+        if (languageID !== HintUtils.LANGUAGE_ID) {
+            return true;
+        }
+        
         var excludes = preferences.getExcludedFiles();
-
         if (!excludes) {
             return false;
         }
         
-        var languageID = LanguageManager.getLanguageForPath(file.fullPath).getId();
-        if (languageID === HintUtils.LANGUAGE_ID) {
-            return file.name[0] === "." || excludes.test(file.name);
-        }
-        
-        return true;
+        return excludes.test(file.name);
     }
 
     /**
