@@ -307,25 +307,16 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @param {function(?string)=} callback Callback resolved, possibly with a
-     *      FileSystemError string.
+     * Initialize this FileSystem instance.
+     * 
+     * @param {FileSystemImpl} impl The back-end implementation for this
+     *      FileSystem instance.
      */
-    FileSystem.prototype.init = function (impl, callback) {
+    FileSystem.prototype.init = function (impl) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
         
-        callback = callback || function () {};
-        
         this._impl = impl;
-        this._impl.init(function (err) {
-            if (err) {
-                callback(err);
-                return;
-            }
-            
-            // Initialize watchers
-            this._impl.initWatchers(this._enqueueWatchResult.bind(this));
-            callback(null);
-        }.bind(this));
+        this._impl.initWatchers(this._enqueueWatchResult.bind(this));
     };
     
     /**
@@ -611,12 +602,11 @@ define(function (require, exports, module) {
         if (entry) {
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
-                if (!stat || !entry._stat || (stat.mtime.getTime() !== entry._stat.mtime.getTime())) {
+                if (!(stat && entry._stat && stat.mtime.getTime() === entry._stat.mtime.getTime())) {
                     entry._clearCachedData();
                     entry._stat = stat;
+                    fireChangeEvent(entry);
                 }
-                
-                fireChangeEvent(entry);
             } else {
                 var oldContents = entry._contents || [];
                 

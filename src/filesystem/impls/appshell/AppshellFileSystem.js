@@ -33,26 +33,93 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         NodeConnection      = require("utils/NodeConnection");
     
-    /**
-     * @const
-     * Amount of time to wait before automatically rejecting the connection
-     * deferred. If we hit this timeout, we'll never have a node connection
-     * for the file watcher in this run of Brackets.
-     */
-    var NODE_CONNECTION_TIMEOUT = 30000,    // 30 seconds - TODO: share with StaticServer & Package?
-        FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
-    
-    /**
-     * @private
-     * @type{jQuery.Deferred.<NodeConnection>}
-     * A deferred which is resolved with a NodeConnection or rejected if
-     * we are unable to connect to Node.
-     */
-    var _nodeConnectionDeferred;
+    var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
     var _changeCallback,            // Callback to notify FileSystem of watcher changes
         _changeTimeout,             // Timeout used to batch up file watcher changes
         _pendingChanges = {};       // Pending file watcher changes
+    
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath       = "node/FileWatcherDomain",
+        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
+        _nodeConnection = new NodeConnection();
+    
+    function _loadDomains() {
+        return _nodeConnection.loadDomains(_domainPath, true);
+    }
+    
+    var _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
+    
+    function _enqueueChange(change, needsStats) {
+        _pendingChanges[change] = _pendingChanges[change] || needsStats;
+
+        if (!_changeTimeout) {
+            _changeTimeout = window.setTimeout(function () {
+                if (_changeCallback) {
+                    Object.keys(_pendingChanges).forEach(function (path) {
+                        var needsStats = _pendingChanges[path];
+                        if (needsStats) {
+                            exports.stat(path, function (err, stats) {
+                                console.warn("Unable to stat changed path: ", path, err);
+                                _changeCallback(path, stats);
+                            });
+                        } else {
+                            _changeCallback(path);
+                        }
+                    });
+                }
+                
+                _changeTimeout = null;
+                _pendingChanges = {};
+            }, FILE_WATCHER_BATCH_TIMEOUT);
+        }
+    }
+    
+    function _fileWatcherChange(evt, path, event, filename) {
+        var change;
+
+        console.log("change!");
+        console.log(arguments);
+        
+        if (event === "change") {
+            // Only register change events if filename is passed
+            if (filename) {
+                // an existing file was created; stats are needed
+                change = path + "/" + filename;
+                _enqueueChange(change, true);
+            }
+        } else if (event === "rename") {
+            // a new file was created; no stats are needed
+            change = path;
+            _enqueueChange(change, false);
+        }
+    }
+    
+    $(_nodeConnection).on("fileWatcher.change", _fileWatcherChange);
+    
+    $(_nodeConnection).on("close", function (event, promise) {
+        _nodeConnectionPromise = promise.then(_loadDomains);
+    });
+    
+    function _execWhenConnected(name, args, callback, errback) {
+        function execConnected() {
+            var domain = _nodeConnection.domains.fileWatcher,
+                fn = domain[name];
+
+            return fn.apply(domain, args)
+                .done(callback)
+                .fail(errback);
+        }
+        
+        if (_nodeConnection.connected()) {
+            execConnected();
+        } else {
+            _nodeConnectionPromise
+                .done(execConnected)
+                .fail(errback);
+        }
+    }
 
     function _mapError(err) {
         if (!err) {
@@ -85,51 +152,6 @@ define(function (require, exports, module) {
             lastSlash = path.lastIndexOf("/", lastSlash - 1);
         }
         return path.substr(0, lastSlash + 1);
-    }
-    
-    
-    function init(callback) {
-        /* Temporarily disable file watchers
-        if (!_nodeConnectionDeferred) {
-            _nodeConnectionDeferred = new $.Deferred();
-            
-            // TODO: This code is a copy of the AppInit function in extensibility/Package.js. This should be refactored
-            // into common code.
-            
-            
-            // Start up the node connection, which is held in the
-            // _nodeConnectionDeferred module variable. (Use 
-            // _nodeConnectionDeferred.done() to access it.
-            var connectionTimeout = window.setTimeout(function () {
-                console.error("[AppshellFileSystem] Timed out while trying to connect to node");
-                _nodeConnectionDeferred.reject();
-            }, NODE_CONNECTION_TIMEOUT);
-            
-            var _nodeConnection = new NodeConnection();
-            _nodeConnection.connect(true).then(function () {
-                var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/FileWatcherDomain";
-                
-                _nodeConnection.loadDomains(domainPath, true)
-                    .then(
-                        function () {
-                            window.clearTimeout(connectionTimeout);
-                            _nodeConnectionDeferred.resolve(_nodeConnection);
-                        },
-                        function () { // Failed to connect
-                            console.error("[AppshellFileSystem] Failed to connect to node", arguments);
-                            window.clearTimeout(connectionTimeout);
-                            _nodeConnectionDeferred.reject();
-                        }
-                    );
-            });
-        }
-        */
-        
-        // Don't want to block on _nodeConnectionDeferred because we're needed as the 'root' fs
-        // at startup -- and the Node-side stuff isn't needed for most functionality anyway.
-        if (callback) {
-            callback();
-        }
     }
     
     function _wrap(cb) {
@@ -339,93 +361,35 @@ define(function (require, exports, module) {
         });
     }
     
-    /* File watchers are temporarily disabled
-    function _notifyChanges(callback) {
-        var change;
-        
-        for (change in _pendingChanges) {
-            if (_pendingChanges.hasOwnProperty(change)) {
-                callback(change);
-                delete _pendingChanges[change];
-            }
-        }
-    }
-    
-    function _fileWatcherChange(evt, path, event, filename) {
-        var change;
-        
-        if (event === "change") {
-            // Only register change events if filename is passed
-            if (filename) {
-                change = path + "/" + filename;
-            }
-        } else if (event === "rename") {
-            change = path;
-        }
-        if (change && !_pendingChanges.hasOwnProperty(change)) {
-            if (!_changeTimeout) {
-                _changeTimeout = window.setTimeout(function () {
-                    _changeTimeout = null;
-                    _notifyChanges(_fileWatcherChange.callback);
-                }, FILE_WATCHER_BATCH_TIMEOUT);
-            }
-            
-            _pendingChanges[change] = true;
-        }
-    }
-    */
-    
     function initWatchers(callback) {
         _changeCallback = callback;
+    }
+    
+    function watchPath(path, callback) {
+        callback = callback || function () {};
         
-        /* File watchers are temporarily disabled. For now, send
-           a "wholesale" change when the window is focused. */
-        $(window).on("focus", function () {
-            callback(null);
-        });
+        _execWhenConnected("watchPath", [path],
+                           callback.bind(undefined, null),
+                           callback.bind(undefined));
+    }
+    
+    function unwatchPath(path, callback) {
+        callback = callback || function () {};
         
-        /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                _fileWatcherChange.callback = callback;
-                $(nodeConnection).on("fileWatcher.change", _fileWatcherChange);
-            }
-        });
-        */
+        _execWhenConnected("unwatchPath", [path],
+                           callback.bind(undefined, null),
+                           callback.bind(undefined));
     }
     
-    function watchPath(path) {
-        /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileWatcher.watchPath(path);
-            }
-        });
-        */
-    }
-    
-    function unwatchPath(path) {
-        /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileWatcher.unwatchPath(path);
-            }
-        });
-        */
-    }
-    
-    function unwatchAll() {
-        /*
-        _nodeConnectionDeferred.done(function (nodeConnection) {
-            if (nodeConnection.connected()) {
-                nodeConnection.domains.fileWatcher.unwatchAll();
-            }
-        });
-        */
+    function unwatchAll(callback) {
+        callback = callback || function () {};
+        
+        _execWhenConnected("watchPath", [],
+                           callback.bind(undefined, null),
+                           callback.bind(undefined));
     }
     
     // Export public API
-    exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;
     exports.showSaveDialog  = showSaveDialog;
     exports.exists          = exists;
@@ -441,6 +405,9 @@ define(function (require, exports, module) {
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
     exports.unwatchAll      = unwatchAll;
+    
+    // Node only supports recursive file watching on the Darwin
+    exports.recursiveWatch = appshell.platform === "mac";
     
     // Only perform UNC path normalization on Windows
     exports.normalizeUNCPaths = appshell.platform === "win";
