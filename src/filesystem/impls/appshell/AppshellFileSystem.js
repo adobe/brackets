@@ -43,13 +43,8 @@ define(function (require, exports, module) {
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/FileWatcherDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        _nodeConnection = new NodeConnection();
-    
-    function _loadDomains() {
-        return _nodeConnection.loadDomains(_domainPath, true);
-    }
-    
-    var _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
+        _nodeConnection = new NodeConnection(),
+        _domainsLoaded  = false;
     
     function _enqueueChange(change, needsStats) {
         _pendingChanges[change] = _pendingChanges[change] || needsStats;
@@ -61,7 +56,10 @@ define(function (require, exports, module) {
                         var needsStats = _pendingChanges[path];
                         if (needsStats) {
                             exports.stat(path, function (err, stats) {
-                                console.warn("Unable to stat changed path: ", path, err);
+                                if (err) {
+                                    console.warn("Unable to stat changed path: ", path, err);
+                                    return;
+                                }
                                 _changeCallback(path, stats);
                             });
                         } else {
@@ -79,14 +77,13 @@ define(function (require, exports, module) {
     function _fileWatcherChange(evt, path, event, filename) {
         var change;
 
-        console.log("change!");
-        console.log(arguments);
+        console.log.bind(console, "Change!").apply(undefined, arguments);
         
         if (event === "change") {
             // Only register change events if filename is passed
             if (filename) {
                 // an existing file was created; stats are needed
-                change = path + "/" + filename;
+                change = path + filename;
                 _enqueueChange(change, true);
             }
         } else if (event === "rename") {
@@ -96,10 +93,27 @@ define(function (require, exports, module) {
         }
     }
     
+    function _loadDomains() {
+        return _nodeConnection
+            .loadDomains(_domainPath, true)
+            .done(function () {
+                _domainsLoaded = true;
+            });
+    }
+    
+    function _reloadDomains() {
+        return _loadDomains().done(function () {
+            // call back into the filesystem here to restore any previously watched paths.
+        });
+    }
+    
+    var _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
+    
     $(_nodeConnection).on("fileWatcher.change", _fileWatcherChange);
     
     $(_nodeConnection).on("close", function (event, promise) {
-        _nodeConnectionPromise = promise.then(_loadDomains);
+        _domainsLoaded = false;
+        _nodeConnectionPromise = promise.then(_reloadDomains);
     });
     
     function _execWhenConnected(name, args, callback, errback) {
@@ -112,7 +126,7 @@ define(function (require, exports, module) {
                 .fail(errback);
         }
         
-        if (_nodeConnection.connected()) {
+        if (_domainsLoaded && _nodeConnection.connected()) {
             execConnected();
         } else {
             _nodeConnectionPromise
