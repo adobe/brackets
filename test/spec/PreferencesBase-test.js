@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var PreferencesBase         = require("preferences/PreferencesBase"),
-        FileSystem              = require("filesystem/FileSystem").FileSystem,
+        FileSystem              = require("filesystem/FileSystem"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files");
@@ -66,6 +66,12 @@ define(function (require, exports, module) {
                 
                 expect(map.merged).toEqual({
                     spaceUnits: 2,
+                    useTabChar: false
+                });
+                
+                map.setData("project", { });
+                expect(map.merged).toEqual({
+                    spaceUnits: 4,
                     useTabChar: false
                 });
             });
@@ -223,6 +229,9 @@ define(function (require, exports, module) {
                 expect(map.merged).toEqual({
                     spaceUnits: 27
                 });
+                expect(userMap.merged).toEqual({
+                    spaceUnits: 27
+                });
                 expect(changes).toEqual([{
                     id: "spaceUnits",
                     oldValue: 4,
@@ -231,6 +240,27 @@ define(function (require, exports, module) {
                 expect(dataChanges).toEqual([{
                     spaceUnits: 27
                 }]);
+                
+                changes = [];
+                dataChanges = [];
+                
+                map.set(["user", "path"], "spaceUnits", 11);
+                
+                expect(map.merged).toEqual({
+                    spaceUnits: 11
+                });
+                expect(userMap.merged).toEqual({
+                    spaceUnits: 11
+                });
+                expect(changes).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: 27,
+                    newValue: 11
+                }]);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 11
+                }]);
+                
                 
                 changes = [];
                 dataChanges = [];
@@ -297,7 +327,7 @@ define(function (require, exports, module) {
                 }
             };
             
-            it("should be able to find preferences", function () {
+            it("should be able to notify of language changes", function () {
                 var layer = new PreferencesBase.LanguageLayer();
                 
                 expect(layer.exclusions).toEqual(["language"]);
@@ -332,7 +362,7 @@ define(function (require, exports, module) {
                 }
             };
             
-            it("should be able to find preferences", function () {
+            it("should be able to notify based on path", function () {
                 var layer = new PreferencesBase.PathLayer();
                 
                 expect(layer.exclusions).toEqual(["path"]);
@@ -474,14 +504,14 @@ define(function (require, exports, module) {
             it("should find the default values", function () {
                 var pm = new PreferencesBase.PreferencesManager();
                 pm.definePreference("foo.bar", "number", 0);
-                expect(pm.getValue("nonexistent")).not.toBeDefined();
-                expect(pm.getValue("foo.bar")).toBe(0);
+                expect(pm.get("nonexistent")).not.toBeDefined();
+                expect(pm.get("foo.bar")).toBe(0);
             });
             
             it("should produce an error for setValue on undefined scope", function () {
                 var pm = new PreferencesBase.PreferencesManager();
                 try {
-                    pm.setValue("nonscope", "foo", false);
+                    pm.set("nonscope", "foo", false);
                     expect("Should have gotten an error for nonexistent scope").toBe("but didn't");
                 } catch (e) {
                     expect(e.toString().indexOf("scope")).toBeGreaterThan(-1);
@@ -500,25 +530,17 @@ define(function (require, exports, module) {
                 
                 expect(pm.getValue("spaceUnits")).toEqual(4);
                 
-                pm.setValue("user", "useTabChar", true);
-                pm.setValue("user", "tabSize", 8);
-                pm.setValue("user", "spaceUnits", 8);
-                pm.setValue("project", "spaceUnits", 2);
+                pm.set("user", "useTabChar", true);
+                pm.set("user", "tabSize", 8);
+                pm.set("user", "spaceUnits", 8);
+                pm.set("project", "spaceUnits", 2);
                 
-                expect(pm.getValue("spaceUnits")).toBe(2);
-                expect(pm.getValue("useTabChar")).toBe(true);
-                expect(pm.getValue("tabSize")).toBe(8);
+                expect(pm.get("spaceUnits")).toBe(2);
+                expect(pm.get("useTabChar")).toBe(true);
+                expect(pm.get("tabSize")).toBe(8);
             });
             
             it("handles asynchronously loaded scopes", function () {
-                // This test will mark storage1's prefs as higher precedence
-                // than storage2's prefs, but it will pretend to load storage1's
-                // prefs after storage2's to trigger a possible race.
-                
-                // Adding scopes is something that is not likely to happen much
-                // in extensions... the race is much more possible within
-                // Brackets itself depending on when the preferences load.
-                // Within Brackets itself, the order of scopes is very well defined.
                 var storage1 = new PreferencesBase.MemoryStorage({
                     testKey: 1
                 });
@@ -542,13 +564,13 @@ define(function (require, exports, module) {
                 pm.addScope("storage1", new PreferencesBase.Scope(storage1));
                 pm.addScope("storage2", new PreferencesBase.Scope(storage2));
                 
-                expect(pm.getValue("testKey")).toBe(0);
-                
-                deferred1.resolve(storage1.data);
-                expect(pm.getValue("testKey")).toBe(0);
+                expect(pm.get("testKey")).toBe(0);
                 
                 deferred2.resolve(storage2.data);
-                expect(pm.getValue("testKey")).toBe(1);
+                expect(pm.get("testKey")).toBe(2);
+                
+                deferred1.resolve(storage1.data);
+                expect(pm.get("testKey")).toBe(2);
             });
             
             it("supports layers over the nested scopes", function () {
@@ -568,16 +590,16 @@ define(function (require, exports, module) {
                 var layer = new PreferencesBase.LanguageLayer();
                 pm.addLayer("language", layer);
                 
-                expect(pm.getValue("spaceUnits")).toBe(4);
+                expect(pm.get("spaceUnits")).toBe(4);
                 
                 layer.setLanguage("html");
-                expect(pm.getValue("spaceUnits")).toBe(2);
+                expect(pm.get("spaceUnits")).toBe(2);
                 
                 layer.setLanguage("css");
-                expect(pm.getValue("spaceUnits")).toBe(8);
+                expect(pm.get("spaceUnits")).toBe(8);
                 
                 layer.setLanguage("python");
-                expect(pm.getValue("spaceUnits")).toBe(4);
+                expect(pm.get("spaceUnits")).toBe(4);
             });
             
             it("can notify of preference changes through setValue", function () {
@@ -585,38 +607,38 @@ define(function (require, exports, module) {
                 pm.definePreference("spaceUnits", "number", 4);
                 pm.addScope("user", new PreferencesBase.MemoryStorage());
                 var eventData;
-                $(pm).on("preferenceChange", function (e, data) {
+                $(pm).on("change", function (e, data) {
                     eventData = data;
                 });
                 
-                pm.setValue("user", "testing", true);
+                pm.set("user", "testing", true);
                 expect(eventData).toBeDefined();
                 expect(eventData.id).toBe("testing");
                 expect(eventData.newValue).toBe(true);
                 
                 eventData = undefined;
-                pm.setValue("user", "spaceUnits", 4);
+                pm.set("user", "spaceUnits", 4);
                 expect(eventData).toBeUndefined();
                 
                 eventData = undefined;
-                pm.setValue("user", "testing", true);
+                pm.set("user", "testing", true);
                 expect(eventData).toBeUndefined();
                 
                 pm.addScope("session", new PreferencesBase.MemoryStorage());
                 eventData = undefined;
-                pm.setValue("session", "testing", true);
+                pm.set("session", "testing", true);
                 expect(eventData).toBeUndefined();
                 
                 eventData = undefined;
-                pm.setValue("user", "testing", false);
+                pm.set("user", "testing", false);
                 expect(eventData).toBeUndefined();
                 
                 eventData = undefined;
-                pm.setValue("session", "testing", false);
+                pm.set("session", "testing", false);
                 expect(eventData).toBeDefined();
                 
                 eventData = undefined;
-                pm.setValue("user", "spaceUnits", 2);
+                pm.set("user", "spaceUnits", 2);
                 expect(eventData).toEqual({
                     id: "spaceUnits",
                     newValue: 2,
@@ -629,7 +651,7 @@ define(function (require, exports, module) {
                 pm.definePreference("spaceUnits", "number", 4);
                 
                 var eventData = [];
-                $(pm).on("preferenceChange", function (e, data) {
+                $(pm).on("change", function (e, data) {
                     eventData.push(data);
                 });
                 
@@ -642,20 +664,6 @@ define(function (require, exports, module) {
                     id: "elephants",
                     oldValue: undefined,
                     newValue: "charging"
-                }]);
-                
-                eventData = [];
-                pm.addScope("preuser", new PreferencesBase.MemoryStorage({
-                    elephants: "docile"
-                }), "default");
-                expect(eventData).toEqual([]);
-                
-                eventData = [];
-                pm.removeScope("user");
-                expect(eventData).toEqual([{
-                    id: "elephants",
-                    oldValue: "charging",
-                    newValue: "docile"
                 }]);
             });
             
@@ -680,7 +688,7 @@ define(function (require, exports, module) {
                 layer.setLanguage("go");
                 
                 var eventData = [];
-                $(pm).on("preferenceChange", function (e, data) {
+                $(pm).on("change", function (e, data) {
                     eventData.push(data);
                 });
                 
@@ -741,7 +749,9 @@ define(function (require, exports, module) {
                         deleted = true;
                     });
                 });
-                waitsFor(deleted);
+                waitsFor(function () {
+                    return deleted;
+                });
             });
             
             it("can load preferences from disk", function () {
@@ -767,10 +777,12 @@ define(function (require, exports, module) {
                 runs(function () {
                     var memstorage = new PreferencesBase.MemoryStorage();
                     pm.addScope("session", new PreferencesBase.Scope(memstorage));
-                    pm.setValue("session", "unicorn-filled", true);
-                    pm.setValue("project", "unicorn-filled", false);
-                    pm.save();
-                    expect(memstorage.data["unicorn-filled"]).toBe(true);
+                    pm.set("session", "unicorn-filled", true);
+                    pm.set("project", "unicorn-filled", false);
+                    waitsForDone(pm.save());
+                    runs(function () {
+                        expect(memstorage.data["unicorn-filled"]).toBe(true);
+                    });
                 });
             });
             
@@ -780,8 +792,6 @@ define(function (require, exports, module) {
                 var newScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("new", newScope), "adding scope");
                 runs(function () {
-                    expect(pm._scopes["new"]).toBeDefined();
-                    expect(pm._scopeOrder.indexOf("new")).toBeGreaterThan(-1);
                     pm.setValue("new", "unicorn-filled", true);
                     expect(pm.getValue("unicorn-filled")).toBe(true);
                     

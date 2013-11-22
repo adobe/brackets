@@ -210,20 +210,20 @@ define(function (require, exports, module) {
     
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
-    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
-    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
-    
+//    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
+//    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
+//    
     var languageLayer = new PreferencesBase.LanguageLayer();
-    preferencesManager.addLayer("language", languageLayer);
-    
-    $(preferencesManager).on("preferenceChange", function (e, data) {
-        $(exports).trigger("preferenceChange", data);
-    });
+//    preferencesManager.addLayer("language", languageLayer);
+//    
+//    $(preferencesManager).on("preferenceChange", function (e, data) {
+//        $(exports).trigger("preferenceChange", data);
+//    });
     
     var stateManager = new PreferencesBase.PreferencesManager();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
-    
-    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true), "default");
+//    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+//    
+//    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true), "default");
         
     function setValueAndSave(scopeName, id, value) {
         preferencesManager.setValue(scopeName, id, value);

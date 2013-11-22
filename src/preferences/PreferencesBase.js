@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         this._mergedAtLevel = {};
         this._exclusions = {};
         this._childMaps = {};
+        this._levelData = {};
     }
     
     MergedMap.prototype = {
@@ -66,8 +67,10 @@ define(function (require, exports, module) {
                 this._childMaps[name] = childMap;
                 this.setData(name, childMap.merged);
                 $(childMap).on("dataChange", function (e, data) {
-                    this.setData(name, data);
+                    this._performSetData(name, data);
                 }.bind(this));
+            } else {
+                this._levelData[name] = {};
             }
         },
         
@@ -118,6 +121,10 @@ define(function (require, exports, module) {
                 }
             }
             
+            return this._performSetAndNotification(levelName, id, value);
+        },
+        
+        _performSetAndNotification: function (levelName, id, value, resetting) {
             var merged = this.merged,
                 mergedAtLevel = this._mergedAtLevel,
                 levelRank = this._levels.indexOf(levelName),
@@ -129,7 +136,7 @@ define(function (require, exports, module) {
             }
             
             var oldValue = merged[id];
-            if (oldValue === undefined || mergedAtLevel[id] >= levelRank) {
+            if (resetting || oldValue === undefined || mergedAtLevel[id] >= levelRank) {
                 mergedAtLevel[id] = levelRank;
                 if (value !== oldValue) {
                     changed = true;
@@ -149,19 +156,53 @@ define(function (require, exports, module) {
             if (changed) {
                 $(this).trigger("dataChange", this.merged);
             }
+            this._levelData[id] = value;
             return changed;
         },
         
-        setData: function (levelName, data) {
+        _performSetData: function (levelName, data) {
             var hadChanges = false;
             
             _.forIn(data, function (value, key) {
                 hadChanges = this._performSet(levelName, key, value) || hadChanges;
             }, this);
             
+            if (_.isArray(levelName) && levelName.length === 1) {
+                levelName = levelName[0];
+            }
+            
+            if (!_.isArray(levelName)) {
+                this._levelData[levelName] = data;
+                
+                // Look for values that have been removed
+                var levelRank = this._levels.indexOf(levelName);
+                _.forIn(this._mergedAtLevel, function (value, key) {
+                    if (value === levelRank && data[key] === undefined) {
+                        this._reset(key);
+                        hadChanges = true;
+                    }
+                }.bind(this));
+            }
+            
             if (hadChanges) {
                 $(this).trigger("dataChange", this.merged);
             }
+        },
+        
+        setData: function (levelName, data) {
+            this._performSetData(levelName, data);
+        },
+        
+        _reset: function (key) {
+            var levelData = this._levelData,
+                mergedAtLevel = this._mergedAtLevel;
+            
+            this._levels.forEach(function (level, levelNumber) {
+                var value = levelData[level][key];
+                if (value !== undefined) {
+                    this._performSetAndNotification(level, key, value, true);
+                }
+            }.bind(this));
         }
     };
     
@@ -253,48 +294,86 @@ define(function (require, exports, module) {
     
     Scope.prototype = new MergedMap();
     
-    Scope.prototype.addLevel = function (name, options) {
-        options = options || {};
-        
-        if (options.layer) {
-            var layer = options.layer;
+    _.extend(Scope.prototype, {
+        addLevel: function (name, options) {
+            options = options || {};
             
-            MergedMap.prototype.addLevel.call(this, name);
-            this._layers[name] = layer;
-            _.each(layer.exclusions, this.addExclusion, this);
-            $(layer).on("dataChange", function (e, data) {
-                this.setData(name, data);
-            }.bind(this));
-            layer.setData(this.data);
-        } else {
-            MergedMap.prototype.addLevel.call(this, name, options);
-        }
-    };
-    
-    Scope.prototype.load = function () {
-        var result = $.Deferred();
-        this.storage.load()
-            .then(function (data) {
-                this.data = data;
-                this.setData("base", data);
-                _.forIn(this._layers, function (layer) {
-                    layer.setData(data);
+            if (options.layer) {
+                var layer = options.layer;
+                
+                MergedMap.prototype.addLevel.call(this, name);
+                this._layers[name] = layer;
+                _.each(layer.exclusions, this.addExclusion, this);
+                $(layer).on("dataChange", function (e, data) {
+                    MergedMap.prototype.setData.call(this, name, data);
+                }.bind(this));
+                layer.setData(this.data);
+            } else {
+                MergedMap.prototype.addLevel.call(this, name, options);
+            }
+        },
+        load: function () {
+            var result = $.Deferred();
+            this.storage.load()
+                .then(function (data) {
+                    this.data = data;
+                    this.setData("base", data);
+                    _.forIn(this._layers, function (layer) {
+                        layer.setData(data);
+                    });
+                    result.resolve();
+                }.bind(this))
+                .fail(function (error) {
+                    result.reject(error);
                 });
-                result.resolve();
-            }.bind(this))
-            .fail(function (error) {
-                result.reject(error);
-            });
-        return result.promise();
-    };
+            return result.promise();
+        },
+        save: function () {
+            var self = this;
+            if (this._dirty) {
+                return this.storage.save(this.data).done(function () {
+                    self._dirty = false;
+                });
+            } else {
+                return $.Deferred().resolve().promise();
+            }
+        },
         
-    Scope.prototype.save = function () {
-        if (this._dirty) {
-            return this.storage.save(this.data);
-        } else {
-            return $.Deferred().resolve().promise();
+        _normalizeLevelName: function (levelName) {
+            if (_.isArray(levelName)) {
+                levelName = levelName[0];
+            }
+            if (levelName !== "base") {
+                return undefined;
+            }
+            return levelName;
+        },
+        
+        set: function (levelName, id, value) {
+            // Scopes do not support changing settings on layers at this
+            // time. Ultimately, the need to do so will be based on
+            // UI.
+            levelName = this._normalizeLevelName(levelName);
+            if (!levelName) {
+                return false;
+            }
+            this._dirty = true;
+            this.data[id] = value;
+            return MergedMap.prototype.set.call(this, levelName, id, value);
+        },
+        
+        setData: function (levelName, data) {
+            // As with `set` above, setData is not supported on layers
+            // at this time.
+            levelName = this._normalizeLevelName(levelName);
+            if (!levelName) {
+                return false;
+            }
+            this._dirty = true;
+            _.assign(this.data, data);
+            return MergedMap.prototype.setData.call(this, levelName, data);
         }
-    };
+    });
     
     // TODO remove the following methods on Scope
     Scope.prototype.setValue = function (id, value) {
@@ -470,6 +549,7 @@ define(function (require, exports, module) {
         MergedMap.apply(this);
         this._knownPrefs = {};
         this.addLevel("default");
+        this._layers = [];
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
@@ -489,7 +569,7 @@ define(function (require, exports, module) {
                 name: options.name,
                 description: options.description
             };
-            this.set("default", id, initial);
+            MergedMap.prototype.set.call(this, "default", id, initial);
         },
         
         addScope: function (id, scope) {
@@ -506,11 +586,16 @@ define(function (require, exports, module) {
                 map: scope
             });
             
+            this._layers.forEach(function (layer) {
+                scope.addLevel(id, {
+                    layer: layer
+                });
+            });
+            
             var deferred = $.Deferred();
             
             scope.load()
-                .then(function (data) {
-                    scope.setData("default", data);
+                .done(function (data) {
                     deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {
@@ -525,6 +610,26 @@ define(function (require, exports, module) {
         },
         
         addLayer: function (id, layer) {
+            this._layers.push({
+                id: id,
+                layer: layer
+            });
+            _.values(this._childMaps).forEach(function (scope) {
+                scope.addLevel(id, {
+                    layer: layer
+                });
+            });
+        },
+        
+        set: function (scopeName, id, value) {
+            if (!this._childMaps[scopeName]) {
+                throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
+            }
+            return MergedMap.prototype.set.call(this, [scopeName, "base"], id, value);
+        },
+        
+        setData: function (scopeName, data) {
+            return MergedMap.prototype.setData.call(this, [scopeName, "base"], data);
         },
         
         setValue: PreferencesManager.prototype.set,
@@ -577,9 +682,13 @@ define(function (require, exports, module) {
             var deferred = this._nextSaveDeferred || $.Deferred();
             this._nextSaveDeferred = null;
             
-            Async.doInParallel(this._scopeOrder, function (id) {
-                var scope = this._scopes[id];
-                return scope.save();
+            Async.doInParallel(this._levels, function (level) {
+                var scope = this._childMaps[level];
+                if (scope) {
+                    return scope.save();
+                } else {
+                    return $.Deferred().resolve().promise();
+                }
             }.bind(this))
                 .then(function () {
                     this._saveInProgress = false;
