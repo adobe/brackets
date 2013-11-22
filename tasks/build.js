@@ -48,8 +48,9 @@ module.exports = function (grunt) {
             return qexec("git ls-remote --heads origin", opts);
         }).then(function (stdout) {
             var log = stdout.toString(),
-                re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\n"),
-                match = re.exec(log);
+                re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\s"),
+                match = re.exec(log),
+                reflog;
             
             // if HEAD matches to a remote branch HEAD, grab the branch name
             if (match) {
@@ -57,16 +58,18 @@ module.exports = function (grunt) {
                 return json;
             }
             
-            // try match HEAD using reflog
-            return qexec("git reflog show --no-abbrev-commit --all", opts);
-        }).then(function (stdout) {
-            var log = stdout.toString(),
-                re = new RegExp(json.sha + " refs/heads/(\\S+)@"),
-                match = re.exec(log);
+            // else, try match HEAD using reflog
+            reflog = qexec("git reflog show --no-abbrev-commit --all", opts);
+            
+            return reflog.then(function (stdout) {
+                var log = stdout.toString(),
+                    re = new RegExp(json.sha + "\\srefs/(remotes/origin|heads)/(\\S+)@"),
+                    match = re.exec(log);
 
-            json.branch = (match && match[1]) || "(no branch)";
-
-            return json;
+                json.branch = (match && match[2]) || "(no branch)";
+    
+                return json;
+            });
         });
     }
 
