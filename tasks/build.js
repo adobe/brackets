@@ -34,17 +34,37 @@ module.exports = function (grunt) {
         var opts = { cwd: cwd, maxBuffer: 1024 * 1024 },
             json = {};
 
+        // count the number of commits for our version number
+        //     <major>.<sprint>.<patch>-<number of commits>
         return qexec("git log --format=%h", opts).then(function (stdout) {
             json.commits = stdout.toString().match(/[0-9a-f]\n/g).length;
+            
+            // get the hash for the current commit (HEAD)
             return qexec("git rev-parse HEAD", opts);
         }).then(function (stdout) {
             json.sha = /([a-f0-9]+)/.exec(stdout.toString())[1];
+            
+            // compare HEAD to the HEADs on the remote
+            return qexec("git ls-remote --heads origin", opts);
+        }).then(function (stdout) {
+            var log = stdout.toString(),
+                re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\n"),
+                match = re.exec(log);
+            
+            // if HEAD matches to a remote branch HEAD, grab the branch name
+            if (match) {
+                json.branch = match[1];
+                return json;
+            }
+            
+            // try match HEAD using reflog
             return qexec("git reflog show --no-abbrev-commit --all", opts);
         }).then(function (stdout) {
             var log = stdout.toString(),
-                re = new RegExp(json.sha + " refs/heads/(.+)@");
+                re = new RegExp(json.sha + " refs/heads/(\\S+)@"),
+                match = re.exec(log);
 
-            json.branch = re.exec(log)[1];
+            json.branch = (match && match[1]) || "(no branch)";
 
             return json;
         });
