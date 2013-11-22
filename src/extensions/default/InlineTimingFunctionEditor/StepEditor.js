@@ -283,6 +283,9 @@ define(function (require, exports, module) {
             stepEditor._commitTimingFunction();
             stepEditor._updateCanvas();
             return true;
+
+        } else if (code === KeyEvent.DOM_VK_ESCAPE) {
+            return true;
         }
 
         return false;

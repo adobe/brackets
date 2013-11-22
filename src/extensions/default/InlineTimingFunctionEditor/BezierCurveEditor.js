@@ -492,6 +492,10 @@ define(function (require, exports, module) {
 
             bezierEditor._commitTimingFunction();
             bezierEditor._updateCanvas();
+            return true;
+
+        } else if (code === KeyEvent.DOM_VK_ESCAPE) {
+            return true;
         }
 
         return false;
