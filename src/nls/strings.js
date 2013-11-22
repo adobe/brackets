@@ -51,9 +51,10 @@ define(function (require, exports, module) {
         "pl": true,
         "pt-br": true,
         "pt-pt": true,
+        "ro": true,
         "ru": true,
         "sk": true,
-		"sr": true,
+        "sr": true,
         "sv": true,
         "tr": true,
         "zh-cn": true

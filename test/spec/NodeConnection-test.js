@@ -106,6 +106,7 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             _connectionsToAutoDisconnect.forEach(function (c) {
+                $(c).off("close");
                 c.disconnect();
             });
         });

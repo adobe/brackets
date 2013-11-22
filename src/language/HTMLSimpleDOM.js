@@ -350,20 +350,26 @@ define(function (require, exports, module) {
             } else if (token.type === "opentagend" || token.type === "selfclosingtag") {
                 // TODO: disallow <p/>?
                 if (this.currentTag) {
-                    // We're closing an open tag. Record the end of the open tag as the end of the
-                    // range. (If we later find a close tag for this tag, the end will get overwritten
-                    // with the end of the close tag. In the case of a self-closing tag, we should never
-                    // encounter that.)
-                    // Note that we don't need to update the signature here because the signature only
-                    // relies on the tag name and ID, and isn't affected by the tag's attributes, so
-                    // the signature we calculated when creating the tag is still the same. If we later
-                    // find a close tag for this tag, we'll update the signature to account for its
-                    // children at that point (in the next "else" case).
-                    this.currentTag.end = this.startOffset + token.end;
-                    this.currentTag.endPos = _addPos(this.startOffsetPos, token.endPos);
-                    lastClosedTag = this.currentTag;
-                    this.currentTag.updateAttributeSignature();
-                    this.currentTag = null;
+                    if (token.type === "selfclosingtag" && stack.length && stack[stack.length - 1] === this.currentTag) {
+                        // This must have been a self-closing tag that we didn't identify as a void element
+                        // (e.g. an SVG tag). Pop it off the stack as if we had encountered its close tag.
+                        closeTag(token.end, token.endPos);
+                    } else {
+                        // We're ending an open tag. Record the end of the open tag as the end of the
+                        // range. (If we later find a close tag for this tag, the end will get overwritten
+                        // with the end of the close tag. In the case of a self-closing tag, we should never
+                        // encounter that.)
+                        // Note that we don't need to update the signature here because the signature only
+                        // relies on the tag name and ID, and isn't affected by the tag's attributes, so
+                        // the signature we calculated when creating the tag is still the same. If we later
+                        // find a close tag for this tag, we'll update the signature to account for its
+                        // children at that point (in the next "else" case).
+                        this.currentTag.end = this.startOffset + token.end;
+                        this.currentTag.endPos = _addPos(this.startOffsetPos, token.endPos);
+                        lastClosedTag = this.currentTag;
+                        this.currentTag.updateAttributeSignature();
+                        this.currentTag = null;
+                    }
                 }
             } else if (token.type === "closetag") {
                 // If this is a self-closing element, ignore the close tag.

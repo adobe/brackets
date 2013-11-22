@@ -96,7 +96,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // create the test folder and init the test files
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
-                waitsForDone(SpecRunnerUtils.copyPath(testFiles, baseDir), "copy temp files");
+                waitsForDone(SpecRunnerUtils.copy(testFiles, baseDir), "copy temp files");
             });
             runs(function () {
                 // Pre-test setup - set permissions on special directories 

@@ -388,6 +388,12 @@ define(function (require, exports, module) {
         return (fullPath[0] === "/" || fullPath[1] === ":");
     };
     
+    /*
+     * Matches continguous groups of forward slashes
+     * @const
+     */
+    var _DUPLICATED_SLASH_RE = /\/{2,}/g;
+    
     /**
      * Returns a canonical version of the path: no duplicated "/"es, no ".."s,
      * and directories guaranteed to end in a trailing "/"
@@ -395,14 +401,16 @@ define(function (require, exports, module) {
      * @param {boolean=} isDirectory
      * @return {!string}
      */
-    function _normalizePath(path, isDirectory) {
+    FileSystem.prototype._normalizePath = function (path, isDirectory) {
         
         if (!FileSystem.isAbsolutePath(path)) {
             throw new Error("Paths must be absolute: '" + path + "'");  // expect only absolute paths
         }
-
+        
+        var isUNCPath = this._impl.normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
+        
         // Remove duplicated "/"es
-        path = path.replace(/\/{2,}/g, "/");
+        path = path.replace(_DUPLICATED_SLASH_RE, "/");
         
         // Remove ".." segments
         if (path.indexOf("..") !== -1) {
@@ -427,8 +435,13 @@ define(function (require, exports, module) {
             }
         }
         
+        if (isUNCPath) {
+            // Restore the leading double slash that was removed previously
+            path = "/" + path;
+        }
+        
         return path;
-    }
+    };
     
     /**
      * Return a File object for the specified path.
@@ -438,7 +451,7 @@ define(function (require, exports, module) {
      * @return {File} The File object. This file may not yet exist on disk.
      */
     FileSystem.prototype.getFileForPath = function (path) {
-        path = _normalizePath(path, false);
+        path = this._normalizePath(path, false);
         var file = this._index.getEntry(path);
         
         if (!file) {
@@ -457,7 +470,7 @@ define(function (require, exports, module) {
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
     FileSystem.prototype.getDirectoryForPath = function (path) {
-        path = _normalizePath(path, true);
+        path = this._normalizePath(path, true);
         var directory = this._index.getEntry(path);
         
         if (!directory) {
@@ -579,7 +592,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        path = _normalizePath(path, false);
+        path = this._normalizePath(path, false);
         var entry = this._index.getEntry(path);
         
         if (entry) {
@@ -800,4 +813,7 @@ define(function (require, exports, module) {
     
     // Create the singleton instance
     _instance = new FileSystem();
+    
+    // Initialize the singleton instance
+    _instance.init(require("fileSystemImpl"));
 });
