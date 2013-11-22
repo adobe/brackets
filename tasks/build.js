@@ -26,32 +26,61 @@ module.exports = function (grunt) {
     "use strict";
 
     var child_process   = require("child_process"),
+        path            = require("path"),
         q               = require("q"),
         qexec           = q.denodeify(child_process.exec);
+
+    function getGitInfo(cwd) {
+        var opts = { cwd: cwd, maxBuffer: 1024 * 1024 },
+            json = {};
+
+        return qexec("git log --format=%h", opts).then(function (stdout) {
+            json.commits = stdout.toString().match(/[0-9a-f]\n/g).length;
+            return qexec("git rev-parse HEAD", opts);
+        }).then(function (stdout) {
+            json.sha = /([a-f0-9]+)/.exec(stdout.toString())[1];
+            return qexec("git reflog show --no-abbrev-commit --all", opts);
+        }).then(function (stdout) {
+            var log = stdout.toString(),
+                re = new RegExp(json.sha + " refs/heads/(.+)@");
+
+            json.branch = re.exec(log)[1];
+
+            return json;
+        });
+    }
+
+    function toProperties(prefix, json) {
+        var out = "";
+
+        Object.keys(json).forEach(function (key) {
+            out += prefix + key + "=" + json[key] + "\n";
+        });
+
+        return out;
+    }
     
     // task: build-num
     grunt.registerTask("build-prop", "Write build.prop properties file for Jenkins", function () {
-        var done = this.async(),
-            out  = "",
-            num,
-            branch,
-            sha,
-            opts = { cwd: process.cwd(), maxBuffer: 1024*1024 },
-            version = grunt.config("pkg").version;
-        
-        qexec("git log --format=%h", opts).then(function (stdout, stderr) {
-            num = stdout.toString().match(/[0-9a-f]\n/g).length;
-            return qexec("git status", opts);
-        }).then(function (stdout, stderr) {
-            branch = /On branch (.*)/.exec(stdout.toString().trim())[1];
-            return qexec("git log -1", opts);
-        }).then(function (stdout, stderr) {
-            sha = /commit (.*)/.exec(stdout.toString().trim())[1];
+        var done        = this.async(),
+            json        = {},
+            out         = "",
+            opts        = { cwd: process.cwd(), maxBuffer: 1024 * 1024 },
+            version     = grunt.config("pkg").version,
+            www_repo    = process.cwd(),
+            shell_repo  = path.resolve(www_repo, grunt.config("shell.repo")),
+            www_git,
+            shell_git;
 
-            out += "build.version=" + version.substr(0, version.lastIndexOf("-") + 1) + num + "\n";
-            out += "build.number=" + num + "\n";
-            out += "build.branch=" + branch + "\n";
-            out += "build.sha=" + sha + "\n";
+        getGitInfo(www_repo).then(function (json) {
+            www_git = json;
+            return getGitInfo(shell_repo);
+        }).then(function (json) {
+            shell_git = json;
+
+            out += "brackets_build_version=" + version.substr(0, version.lastIndexOf("-") + 1) + www_git.commits + "\n";
+            out += toProperties("brackets_www_", www_git);
+            out += toProperties("brackets_shell_", shell_git);
 
             grunt.log.write(out);
             grunt.file.write("build.prop", out);
