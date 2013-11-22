@@ -152,7 +152,7 @@
 
 .step-editor {
     position: relative;
-    height: 180px;
+    height: 190px;
     margin: 0 25px;
 }
 
@@ -163,7 +163,7 @@
 .step-editor .steps-func {
     height: 179px;
     width: 179px;
-    margin: 0 0 0 25px;
+    margin: 0 0 0 17px;
     position: absolute;
     top: 0;
     z-index: 2;
