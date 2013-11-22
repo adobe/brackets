@@ -87,25 +87,25 @@ define(function (require, exports, module) {
     /** Editor preferences */
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = PreferencesManager.getValue("useTabChar");
+    var _useTabChar = PreferencesManager.get("useTabChar");
     
     /** @type {number}  Global setting: Tab size */
-    var _tabSize = PreferencesManager.getValue("tabSize");
+    var _tabSize = PreferencesManager.get("tabSize");
     
     /** @type {number}  Global setting: Space units (i.e. number of spaces when indenting) */
-    var _spaceUnits = PreferencesManager.getValue("spaceUnits");
+    var _spaceUnits = PreferencesManager.get("spaceUnits");
     
     /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
-    var _closeBrackets = PreferencesManager.getValue("closeBrackets");
+    var _closeBrackets = PreferencesManager.get("closeBrackets");
     
     /** @type {boolean}  Global setting: Show line numbers in the gutter */
-    var _showLineNumbers = PreferencesManager.getValue("showLineNumbers");
+    var _showLineNumbers = PreferencesManager.get("showLineNumbers");
 
     /** @type {boolean}  Global setting: Highlight the background of the line that has the cursor */
-    var _styleActiveLine = PreferencesManager.getValue("styleActiveLine");
+    var _styleActiveLine = PreferencesManager.get("styleActiveLine");
 
     /** @type {boolean}  Global setting: Auto wrap lines */
-    var _wordWrap = PreferencesManager.getValue("wordWrap");
+    var _wordWrap = PreferencesManager.get("wordWrap");
 
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;

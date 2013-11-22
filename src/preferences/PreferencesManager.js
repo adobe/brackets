@@ -210,23 +210,23 @@ define(function (require, exports, module) {
     
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
-//    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true), "default");
-//    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage(), "user");
-//    
+    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
+    
     var languageLayer = new PreferencesBase.LanguageLayer();
-//    preferencesManager.addLayer("language", languageLayer);
-//    
-//    $(preferencesManager).on("preferenceChange", function (e, data) {
-//        $(exports).trigger("preferenceChange", data);
-//    });
+    preferencesManager.addLayer("language", languageLayer);
+    
+    $(preferencesManager).on("change", function (e, data) {
+        $(exports).trigger("preferenceChange", data);
+    });
     
     var stateManager = new PreferencesBase.PreferencesManager();
-//    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
-//    
-//    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true), "default");
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    
+    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
         
     function setValueAndSave(scopeName, id, value) {
-        preferencesManager.setValue(scopeName, id, value);
+        preferencesManager.set(scopeName, id, value);
         preferencesManager.save();
     }
     
@@ -235,8 +235,8 @@ define(function (require, exports, module) {
     exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
     
     // Public API    
-    exports.getValue = preferencesManager.get.bind(preferencesManager);
-    exports.setValue = preferencesManager.set.bind(preferencesManager);
+    exports.get = preferencesManager.get.bind(preferencesManager);
+    exports.set = preferencesManager.set.bind(preferencesManager);
     exports.save = preferencesManager.save.bind(preferencesManager);
     exports.setValueAndSave = setValueAndSave;
     exports.addScope = preferencesManager.addScope.bind(preferencesManager);

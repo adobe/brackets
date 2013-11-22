@@ -166,17 +166,17 @@ define(function (require, exports, module) {
             var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
             
             function projectScopeIsReady() {
-                return PreferencesManager._manager._scopes.project !== undefined;
+                return PreferencesManager._manager._childMaps.project !== undefined;
             }
             waitsFor(projectScopeIsReady);
             runs(function () {
-                expect(PreferencesManager.getValue("spaceUnits")).toBe(92);
+                expect(PreferencesManager.get("spaceUnits")).toBe(92);
             });
             
             // Changing projects will force a change in the project scope.
             SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
             runs(function () {
-                expect(PreferencesManager.getValue("spaceUnits")).toBeUndefined();
+                expect(PreferencesManager.get("spaceUnits")).toBeUndefined();
             });
         });
     });

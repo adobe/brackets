@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         }
         text = arr.join("\n");
         
-        var options = PreferencesManager.getValue("jslintOptions");
+        var options = PreferencesManager.get("jslintOptions");
         var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {
