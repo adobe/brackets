@@ -375,33 +375,6 @@ define(function (require, exports, module) {
         }
     });
     
-    // TODO remove the following methods on Scope
-    Scope.prototype.setValue = function (id, value) {
-        this._dirty = true;
-        this.data[id] = value;
-    };
-        
-    Scope.prototype.getValue = function (id, layers) {
-        var layerCounter;
-        for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
-            var result = layers[layerCounter](this.data, id);
-            if (result !== undefined) {
-                return result;
-            }
-        }
-        return this.data[id];
-    };
-        
-    Scope.prototype.getKeys = function (layers) {
-        var data = this.data,
-            keys = _.keys(data);
-        
-        layers.forEach(function (layer) {
-            keys = layer(data, keys);
-        });
-        return keys;
-    };
-    
     function LanguageLayer() {
         this.data = undefined;
         this.language = undefined;
@@ -420,11 +393,6 @@ define(function (require, exports, module) {
                 this.language = languageID;
                 this._signalChange();
             }
-            
-            // TODO delete the below
-            $(this).trigger("beforeLayerChange");
-            this.language = languageID;
-            $(this).trigger("afterLayerChange");
         },
         
         _signalChange: function () {
@@ -437,25 +405,6 @@ define(function (require, exports, module) {
                 languageData = {};
             }
             $(this).trigger("dataChange", languageData);
-        },
-        
-        // TODO: delete
-        getValue: function (data, id) {
-            var language = this.language;
-            if (data.language && data.language[language]) {
-                return data.language[language][id];
-            }
-        },
-        
-        // TODO: delete
-        getKeys: function (data, currentKeyList) {
-            var language = this.language;
-            currentKeyList = _.without(currentKeyList, "language");
-            if (data.language && data.language[language]) {
-                var languageKeys = Object.keys(data.language[language]);
-                return _.union(currentKeyList, languageKeys);
-            }
-            return currentKeyList;
         }
     };
     
@@ -475,11 +424,6 @@ define(function (require, exports, module) {
         setFilename: function (filename) {
             this.filename = filename;
             this._signalChange();
-            
-            // TODO remove code below
-            $(this).trigger("beforeLayerChange");
-            this.filename = filename;
-            $(this).trigger("afterLayerChange");
         },
         
         _signalChange: function () {
@@ -512,36 +456,6 @@ define(function (require, exports, module) {
                     return glob;
                 }
             }
-        },
-        
-        // TODO remove this
-        getValue: function (data, id) {
-            var path = data.path;
-            if (path) {
-                var glob = this._findMatchingGlob(path);
-                if (glob) {
-                    if (path[glob][id]) {
-                        return path[glob][id];
-                    } else {
-                        return undefined;
-                    }
-                }
-            }
-            return undefined;
-        },
-        
-        // TODO remove this
-        getKeys: function (data, currentKeyList) {
-            var path = data.path;
-            currentKeyList = _.without(currentKeyList, "path");
-            if (path) {
-                var glob = this._findMatchingGlob(data.path);
-                if (glob) {
-                    var pathKeys = Object.keys(data.path[glob]);
-                    return _.union(currentKeyList, pathKeys);
-                }
-            }
-            return currentKeyList;
         }
     };
     
@@ -630,44 +544,6 @@ define(function (require, exports, module) {
         
         setData: function (scopeName, data) {
             return MergedMap.prototype.setData.call(this, [scopeName, "base"], data);
-        },
-        
-        setValue: PreferencesManager.prototype.set,
-        
-        setValueOld: function (scopeName, id, value) {
-            var scope = this._scopes[scopeName];
-            if (!scope) {
-                throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
-            }
-            
-            var oldValue = this.getValue(id);
-            scope.setValue(id, value);
-            
-            var newValue = this.getValue(id);
-            
-            if (oldValue !== newValue) {
-                $(this).trigger(PREFERENCE_CHANGE, {
-                    id: id,
-                    newValue: newValue,
-                    oldValue: oldValue
-                });
-            }
-        },
-        
-        getValue: PreferencesManager.prototype.get,
-        
-        getValueOld: function (id) {
-            var scopeCounter,
-                scopeOrder = this._scopeOrder,
-                layerGetters = this._layerGetters;
-            
-            for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
-                var scope = this._scopes[scopeOrder[scopeCounter]];
-                var result = scope.getValue(id, layerGetters);
-                if (result !== undefined) {
-                    return result;
-                }
-            }
         },
         
         save: function () {
