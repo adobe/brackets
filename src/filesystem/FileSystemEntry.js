@@ -277,9 +277,12 @@ define(function (require, exports, module) {
         this._clearCachedData();
         
         this._impl.unlink(this._path, function (err) {
-            this._fileSystem._index.removeEntry(this);
-            
-            callback(err);
+            try {
+                callback(err);
+            } finally {
+                this._fileSystem._handleWatchResult(this._parentPath);
+                this._fileSystem._index.removeEntry(this);
+            }
         }.bind(this));
     };
         
@@ -300,9 +303,12 @@ define(function (require, exports, module) {
         this._clearCachedData();
         
         this._impl.moveToTrash(this._path, function (err) {
-            this._fileSystem._index.removeEntry(this);
-            
-            callback(err);
+            try {
+                callback(err);
+            } finally {
+                this._fileSystem._handleWatchResult(this._parentPath);
+                this._fileSystem._index.removeEntry(this);
+            }
         }.bind(this));
     };
     

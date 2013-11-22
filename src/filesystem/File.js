@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry"),
+        FileSystemError = require("filesystem/FileSystemError");
     
     
     /*
@@ -98,10 +99,11 @@ define(function (require, exports, module) {
                 return;
             }
 
+            this._hash = stat._hash;
+            
             // Only cache the stats for and contents of watched files
             if (this._isWatched) {
                 this._stat = stat;
-                this._hash = stat._hash;
                 this._contents = data;
             }
             
@@ -132,26 +134,41 @@ define(function (require, exports, module) {
         if (watched && !options.blind) {
             options.hash = this._hash;
         }
-
+        
         this._fileSystem._beginWrite();
         
-        this._impl.writeFile(this._path, data, options, function (err, stat) {
-            try {
-                if (err) {
-                    this._clearCachedData();
+        this._impl.writeFile(this._path, data, options, function (err, stat, created) {
+
+            if (err) {
+                this._clearCachedData();
+                
+                try {
                     callback(err);
-                    return;
+                } finally {
+                    this._fileSystem._endWrite();  // unblock generic change events
+                }
+                return;
+            }
+            
+            this._hash = stat._hash;
+            
+            try {
+                callback(null, stat);
+            } finally {
+                if (created) {
+                    // new file created
+                    this._fileSystem._handleWatchResult(this._parentPath);
+                } else {
+                    // existing file modified
+                    this._fileSystem._handleWatchResult(this._path, stat);
                 }
                 
                 // Only cache the stats for and contents of watched files
                 if (watched) {
                     this._stat = stat;
-                    this._hash = stat._hash;
                     this._contents = data;
                 }
                 
-                callback(null, stat);
-            } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }
         }.bind(this));

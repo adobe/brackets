@@ -255,12 +255,7 @@ define(function (require, exports, module) {
                 callback(_mapError(err));
             } else {
                 stat(path, function (err, stat) {
-                    try {
-                        callback(err, stat);
-                    } finally {
-                        // Fake a file-watcher result until real watchers respond quickly
-                        _changeCallback(_parentPath(path));
-                    }
+                    callback(err, stat);
                 });
             }
         });
@@ -310,22 +305,13 @@ define(function (require, exports, module) {
     function writeFile(path, data, options, callback) {
         var encoding = options.encoding || "utf8";
         
-        function _finishWrite(alreadyExists) {
+        function _finishWrite(created) {
             appshell.fs.writeFile(path, data, encoding, function (err) {
                 if (err) {
                     callback(_mapError(err));
                 } else {
                     stat(path, function (err, stat) {
-                        try {
-                            callback(err, stat);
-                        } finally {
-                            // Fake a file-watcher result until real watchers respond quickly
-                            if (alreadyExists) {
-                                _changeCallback(path, stat);        // existing file modified
-                            } else {
-                                _changeCallback(_parentPath(path)); // new file created
-                            }
-                        }
+                        callback(err, stat, created);
                     });
                 }
             });
@@ -335,7 +321,7 @@ define(function (require, exports, module) {
             if (err) {
                 switch (err) {
                 case FileSystemError.NOT_FOUND:
-                    _finishWrite(false);
+                    _finishWrite(true);
                     break;
                 default:
                     callback(err);
@@ -349,29 +335,19 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _finishWrite(true);
+            _finishWrite(false);
         });
     }
     
     function unlink(path, callback) {
         appshell.fs.unlink(path, function (err) {
-            try {
-                callback(_mapError(err));
-            } finally {
-                // Fake a file-watcher result until real watchers respond quickly
-                _changeCallback(_parentPath(path));
-            }
+            callback(_mapError(err));
         });
     }
     
     function moveToTrash(path, callback) {
         appshell.fs.moveToTrash(path, function (err) {
-            try {
-                callback(_mapError(err));
-            } finally {
-                // Fake a file-watcher result until real watchers respond quickly
-                _changeCallback(_parentPath(path));
-            }
+            callback(_mapError(err));
         });
     }
     

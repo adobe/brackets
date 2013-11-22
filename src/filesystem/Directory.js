@@ -203,7 +203,11 @@ define(function (require, exports, module) {
                 this._stat = stat;
             }
 
-            callback(null, stat);
+            try {
+                callback(null, stat);
+            } finally {
+                this._fileSystem._handleWatchResult(this.parent, stat);
+            }
         }.bind(this));
     };
     
