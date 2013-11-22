@@ -107,9 +107,6 @@ define(function (require, exports, module) {
     require("file/NativeFileError");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
-
-    // Initialize the file system
-    FileSystem.init(require("fileSystemImpl"));
     
     // Local variables
     var params = new UrlParams();

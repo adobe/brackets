@@ -188,6 +188,8 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Probleme",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Linting-Probleme",
     "SINGLE_ERROR"                          : "1 {0} Fehler",
     "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
     "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
@@ -460,6 +462,7 @@ define({
     "LOCALE_PL"                                 : "Polnisch",
     "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
     "LOCALE_PT_PT"                              : "Portugiesisch",
+    "LOCALE_RO"                                 : "Rumänisch",
     "LOCALE_RU"                                 : "Russisch",
     "LOCALE_SK"                                 : "Slowakisch",
     "LOCALE_SR"                                 : "Serbisch",

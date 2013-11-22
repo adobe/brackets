@@ -51,16 +51,21 @@ The following languages have been contributed by the Brackets community:
 * Czech (cs)
 * German (de)
 * Spanish (es)
+* Persian-Farsi (fa-ir)
+* Finnish (fi)
+* Hungarian (hu)
 * Italian (it)
-* Norwegian Bokmål (nb)
+* Norwegian (nb)
+* Dutch (nl)
 * Polish (pl)
 * Brazilian Portuguese (pt-br)
 * Portuguese (pt-pt)
 * Russian (ru)
+* Slovak (sk)
+* Serbian (sr)
 * Swedish (sv)
 * Turkish (tr)
 * Simplified Chinese (zh-cn)
-* Hungarian (hu)
 
 These translations _can be directly modified_ through our normal pull request
 process.
