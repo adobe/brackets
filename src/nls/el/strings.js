@@ -247,7 +247,7 @@ define({
     "CMD_REPLACE"                         : "Αντικατάσταση",
     "CMD_INDENT"                          : "Εσοχή",
     "CMD_UNINDENT"                        : "Αφαίρεση Εσοχής",
-    "CMD_DUPLICATE"                       : "Διπλασιασμός",
+    "CMD_DUPLICATE"                       : "Δημιουργία Αντιγράφου",
     "CMD_DELETE_LINES"                    : "Διαγραφή Γραμμής",
     "CMD_COMMENT"                         : "Εναλλαγή Σχολίου Γραμμής",
     "CMD_BLOCK_COMMENT"                   : "Εναλλαγή Σχολίου Block",
