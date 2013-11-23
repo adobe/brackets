@@ -280,7 +280,7 @@ define({
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Πλοήγηση",
     "CMD_QUICK_OPEN"                      : "Γρήγορο Άνοιγμα",
-    "CMD_GOTO_LINE"                       : "Πήγαινε στο γραμμή",
+    "CMD_GOTO_LINE"                       : "Πήγαινε στη γραμμή",
     "CMD_GOTO_DEFINITION"                 : "Γρήγορη Αναζήτηση Ορισμού",
     "CMD_GOTO_FIRST_PROBLEM"              : "Πήγαινε στο Πρώτο Σφάλμα/Προειδοποίηση",
     "CMD_TOGGLE_QUICK_EDIT"               : "Γρήγορη Επεξεργασία",
