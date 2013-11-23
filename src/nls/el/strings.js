@@ -224,7 +224,7 @@ define({
     "CMD_FILE_RENAME"                     : "Μετονομασία",
     "CMD_FILE_DELETE"                     : "Διαγραφή",
     "CMD_INSTALL_EXTENSION"               : "Εγκατάσταση Επέκτασης (Extension)\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Διαχειριστής Επεκτάσεων\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Διαχείρηση Επεκτάσεων\u2026",
     "CMD_FILE_REFRESH"                    : "Ανανέωση Δέντρου Αρχείων",
     "CMD_QUIT"                            : "Κλείσιμο",
     // Used in native File menu on Windows
