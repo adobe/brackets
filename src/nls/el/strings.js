@@ -451,6 +451,7 @@ define({
     "LOCALE_CS"                                 : "Τσεχικά",
     "LOCALE_DE"                                 : "Γερμανικά",
     "LOCALE_EN"                                 : "Αγγλικά",
+    "LOCALE_EL"                                 : "Ελληνικά",
     "LOCALE_ES"                                 : "Ισπανικά",
     "LOCALE_FI"                                 : "Φινλανδικά",
     "LOCALE_FR"                                 : "Γαλλικά",
