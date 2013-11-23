@@ -338,7 +338,7 @@ define({
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Άγνωστο σφάλμα κατά την προσπέλαση της διεύθυνσης URL",
     
     // CSS Quick Edit
-    "BUTTON_NEW_RULE"                      : "Νεός Κανόνας",
+    "BUTTON_NEW_RULE"                      : "Νέος Κανόνας",
     
     // Extension Management strings
     "INSTALL"                              : "Εγκατάσταση",
