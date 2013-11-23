@@ -375,7 +375,7 @@ define({
     "NO_SERVER_RESPONSE"                   : "Αδυναμία σύνδεσης στον server.",
     "BAD_HTTP_STATUS"                      : "Το αρχείο δεν βρέθηκε στον server (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Αδυναμία αποθήκευσης του ληφθέντος αρχείου στο temp.",
-    "ERROR_LOADING"                        : "Η επέκταση αντιμετώπισε ένα σφάλμα ενώ ξεκινούσε.",
+    "ERROR_LOADING"                        : "Η επέκταση αντιμετώπισε ένα σφάλμα κατά την εκκίνηση.",
     "MALFORMED_URL"                        : "Η διεύθυνση URL δεν είναι έγκυρη is invalid. Please check that you entered it correctly.",
     "UNSUPPORTED_PROTOCOL"                 : "Η διεύθυνση URL πρέπει να είναι http ή https.",
     "UNKNOWN_ERROR"                        : "Άγνωστο εσωτερικό σφάλμα.",
