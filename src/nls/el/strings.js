@@ -35,7 +35,7 @@ define({
     "NOT_FOUND_ERR"                     : "Το αρχείο δεν βρέθηκε.",
     "NOT_READABLE_ERR"                  : "Το αρχείο δεν μπορεί να διαβαστεί.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Ο φάκελος δεν μπορεί να τροποποιηθεί.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Τα δικαιώματα δεν σου επιτρέπουν να κάνεις τροποποιήσεις.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Δεν επιτρέπεται να κάνεις τροποποιήσεις.",
     "FILE_EXISTS_ERR"                   : "Αυτό το αρχείο ή ο φάκελος υπάρχουν ήδη.",
     "FILE"                              : "αρχείο",
     "DIRECTORY"                         : "φάκελος",
