@@ -35,7 +35,7 @@ define({
     "NOT_FOUND_ERR"                     : "Το αρχείο δεν βρέθηκε.",
     "NOT_READABLE_ERR"                  : "Το αρχείο δεν μπορεί να διαβαστεί.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Ο φάκελος δεν μπορεί να τροποποιηθεί.",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Τα δικαιώματα δεν σου επιτρέπουν να κάνεις τροποποιήσεις.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Δεν επιτρέπεται να κάνεις τροποποιήσεις.",
     "FILE_EXISTS_ERR"                   : "Αυτό το αρχείο ή ο φάκελος υπάρχουν ήδη.",
     "FILE"                              : "αρχείο",
     "DIRECTORY"                         : "φάκελος",
@@ -224,7 +224,7 @@ define({
     "CMD_FILE_RENAME"                     : "Μετονομασία",
     "CMD_FILE_DELETE"                     : "Διαγραφή",
     "CMD_INSTALL_EXTENSION"               : "Εγκατάσταση Επέκτασης (Extension)\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Διαχειριστής Επεκτάσεων\u2026",
+    "CMD_EXTENSION_MANAGER"               : "Διαχείρηση Επεκτάσεων\u2026",
     "CMD_FILE_REFRESH"                    : "Ανανέωση Δέντρου Αρχείων",
     "CMD_QUIT"                            : "Κλείσιμο",
     // Used in native File menu on Windows
@@ -247,7 +247,7 @@ define({
     "CMD_REPLACE"                         : "Αντικατάσταση",
     "CMD_INDENT"                          : "Εσοχή",
     "CMD_UNINDENT"                        : "Αφαίρεση Εσοχής",
-    "CMD_DUPLICATE"                       : "Διπλασιασμός",
+    "CMD_DUPLICATE"                       : "Δημιουργία Αντιγράφου",
     "CMD_DELETE_LINES"                    : "Διαγραφή Γραμμής",
     "CMD_COMMENT"                         : "Εναλλαγή Σχολίου Γραμμής",
     "CMD_BLOCK_COMMENT"                   : "Εναλλαγή Σχολίου Block",
@@ -272,7 +272,7 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Αναδίπλωση Λέξης",
     "CMD_LIVE_HIGHLIGHT"                  : "Επισήμανση Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Αρχείων κατά την Αποθήκευση",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ταξινόμηση κατά Σειράς Πρόσθεσης",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
     "CMD_SORT_WORKINGSET_AUTO"            : "Αυτόματη Ταξινόμηση",
@@ -280,7 +280,7 @@ define({
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Πλοήγηση",
     "CMD_QUICK_OPEN"                      : "Γρήγορο Άνοιγμα",
-    "CMD_GOTO_LINE"                       : "Πήγαινε στο γραμμή",
+    "CMD_GOTO_LINE"                       : "Πήγαινε στη γραμμή",
     "CMD_GOTO_DEFINITION"                 : "Γρήγορη Αναζήτηση Ορισμού",
     "CMD_GOTO_FIRST_PROBLEM"              : "Πήγαινε στο Πρώτο Σφάλμα/Προειδοποίηση",
     "CMD_TOGGLE_QUICK_EDIT"               : "Γρήγορη Επεξεργασία",
@@ -313,7 +313,7 @@ define({
     "CANCEL"                               : "Ακύρωση",
     "DELETE"                               : "Διαγραφή",
     "RELOAD_FROM_DISK"                     : "Επαναφόρτωση από τον Δίσκο",
-    "KEEP_CHANGES_IN_EDITOR"               : "Διατήρηση Αλλαγών στο Επεξεργαστή",
+    "KEEP_CHANGES_IN_EDITOR"               : "Διατήρηση Αλλαγών στον Επεξεργαστή",
     "CLOSE_DONT_SAVE"                      : "Κλείσιμο (Να Μην Αποθηκευτεί)",
     "RELAUNCH_CHROME"                      : "Επανεκκίνηση Chrome",
     "ABOUT"                                : "Σχετικά",
@@ -338,7 +338,7 @@ define({
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Άγνωστο σφάλμα κατά την προσπέλαση της διεύθυνσης URL",
     
     // CSS Quick Edit
-    "BUTTON_NEW_RULE"                      : "Νεός Κανόνας",
+    "BUTTON_NEW_RULE"                      : "Νέος Κανόνας",
     
     // Extension Management strings
     "INSTALL"                              : "Εγκατάσταση",
@@ -374,8 +374,8 @@ define({
     "DOWNLOAD_ID_IN_USE"                   : "Εσωτερικό σφάλμα: το ID που κατέβηκε χρησιμοποιείται ήδη.",
     "NO_SERVER_RESPONSE"                   : "Αδυναμία σύνδεσης στον server.",
     "BAD_HTTP_STATUS"                      : "Το αρχείο δεν βρέθηκε στον server (HTTP {0}).",
-    "CANNOT_WRITE_TEMP"                    : "Αδυναμία αποθήκευσης αυτού που κατέβηκε στο αρχείο temp.",
-    "ERROR_LOADING"                        : "Η επέκταση αντιμετώπισε ένα σφάλμα ενώ ξεκινούσε.",
+    "CANNOT_WRITE_TEMP"                    : "Αδυναμία αποθήκευσης του ληφθέντος αρχείου στο temp.",
+    "ERROR_LOADING"                        : "Η επέκταση αντιμετώπισε ένα σφάλμα κατά την εκκίνηση.",
     "MALFORMED_URL"                        : "Η διεύθυνση URL δεν είναι έγκυρη is invalid. Please check that you entered it correctly.",
     "UNSUPPORTED_PROTOCOL"                 : "Η διεύθυνση URL πρέπει να είναι http ή https.",
     "UNKNOWN_ERROR"                        : "Άγνωστο εσωτερικό σφάλμα.",
