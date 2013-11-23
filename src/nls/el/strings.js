@@ -65,7 +65,7 @@ define({
     "ERROR_CREATING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία δημιουργίας του {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Ωχ! Το {APP_NAME} δεν τρέχει ακόμα σε browsers.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ουπς! Το {APP_NAME} δεν τρέχει ακόμα σε browsers.",
     "ERROR_IN_BROWSER"                  : "To {APP_NAME} είναι γραμμένο σε HTML, αλλά αυτή τη στιγμή τρέχει σαν native εφαρμογή έτσι ώστε να μπορείτε να επεξεργαστείτε τοπικά αρχεία. Παρακαλούμε να χρησιμοποιήσετε το application shell στο <b>github.com/adobe/brackets-shell</b> repo για να τρέξετε το {APP_NAME}.",
 
     // FileIndexManager error string
@@ -187,12 +187,14 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Σφάλματα",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Προβλήματα",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Lint Προβλήματα",
     "SINGLE_ERROR"                          : "1 {0} Σφάλμα",
     "MULTIPLE_ERRORS"                       : "{1} {0} Σφάλματα",
-    "NO_ERRORS"                             : "Κανένα {0} Σφάλμα - Λαμπρά!",
+    "NO_ERRORS"                             : "Καθόλου {0} σφάλματα - καλή δουλειά!",
     "LINT_DISABLED"                         : "Το Linting είναι απενεργοποιημένο",
-    "NO_LINT_AVAILABLE"                     : "Δεν υπάρχει διαθέσιμος linter για {0}",
-    "NOTHING_TO_LINT"                       : "Δεν υπάρχει τίποτα για να γίνει lint",
+    "NO_LINT_AVAILABLE"                     : "Δεν υπάρχει linter διαθέσιμος για {0}",
+    "NOTHING_TO_LINT"                       : "Δεν υπάρχει κάτι για να γίνει lint",
     
     
     /**
@@ -206,9 +208,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Νέος Φάκελος",
     "CMD_FILE_OPEN"                       : "Άνοιγμα\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Πρόσθεση στα Αρχεία Εργασίας",
+    "CMD_OPEN_DROPPED_FILES"              : "Άνοιγμα Αρχείων που ρίχτηκαν",
     "CMD_OPEN_FOLDER"                     : "Άνοιγμα Φακέλου\u2026",
     "CMD_FILE_CLOSE"                      : "Κλείσιμο",
     "CMD_FILE_CLOSE_ALL"                  : "Κλείσιμο Όλων",
+    "CMD_FILE_CLOSE_LIST"                 : "Κλείσιμο Λίστας",
+    "CMD_FILE_CLOSE_OTHERS"               : "Κλείσιμο Άλλων",
+    "CMD_FILE_CLOSE_ABOVE"                : "Κλείσιμο Άλλων απο πάνω",
+    "CMD_FILE_CLOSE_BELOW"                : "Κλείσιμο Άλλων από κάτων",
     "CMD_FILE_SAVE"                       : "Αποθήκευση",
     "CMD_FILE_SAVE_ALL"                   : "Αποθήκευση Όλων",
     "CMD_FILE_SAVE_AS"                    : "Αποθήκευση Ως\u2026",
@@ -280,6 +287,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Γρήγορα Έγγραφα",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Προηγούμενη Αντιστοιχία",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Επόμενη Αντιστοιχία",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Νέος Κανόνας",
     "CMD_NEXT_DOC"                        : "Επόμενο Έγγραφο",
     "CMD_PREV_DOC"                        : "Προηγούμενο Έγγραφο",
     "CMD_SHOW_IN_TREE"                    : "Προβολή στο Δέντρο Αρχείων",
@@ -329,6 +337,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Οι ειδικοί χαρακτήρες όπως '{0}' πρέπει να είναι %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Άγνωστο σφάλμα κατά την προσπέλαση της διεύθυνσης URL",
     
+    // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Νεός Κανόνας",
+    
     // Extension Management strings
     "INSTALL"                              : "Εγκατάσταση",
     "UPDATE"                               : "Αναβάθμιση",
@@ -376,6 +387,8 @@ define({
     "EXTENSION_DATE"                       : "Ημερομηνία",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Αυτή η επέκταση απαιτεί νεότερη έκδοση του {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Αυτή η επέκταση προς το παρόν δουλεύει μόνο με παλαιότερες εκδόσεις του {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Η έκδοση {0} αυτής της επέκτασης απαιτεί μια νεότερη έκδοση του {APP_NAME}. Αλλά μπορείτε να εγκαταστήσετε την προηγούμενη έκδοση {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Η έκδοση {0} αυτής της επέκτασης λειτουργεί μόνο με παλαιότερες εκδόσεις του {APP_NAME}. Αλλά μπορείτε να εγκαταστήσετε την προηγούμενη έκδοση {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Δεν υπάρχει περιγραφή",
     "EXTENSION_MORE_INFO"                  : "Περισσότερες Πληροφορίες...",
     "EXTENSION_ERROR"                      : "Σφάλμα επέκτασης",
@@ -406,12 +419,15 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Διαθέσιμες",
     "EXTENSIONS_UPDATES_TITLE"             : "Αναβαθμίσεις",
     
+    "INLINE_EDITOR_NO_MATCHES"             : "Δεν υπάρχουν διαθέσιμες αντιστοιχίες.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Δεν υπάρχουν κανόνες CSS που να ταιριάζουν με την επιλογή σας.<br> Κάντε κλικ στο \"Νέος Κανόνας\" για να δημιουργήσετε ένα νέο.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Δεν υπάρχουν stylesheets στο project σας.<br>Δημιουργήστε ένα για να προσθέσετε κανόνες CSS.",
+
     /**
      * Unit names
      */
 
     "UNIT_PIXELS"                          : "pixels",
-    
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
@@ -432,7 +448,7 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Προεπιλογή Συστήματος",
     
     // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Τσέχικα",
+    "LOCALE_CS"                                 : "Τσεχικά",
     "LOCALE_DE"                                 : "Γερμανικά",
     "LOCALE_EN"                                 : "Αγγλικά",
     "LOCALE_ES"                                 : "Ισπανικά",
@@ -441,15 +457,23 @@ define({
     "LOCALE_IT"                                 : "Ιταλικά",
     "LOCALE_JA"                                 : "Ιαπωνικά",
     "LOCALE_NB"                                 : "Νορβηγικά",
+    "LOCALE_NL"                                 : "Ολανδικά",
+    "LOCALE_FA_IR"                              : "Περσικά-Φαρσί",
     "LOCALE_PL"                                 : "Πολωνικά",
     "LOCALE_PT_BR"                              : "Πορτογαλικά, Βραζιλία",
     "LOCALE_PT_PT"                              : "Πορτογαλικά",
-    "LOCALE_RU"                                 : "Ρώσικα",
+    "LOCALE_RO"                                 : "Ρουμανικά",
+    "LOCALE_RU"                                 : "Ρωσικά",
     "LOCALE_SK"                                 : "Σλοβακικά",
+    "LOCALE_SR"                                 : "Σερβικά",
     "LOCALE_SV"                                 : "Σουηδικά",
-    "LOCALE_TR"                                 : "Τούρκικα",
-    "LOCALE_ZH_CN"                              : "Κινέζικα, απλοποιημένα",
+    "LOCALE_TR"                                 : "Τουρκικά",
+    "LOCALE_ZH_CN"                              : "Κινεζικά, απλοποιημένα",
     "LOCALE_HU"                                 : "Ουγγρικά",
+    
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Χρόνος",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Πρόοδος",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Τρέχων Χρώμα",
