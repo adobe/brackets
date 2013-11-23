@@ -272,7 +272,7 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Αναδίπλωση Λέξης",
     "CMD_LIVE_HIGHLIGHT"                  : "Επισήμανση Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Αρχείων κατά την Αποθήκευση",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ταξινόμηση κατά Σειράς Πρόσθεσης",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
     "CMD_SORT_WORKINGSET_AUTO"            : "Αυτόματη Ταξινόμηση",
