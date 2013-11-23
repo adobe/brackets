@@ -313,7 +313,7 @@ define({
     "CANCEL"                               : "Ακύρωση",
     "DELETE"                               : "Διαγραφή",
     "RELOAD_FROM_DISK"                     : "Επαναφόρτωση από τον Δίσκο",
-    "KEEP_CHANGES_IN_EDITOR"               : "Διατήρηση Αλλαγών στο Επεξεργαστή",
+    "KEEP_CHANGES_IN_EDITOR"               : "Διατήρηση Αλλαγών στον Επεξεργαστή",
     "CLOSE_DONT_SAVE"                      : "Κλείσιμο (Να Μην Αποθηκευτεί)",
     "RELAUNCH_CHROME"                      : "Επανεκκίνηση Chrome",
     "ABOUT"                                : "Σχετικά",
