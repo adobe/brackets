@@ -154,8 +154,8 @@ define(function (require, exports, module) {
             return;
         }
         
-        var x                   = Math.floor(e.offsetX * 100 / _scale),
-            y                   = Math.floor(e.offsetY * 100 / _scale),
+        var x                   = Math.round(e.offsetX * 100 / _scale),
+            y                   = Math.round(e.offsetY * 100 / _scale),
             $target             = $(e.target),
             targetPos           = $target.position(),
             tipPos              = $("#img-tip").position(),
@@ -183,26 +183,26 @@ define(function (require, exports, module) {
                     return;
                 }
                 left = targetPos.left;
-                x = Math.floor((left - imagePos.left) * 100 / _scale);
+                x = Math.round((left - imagePos.left) * 100 / _scale);
             } else {
                 if (targetPos.top === 0) {
                     return;
                 }
                 top = targetPos.top;
-                y = Math.floor((top - imagePos.top) * 100 / _scale);
+                y = Math.round((top - imagePos.top) * 100 / _scale);
             }
         } else if (!$target.is("#img-preview")) {
             if ($target.is("#img-scale")) {
                 left = scaleDivPos.left + e.offsetX;
                 top = scaleDivPos.top + e.offsetY;
-                x = Math.floor((left - imagePos.left) * 100 / _scale);
-                y = Math.floor((top - imagePos.top) * 100 / _scale);
+                x = Math.round((left - imagePos.left) * 100 / _scale);
+                y = Math.round((top - imagePos.top) * 100 / _scale);
             } else if (tipPos.left && tipPos.top) {
                 // Cursor must be inside the image tip.
                 left = tipPos.left + e.offsetX;
                 top = tipPos.top + e.offsetY;
-                x = Math.floor((left - imagePos.left) * 100 / _scale);
-                y = Math.floor((top - imagePos.top) * 100 / _scale);
+                x = Math.round((left - imagePos.left) * 100 / _scale);
+                y = Math.round((top - imagePos.top) * 100 / _scale);
             } else {
                 return;
             }
@@ -265,6 +265,17 @@ define(function (require, exports, module) {
         if (x < imagePos.left || x >= right ||
                 y < imagePos.top || y >= bottom) {
             _hideGuidesAndTip();
+            if (_scaleDivInfo) {
+                _scaleDivInfo = null;
+                $("#img-scale").show();
+            }
+        } else if (!_scaleDivInfo && $target.is("#img-scale")) {
+            // Remember image scale div coordinates before hiding it.
+            _scaleDivInfo = {left: targetPos.left,
+                             top: targetPos.top,
+                             right: targetPos.left + $target.width(),
+                             bottom: targetPos.top + $target.height()};
+            $("#img-scale").hide();
         }
     }
 
