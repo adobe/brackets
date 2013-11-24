@@ -1171,7 +1171,8 @@ define(function (require, exports, module) {
                 var file,
                     cb0 = errorCallback(),
                     cb1 = readCallback(),
-                    cb2 = readCallback();
+                    cb2 = readCallback(),
+                    savedHash;
                 
                 // unwatch root directory
                 runs(function () {
@@ -1201,9 +1202,11 @@ define(function (require, exports, module) {
                     expect(file._isWatched).toBe(false);
                     expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
-                    expect(file._hash).toBeFalsy();
+                    expect(file._hash).toBeTruthy();
                     expect(readCalls).toBe(1);
                     
+                    // Save a file hash even if we aren't watching the file
+                    savedHash = file._hash;
                     file.read(cb2);
                 });
                 waitsFor(function () { return cb2.wasCalled; });
@@ -1214,7 +1217,7 @@ define(function (require, exports, module) {
                     expect(file._isWatched).toBe(false);
                     expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
-                    expect(file._hash).toBeFalsy();
+                    expect(file._hash).toBe(savedHash);
                     expect(readCalls).toBe(2);
                 });
             });

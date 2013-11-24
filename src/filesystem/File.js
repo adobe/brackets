@@ -127,7 +127,7 @@ define(function (require, exports, module) {
         
         callback = callback || function () {};
 
-        // Hashes are only saved for watched files; the first disjunct is an optimization
+        // Hashes are only saved for watched files
         var watched = this._isWatched;
         
         // Request a consistency check if the file is watched and the write is not blind
@@ -135,41 +135,41 @@ define(function (require, exports, module) {
             options.hash = this._hash;
         }
         
+        // Block external change events until after the write has finished
         this._fileSystem._beginWrite();
         
         this._impl.writeFile(this._path, data, options, function (err, stat, created) {
-
-            if (err) {
-                this._clearCachedData();
+            try {
+                if (err) {
+                    this._clearCachedData();
+                    
+                    callback(err);
+                    return;
+                }
+                
+                this._hash = stat._hash;
                 
                 try {
-                    callback(err);
+                    callback(null, stat);
                 } finally {
-                    this._fileSystem._endWrite();  // unblock generic change events
+                    // If the write succeeded, fire a synthetic change event
+                    if (created) {
+                        // new file created
+                        this._fileSystem._handleWatchResult(this._parentPath);
+                    } else {
+                        // existing file modified
+                        this._fileSystem._handleWatchResult(this._path, stat);
+                    }
+                    
+                    // Update cached stats and contents if the file is watched
+                    if (watched) {
+                        this._stat = stat;
+                        this._contents = data;
+                    }
                 }
-                return;
-            }
-            
-            this._hash = stat._hash;
-            
-            try {
-                callback(null, stat);
             } finally {
-                if (created) {
-                    // new file created
-                    this._fileSystem._handleWatchResult(this._parentPath);
-                } else {
-                    // existing file modified
-                    this._fileSystem._handleWatchResult(this._path, stat);
-                }
-                
-                // Only cache the stats for and contents of watched files
-                if (watched) {
-                    this._stat = stat;
-                    this._contents = data;
-                }
-                
-                this._fileSystem._endWrite();  // unblock generic change events
+                // Always unblock external change events
+                this._fileSystem._endWrite();
             }
         }.bind(this));
     };

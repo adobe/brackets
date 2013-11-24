@@ -254,12 +254,15 @@ define(function (require, exports, module) {
                     return;
                 }
                 
-                // Notify the file system of the name change
-                this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
-
-                callback(null);  // notify caller
+                try {
+                    callback(null);  // notify caller
+                } finally {
+                    // Notify the file system of the name change
+                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
+                }
             } finally {
-                this._fileSystem._endWrite();  // unblock generic change events
+                // Unblock external change events
+                this._fileSystem._endWrite();
             }
         }.bind(this));
     };
