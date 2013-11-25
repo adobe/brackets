@@ -272,16 +272,17 @@ define(function (require, exports, module) {
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
+     * @param {{maxDepth: number, maxEntriesCounter: {value: number}}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
     FileSystemEntry.prototype._visitHelper = function (stats, visitedPaths, visitor, options, callback) {
-        var failFast = options.failFast,
-            maxDepth = options.maxDepth,
+        var maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
         
         if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
-            callback(failFast ? FileSystemError.TOO_MANY_ENTRIES : null);
+            // The outer FileSystemEntry.visit call is responsible for applying
+            // the main callback to FileSystemError.TOO_MANY_FILES in this case
+            callback(null);
             return;
         }
         
@@ -289,7 +290,8 @@ define(function (require, exports, module) {
             var visitedPath = stats.realPath || this.fullPath;
     
             if (visitedPaths.hasOwnProperty(visitedPath)) {
-                callback(failFast ? FileSystemError.LINK_CYCLE : null);
+                // Link cycle detected
+                callback(null);
                 return;
             }
             
@@ -303,7 +305,7 @@ define(function (require, exports, module) {
         
         this.getContents(function (err, entries, entriesStats) {
             if (err) {
-                callback(failFast ? err : null);
+                callback(err);
                 return;
             }
             
@@ -312,25 +314,21 @@ define(function (require, exports, module) {
                 callback(null);
                 return;
             }
+
+            function helperCallback(err) {
+                if (--counter === 0) {
+                    callback(null);
+                }
+            }
             
             var nextOptions = {
-                failFast: failFast,
                 maxDepth: maxDepth,
                 maxEntriesCounter: maxEntriesCounter
             };
             
             entries.forEach(function (entry, index) {
-                entry._visitHelper(entriesStats[index], visitedPaths, visitor, nextOptions, function (err) {
-                    if (err && failFast) {
-                        counter = 0;
-                        callback(err);
-                        return;
-                    }
-                    
-                    if (--counter === 0) {
-                        callback(null);
-                    }
-                });
+                var stats = entriesStats[index];
+                entry._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
             });
         }.bind(this));
     };
@@ -341,7 +339,7 @@ define(function (require, exports, module) {
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{failFast: boolean=, maxDepth: number=, maxEntries: number=}=} options
+     * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
     FileSystemEntry.prototype.visit = function (visitor, options, callback) {
@@ -350,10 +348,6 @@ define(function (require, exports, module) {
             options = {};
         } else if (options === undefined) {
             options = {};
-        }
-        
-        if (options.failFast === undefined) {
-            options.failFast = false;
         }
         
         if (options.maxDepth === undefined) {
