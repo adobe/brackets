@@ -580,9 +580,9 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype._handleWatchResult = function (path, stat) {
         
-        var fireChangeEvent = function (entry) {
+        var fireChangeEvent = function (entry, added, removed) {
             // Trigger a change event
-            $(this).trigger("change", entry);
+            $(this).trigger("change", [entry, added, removed]);
         }.bind(this);
 
         if (!path) {
@@ -606,6 +606,8 @@ define(function (require, exports, module) {
                     entry._clearCachedData();
                     entry._stat = stat;
                     fireChangeEvent(entry);
+                } else {
+                    console.info("Detected duplicate file change event: ", path);
                 }
             } else {
                 var oldContents = entry._contents || [];
@@ -633,12 +635,12 @@ define(function (require, exports, module) {
                         var addCounter = entriesToAdd.length;
                         
                         if (addCounter === 0) {
-                            callback();
+                            callback([]);
                         } else {
                             entriesToAdd.forEach(function (entry) {
                                 this._watchEntry(entry, watchedRoot, function (err) {
                                     if (--addCounter === 0) {
-                                        callback();
+                                        callback(entriesToAdd);
                                     }
                                 });
                             }, this);
@@ -653,12 +655,12 @@ define(function (require, exports, module) {
                         var removeCounter = entriesToRemove.length;
                         
                         if (removeCounter === 0) {
-                            callback();
+                            callback([]);
                         } else {
                             entriesToRemove.forEach(function (entry) {
                                 this._unwatchEntry(entry, watchedRoot, function (err) {
                                     if (--removeCounter === 0) {
-                                        callback();
+                                        callback(entriesToRemove);
                                     }
                                 });
                             }, this);
@@ -668,9 +670,13 @@ define(function (require, exports, module) {
                     if (err) {
                         console.warn("Unable to get contents of changed directory: ", path, err);
                     } else {
-                        removeOldEntries(function () {
-                            addNewEntries(function () {
-                                fireChangeEvent(entry);
+                        removeOldEntries(function (removed) {
+                            addNewEntries(function (added) {
+                                if (added.length > 0 || removed.length > 0) {
+                                    fireChangeEvent(entry, added, removed);
+                                } else {
+                                    console.info("Detected duplicate directory change event: ", path);
+                                }
                             });
                         });
                     }
