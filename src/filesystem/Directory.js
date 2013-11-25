@@ -84,6 +84,25 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Apply each callback in a list to the provided arguments. Callbacks
+     * can throw without preventing other callbacks from being applied.
+     * 
+     * @private
+     * @param {Array.<function>} callbacks The callbacks to apply
+     * @param {Array} args The arguments to which each callback is applied
+     */
+    function _applyAllCallbacks(callbacks, args) {
+        if (callbacks.length > 0) {
+            var callback = callbacks.pop();
+            try {
+                callback.apply(undefined, args);
+            } finally {
+                _applyAllCallbacks(callbacks, args);
+            }
+        }
+    }
+    
+    /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
@@ -174,13 +193,8 @@ define(function (require, exports, module) {
             this._contentsCallbacks = null;
             
             // Invoke all saved callbacks
-            currentCallbacks.forEach(function (cb) {
-                try {
-                    cb(err, contents, contentsStats, contentsStatsErrors);
-                } catch (ex) {
-                    console.warn("Unhandled exception in callback: ", ex);
-                }
-            }, this);
+            var callbackArgs = [err, contents, contentsStats, contentsStatsErrors];
+            _applyAllCallbacks(currentCallbacks, callbackArgs);
         }.bind(this));
     };
     
