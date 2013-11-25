@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
+        this._watched = !!fileSystem._findWatchedRootForPath(path);
     }
     
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
@@ -89,7 +90,7 @@ define(function (require, exports, module) {
      * @type {?FileSystemStats}
      */
     FileSystemEntry.prototype._stat = null;
-
+    
     /**
      * Parent file system.
      * @type {!FileSystem}
@@ -127,6 +128,12 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._isDirectory = false;
     
     /**
+     * Whether or not the entry is watched.
+     * @type {boolean}
+     */
+    FileSystemEntry.prototype._isWatched = false;
+    
+    /**
      * Update the path for this entry
      * @private
      * @param {String} newPath
@@ -147,6 +154,16 @@ define(function (require, exports, module) {
         }
 
         this._path = newPath;
+    };
+    
+    /**
+     * Mark this entry as being watched after construction. There is no way to
+     * set an entry as being unwatched after construction because entries should
+     * be discarded upon being unwatched.
+     * @private
+     */
+    FileSystemEntry.prototype._setWatched = function () {
+        this._isWatched = true;
     };
     
     /**
@@ -176,7 +193,20 @@ define(function (require, exports, module) {
      *      string or a boolean indicating whether or not the file exists.
      */
     FileSystemEntry.prototype.exists = function (callback) {
-        this._impl.exists(this._path, callback);
+        if (this._stat) {
+            callback(null, true);
+            return;
+        }
+        
+        this._impl.exists(this._path, function (err, exists) {
+            if (err) {
+                this._clearCachedData();
+                callback(err);
+                return;
+            }
+            
+            callback(null, exists);
+        }.bind(this));
     };
     
     /**
@@ -186,11 +216,23 @@ define(function (require, exports, module) {
      *      FileSystemError string or FileSystemStats object.
      */
     FileSystemEntry.prototype.stat = function (callback) {
+        if (this._stat) {
+            callback(null, this._stat);
+            return;
+        }
+        
         this._impl.stat(this._path, function (err, stat) {
-            if (!err) {
+            if (err) {
+                this._clearCachedData();
+                callback(err);
+                return;
+            }
+            
+            if (this._isWatched) {
                 this._stat = stat;
             }
-            callback(err, stat);
+            
+            callback(null, stat);
         }.bind(this));
     };
     
@@ -206,11 +248,16 @@ define(function (require, exports, module) {
         this._fileSystem._beginWrite();
         this._impl.rename(this._path, newFullPath, function (err) {
             try {
-                if (!err) {
-                    // Notify the file system of the name change
-                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
+                if (err) {
+                    this._clearCachedData();
+                    callback(err);
+                    return;
                 }
-                callback(err);  // notify caller
+                
+                // Notify the file system of the name change
+                this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
+
+                callback(null);  // notify caller
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }
@@ -230,11 +277,9 @@ define(function (require, exports, module) {
         this._clearCachedData();
         
         this._impl.unlink(this._path, function (err) {
-            if (!err) {
-                this._fileSystem._index.removeEntry(this);
-            }
+            this._fileSystem._index.removeEntry(this);
             
-            callback.apply(undefined, arguments);
+            callback(err);
         }.bind(this));
     };
         
@@ -255,11 +300,9 @@ define(function (require, exports, module) {
         this._clearCachedData();
         
         this._impl.moveToTrash(this._path, function (err) {
-            if (!err) {
-                this._fileSystem._index.removeEntry(this);
-            }
+            this._fileSystem._index.removeEntry(this);
             
-            callback.apply(undefined, arguments);
+            callback(err);
         }.bind(this));
     };
     

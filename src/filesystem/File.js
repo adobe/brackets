@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     
     /*
@@ -58,14 +58,20 @@ define(function (require, exports, module) {
     File.prototype._contents = null;
     
     /**
-     * Clear any cached data for this file
+     * Consistency hash for this file. Reads and writes update this value, and
+     * writes confirm the hash before overwriting existing files.
+     */
+    File.prototype._hash = null;
+    
+    /**
+     * Clear any cached data for this file. Note that this explicitly does NOT
+     * clear the file's hash.
      * @private
      */
     File.prototype._clearCachedData = function () {
         this.parentClass._clearCachedData.apply(this);
         this._contents = undefined;
     };
-
     
     /**
      * Read a file.
@@ -80,11 +86,25 @@ define(function (require, exports, module) {
             options = {};
         }
         
+        if (this._contents && this._stat) {
+            callback(null, this._contents, this._stat);
+            return;
+        }
+        
         this._impl.readFile(this._path, options, function (err, data, stat) {
-            if (!err) {
-                this._stat = stat;
-                // this._contents = data;
+            if (err) {
+                this._clearCachedData();
+                callback(err);
+                return;
             }
+
+            // Only cache the stats for and contents of watched files
+            if (this._isWatched) {
+                this._stat = stat;
+                this._hash = stat._hash;
+                this._contents = data;
+            }
+            
             callback(err, data, stat);
         }.bind(this));
     };
@@ -104,16 +124,33 @@ define(function (require, exports, module) {
         }
         
         callback = callback || function () {};
+
+        // Hashes are only saved for watched files; the first disjunct is an optimization
+        var watched = this._isWatched;
         
+        // Request a consistency check if the file is watched and the write is not blind
+        if (watched && !options.blind) {
+            options.hash = this._hash;
+        }
+
         this._fileSystem._beginWrite();
         
         this._impl.writeFile(this._path, data, options, function (err, stat) {
             try {
-                if (!err) {
-                    this._stat = stat;
-                    // this._contents = data;
+                if (err) {
+                    this._clearCachedData();
+                    callback(err);
+                    return;
                 }
-                callback(err, stat);
+                
+                // Only cache the stats for and contents of watched files
+                if (watched) {
+                    this._stat = stat;
+                    this._hash = stat._hash;
+                    this._contents = data;
+                }
+                
+                callback(null, stat);
             } finally {
                 this._fileSystem._endWrite();  // unblock generic change events
             }

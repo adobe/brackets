@@ -50,9 +50,12 @@ define(function (require, exports, module) {
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
-        nfs,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
+    
+    function _getFileSystem() {
+        return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
+    }
     
     /**
      * Delete a path
@@ -62,7 +65,7 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        FileSystem.resolve(fullPath, function (err, item) {
+        _getFileSystem().resolve(fullPath, function (err, item) {
             if (!err) {
                 item.unlink(function (err) {
                     if (!err) {
@@ -143,7 +146,7 @@ define(function (require, exports, module) {
     function resolveNativeFileSystemPath(path) {
         var result = new $.Deferred();
         
-        FileSystem.resolve(path, function (err, item) {
+        _getFileSystem().resolve(path, function (err, item) {
             if (!err) {
                 result.resolve(item);
             } else {
@@ -227,7 +230,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = FileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
+            var dir = _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
                 if (err && err !== FileSystemError.ALREADY_EXISTS) {
                     deferred.reject(err);
                 } else {
@@ -251,7 +254,7 @@ define(function (require, exports, module) {
         promise = Async.doSequentially(folders, function (folder) {
             var deferred = new $.Deferred();
             
-            FileSystem.resolve(folder, function (err, entry) {
+            _getFileSystem().resolve(folder, function (err, entry) {
                 if (!err) {
                     // Change permissions if the directory exists
                     chmod(folder, "777").then(deferred.resolve, deferred.reject);
@@ -317,7 +320,7 @@ define(function (require, exports, module) {
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = FileSystem.getFileForPath(filename);
+        var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
@@ -782,7 +785,7 @@ define(function (require, exports, module) {
                 }
                 
                 // create the new File
-                createTextFile(destination, text, FileSystem).done(function (entry) {
+                createTextFile(destination, text, _getFileSystem()).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
                 }).fail(function (err) {
                     deferred.reject(err);
@@ -819,7 +822,7 @@ define(function (require, exports, module) {
         var parseOffsets    = options.parseOffsets || false,
             removePrefix    = options.removePrefix || true,
             deferred        = new $.Deferred(),
-            destDir         = FileSystem.getDirectoryForPath(destination);
+            destDir         = _getFileSystem().getDirectoryForPath(destination);
         
         // create the destination folder
         destDir.create(function (err) {

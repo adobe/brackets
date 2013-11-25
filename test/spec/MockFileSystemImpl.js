@@ -37,30 +37,30 @@ define(function (require, exports, module) {
     var _initialData = {
         "/": {
             isFile: false,
-            mtime: Date.now()
+            mtime: new Date()
         },
         "/file1.txt": {
             isFile: true,
-            mtime: Date.now(),
+            mtime: new Date(),
             contents: "File 1 Contents"
         },
         "/file2.txt": {
             isFile: true,
-            mtime: Date.now(),
+            mtime: new Date(),
             contents: "File 2 Contents"
         },
         "/subdir/": {
             isFile: false,
-            mtime: Date.now()
+            mtime: new Date()
         },
         "/subdir/file3.txt": {
             isFile: true,
-            mtime: Date.now(),
+            mtime: new Date(),
             contents: "File 3 Contents"
         },
         "/subdir/file4.txt": {
             isFile: true,
-            mtime: Date.now(),
+            mtime: new Date(),
             contents: "File 4 Contents"
         }
     };
@@ -107,16 +107,17 @@ define(function (require, exports, module) {
             stat = new FileSystemStats({
                 isFile: entry.isFile,
                 mtime: entry.mtime,
-                size: 0
+                size: entry.contents ? entry.contents.length : 0,
+                hash: entry.mtime.getTime()
             });
         }
         
         return stat;
     }
     
-    function _sendWatcherNotification(path) {
+    function _sendWatcherNotification(path, stats) {
         if (_watcherCallback) {
-            _watcherCallback(path);
+            _watcherCallback(path, stats);
         }
     }
     
@@ -192,7 +193,7 @@ define(function (require, exports, module) {
         } else {
             var entry = {
                 isFile: false,
-                mtime: Date.now()
+                mtime: new Date()
             };
             _data[path] = entry;
             cb(null, _getStat(path));
@@ -266,7 +267,7 @@ define(function (require, exports, module) {
         if (!_data[path]) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            cb(null, _data[path].contents);
+            cb(null, _data[path].contents, _getStat(path));
         }
     }
     
@@ -276,26 +277,36 @@ define(function (require, exports, module) {
             options = null;
         }
         
-        exists(path, function (err, exists) {
+        stat(path, function (err, stats) {
             var cb = _getCallback("writeFile", path, callback);
             
-            if (err) {
+            if (err && err !== FileSystemError.NOT_FOUND) {
                 cb(err);
                 return;
             }
             
+            var exists = !!stats;
+            if (exists && options.hasOwnProperty("hash") && options.hash !== stats._hash) {
+                cb(FileSystemError.CONTENTS_MODIFIED);
+                return;
+            }
+
             var notification = exists ? _sendWatcherNotification : _sendDirectoryWatcherNotification,
                 notify = _getNotification("writeFile", path, notification);
-            
-            if (!_data[path]) {
-                _data[path] = {
-                    isFile: true
-                };
+
+            if (!exists) {
+                if (!_data[path]) {
+                    _data[path] = {
+                        isFile: true
+                    };
+                }
             }
+            
             _data[path].contents = data;
-            _data[path].mtime = Date.now();
-            cb(null);
-            notify(path);
+            _data[path].mtime = new Date();
+            var newStat = _getStat(path);
+            cb(null, newStat);
+            notify(path, newStat);
         });
     }
     

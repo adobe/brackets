@@ -42,7 +42,8 @@ define(function (require, exports, module) {
         NOT_WRITABLE        : "NotWritable",
         OUT_OF_SPACE        : "OutOfSpace",
         TOO_MANY_ENTRIES    : "TooManyEntries",
-        ALREADY_EXISTS      : "AlreadyExists"
+        ALREADY_EXISTS      : "AlreadyExists",
+        CONTENTS_MODIFIED   : "ContentsModified"
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
 });
