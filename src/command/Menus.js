@@ -56,10 +56,11 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var ContextMenuIds = {
-        EDITOR_MENU:        "editor-context-menu",
-        INLINE_EDITOR_MENU: "inline-editor-context-menu",
-        PROJECT_MENU:       "project-context-menu",
-        WORKING_SET_MENU:   "working-set-context-menu"
+        EDITOR_MENU:               "editor-context-menu",
+        INLINE_EDITOR_MENU:        "inline-editor-context-menu",
+        PROJECT_MENU:              "project-context-menu",
+        WORKING_SET_MENU:          "working-set-context-menu",
+        WORKING_SET_SETTINGS_MENU: "working-set-settings-context-menu"
     };
 
 
@@ -1081,6 +1082,12 @@ define(function (require, exports, module) {
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
 
+    /**
+     * Detect if current context menu is already open
+     */
+    ContextMenu.prototype.isOpen = function () {
+        return $("#" + StringUtils.jQueryIdEscape(this.id)).hasClass("open");
+    };
     /**
      * Registers new context menu with Brackets. 
 

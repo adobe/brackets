@@ -514,12 +514,31 @@ a, img {
 /* Project panel */
 
 #working-set-header {
+    position: relative;
     height: 19px;
     padding: 10px 0 9px 12px;
     background: #3C3F41;
     color: @project-panel-text-2;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
     overflow: hidden;
+}
+
+#working-set-option-btn {
+    position: absolute;
+    right: 4px;
+    top: 2px;
+    border: 1px solid transparent;
+    padding: 4px 6px;
+    .sprite-icon(0, 0, 16px, 16px, "images/topcoat-settings-16.svg");
+    background-position:center;
+}
+
+#working-set-option-btn:hover {
+    
+    border-radius: 3px;
+    border: 1px solid #2d2f31;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+    text-decoration: none;
 }
 
 #sidebar {

@@ -195,7 +195,6 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
@@ -204,11 +203,15 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
+        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        
+        
+        var working_set_settings_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_SETTINGS_MENU);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
+        working_set_settings_cmenu.addMenuDivider();
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
@@ -274,6 +277,27 @@ define(function (require, exports, module) {
             working_set_cmenu.open(e);
         });
 
+        /**
+         * Dropdown menu for workspace sorting
+         */
+        $("#working-set-option-btn").on("click", function (e) {
+            var buttonOffset,
+                buttonHeight;
+            
+            e.stopPropagation();
+            
+            if (working_set_settings_cmenu.isOpen()) {
+                working_set_settings_cmenu.close();    
+            } else {
+                buttonOffset = $(this).offset();
+                buttonHeight = $(this).outerHeight();
+                working_set_settings_cmenu.open({
+                    pageX: buttonOffset.left,
+                    pageY: buttonOffset.top + buttonHeight
+                });
+            }
+        });
+        
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {
             e.preventDefault();
