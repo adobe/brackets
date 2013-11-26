@@ -977,7 +977,6 @@ define(function (require, exports, module) {
                 // confirm empty cached data and then read
                 runs(function () {
                     expect(file._isWatched).toBe(true);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1021,7 +1020,6 @@ define(function (require, exports, module) {
                 // confirm empty cached data and then write blindly
                 runs(function () {
                     expect(file._isWatched).toBe(true);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(writeCalls).toBe(0);
@@ -1066,7 +1064,6 @@ define(function (require, exports, module) {
                 // confirm empty cached data and then read
                 runs(function () {
                     expect(file._isWatched).toBe(true);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1116,7 +1113,6 @@ define(function (require, exports, module) {
                 // confirm empty cached data and then read
                 runs(function () {
                     expect(file._isWatched).toBe(true);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);

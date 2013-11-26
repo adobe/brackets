@@ -327,13 +327,16 @@ define(function (require, exports, module) {
         _watcherCallback = callback;
     }
     
-    function watchPath(path) {
+    function watchPath(path, callback) {
+        callback(null);
     }
     
-    function unwatchPath(path) {
+    function unwatchPath(path, callback) {
+        callback(null);
     }
     
-    function unwatchAll() {
+    function unwatchAll(callback) {
+        callback(null);
     }
 
     
