@@ -100,18 +100,21 @@ module.exports = function (grunt) {
             return getGitInfo(shell_repo);
         }).then(function (json) {
             shell_git = json;
-
+        }, function (err) {
+            // shell git info is optional
+            grunt.log.writeln(err);
+        }).finally(function () {
             out += "brackets_build_version=" + version.substr(0, version.lastIndexOf("-") + 1) + www_git.commits + "\n";
             out += toProperties("brackets_www_", www_git);
-            out += toProperties("brackets_shell_", shell_git);
+            
+            if (shell_git) {
+                out += toProperties("brackets_shell_", shell_git);
+            }
 
             grunt.log.write(out);
             grunt.file.write("build.prop", out);
 
             done();
-        }, function (err) {
-            grunt.log.writeln(err);
-            done(false);
         });
     });
 };
