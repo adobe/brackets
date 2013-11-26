@@ -344,7 +344,7 @@ define({
     "INSTALL_SUCCEEDED"                    : "Installatie succesvol!",
     "INSTALL_FAILED"                       : "Installatie gefaald.",
     "CANCELING_INSTALL"                    : "Bezig met annuleren\u2026",
-    "CANCELING_HUNG"                       : "Het annularen van de installatie duurt lang. Een intern probleem kan zijn opgetreden.",
+    "CANCELING_HUNG"                       : "Het annuleren van de installatie duurt lang. Een intern probleem kan zijn opgetreden.",
     "INSTALL_CANCELED"                     : "Installatie geannuleerd.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "De gedownloade inhoud is geen geldig zip bestand.",
