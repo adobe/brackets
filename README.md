@@ -1,4 +1,4 @@
-Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
+EDIT - Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
 This is an early version of Brackets, a code editor for HTML, CSS
