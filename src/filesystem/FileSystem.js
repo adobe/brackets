@@ -221,6 +221,15 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
+        var recursiveWatch = this._impl.recursiveWatch;
+        
+        if (recursiveWatch && entry !== watchedRoot.entry) {
+            // Watch and unwatch calls to children of the watched root are
+            // no-ops if the impl supports recursiveWatch
+            callback(null);
+            return;
+        }
+        
         var commandName = shouldWatch ? "watchPath" : "unwatchPath",
             watchOrUnwatch = this._impl[commandName].bind(this, entry.fullPath),
             visitor;
@@ -233,7 +242,7 @@ define(function (require, exports, module) {
         } else {
             genericProcessChild = function (child) {
                 child._clearCachedData();
-                this._index.removeEntry(child.fullPath);
+                this._index.removeEntry(child);
             };
         }
         
@@ -246,7 +255,7 @@ define(function (require, exports, module) {
             return false;
         };
 
-        if (this._impl.recursiveWatch) {
+        if (recursiveWatch) {
             // The impl will handle finding all subdirectories to watch. Here we
             // just need to find all entries in order to either mark them as
             // watched or to remove them from the index.
@@ -505,7 +514,7 @@ define(function (require, exports, module) {
      *      with a FileSystemError string or with the entry for the provided path.
      */
     FileSystem.prototype.resolve = function (path, callback) {
-        var normalizedPath = _normalizePath(path, false),
+        var normalizedPath = this._normalizePath(path, false),
             item = this._index.getEntry(normalizedPath);
 
         if (!item) {
@@ -619,9 +628,19 @@ define(function (require, exports, module) {
         }
         
         path = this._normalizePath(path, false);
-        var entry = this._index.getEntry(path);
         
+        var entry = this._index.getEntry(path);
         if (entry) {
+            var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
+            if (!watchedRoot) {
+                console.warn("Received change notification for unwatched path: ", path);
+                return;
+            }
+            
+            if (!watchedRoot.filter(entry.name)) {
+                return;
+            }
+
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
                 if (!(stat && entry._stat && stat.mtime.getTime() === entry._stat.mtime.getTime())) {
@@ -637,12 +656,6 @@ define(function (require, exports, module) {
                 // Clear out old contents
                 entry._clearCachedData();
                 entry._stat = stat;
-                
-                var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
-                if (!watchedRoot) {
-                    console.warn("Received change notification for unwatched path: ", path);
-                    return;
-                }
                 
                 // Update changed entries
                 entry.getContents(function (err, contents) {

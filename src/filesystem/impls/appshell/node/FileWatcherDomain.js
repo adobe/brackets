@@ -26,7 +26,12 @@
 
 "use strict";
 
-var fs = require("fs");
+var fs = require("fs"),
+    fsevents;
+
+if (process.platform === "darwin") {
+    fsevents = require("fsevents");
+}
 
 var _domainManager,
     _watcherMap = {};
@@ -38,9 +43,15 @@ var _domainManager,
 function unwatchPath(path) {
     var watcher = _watcherMap[path];
     
+    console.info("Unwatching: " + path);
+    
     if (watcher) {
         try {
-            watcher.close();
+            if (fsevents) {
+                watcher.stop();
+            } else {
+                watcher.close();
+            }
         } catch (err) {
             console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
         } finally {
@@ -58,11 +69,27 @@ function watchPath(path) {
         return;
     }
     
+    console.info("Watching: " + path);
+    
     try {
-        var watcher = fs.watch(path, {persistent: false}, function (event, filename) {
-            // File/directory changes are emitted as "change" events on the fileWatcher domain.
-            _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
-        });
+        var watcher;
+        
+        if (fsevents) {
+            watcher = fsevents(path);
+            watcher.on("change", function (filename, info) {
+                var lastIndex = filename.lastIndexOf("/") + 1,
+                    parent = lastIndex && filename.substring(0, lastIndex),
+                    name = lastIndex && filename.substring(lastIndex),
+                    type = info.event === "modified" ? "change" : "rename";
+                
+                _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
+            });
+        } else {
+            watcher = fs.watch(path, {persistent: false}, function (event, filename) {
+                // File/directory changes are emitted as "change" events on the fileWatcher domain.
+                _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
+            });
+        }
 
         _watcherMap[path] = watcher;
         
@@ -142,4 +169,3 @@ function init(domainManager) {
 }
 
 exports.init = init;
-

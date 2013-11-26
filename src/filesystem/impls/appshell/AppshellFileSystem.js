@@ -77,8 +77,6 @@ define(function (require, exports, module) {
     function _fileWatcherChange(evt, path, event, filename) {
         var change;
 
-        console.log.bind(console, "Change!").apply(undefined, arguments);
-        
         if (event === "change") {
             // Only register change events if filename is passed
             if (filename) {
@@ -397,7 +395,7 @@ define(function (require, exports, module) {
     exports.unwatchAll      = unwatchAll;
     
     // Node only supports recursive file watching on the Darwin
-    exports.recursiveWatch = false; // appshell.platform === "mac";
+    exports.recursiveWatch = appshell.platform === "mac";
     
     // Only perform UNC path normalization on Windows
     exports.normalizeUNCPaths = appshell.platform === "win";
