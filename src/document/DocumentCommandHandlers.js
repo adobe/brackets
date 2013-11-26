@@ -654,7 +654,7 @@ define(function (require, exports, module) {
             
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
-            FileUtils.writeText(newFile, doc.getText()).done(function () {
+            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old

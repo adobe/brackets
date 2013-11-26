@@ -73,13 +73,19 @@ define(function (require, exports, module) {
      * Asynchronously writes a file as UTF-8 encoded text.
      * @param {!File} file File to write
      * @param {!string} text
+     * @param {boolean=} allowBlindWrite 
      * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a FileSystemError.
      */
-    function writeText(file, text) {
-        var result = new $.Deferred();
+    function writeText(file, text, allowBlindWrite) {
+        var result = new $.Deferred(),
+            options = {};
         
-        file.write(text, function (err) {
+        if (allowBlindWrite) {
+            options.blind = true;
+        }
+        
+        file.write(text, options, function (err) {
             if (!err) {
                 result.resolve();
             } else {
