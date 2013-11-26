@@ -221,61 +221,83 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var watchPaths = [],
-            allChildren = [];
+        var commandName = shouldWatch ? "watchPath" : "unwatchPath",
+            watchOrUnwatch = this._impl[commandName].bind(this, entry.fullPath),
+            visitor;
         
-        var visitor = function (child) {
+        var genericProcessChild;
+        if (shouldWatch) {
+            genericProcessChild = function (child) {
+                child._setWatched();
+            };
+        } else {
+            genericProcessChild = function (child) {
+                child._clearCachedData();
+                this._index.removeEntry(child.fullPath);
+            };
+        }
+        
+        var genericVisitor = function (processChild, child) {
             if (watchedRoot.filter(child.name)) {
-                if (child.isDirectory || child === watchedRoot.entry) {
-                    watchPaths.push(child.fullPath);
-                }
+                processChild.call(this, child);
                 
-                allChildren.push(child);
-            
                 return true;
             }
             return false;
-        }.bind(this);
-        
-        entry.visit(visitor, function (err) {
-            if (err) {
-                callback(err);
-                return;
-            }
+        };
+
+        if (this._impl.recursiveWatch) {
+            // The impl will handle finding all subdirectories to watch. Here we
+            // just need to find all entries in order to either mark them as
+            // watched or to remove them from the index.
+            this._enqueueWatchRequest(function (callback) {
+                watchOrUnwatch(function (err) {
+                    if (err) {
+                        console.warn("Watch error: ", entry.fullPath, err);
+                        callback(err);
+                        return;
+                    }
+                    
+                    visitor = genericVisitor.bind(this, genericProcessChild);
+                    entry.visit(visitor, callback);
+                }.bind(this));
+            }.bind(this), callback);
+        } else {
+            // The impl can't handle recursive watch requests, so it's up to the
+            // filesystem to recursively watch or unwatch all subdirectories, as
+            // well as either marking all children as watched or removing them
+            // from the index.
             
-            // sort paths by max depth for a breadth-first traversal
-            var dirCount = {};
-            watchPaths.forEach(function (path) {
-                dirCount[path] = path.split("/").length;
-            });
+            var counter = 0;
             
-            watchPaths.sort(function (path1, path2) {
-                var dirCount1 = dirCount[path1],
-                    dirCount2 = dirCount[path2];
-                
-                return dirCount1 - dirCount2;
-            });
+            var processChild = function (child) {
+                if (child.isDirectory || child === watchedRoot.entry) {
+                    watchOrUnwatch(function (err) {
+                        if (err) {
+                            console.warn("Watch error: ", child.fullPath, err);
+                            return;
+                        }
+                        
+                        if (child.isDirectory) {
+                            child.getContents(function (err, contents) {
+                                if (err) {
+                                    return;
+                                }
+                                
+                                contents.forEach(function (child) {
+                                    genericProcessChild.call(this, child);
+                                }, this);
+                            }.bind(this));
+                        }
+                    }.bind(this));
+                }
+            };
             
             this._enqueueWatchRequest(function (callback) {
-                if (shouldWatch) {
-                    watchPaths.forEach(function (path, index) {
-                        this._impl.watchPath(path);
-                    }, this);
-                    allChildren.forEach(function (child) {
-                        child._setWatched();
-                    });
-                } else {
-                    watchPaths.forEach(function (path, index) {
-                        this._impl.unwatchPath(path);
-                    }, this);
-                    allChildren.forEach(function (child) {
-                        this._index.removeEntry(child);
-                    }, this);
-                }
-                
-                callback(null);
+                visitor = genericVisitor.bind(this, processChild);
+                entry.visit(visitor, callback);
             }.bind(this), callback);
-        }.bind(this));
+        }
     };
     
     /**
@@ -725,15 +747,14 @@ define(function (require, exports, module) {
             return;
         }
         
-        this._watchedRoots[fullPath] = watchedRoot;
-        
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
                 callback(err);
                 return;
             }
-            
+
+            this._watchedRoots[fullPath] = watchedRoot;
             callback(null);
         }.bind(this));
     };
@@ -759,7 +780,6 @@ define(function (require, exports, module) {
         }
 
         delete this._watchedRoots[fullPath];
-        
         this._unwatchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to unwatch root: ", entry.fullPath, err);

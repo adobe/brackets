@@ -397,7 +397,7 @@ define(function (require, exports, module) {
     exports.unwatchAll      = unwatchAll;
     
     // Node only supports recursive file watching on the Darwin
-    exports.recursiveWatch = appshell.platform === "mac";
+    exports.recursiveWatch = false; // appshell.platform === "mac";
     
     // Only perform UNC path normalization on Windows
     exports.normalizeUNCPaths = appshell.platform === "win";
