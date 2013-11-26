@@ -201,12 +201,20 @@ define(function (require, exports, module) {
      * @return {boolean} true if excluded, false otherwise.
      */
     function isFileExcluded(file) {
+        if (file.name[0] === ".") {
+            return true;
+        }
+        
+        var languageID = LanguageManager.getLanguageForPath(file.fullPath).getId();
+        if (languageID !== HintUtils.LANGUAGE_ID) {
+            return true;
+        }
+        
         var excludes = preferences.getExcludedFiles();
-
         if (!excludes) {
             return false;
         }
-
+        
         return excludes.test(file.name);
     }
 
@@ -900,11 +908,8 @@ define(function (require, exports, module) {
             FileSystem.resolve(dir, function (err, directory) {
                 function visitor(entry) {
                     if (entry.isFile) {
-                        if (!isFileExcluded(entry) && entry.name.indexOf(".") !== 0) { // ignore .dotfiles
-                            var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
-                            if (languageID === HintUtils.LANGUAGE_ID) {
-                                addFilesToTern([entry.fullPath]);
-                            }
+                        if (!isFileExcluded(entry)) { // ignore .dotfiles and non-.js files
+                            addFilesToTern([entry.fullPath]);
                         }
                     } else {
                         return !isDirectoryExcluded(entry.fullPath) &&
