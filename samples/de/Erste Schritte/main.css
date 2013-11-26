@@ -1,5 +1,10 @@
 html {
     background-color: #e6e9e9;
+    background-image: linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
+    background-image: -o-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
+    background-image: -moz-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
+    background-image: -webkit-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
+    background-image: -ms-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
 }
 
 body {
