@@ -732,6 +732,7 @@ a, img {
 .inline-widget {
     position: relative;
     overflow: hidden;
+    white-space: nowrap;
 
     background-color: @tc-lighter-gray;
     min-width: 250px;
@@ -753,6 +754,7 @@ a, img {
     .inline-editor-header {
         display: inline-block;
         padding: 10px 10px 0px 40px;
+        white-space: nowrap;
 
         .filename {
             vertical-align: middle;
@@ -826,6 +828,11 @@ a, img {
     max-width: 50%;
     overflow: hidden;
     background: @inline-background-color-2;
+    
+    // Without this, the "New Rule" button shows on top of the rule list if you resize
+    // the window narrow enough. No idea why, since there's no z-index on the button, and
+    // the other items in the header go behind the rule list.
+    z-index: 1;
 
     .selection {
         width: 100%;
