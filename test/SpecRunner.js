@@ -28,11 +28,12 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"      : "../test",
-        "perf"      : "../test/perf",
-        "spec"      : "../test/spec",
-        "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
+        "test"              : "../test",
+        "perf"              : "../test/perf",
+        "spec"              : "../test/spec",
+        "text"              : "thirdparty/text/text",
+        "i18n"              : "thirdparty/i18n/i18n",
+        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
     }
 });
 
@@ -92,9 +93,6 @@ define(function (require, exports, module) {
      * for the installer in this run of Brackets.
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
-
-    // Initialize the file system
-    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
     
     // parse URL parameters
     params.parse();
