@@ -346,8 +346,12 @@ define(function (require, exports, module) {
     FileSystem.prototype.init = function (impl) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
         
+        var changeCallback = this._enqueueWatchResult.bind(this),
+            offlineCallback = this._unwatchAll.bind(this);
+
+                
         this._impl = impl;
-        this._impl.initWatchers(this._enqueueWatchResult.bind(this));
+        this._impl.initWatchers(changeCallback, offlineCallback);
     };
     
     /**
@@ -720,7 +724,7 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+        
     /**
      * Start watching a filesystem root entry.
      * 
@@ -803,6 +807,16 @@ define(function (require, exports, module) {
             callback(null);
         }.bind(this));
     };
+    
+    /**
+     * Unwatch all watched roots. Calls unwatch on the underlying impl for each
+     * watched root and ignores errors.
+     * @private
+     */
+    FileSystem.prototype._unwatchAll = function () {
+        Object.keys(this._watchedRoots).forEach(this.unwatch, this);
+    };
+
     
     // The singleton instance
     var _instance;

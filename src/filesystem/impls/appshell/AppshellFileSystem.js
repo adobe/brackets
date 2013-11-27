@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
     var _changeCallback,            // Callback to notify FileSystem of watcher changes
+        _offlineCallback,           // Callback to notify FileSystem that watchers are offline
         _changeTimeout,             // Timeout used to batch up file watcher changes
         _pendingChanges = {};       // Pending file watcher changes
     
@@ -112,6 +113,10 @@ define(function (require, exports, module) {
     $(_nodeConnection).on("close", function (event, promise) {
         _domainsLoaded = false;
         _nodeConnectionPromise = promise.then(_reloadDomains);
+        
+        if (_offlineCallback) {
+            _offlineCallback();
+        }
     });
     
     function _execWhenConnected(name, args, callback, errback) {
@@ -349,8 +354,9 @@ define(function (require, exports, module) {
         });
     }
     
-    function initWatchers(callback) {
-        _changeCallback = callback;
+    function initWatchers(changeCallback, offlineCallback) {
+        _changeCallback = changeCallback;
+        _offlineCallback = offlineCallback;
     }
     
     function watchPath(path, callback) {
