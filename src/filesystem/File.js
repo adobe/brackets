@@ -87,6 +87,8 @@ define(function (require, exports, module) {
             options = {};
         }
         
+        // We don't need to check isWatched here because contents are only saved
+        // for watched files
         if (this._contents && this._stat) {
             callback(null, this._contents, this._stat);
             return;
@@ -99,11 +101,11 @@ define(function (require, exports, module) {
                 return;
             }
 
+            this._stat = stat;
             this._hash = stat._hash;
             
-            // Only cache the stats for and contents of watched files
+            // Only cache the contents of watched files
             if (this._isWatched) {
-                this._stat = stat;
                 this._contents = data;
             }
             
@@ -126,11 +128,9 @@ define(function (require, exports, module) {
         }
         
         callback = callback || function () {};
-
-        // Hashes are only saved for watched files
-        var watched = this._isWatched;
         
         // Request a consistency check if the file is watched and the write is not blind
+        var watched = this._isWatched;
         if (watched && !options.blind) {
             options.hash = this._hash;
         }
@@ -142,7 +142,6 @@ define(function (require, exports, module) {
             try {
                 if (err) {
                     this._clearCachedData();
-                    
                     callback(err);
                     return;
                 }
@@ -161,9 +160,13 @@ define(function (require, exports, module) {
                         this._fileSystem._handleWatchResult(this._path, stat);
                     }
                     
-                    // Update cached stats and contents if the file is watched
+                    // Wait until AFTER the synthetic change has been processed
+                    // to update the cached stats so the change handler recognizes
+                    // it is a non-duplicate change event.
+                    this._stat = stat;
+                    
+                    // Only cache the contents of watched files
                     if (watched) {
-                        this._stat = stat;
                         this._contents = data;
                     }
                 }

@@ -120,12 +120,9 @@ define(function (require, exports, module) {
             this._contentsCallbacks.push(callback);
             return;
         }
-        
-        if (this._contents) {
-            // Return cached contents
-            // Watchers aren't guaranteed to fire immediately, so it's possible this will be somewhat stale. But
-            // unlike file contents, we're willing to tolerate directory contents being stale. It should at least
-            // be up-to-date with respect to changes made internally (by this filesystem).
+
+        // Return cached contents if the directory is watched
+        if (this._contents && this._isWatched) {
             callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
@@ -168,9 +165,7 @@ define(function (require, exports, module) {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
                             
-                            if (entry._isWatched) {
-                                entry._stat = entryStats;
-                            }
+                            entry._stat = entryStats;
                             
                             contents.push(entry);
                             contentsStats.push(entryStats);
@@ -178,12 +173,10 @@ define(function (require, exports, module) {
                     
                     }
                 }, this);
-                
-                if (this._isWatched) {
-                    this._contents = contents;
-                    this._contentsStats = contentsStats;
-                    this._contentsStatsErrors = contentsStatsErrors;
-                }
+
+                this._contents = contents;
+                this._contentsStats = contentsStats;
+                this._contentsStatsErrors = contentsStatsErrors;
             }
             
             // Reset the callback list before we begin calling back so that
@@ -213,9 +206,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (this._isWatched) {
-                this._stat = stat;
-            }
+            this._stat = stat;
 
             try {
                 callback(null, stat);

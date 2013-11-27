@@ -216,7 +216,7 @@ define(function (require, exports, module) {
      *      FileSystemError string or FileSystemStats object.
      */
     FileSystemEntry.prototype.stat = function (callback) {
-        if (this._stat) {
+        if (this._stat && this._isWatched) {
             callback(null, this._stat);
             return;
         }
@@ -228,9 +228,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (this._isWatched) {
-                this._stat = stat;
-            }
+            this._stat = stat;
             
             callback(null, stat);
         }.bind(this));
@@ -297,11 +295,12 @@ define(function (require, exports, module) {
      *      string parameter.
      */
     FileSystemEntry.prototype.moveToTrash = function (callback) {
-        callback = callback || function () {};
         if (!this._impl.moveToTrash) {
             this.unlink(callback);
             return;
         }
+
+        callback = callback || function () {};
         
         this._clearCachedData();
         

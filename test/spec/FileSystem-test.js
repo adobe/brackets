@@ -1183,7 +1183,6 @@ define(function (require, exports, module) {
                     file = fileSystem.getFileForPath(filename);
                     
                     expect(file._isWatched).toBe(false);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1196,7 +1195,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
                     expect(file._isWatched).toBe(false);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeTruthy();
                     expect(readCalls).toBe(1);
@@ -1211,7 +1209,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
                     expect(file._isWatched).toBe(false);
-                    expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBe(savedHash);
                     expect(readCalls).toBe(2);
