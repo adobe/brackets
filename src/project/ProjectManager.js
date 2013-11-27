@@ -1686,9 +1686,12 @@ define(function (require, exports, module) {
      * @private 
      * Respond to a FileSystem change event.
      */
-    _fileSystemChange = function (event, item) {
-        // TODO: Refresh file tree too - once watchers are precise enough to notify only
-        // when real changes occur, instead of on every window focus!
+    _fileSystemChange = function (event, entry, added, removed) {
+        if (entry) {
+            // Use the added and removed sets to update the project tree here.
+        } else {
+            refreshFileTree();
+        }
         
         FileSyncManager.syncOpenDocuments();
     };
