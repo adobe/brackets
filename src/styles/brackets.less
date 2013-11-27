@@ -732,12 +732,11 @@ a, img {
 .inline-widget {
     position: relative;
     overflow: hidden;
-    white-space: nowrap;
 
     background-color: @tc-lighter-gray;
     min-width: 250px;
     cursor: default;
-
+    
     &.animating {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
@@ -751,10 +750,13 @@ a, img {
         height: auto;
     }
 
+    .inline-text-editor {
+        white-space: nowrap;
+    }
+
     .inline-editor-header {
         display: inline-block;
         padding: 10px 10px 0px 40px;
-        white-space: nowrap;
 
         .filename {
             vertical-align: middle;
@@ -778,7 +780,7 @@ a, img {
             }
         }
     }
-
+    
     .shadow {
         display: block;
         height: 4px;
