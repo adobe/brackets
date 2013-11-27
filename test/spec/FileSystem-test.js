@@ -868,9 +868,9 @@ define(function (require, exports, module) {
                     });
                     
                     $(fileSystem).on("change", function (evt, entry) {
-                        // this is the important check: both callbacks should have already run!
-                        expect(write1Done).toBe(true);
-                        expect(write2Done).toBe(true);
+                        // change for file N should not precede write callback for write to N
+                        expect(write1Done || entry.fullPath !== "/file1.txt").toBe(true);
+                        expect(write2Done || entry.fullPath !== "/file2.txt").toBe(true);
                         
                         expect(entry.fullPath === "/file1.txt" || entry.fullPath === "/file2.txt").toBe(true);
                         if (entry.fullPath === "/file1.txt") {
