@@ -958,7 +958,11 @@ define(function LiveDevelopment(require, exports, module) {
                 if (doc) {
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
-                    Inspector.Page.navigate(doc.url);
+                    if (_server) {
+                        Inspector.Page.navigate(_server.pathToUrl(doc.file.fullPath));
+                    } else {
+                        console.error("LiveDevelopment._onInterstitialPageLoad(): No server active");
+                    }
                 } else {
                     // Unlikely that we would get to this state where
                     // a connection is in process but there is no current
@@ -1252,7 +1256,8 @@ define(function LiveDevelopment(require, exports, module) {
         
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
-        var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
+        var docUrl = _server && _server.pathToUrl(doc.file.fullPath),
+            wasRequested = agents.network && agents.network.wasURLRequested(docUrl),
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
         
         if (!wasRequested && isViewable) {
@@ -1296,7 +1301,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
         if (doc && Inspector.connected() &&
-                agents.network && agents.network.wasURLRequested(doc.url)) {
+                _server && agents.network && agents.network.wasURLRequested(_server.pathToUrl(doc.file.fullPath))) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(_docIsOutOfSync(doc) ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }
