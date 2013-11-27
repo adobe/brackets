@@ -153,8 +153,14 @@ define(function (require, exports, module) {
             if (err) {
                 callback(_mapError(err));
             } else {
-                var options = { isFile: stats.isFile(), mtime: stats.mtime, size: stats.size },
-                    fsStats = new FileSystemStats(options);
+                var options = {
+                    isFile: stats.isFile(),
+                    mtime: stats.mtime,
+                    size: stats.size,
+                    realPath: stats.realPath
+                };
+                    
+                var fsStats = new FileSystemStats(options);
                 
                 callback(null, fsStats);
             }
