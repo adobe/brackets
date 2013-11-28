@@ -364,7 +364,7 @@ define(function (require, exports, module) {
         
         _execWhenConnected("watchPath", [path],
                            callback.bind(undefined, null),
-                           callback.bind(undefined));
+                           callback);
     }
     
     function unwatchPath(path, callback) {
@@ -372,7 +372,7 @@ define(function (require, exports, module) {
         
         _execWhenConnected("unwatchPath", [path],
                            callback.bind(undefined, null),
-                           callback.bind(undefined));
+                           callback);
     }
     
     function unwatchAll(callback) {
@@ -380,7 +380,7 @@ define(function (require, exports, module) {
         
         _execWhenConnected("watchPath", [],
                            callback.bind(undefined, null),
-                           callback.bind(undefined));
+                           callback);
     }
     
     // Export public API
