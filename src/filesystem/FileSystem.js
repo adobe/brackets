@@ -814,7 +814,13 @@ define(function (require, exports, module) {
      * @private
      */
     FileSystem.prototype._unwatchAll = function () {
+        console.warn("File watchers went offline!");
+        
         Object.keys(this._watchedRoots).forEach(this.unwatch, this);
+        
+        // Fire a wholesale change event because all previously watched entries
+        // have been removed from the index and should no longer be referenced
+        this._handleWatchResult(null);
     };
 
     
