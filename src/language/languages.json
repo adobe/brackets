@@ -208,6 +208,12 @@
         "fileExtensions": ["yaml", "yml"]
     },
 
+    "toml": {
+        "name": "TOML",
+        "mode": "toml",
+        "fileExtensions": ["toml"]
+    },
+
     "hx": {
         "name": "Haxe",
         "mode": "haxe",
