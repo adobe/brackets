@@ -268,22 +268,12 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * creates a DOM node to place in the editor-holder
-     * in order to display an image.
-     * @param {!string} fullPath  path to image file
-     * @return {JQuery}
-     *
-     */
-    function getCustomViewHolder(fullPath) {
-        return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
-    }
     
     /** 
      * sign off listeners when editor manager closes
      * the image viewer
      */
-    function _removeListeners() {
+    function onRemove() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
         $("#img").off("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
@@ -293,10 +283,15 @@ define(function (require, exports, module) {
     /** 
      * Perform decorations on the view that require loading the image in the browser,
      * i.e. getting actual and natural width and height andplacing the scale sticker
-     * @param {!string} fullPath path to the image file
+     * @param {!string} fullPath Path to the image file
+     * @param {!jQueryObject} $editorHolder The DOM element to append the view to.
      */
-    function render(fullPath) {
-        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+    function render(fullPath, $editorHolder) {
+        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath),
+            $customViewer = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
+
+        // place DOM node to hold image
+        $editorHolder.append($customViewer);
 
         _scale = 100;   // initialize to 100
         _scaleDivInfo = null;
@@ -326,10 +321,11 @@ define(function (require, exports, module) {
                 }
             });
             $("#image-holder").show();
+            
             // listen to resize to  update the scale sticker
             $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
-            // listen to removal to stop listening to resize events
-            $(EditorManager).on("removeCustomViewer", _removeListeners);
+            
+            // make sure we always show the right file name
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
             $("#img-tip").hide();
@@ -349,8 +345,9 @@ define(function (require, exports, module) {
                 $(".img-guide").css("cursor", "crosshair");
             }
         });
+        return $customViewer;
     }
     
-    exports.getCustomViewHolder = getCustomViewHolder;
     exports.render              = render;
+    exports.onRemove            = onRemove;
 });

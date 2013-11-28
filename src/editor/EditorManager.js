@@ -78,6 +78,8 @@ define(function (require, exports, module) {
     var _$currentCustomViewer = null;
     /** @type {?Object} view provider */
     var _currentViewProvider = null;
+    /** @type {?Object} view provider registry */
+    var _customViewerRegistry = {};
     
     /**
      * Currently focused Editor (full-size, inline, or otherwise)
@@ -625,9 +627,12 @@ define(function (require, exports, module) {
     
     /** Remove existing custom view if present */
     function _removeCustomViewer() {
-        $(exports).triggerHandler("removeCustomViewer");
+        
         if (_$currentCustomViewer) {
             _$currentCustomViewer.remove();
+            if (_currentViewProvider.onRemove) {
+                _currentViewProvider.onRemove();
+            }
         }
         _$currentCustomViewer = null;
         _currentViewProvider = null;
@@ -663,15 +668,11 @@ define(function (require, exports, module) {
         // Hide the not-editor or reset current editor
         $("#not-editor").css("display", "none");
         _nullifyEditor();
-
+        
         _currentViewProvider = provider;
-        _$currentCustomViewer = provider.getCustomViewHolder(fullPath);
-
-        // place in window
-        $("#editor-holder").append(_$currentCustomViewer);
         
         // add path, dimensions and file size to the view after loading image
-        provider.render(fullPath);
+        _$currentCustomViewer = provider.render(fullPath, $("#editor-holder"));
         
         _setCurrentlyViewedPath(fullPath);
     }
@@ -685,6 +686,39 @@ define(function (require, exports, module) {
      */
     function showingCustomViewerForPath(fullPath) {
         return (_currentViewProvider && _currentlyViewedPath === fullPath);
+    }
+    
+    /**
+     * Registers a new custom viewer provider.  To create an extension that enables Brackets
+     * to view files that are not supported by CodeMirror, i.e.  binary or proprietary
+     * file types, use this method to register a CustomViewer.
+     * 
+     * A CustomViewer, such as ImageViewer in Brackets core needs to 
+     * implement and export two methods: 
+     * - render
+     *      @param {!string} fullPath Path to the image file
+     *      @param {!jQueryObject} $editorHolder The DOM element to append the view to.     
+     *      function render(fullPath, $editorHolder)  
+     * - function onRemove()
+     *      signs off listeners and performs any required clean up when editor manager closes
+     *      the custom viewer
+     *
+     * By registering a CustomViewer with EditorManager  Brackets is
+     * enabled to view files for one or more given file extensions. 
+     * The first argument defines a so called languageId which bundles
+     * file extensions to be handled by the custom viewer, see more in LanguageManager JSDocs
+     * The second argument is an instantiated instance of the custom viewer that is ready to display 
+     * files.
+     * 
+     * @param {!String} languageId, i.e. string such as image, audio, etc to identify a language known to LanguageManager 
+     * @param {!Object} provider custom view provider instance
+     */
+    function registerCustomViewerProvider(langId, provider) {
+        if (!_customViewerRegistry[langId]) {
+            _customViewerRegistry[langId] = provider;
+        } else {
+            console.error("There already is a custom viewer registered for language id  \"" + langId + "\"");
+        }
     }
     
     /**
@@ -705,15 +739,8 @@ define(function (require, exports, module) {
      */
     function getCustomViewerForPath(fullPath) {
         var lang = LanguageManager.getLanguageForPath(fullPath);
-        if (lang.getId() === "image") {
-            // TODO: Extensibility
-            // For now we only have the image viewer, so just return ImageViewer object.
-            // Once we have each viewer registers with EditorManager as a provider,
-            // then we return the provider registered with the language id.
-            return ImageViewer;
-        }
         
-        return null;
+        return _customViewerRegistry[lang.getId()];
     }
     
     /** 
@@ -972,6 +999,8 @@ define(function (require, exports, module) {
     });
     CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
     
+    registerCustomViewerProvider("image", ImageViewer);
+    
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
@@ -1011,6 +1040,7 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
+    exports.registerCustomViewerProvider  = registerCustomViewerProvider;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.closeCustomViewer             = closeCustomViewer;
