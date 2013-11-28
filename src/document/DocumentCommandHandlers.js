@@ -65,7 +65,7 @@ define(function (require, exports, module) {
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
     /** @type {string} String template for window title. Use emdash on mac only. */
-    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
+    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -134,6 +134,8 @@ define(function (require, exports, module) {
         // current project or the full absolute path if it's not in the project.
         if (doc.isUntitled()) {
             return fullPath.substring(fullPath.lastIndexOf("/") + 1);
+        } else if (brackets.platform === "mac") {
+            return fullPath;
         } else {
             return ProjectManager.makeProjectRelativeIfPossible(fullPath);
         }
