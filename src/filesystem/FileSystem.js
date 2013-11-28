@@ -348,7 +348,6 @@ define(function (require, exports, module) {
         
         var changeCallback = this._enqueueWatchResult.bind(this),
             offlineCallback = this._unwatchAll.bind(this);
-
                 
         this._impl = impl;
         this._impl.initWatchers(changeCallback, offlineCallback);
@@ -740,8 +739,9 @@ define(function (require, exports, module) {
     FileSystem.prototype.watch = function (entry, filter, callback) {
         var fullPath = entry.fullPath,
             watchedRoot = {
-                entry: entry,
-                filter: filter
+                entry   : entry,
+                filter  : filter,
+                active  : false
             };
         
         callback = callback || function () {};
@@ -764,6 +764,8 @@ define(function (require, exports, module) {
             return;
         }
         
+        this._watchedRoots[fullPath] = watchedRoot;
+        
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
@@ -771,7 +773,8 @@ define(function (require, exports, module) {
                 return;
             }
 
-            this._watchedRoots[fullPath] = watchedRoot;
+            watchedRoot.active = true;
+            
             callback(null);
         }.bind(this));
     };
@@ -796,13 +799,16 @@ define(function (require, exports, module) {
             return;
         }
 
-        delete this._watchedRoots[fullPath];
+        watchedRoot.active = false;
+        
         this._unwatchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to unwatch root: ", entry.fullPath, err);
                 callback(err);
                 return;
             }
+            
+            delete this._watchedRoots[fullPath];
             
             callback(null);
         }.bind(this));
