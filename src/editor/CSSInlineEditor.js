@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings"),
+        ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
 
     var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
@@ -329,50 +330,52 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * Helper function to add a sub-directory to string displayed in list
-         */
-        function _addSubDir(fileInfo) {
-            var dirSplit = fileInfo.fullPath.split("/"),
-                index = dirSplit.length - fileInfo.subDirCount - 2;
-            
-            fileInfo.subDirStr = dirSplit.slice(index, dirSplit.length - 1).join("/");
-            fileInfo.subDirCount++;
-        }
-        
-        /**
-         * @private
          * Prepare file list for display
          */
         function _prepFileList(fileInfos) {
-            var i,
-                done = false;
+            var i, j, firstDupeIndex,
+                displayPaths = [],
+                dupeList = [];
             
             // Add subdir field to each entry
             fileInfos.forEach(function (fileInfo) {
                 fileInfo.subDirStr = "";
-                fileInfo.subDirCount = 0;
             });
 
-            // Each pass through loop re-sorts and then adds a subdir to
-            // duplicates to try to differentiate. Loop until no dupes remain.
-            while (!done) {
-                // Done unless a dupe is found
-                done = true;
-                
-                // Sort by name
-                fileInfos.sort(_sortFileInfos);
-                
-                // For identical names, add a subdir
-                for (i = 1; i < fileInfos.length; i++) {
-                    if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
-                        // Duplicate found. Add a subdir to both.
-                        done = false;
-                        _addSubDir(fileInfos[i - 1]);
-                        _addSubDir(fileInfos[i]);
+            // Add directory path to files with the same name so they can be
+            // distinguished in list. Start with list sorted by name.
+            fileInfos.sort(_sortFileInfos);
+
+            // For identical names, add a subdir
+            for (i = 1; i < fileInfos.length; i++) {
+                if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
+                    // Duplicates found
+                    firstDupeIndex = i - 1;
+                    dupeList.push(fileInfos[i - 1]);
+                    dupeList.push(fileInfos[i]);
+
+                    // Lookahead for more dupes
+                    while (++i < fileInfos.length &&
+                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
+                        dupeList.push(fileInfos[i]);
                     }
+
+                    // Get minimum subdir to make each unique
+                    displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
+
+                    // Add a subdir to each dupe entry
+                    for (j = 0; j < displayPaths.length; j++) {
+                        fileInfos[firstDupeIndex + j].subDirStr = displayPaths[j];
+                    }
+
+                    // Release memory
+                    dupeList = [];
                 }
             }
             
+            // Sort by name again, so paths are sorted
+            fileInfos.sort(_sortFileInfos);
+
             return fileInfos;
         }
         

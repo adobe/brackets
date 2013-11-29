@@ -153,8 +153,14 @@ define(function (require, exports, module) {
             if (err) {
                 callback(_mapError(err));
             } else {
-                var options = { isFile: stats.isFile(), mtime: stats.mtime, size: stats.size },
-                    fsStats = new FileSystemStats(options);
+                var options = {
+                    isFile: stats.isFile(),
+                    mtime: stats.mtime,
+                    size: stats.size,
+                    realPath: stats.realPath
+                };
+                    
+                var fsStats = new FileSystemStats(options);
                 
                 callback(null, fsStats);
             }
@@ -164,10 +170,15 @@ define(function (require, exports, module) {
     function exists(path, callback) {
         stat(path, function (err) {
             if (err) {
-                callback(false);
-            } else {
-                callback(true);
+                if (err === FileSystemError.NOT_FOUND) {
+                    callback(null, false);
+                } else {
+                    callback(err);
+                }
+                return;
             }
+
+            callback(null, true);
         });
     }
     
@@ -262,7 +273,12 @@ define(function (require, exports, module) {
     function writeFile(path, data, options, callback) {
         var encoding = options.encoding || "utf8";
         
-        exists(path, function (alreadyExists) {
+        exists(path, function (err, alreadyExists) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            
             appshell.fs.writeFile(path, data, encoding, function (err) {
                 if (err) {
                     callback(_mapError(err));
@@ -409,4 +425,7 @@ define(function (require, exports, module) {
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
     exports.unwatchAll      = unwatchAll;
+    
+    // Only perform UNC path normalization on Windows
+    exports.normalizeUNCPaths = appshell.platform === "win";
 });

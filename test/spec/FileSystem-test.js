@@ -142,7 +142,9 @@ define(function (require, exports, module) {
             });
             
             it("should eliminate duplicated (contiguous) slashes", function () {
+                MockFileSystemImpl.normalizeUNCPaths = false;
                 testPrefixes(["", "c:"], function () {
+                    expectNormDir("/", "/");
                     expectNormDir("//", "/");
                     expectNormDir("///", "/");
                     expectNormDir("//foo", "/foo/");
@@ -152,6 +154,56 @@ define(function (require, exports, module) {
                     expectNormDir("/foo//bar", "/foo/bar/");
                     expectNormDir("/foo///bar", "/foo/bar/");
                     
+                    expectNormFile("/foo", "/foo");
+                    expectNormFile("//foo", "/foo");
+                    expectNormFile("///foo", "/foo");
+                    expectNormFile("/foo//bar", "/foo/bar");
+                    expectNormFile("/foo///bar", "/foo/bar");
+                    expectNormFile("//foo///bar", "/foo/bar");
+                    expectNormFile("///foo///bar", "/foo/bar");
+                    expectNormFile("///foo//bar", "/foo/bar");
+                    expectNormFile("///foo/bar", "/foo/bar");
+                });
+            });
+            
+            it("should normalize continguous-slash prefixes for UNC paths", function () {
+                // UNC paths should have leading slashes reduced to a single leading pair
+                MockFileSystemImpl.normalizeUNCPaths = true;
+                testPrefixes([""], function () {
+                    expectNormDir("/", "/");
+                    expectNormDir("//", "//");
+                    expectNormDir("///", "//");
+                    expectNormDir("//foo", "//foo/");
+                    expectNormDir("/foo//", "/foo/");
+                    expectNormDir("//foo//", "//foo/");
+                    expectNormDir("///foo///", "//foo/");
+                    expectNormDir("/foo//bar", "/foo/bar/");
+                    expectNormDir("/foo///bar", "/foo/bar/");
+                    
+                    expectNormFile("/foo", "/foo");
+                    expectNormFile("//foo", "//foo");
+                    expectNormFile("///foo", "//foo");
+                    expectNormFile("/foo//bar", "/foo/bar");
+                    expectNormFile("/foo///bar", "/foo/bar");
+                    expectNormFile("//foo///bar", "//foo/bar");
+                    expectNormFile("///foo///bar", "//foo/bar");
+                    expectNormFile("///foo//bar", "//foo/bar");
+                    expectNormFile("///foo/bar", "//foo/bar");
+                });
+                
+                // UNC paths do not begin with a letter, so normalization is unchanged 
+                testPrefixes(["c:"], function () {
+                    expectNormDir("/", "/");
+                    expectNormDir("//", "/");
+                    expectNormDir("///", "/");
+                    expectNormDir("//foo", "/foo/");
+                    expectNormDir("/foo//", "/foo/");
+                    expectNormDir("//foo//", "/foo/");
+                    expectNormDir("///foo///", "/foo/");
+                    expectNormDir("/foo//bar", "/foo/bar/");
+                    expectNormDir("/foo///bar", "/foo/bar/");
+                    
+                    expectNormFile("/foo", "/foo");
                     expectNormFile("//foo", "/foo");
                     expectNormFile("///foo", "/foo");
                     expectNormFile("/foo//bar", "/foo/bar");
@@ -410,7 +462,8 @@ define(function (require, exports, module) {
                     cbCalled = false;
                 
                 runs(function () {
-                    directory.exists(function (exists) {
+                    directory.exists(function (err, exists) {
+                        expect(err).toBeFalsy();
                         expect(exists).toBe(false);
                         cbCalled = true;
                     });
@@ -422,7 +475,8 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    directory.exists(function (exists) {
+                    directory.exists(function (err, exists) {
+                        expect(err).toBeFalsy();
                         expect(exists).toBe(true);
                     });
                 });
@@ -488,7 +542,8 @@ define(function (require, exports, module) {
                     newContents = "New file contents";
                 
                 runs(function () {
-                    file.exists(function (exists) {
+                    file.exists(function (err, exists) {
+                        expect(err).toBeFalsy();
                         expect(exists).toBe(false);
                         cbCalled = true;
                     });

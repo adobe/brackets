@@ -718,18 +718,26 @@ define(function (require, exports, module) {
     
     /** 
      * Clears custom viewer for a file with a given path and displays 
-     * either a file from the working set or the no editor view.
-     * @param {!string} fullPath - file path of deleted file.
+     * an alternate file or the no editor view. 
+     * If no param fullpath is passed an alternate file will be opened 
+     * regardless of the current value of _currentlyViewedPath.
+     * If param fullpath is provided then only if fullpath matches 
+     * the currently viewed file an alternate file will be opened.
+     * @param {?string} fullPath - file path of deleted file.
      */
     function notifyPathDeleted(fullPath) {
-        if (_currentlyViewedPath === fullPath) {
+        function openAlternateFile() {
             var fileToOpen = DocumentManager.getNextPrevFile(1);
             if (fileToOpen) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileToOpen.fullPath});
             } else {
                 _removeCustomViewer();
                 _showNoEditor();
+                _setCurrentlyViewedPath();
             }
+        }
+        if (!fullPath || _currentlyViewedPath === fullPath) {
+            openAlternateFile();
         }
     }
     

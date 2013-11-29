@@ -96,7 +96,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // create the test folder and init the test files
                 var testFiles = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files");
-                waitsForDone(SpecRunnerUtils.copyPath(testFiles, baseDir), "copy temp files");
+                waitsForDone(SpecRunnerUtils.copy(testFiles, baseDir), "copy temp files");
             });
             runs(function () {
                 // Pre-test setup - set permissions on special directories 
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
         describe("makedir", function () {
             
             it("should make a new directory", function () {
-                var newDirName  = baseDir + "/new_dir",
+                var newDirName  = baseDir + "/brackets_unittests_new_dir",
                     cb          = errSpy(),
                     statCB      = statSpy(),
                     trashCB     = errSpy();
@@ -818,7 +818,7 @@ define(function (require, exports, module) {
             var error, complete, isDirectory;
             
             it("should move a file to the trash", function () {
-                var newFileName = baseDir + "/delete_me.txt",
+                var newFileName = baseDir + "/brackets_unittests_delete_me.txt",
                     writeFileCB = errSpy(),
                     trashCB     = errSpy();
                 
@@ -858,7 +858,7 @@ define(function (require, exports, module) {
             });
             
             it("should move a folder to the trash", function () {
-                var newDirName  = baseDir + "/dir_to_delete",
+                var newDirName  = baseDir + "/brackets_unittests_dir_to_delete",
                     makedirCB   = errSpy(),
                     trashCB     = errSpy();
                 
