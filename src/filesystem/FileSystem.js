@@ -221,64 +221,92 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var watchPaths = [],
-            allChildren;
+        var recursiveWatch = this._impl.recursiveWatch;
         
-        if (!shouldWatch) {
-            allChildren = [];
+        if (recursiveWatch && entry !== watchedRoot.entry) {
+            // Watch and unwatch calls to children of the watched root are
+            // no-ops if the impl supports recursiveWatch
+            callback(null);
+            return;
         }
         
-        var visitor = function (child) {
+        var commandName = shouldWatch ? "watchPath" : "unwatchPath",
+            watchOrUnwatch = this._impl[commandName].bind(this, entry.fullPath),
+            visitor;
+        
+        var genericProcessChild;
+        if (shouldWatch) {
+            genericProcessChild = function (child) {
+                child._setWatched();
+            };
+        } else {
+            genericProcessChild = function (child) {
+                child._clearCachedData();
+                this._index.removeEntry(child);
+            };
+        }
+        
+        var genericVisitor = function (processChild, child) {
             if (watchedRoot.filter(child.name)) {
-                if (child.isDirectory || child === watchedRoot.entry) {
-                    watchPaths.push(child.fullPath);
-                }
+                processChild.call(this, child);
                 
-                if (!shouldWatch) {
-                    allChildren.push(child);
-                }
-            
                 return true;
             }
             return false;
-        }.bind(this);
-        
-        entry.visit(visitor, function (err) {
-            if (err) {
-                callback(err);
-                return;
-            }
+        };
+
+        if (recursiveWatch) {
+            // The impl will handle finding all subdirectories to watch. Here we
+            // just need to find all entries in order to either mark them as
+            // watched or to remove them from the index.
+            this._enqueueWatchRequest(function (callback) {
+                watchOrUnwatch(function (err) {
+                    if (err) {
+                        console.warn("Watch error: ", entry.fullPath, err);
+                        callback(err);
+                        return;
+                    }
+                    
+                    visitor = genericVisitor.bind(this, genericProcessChild);
+                    entry.visit(visitor, callback);
+                }.bind(this));
+            }.bind(this), callback);
+        } else {
+            // The impl can't handle recursive watch requests, so it's up to the
+            // filesystem to recursively watch or unwatch all subdirectories, as
+            // well as either marking all children as watched or removing them
+            // from the index.
             
-            // sort paths by max depth for a breadth-first traversal
-            var dirCount = {};
-            watchPaths.forEach(function (path) {
-                dirCount[path] = path.split("/").length;
-            });
+            var counter = 0;
             
-            watchPaths.sort(function (path1, path2) {
-                var dirCount1 = dirCount[path1],
-                    dirCount2 = dirCount[path2];
-                
-                return dirCount1 - dirCount2;
-            });
+            var processChild = function (child) {
+                if (child.isDirectory || child === watchedRoot.entry) {
+                    watchOrUnwatch(function (err) {
+                        if (err) {
+                            console.warn("Watch error: ", child.fullPath, err);
+                            return;
+                        }
+                        
+                        if (child.isDirectory) {
+                            child.getContents(function (err, contents) {
+                                if (err) {
+                                    return;
+                                }
+                                
+                                contents.forEach(function (child) {
+                                    genericProcessChild.call(this, child);
+                                }, this);
+                            }.bind(this));
+                        }
+                    }.bind(this));
+                }
+            };
             
             this._enqueueWatchRequest(function (callback) {
-                if (shouldWatch) {
-                    watchPaths.forEach(function (path, index) {
-                        this._impl.watchPath(path);
-                    }, this);
-                } else {
-                    watchPaths.forEach(function (path, index) {
-                        this._impl.unwatchPath(path);
-                    }, this);
-                    allChildren.forEach(function (child) {
-                        this._index.removeEntry(child);
-                    }, this);
-                }
-                
-                callback(null);
+                visitor = genericVisitor.bind(this, processChild);
+                entry.visit(visitor, callback);
             }.bind(this), callback);
-        }.bind(this));
+        }
     };
     
     /**
@@ -310,25 +338,19 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @param {function(?string)=} callback Callback resolved, possibly with a
-     *      FileSystemError string.
+     * Initialize this FileSystem instance.
+     * 
+     * @param {FileSystemImpl} impl The back-end implementation for this
+     *      FileSystem instance.
      */
-    FileSystem.prototype.init = function (impl, callback) {
+    FileSystem.prototype.init = function (impl) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
         
-        callback = callback || function () {};
-        
+        var changeCallback = this._enqueueWatchResult.bind(this),
+            offlineCallback = this._unwatchAll.bind(this);
+                
         this._impl = impl;
-        this._impl.init(function (err) {
-            if (err) {
-                callback(err);
-                return;
-            }
-            
-            // Initialize watchers
-            this._impl.initWatchers(this._enqueueWatchResult.bind(this));
-            callback(null);
-        }.bind(this));
+        this._impl.initWatchers(changeCallback, offlineCallback);
     };
     
     /**
@@ -387,6 +409,14 @@ define(function (require, exports, module) {
     FileSystem.isAbsolutePath = function (fullPath) {
         return (fullPath[0] === "/" || fullPath[1] === ":");
     };
+
+    function _appendTrailingSlash(path) {
+        if (path[path.length - 1] !== "/") {
+            path += "/";
+        }
+
+        return path;
+    }
     
     /*
      * Matches continguous groups of forward slashes
@@ -430,9 +460,7 @@ define(function (require, exports, module) {
         
         if (isDirectory) {
             // Make sure path DOES include trailing slash
-            if (path[path.length - 1] !== "/") {
-                path += "/";
-            }
+            path = _appendTrailingSlash(path);
         }
         
         if (isUNCPath) {
@@ -489,20 +517,32 @@ define(function (require, exports, module) {
      *      with a FileSystemError string or with the entry for the provided path.
      */
     FileSystem.prototype.resolve = function (path, callback) {
-        // No need to normalize path here: assume underlying stat() does it internally,
-        // and it will be normalized anyway when ingested by get*ForPath() afterward
+        var normalizedPath = this._normalizePath(path, false),
+            item = this._index.getEntry(normalizedPath);
+
+        if (!item) {
+            normalizedPath = _appendTrailingSlash(normalizedPath);
+            item = this._index.getEntry(normalizedPath);
+        }
+        
+        if (item && item._stat) {
+            callback(null, item, item._stat);
+            return;
+        }
         
         this._impl.stat(path, function (err, stat) {
-            var item;
-            
-            if (!err) {
-                if (stat.isFile) {
-                    item = this.getFileForPath(path);
-                } else {
-                    item = this.getDirectoryForPath(path);
-                }
+            if (err) {
+                callback(err);
+                return;
             }
-            callback(err, item, stat);
+            
+            if (stat.isFile) {
+                item = this.getFileForPath(path);
+            } else {
+                item = this.getDirectoryForPath(path);
+            }
+            
+            callback(null, item, stat);
         }.bind(this));
     };
     
@@ -633,18 +673,16 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype._handleWatchResult = function (path, stat) {
         
-        var fireChangeEvent = function (entry) {
+        var fireChangeEvent = function (entry, added, removed) {
             // Trigger a change event
-            $(this).trigger("change", entry);
+            $(this).trigger("change", [entry, added, removed]);
         }.bind(this);
 
         if (!path) {
             // This is a "wholesale" change event
             // Clear all caches (at least those that won't do a stat() double-check before getting used)
             this._index.visitAll(function (entry) {
-                if (entry.isDirectory) {
-                    entry._clearCachedData();
-                }
+                entry._clearCachedData();
             });
             
             fireChangeEvent(null);
@@ -652,29 +690,34 @@ define(function (require, exports, module) {
         }
         
         path = this._normalizePath(path, false);
-        var entry = this._index.getEntry(path);
         
+        var entry = this._index.getEntry(path);
         if (entry) {
+            var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
+            if (!watchedRoot) {
+                console.warn("Received change notification for unwatched path: ", path);
+                return;
+            }
+            
+            if (!watchedRoot.filter(entry.name)) {
+                return;
+            }
+
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
-                if (!stat || !entry._stat || (stat.mtime.getTime() !== entry._stat.mtime.getTime())) {
+                if (!(stat && entry._stat && stat.mtime.getTime() === entry._stat.mtime.getTime())) {
                     entry._clearCachedData();
                     entry._stat = stat;
+                    fireChangeEvent(entry);
+                } else {
+                    console.info("Detected duplicate file change event: ", path);
                 }
-                
-                fireChangeEvent(entry);
             } else {
                 var oldContents = entry._contents || [];
                 
                 // Clear out old contents
                 entry._clearCachedData();
                 entry._stat = stat;
-                
-                var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
-                if (!watchedRoot) {
-                    console.warn("Received change notification for unwatched path: ", path);
-                    return;
-                }
                 
                 // Update changed entries
                 entry.getContents(function (err, contents) {
@@ -689,12 +732,12 @@ define(function (require, exports, module) {
                         var addCounter = entriesToAdd.length;
                         
                         if (addCounter === 0) {
-                            callback();
+                            callback([]);
                         } else {
                             entriesToAdd.forEach(function (entry) {
                                 this._watchEntry(entry, watchedRoot, function (err) {
                                     if (--addCounter === 0) {
-                                        callback();
+                                        callback(entriesToAdd);
                                     }
                                 });
                             }, this);
@@ -709,12 +752,12 @@ define(function (require, exports, module) {
                         var removeCounter = entriesToRemove.length;
                         
                         if (removeCounter === 0) {
-                            callback();
+                            callback([]);
                         } else {
                             entriesToRemove.forEach(function (entry) {
                                 this._unwatchEntry(entry, watchedRoot, function (err) {
                                     if (--removeCounter === 0) {
-                                        callback();
+                                        callback(entriesToRemove);
                                     }
                                 });
                             }, this);
@@ -724,9 +767,13 @@ define(function (require, exports, module) {
                     if (err) {
                         console.warn("Unable to get contents of changed directory: ", path, err);
                     } else {
-                        removeOldEntries(function () {
-                            addNewEntries(function () {
-                                fireChangeEvent(entry);
+                        removeOldEntries(function (removed) {
+                            addNewEntries(function (added) {
+                                if (added.length > 0 || removed.length > 0) {
+                                    fireChangeEvent(entry, added, removed);
+                                } else {
+                                    console.info("Detected duplicate directory change event: ", path);
+                                }
                             });
                         });
                     }
@@ -735,7 +782,7 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+        
     /**
      * Start watching a filesystem root entry.
      * 
@@ -751,8 +798,9 @@ define(function (require, exports, module) {
     FileSystem.prototype.watch = function (entry, filter, callback) {
         var fullPath = entry.fullPath,
             watchedRoot = {
-                entry: entry,
-                filter: filter
+                entry   : entry,
+                filter  : filter,
+                active  : false
             };
         
         callback = callback || function () {};
@@ -783,6 +831,8 @@ define(function (require, exports, module) {
                 callback(err);
                 return;
             }
+
+            watchedRoot.active = true;
             
             callback(null);
         }.bind(this));
@@ -808,7 +858,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        delete this._watchedRoots[fullPath];
+        watchedRoot.active = false;
         
         this._unwatchEntry(entry, watchedRoot, function (err) {
             if (err) {
@@ -817,9 +867,27 @@ define(function (require, exports, module) {
                 return;
             }
             
+            delete this._watchedRoots[fullPath];
+            
             callback(null);
         }.bind(this));
     };
+    
+    /**
+     * Unwatch all watched roots. Calls unwatch on the underlying impl for each
+     * watched root and ignores errors.
+     * @private
+     */
+    FileSystem.prototype._unwatchAll = function () {
+        console.warn("File watchers went offline!");
+        
+        Object.keys(this._watchedRoots).forEach(this.unwatch, this);
+        
+        // Fire a wholesale change event because all previously watched entries
+        // have been removed from the index and should no longer be referenced
+        this._handleWatchResult(null);
+    };
+
     
     // The singleton instance
     var _instance;
@@ -845,6 +913,10 @@ define(function (require, exports, module) {
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
+
+    // Private methods
+    exports._findWatchedRootForPath = _wrap(FileSystem.prototype._findWatchedRootForPath);
+
     
     // Export "on" and "off" methods
     

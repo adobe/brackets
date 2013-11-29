@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         OUT_OF_SPACE        : "OutOfSpace",
         TOO_MANY_ENTRIES    : "TooManyEntries",
         ALREADY_EXISTS      : "AlreadyExists",
-        LINK_CYCLE          : "LinkCycle"
+        CONTENTS_MODIFIED   : "ContentsModified"
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
 });

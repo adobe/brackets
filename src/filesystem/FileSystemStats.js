@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         this._isDirectory = !isFile;
         this._mtime = options.mtime;
         this._size = options.size;
+        this._hash = options.hash;
         
         var realPath = options.realPath;
         if (realPath) {

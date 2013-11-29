@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry"),
+        FileSystemError = require("filesystem/FileSystemError");
     
     
     /*
@@ -58,14 +59,20 @@ define(function (require, exports, module) {
     File.prototype._contents = null;
     
     /**
-     * Clear any cached data for this file
+     * Consistency hash for this file. Reads and writes update this value, and
+     * writes confirm the hash before overwriting existing files.
+     */
+    File.prototype._hash = null;
+    
+    /**
+     * Clear any cached data for this file. Note that this explicitly does NOT
+     * clear the file's hash.
      * @private
      */
     File.prototype._clearCachedData = function () {
         this.parentClass._clearCachedData.apply(this);
         this._contents = undefined;
     };
-
     
     /**
      * Read a file.
@@ -80,11 +87,28 @@ define(function (require, exports, module) {
             options = {};
         }
         
+        // We don't need to check isWatched here because contents are only saved
+        // for watched files
+        if (this._contents && this._stat) {
+            callback(null, this._contents, this._stat);
+            return;
+        }
+        
         this._impl.readFile(this._path, options, function (err, data, stat) {
-            if (!err) {
-                this._stat = stat;
-                // this._contents = data;
+            if (err) {
+                this._clearCachedData();
+                callback(err);
+                return;
             }
+
+            this._stat = stat;
+            this._hash = stat._hash;
+            
+            // Only cache the contents of watched files
+            if (this._isWatched) {
+                this._contents = data;
+            }
+            
             callback(err, data, stat);
         }.bind(this));
     };
@@ -105,17 +129,50 @@ define(function (require, exports, module) {
         
         callback = callback || function () {};
         
+        // Request a consistency check if the file is watched and the write is not blind
+        var watched = this._isWatched;
+        if (watched && !options.blind) {
+            options.hash = this._hash;
+        }
+        
+        // Block external change events until after the write has finished
         this._fileSystem._beginWrite();
         
-        this._impl.writeFile(this._path, data, options, function (err, stat) {
+        this._impl.writeFile(this._path, data, options, function (err, stat, created) {
             try {
-                if (!err) {
-                    this._stat = stat;
-                    // this._contents = data;
+                if (err) {
+                    this._clearCachedData();
+                    callback(err);
+                    return;
                 }
-                callback(err, stat);
+                
+                this._hash = stat._hash;
+                
+                try {
+                    callback(null, stat);
+                } finally {
+                    // If the write succeeded, fire a synthetic change event
+                    if (created) {
+                        // new file created
+                        this._fileSystem._handleWatchResult(this._parentPath);
+                    } else {
+                        // existing file modified
+                        this._fileSystem._handleWatchResult(this._path, stat);
+                    }
+                    
+                    // Wait until AFTER the synthetic change has been processed
+                    // to update the cached stats so the change handler recognizes
+                    // it is a non-duplicate change event.
+                    this._stat = stat;
+                    
+                    // Only cache the contents of watched files
+                    if (watched) {
+                        this._contents = data;
+                    }
+                }
             } finally {
-                this._fileSystem._endWrite();  // unblock generic change events
+                // Always unblock external change events
+                this._fileSystem._endWrite();
             }
         }.bind(this));
     };

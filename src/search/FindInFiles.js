@@ -111,6 +111,14 @@ define(function (require, exports, module) {
     
     /** @type {FindInFilesDialog} dialog having the modalbar for search */
     var dialog = null;
+    
+    /**
+     * FileSystem change event handler. Updates the search results based on a changed
+     * entry and optionally sets of added and removed child entries.
+     * 
+     * @type {function(FileSystemEntry, Array.<FileSystemEntry>=, Array.<FileSystemEntry>=)}
+     **/
+    var _fileSystemChangeHandler;
 
     /**
      * @private
@@ -171,7 +179,7 @@ define(function (require, exports, module) {
             return Strings.FIND_IN_FILES_NO_SCOPE;
         }
     }
-
+    
     /**
      * @private
      * Hides the Search Results Panel
@@ -181,8 +189,9 @@ define(function (require, exports, module) {
             searchResultsPanel.hide();
             $(DocumentModule).off(".findInFiles");
         }
+        
+        FileSystem.off("change", _fileSystemChangeHandler);
     }
-    
     
     /**
      * @private
@@ -234,6 +243,7 @@ define(function (require, exports, module) {
      * @param {string} fullPath
      * @param {string} contents
      * @param {RegExp} queryExpr
+     * @return {boolean} True iff matches were added to the search results
      */
     function _addSearchMatches(fullPath, contents, queryExpr) {
         var matches = _getSearchMatches(contents, queryExpr);
@@ -243,7 +253,9 @@ define(function (require, exports, module) {
                 matches:   matches,
                 collapsed: false
             };
+            return true;
         }
+        return false;
     }
     
     /**
@@ -270,7 +282,6 @@ define(function (require, exports, module) {
     function _getLastCurrentStart(numMatches) {
         return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
     }
-    
     
     /**
      * @private
@@ -479,6 +490,8 @@ define(function (require, exports, module) {
                 dialog._close();
                 dialog = null;
             }
+            
+            FileSystem.on("change", _fileSystemChangeHandler);
         } else {
 
             _hideSearchResults();
@@ -493,9 +506,7 @@ define(function (require, exports, module) {
             }
         }
     }
-
-
-
+    
     /**
      * @private
      * Shows the search results and tries to restore the previous scroll and selection
@@ -518,7 +529,7 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
     /**
      * @private
      * Update the search results using the given list of changes fr the given document
@@ -652,6 +663,26 @@ define(function (require, exports, module) {
             }
         }
     }
+    
+    function _doSearchInOneFile(addMatches, file) {
+        var result = new $.Deferred();
+                    
+        if (!_inScope(file, currentScope)) {
+            result.resolve();
+        } else {
+            DocumentManager.getDocumentText(file)
+                .done(function (text) {
+                    addMatches(file.fullPath, text, currentQueryExpr);
+                    result.resolve();
+                })
+                .fail(function (error) {
+                    // Always resolve. If there is an error, this file
+                    // is skipped and we move on to the next file.
+                    result.resolve();
+                });
+        }
+        return result.promise();
+    }
 
     /**
      * @private
@@ -673,7 +704,7 @@ define(function (require, exports, module) {
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
         ProjectManager.getAllFiles(true)
-            .done(function (fileListResult) {
+            .then(function (fileListResult) {
                 var filesToRead = fileListResult.filter(function (file) {
                     if (!_inScope(file, currentScope)) {
                         return;
@@ -688,10 +719,10 @@ define(function (require, exports, module) {
                     return true;
                 });
                 
+                var deferred = $.Deferred();
                 FileSystem.readAllAsText(filesToRead, function (err, results) {
                     if (err) {
-                        StatusBar.hideBusyIndicator();
-                        PerfUtils.finalizeMeasurement(perfTimer);
+                        deferred.reject(err);
                         return;
                     }
                     
@@ -702,13 +733,21 @@ define(function (require, exports, module) {
                             _addSearchMatches(file.fullPath, result.data, currentQueryExpr);
                         }
                     });
-                    
-                    // Done searching all files: show results
-                    _showSearchResults();
-                    StatusBar.hideBusyIndicator();
-                    PerfUtils.addMeasurement(perfTimer);
-                    $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                    deferred.resolve();
                 });
+                return deferred.promise();
+            })
+            .done(function () {
+                // Done searching all files: show results
+                _showSearchResults();
+                StatusBar.hideBusyIndicator();
+                PerfUtils.addMeasurement(perfTimer);
+                $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+            })
+            .fail(function (err) {
+                console.log("find in files failed: ", err);
+                StatusBar.hideBusyIndicator();
+                PerfUtils.finalizeMeasurement(perfTimer);
             });
     }
     
@@ -881,49 +920,49 @@ define(function (require, exports, module) {
      * Handle a FileSystem "change" event
      * @param {$.Event} event
      * @param {FileSystemEntry} entry
+     * @param {Array.<FileSystemEntry>=} added Added children
+     * @param {Array.<FileSystemEntry>=} removed Removed children
      */
-    function _fileSystemChangeHandler(event, entry) {
+    _fileSystemChangeHandler = function (event, entry, added, removed) {
         if (entry && entry.isDirectory) {
             var resultsChanged = false;
             
-            // This is a temporary watcher implementation that needs to be updated
-            // once we have our final watcher API. Specifically, we will be adding
-            // 'added' and 'removed' parameters to this function to easily determine
-            // which files/folders have been added or removed.
-            //
-            // In the meantime, do a quick check for directory changed events to see
-            // if any of the search results files have been deleted.
-            if (searchResultsPanel.isVisible()) {
-                entry.getContents(function (err, contents) {
-                    if (!err) {
-                        var _includesPath = function (fullPath) {
-                            return _.some(contents, function (item) {
-                                return item.fullPath === fullPath;
-                            });
-                        };
-                        
-                        // Update the search results
-                        _.forEach(searchResults, function (item, fullPath) {
-                            if (fullPath.lastIndexOf("/") === entry.fullPath.length - 1) {
-                                // The changed directory includes this entry. Make sure the file still exits.
-                                if (!_includesPath(fullPath)) {
-                                    delete searchResults[fullPath];
-                                    resultsChanged = true;
-                                }
-                            }
-                        });
-                        
-                        // Restore the results if needed
-                        if (resultsChanged) {
-                            _restoreSearchResults();
-                        }
+            if (removed && removed.length > 0) {
+                var _includesPath = function (fullPath) {
+                    return _.some(removed, function (item) {
+                        return item.fullPath === fullPath;
+                    });
+                };
+                
+                // Clear removed entries from the search results
+                _.forEach(searchResults, function (item, fullPath) {
+                    if (fullPath.indexOf(entry.fullPath) === 0 && _includesPath(fullPath)) {
+                        // The changed directory includes this entry and it was not removed.
+                        delete searchResults[fullPath];
+                        resultsChanged = true;
                     }
                 });
             }
+            
+            var addPromise;
+            if (added && added.length > 0) {
+                var doSearch = _doSearchInOneFile.bind(undefined, function () {
+                    var resultsAdded = _addSearchMatches.apply(undefined, arguments);
+                    resultsChanged = resultsChanged || resultsAdded;
+                });
+                addPromise = Async.doInParallel(added, doSearch);
+            } else {
+                addPromise = $.Deferred().resolve().promise();
+            }
+            
+            addPromise.done(function () {
+                // Restore the results if needed
+                if (resultsChanged) {
+                    _restoreSearchResults();
+                }
+            });
         }
-    }
-    
-    
+    };
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -938,8 +977,6 @@ define(function (require, exports, module) {
     // Initialize: register listeners
     $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
-    
-    FileSystem.on("change", _fileSystemChangeHandler);
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
