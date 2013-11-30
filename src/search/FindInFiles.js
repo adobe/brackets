@@ -720,7 +720,7 @@ define(function (require, exports, module) {
                 });
                 
                 var deferred = $.Deferred();
-                FileSystem.readAllAsText(filesToRead, function (err, results) {
+                FileSystem.readAll(filesToRead, function (err, results) {
                     if (err) {
                         deferred.reject(err);
                         return;

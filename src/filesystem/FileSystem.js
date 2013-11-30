@@ -546,15 +546,16 @@ define(function (require, exports, module) {
         }.bind(this));
     };
     
-    FileSystem.prototype.readAllAsText = function (files, encoding, callback) {
-        if (typeof encoding === "function") {
-            callback = encoding;
-            encoding = "utf8";
+    FileSystem.prototype.readAll = function (files, options, callback) {
+        if (typeof options === "function") {
+            callback = options;
+            options = {};
         }
         
         if (this._impl.hasOwnProperty("readAllFiles")) {
+            // TODO: Only read uncached files
             var paths = files.map(function (file) { return file.fullPath; });
-            this._impl.readAllFiles(paths, {encoding: encoding}, callback);
+            this._impl.readAllFiles(paths, options, callback);
         } else {
             var count = files.length,
                 results = new Array(count);
@@ -565,7 +566,7 @@ define(function (require, exports, module) {
             }
             
             files.forEach(function (file, index) {
-                file.readAsText(encoding, function (err, data) {
+                file.read(options, function (err, data) {
                     if (err) {
                         results[index] = {err: err};
                     } else {
@@ -905,7 +906,7 @@ define(function (require, exports, module) {
     exports.getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
     exports.getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
     exports.resolve = _wrap(FileSystem.prototype.resolve);
-    exports.readAllAsText = _wrap(FileSystem.prototype.readAllAsText);
+    exports.readAll = _wrap(FileSystem.prototype.readAll);
     exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
     exports.watch = _wrap(FileSystem.prototype.watch);
