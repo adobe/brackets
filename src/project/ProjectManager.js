@@ -1237,7 +1237,7 @@ define(function (require, exports, module) {
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
-    function createNewItem(baseDir, initialName, skipRename, isFolder) {
+    function createNewItem(baseDir, initialName, skipRename, isFolder, copyReadData) {
         var node                = null,
             selection           = _projectTree.jstree("get_selected"),
             selectionEntry      = null,
@@ -1382,14 +1382,27 @@ define(function (require, exports, module) {
                         } else {
                             // Create an empty file
                             var file = FileSystem.getFileForPath(newItemPath);
-                            
-                            file.write("", function (err) {
-                                if (err) {
-                                    errorCallback(err);
-                                } else {
-                                    successCallback(file);
-                                }
-                            });
+                            if (copyReadData) {
+                                var oldFile = FileSystem.getFileForPath(copyReadData);
+                                oldFile.read(function (err, data) {
+                                    
+                                    file.write(data, function (err) {
+                                        if (err) {
+                                            errorCallback(err);
+                                        } else {
+                                            successCallback(file);
+                                        }
+                                    });
+                                });
+                            } else {
+                                file.write(data, function (err) {
+                                    if (err) {
+                                        errorCallback(err);
+                                    } else {
+                                        successCallback(file);
+                                    }
+                                });
+                            }
                         }
                     }
                 });

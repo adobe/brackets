@@ -1298,7 +1298,7 @@ define(function (require, exports, module) {
             /* Create duplicated item */
             var pos = entry._name.lastIndexOf('.');
             var copiedFileName = entry._name.substring(0,pos) + '-copy.' + entry._name.substring(pos+1);
-            ProjectManager.createNewItem(entry._parentPath, copiedFileName, false, false);
+            ProjectManager.createNewItem(entry._parentPath, copiedFileName, false, false, entry._path);
             
         }
     }
