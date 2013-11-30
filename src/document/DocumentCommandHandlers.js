@@ -1293,11 +1293,11 @@ define(function (require, exports, module) {
     function handleFileDuplicate() {
         var entry = ProjectManager.getSelectedItem();
         if (entry.isDirectory) {
-            console.error("Folder cannot be duplicated yet.");
+            ProjectManager.createNewItem(entry._parentPath, entry._name + "-copy", false, true, entry._path);
         } else {
             /* Create duplicated item */
             var pos = entry._name.lastIndexOf('.');
-            var copiedFileName = entry._name.substring(0,pos) + '-copy.' + entry._name.substring(pos+1);
+            var copiedFileName = entry._name.substring(0, pos) + '-copy.' + entry._name.substring(pos + 1);
             ProjectManager.createNewItem(entry._parentPath, copiedFileName, false, false, entry._path);
             
         }

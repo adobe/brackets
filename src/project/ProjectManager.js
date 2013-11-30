@@ -1233,11 +1233,12 @@ define(function (require, exports, module) {
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
      * @param isFolder {boolean} If true, create a folder instead of a file
+     * @param copyFilePath {File} If defined, this file will be used for duplicating the file
      * @return {$.Promise} A promise object that will be resolved with the File
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
-    function createNewItem(baseDir, initialName, skipRename, isFolder, copyReadData) {
+    function createNewItem(baseDir, initialName, skipRename, isFolder, copyFilePath) {
         var node                = null,
             selection           = _projectTree.jstree("get_selected"),
             selectionEntry      = null,
@@ -1382,10 +1383,10 @@ define(function (require, exports, module) {
                         } else {
                             // Create an empty file
                             var file = FileSystem.getFileForPath(newItemPath);
-                            if (copyReadData) {
-                                var oldFile = FileSystem.getFileForPath(copyReadData);
-                                oldFile.read(function (err, data) {
-                                    
+                            if (copyFilePath) {
+                                var copyFile = FileSystem.getFileForPath(copyFilePath);
+                                
+                                copyFile.read(function (readError, data) {
                                     file.write(data, function (err) {
                                         if (err) {
                                             errorCallback(err);
@@ -1395,7 +1396,7 @@ define(function (require, exports, module) {
                                     });
                                 });
                             } else {
-                                file.write(data, function (err) {
+                                file.write("", function (err) {
                                     if (err) {
                                         errorCallback(err);
                                     } else {
