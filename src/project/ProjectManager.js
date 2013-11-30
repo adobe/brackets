@@ -1399,6 +1399,7 @@ define(function (require, exports, module) {
             }
         });
         
+        
         // TODO (issue #115): Need API to get tree node for baseDir.
         // In the meantime, pass null for node so new item is placed
         // relative to the selection

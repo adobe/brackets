@@ -1288,6 +1288,20 @@ define(function (require, exports, module) {
             ProjectManager.deleteItem(entry);
         }
     }
+    
+    /* Duplicate the selected file in the same folder. Filename will be original file name + '-copy'*/
+    function handleFileDuplicate() {
+        var entry = ProjectManager.getSelectedItem();
+        if (entry.isDirectory) {
+            console.error("Folder cannot be duplicated yet.");
+        } else {
+            /* Create duplicated item */
+            var pos = entry._name.lastIndexOf('.');
+            var copiedFileName = entry._name.substring(0,pos) + '-copy.' + entry._name.substring(pos+1);
+            ProjectManager.createNewItem(entry._parentPath, copiedFileName, false, false);
+            
+        }
+    }
 
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
     function handleShowInOS() {
@@ -1327,6 +1341,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
     CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
+    CommandManager.register(Strings.CMD_FILE_DUPLICATE,     Commands.FILE_DUPLICATE, handleFileDuplicate);
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
@@ -1342,6 +1357,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+
     
     // Those commands have no UI representation, and are only used internally 
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,        _handleAbortQuit);

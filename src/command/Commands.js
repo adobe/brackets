@@ -51,6 +51,7 @@ define(function (require, exports, module) {
     exports.FILE_PROJECT_SETTINGS       = "file.projectSettings";       // ProjectManager.js            _projectSettings()
     exports.FILE_RENAME                 = "file.rename";                // DocumentCommandHandlers.js   handleFileRename()
     exports.FILE_DELETE                 = "file.delete";                // DocumentCommandHandlers.js   handleFileDelete()
+    exports.FILE_DUPLICATE              = "file.duplicate";             // DocumentCommandHandlers.js   handleFileDuplicate()
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";      // ExtensionManagerDialog.js    _showDialog()
     exports.FILE_REFRESH                = "file.refresh";               // ProjectManager.js            refreshFileTree()
     
