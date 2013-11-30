@@ -100,19 +100,13 @@ define(function (require, exports, module) {
             });
     }
     
-    function _reloadDomains() {
-        return _loadDomains().done(function () {
-            // call back into the filesystem here to restore any previously watched paths.
-        });
-    }
-    
     var _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
     
     $(_nodeConnection).on("fileWatcher.change", _fileWatcherChange);
     
     $(_nodeConnection).on("close", function (event, promise) {
         _domainsLoaded = false;
-        _nodeConnectionPromise = promise.then(_reloadDomains);
+        _nodeConnectionPromise = promise.then(_loadDomains);
         
         if (_offlineCallback) {
             _offlineCallback();
@@ -160,15 +154,6 @@ define(function (require, exports, module) {
             return FileSystemError.ALREADY_EXISTS;
         }
         return FileSystemError.UNKNOWN;
-    }
-    
-    /** Returns the path of the item's containing directory (item may be a file or a directory) */
-    function _parentPath(path) {
-        var lastSlash = path.lastIndexOf("/");
-        if (lastSlash === path.length - 1) {
-            lastSlash = path.lastIndexOf("/", lastSlash - 1);
-        }
-        return path.substr(0, lastSlash + 1);
     }
     
     function _wrap(cb) {
