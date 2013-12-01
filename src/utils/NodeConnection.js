@@ -480,11 +480,17 @@ define(function (require, exports, module) {
             
             // TODO: Don't replace the domain object every time. Instead, merge.
             self.domains = {};
+            self.domainEvents = {};
             spec.forEach(function (domainSpec) {
                 self.domains[domainSpec.domain] = {};
                 domainSpec.commands.forEach(function (commandSpec) {
                     self.domains[domainSpec.domain][commandSpec.name] =
                         makeCommandFunction(domainSpec.domain, commandSpec);
+                });
+                self.domainEvents[domainSpec.domain] = {};
+                domainSpec.events.forEach(function (eventSpec) {
+                    var parameters = eventSpec.parameters.parameters;
+                    self.domainEvents[domainSpec.domain][eventSpec.name] = parameters;
                 });
             });
             deferred.resolve();

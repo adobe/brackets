@@ -213,6 +213,24 @@ define(function (require, exports, module) {
             );
         });
         
+        it("should parse domain event specifications", function () {
+            var connection = createConnection();
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["TestCommandsOne"], false);
+            runs(function () {
+                expect(connection.domainEvents.test.eventOne.length).toBe(2);
+                expect(connection.domainEvents.test.eventOne[0].name).toBe('argOne');
+                expect(connection.domainEvents.test.eventOne[0].type).toBe('string');
+                expect(connection.domainEvents.test.eventOne[1].name).toBe('argTwo');
+                expect(connection.domainEvents.test.eventOne[1].type).toBe('string');
+                expect(connection.domainEvents.test.eventTwo.length).toBe(2);
+                expect(connection.domainEvents.test.eventTwo[0].name).toBe('argOne');
+                expect(connection.domainEvents.test.eventTwo[0].type).toBe('boolean');
+                expect(connection.domainEvents.test.eventTwo[1].name).toBe('argTwo');
+                expect(connection.domainEvents.test.eventTwo[1].type).toBe('boolean');
+            });
+        });
+        
         it("should receive command errors and continue to run", function () {
             var connection = createConnection();
             var commandDeferred = null;
