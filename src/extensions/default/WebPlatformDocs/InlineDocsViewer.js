@@ -167,13 +167,7 @@ define(function (require, exports, module) {
         }
 
         if (event.type === "keydown") {
-            if (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP) {
-                scrollingUp = true;
-            } else if (keyCode === KeyEvent.DOM_VK_DOWN || keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
-                scrollingUp = false;
-            } else {
-                return false;   // not scrolling
-            }
+            scrollingUp = (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP);
             
             // If content has no scrollbar, let host editor scroll normally
             scroller = this.$scroller[0];
