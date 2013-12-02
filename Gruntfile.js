@@ -57,7 +57,6 @@ module.exports = function (grunt) {
                         dest: 'dist/',
                         cwd: 'src/',
                         src: [
-                            'config.json',
                             'nls/{,*/}*.js',
                             'xorigin.js',
                             'dependencies.js',
@@ -126,6 +125,7 @@ module.exports = function (grunt) {
                     useStrict: true,
                     // Disable closure, we want define/require to be globals
                     wrap: false,
+                    exclude: ["text!config.json"],
                     uglify2: {} // https://github.com/mishoo/UglifyJS2
                 }
             }
@@ -299,7 +299,8 @@ module.exports = function (grunt) {
 
     // task: build
     grunt.registerTask('build', [
-        'test',
+        'jshint:src',
+        'jasmine',
         'clean',
         'less',
         'targethtml',
@@ -310,7 +311,8 @@ module.exports = function (grunt) {
         /*'cssmin',*/
         /*'uglify',*/
         'copy',
-        'usemin'
+        'usemin',
+        'build-config'
     ]);
 
     // Default task.
