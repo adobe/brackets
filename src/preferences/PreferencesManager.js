@@ -221,7 +221,7 @@ define(function (require, exports, module) {
     });
     
     var stateManager = new PreferencesBase.PreferencesManager();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
         
@@ -240,6 +240,7 @@ define(function (require, exports, module) {
     exports.save = preferencesManager.save.bind(preferencesManager);
     exports.setValueAndSave = setValueAndSave;
     exports.addScope = preferencesManager.addScope.bind(preferencesManager);
+    exports.removeScope = preferencesManager.removeScope.bind(preferencesManager);
     exports.stateManager = stateManager;
     exports.FileStorage = PreferencesBase.FileStorage;
     exports.SETTINGS_FILENAME = SETTINGS_FILENAME;

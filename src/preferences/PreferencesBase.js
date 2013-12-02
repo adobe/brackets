@@ -523,6 +523,10 @@ define(function (require, exports, module) {
             return deferred.promise();
         },
         
+        removeScope: function (id) {
+            // TODO
+        },
+        
         addLayer: function (id, layer) {
             this._layers.push({
                 id: id,
