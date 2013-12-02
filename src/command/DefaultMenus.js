@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
+        ContextMenu     = require("command/Menus"),
         EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
         Strings         = require("strings");
@@ -280,24 +281,8 @@ define(function (require, exports, module) {
         /**
          * Dropdown menu for workspace sorting
          */
-        $("#working-set-option-btn").on("click", function (e) {
-            var buttonOffset,
-                buttonHeight;
-            
-            e.stopPropagation();
-            
-            if (working_set_settings_cmenu.isOpen()) {
-                working_set_settings_cmenu.close();    
-            } else {
-                buttonOffset = $(this).offset();
-                buttonHeight = $(this).outerHeight();
-                working_set_settings_cmenu.open({
-                    pageX: buttonOffset.left,
-                    pageY: buttonOffset.top + buttonHeight
-                });
-            }
-        });
-        
+        Menus.ContextMenu.assignContextMenuToSelector("#working-set-option-btn", working_set_settings_cmenu);
+
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {
             e.preventDefault();
