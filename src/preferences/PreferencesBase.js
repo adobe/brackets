@@ -472,7 +472,8 @@ define(function (require, exports, module) {
     PreferencesManager.prototype = new MergedMap();
     
     _.extend(PreferencesManager.prototype, {
-        definePreference: function (id, type, initial, options) {            options = options || {};
+        definePreference: function (id, type, initial, options) {
+            options = options || {};
             if (this._knownPrefs.hasOwnProperty(id)) {
                 throw new Error("Preference " + id + " was redefined");
             }
