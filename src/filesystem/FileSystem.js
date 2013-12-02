@@ -247,7 +247,7 @@ define(function (require, exports, module) {
         }
         
         var genericVisitor = function (processChild, child) {
-            if (watchedRoot.filter(child.name)) {
+            if (watchedRoot.filter(child.name, child.parentPath)) {
                 processChild.call(this, child);
                 
                 return true;
@@ -276,9 +276,6 @@ define(function (require, exports, module) {
             // filesystem to recursively watch or unwatch all subdirectories, as
             // well as either marking all children as watched or removing them
             // from the index.
-            
-            var counter = 0;
-            
             var processChild = function (child) {
                 if (child.isDirectory || child === watchedRoot.entry) {
                     watchOrUnwatch(function (err) {
@@ -373,7 +370,7 @@ define(function (require, exports, module) {
         var parentRoot = this._findWatchedRootForPath(path);
                 
         if (parentRoot) {
-            return parentRoot.filter(name);
+            return parentRoot.filter(name, path);
         }
         
         // It might seem more sensible to return false (exclude) for files outside the watch roots, but
@@ -640,7 +637,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (!watchedRoot.filter(entry.name)) {
+            if (!watchedRoot.filter(entry.name, entry.parentPath)) {
                 return;
             }
 
