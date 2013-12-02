@@ -747,7 +747,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         var watchingParentRoot = this._findWatchedRootForPath(fullPath);
-        if (watchingParentRoot) {
+        if (watchingParentRoot && watchingParentRoot.active) {
             callback("A parent of this root is already watched");
             return;
         }
@@ -759,7 +759,7 @@ define(function (require, exports, module) {
             return watchedPath.indexOf(fullPath) === 0;
         }, this);
         
-        if (watchingChildRoot) {
+        if (watchingChildRoot && watchingChildRoot.active) {
             callback("A child of this root is already watched");
             return;
         }
@@ -769,6 +769,7 @@ define(function (require, exports, module) {
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
+                delete this._watchedRoots[fullPath];
                 callback(err);
                 return;
             }
@@ -802,14 +803,14 @@ define(function (require, exports, module) {
         watchedRoot.active = false;
         
         this._unwatchEntry(entry, watchedRoot, function (err) {
+            delete this._watchedRoots[fullPath];
+            
             if (err) {
                 console.warn("Failed to unwatch root: ", entry.fullPath, err);
                 callback(err);
                 return;
             }
-            
-            delete this._watchedRoots[fullPath];
-            
+
             callback(null);
         }.bind(this));
     };

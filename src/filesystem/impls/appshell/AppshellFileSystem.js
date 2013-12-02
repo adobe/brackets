@@ -45,10 +45,53 @@ define(function (require, exports, module) {
         _nodePath       = "node/FileWatcherDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeConnection = new NodeConnection(),
-        _domainsLoaded  = false;
+        _domainLoaded   = false;    // Whether the fileWatcher domain has been loaded
     
-    function _enqueueChange(change, needsStats) {
-        _pendingChanges[change] = _pendingChanges[change] || needsStats;
+    /**
+     * A promise that resolves when the NodeConnection object is connected and
+     * the fileWatcher domain has been loaded.
+     *
+     * @type {?jQuery.Promise}
+     */
+    var _nodeConnectionPromise;
+    
+    /**
+     * Load the fileWatcher domain on the assumed-open NodeConnection object
+     *
+     * @private
+     */
+    function _loadDomains() {
+        return _nodeConnection
+            .loadDomains(_domainPath, true)
+            .done(function () {
+                _domainLoaded = true;
+                _nodeConnectionPromise = null;
+            });
+    }
+        
+    // Initialize the connection and connection promise
+    _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
+    
+    // Setup the close handler. Re-initializes the connection promise and
+    // notifies the FileSystem that watchers have gone offline.
+    $(_nodeConnection).on("close", function (event, promise) {
+        _domainLoaded = false;
+        _nodeConnectionPromise = promise.then(_loadDomains);
+        
+        if (_offlineCallback) {
+            _offlineCallback();
+        }
+    });
+    
+    /**
+     * Enqueue a file change event for eventual reporting back to the FileSystem.
+     * 
+     * @param {string} changedPath The path that was changed
+     * @param {boolean} needsStats Whether or not the eventual change event should include stats
+     * @private
+     */
+    function _enqueueChange(changedPath, needsStats) {
+        _pendingChanges[changedPath] = _pendingChanges[changedPath] || needsStats;
 
         if (!_changeTimeout) {
             _changeTimeout = window.setTimeout(function () {
@@ -75,6 +118,15 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Event handler for the Node fileWatcher domain's change event.
+     * 
+     * @param {jQuery.Event} The underlying change event
+     * @param {string} path The path that is reported to have changed
+     * @param {string} event The type of the event: either "change" or "rename"
+     * @param {string=} filename The name of the file that changed.
+     * @private
+     */
     function _fileWatcherChange(evt, path, event, filename) {
         var change;
 
@@ -91,47 +143,48 @@ define(function (require, exports, module) {
             _enqueueChange(change, false);
         }
     }
-    
-    function _loadDomains() {
-        return _nodeConnection
-            .loadDomains(_domainPath, true)
-            .done(function () {
-                _domainsLoaded = true;
-            });
-    }
-    
-    var _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
-    
+
+    // Setup the change handler. This only needs to happen once.
     $(_nodeConnection).on("fileWatcher.change", _fileWatcherChange);
     
-    $(_nodeConnection).on("close", function (event, promise) {
-        _domainsLoaded = false;
-        _nodeConnectionPromise = promise.then(_loadDomains);
+    /**
+     * Execute the named function from the fileWatcher domain when the
+     * NodeConnection is connected and the domain has been loaded. Additional
+     * parameters are passed as arguments to the command.
+     * 
+     * @param {string} name The name of the command to execute
+     * @return {jQuery.Promise} Resolves with the results of the command.
+     * @private
+     */
+    function _execWhenConnected(name) {
+        var params = Array.prototype.slice.call(arguments, 1);
         
-        if (_offlineCallback) {
-            _offlineCallback();
-        }
-    });
-    
-    function _execWhenConnected(name, args, callback, errback) {
         function execConnected() {
-            var domain = _nodeConnection.domains.fileWatcher,
-                fn = domain[name];
-
-            return fn.apply(domain, args)
-                .done(callback)
-                .fail(errback);
+            var domains = _nodeConnection.domains,
+                domain = domains && domains.fileWatcher,
+                fn = domain && domain[name];
+            
+            if (fn) {
+                return fn.apply(domain, params);
+            } else {
+                return $.Deferred().reject().promise();
+            }
         }
         
-        if (_domainsLoaded && _nodeConnection.connected()) {
-            execConnected();
+        if (_domainLoaded && _nodeConnection.connected()) {
+            return execConnected();
         } else {
-            _nodeConnectionPromise
-                .done(execConnected)
-                .fail(errback);
+            return _nodeConnectionPromise.then(execConnected);
         }
     }
 
+    /**
+     * Convert appshell error codes to FileSystemError values.
+     * 
+     * @param {?number} err An appshell error code
+     * @return {?string} A FileSystemError string, or null if there was no error code.
+     * @private
+     */
     function _mapError(err) {
         if (!err) {
             return null;
@@ -156,6 +209,14 @@ define(function (require, exports, module) {
         return FileSystemError.UNKNOWN;
     }
     
+    /**
+     * Convert a callback to one that transforms its first parameter from an
+     * appshell error code to a FileSystemError string.
+     * 
+     * @param {function(?number)} cb A callback that expects an appshell error code
+     * @return {function(?string)} A callback that expects a FileSystemError string
+     * @private
+     */
     function _wrap(cb) {
         return function (err) {
             var args = Array.prototype.slice.call(arguments);
@@ -345,27 +406,42 @@ define(function (require, exports, module) {
     }
     
     function watchPath(path, callback) {
-        callback = callback || function () {};
-        
-        _execWhenConnected("watchPath", [path],
-                           callback.bind(undefined, null),
-                           callback);
+        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
+            if (err || isNetworkDrive) {
+                callback(FileSystemError.UNKNOWN);
+                return;
+            }
+            
+            _execWhenConnected("watchPath", path)
+                .done(callback.bind(undefined, null))
+                .fail(callback);
+        });
     }
     
     function unwatchPath(path, callback) {
-        callback = callback || function () {};
-        
-        _execWhenConnected("unwatchPath", [path],
-                           callback.bind(undefined, null),
-                           callback);
+        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
+            if (err || isNetworkDrive) {
+                callback(FileSystemError.UNKNOWN);
+                return;
+            }
+            
+            _execWhenConnected("unwatchPath", path)
+                .done(callback.bind(undefined, null))
+                .fail(callback);
+        });
     }
     
     function unwatchAll(callback) {
-        callback = callback || function () {};
-        
-        _execWhenConnected("watchPath", [],
-                           callback.bind(undefined, null),
-                           callback);
+        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
+            if (err || isNetworkDrive) {
+                callback(FileSystemError.UNKNOWN);
+                return;
+            }
+            
+            _execWhenConnected("unwatchAll")
+                .done(callback.bind(undefined, null))
+                .fail(callback);
+        });
     }
     
     // Export public API
