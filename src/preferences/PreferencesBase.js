@@ -235,7 +235,7 @@ define(function (require, exports, module) {
         this.message = message || "";
     }
     
-    ParsingError.prototype = Error.prototype;
+    _.extend(ParsingError.prototype, Error.prototype);
     
     FileStorage.prototype = {
         load: function () {
@@ -500,9 +500,9 @@ define(function (require, exports, module) {
                 map: scope
             });
             
-            this._layers.forEach(function (layer) {
+            this._layers.forEach(function (record) {
                 scope.addLevel(id, {
-                    layer: layer
+                    layer: record.layer
                 });
             });
             
@@ -521,6 +521,10 @@ define(function (require, exports, module) {
                 });
             
             return deferred.promise();
+        },
+        
+        removeScope: function (id) {
+            // TODO
         },
         
         addLayer: function (id, layer) {
