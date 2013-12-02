@@ -25,7 +25,8 @@
 module.exports = function (grunt) {
     "use strict";
 
-    var child_process   = require("child_process"),
+    var build           = {},
+        child_process   = require("child_process"),
         path            = require("path"),
         q               = require("q"),
         qexec           = q.denodeify(child_process.exec);
@@ -117,4 +118,8 @@ module.exports = function (grunt) {
             done();
         });
     });
+    
+    build.getGitInfo = getGitInfo;
+    
+    return build;
 };
