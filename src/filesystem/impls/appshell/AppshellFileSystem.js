@@ -406,7 +406,7 @@ define(function (require, exports, module) {
     }
     
     function watchPath(path, callback) {
-        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
+        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
                 return;
@@ -419,7 +419,7 @@ define(function (require, exports, module) {
     }
     
     function unwatchPath(path, callback) {
-        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
+        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
                 return;
@@ -432,7 +432,7 @@ define(function (require, exports, module) {
     }
     
     function unwatchAll(callback) {
-        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
+        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
                 return;

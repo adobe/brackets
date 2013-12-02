@@ -50,9 +50,6 @@ define(function (require, exports, module) {
         this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
-        
-        var watchedRoot = fileSystem._findWatchedRootForPath(path);
-        this._watched = !!(watchedRoot && watchedRoot.active);
     }
     
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters

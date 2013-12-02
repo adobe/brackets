@@ -208,6 +208,22 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Indicates whether the given FileSystemEntry is watched.
+     *
+     * @param {FileSystemEntry} entry A FileSystemEntry that may or may not be watched.
+     * @return {boolean} True iff the path is watched.
+     */
+    FileSystem.prototype._isEntryWatched = function (entry) {
+        var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
+        
+        if (watchedRoot && watchedRoot.active) {
+            return watchedRoot.filter(entry.name, entry.parentPath);
+        }
+        
+        return false;
+    };
+    
+    /**
      * Helper function to watch or unwatch a filesystem entry beneath a given
      * watchedRoot.
      * 
@@ -481,6 +497,11 @@ define(function (require, exports, module) {
         
         if (!file) {
             file = new File(path, this);
+            
+            if (this._isEntryWatched(file)) {
+                file._setWatched();
+            }
+            
             this._index.addEntry(file);
         }
                 
@@ -500,6 +521,11 @@ define(function (require, exports, module) {
         
         if (!directory) {
             directory = new Directory(path, this);
+            
+            if (this._isEntryWatched(directory)) {
+                directory._setWatched();
+            }
+
             this._index.addEntry(directory);
         }
         
@@ -851,9 +877,6 @@ define(function (require, exports, module) {
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
-
-    // Private methods
-    exports._findWatchedRootForPath = _wrap(FileSystem.prototype._findWatchedRootForPath);
 
     
     // Export "on" and "off" methods
