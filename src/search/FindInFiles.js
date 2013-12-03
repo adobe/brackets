@@ -700,7 +700,7 @@ define(function (require, exports, module) {
                 Async.doInParallel(fileListResult, function (file) {
                     var result = new $.Deferred();
                     
-                    if (!_inScope(file, currentScope)) {
+                    if (!_inScope(file, currentScope) || _inExcludedExtensions(file)) {
                         result.resolve();
                     } else {
                         DocumentManager.getDocumentText(file)
