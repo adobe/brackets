@@ -1639,10 +1639,13 @@ define(function (require, exports, module) {
 
         
         function visitor(entry) {
-            if (entry.isFile && !isBinaryFile(entry.name)) {
-                result.push(entry);
+            if (shouldShow(entry)) {
+                if (entry.isFile && !isBinaryFile(entry.name)) {
+                    result.push(entry);
+                }
+                return true;
             }
-            return true;
+            return false;
         }
         
         // First gather all files in project proper
