@@ -276,16 +276,20 @@ define(function (require, exports, module) {
         
         this._clearCachedData();
         
+        // Block external change events until after the write has finished
+        this._fileSystem._beginWrite();
+        
         this._impl.unlink(this._path, function (err) {
             try {
                 callback(err);
             } finally {
                 this._fileSystem._handleWatchResult(this._parentPath);
                 this._fileSystem._index.removeEntry(this);
+                this._fileSystem._endWrite();
             }
         }.bind(this));
     };
-        
+    
     /**
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
@@ -302,6 +306,9 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         this._clearCachedData();
+
+        // Block external change events until after the write has finished
+        this._fileSystem._beginWrite();
         
         this._impl.moveToTrash(this._path, function (err) {
             try {
@@ -309,6 +316,7 @@ define(function (require, exports, module) {
             } finally {
                 this._fileSystem._handleWatchResult(this._parentPath);
                 this._fileSystem._index.removeEntry(this);
+                this._fileSystem._endWrite();
             }
         }.bind(this));
     };
