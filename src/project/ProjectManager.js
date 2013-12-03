@@ -1381,11 +1381,11 @@ define(function (require, exports, module) {
                                 }
                             });
                         } else {
-                            // Create an empty file
+                            // Create an file
                             var file = FileSystem.getFileForPath(newItemPath);
-                            if (copyFilePath) {
-                                var copyFile = FileSystem.getFileForPath(copyFilePath);
-                                
+                            //If a path is specified, copy that data into the file.
+                            if (copyFilePath) { 
+                                var copyFile = FileSystem.getFileForPath(copyFilePath);                               
                                 copyFile.read(function (readError, data) {
                                     file.write(data, function (err) {
                                         if (err) {
@@ -1396,6 +1396,7 @@ define(function (require, exports, module) {
                                     });
                                 });
                             } else {
+                                //No path is specified, so just create an empty file
                                 file.write("", function (err) {
                                     if (err) {
                                         errorCallback(err);
