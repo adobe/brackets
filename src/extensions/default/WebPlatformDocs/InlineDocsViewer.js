@@ -159,21 +159,25 @@ define(function (require, exports, module) {
             return false;
         }
 
-        $container = $(event.target).closest(".css-prop-defn");
-
-        // Only handle keys when target is inside doc viewer
-        if ($container.length === 0 || $container[0] !== this.$wrapperDiv[0]) {
-            return false;
-        }
-
+        // Only handle keydown event
         if (event.type === "keydown") {
-            scrollingUp = (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP);
-            
-            // If content has no scrollbar, let host editor scroll normally
-            scroller = this.$scroller[0];
-            if (scroller.clientHeight >= scroller.scrollHeight) {
+
+            // Only handle keys when target is inside doc viewer
+            $container = $(event.target).closest(".css-prop-defn");
+            if ($container.length === 0 || $container[0] !== this.$wrapperDiv[0]) {
                 return false;
             }
+
+            // When target is not inside scroller, do nothing
+            scroller = this.$scroller[0];
+            $container = $(event.target).closest(".scroller");
+            if ($container.length === 0 || $container[0] !== scroller) {
+                event.stopPropagation();
+                event.preventDefault();
+                return true;
+            }
+
+            scrollingUp = (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP);
             
             if (this._handleScrolling(event, scrollingUp, scroller)) {
                 // We handled this event
