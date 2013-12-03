@@ -202,7 +202,7 @@ define(function (require, exports, module) {
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
-            window.document.body.removeEventListener("click", _closeDropdown, true);
+            $("html").off("click", _closeDropdown);
             $(hostEditor).off("scroll", _closeDropdown);
             $(PanelManager).off("editorAreaResize", _closeDropdown);
             dropdownEventHandler = null;
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
             
             $dropdown.focus();
             
-            window.document.body.addEventListener("click", _closeDropdown, true);
+            $("html").on("click", _closeDropdown);
             $(hostEditor).on("scroll", _closeDropdown);
             $(PanelManager).on("editorAreaResize", _closeDropdown);
         }
