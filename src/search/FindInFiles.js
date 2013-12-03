@@ -97,6 +97,9 @@ define(function (require, exports, module) {
     /** @type {Array.<File>} An array of the files where it should look or null/empty to search the entire project */
     var currentScope = null;
     
+    /** @type{Array.<string>} An array of the extensions that must be excluded from the search */
+    var excludedExtensions = ["png", "jpg"];
+    
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
     
