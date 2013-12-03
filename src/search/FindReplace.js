@@ -301,6 +301,7 @@ define(function (require, exports, module) {
                         toggleHighlighting(editor, true);
                         
                         resultSet.forEach(function (result) {
+                            // TODO: the latest search.js addon uses cm.addOverlay() for this...
                             state.marked.push(cm.markText(result.from, result.to, { className: "CodeMirror-searching" }));
                         });
                         var scrollTrackPositions = resultSet.map(function (result) {
@@ -412,7 +413,6 @@ define(function (require, exports, module) {
     function _handleDocumentChange() {
         if (modalBar) {
             modalBar.close();
-            modalBar = null;
         }
         _closeReplaceAllPanel();
     }
@@ -514,77 +514,104 @@ define(function (require, exports, module) {
         replaceAllPanel.show();
     }
 
-    var replaceQueryDialog = Strings.CMD_REPLACE +
-            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
-    var replacementQueryDialog = Strings.WITH +
-            ': <input type="text" style="width: 10em"/>';
-    var doReplaceConfirm = Strings.CMD_REPLACE +
-            '? <button id="replace-yes" class="btn">' + Strings.BUTTON_YES +
-            '</button> <button id="replace-no" class="btn">' + Strings.BUTTON_NO +
-            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL +
-            '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
+    var replaceDialog = Strings.CMD_REPLACE +
+            ': <input type="text" id="replace-what" style="width: 10em"/> <div class="message"></div><div class="error"></div>' +
+            Strings.WITH + ': <input type="text" id="replace-with" style="width: 10em"/>' +
+            '<button id="replace-yes" class="btn">' + 'Replace' +
+            '</button> <button id="replace-no" class="btn">' + 'Skip' +
+            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL;
 
     function replace(editor) {
         var cm = editor._codeMirror;
-        createModalBar(replaceQueryDialog, true);
-        $(modalBar).on("commit", function (e, query) {
-            if (!query) {
-                return;
-            }
-
-            query = parseQuery(query);
-            
-            // Don't animate since it should feel like we're just switching the content of the ModalBar.
-            // Eventually we should rip out all this code (which comes from the old CodeMirror dialog
-            // logic) and just change the content itself.
-            createModalBar(replacementQueryDialog, true, false);
-            $(modalBar).on("commit", function (e, text) {
-                text = text || "";
-                clearSearch(cm);
-                var cursor = getSearchCursor(cm, query, cm.getCursor(true));
-                var advance = function () {
-                    var start = cursor.from(),
-                        match = cursor.findNext();
-                    if (!match) {
-                        cursor = getSearchCursor(cm, query);
-                        match = cursor.findNext();
-                        if (!match ||
-                                (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
-                            // No more matches, so destroy modalBar
-                            modalBar = null;
-                            return;
-                        }
-                    }
-                    editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
-                    createModalBar(doReplaceConfirm, true, false);
-                    modalBar.getRoot().on("click", function (e) {
-                        var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
-                        modalBar.close(true, animate);
-                        if (e.target.id === "replace-yes") {
-                            doReplace(match);
-                        } else if (e.target.id === "replace-no") {
-                            advance();
-                        } else if (e.target.id === "replace-all") {
-                            _showReplaceAllPanel(editor, query, text);
-                        } else if (e.target.id === "replace-stop") {
-                            // Destroy modalBar on stop
-                            modalBar = null;
-                        }
-                    });
-                };
-                var doReplace = function (match) {
-                    cursor.replace(typeof query === "string" ? text : parseDollars(text, match));
-                    advance();
-                };
-                advance();
-            });
-        });
-
+        createModalBar(replaceDialog, true);
+        
         // Prepopulate the replace field with the current selection, if any
-        getDialogTextField()
+        $("#replace-what")
             .val(cm.getSelection())
             .get(0).select();
+        
+        function getReplaceWith() {
+            return $("#replace-with").val() || "";
+        }
+        
+        var cursor, query, match;
+        
+        function readQuery() {
+            query = $("#replace-what").val();
+            query = parseQuery(query);
+        }
+        
+        function advance() {
+            var start = cursor.from();
+            match = cursor.findNext();
+            if (!match) {
+                cursor = getSearchCursor(cm, query);  // starting from top of file
+                match = cursor.findNext();
+                if (!match ||
+                        (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
+                    // No more matches, so destroy modalBar
+                    modalBar.close();
+                    return;
+                }
+            }
+            editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
+        }
+        
+        /**
+         * Returns true if selection was already on a match (which means this call has left sel unchanged).
+         * Does not 100% guarantee cursor is left at a match: if query is empty/invalid or if no match exists,
+         * this returns false and leaves the cursor unmoved.
+         */
+        function ensureAtMatch() {
+            readQuery();
+            if (!query) {
+                match = null;
+                return false;
+            }
+            
+            var oldStart = cm.getCursor(true),
+                oldEnd = cm.getCursor(false);
+            
+            if (!cursor) {
+                cursor = getSearchCursor(cm, query, cm.getCursor(true));  // start from start of current selection
+            } else {
+                cursor = getSearchCursor(cm, query, cursor.from());
+            }
+            advance();
+            
+            if (match) {
+                var newStart = cm.getCursor(true),
+                    newEnd = cm.getCursor(false);
+                return (newStart.line === oldStart.line && newStart.ch === oldStart.ch && newEnd.line === oldEnd.line && newEnd.ch === oldEnd.ch);
+            } else {
+                return false;
+            }
+        }
+        
+        modalBar.getRoot().on("click", function (e) {
+            if (e.target.id === "replace-yes") {
+                // If cursor not at a match already, just select next match & don't replace yet
+                if (ensureAtMatch()) {
+                    var text = getReplaceWith();
+                    cursor.replace(typeof query === "string" ? text : parseDollars(text, match));
+                    advance();
+                }
+            } else if (e.target.id === "replace-no") {
+                // If cursor not at a match already, just jump to next one from there
+                if (ensureAtMatch()) {
+                    advance();
+                }
+            } else if (e.target.id === "replace-all") {
+                modalBar.close();
+                readQuery();
+                if (query) {
+                    _showReplaceAllPanel(editor, query, getReplaceWith());
+                }
+            } else if (e.target.id === "replace-stop") {
+                // Destroy modalBar on stop
+                modalBar.close();
+            }
+        });
     }
 
     function _launchFind() {
