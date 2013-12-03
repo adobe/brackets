@@ -446,9 +446,11 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _docIsOutOfSync(doc) {
-        var docClass = _classForDocument(doc);
-        return (doc.isDirty && docClass !== CSSDocument &&
-                (!brackets.livehtml || docClass !== HTMLDocument));
+        var docClass    = _classForDocument(doc),
+            liveDoc     = _server && _server.get(doc.file.fullPath),
+            isLiveEditingEnabled = liveDoc && liveDoc.isLiveEditingEnabled();
+
+        return doc.isDirty && !isLiveEditingEnabled;
     }
     
     /** Triggered by Inspector.error */
