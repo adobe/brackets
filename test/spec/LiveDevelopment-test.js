@@ -625,6 +625,9 @@ define(function (require, exports, module) {
                     localText = curDoc.getText();
                     localText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localText);
+
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
                 
                 runs(function () {
@@ -670,6 +673,9 @@ define(function (require, exports, module) {
                     localCssText = curDoc.getText();
                     localCssText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localCssText);
+                    
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
                 
                 runs(function () {
@@ -808,6 +814,9 @@ define(function (require, exports, module) {
                     // Edit text
                     doc =  DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
+
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
 
                 runs(function () {
@@ -832,6 +841,9 @@ define(function (require, exports, module) {
                     doc = DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
                     
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
+
                     // Save the document and see if "scanDocument" (which reparses the page) is called.
                     spyOn(testWindow.brackets.test.HTMLInstrumentation, "scanDocument").andCallThrough();
                     testWindow.$(DocumentManager).one("documentSaved", function (e, savedDoc) {
