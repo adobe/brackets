@@ -346,6 +346,9 @@ define(function (require, exports, module) {
      * 
      * Entries explicitly created via FileSystem.getFile/DirectoryForPath() are *always* added to the index regardless
      * of this filtering - but they will not be watched if the watch-root's filter excludes them.
+     * 
+     * @param {string} path Full path
+     * @param {string} name Name portion of the path
      */
     FileSystem.prototype._indexFilter = function (path, name) {
         var parentRoot = this._findWatchedRootForPath(path);
@@ -529,8 +532,10 @@ define(function (require, exports, module) {
      * @param {string} initialPath The folder opened inside the window initially. If initialPath
      *                          is not set, or it doesn't exist, the window would show the last
      *                          browsed folder depending on the OS preferences
-     * @param {Array.<string>} fileTypes List of extensions that are allowed to be opened. A null value
-     *                          allows any extension to be selected.
+     * @param {?Array.<string>} fileTypes (Currently *ignored* except on Mac - https://trello.com/c/430aXkpq)
+     *                          List of extensions that are allowed to be opened, without leading ".".
+     *                          Null or empty array allows all files to be selected. Not applicable
+     *                          when chooseDirectories = true.
      * @param {function (?string, Array.<string>=)} callback Callback resolved with a FileSystemError
      *                          string or the selected file(s)/directories. If the user cancels the
      *                          open dialog, the error will be falsy and the file/directory array will
@@ -682,8 +687,8 @@ define(function (require, exports, module) {
      * 
      * @param {FileSystemEntry} entry - The root entry to watch. If entry is a directory,
      *      all subdirectories that aren't explicitly filtered will also be watched.
-     * @param {function(string): boolean} filter - A function to determine whether
-     *      a particular name should be watched or ignored. Paths that are ignored are also
+     * @param {function(string): boolean} filter - Returns true if a particular item should
+     *      be watched, given its name (not full path). Items that are ignored are also
      *      filtered from Directory.getContents() results within this subtree.
      * @param {function(?string)=} callback - A function that is called when the watch has
      *      completed. If the watch fails, the function will have a non-null FileSystemError
