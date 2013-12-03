@@ -142,6 +142,17 @@
     user-select: none;
 }
 
+.bezier-curve-editor .info {
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    left: 200px;
+    width: 400px;
+
+    font-family: sans-serif;
+    font-size: 0.85em;
+}
+
 
 /**
  * All StepEditor selectors descend from .step-editor to constrain styles to this extension
@@ -237,4 +248,15 @@
     -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
+}
+
+.step-editor .info {
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    left: 200px;
+    width: 400px;
+
+    font-family: sans-serif;
+    font-size: 0.85em;
 }
