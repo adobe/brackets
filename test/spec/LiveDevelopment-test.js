@@ -880,6 +880,9 @@ define(function (require, exports, module) {
                     // Edit a JavaScript doc
                     jsdoc.setText("window.onload = function () {document.getElementById('testId').style.backgroundColor = '#090'}");
                     
+                    // Make sure the live development dirty dot shows
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
+
                     // Save changes to the test file
                     loadEventPromise = saveAndWaitForLoadEvent(jsdoc);
                 });
