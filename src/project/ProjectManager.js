@@ -1405,7 +1405,7 @@ define(function (require, exports, module) {
         node = selection;
  
         function createNode() {
-           // Create the node and open the editor
+            // Create the node and open the editor
             _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
     
             if (!skipRename) {

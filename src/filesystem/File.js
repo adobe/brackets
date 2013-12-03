@@ -70,7 +70,7 @@ define(function (require, exports, module) {
     /**
      * Read a file.
      *
-     * @param {object=} options Currently unused.
+     * @param {Object=} options Currently unused.
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
