@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "{0} のエラー",
+	"ERRORS_PANEL_TITLE_SINGLE": "{0} 件のエラー",
+	"ERRORS_PANEL_TITLE_MULTI": "Lint エラー",
 	"SINGLE_ERROR": "1 個の {0} エラー",
 	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
 	"NO_ERRORS": "{0} エラーはありません - Good job!",
@@ -455,10 +457,12 @@ define({
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
 	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_NL": "オランダ語",
 	"LOCALE_FA_IR": "ペルシャ語-ファルシ語",
 	"LOCALE_PL": "ポーランド語",
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RO": "ルーマニア語",
 	"LOCALE_RU": "ロシア語",
 	"LOCALE_SK": "スロバキア語",
 	"LOCALE_SR": "セルビア語",
