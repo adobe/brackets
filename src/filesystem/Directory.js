@@ -211,7 +211,7 @@ define(function (require, exports, module) {
             try {
                 callback(null, stat);
             } finally {
-                this._fileSystem._handleWatchResult(this.parent, stat);
+                this._fileSystem._handleWatchResult(this.parentPath, stat);
             }
         }.bind(this));
     };
