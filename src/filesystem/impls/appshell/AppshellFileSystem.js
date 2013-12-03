@@ -173,8 +173,10 @@ define(function (require, exports, module) {
         
         if (_domainLoaded && _nodeConnection.connected()) {
             return execConnected();
-        } else {
+        } else if (_nodeConnectionPromise) {
             return _nodeConnectionPromise.then(execConnected);
+        } else {
+            return $.Deferred().reject().promise();   
         }
     }
 
