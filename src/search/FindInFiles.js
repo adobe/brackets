@@ -630,6 +630,26 @@ define(function (require, exports, module) {
         }
         return true;
     }
+    
+     /**
+     * @private
+     * Return true if the extension of the file in question is included in the excluded extensions
+     * @param {!File} file File in question
+     * @return {boolean}
+     */
+    function _inExcludedExtensions(file) {
+        var filename = file._name;
+        var extension = filename.substring(filename.lastIndexOf(".") + 1, filename.length);
+        var i;
+
+        for (i = 0; i < excludedExtensions.length; i++) {
+            if (excludedExtensions[i] === extension) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
     /**
      * @private
