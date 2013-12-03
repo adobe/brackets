@@ -65,6 +65,9 @@ define(function (require, exports, module) {
         }
     };
     
+    // Indicates whether, by default, the FS should perform UNC Path normalization
+    var _normalizeUNCPathsDefault = false;
+    
     // "Live" data for this instance of the file system. Use reset() to 
     // initialize with _initialData
     var _data;
@@ -339,11 +342,15 @@ define(function (require, exports, module) {
     exports.unwatchPath     = unwatchPath;
     exports.unwatchAll      = unwatchAll;
     
+    exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
+    
     // Test methods
     exports.reset = function () {
         _data = {};
         $.extend(_data, _initialData);
         _hooks = {};
+        
+        exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
     };
     
     /**
