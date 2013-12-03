@@ -176,7 +176,7 @@ define(function (require, exports, module) {
         } else if (_nodeConnectionPromise) {
             return _nodeConnectionPromise.then(execConnected);
         } else {
-            return $.Deferred().reject().promise();   
+            return $.Deferred().reject().promise();
         }
     }
 
@@ -434,7 +434,7 @@ define(function (require, exports, module) {
     }
     
     function unwatchAll(callback) {
-        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
+        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
                 return;
