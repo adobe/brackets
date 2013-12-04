@@ -34,13 +34,15 @@ define(function (require, exports, module) {
     // Load Brackets modules
     var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget,
-        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
         KeyEvent            = brackets.getModule("utils/KeyEvent"),
         NativeApp           = brackets.getModule("utils/NativeApp"),
         Strings             = brackets.getModule("strings");
     
     // Load template
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");
+    
+    // Lines height for scrolling
+    var SCROLL_LINE_HEIGHT = 40;
     
     // Load CSS
     ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.less");
@@ -87,7 +89,7 @@ define(function (require, exports, module) {
 
         this.$scroller = this.$wrapperDiv.find(".scroller");
         this.$scroller.on("mousewheel", this._handleWheelScroll);
-        this._keydownHook = this._keydownHook.bind(this);
+        this._onKeydown = this._onKeydown.bind(this);
     }
     
     InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
@@ -139,56 +141,49 @@ define(function (require, exports, module) {
     /**
      * Convert keydown events into navigation actions.
      *
-     * @param {KeyBoardEvent} keyEvent
+     * @param {KeyboardEvent} event
      * @return {boolean} indication whether key was handled
      */
-    InlineDocsViewer.prototype._keydownHook = function (event) {
-        var keyCode = event.keyCode,
-            scrollingUp,
-            scroller,
-            $container;
+    InlineDocsViewer.prototype._onKeydown = function (event) {
+        var keyCode  = event.keyCode,
+            scroller = this.$scroller[0],
+            scrollPos;
 
-        // Quick check of keys we're interested in
-        switch (keyCode) {
-        case KeyEvent.DOM_VK_UP:
-        case KeyEvent.DOM_VK_PAGE_UP:
-        case KeyEvent.DOM_VK_DOWN:
-        case KeyEvent.DOM_VK_PAGE_DOWN:
-            break;
-        default:
+        // Ignore key events with modifier keys
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
             return false;
         }
 
-        // Only handle keydown event
-        if (event.type === "keydown") {
+        // Handle keys that we're interested in
+        scrollPos = scroller.scrollTop;
 
-            // Only handle keys when target is inside doc viewer
-            $container = $(event.target).closest(".css-prop-defn");
-            if ($container.length === 0 || $container[0] !== this.$wrapperDiv[0]) {
-                return false;
-            }
-
-            // When target is not inside scroller, do nothing
-            scroller = this.$scroller[0];
-            $container = $(event.target).closest(".scroller");
-            if ($container.length === 0 || $container[0] !== scroller) {
-                event.stopPropagation();
-                event.preventDefault();
-                return true;
-            }
-
-            scrollingUp = (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_PAGE_UP);
-            
-            if (this._handleScrolling(event, scrollingUp, scroller)) {
-                // We handled this event
-                return true;
-            }
+        switch (keyCode) {
+        case KeyEvent.DOM_VK_UP:
+            scrollPos = Math.max(0, scrollPos - SCROLL_LINE_HEIGHT);
+            break;
+        case KeyEvent.DOM_VK_PAGE_UP:
+            scrollPos = Math.max(0, scrollPos - scroller.clientHeight);
+            break;
+        case KeyEvent.DOM_VK_DOWN:
+            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
+                                 scrollPos + SCROLL_LINE_HEIGHT);
+            break;
+        case KeyEvent.DOM_VK_PAGE_DOWN:
+            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
+                                 scrollPos + scroller.clientHeight);
+            break;
+        default:
+            // Ignore other keys
+            return false;
         }
-        
-        // If we didn't handle it, let other global keydown hooks handle it.
-        return false;
+
+        scroller.scrollTop = scrollPos;
+
+        // Disallow further processing
+        event.stopPropagation();
+        event.preventDefault();
+        return true;
     };
-    
     
     InlineDocsViewer.prototype.onAdded = function () {
         InlineDocsViewer.prototype.parentClass.onAdded.apply(this, arguments);
@@ -199,14 +194,14 @@ define(function (require, exports, module) {
 
         // Set focus
         this.$scroller[0].focus();
-        KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
+        this.$wrapperDiv.on("keydown", this._onKeydown);
     };
     
     InlineDocsViewer.prototype.onClosed = function () {
         InlineDocsViewer.prototype.parentClass.onClosed.apply(this, arguments);
         
         $(window).off("resize", this._sizeEditorToContent);
-        KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
+        this.$wrapperDiv.off("keydown", this._onKeydown);
     };
     
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
