@@ -229,7 +229,7 @@ define(function (require, exports, module) {
         describe("deleteItem", function () {
             it("should delete the selected file in the project tree", function () {
                 var complete    = false,
-                    newFile     = FileSystem.getFileForPath(testPath + "/delete_me.js"),
+                    newFile     = FileSystem.getFileForPath(testPath + "/brackets_unittests_delete_me.js"),
                     selectedFile,
                     error,
                     stat;
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
                 // Create a file and select it in the project tree.
                 runs(function () {
                     complete = false;
-                    ProjectManager.createNewItem(testPath, "delete_me.js", true)
+                    ProjectManager.createNewItem(testPath, "brackets_unittests_delete_me.js", true)
                         .always(function () { complete = true; });
                 });
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                     expect(error).toBeFalsy();
                     expect(stat.isFile).toBe(true);
                     selectedFile = ProjectManager.getSelectedItem();
-                    expect(selectedFile.fullPath).toBe(testPath + "/delete_me.js");
+                    expect(selectedFile.fullPath).toBe(testPath + "/brackets_unittests_delete_me.js");
                 });
 
                 // Delete the selected file.
@@ -302,7 +302,7 @@ define(function (require, exports, module) {
 
             it("should delete the selected folder and all items in it.", function () {
                 var complete       = false,
-                    newFolderName  = testPath + "/toDelete/",
+                    newFolderName  = testPath + "/brackets_unittests_toDelete/",
                     rootFolderName = newFolderName,
                     rootFolderEntry,
                     error,
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
                 // Create a folder
                 runs(function () {
                     complete = false;
-                    ProjectManager.createNewItem(testPath, "toDelete", true, true)
+                    ProjectManager.createNewItem(testPath, "brackets_unittests_toDelete", true, true)
                         .always(function () { complete = true; });
                 });
                 waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
                     expect(stat.isDirectory).toBe(true);
 
                     rootFolderEntry = ProjectManager.getSelectedItem();
-                    expect(rootFolderEntry.fullPath).toBe(testPath + "/toDelete/");
+                    expect(rootFolderEntry.fullPath).toBe(testPath + "/brackets_unittests_toDelete/");
                 });
 
                 // Create a sub folder

@@ -53,6 +53,7 @@
     "border-top-right-radius":     {"values": []},
     "border-top-style":            {"values": ["dashed", "dotted", "double", "groove", "hidden", "inset", "none", "outset", "ridge", "solid", "inherit"]},
     "border-top-width":            {"values": ["medium", "thin", "thick", "inherit"]},
+    "border-width":                {"values": ["medium", "thin", "thick", "inherit"]},
     "box-decoration-break":        {"values": []},
     "box-shadow":                  {"values": []},
     "box-sizing":                  {"values": ["border-box", "content-box", "padding-box", "inherit"]},

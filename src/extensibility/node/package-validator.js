@@ -309,7 +309,10 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
     });
     
     unzipper.extract({
-        path: extractDir
+        path: extractDir,
+        filter: function (file) {
+            return file.type !== "SymbolicLink";
+        }
     });
 }
 

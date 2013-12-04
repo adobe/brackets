@@ -659,13 +659,15 @@ define(function (require, exports, module) {
      * if you are going to display its contents in a piece of UI - then you must addRef() the Document
      * and listen for changes on it. (Note: opening the Document in an Editor automatically manages
      * refs and listeners for that Editor UI).
+     * 
+     * If all you need is the Document's getText() value, use the faster getDocumentText() instead.
      *
      * @param {!string} fullPath
      * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileSystemError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var doc             = getOpenDocumentForPath(fullPath);
+        var doc = getOpenDocumentForPath(fullPath);
 
         if (doc) {
             // use existing document
@@ -772,7 +774,7 @@ define(function (require, exports, module) {
      * looks like /some-random-string/Untitled-counter.fileExt.
      *
      * @param {number} counter - used in the name of the new Document's File
-     * @param {string} fileExt - file extension of the new Document's File
+     * @param {string} fileExt - file extension of the new Document's File, including "."
      * @return {Document} - a new untitled Document
      */
     function createUntitledDocument(counter, fileExt) {

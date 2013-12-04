@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
+        PanelManager            = require("view/PanelManager"),
         ProjectManager          = require("project/ProjectManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
@@ -197,22 +198,13 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * When editor scrolls, close dropdown
-         */
-        function _onScroll() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
-            }
-        }
-        
-        /**
-         * @private
          * Remove the various event handlers that close the dropdown. This is called by the
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
-            $(hostEditor).off("scroll", _onScroll);
+            $(hostEditor).off("scroll", _closeDropdown);
+            $(PanelManager).off("editorAreaResize", _closeDropdown);
             dropdownEventHandler = null;
             $dropdown = null;
     
@@ -264,14 +256,14 @@ define(function (require, exports, module) {
                 top: posTop
             });
             
-            $("html").on("click", _closeDropdown);
-            
             dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
             dropdownEventHandler.open();
             
             $dropdown.focus();
             
-            $(hostEditor).on("scroll", _onScroll);
+            $("html").on("click", _closeDropdown);
+            $(hostEditor).on("scroll", _closeDropdown);
+            $(PanelManager).on("editorAreaResize", _closeDropdown);
         }
         
         /**
@@ -391,6 +383,9 @@ define(function (require, exports, module) {
                 $(cssInlineEditor).on("add", function () {
                     inlineEditorDeferred.resolve();
                 });
+                cssInlineEditor.onClosed = function () {
+                    _closeDropdown();
+                };
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
                 $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")

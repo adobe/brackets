@@ -736,7 +736,7 @@ a, img {
     background-color: @tc-lighter-gray;
     min-width: 250px;
     cursor: default;
-
+    
     &.animating {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
@@ -748,6 +748,10 @@ a, img {
     .CodeMirror {
         /* remove CodeMirror default height: 300px */
         height: auto;
+    }
+
+    .inline-text-editor {
+        white-space: nowrap;
     }
 
     .inline-editor-header {
@@ -776,7 +780,7 @@ a, img {
             }
         }
     }
-
+    
     .shadow {
         display: block;
         height: 4px;
@@ -826,6 +830,11 @@ a, img {
     max-width: 50%;
     overflow: hidden;
     background: @inline-background-color-2;
+    
+    // Without this, the "New Rule" button shows on top of the rule list if you resize
+    // the window narrow enough. No idea why, since there's no z-index on the button, and
+    // the other items in the header go behind the rule list.
+    z-index: 1;
 
     .selection {
         width: 100%;
