@@ -119,7 +119,6 @@ define({
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
     "BUTTON_REPLACE_ALL"                : "All\u2026",
-    "BUTTON_SKIP"                       : "Skip",
     "BUTTON_REPLACE"                    : "Replace",
             
     "BUTTON_NEXT"                       : "\u25B6",

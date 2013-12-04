@@ -124,8 +124,7 @@ define(function (require, exports, module) {
         }
         
         // Clear any pending RegEx error message
-        $(".modal-bar .message").css("display", "inline-block");
-        $(".modal-bar .error").css("display", "none");
+        $(".modal-bar .error").hide();
 
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
@@ -138,17 +137,14 @@ define(function (require, exports, module) {
             try {
                 return new RegExp(isRE[1], flags);
             } catch (e) {
-                $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error")
-                    .css("display", "inline-block")
-                    .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
+                    .show()
+                    .text(e.message);
                 return null;
             }
         }
 
-        // Query is a string. Turn it into a case-insensitive regexp
-        
-        // Escape regex special chars
+        // Query is a plain string. Turn it into a case-insensitive regexp
         query = StringUtils.regexEscape(query);
         return new RegExp(query, "gi");
     }
@@ -488,8 +484,7 @@ define(function (require, exports, module) {
                                             .removeAttr("disabled")
                                             .get(0).select();
                                             
-                $(".modal-bar .message").css("display", "none");
-                $(".modal-bar .error").css("display", "inline-block").html(Strings.FIND_NO_RESULTS);
+                $(".modal-bar .error").show().text(Strings.FIND_NO_RESULTS);
             }
         }
     }
@@ -758,6 +753,8 @@ define(function (require, exports, module) {
             that       = this;
         
         this.modalBar    = new ModalBar(dialogHTML, false);
+        $(".modal-bar .error").hide();
+        
         var $searchField = $("input#searchInput");
         
         $searchField.get(0).select();
@@ -781,8 +778,8 @@ define(function (require, exports, module) {
             .bind("input", function (event) {
                 // Check the query expression on every input event. This way the user is alerted
                 // to any RegEx syntax errors immediately.
-                _getQueryRegExp($searchField.val());
-                that.getDialogTextField().removeClass("no-results");
+                var query = _getQueryRegExp($searchField.val());
+                that.getDialogTextField().toggleClass("no-results", (query === null));
             })
             .blur(function () {
                 if (that.getDialogTextField().attr("disabled")) {

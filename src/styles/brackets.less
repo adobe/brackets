@@ -1006,7 +1006,7 @@ a, img {
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
-    overflow: hidden;
+    overflow: visible;  // needed for .error popup
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
@@ -1050,21 +1050,41 @@ a, img {
         }
     }
     
-    #find-what, #replace-with {
-        width: 20em;
+    #replace-with, #searchInput {
+        width: 295px;
+    }
+    #find-what {
+        padding-right: 65px;  // room for #find-counter overlay
+        width: 295px - (65px - 6px);  // keep same width as other fields, after accounting for differing padding
     }
 
+    .search-input-container {
+        position: relative;
+        display: inline;
+        
+        .error {  // "popup" that hangs below search field
+            position: absolute;
+            left: 6px;
+            top: 24px;
+            min-width: 295px + 2px;  // to align with search field above it
+            
+            background-color: #f74687;
+            color: @bc-white;
+            font-size: 12px;
+            padding: 5px;
+            border-radius: 0 0 3px 3px;
+        }
+        #find-counter {
+            position: absolute;
+            color: @tc-light-weight-quiet-text;
+            top: 1px;
+            right: 5px;
+            font-size: 12px;
+        }
+    }
+    
     .message {
         display: inline-block;
-    }
-
-    .error {
-        display: none;
-    
-        .alert {
-            padding-top: 4px;
-            padding-bottom: 4px;
-        }
     }
 
     .navigator {
@@ -1072,6 +1092,18 @@ a, img {
         button {
             margin: 2px 1px 3px;
         }
+    }
+    
+    // Make button pairs snug
+    #find-prev, #replace-yes {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-right: 0;
+    }
+    #find-next, #replace-all {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        margin-left: -1px;
     }
 }
 

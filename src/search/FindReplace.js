@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
+        KeyEvent            = require("utils/KeyEvent"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
@@ -97,8 +98,8 @@ define(function (require, exports, module) {
     
     function parseQuery(query) {
         var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        $(".modal-bar .message").css("display", "inline-block");
-        $(".modal-bar .error").css("display", "none");
+        $(".modal-bar .message").show();
+        $(".modal-bar .error").hide();
         try {
             if (isRE && isRE[1]) {  // non-empty regexp
                 return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
@@ -106,10 +107,10 @@ define(function (require, exports, module) {
                 return query;
             }
         } catch (e) {
-            $(".modal-bar .message").css("display", "none");
+            $(".modal-bar .message").hide();
             $(".modal-bar .error")
-                .css("display", "inline-block")
-                .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
+                .show()
+                .text(e.message);
             return "";
         }
     }
@@ -186,7 +187,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function createModalBar(template, autoClose) {
+    function createModalBar(template) {
         // Normally, creating a new modal bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
         // cause the new one to think it should close, too. The old CodeMirror version
@@ -194,31 +195,27 @@ define(function (require, exports, module) {
         // the modal bar to close. Rather than reinstate that hack, we simply explicitly
         // close the old modal bar before creating a new one.
         if (modalBar) {
+            // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
             modalBar.close(true, false);
         }
-        modalBar = new ModalBar(template, autoClose);
+        modalBar = new ModalBar(template, true);  // 2nd arg = auto-close on Esc/blur
         
-        $(modalBar).on("commit close", function (event) {
+        $(modalBar).on("close", function (event) {
             modalBar = null;
         });
     }
     
     var findDialog =
-            "<input type='text' id='find-what'/>" +
+            "<div class='search-input-container'><input type='text' id='find-what'/><div class='error'></div><span id='find-counter'></span></div>" +
             "<div class='navigator'>" +
                 "<button id='find-prev' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
                 "<button id='find-next' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
-            "</div>" +
-            "<div class='message'>" +
-                "<span id='find-counter'></span> " +
-            "</div>" +
-            "<div class='error'></div>";
+            "</div>";
     
     var replaceDialog = findDialog +
             "<input type='text' id='replace-with' placeholder='" + Strings.REPLACE_PLACEHOLDER + "'/>" +
-            "<button id='replace-yes' class='btn'>" + Strings.BUTTON_REPLACE +
-            "</button> <button id='replace-no' class='btn'>" + Strings.BUTTON_SKIP +
-            "</button> <button id='replace-all' class='btn'>" + Strings.BUTTON_REPLACE_ALL;
+            "<button id='replace-yes' class='btn'>" + Strings.BUTTON_REPLACE + "</button>" +
+            "<button id='replace-all' class='btn'>" + Strings.BUTTON_REPLACE_ALL + "</button>";
 
     
     function toggleHighlighting(editor, enabled) {
@@ -241,12 +238,12 @@ define(function (require, exports, module) {
             state = getSearchState(cm);
         
         function indicateHasMatches(numResults) {
-            // Make the field red if it's not blank and it has no matches
-            ViewUtils.toggleClass($("#find-what"), "no-results", !state.foundAny && state.query);
+            // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
+            ViewUtils.toggleClass($("#find-what"), "no-results", !state.foundAny && $("#find-what").val());
             
-            // Buttons disabled if blank OR no matches (Replace btns) / < 2 matches (nav buttons)
+            // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
             $("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
-            $("#replace-yes, #replace-no, #replace-all").prop("disabled", !state.foundAny);
+            $("#replace-yes, #replace-all").prop("disabled", !state.foundAny);
         }
         
         cm.operation(function () {
@@ -356,23 +353,36 @@ define(function (require, exports, module) {
         }
         
         // Create the search bar UI (closing any previous modalBar in the process)
-        createModalBar(template, true);
+        createModalBar(template);
         
-        $(modalBar).on("commit close", function (e, query) {
+        $(modalBar).on("close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
             // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
             toggleHighlighting(editor, false);
+            
+            // Hide error popup, since it hangs down low enough to make the slide-out look awkward
+            $(".modal-bar .error").hide();
         });
         
-        modalBar.getRoot().on("click", function (e) {
-            if (e.target.id === "find-next") {
-                findNext(editor);
-            } else if (e.target.id === "find-prev") {
-                findNext(editor, true);
-            }
-        });
+        modalBar.getRoot()
+            .on("click", function (e) {
+                if (e.target.id === "find-next") {
+                    findNext(editor);
+                } else if (e.target.id === "find-prev") {
+                    findNext(editor, true);
+                }
+            })
+            .on("keydown", function (e) {
+                if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+                    if (!e.shiftKey) {
+                        findNext(editor);
+                    } else {
+                        findNext(editor, true);
+                    }
+                }
+            });
         
         $("#find-what").on("input", function () {
             handleQueryChange(editor, state);
@@ -543,21 +553,18 @@ define(function (require, exports, module) {
             return $("#replace-with").val() || "";
         }
         
-        function advance() {
-            if (!findNext(editor)) {
-                // No more matches, so destroy modalBar
-                modalBar.close();
-            }
-        }
-        
         modalBar.getRoot().on("click", function (e) {
             if (e.target.id === "replace-yes") {
                 var text = getReplaceWith();
                 cm.replaceSelection(typeof state.query === "string" ? text : parseDollars(text, state.lastMatch));
+                
                 updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
-                advance();
-            } else if (e.target.id === "replace-no") {
-                advance();
+                
+                if (!findNext(editor)) {
+                    // No more matches, so destroy modalBar
+                    modalBar.close();
+                }
+                
             } else if (e.target.id === "replace-all") {
                 modalBar.close();
                 _showReplaceAllPanel(editor, state.query, getReplaceWith());
