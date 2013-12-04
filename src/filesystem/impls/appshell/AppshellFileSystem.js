@@ -50,10 +50,19 @@ define(function (require, exports, module) {
      */
     var _nodeConnectionDeferred;
     
-    var _changeCallback,            // Callback to notify FileSystem of watcher changes
-        _changeTimeout,             // Timeout used to batch up file watcher changes
-        _pendingChanges = {};       // Pending file watcher changes
+    /**
+     * Callback to notify FileSystem of watcher changes
+     * @type {!function(string, FileSystemStats=)}
+     */
+    var _changeCallback;
+    
+    /** Id of setTimeout() used to batch up file watcher changes */
+    var _changeTimeout;
+    
+    /** @type {!Object.<string, boolean>}  Pending file watcher changes - set of fullPaths */
+    var _pendingChanges = {};
 
+    
     function _mapError(err) {
         if (!err) {
             return null;
