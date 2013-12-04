@@ -489,7 +489,7 @@ define(function (require, exports, module) {
                 });
                 self.domainEvents[domainSpec.domain] = {};
                 domainSpec.events.forEach(function (eventSpec) {
-                    var parameters = eventSpec.parameters.parameters;
+                    var parameters = eventSpec.parameters;
                     self.domainEvents[domainSpec.domain][eventSpec.name] = parameters;
                 });
             });
