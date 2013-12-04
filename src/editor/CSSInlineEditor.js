@@ -36,12 +36,14 @@ define(function (require, exports, module) {
         DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
-        FileIndexManager        = require("project/FileIndexManager"),
+        PanelManager            = require("view/PanelManager"),
+        ProjectManager          = require("project/ProjectManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings"),
+        ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
 
     var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
@@ -49,6 +51,10 @@ define(function (require, exports, module) {
     var _newRuleCmd,
         _newRuleHandlers = [];
 
+    function _getCSSFilesInProject() {
+        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"));
+    }
+    
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
@@ -192,22 +198,13 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * When editor scrolls, close dropdown
-         */
-        function _onScroll() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
-            }
-        }
-        
-        /**
-         * @private
          * Remove the various event handlers that close the dropdown. This is called by the
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
             $("html").off("click", _closeDropdown);
-            $(hostEditor).off("scroll", _onScroll);
+            $(hostEditor).off("scroll", _closeDropdown);
+            $(PanelManager).off("editorAreaResize", _closeDropdown);
             dropdownEventHandler = null;
             $dropdown = null;
     
@@ -259,14 +256,14 @@ define(function (require, exports, module) {
                 top: posTop
             });
             
-            $("html").on("click", _closeDropdown);
-            
             dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
             dropdownEventHandler.open();
             
             $dropdown.focus();
             
-            $(hostEditor).on("scroll", _onScroll);
+            $("html").on("click", _closeDropdown);
+            $(hostEditor).on("scroll", _closeDropdown);
+            $(PanelManager).on("editorAreaResize", _closeDropdown);
         }
         
         /**
@@ -277,7 +274,7 @@ define(function (require, exports, module) {
          */
         function _getNoRulesMsg() {
             var result = new $.Deferred();
-            FileIndexManager.getFileInfoList("css").done(function (fileInfos) {
+            _getCSSFilesInProject().done(function (fileInfos) {
                 result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
             });
             return result;
@@ -325,50 +322,52 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * Helper function to add a sub-directory to string displayed in list
-         */
-        function _addSubDir(fileInfo) {
-            var dirSplit = fileInfo.fullPath.split("/"),
-                index = dirSplit.length - fileInfo.subDirCount - 2;
-            
-            fileInfo.subDirStr = dirSplit.slice(index, dirSplit.length - 1).join("/");
-            fileInfo.subDirCount++;
-        }
-        
-        /**
-         * @private
          * Prepare file list for display
          */
         function _prepFileList(fileInfos) {
-            var i,
-                done = false;
+            var i, j, firstDupeIndex,
+                displayPaths = [],
+                dupeList = [];
             
             // Add subdir field to each entry
             fileInfos.forEach(function (fileInfo) {
                 fileInfo.subDirStr = "";
-                fileInfo.subDirCount = 0;
             });
 
-            // Each pass through loop re-sorts and then adds a subdir to
-            // duplicates to try to differentiate. Loop until no dupes remain.
-            while (!done) {
-                // Done unless a dupe is found
-                done = true;
-                
-                // Sort by name
-                fileInfos.sort(_sortFileInfos);
-                
-                // For identical names, add a subdir
-                for (i = 1; i < fileInfos.length; i++) {
-                    if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
-                        // Duplicate found. Add a subdir to both.
-                        done = false;
-                        _addSubDir(fileInfos[i - 1]);
-                        _addSubDir(fileInfos[i]);
+            // Add directory path to files with the same name so they can be
+            // distinguished in list. Start with list sorted by name.
+            fileInfos.sort(_sortFileInfos);
+
+            // For identical names, add a subdir
+            for (i = 1; i < fileInfos.length; i++) {
+                if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
+                    // Duplicates found
+                    firstDupeIndex = i - 1;
+                    dupeList.push(fileInfos[i - 1]);
+                    dupeList.push(fileInfos[i]);
+
+                    // Lookahead for more dupes
+                    while (++i < fileInfos.length &&
+                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
+                        dupeList.push(fileInfos[i]);
                     }
+
+                    // Get minimum subdir to make each unique
+                    displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
+
+                    // Add a subdir to each dupe entry
+                    for (j = 0; j < displayPaths.length; j++) {
+                        fileInfos[firstDupeIndex + j].subDirStr = displayPaths[j];
+                    }
+
+                    // Release memory
+                    dupeList = [];
                 }
             }
             
+            // Sort by name again, so paths are sorted
+            fileInfos.sort(_sortFileInfos);
+
             return fileInfos;
         }
         
@@ -384,6 +383,9 @@ define(function (require, exports, module) {
                 $(cssInlineEditor).on("add", function () {
                     inlineEditorDeferred.resolve();
                 });
+                cssInlineEditor.onClosed = function () {
+                    _closeDropdown();
+                };
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
                 $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
@@ -395,7 +397,7 @@ define(function (require, exports, module) {
                 result.resolve(cssInlineEditor);
 
                 // Now that dialog has been built, collect list of stylesheets
-                var stylesheetsPromise = FileIndexManager.getFileInfoList("css");
+                var stylesheetsPromise = _getCSSFilesInProject();
                 
                 // After both the stylesheets are loaded and the inline editor has been added to the DOM,
                 // update the UI accordingly. (Those can happen in either order, so we need to wait for both.)

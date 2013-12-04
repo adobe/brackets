@@ -33,9 +33,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var Global              = require("utils/Global"),
-        FileUtils           = require("file/FileUtils"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
-    
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils");
+            
     var _bracketsSHA;
     
     /**
@@ -48,11 +48,10 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             result.reject();
         } else {
-            var fileEntry = new NativeFileSystem.FileEntry(path);
-
             // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
             // to a file in /refs which in turn contains the SHA
-            FileUtils.readAsText(fileEntry).done(function (text) {
+            var file = FileSystem.getFileForPath(path);
+            FileUtils.readAsText(file).done(function (text) {
                 if (text.indexOf("ref: ") === 0) {
                     // e.g. "ref: refs/heads/branchname"
                     var basePath    = path.substr(0, path.lastIndexOf("/")),

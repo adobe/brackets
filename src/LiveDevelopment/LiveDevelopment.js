@@ -77,15 +77,14 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
     var Async                = require("utils/Async"),
-        FileIndexManager     = require("project/FileIndexManager"),
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
+        FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NativeFileError      = require("file/NativeFileError"),
         NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
@@ -447,9 +446,11 @@ define(function LiveDevelopment(require, exports, module) {
      * @param {Document} doc
      */
     function _docIsOutOfSync(doc) {
-        var docClass = _classForDocument(doc);
-        return (doc.isDirty && docClass !== CSSDocument &&
-                (!brackets.livehtml || docClass !== HTMLDocument));
+        var docClass    = _classForDocument(doc),
+            liveDoc     = _server && _server.get(doc.file.fullPath),
+            isLiveEditingEnabled = liveDoc && liveDoc.isLiveEditingEnabled();
+
+        return doc.isDirty && !isLiveEditingEnabled;
     }
     
     /** Triggered by Inspector.error */
@@ -569,7 +570,7 @@ define(function LiveDevelopment(require, exports, module) {
             // After (1) the interstitial page loads, (2) then browser navigation
             // to the base URL is completed, and (3) the agents finish loading
             // gather related documents and finally set status to STATUS_ACTIVE.
-            var doc = _liveDocument.doc;
+            var doc = (_liveDocument) ? _liveDocument.doc : null;
 
             if (doc) {
                 var status = STATUS_ACTIVE,
@@ -674,7 +675,7 @@ define(function LiveDevelopment(require, exports, module) {
         var baseUrl = ProjectManager.getBaseUrl(),
             hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
 
-        FileIndexManager.getFileInfoList("all").done(function (allFiles) {
+        ProjectManager.getAllFiles().done(function (allFiles) {
             var projectRoot = ProjectManager.getProjectRoot().fullPath,
                 containingFolder,
                 indexFileFound = false,
@@ -799,8 +800,19 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-            deferred.resolve();
+            // Need to do this in order to trigger the corresponding CloseLiveBrowser cleanups required on 
+            // the native Mac side
+            var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
+            closeDeferred.done(function () {
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            }).fail(function (err) {
+                if (err) {
+                    reason +=  " (" + err + ")";
+                }
+                _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                deferred.resolve();
+            });
         }
 
         if (_openDeferred) {
@@ -948,7 +960,11 @@ define(function LiveDevelopment(require, exports, module) {
                 if (doc) {
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
-                    Inspector.Page.navigate(doc.url);
+                    if (_server) {
+                        Inspector.Page.navigate(_server.pathToUrl(doc.file.fullPath));
+                    } else {
+                        console.error("LiveDevelopment._onInterstitialPageLoad(): No server active");
+                    }
                 } else {
                     // Unlikely that we would get to this state where
                     // a connection is in process but there is no current
@@ -1034,7 +1050,7 @@ define(function LiveDevelopment(require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_OK) {
                         // User has chosen to reload Chrome, quit the running instance
                         _setStatus(STATUS_INACTIVE);
-                        NativeApp.closeLiveBrowser()
+                        _close()
                             .done(function () {
                                 browserStarted = false;
                                 window.setTimeout(function () {
@@ -1049,7 +1065,17 @@ define(function LiveDevelopment(require, exports, module) {
                                 _openDeferred.reject("CLOSE_LIVE_BROWSER");
                             });
                     } else {
-                        _openDeferred.reject("CANCEL");
+                        _close()
+                            .done(function () {
+                                browserStarted = false;
+                                _openDeferred.reject("CANCEL");
+                            })
+                            .fail(function (err) {
+                                // Report error?
+                                _setStatus(STATUS_ERROR);
+                                browserStarted = false;
+                                _openDeferred.reject("CLOSE_LIVE_BROWSER");
+                            });
                     }
                 });
 
@@ -1069,7 +1095,7 @@ define(function LiveDevelopment(require, exports, module) {
                         var message;
 
                         _setStatus(STATUS_ERROR);
-                        if (err === NativeFileError.NOT_FOUND_ERR) {
+                        if (err === FileSystemError.NOT_FOUND) {
                             message = Strings.ERROR_CANT_FIND_CHROME;
                         } else {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
@@ -1232,7 +1258,8 @@ define(function LiveDevelopment(require, exports, module) {
         
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
-        var wasRequested = agents.network && agents.network.wasURLRequested(doc.url),
+        var docUrl = _server && _server.pathToUrl(doc.file.fullPath),
+            wasRequested = agents.network && agents.network.wasURLRequested(docUrl),
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
         
         if (!wasRequested && isViewable) {
@@ -1276,7 +1303,7 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
         if (doc && Inspector.connected() &&
-                agents.network && agents.network.wasURLRequested(doc.url)) {
+                _server && agents.network && agents.network.wasURLRequested(_server.pathToUrl(doc.file.fullPath))) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(_docIsOutOfSync(doc) ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
         }

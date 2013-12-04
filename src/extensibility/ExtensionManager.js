@@ -40,10 +40,10 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils        = require("file/FileUtils"),
-        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        FileSystem       = require("filesystem/FileSystem"),
         Strings          = require("strings"),
         StringUtils      = require("utils/StringUtils");
     
@@ -176,8 +176,9 @@ define(function (require, exports, module) {
      *     or rejected if there is no package.json or the contents are not valid JSON.
      */
     function _loadPackageJson(folder) {
-        var result = new $.Deferred();
-        FileUtils.readAsText(new NativeFileSystem.FileEntry(folder + "/package.json"))
+        var file = FileSystem.getFileForPath(folder + "/package.json"),
+            result = new $.Deferred();
+        FileUtils.readAsText(file)
             .done(function (text) {
                 try {
                     var json = JSON.parse(text);
@@ -375,7 +376,7 @@ define(function (require, exports, module) {
         Object.keys(_idsToUpdate).forEach(function (id) {
             var filename = _idsToUpdate[id].localPath;
             if (filename) {
-                brackets.fs.unlink(filename, function () { });
+                FileSystem.getFileForPath(filename).unlink();
             }
         });
         _idsToUpdate = {};
@@ -449,8 +450,7 @@ define(function (require, exports, module) {
             return;
         }
         if (installationResult.localPath) {
-            brackets.fs.unlink(installationResult.localPath, function () {
-            });
+            FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
         $(exports).triggerHandler("statusChange", [id]);

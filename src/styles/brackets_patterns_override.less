@@ -727,6 +727,20 @@ a[href^="http"] {
                 background-color: #dfe2e2;
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
             }
+            
+            > li {
+                position: relative;  // for positioning .notification icon
+                > .notification {
+                    display: none;  // hidden by default
+                    background-color: #91CC41;
+                    color: white;
+                    border-radius: 16px;
+                    padding: 0 5px;
+                    position: absolute;
+                    right: 19px;
+                    top: 8px;
+                }
+            }
         }
 
         /* Search box */

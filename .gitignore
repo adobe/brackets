@@ -9,6 +9,8 @@ src/brackets.min.css
 /node_modules
 /npm-debug.log
 
+# ignore compiled files
+/dist
 
 # ignore everything in the dev extension directory EXCEPT the README
 # (so that the directory is non-empty and can be in git)
