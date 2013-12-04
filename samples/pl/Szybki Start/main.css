@@ -47,7 +47,7 @@ samp {
 
 img {
     background: transparent;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 10px solid rgba(0, 0, 0, 0.12);
     border-radius: 4px;
     display: block;
     margin: 1.3em auto;
