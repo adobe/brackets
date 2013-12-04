@@ -153,7 +153,7 @@
     "page-break-inside":           {"values": ["auto", "avoid", "inherit"]},
     "perspective":                 {"values": ["none"]},
     "perspective-origin":          {"values": ["bottom", "center", "left", "right", "top"]},
-    "pointer-events":              {"values": ["auto", "none", "visiblePainted", "visibleFill", "visibleStroke", "visible", "painted", "fill", "stroke", "all", "inherit"]},
+    "pointer-events":              {"values": ["all", "auto", "fill", "inherit", "none", "painted", "stroke", "visible", "visibleFill", "visiblePainted", "visibleStroke"]},
     "position":                    {"values": ["absolute", "fixed", "relative", "static", "sticky", "inherit"]},
     "quotes":                      {"values": ["none", "inherit"]},
     "region-break-after":          {"values": ["always", "auto", "avoid", "avoid-column", "avoid-page", "avoid-region", "column", "left", "page", "region", "right"]},
