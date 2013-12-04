@@ -115,11 +115,11 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",
-    "WITH"                              : "With",
+    "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
     "BUTTON_REPLACE_ALL"                : "All\u2026",
-    "BUTTON_STOP"                       : "Stop",
+    "BUTTON_SKIP"                       : "Skip",
     "BUTTON_REPLACE"                    : "Replace",
             
     "BUTTON_NEXT"                       : "\u25B6",
@@ -135,10 +135,12 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" found",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",

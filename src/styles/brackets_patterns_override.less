@@ -1036,8 +1036,8 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active,
-    &:active {
+    &.active:not([disabled]),
+    &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
         box-shadow: @tc-button-down-shadow;
