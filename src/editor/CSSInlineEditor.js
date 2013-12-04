@@ -383,10 +383,9 @@ define(function (require, exports, module) {
                 $(cssInlineEditor).on("add", function () {
                     inlineEditorDeferred.resolve();
                 });
-                cssInlineEditor.onClosed = function () {
+                $(cssInlineEditor).on("close", function () {
                     _closeDropdown();
-                    MultiRangeInlineEditor.MultiRangeInlineEditor.prototype.onClosed.apply(this, arguments);
-                };
+                });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
                 $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
