@@ -199,6 +199,7 @@ define(function (require, exports, module) {
      */
     Directory.prototype.create = function (callback) {
         callback = callback || function () {};
+        
         this._impl.mkdir(this._path, function (err, stat) {
             if (err) {
                 this._clearCachedData();
@@ -206,12 +207,17 @@ define(function (require, exports, module) {
                 return;
             }
             
+            // Update internal filesystem state
             this._stat = stat;
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath),
+                oldContents = parent._contents;
+
+            parent._clearCachedData();
 
             try {
                 callback(null, stat);
             } finally {
-                this._fileSystem._handleWatchResult(this.parentPath, stat);
+                this._fileSystem._fireChangeEvent(parent, oldContents);
             }
         }.bind(this));
     };

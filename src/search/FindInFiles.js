@@ -916,11 +916,18 @@ define(function (require, exports, module) {
             }
             
             var addPromise;
-            if (added && added.length > 0) {
+            
+            added = added || [];
+            added = added.filter(function (entry) {
+                return entry.isFile;
+            });
+
+            if (added.length > 0) {
                 var doSearch = _doSearchInOneFile.bind(undefined, function () {
                     var resultsAdded = _addSearchMatches.apply(undefined, arguments);
                     resultsChanged = resultsChanged || resultsAdded;
                 });
+                
                 addPromise = Async.doInParallel(added, doSearch);
             } else {
                 addPromise = $.Deferred().resolve().promise();

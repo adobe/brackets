@@ -242,7 +242,10 @@ define(function (require, exports, module) {
      */
     FileSystemEntry.prototype.rename = function (newFullPath, callback) {
         callback = callback || function () {};
+        
+        // Block external change events until after the write has finished
         this._fileSystem._beginWrite();
+        
         this._impl.rename(this._path, newFullPath, function (err) {
             try {
                 if (err) {
@@ -251,11 +254,15 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                // Update internal filesystem state
+                this._fileSystem._handleRename(this._path, newFullPath, this.isDirectory);
+                
                 try {
-                    callback(null);  // notify caller
+                    // Notify the caller
+                    callback(null);
                 } finally {
-                    // Notify the file system of the name change
-                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
+                    // Notify rename listeners
+                    this._fileSystem._fireRenameEvent(this._path, newFullPath);
                 }
             } finally {
                 // Unblock external change events
@@ -280,11 +287,21 @@ define(function (require, exports, module) {
         this._fileSystem._beginWrite();
         
         this._impl.unlink(this._path, function (err) {
+            // Update internal filesystem state
+            this._fileSystem._index.removeEntry(this);
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath),
+                oldContents = parent._contents;
+
+            parent._clearCachedData();
+            
             try {
+                // Notify the caller 
                 callback(err);
             } finally {
-                this._fileSystem._handleWatchResult(this._parentPath);
-                this._fileSystem._index.removeEntry(this);
+                // Notify change listeners
+                this._fileSystem._fireChangeEvent(parent, oldContents);
+                
+                // Unblock external change events
                 this._fileSystem._endWrite();
             }
         }.bind(this));
@@ -311,11 +328,21 @@ define(function (require, exports, module) {
         this._fileSystem._beginWrite();
         
         this._impl.moveToTrash(this._path, function (err) {
+            // Update internal filesystem state
+            this._fileSystem._index.removeEntry(this);
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath),
+                oldContents = parent._contents;
+
+            parent._clearCachedData();
+            
             try {
+                // Notify the caller
                 callback(err);
             } finally {
-                this._fileSystem._handleWatchResult(this._parentPath);
-                this._fileSystem._index.removeEntry(this);
+                // Notify change listeners
+                this._fileSystem._fireChangeEvent(parent, oldContents);
+                
+                // Unblock external change events
                 this._fileSystem._endWrite();
             }
         }.bind(this));

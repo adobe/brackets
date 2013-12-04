@@ -146,28 +146,32 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                // Update internal filesystem state
                 this._hash = stat._hash;
+                this._stat = stat;
+                
+                // Only cache the contents of watched files
+                if (watched) {
+                    this._contents = data;
+                }
+                
+                var parent, oldContents;
+                if (created) {
+                    parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+                    oldContents = parent._contents;
+                }
                 
                 try {
+                    // Notify the caller
                     callback(null, stat);
                 } finally {
                     // If the write succeeded, fire a synthetic change event
                     if (created) {
                         // new file created
-                        this._fileSystem._handleWatchResult(this._parentPath);
+                        this._fileSystem._fireChangeEvent(parent, oldContents);
                     } else {
                         // existing file modified
-                        this._fileSystem._handleWatchResult(this._path, stat);
-                    }
-                    
-                    // Wait until AFTER the synthetic change has been processed
-                    // to update the cached stats so the change handler recognizes
-                    // it is a non-duplicate change event.
-                    this._stat = stat;
-                    
-                    // Only cache the contents of watched files
-                    if (watched) {
-                        this._contents = data;
+                        this._fileSystem._fireChangeEvent(this);
                     }
                 }
             } finally {
