@@ -901,7 +901,7 @@ define(function (require, exports, module) {
             if (removed && removed.length > 0) {
                 var _includesPath = function (fullPath) {
                     return _.some(removed, function (item) {
-                        return item.fullPath === fullPath;
+                        return fullPath.indexOf(item.fullPath) === 0;
                     });
                 };
                 
@@ -916,19 +916,53 @@ define(function (require, exports, module) {
             }
             
             var addPromise;
-            
-            added = added || [];
-            added = added.filter(function (entry) {
-                return entry.isFile;
-            });
-
-            if (added.length > 0) {
+            if (added && added.length > 0) {
                 var doSearch = _doSearchInOneFile.bind(undefined, function () {
                     var resultsAdded = _addSearchMatches.apply(undefined, arguments);
                     resultsChanged = resultsChanged || resultsAdded;
                 });
                 
-                addPromise = Async.doInParallel(added, doSearch);
+                var addedFiles = [],
+                    addedDirectories = [];
+                
+                // sort added entries into files and directories
+                added.forEach(function (entry) {
+                    if (entry.isFile) {
+                        addedFiles.push(entry);
+                    } else {
+                        addedDirectories.push(entry);
+                    }
+                });
+                
+                // visit added directories and add their included files
+                var visitor = function (child) {
+                    if (ProjectManager.shouldShow(child)) {
+                        if (child.isFile) {
+                            addedFiles.push(child);
+                        }
+                        return true;
+                    }
+                };
+
+                var visitPromise = Async.doInParallel(addedDirectories, function (directory) {
+                    var deferred = $.Deferred();
+                    
+                    directory.visit(visitor, function (err) {
+                        if (err) {
+                            deferred.reject(err);
+                            return;
+                        }
+                        
+                        deferred.resolve();
+                    });
+                    
+                    return deferred.promise();
+                });
+
+                // find additional matches in all added files
+                addPromise = visitPromise.then(function () {
+                    return Async.doInParallel(addedFiles, doSearch);
+                });
             } else {
                 addPromise = $.Deferred().resolve().promise();
             }
@@ -938,6 +972,8 @@ define(function (require, exports, module) {
                 if (resultsChanged) {
                     _restoreSearchResults();
                 }
+            }).fail(function (err) {
+                console.warn("Failed to update FindInFiles results: ", err);
             });
         }
     };
