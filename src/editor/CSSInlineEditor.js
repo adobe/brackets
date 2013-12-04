@@ -385,6 +385,7 @@ define(function (require, exports, module) {
                 });
                 cssInlineEditor.onClosed = function () {
                     _closeDropdown();
+                    MultiRangeInlineEditor.MultiRangeInlineEditor.prototype.onClosed.apply(this, arguments);
                 };
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
