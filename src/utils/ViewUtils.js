@@ -352,8 +352,8 @@ define(function (require, exports, module) {
             i = name.lastIndexOf(".");
         
         if (i >= 0) {
-            // Escape all HTML-sensitive characters from filename portion.
-            name = _.escape(name.substring(0, i)) + "<span class='extension'>" + name.substring(i) + "</span>";
+            // Escape all HTML-sensitive characters in filename.
+            name = _.escape(name.substring(0, i)) + "<span class='extension'>" + _.escape(name.substring(i)) + "</span>";
         }
         
         return name;
