@@ -312,8 +312,10 @@ define(function (require, exports, module) {
             // don't show a header if there is only one provider available for this file type
             if (providerList.length === 1) {
                 $problemsPanelTable.find(".inspector-section").hide();
+                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, providerList[0].name));
             } else {
                 $problemsPanelTable.find(".inspector-section").show();
+                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems));
             }
         } else {
             // No provider for current file
@@ -412,7 +414,6 @@ define(function (require, exports, module) {
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
-//            if (_lastResult && _hasErrors) {
             if (_hasErrors) {
                 Resizer.show($problemsPanel);
             }
