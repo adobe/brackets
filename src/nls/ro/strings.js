@@ -434,7 +434,7 @@ define({
     "CMD_SHOW_DEV_TOOLS"                        : "Arată uneltele pentru dezvoltatori",
     "CMD_REFRESH_WINDOW"                        : "Reîncarcă {APP_NAME}",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Deschide o fereastră nouă {APP_NAME}",
-    "CMD_SWITCH_LANGUAGE"                       : "Schimbă limba",
+    "CMD_SWITCH_LANGUAGE"                       : "Modifică limba",
     "CMD_RUN_UNIT_TESTS"                        : "Rulează testele",
     "CMD_SHOW_PERF_DATA"                        : "Arată datele despre performanță",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Activează opțiunea de depanare pentru Node",
