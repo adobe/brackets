@@ -200,11 +200,11 @@ define(function (require, exports, module) {
          * @private
          * Handle click
          */
-        function _onClick(event) {
+        function _onClickOutside(event) {
             var $container = $(event.target).closest(".stylesheet-dropdown");
 
             // If click is outside dropdown list, then close dropdown list
-            if ($container.length === 0) {
+            if ($container.length === 0 || $container[0] !== $dropdown[0]) {
                 _closeDropdown();
             }
         }
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
-            window.document.body.removeEventListener("click", _onClick, true);
+            window.document.body.removeEventListener("click", _onClickOutside, true);
             $(hostEditor).off("scroll", _closeDropdown);
             $(PanelManager).off("editorAreaResize", _closeDropdown);
             dropdownEventHandler = null;
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
             
             $dropdown.focus();
             
-            window.document.body.addEventListener("click", _onClick, true);
+            window.document.body.addEventListener("click", _onClickOutside, true);
             $(hostEditor).on("scroll", _closeDropdown);
             $(PanelManager).on("editorAreaResize", _closeDropdown);
         }
