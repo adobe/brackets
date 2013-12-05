@@ -198,11 +198,24 @@ define(function (require, exports, module) {
         
         /**
          * @private
+         * Handle click
+         */
+        function _onClick(event) {
+            var $container = $(event.target).closest(".stylesheet-dropdown");
+
+            // If click is outside dropdown list, then close dropdown list
+            if ($container.length === 0) {
+                _closeDropdown();
+            }
+        }
+        
+        /**
+         * @private
          * Remove the various event handlers that close the dropdown. This is called by the
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
-            $("html").off("click", _closeDropdown);
+            window.document.body.removeEventListener("click", _onClick, true);
             $(hostEditor).off("scroll", _closeDropdown);
             $(PanelManager).off("editorAreaResize", _closeDropdown);
             dropdownEventHandler = null;
@@ -261,7 +274,7 @@ define(function (require, exports, module) {
             
             $dropdown.focus();
             
-            $("html").on("click", _closeDropdown);
+            window.document.body.addEventListener("click", _onClick, true);
             $(hostEditor).on("scroll", _closeDropdown);
             $(PanelManager).on("editorAreaResize", _closeDropdown);
         }

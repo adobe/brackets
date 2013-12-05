@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         this.$closeBtn = this.$htmlContent.find(".close");
         this.$closeBtn.click(function (e) {
             self.close();
+            e.stopImmediatePropagation();
         });
 
         this.$htmlContent.on("keydown", function (e) {
