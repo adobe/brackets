@@ -352,11 +352,8 @@ define(function (require, exports, module) {
             i = name.lastIndexOf(".");
         
         if (i >= 0) {
-            var nameOnly = name.substring(0, i);
-            // Replace any "<" character with its character entity 
-            // so that the exact filename can be displayed.
-            nameOnly = nameOnly.replace(/</g, "&lt;");
-            name = nameOnly + "<span class='extension'>" + name.substring(i) + "</span>";
+            // Escape all HTML-sensitive characters from filename portion.
+            name = _.escape(name.substring(0, i)) + "<span class='extension'>" + name.substring(i) + "</span>";
         }
         
         return name;
