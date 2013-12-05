@@ -100,6 +100,7 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
+    require("editor/ImageViewer");
     
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");

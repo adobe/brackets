@@ -58,7 +58,6 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        ImageViewer         = require("editor/ImageViewer"),
         Strings             = require("strings"),
         LanguageManager     = require("language/LanguageManager");
     
@@ -689,31 +688,32 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Registers a new custom viewer provider.  To create an extension that enables Brackets
-     * to view files that are not supported by CodeMirror, i.e.  binary or proprietary
-     * file types, use this method to register a CustomViewer.
+     * Registers a new custom viewer provider. To create an extension 
+     * that enables Brackets to view files that cannot be shown as  
+     * text such as binary files, use this method to register a CustomViewer.
      * 
      * A CustomViewer, such as ImageViewer in Brackets core needs to 
      * implement and export two methods: 
      * - render
      *      @param {!string} fullPath Path to the image file
      *      @param {!jQueryObject} $editorHolder The DOM element to append the view to.     
-     *      function render(fullPath, $editorHolder)  
-     * - function onRemove()
+     * - onRemove
      *      signs off listeners and performs any required clean up when editor manager closes
      *      the custom viewer
      *
      * By registering a CustomViewer with EditorManager  Brackets is
      * enabled to view files for one or more given file extensions. 
      * The first argument defines a so called languageId which bundles
-     * file extensions to be handled by the custom viewer, see more in LanguageManager JSDocs
-     * The second argument is an instantiated instance of the custom viewer that is ready to display 
+     * file extensions to be handled by the custom viewer, see more
+     * in LanguageManager JSDocs.
+     * The second argument is an instance of the custom viewer that is ready to display 
      * files.
      * 
-     * @param {!String} languageId, i.e. string such as image, audio, etc to identify a language known to LanguageManager 
+     * @param {!String} languageId, i.e. string such as image, audio, etc to 
+     *                              identify a language known to LanguageManager 
      * @param {!Object} provider custom view provider instance
      */
-    function registerCustomViewerProvider(langId, provider) {
+    function registerCustomViewer(langId, provider) {
         if (!_customViewerRegistry[langId]) {
             _customViewerRegistry[langId] = provider;
         } else {
@@ -998,9 +998,7 @@ define(function (require, exports, module) {
         return _toggleInlineWidget(_inlineDocsProviders);
     });
     CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
-    
-    registerCustomViewerProvider("image", ImageViewer);
-    
+
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
@@ -1040,7 +1038,7 @@ define(function (require, exports, module) {
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
-    exports.registerCustomViewerProvider  = registerCustomViewerProvider;
+    exports.registerCustomViewer          = registerCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.closeCustomViewer             = closeCustomViewer;
