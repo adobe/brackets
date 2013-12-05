@@ -119,12 +119,11 @@ define(function (require, exports, module) {
      * @return {RegExp}
      */
     function _getQueryRegExp(query) {
+        $(".modal-bar .error").hide();  // Clear any pending RegEx error message
+        
         if (!query) {
             return null;
         }
-        
-        // Clear any pending RegEx error message
-        $(".modal-bar .error").hide();
 
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
@@ -483,8 +482,7 @@ define(function (require, exports, module) {
                 dialog.getDialogTextField().addClass("no-results")
                                             .removeAttr("disabled")
                                             .get(0).select();
-                                            
-                $(".modal-bar .error").show().text(Strings.FIND_NO_RESULTS);
+                $(".modal-bar .no-results-message").show();
             }
         }
     }
@@ -732,6 +730,9 @@ define(function (require, exports, module) {
             return;
         }
         
+        // Hide error popup, since it hangs down low enough to make the slide-out look awkward
+        $(".modal-bar .error").hide();
+        
         this.closed = true;
         this.modalBar.close();
         EditorManager.focusEditor();
@@ -753,9 +754,19 @@ define(function (require, exports, module) {
             that       = this;
         
         this.modalBar    = new ModalBar(dialogHTML, false);
-        $(".modal-bar .error").hide();
         
         var $searchField = $("input#searchInput");
+        
+        function handleQueryChange() {
+            // Check the query expression on every input event. This way the user is alerted
+            // to any RegEx syntax errors immediately.
+            var query = _getQueryRegExp($searchField.val());
+            
+            // Clear any no-results indicator since query has changed
+            // But input field may still have error style if its content is an invalid regexp
+            that.getDialogTextField().toggleClass("no-results", Boolean($searchField.val() && query === null));
+            $(".modal-bar .no-results-message").hide();
+        }
         
         $searchField.get(0).select();
         $searchField
@@ -775,12 +786,7 @@ define(function (require, exports, module) {
                     }
                 }
             })
-            .bind("input", function (event) {
-                // Check the query expression on every input event. This way the user is alerted
-                // to any RegEx syntax errors immediately.
-                var query = _getQueryRegExp($searchField.val());
-                that.getDialogTextField().toggleClass("no-results", (query === null));
-            })
+            .bind("input", handleQueryChange)
             .blur(function () {
                 if (that.getDialogTextField().attr("disabled")) {
                     return;
@@ -788,6 +794,9 @@ define(function (require, exports, module) {
                 that._close(null);
             })
             .focus();
+        
+        // Initial upate for prepopulated 'initialString' text
+        handleQueryChange();
     };
 
     /**

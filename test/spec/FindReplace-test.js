@@ -149,6 +149,14 @@ define(function (require, exports, module) {
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", getSearchField()[0]);
         }
         
+        function toggleCaseSensitive(val) {
+            tw$("#find-case-sensitive").toggleClass("active", Boolean(val));
+        }
+        function toggleRegexp(val) {
+            tw$("#find-regexp").toggleClass("active", Boolean(val));
+        }
+        
+        
         beforeFirst(function () {
             SpecRunnerUtils.createTempDirectory();
 
@@ -202,7 +210,7 @@ define(function (require, exports, module) {
         });
         
         describe("Search", function () {
-            it("should find all case-insensitive matches", function () {
+            it("should find all case-insensitive matches with lowercase text", function () {
                 myEditor.setCursorPos(0, 0);
 
                 twCommandManager.execute(Commands.EDIT_FIND);
@@ -227,7 +235,32 @@ define(function (require, exports, module) {
                 expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
             
-            it("should find all case-sensitive matches", function () {
+            it("should find all case-insensitive matches with mixed-case text", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.EDIT_FIND);
+
+                enterSearchText("Foo");
+                expectHighlightedMatches(fooExpectedMatches);
+                expectSelection(fooExpectedMatches[0]);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
+
+                twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection(fooExpectedMatches[1]);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection(fooExpectedMatches[2]);
+                twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection(fooExpectedMatches[3]);
+                expectHighlightedMatches(fooExpectedMatches);  // no change in highlights
+
+                // wraparound
+                twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection(fooExpectedMatches[0]);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
+            });
+            
+            it("should find all case-sensitive matches with mixed-case text", function () {
                 var expectedSelections = [
                     {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
                     {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
@@ -237,6 +270,7 @@ define(function (require, exports, module) {
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
+                toggleCaseSensitive(true);
                 enterSearchText("Foo");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
@@ -310,6 +344,39 @@ define(function (require, exports, module) {
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
                     twCommandManager.execute(Commands.EDIT_FIND_PREVIOUS);
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                });
+            });
+            
+            it("should Find Next after search bar closed, relative to cursor position", function () {
+                runs(function () {
+                    myEditor.setCursorPos(0, 0);
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND);
+                    
+                    enterSearchText("foo");
+                    pressEscape();
+                    expectHighlightedMatches([]);
+                });
+                
+                waitsForSearchBarClose();
+                
+                runs(function () {
+                    expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                    expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
+                    
+                    // skip forward
+                    myEditor.setCursorPos(7, 0);
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                    expectSelection({start: {line: 8, ch: 8}, end: {line: 8, ch: 11}});
+                    
+                    // skip backward
+                    myEditor.setCursorPos(LINE_FIRST_REQUIRE, 14);
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                    expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
                 });
             });
             
@@ -535,7 +602,9 @@ define(function (require, exports, module) {
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
-                enterSearchText("/Ba./");
+                toggleRegexp(true);
+                toggleCaseSensitive(true);
+                enterSearchText("Ba.");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
                 
@@ -559,7 +628,9 @@ define(function (require, exports, module) {
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
-                enterSearchText("/foo/");
+                toggleRegexp(true);
+                toggleCaseSensitive(true);
+                enterSearchText("foo");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
             });
@@ -575,22 +646,9 @@ define(function (require, exports, module) {
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
-                enterSearchText("/foo/i");
-                expectHighlightedMatches(expectedSelections);
-                expectSelection(expectedSelections[0]);
-            });
-            
-            it("shouldn't choke on partial regexp", function () {
-                var expectedSelections = [
-                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 33}},
-                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 30}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 33}}
-                ];
-                myEditor.setCursorPos(0, 0);
-                
-                twCommandManager.execute(Commands.EDIT_FIND);
-                
-                // This should be interpreted as a non-RegExp search, which actually does have a result thanks to "modules/Bar"
-                enterSearchText("/Ba");
+                toggleRegexp(true);
+                toggleCaseSensitive(false);
+                enterSearchText("foo");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
             });
@@ -600,8 +658,8 @@ define(function (require, exports, module) {
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
-                // This is interpreted as a regexp (has both "/"es) but is invalid; should show error message
-                enterSearchText("/+/");
+                toggleRegexp(true);
+                enterSearchText("+");
                 expect(tw$(".modal-bar .error").length).toBe(1);
                 expectHighlightedMatches([]);
                 expect(myEditor).toHaveCursorPosition(0, 0); // no change
@@ -612,7 +670,8 @@ define(function (require, exports, module) {
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
-                enterSearchText("//");
+                toggleRegexp(true);
+                enterSearchText("");
                 expectHighlightedMatches([]);
                 expect(myEditor).toHaveCursorPosition(0, 0); // no change
             });
@@ -622,7 +681,8 @@ define(function (require, exports, module) {
 
                 twCommandManager.execute(Commands.EDIT_FIND);
 
-                enterSearchText("/.*/");
+                toggleRegexp(true);
+                enterSearchText(".*/");
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 0, ch: 18}});
             });
         });
@@ -650,7 +710,8 @@ define(function (require, exports, module) {
             it("should find and replace a regexp with $n substitutions", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2:$1");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -670,7 +731,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $0n (leading zero)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$02:$01");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -690,7 +752,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $0 (literal)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$0_:$01");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -710,7 +773,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $n (empty subexpression)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)(.*)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)(.*)\\/(\\w+)");
                     enterReplaceText("$3$2:$1");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -730,7 +794,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $nn (n has two digits)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/()()()()()()()()()()(modules)\\/()()()(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("()()()()()()()()()()(modules)\\/()()()(\\w+)");
                     enterReplaceText("$15:$11");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -750,7 +815,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $$n (not a subexpression, escaped dollar)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$$2_$$10:$2");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -770,7 +836,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $$$n (correct subexpression)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2$$$1");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -792,7 +859,8 @@ define(function (require, exports, module) {
             it("should find all regexps and replace them with $n", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2:$1");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -818,7 +886,8 @@ define(function (require, exports, module) {
             it("should find all regexps and replace them with $n (empty subexpression)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)(.*)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)(.*)\\/(\\w+)");
                     enterReplaceText("$3$2:$1");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -844,7 +913,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $nn (n has two digits)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/()()()()()()()()()()(modules)\\/()()()(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("()()()()()()()()()()(modules)\\/()()()(\\w+)");
                     enterReplaceText("$15:$11");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -870,7 +940,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $$n (not a subexpression, escaped dollar)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$$2_$$10:$2");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
@@ -896,7 +967,8 @@ define(function (require, exports, module) {
             it("should find a regexp and replace it with $$$n (correct subexpression)", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
-                    enterSearchText("/(modules)\\/(\\w+)/");
+                    toggleRegexp(true);
+                    enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2$$$1");
                     
                     var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};

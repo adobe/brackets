@@ -1083,24 +1083,44 @@ a, img {
         }
     }
     
-    .message {
+    .message, .no-results-message {
         display: inline-block;
     }
+    
+    #find-case-sensitive, #find-regexp {
+        padding: 1px 4px;
+    }
+    .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
+        .sprite-icon(0, 0, 24px, 24px, "images/find-replace-sprites.svg");
+        background-repeat: no-repeat;
+    }
+    #find-regexp.active .button-icon {
+        .sprite-swap(0, 24px);
+    }
+    #find-case-sensitive .button-icon {
+        .sprite-swap(0, 48px);
+    }
+    #find-case-sensitive.active .button-icon {
+        .sprite-swap(0, 72px);
+    }
+    #find-regexp.active, #find-case-sensitive.active {
+        background-color: @tc-highlight;
+    }
 
-    .navigator {
+    .navigator {  // next/prev buttons
         display: inline-block;
-        button {
-            margin: 2px 1px 3px;
-        }
+    }
+    button {
+        margin: 2px 1px 3px;
     }
     
     // Make button pairs snug
-    #find-prev, #replace-yes {
+    #find-prev, #replace-yes, #find-case-sensitive {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
         margin-right: 0;
     }
-    #find-next, #replace-all {
+    #find-next, #replace-all, #find-regexp {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: -1px;

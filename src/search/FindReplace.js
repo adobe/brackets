@@ -78,7 +78,7 @@ define(function (require, exports, module) {
     var modalBar;
 
     function SearchState() {
-        this.posFrom = this.posTo = this.searchStartPos = null;
+        this.searchStartPos = null;
         this.query = null;
         this.foundAny = false;
         this.marked = [];
@@ -93,25 +93,28 @@ define(function (require, exports, module) {
 
     function getSearchCursor(cm, query, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return cm.getSearchCursor(query, pos, typeof query === "string" && query === query.toLowerCase());
+        return cm.getSearchCursor(query, pos, !$("#find-case-sensitive").is(".active"));
     }
     
     function parseQuery(query) {
-        var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
         $(".modal-bar .message").show();
         $(".modal-bar .error").hide();
-        try {
-            if (isRE && isRE[1]) {  // non-empty regexp
-                return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
-            } else {
-                return query;
+        
+        // Is it a (non-blank) regex?
+        if (query && $("#find-regexp").is(".active")) {
+            try {
+                var caseSensitive = $("#find-case-sensitive").is(".active");
+                return new RegExp(query, caseSensitive ? "" : "i");
+            } catch (e) {
+                $(".modal-bar .message").hide();
+                $(".modal-bar .error")
+                    .show()
+                    .text(e.message);
+                return "";
             }
-        } catch (e) {
-            $(".modal-bar .message").hide();
-            $(".modal-bar .error")
-                .show()
-                .text(e.message);
-            return "";
+        
+        } else {
+            return query;
         }
     }
 
@@ -128,12 +131,22 @@ define(function (require, exports, module) {
         return replaceWith;
     }
 
-    function findNext(editor, rev, preferNoScroll) {
+    /**
+     * Selects the next match (or prev match, if rev==true) starting from either the current position
+     * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
+     * need not be an existing match. If a new match is found, sets to state.lastMatch either the regex
+     * match result, or simply true for a plain-string match. If no match found, sets state.lastMatch
+     * to false.
+     * @param {!Editor} editor
+     * @param {?boolean} rev
+     * @param {?boolean} preferNoScroll
+     * @param {?Pos} pos
+     */
+    function findNext(editor, rev, preferNoScroll, pos) {
         var cm = editor._codeMirror;
-        var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
-            var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
+            var cursor = getSearchCursor(cm, state.query, pos || cm.getCursor(Boolean(rev))); // null and false mean different things to getCursor()
 
             state.lastMatch = cursor.find(rev);
             if (!state.lastMatch) {
@@ -144,7 +157,6 @@ define(function (require, exports, module) {
                 if (!state.lastMatch) {
                     // No result found, period: clear selection & bail
                     cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
-                    found = false;
                     return;
                 }
             }
@@ -158,10 +170,7 @@ define(function (require, exports, module) {
             }
             cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
             editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
-            state.posFrom = cursor.from();
-            state.posTo = cursor.to();
         });
-        return found;
     }
 
     function clearHighlights(cm, state) {
@@ -207,6 +216,8 @@ define(function (require, exports, module) {
     
     var findDialog =
             "<div class='search-input-container'><input type='text' id='find-what'/><div class='error'></div><span id='find-counter'></span></div>" +
+            "<button id='find-case-sensitive' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_CASESENSITIVE_HINT + "'><div class='button-icon'></div></button>" +
+            "<button id='find-regexp' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_REGEXP_HINT + "'><div class='button-icon'></div></button>" +
             "<div class='navigator'>" +
                 "<button id='find-prev' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
                 "<button id='find-next' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
@@ -214,8 +225,8 @@ define(function (require, exports, module) {
     
     var replaceDialog = findDialog +
             "<input type='text' id='replace-with' placeholder='" + Strings.REPLACE_PLACEHOLDER + "'/>" +
-            "<button id='replace-yes' class='btn'>" + Strings.BUTTON_REPLACE + "</button>" +
-            "<button id='replace-all' class='btn'>" + Strings.BUTTON_REPLACE_ALL + "</button>";
+            "<button id='replace-yes' class='btn no-focus' tabindex='-1'>" + Strings.BUTTON_REPLACE + "</button>" +
+            "<button id='replace-all' class='btn no-focus' tabindex='-1'>" + Strings.BUTTON_REPLACE_ALL + "</button>";
 
     
     function toggleHighlighting(editor, enabled) {
@@ -320,11 +331,10 @@ define(function (require, exports, module) {
         state.query = parseQuery($("#find-what").val());
         updateResultSet(editor);
         
-        state.posFrom = state.posTo = state.searchStartPos;
         if (state.query) {
             // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
-            findNext(editor, false, true);
+            findNext(editor, false, true, state.searchStartPos);
         } else {
             // Blank or invalid query: just jump back to initial pos
             editor._codeMirror.setCursor(state.searchStartPos);
@@ -367,12 +377,15 @@ define(function (require, exports, module) {
         });
         
         modalBar.getRoot()
-            .on("click", function (e) {
-                if (e.target.id === "find-next") {
-                    findNext(editor);
-                } else if (e.target.id === "find-prev") {
-                    findNext(editor, true);
-                }
+            .on("click", "#find-next", function (e) {
+                findNext(editor);
+            })
+            .on("click", "#find-prev", function (e) {
+                findNext(editor, true);
+            })
+            .on("click", "#find-case-sensitive, #find-regexp", function (e) {
+                $(e.currentTarget).toggleClass('active');
+                handleQueryChange(editor, state);
             })
             .on("keydown", function (e) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
@@ -560,7 +573,8 @@ define(function (require, exports, module) {
                 
                 updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
                 
-                if (!findNext(editor)) {
+                findNext(editor);
+                if (!state.lastMatch) {
                     // No more matches, so destroy modalBar
                     modalBar.close();
                 }

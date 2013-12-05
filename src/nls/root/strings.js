@@ -110,21 +110,29 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Cancel",
+    "DONT_SAVE"                         : "Don't Save",
+    "SAVE"                              : "Save",
+    "DELETE"                            : "Delete",
+    "BUTTON_YES"                        : "Yes",
+    "BUTTON_NO"                         : "No",
+    
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
-    "BUTTON_YES"                        : "Yes",
-    "BUTTON_NO"                         : "No",
     "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_REPLACE"                    : "Replace",
-            
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Next Match",
     "BUTTON_PREV_HINT"                  : "Previous Match",
+    "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
+    "BUTTON_REGEXP_HINT"                : "Regular Expression",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
@@ -308,11 +316,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Don't Save",
-    "SAVE"                                 : "Save",
-    "CANCEL"                               : "Cancel",
-    "DELETE"                               : "Delete",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
