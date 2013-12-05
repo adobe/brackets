@@ -139,44 +139,51 @@ define(function (require, exports, module) {
         this._fileSystem._beginWrite();
         
         this._impl.writeFile(this._path, data, options, function (err, stat, created) {
-            try {
-                if (err) {
-                    this._clearCachedData();
+            if (err) {
+                this._clearCachedData();
+                try {
                     callback(err);
                     return;
+                } finally {
+                    // Always unblock external change events
+                    this._fileSystem._endWrite();
                 }
-                
-                // Update internal filesystem state
-                this._hash = stat._hash;
-                this._stat = stat;
-                
-                // Only cache the contents of watched files
-                if (watched) {
-                    this._contents = data;
-                }
-                
-                var parent, oldContents;
-                if (created) {
-                    parent = this._fileSystem.getDirectoryForPath(this.parentPath);
-                    oldContents = parent._contents;
-                }
-                
+            }
+            
+            // Update internal filesystem state
+            this._hash = stat._hash;
+            this._stat = stat;
+            
+            // Only cache the contents of watched files
+            if (watched) {
+                this._contents = data;
+            }
+            
+            if (created) {
+                var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+                this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                    try {
+                        // Notify the caller
+                        callback(null, stat);
+                    } finally {
+                        // If the write succeeded, fire a synthetic change event
+                        this._fileSystem._fireChangeEvent(parent, added, removed);
+                        
+                        // Always unblock external change events
+                        this._fileSystem._endWrite();
+                    }
+                }.bind(this));
+            } else {
                 try {
                     // Notify the caller
                     callback(null, stat);
                 } finally {
-                    // If the write succeeded, fire a synthetic change event
-                    if (created) {
-                        // new file created
-                        this._fileSystem._fireChangeEvent(parent, oldContents);
-                    } else {
-                        // existing file modified
-                        this._fileSystem._fireChangeEvent(this);
-                    }
+                    // existing file modified
+                    this._fileSystem._fireChangeEvent(this);
+                    
+                    // Always unblock external change events
+                    this._fileSystem._endWrite();
                 }
-            } finally {
-                // Always unblock external change events
-                this._fileSystem._endWrite();
             }
         }.bind(this));
     };

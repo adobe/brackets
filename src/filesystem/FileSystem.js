@@ -119,10 +119,10 @@ define(function (require, exports, module) {
      */
     FileSystem.prototype._watchResults = null;
     
-    /** Process all queued watcher results, by calling _handleWatchResult() on each */
+    /** Process all queued watcher results, by calling _handleExternalChange() on each */
     FileSystem.prototype._triggerWatchCallbacksNow = function () {
         this._watchResults.forEach(function (info) {
-            this._handleWatchResult(info.path, info.stat);
+            this._handleExternalChange(info.path, info.stat);
         }, this);
         this._watchResults.length = 0;
     };
@@ -258,7 +258,6 @@ define(function (require, exports, module) {
         } else {
             genericProcessChild = function (child) {
                 child._clearCachedData();
-                this._index.removeEntry(child);
             };
         }
         
@@ -347,7 +346,15 @@ define(function (require, exports, module) {
      *      watch is complete, possibly with a FileSystemError string.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, callback, false);
+        this._watchOrUnwatchEntry(entry, watchedRoot, function (err) {
+            this._index.visitAll(function (child) {
+                if (child.fullPath.indexOf(entry.fullPath) === 0) {
+                    this._index.removeEntry(child);
+                }
+            }.bind(this));
+            
+            callback(err);
+        }.bind(this), false);
     };
     
     /**
@@ -570,23 +577,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @private
-     * Notify the system when an entry name has changed.
-     *
-     * @param {string} oldName 
-     * @param {string} newName
-     * @param {boolean} isDirectory
-     */
-    FileSystem.prototype._handleRename = function (oldName, newName, isDirectory) {
-        // Update all affected entries in the index
-        this._index.entryRenamed(oldName, newName, isDirectory);
-    };
-    
-    FileSystem.prototype._fireRenameEvent = function (oldName, newName) {
-        $(this).trigger("rename", [oldName, newName]);
-    };
-    
-    /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
      *
      * @param {boolean} allowMultipleSelection Allows selecting more than one file at a time
@@ -628,93 +618,77 @@ define(function (require, exports, module) {
     FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     };
+
+    FileSystem.prototype._fireRenameEvent = function (oldName, newName) {
+        $(this).trigger("rename", [oldName, newName]);
+    };
     
-    FileSystem.prototype._fireChangeEvent = function (entry, oldContents) {
+    FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
+        $(this).trigger("change", [entry, added, removed]);
+    };
+    
+    /**
+     * @private
+     * Notify the system when an entry name has changed.
+     *
+     * @param {string} oldName 
+     * @param {string} newName
+     * @param {boolean} isDirectory
+     */
+    FileSystem.prototype._handleRename = function (oldName, newName, isDirectory) {
+        // Update all affected entries in the index
+        this._index.entryRenamed(oldName, newName, isDirectory);
+    };
+    
+    FileSystem.prototype._handleDirectoryChange = function (directory, callback) {
+        var oldContents = directory._contents || [];
         
-        var fireChangeEvent = function (entry, added, removed) {
-            // Trigger a change event
-            $(this).trigger("change", [entry, added, removed]);
-        }.bind(this);
-        
-        if (!entry) {
-            fireChangeEvent(null);
-            return;
-        }
+        directory._clearCachedData();
+        directory.getContents(function (err, contents) {
+            var addedEntries = contents.filter(function (entry) {
+                return oldContents.indexOf(entry) === -1;
+            });
+            
+            var removedEntries = oldContents.filter(function (entry) {
+                return contents.indexOf(entry) === -1;
+            });
 
-        var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
-        if (!watchedRoot) {
-            console.warn("Received change notification for unwatched path: ", entry.fullPath);
-            return;
-        }
-        
-        if (!watchedRoot.filter(entry.name, entry.parentPath)) {
-            return;
-        }
-
-        if (entry.isFile) {
-            fireChangeEvent(entry);
-        } else {
-            oldContents = oldContents || [];
-            // Update changed entries
-            entry.getContents(function (err, contents) {
+            // If directory is not watched, clear the cache the children of removed
+            // entries manually. Otherwise, this is handled by the unwatch call.
+            var watchedRoot = this._findWatchedRootForPath(directory.fullPath);
+            if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
+                removedEntries.forEach(function (removed) {
+                    this._index.visitAll(function (entry) {
+                        if (entry.fullPath.indexOf(removed.fullPath) === 0) {
+                            entry._clearCachedData();
+                        }
+                    }.bind(this));
+                }, this);
                 
-                var addNewEntries = function (callback) {
-                    // Check for added directories and scan to add to index
-                    // Re-scan this directory to add any new contents
-                    var entriesToAdd = contents.filter(function (entry) {
-                        return oldContents.indexOf(entry) === -1;
-                    });
-                    
-                    var addCounter = entriesToAdd.length;
-                    
-                    if (addCounter === 0) {
-                        callback([]);
-                    } else {
-                        entriesToAdd.forEach(function (entry) {
-                            this._watchEntry(entry, watchedRoot, function (err) {
-                                if (--addCounter === 0) {
-                                    callback(entriesToAdd);
-                                }
-                            });
-                        }, this);
-                    }
-                }.bind(this);
-                
-                var removeOldEntries = function (callback) {
-                    var entriesToRemove = oldContents.filter(function (entry) {
-                        return contents.indexOf(entry) === -1;
-                    });
-
-                    var removeCounter = entriesToRemove.length;
-                    
-                    if (removeCounter === 0) {
-                        callback([]);
-                    } else {
-                        entriesToRemove.forEach(function (entry) {
-                            this._unwatchEntry(entry, watchedRoot, function (err) {
-                                if (--removeCounter === 0) {
-                                    callback(entriesToRemove);
-                                }
-                            });
-                        }, this);
-                    }
-                }.bind(this);
-
-                if (err) {
-                    console.warn("Unable to get contents of changed directory: ", entry.fullPath, err);
-                } else {
-                    removeOldEntries(function (removed) {
-                        addNewEntries(function (added) {
-                            if (added.length > 0 || removed.length > 0) {
-                                fireChangeEvent(entry, added, removed);
-                            } else {
-                                console.info("Detected duplicate directory change event: ", entry.fullPath);
-                            }
-                        });
-                    });
+                callback(addedEntries, removedEntries);
+                return;
+            }
+            
+            var counter = addedEntries.length + removedEntries.length;
+            if (counter === 0) {
+                callback(directory, addedEntries, removedEntries);
+                return;
+            }
+            
+            var watchOrUnwatchCallback = function (err) {
+                if (--counter === 0) {
+                    callback(directory, addedEntries, removedEntries);
                 }
-            }.bind(this));
-        }
+            };
+            
+            addedEntries.forEach(function (entry) {
+                this._watchEntry(entry, watchedRoot, watchOrUnwatchCallback);
+            }, this);
+
+            removedEntries.forEach(function (entry) {
+                this._unwatchEntry(entry, watchedRoot, watchOrUnwatchCallback);
+            }, this);
+        }.bind(this));
     };
     
     /**
@@ -726,7 +700,7 @@ define(function (require, exports, module) {
      * @param {FileSystemStats=} stat Optional stat for the item that changed. This param is not always
      *         passed. 
      */
-    FileSystem.prototype._handleWatchResult = function (path, stat) {
+    FileSystem.prototype._handleExternalChange = function (path, stat) {
 
         if (!path) {
             // This is a "wholesale" change event
@@ -753,11 +727,16 @@ define(function (require, exports, module) {
                     console.info("Detected duplicate file change event: ", path);
                 }
             } else {
-                var oldContents = entry._contents;
-                entry._clearCachedData();
-                entry._stat = stat;
-                
-                this._fireChangeEvent(entry, oldContents);
+                this._handleDirectoryChange(entry, function (added, removed) {
+                    entry._stat = stat;
+                    
+                    if (added && added.length === 0 && removed && removed.length === 0) {
+                        console.info("Detected duplicate directory change event: ", entry.fullPath);
+                        return;
+                    }
+                    
+                    this._fireChangeEvent(entry, added, removed);
+                }.bind(this));
             }
         }
     };
@@ -865,7 +844,7 @@ define(function (require, exports, module) {
         
         // Fire a wholesale change event because all previously watched entries
         // have been removed from the index and should no longer be referenced
-        this._handleWatchResult(null);
+        this._handleExternalChange(null);
     };
 
     

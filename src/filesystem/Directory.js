@@ -76,8 +76,15 @@ define(function (require, exports, module) {
      * Clear any cached data for this directory
      * @private
      */
-    Directory.prototype._clearCachedData = function () {
+    Directory.prototype._clearCachedData = function (stopRecursing) {
         this.parentClass._clearCachedData.apply(this);
+        
+        if (!stopRecursing && this._contents) {
+            this._contents.forEach(function (child) {
+                child._clearCachedData(true);
+            });
+        }
+        
         this._contents = undefined;
         this._contentsStats = undefined;
         this._contentsStatsErrors = undefined;
@@ -200,25 +207,34 @@ define(function (require, exports, module) {
     Directory.prototype.create = function (callback) {
         callback = callback || function () {};
         
+        // Block external change events until after the write has finished
+        this._fileSystem._beginWrite();
+        
         this._impl.mkdir(this._path, function (err, stat) {
             if (err) {
                 this._clearCachedData();
-                callback(err);
-                return;
+                try {
+                    callback(err);
+                    return;
+                } finally {
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
             }
+
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
             
             // Update internal filesystem state
             this._stat = stat;
-            var parent = this._fileSystem.getDirectoryForPath(this.parentPath),
-                oldContents = parent._contents;
-
-            parent._clearCachedData();
-
-            try {
-                callback(null, stat);
-            } finally {
-                this._fileSystem._fireChangeEvent(parent, oldContents);
-            }
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    callback(null, stat);
+                } finally {
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
+            }.bind(this));
         }.bind(this));
     };
     

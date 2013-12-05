@@ -281,29 +281,26 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype.unlink = function (callback) {
         callback = callback || function () {};
         
-        this._clearCachedData();
-        
         // Block external change events until after the write has finished
         this._fileSystem._beginWrite();
         
+        this._clearCachedData();
         this._impl.unlink(this._path, function (err) {
-            // Update internal filesystem state
-            this._fileSystem._index.removeEntry(this);
-            var parent = this._fileSystem.getDirectoryForPath(this.parentPath),
-                oldContents = parent._contents;
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
-            parent._clearCachedData();
-            
-            try {
-                // Notify the caller 
-                callback(err);
-            } finally {
-                // Notify change listeners
-                this._fileSystem._fireChangeEvent(parent, oldContents);
-                
-                // Unblock external change events
-                this._fileSystem._endWrite();
-            }
+            // Update internal filesystem state
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    // Notify the caller 
+                    callback(err);
+                } finally {
+                    // Notify change listeners
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
+            }.bind(this));
         }.bind(this));
     };
     
@@ -321,30 +318,27 @@ define(function (require, exports, module) {
         }
 
         callback = callback || function () {};
-        
-        this._clearCachedData();
 
         // Block external change events until after the write has finished
         this._fileSystem._beginWrite();
         
+        this._clearCachedData();
         this._impl.moveToTrash(this._path, function (err) {
-            // Update internal filesystem state
-            this._fileSystem._index.removeEntry(this);
-            var parent = this._fileSystem.getDirectoryForPath(this.parentPath),
-                oldContents = parent._contents;
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
-            parent._clearCachedData();
-            
-            try {
-                // Notify the caller
-                callback(err);
-            } finally {
-                // Notify change listeners
-                this._fileSystem._fireChangeEvent(parent, oldContents);
-                
-                // Unblock external change events
-                this._fileSystem._endWrite();
-            }
+            // Update internal filesystem state
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    // Notify the caller
+                    callback(err);
+                } finally {
+                    // Notify change listeners
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
+            }.bind(this));
         }.bind(this));
     };
     

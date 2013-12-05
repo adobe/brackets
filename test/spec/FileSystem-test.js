@@ -1137,7 +1137,7 @@ define(function (require, exports, module) {
                     });
                     
                     // Fire a whole-sale change event
-                    fileSystem._handleWatchResult(null);
+                    fileSystem._handleExternalChange(null);
                 });
                 waitsFor(function () { return fileChanged; });
                 
