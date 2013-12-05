@@ -928,7 +928,7 @@ a, img {
     }
 }
 
-#search-results, #problems-panel .disclosure-triangle {
+#search-results .disclosure-triangle, #problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -1201,10 +1201,6 @@ a, img {
         text-align: right;  // make line number line up with editor line numbers
     }
 
-    td {
-        padding-left: 3px;
-    }
-
     .line-text {
         white-space: nowrap;
         width: auto;
@@ -1214,6 +1210,10 @@ a, img {
         white-space: nowrap;
         width: 100%;
         padding-left: 10px;
+    }
+    
+    .inspector-section > td {
+        padding-left: 5px;
     }
 }
 
