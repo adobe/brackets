@@ -34,8 +34,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        FileSystem          = require("filesystem/FileSystem"),
-        ImageViewer         = require("editor/ImageViewer");
+        FileSystem          = require("filesystem/FileSystem");
     
     var _naturalWidth = 0,
         _scale = 100,
@@ -349,7 +348,10 @@ define(function (require, exports, module) {
         return $customViewer;
     }
     
-    EditorManager.registerCustomViewer("image", ImageViewer);
+    EditorManager.registerCustomViewer("image", {
+        render: render,
+        onRemove: onRemove
+    });
     
     exports.render              = render;
     exports.onRemove            = onRemove;
