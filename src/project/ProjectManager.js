@@ -1547,8 +1547,11 @@ define(function (require, exports, module) {
                         });
                 });
                 
-                // since html_titles are enabled, we have to reset the text without markup
-                _projectTree.jstree("set_text", selected, entry.name);
+                // Since html_titles are enabled, we have to reset the text without markup.
+                // And we also need to explicitly replace '<' with its character entity.
+                var name = entry.name;
+                name = name.replace(/</g, "&lt;");
+                _projectTree.jstree("set_text", selected, name);
                 _projectTree.jstree("rename");
             });
         // No fail handler: silently no-op if file doesn't exist in tree
