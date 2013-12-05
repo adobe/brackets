@@ -43,10 +43,10 @@ define(function (require, exports, module) {
      *        baseUrl        - Optional base URL (populated by the current project)
      *        pathResolver   - Function to covert absolute native paths to project relative paths
      *        root           - Native path to the project root (and base URL)
-     *        nodeConnection - An active NodeConnection
+     *        nodeDomain     - An initialized NodeDomain
      */
     function StaticServer(config) {
-        this._nodeConnection = config.nodeConnection;
+        this._nodeDomain = config.nodeDomain;
         this._onRequestFilter = this._onRequestFilter.bind(this);
         
         BaseServer.call(this, config);
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
      * @return {boolean} true for yes, otherwise false.
      */
     StaticServer.prototype.canServe = function (localPath) {
-        if (!this._nodeConnection.connected()) {
+        if (!this._nodeDomain.ready()) {
             return false;
         }
         
@@ -87,17 +87,9 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} Resolved by the StaticServer domain when the message is acknowledged.
      */
     StaticServer.prototype._updateRequestFilterPaths = function () {
-        if (!this._nodeConnection.connected()) {
-            return;
-        }
+        var paths = Object.keys(this._liveDocuments);
 
-        var paths = [];
-
-        Object.keys(this._liveDocuments).forEach(function (path) {
-            paths.push(path);
-        });
-
-        return this._nodeConnection.domains.staticServer.setRequestFilterPaths(this._root, paths);
+        return this._nodeDomain.exec("setRequestFilterPaths", this._root, paths);
     };
 
     /**
@@ -109,37 +101,14 @@ define(function (require, exports, module) {
      *     the server is ready/failed.
      */
     StaticServer.prototype.readyToServe = function () {
-        var readyToServeDeferred = $.Deferred(),
-            self = this;
-
-        if (this._nodeConnection.connected()) {
-            this._nodeConnection.domains.staticServer.getServer(self._root).done(function (address) {
+        var self = this;
+        return this._nodeDomain.exec("getServer", self._root)
+            .done(function (address) {
                 self._baseUrl = "http://" + address.address + ":" + address.port + "/";
-                readyToServeDeferred.resolve();
-            }).fail(function () {
+            })
+            .fail(function () {
                 self._baseUrl = "";
-                readyToServeDeferred.reject();
             });
-        } else {
-            // nodeConnection has been connected once (because the deferred
-            // resolved, but is not currently connected).
-            //
-            // If we are in this case, then the node process has crashed
-            // and is in the process of restarting. Once that happens, the
-            // node connection will automatically reconnect and reload the
-            // domain. Unfortunately, we don't have any promise to wait on
-            // to know when that happens. The best we can do is reject this
-            // readyToServe so that the user gets an error message to try
-            // again later.
-            //
-            // The user will get the error immediately in this state, and
-            // the new node process should start up in a matter of seconds
-            // (assuming there isn't a more widespread error). So, asking
-            // them to retry in a second is reasonable.
-            readyToServeDeferred.reject();
-        }
-        
-        return readyToServeDeferred.promise();
     };
 
     /**
@@ -181,9 +150,7 @@ define(function (require, exports, module) {
      * Send HTTP response data back to the StaticServerSomain
      */
     StaticServer.prototype._send = function (location, response) {
-        if (this._nodeConnection.connected()) {
-            this._nodeConnection.domains.staticServer.writeFilteredResponse(location.root, location.pathname, response);
-        }
+        this._nodeDomain.exec("writeFilteredResponse", location.root, location.pathname, response);
     };
     
     /**
@@ -209,15 +176,15 @@ define(function (require, exports, module) {
      * See BaseServer#start. Starts listenting to StaticServerDomain events.
      */
     StaticServer.prototype.start = function () {
-        $(this._nodeConnection).on("staticServer.requestFilter", this._onRequestFilter);
+        $(this._nodeDomain).on("requestFilter", this._onRequestFilter);
     };
 
     /**
      * See BaseServer#stop. Remove event handlers from StaticServerDomain.
      */
     StaticServer.prototype.stop = function () {
-        $(this._nodeConnection).off("staticServer.requestFilter", this._onRequestFilter);
+        $(this._nodeDomain).off("requestFilter", this._onRequestFilter);
     };
 
-    exports.StaticServer = StaticServer;
+    module.exports = StaticServer;
 });

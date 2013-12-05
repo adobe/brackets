@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         NodeConnection  = brackets.getModule("utils/NodeConnection"),
         FileUtils       = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        StaticServer    = require("StaticServer").StaticServer;
+        StaticServer    = require("StaticServer");
     
     var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
     
@@ -517,7 +517,7 @@ define(function (require, exports, module) {
         // Unit tests for the StaticServerProvider that wraps the underlying node server.
         describe("StaticServer", function () {
             var projectPath         = testFolder + "/",
-                mockNodeConnection  = { connected: function () { return true; } },
+                mockNodeDomain      = { ready: function () { return true; } },
                 pathResolver        = function (path) {
                     if (path.indexOf(projectPath) === 0) {
                         return path.slice(projectPath.length);
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
                 },
                 config              = {
                     baseUrl: "http://localhost/",
-                    nodeConnection: mockNodeConnection,
+                    nodeDomain: mockNodeDomain,
                     pathResolver: pathResolver,
                     root: projectPath
                 };
@@ -576,7 +576,7 @@ define(function (require, exports, module) {
             
             it("should decline serving if not connected to node", function () {
                 // mock NodeConnection state to be disconnected
-                config.nodeConnection = { connected: function () { return false; } };
+                config.nodeDomain = { ready: function () { return false; } };
 
                 var server = new StaticServer(config);
 
