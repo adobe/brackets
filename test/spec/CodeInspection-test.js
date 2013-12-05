@@ -50,7 +50,7 @@ define(function (require, exports, module) {
                 name: name,
                 // arguments to this function: text, fullPath
                 // omit the warning
-                scanFile: function () { return {errors: result}; }
+                scanFile: function () { return result; }
             };
 
             spyOn(provider, "scanFile").andCallThrough();
@@ -58,6 +58,10 @@ define(function (require, exports, module) {
             return provider;
         }
 
+        function successLintResult() {
+            return {errors: []};
+        }
+        
         beforeFirst(function () {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -92,12 +96,12 @@ define(function (require, exports, module) {
             var simpleJavascriptFileEntry;
 
             beforeEach(function () {
-                CodeInspection.unregisterAll();
+                CodeInspection._unregisterAll();
                 simpleJavascriptFileEntry = new FileSystem.getFileForPath(testFolder + "/errors.js");
             });
 
             it("should run a single registered linter", function () {
-                var codeInspector = createCodeInspector("text linter", []);
+                var codeInspector = createCodeInspector("text linter", successLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
                 runs(function () {
@@ -112,8 +116,8 @@ define(function (require, exports, module) {
             });
 
             it("should run two linters", function () {
-                var codeInspector1 = createCodeInspector("text linter 1", []);
-                var codeInspector2 = createCodeInspector("text linter 2", []);
+                var codeInspector1 = createCodeInspector("text linter 1", successLintResult());
+                var codeInspector2 = createCodeInspector("text linter 2", successLintResult());
 
                 CodeInspection.register("javascript", codeInspector1);
                 CodeInspection.register("javascript", codeInspector2);
@@ -134,12 +138,16 @@ define(function (require, exports, module) {
                 var result;
 
                 var lintResult = {
-                    pos: { line: 2, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 2, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
-                var codeInspector1 = createCodeInspector("javascript linter", [lintResult]);
+                var codeInspector1 = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector1);
 
                 runs(function () {
@@ -154,8 +162,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(codeInspector1.scanFile).toHaveBeenCalled();
                     expect(result.length).toEqual(1);
-                    expect(result[0].item.name).toEqual("javascript linter");
-                    expect(result[0].results.errors.length).toEqual(1);
+                    expect(result[0].provider.name).toEqual("javascript linter");
+                    expect(result[0].issues.errors.length).toEqual(1);
                 });
             });
 
@@ -163,13 +171,17 @@ define(function (require, exports, module) {
                 var result;
 
                 var lintResult = {
-                    pos: { line: 2, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 2, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
-                var codeInspector1 = createCodeInspector("javascript linter 1", [lintResult]);
-                var codeInspector2 = createCodeInspector("javascript linter 2", [lintResult]);
+                var codeInspector1 = createCodeInspector("javascript linter 1", lintResult);
+                var codeInspector2 = createCodeInspector("javascript linter 2", lintResult);
                 CodeInspection.register("javascript", codeInspector1);
                 CodeInspection.register("javascript", codeInspector2);
 
@@ -184,13 +196,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(result.length).toEqual(2);
-                    expect(result[0].results.errors.length).toEqual(1);
-                    expect(result[1].results.errors.length).toEqual(1);
+                    expect(result[0].issues.errors.length).toEqual(1);
+                    expect(result[1].issues.errors.length).toEqual(1);
                 });
             });
 
             it("should not call any other linter for javascript document", function () {
-                var codeInspector1 = createCodeInspector("any other linter linter 1", []);
+                var codeInspector1 = createCodeInspector("any other linter linter 1", successLintResult());
                 CodeInspection.register("whatever", codeInspector1);
 
                 runs(function () {
@@ -205,7 +217,7 @@ define(function (require, exports, module) {
             });
 
             it("should call linter even if linting on save is disabled", function () {
-                var codeInspector1 = createCodeInspector("javascript linter 1", []);
+                var codeInspector1 = createCodeInspector("javascript linter 1", successLintResult());
                 CodeInspection.register("javascript", codeInspector1);
 
                 CodeInspection.toggleEnabled(false);
@@ -243,17 +255,21 @@ define(function (require, exports, module) {
 
         describe("Code Inspection UI", function () {
             beforeEach(function () {
-                CodeInspection.unregisterAll();
+                CodeInspection._unregisterAll();
             });
 
             it("should run test linter when a JavaScript document opens and indicate errors in the panel", function () {
                 var lintResult = {
-                    pos: { line: 1, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
-                var codeInspector = createCodeInspector("javascript linter", [lintResult]);
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
@@ -266,19 +282,21 @@ define(function (require, exports, module) {
             });
 
             it("should show problems panel after too many errors", function () {
-                var lintResult = [
-                    {
-                        pos: { line: 1, ch: 3 },
-                        message: "Some errors here and there",
-                        type: CodeInspection.Type.WARNING
-                    },
-                    {
-                        pos: { line: 1, ch: 5 },
-                        message: "Stopping. (33% scanned).",
-                        type: CodeInspection.Type.META,
-                        aborted: true
-                    }
-                ];
+                var lintResult = {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        },
+                        {
+                            pos: { line: 1, ch: 5 },
+                            message: "Stopping. (33% scanned).",
+                            type: CodeInspection.Type.META
+                        }
+                    ],
+                    aborted: true
+                };
 
                 var codeInspector = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector);
@@ -298,14 +316,18 @@ define(function (require, exports, module) {
 
             it("should not run test linter when a JavaScript document opens and linting is disabled", function () {
                 var lintResult = {
-                    pos: { line: 1, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
                 CodeInspection.toggleEnabled(false);
 
-                var codeInspector = createCodeInspector("javascript linter", [lintResult]);
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
@@ -321,7 +343,7 @@ define(function (require, exports, module) {
             });
 
             it("should not show the problems panel when there is no linting error", function () {
-                var codeInspector = createCodeInspector("javascript linter", []);
+                var codeInspector = createCodeInspector("javascript linter", successLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
@@ -335,12 +357,16 @@ define(function (require, exports, module) {
 
             it("status icon should toggle Errors panel when errors present", function () {
                 var lintResult = {
-                    pos: { line: 1, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
-                var codeInspector = createCodeInspector("javascript linter", [lintResult]);
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
@@ -353,13 +379,17 @@ define(function (require, exports, module) {
 
             it("should run two linter and display two expanded collapsible sections in the errors panel", function () {
                 var lintResult = {
-                    pos: { line: 1, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
-                var codeInspector1 = createCodeInspector("javascript linter 1", [lintResult]);
-                var codeInspector2 = createCodeInspector("javascript linter 2", [lintResult]);
+                var codeInspector1 = createCodeInspector("javascript linter 1", lintResult);
+                var codeInspector2 = createCodeInspector("javascript linter 2", lintResult);
                 CodeInspection.register("javascript", codeInspector1);
                 CodeInspection.register("javascript", codeInspector2);
 
@@ -378,12 +408,16 @@ define(function (require, exports, module) {
 
             it("should run the linter and display no collapsible header section in the errors panel", function () {
                 var lintResult = {
-                    pos: { line: 1, ch: 3 },
-                    message: "Some errors here and there",
-                    type: CodeInspection.Type.WARNING
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
                 };
 
-                var codeInspector1 = createCodeInspector("javascript linter 1", [lintResult]);
+                var codeInspector1 = createCodeInspector("javascript linter 1", lintResult);
                 CodeInspection.register("javascript", codeInspector1);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
@@ -394,7 +428,7 @@ define(function (require, exports, module) {
             });
 
             it("status icon should not toggle Errors panel when no errors present", function () {
-                var codeInspector = createCodeInspector("javascript linter", []);
+                var codeInspector = createCodeInspector("javascript linter", successLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
@@ -402,6 +436,71 @@ define(function (require, exports, module) {
                 runs(function () {
                     toggleJSLintResults(false);
                     toggleJSLintResults(false);
+                });
+            });
+        });
+        
+        describe("Code Inspector Registration", function () {
+            beforeEach(function () {
+                CodeInspection._unregisterAll();
+            });
+
+            it("should overwrite inspector 1 with inspector 2 and inspector 2 should be called", function () {
+                var codeInspector1 = createCodeInspector("javascript inspector", successLintResult());
+                CodeInspection.register("javascript", codeInspector1);
+                var codeInspector2 = createCodeInspector("javascript inspector", successLintResult());
+                CodeInspection.register("javascript", codeInspector2, true);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+
+                runs(function () {
+                    expect(codeInspector1.scanFile).not.toHaveBeenCalled();
+                    expect(codeInspector2.scanFile).toHaveBeenCalled();
+                });
+            });
+
+            it("should call inspector 1 and inspector 2", function () {
+                var codeInspector1 = createCodeInspector("javascript inspector 1", successLintResult());
+                CodeInspection.register("javascript", codeInspector1);
+                var codeInspector2 = createCodeInspector("javascript inspector 2", successLintResult());
+                CodeInspection.register("javascript", codeInspector2);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+
+                runs(function () {
+                    expect(codeInspector1.scanFile).toHaveBeenCalled();
+                    expect(codeInspector2.scanFile).toHaveBeenCalled();
+                });
+            });
+
+            it("should keep inspector 1 because the name of inspector 2 is different", function () {
+                var codeInspector1 = createCodeInspector("javascript inspector 1", successLintResult());
+                CodeInspection.register("javascript", codeInspector1);
+                var codeInspector2 = createCodeInspector("javascript inspector 2", successLintResult());
+                CodeInspection.register("javascript", codeInspector2, true);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+
+                runs(function () {
+                    expect(codeInspector1.scanFile).toHaveBeenCalled();
+                    expect(codeInspector2.scanFile).toHaveBeenCalled();
+                });
+            });
+
+            it("should register the same inspector multiple times and overwrite it with some other inspector with the same name", function () {
+                var codeInspector1 = createCodeInspector("javascript inspector", successLintResult());
+                CodeInspection.register("javascript", codeInspector1);
+                var codeInspector2 = createCodeInspector("javascript inspector", successLintResult());
+                CodeInspection.register("javascript", codeInspector2);
+                var codeInspector3 = createCodeInspector("javascript inspector", successLintResult());
+                CodeInspection.register("javascript", codeInspector3, true);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+
+                runs(function () {
+                    expect(codeInspector1.scanFile).not.toHaveBeenCalled();
+                    expect(codeInspector2.scanFile).not.toHaveBeenCalled();
+                    expect(codeInspector3.scanFile).toHaveBeenCalled();
                 });
             });
         });

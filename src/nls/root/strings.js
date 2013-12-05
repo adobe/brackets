@@ -187,7 +187,7 @@ define({
 
     // CodeInspection: errors/warnings
     "CODE_INSPECTION_PANEL_TITLE"           : "Code Inspection",
-    "ERRORS_PANEL_TITLE"                    : "{0} Errors",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Issues",
     "SINGLE_ERROR"                          : "1 {0} Error",
     "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
     "NO_ERRORS"                             : "No {0} errors - good job!",
@@ -271,7 +271,6 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Files on Save",
-    "CMD_VIEW_ENABLE_INSPECTOR"           : "  Enable {0}",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sort by Added",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sort by Name",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sort by Type",

@@ -280,51 +280,7 @@ define(function (require, exports, module) {
         
         return masterDeferred.promise();
     }
-    
-    /**
-     * Executes a series of tasks in parallel, saving up result info from any that succeeds along the way.
-     * Returns a Promise that is only resolved/rejected once all tasks are complete. This is
-     * essentially a wrapper around doInParallel(..., false).
-     *
-     * If one or more tasks failed, the entire "master" promise is rejected at the end without any further details.
-     * Otherwise the promise gets resolved with the results from all tasks
-     * argument: an array objects, one per failed task. Each error object contains:
-     *  - item -- the entry in items whose task failed
-     *  - result -- the first argument passed to the done() handler when the task succeeds
-     *
-     * @param {!Array.<*>} items
-     * @param {!function(*, number):Promise} beginProcessItem
-     * @return {$.Promise}
-     */
-    function doInParallel_aggregateResults(items, beginProcessItem) {
-        var results = [];
         
-        var masterDeferred = new $.Deferred();
-        
-        var parallelResult = doInParallel(
-            items,
-            function (item, i) {
-                var itemResult = beginProcessItem(item, i);
-                itemResult.done(function (result) {
-                    results.push({ item: item, results: result });
-                });
-                return itemResult;
-            },
-            false
-        );
-        
-        parallelResult
-            .done(function () {
-                masterDeferred.resolve(results);
-            })
-            .fail(function () {
-                masterDeferred.reject();
-            });
-        
-        return masterDeferred.promise();
-    }
-    
-    
     /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
     var ERROR_TIMEOUT = {};
     
@@ -468,7 +424,6 @@ define(function (require, exports, module) {
     exports.doSequentially = doSequentially;
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.doInParallel_aggregateResults = doInParallel_aggregateResults;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
     exports.chain          = chain;

@@ -928,7 +928,7 @@ a, img {
     }
 }
 
-#search-results #problems-panel .disclosure-triangle {
+#search-results, #problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -941,22 +941,6 @@ a, img {
         background-position: 7px 5px;
     }
 }
-
-
-#problems-panel .disclosure-triangle {
-    .jstree-sprite;
-    display: inline-block;
-    &.expanded {
-        // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
-        // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: 7px 5px;
-        -webkit-transform: translateZ(0) rotate(90deg);
-    }
-    &.collapsed {
-        background-position: 7px 5px;
-    }
-}
-
 
 /* Modal bar for Find/Quick Open */
 

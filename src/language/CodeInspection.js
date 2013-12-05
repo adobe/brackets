@@ -117,15 +117,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {Object.<string, Array.<{name:string, scanFile:function(string, string>):Object}>>}
+     * @type {Object.<languageId:string, Array.<{name:string, scanFile:function(string, string):Object}>>}
      */
     var _providers = {};
-
-    /**
-     * @private
-     * @type {?Array.<Object>}
-     */
-    var _lastResult;
 
     /**
      * @private
@@ -140,25 +134,6 @@ define(function (require, exports, module) {
     function setGotoEnabled(gotoEnabled) {
         CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_PROBLEM).setEnabled(gotoEnabled);
         _gotoEnabled = gotoEnabled;
-    }
-
-    /**
-     * The provider is passed the text of the file and its fullPath. Providers should not assume
-     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
-     * that the file on disk matches the text given (file may have unsaved changes).
-     *
-     * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     *
-     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
-     * If type is unspecified, Type.WARNING is assumed.
-     */
-    function register(languageId, provider) {
-        if (!_providers[languageId]) {
-            _providers[languageId] = [];
-        }
-
-        _providers[languageId].push(provider);
     }
 
     function _unregisterAll() {
@@ -182,15 +157,15 @@ define(function (require, exports, module) {
      * These results will reflect any unsaved changes present in the file that is currently opened.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
-     * @return {$.Promise} a jQuery promise that will be resolved with Array.<{ item: string, results: ?{!errors:Array, aborted:boolean}}>
+     * @param ?[{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}] providerList
+     * @return {$.Promise} a jQuery promise that will be resolved with Array.<{provider: {{name:string, scanFile:function(string, string)}, issues: ?{!errors:Array, aborted:boolean}}}>
      */
-    function inspectFile(file, provider) {
-        var response = new $.Deferred();
-        var providerList = (provider || getProvidersForPath(file.fullPath)) || [];
-        var results = [];
+    function inspectFile(file, providerList) {
+        var response = new $.Deferred(),
+            _providerList = (providerList || getProvidersForPath(file.fullPath)) || [],
+            results = [];
 
-        if (!providerList.length) {
+        if (!_providerList.length) {
             response.resolve(null);
             return response.promise();
         }
@@ -199,12 +174,12 @@ define(function (require, exports, module) {
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath);
 
-                _.forEach(providerList, function (provider) {
+                _providerList.forEach(function (provider) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
 
                     try {
                         var scanResult = provider.scanFile(fileText, file.fullPath);
-                        results.push({ item: provider, results: scanResult });
+                        results.push({provider: provider, issues: scanResult});
                     } catch (err) {
                         console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
                         response.reject(err);
@@ -232,7 +207,7 @@ define(function (require, exports, module) {
      */
     function run() {
         if (!_enabled) {
-            _lastResult = null;
+            _hasErrors = false;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
@@ -257,14 +232,13 @@ define(function (require, exports, module) {
                 }
 
                 // how many errors in total?
-                var errors = results.reduce(function (a, item) { return a + (item.results ? item.results.errors.length : 0); }, 0);
+                var errors = results.reduce(function (a, item) { return a + (item.issues ? item.issues.errors.length : 0); }, 0);
 
                 // save for later and make the amount of errors easily available
-                _lastResult = results;
-                _hasErrors = errors;
+                _hasErrors = !!errors;
 
-                if (!results || !errors) {
-                    _lastResult = null;
+                if (!errors) {
+                    _hasErrors = null;
                     Resizer.hide($problemsPanel);
                     StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, Strings.CODE_INSPECTION_PANEL_TITLE));
                     setGotoEnabled(false);
@@ -274,10 +248,10 @@ define(function (require, exports, module) {
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (result) {
                     numProblemsReportedByProvider = 0;
-                    var provider = result.item;
+                    var provider = result.provider;
 
-                    if (result.results) {
-                        result.results.errors.forEach(function (error) {
+                    if (result.issues) {
+                        result.issues.errors.forEach(function (error) {
                             error.friendlyLine = error.pos.line + 1;
                             error.codeSnippet = currentDoc.getLine(error.pos.line);
                             error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
@@ -286,15 +260,16 @@ define(function (require, exports, module) {
                                 numProblems++;
                                 numProblemsReportedByProvider++;
                             }
-                            // if the code inspector was unable to process the whole file, we keep track to show a different status
-                            if (error.aborted) {
-                                aborted = true;
-                            }
                         });
+
+                        // if the code inspector was unable to process the whole file, we keep track to show a different status
+                        if (result.issues.aborted) {
+                            aborted = true;
+                        }
 
                         allErrors.push({
                             providerName: provider.name,
-                            results:      result.results.errors,
+                            results:      result.issues.errors,
                             numProblems:  numProblemsReportedByProvider
                         });
                     }
@@ -313,7 +288,7 @@ define(function (require, exports, module) {
                     .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
 
                 // Update the title
-                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE, Strings.CODE_INSPECTION_PANEL_TITLE));
+                $problemsPanel.find(".title").text(Strings.CODE_INSPECTION_PANEL_TITLE);
 
                 if (!_collapsed) {
                     Resizer.show($problemsPanel);
@@ -342,7 +317,7 @@ define(function (require, exports, module) {
             }
         } else {
             // No provider for current file
-            _lastResult = null;
+            _hasErrors = false;
             Resizer.hide($problemsPanel);
             var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
             if (language) {
@@ -352,6 +327,33 @@ define(function (require, exports, module) {
             }
             setGotoEnabled(false);
         }
+    }
+
+    /**
+     * The provider is passed the text of the file and its fullPath. Providers should not assume
+     * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
+     * that the file on disk matches the text given (file may have unsaved changes).
+     *
+     * @param {string} languageId
+     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     *
+     * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
+     * If type is unspecified, Type.WARNING is assumed.
+     */
+    function register(languageId, provider, replaceProvider) {
+        if (!_providers[languageId]) {
+            _providers[languageId] = [];
+        }
+
+        if (replaceProvider) {
+            // remove the provider with the same name from the list
+            console.log("[CodeInspection] Replacing code inspector '" + provider.name + "' with new implementation");
+            _.remove(_providers[languageId], function (registeredProvider) {
+                return registeredProvider.name === provider.name;
+            });
+        }
+
+        _providers[languageId].push(provider);
     }
 
     /**
@@ -410,7 +412,8 @@ define(function (require, exports, module) {
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
-            if (_lastResult && _hasErrors) {
+//            if (_lastResult && _hasErrors) {
+            if (_hasErrors) {
                 Resizer.show($problemsPanel);
             }
         }
@@ -480,7 +483,7 @@ define(function (require, exports, module) {
 
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file
-            if (_lastResult && _hasErrors) {
+            if (_hasErrors) {
                 toggleCollapsed();
             }
         });
@@ -491,11 +494,11 @@ define(function (require, exports, module) {
     });
 
     // Testing
-    exports.unregisterAll = _unregisterAll;
+    exports._unregisterAll = _unregisterAll;
 
     // Public API
-    exports.register      = register;
-    exports.Type          = Type;
-    exports.toggleEnabled = toggleEnabled;
-    exports.inspectFile   = inspectFile;
+    exports.register       = register;
+    exports.Type           = Type;
+    exports.toggleEnabled  = toggleEnabled;
+    exports.inspectFile    = inspectFile;
 });
