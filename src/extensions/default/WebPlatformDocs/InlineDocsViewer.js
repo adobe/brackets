@@ -194,14 +194,14 @@ define(function (require, exports, module) {
 
         // Set focus
         this.$scroller[0].focus();
-        this.$wrapperDiv.on("keydown", this._onKeydown);
+        this.$wrapperDiv[0].addEventListener("keydown", this._onKeydown, true);
     };
     
     InlineDocsViewer.prototype.onClosed = function () {
         InlineDocsViewer.prototype.parentClass.onClosed.apply(this, arguments);
         
         $(window).off("resize", this._sizeEditorToContent);
-        this.$wrapperDiv.off("keydown", this._onKeydown);
+        this.$wrapperDiv[0].removeEventListener("keydown", this._onKeydown, true);
     };
     
     InlineDocsViewer.prototype._sizeEditorToContent = function () {
