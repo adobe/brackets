@@ -346,15 +346,7 @@ define(function (require, exports, module) {
      *      watch is complete, possibly with a FileSystemError string.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, function (err) {
-            this._index.visitAll(function (child) {
-                if (child.fullPath.indexOf(entry.fullPath) === 0) {
-                    this._index.removeEntry(child);
-                }
-            }.bind(this));
-            
-            callback(err);
-        }.bind(this), false);
+        this._watchOrUnwatchEntry(entry, watchedRoot, callback, false);
     };
     
     /**
@@ -826,6 +818,12 @@ define(function (require, exports, module) {
         
         this._unwatchEntry(entry, watchedRoot, function (err) {
             delete this._watchedRoots[fullPath];
+            
+            this._index.visitAll(function (child) {
+                if (child.fullPath.indexOf(entry.fullPath) === 0) {
+                    this._index.removeEntry(child);
+                }
+            }.bind(this));
             
             if (err) {
                 console.warn("Failed to unwatch root: ", entry.fullPath, err);
