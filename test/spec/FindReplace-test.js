@@ -61,6 +61,11 @@ define(function (require, exports, module) {
             {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}},
             {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
         ];
+        var capitalFooSelections = [
+            {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+            {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
+            {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}}
+        ];
         var barExpectedMatches = [
             {start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}},
             {start: {line: LINE_FIRST_REQUIRE + 1, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 34}}
@@ -150,10 +155,14 @@ define(function (require, exports, module) {
         }
         
         function toggleCaseSensitive(val) {
-            tw$("#find-case-sensitive").toggleClass("active", Boolean(val));
+            if (tw$("#find-case-sensitive").is(".active") !== val) {
+                tw$("#find-case-sensitive").click();
+            }
         }
         function toggleRegexp(val) {
-            tw$("#find-regexp").toggleClass("active", Boolean(val));
+            if (tw$("#find-regexp").is(".active") !== val) {
+                tw$("#find-regexp").click();
+            }
         }
         
         
@@ -198,6 +207,11 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             runs(function () {
+                // Reset search options for next test, since these are persisted and the window is shared
+                // Note: tests that explicitly close the search bar before finishing will need to reset any changed options themselves
+                toggleCaseSensitive(false);
+                toggleRegexp(false);
+                
                 waitsForDone(twCommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }));
             });
             
@@ -261,30 +275,43 @@ define(function (require, exports, module) {
             });
             
             it("should find all case-sensitive matches with mixed-case text", function () {
-                var expectedSelections = [
-                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
-                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
-                    {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}}
-                ];
                 myEditor.setCursorPos(0, 0);
                 
                 twCommandManager.execute(Commands.EDIT_FIND);
                 
                 toggleCaseSensitive(true);
                 enterSearchText("Foo");
-                expectHighlightedMatches(expectedSelections);
-                expectSelection(expectedSelections[0]);
+                expectHighlightedMatches(capitalFooSelections);
+                expectSelection(capitalFooSelections[0]);
                 
                 twCommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[1]);
+                expectSelection(capitalFooSelections[1]);
                 twCommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[2]);
+                expectSelection(capitalFooSelections[2]);
                 // note the lowercase "foo()" is NOT matched
                 
                 // wraparound
                 twCommandManager.execute(Commands.EDIT_FIND_NEXT);
-                expectSelection(expectedSelections[0]);
+                expectSelection(capitalFooSelections[0]);
             });
+            
+            it("toggling case-sensitive option should update results immediately", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.EDIT_FIND);
+
+                enterSearchText("Foo");
+                expectHighlightedMatches(fooExpectedMatches);
+                expectSelection(fooExpectedMatches[0]);
+                
+                toggleCaseSensitive(true);
+                expectHighlightedMatches(capitalFooSelections);
+                expectSelection(capitalFooSelections[0]);
+
+                twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                expectSelection(capitalFooSelections[1]);
+            });
+            
             
             it("should Find Next after search bar closed, including wraparound", function () {
                 runs(function () {
@@ -530,6 +557,27 @@ define(function (require, exports, module) {
                 enterSearchText("");
                 expect(myEditor).toHaveCursorPosition(2, 0);
             });
+            
+            it("should incremental search & highlight from Replace mode too", function () {
+                myEditor.setCursorPos(0, 0);
+                
+                twCommandManager.execute(Commands.EDIT_REPLACE);
+                
+                enterSearchText("baz");
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
+                ];
+                expectSelection(expectedSelections[0]);
+                expectHighlightedMatches(expectedSelections);
+                
+                enterSearchText("baz\"");
+                expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 35}}
+                ];
+                expectSelection(expectedSelections[0]);
+                expectHighlightedMatches(expectedSelections);
+            });
         });
         
         
@@ -620,7 +668,25 @@ define(function (require, exports, module) {
                 expectSelection(expectedSelections[0]);
             });
             
-            it("should be a case-sensitive regexp by default", function () {
+            it("toggling regexp option should update results immediately", function () {
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.EDIT_FIND);
+
+                enterSearchText("t .");
+                expectHighlightedMatches([]);
+                expect(myEditor).toHaveCursorPosition(0, 0);
+                
+                toggleRegexp(true);
+                var expectedSelections = [
+                    {start: {line: 0, ch: 6}, end: {line: 0, ch: 9}},
+                    {start: {line: 0, ch: 14}, end: {line: 0, ch: 17}}
+                ];
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
+            });
+            
+            it("should support case-sensitive regexp", function () {
                 var expectedSelections = [
                     {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}}
                 ];
@@ -635,7 +701,7 @@ define(function (require, exports, module) {
                 expectSelection(expectedSelections[0]);
             });
             
-            it("should support case-insensitive regexps via /.../i", function () {
+            it("should support case-insensitive regexp", function () {
                 var expectedSelections = [
                     {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
                     {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
@@ -687,6 +753,7 @@ define(function (require, exports, module) {
             });
         });
 
+        
         describe("Search -> Replace", function () {
             it("should find and replace one string", function () {
                 runs(function () {
@@ -700,10 +767,26 @@ define(function (require, exports, module) {
                     enterReplaceText("bar");
                     
                     tw$("#replace-yes").click();
+                    expectSelection(fooExpectedMatches[1]);
+                    
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
+            
+            it("should use replace keyboard shortcut for single Replace while search bar open", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("foo");
+                    expectSelection(fooExpectedMatches[0]);
                     
-                    pressEscape();
+                    enterReplaceText("bar");
+                    
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    expectSelection(fooExpectedMatches[1]);
+                    
+                    myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
+                    expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
 
@@ -721,7 +804,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -742,7 +824,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -763,7 +844,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/\$0_:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -784,7 +864,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -805,7 +884,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -826,7 +904,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/\$2_\$10:Foo/i.test(myEditor.getSelectedText())).toBe(true);
@@ -847,7 +924,6 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-yes").is(":enabled")).toBe(true);
                     tw$("#replace-yes").click();
-                    pressEscape();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -855,6 +931,7 @@ define(function (require, exports, module) {
             });
         });
 
+        
         describe("Search -> Replace All", function () {
             it("should find all regexps and replace them with $n", function () {
                 runs(function () {

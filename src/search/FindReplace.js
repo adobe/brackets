@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager      = require("command/CommandManager"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
         AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         DocumentManager     = require("document/DocumentManager"),
@@ -48,6 +49,7 @@ define(function (require, exports, module) {
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
         ViewUtils           = require("utils/ViewUtils");
     
     var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
@@ -61,6 +63,11 @@ define(function (require, exports, module) {
 
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
     var REPLACE_ALL_MAX     = 300;
+    
+    var _prefs = PreferencesManager.getPreferenceStorage(module, {
+        caseSensitive: false,
+        regexp: false
+    });
 
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
@@ -94,6 +101,15 @@ define(function (require, exports, module) {
     function getSearchCursor(cm, query, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         return cm.getSearchCursor(query, pos, !$("#find-case-sensitive").is(".active"));
+    }
+    
+    function updateSearchBarFromPrefs() {
+        $("#find-case-sensitive").toggleClass("active", _prefs.getValue("caseSensitive"));
+        $("#find-regexp").toggleClass("active",         _prefs.getValue("regexp"));
+    }
+    function updatePrefsFromSearchBar() {
+        _prefs.setValue("caseSensitive", $("#find-case-sensitive").is(".active"));
+        _prefs.setValue("regexp",        $("#find-regexp").is(".active"));
     }
     
     function parseQuery(query) {
@@ -227,6 +243,15 @@ define(function (require, exports, module) {
             "<input type='text' id='replace-with' placeholder='" + Strings.REPLACE_PLACEHOLDER + "'/>" +
             "<button id='replace-yes' class='btn no-focus' tabindex='-1'>" + Strings.BUTTON_REPLACE + "</button>" +
             "<button id='replace-all' class='btn no-focus' tabindex='-1'>" + Strings.BUTTON_REPLACE_ALL + "</button>";
+    
+    function addShortcutToTooltip($elem, commandId) {
+        var replaceShortcut = KeyBindingManager.getKeyBindings(commandId)[0];
+        if (replaceShortcut) {
+            var oldTitle = $elem.attr("title");
+            oldTitle = (oldTitle ? oldTitle + " " : "");
+            $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
+        }
+    }
 
     
     function toggleHighlighting(editor, enabled) {
@@ -364,6 +389,8 @@ define(function (require, exports, module) {
         
         // Create the search bar UI (closing any previous modalBar in the process)
         createModalBar(template);
+        addShortcutToTooltip($("#find-next"), Commands.EDIT_FIND_NEXT);
+        addShortcutToTooltip($("#find-prev"), Commands.EDIT_FIND_PREVIOUS);
         
         $(modalBar).on("close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
@@ -385,6 +412,8 @@ define(function (require, exports, module) {
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass('active');
+                updatePrefsFromSearchBar();
+                
                 handleQueryChange(editor, state);
             })
             .on("keydown", function (e) {
@@ -413,9 +442,12 @@ define(function (require, exports, module) {
             }
         }
         
+        // Initial UI state
         $("#find-what")
             .val(initialQuery)
             .get(0).select();
+        updateSearchBarFromPrefs();
+        
         handleQueryChange(editor, state);
     }
     
@@ -556,8 +588,17 @@ define(function (require, exports, module) {
 
     /** Shows the Find-Replace search bar at top */
     function replace(editor) {
+        // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
+        var $replaceBtn = $("#replace-yes");
+        if ($replaceBtn.length) {
+            if ($replaceBtn.is(":enabled")) {
+                $replaceBtn.click();
+            }
+            return;
+        }
         
         openSearchBar(replaceDialog, editor);
+        addShortcutToTooltip($("#replace-yes"), Commands.EDIT_REPLACE);
         
         var cm = editor._codeMirror,
             state = getSearchState(cm);
@@ -643,4 +684,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,     _findNext);
     CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE,       _replace);
     CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    
+    // APIs shared with FindInFiles
+    exports.updatePrefsFromSearchBar = updatePrefsFromSearchBar;
+    exports.updateSearchBarFromPrefs = updateSearchBarFromPrefs;
 });

@@ -1050,12 +1050,8 @@ a, img {
         }
     }
     
-    #replace-with, #searchInput {
+    #find-what, #replace-with {
         width: 295px;
-    }
-    #find-what {
-        padding-right: 65px;  // room for #find-counter overlay
-        width: 295px - (65px - 6px);  // keep same width as other fields, after accounting for differing padding
     }
 
     .search-input-container {
@@ -1074,11 +1070,16 @@ a, img {
             padding: 5px;
             border-radius: 0 0 3px 3px;
         }
+        
+        #find-what {
+            padding-right: 62px;  // room for #find-counter overlay
+            width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
+        }
         #find-counter {
             position: absolute;
             color: @tc-light-weight-quiet-text;
             top: 1px;
-            right: 5px;
+            right: 2px;
             font-size: 12px;
         }
     }
@@ -1088,7 +1089,7 @@ a, img {
     }
     
     #find-case-sensitive, #find-regexp {
-        padding: 1px 4px;
+        padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
         .sprite-icon(0, 0, 24px, 24px, "images/find-replace-sprites.svg");
@@ -1113,17 +1114,32 @@ a, img {
     button {
         margin: 2px 1px 3px;
     }
+    #find-prev {
+        margin-left: 5px;
+    }
     
     // Make button pairs snug
     #find-prev, #replace-yes, #find-case-sensitive {
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
+        border-right: none;
         margin-right: 0;
     }
     #find-next, #replace-all, #find-regexp {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
-        margin-left: -1px;
+        margin-left: 0;
+    }
+    
+    // Make find field snug with options buttons
+    //    & replace snug with replace commands
+    #find-what, #replace-with {
+        margin-right: 0px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    #find-case-sensitive, #replace-yes {
+        border-left: none;
+        margin-left: 0px;
+        border-radius: 0;
     }
 }
 

@@ -120,7 +120,6 @@ define({
     "BUTTON_NO"                         : "No",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",

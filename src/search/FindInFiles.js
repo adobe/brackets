@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
         FileViewController    = require("project/FileViewController"),
+        FindReplace           = require("search/FindReplace"),
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
         PanelManager          = require("view/PanelManager"),
@@ -125,27 +126,24 @@ define(function (require, exports, module) {
             return null;
         }
 
-        // If query is a regular expression, use it directly
-        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
-        if (isRE) {
-            // Make sure the 'g' flag is set
-            var flags = isRE[2] || "g";
-            if (flags.search("g") === -1) {
-                flags += "g";
-            }
+        var caseSensitive = $("#find-case-sensitive").is(".active");
+        
+        // Is it a (non-blank) regex?
+        if ($("#find-regexp").is(".active")) {
             try {
-                return new RegExp(isRE[1], flags);
+                return new RegExp(query, caseSensitive ? "g" : "gi");
             } catch (e) {
                 $(".modal-bar .error")
                     .show()
                     .text(e.message);
                 return null;
             }
+        
+        } else {
+            // Query is a plain string. Turn it into a regexp
+            query = StringUtils.regexEscape(query);
+            return new RegExp(StringUtils.regexEscape(query), caseSensitive ? "g" : "gi");
         }
-
-        // Query is a plain string. Turn it into a case-insensitive regexp
-        query = StringUtils.regexEscape(query);
-        return new RegExp(query, "gi");
     }
     
     /**
@@ -755,7 +753,7 @@ define(function (require, exports, module) {
         
         this.modalBar    = new ModalBar(dialogHTML, false);
         
-        var $searchField = $("input#searchInput");
+        var $searchField = $("input#find-what");
         
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
@@ -795,7 +793,15 @@ define(function (require, exports, module) {
             })
             .focus();
         
-        // Initial upate for prepopulated 'initialString' text
+        this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
+            $(e.currentTarget).toggleClass('active');
+            FindReplace.updatePrefsFromSearchBar();
+            
+            handleQueryChange();  // re-validate regexp if needed
+        });
+        
+        // Initial UI state (including prepopulated initialString passed into template)
+        FindReplace.updateSearchBarFromPrefs();
         handleQueryChange();
     };
 
