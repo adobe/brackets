@@ -113,7 +113,7 @@ define(function (require, exports, module) {
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, object.<string: string>=)} callback
+     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, Object.<string, string>=)} callback
      *          Callback that is passed an error code or the stat-able contents
      *          of the directory along with the stats for these entries and a
      *          fullPath-to-FileSystemError string map of unstat-able entries

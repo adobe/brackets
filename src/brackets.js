@@ -100,6 +100,7 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
+    require("editor/ImageViewer");
     
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
@@ -383,6 +384,5 @@ define(function (require, exports, module) {
     // Dispatch htmlReady event
     _beforeHTMLReady();
     AppInit._dispatchReady(AppInit.HTML_READY);
-
     $(window.document).ready(_onReady);
 });

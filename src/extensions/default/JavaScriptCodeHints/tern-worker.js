@@ -443,7 +443,7 @@ var config = {};
                             name = inferType.argNames[i],
                             type = inferType.args[i];
 
-                        if (name === undefined) {
+                        if (!name) {
                             name = "param" + (i + 1);
                         }
 

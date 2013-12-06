@@ -272,8 +272,8 @@ define(function (require, exports, module) {
     };
         
     /**
-     * Unlink (delete) this entry. For Directories, this will delete the directory
-     * and all of its contents. 
+     * Permanently delete this entry. For Directories, this will delete the directory
+     * and all of its contents. For reversible delete, see moveToTrash().
      *
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
@@ -416,8 +416,8 @@ define(function (require, exports, module) {
      * Visit this entry and its descendents with the supplied visitor function.
      *
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
-     *      applied to descendent FileSystemEntry objects. If the function returns false for
-     *      a particular Directory entry, that directory's descendents will not be visited.
+     *      applied to this entry and all descendent FileSystemEntry objects. If the function returns
+     *      false for a particular Directory entry, that directory's descendents will not be visited.
      * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
