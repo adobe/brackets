@@ -157,17 +157,20 @@ define(function (require, exports, module) {
      * @private
      * Event handler for StaticServerDomain requestFilter event
      * @param {jQuery.Event} event
-     * @param {{hostname: string, pathname: string, port: number, root: string}} request
+     * @param {{hostname: string, pathname: string, port: number, root: string, id: number}} request
      */
     StaticServer.prototype._onRequestFilter = function (event, request) {
         var key             = request.location.pathname,
             liveDocument    = this._liveDocuments[key],
-            response        = null;
-
+            response;
+        
         // send instrumented response or null to fallback to static file
         if (liveDocument && liveDocument.getResponseData) {
             response = liveDocument.getResponseData();
+        } else {
+            response = {};
         }
+        response.id = request.id;
         
         this._send(request.location, response);
     };
