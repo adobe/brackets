@@ -240,7 +240,7 @@ define(function (require, exports, module) {
      * If both calls fail, the error from the read call is passed back.
      */
     function readFile(path, options, callback) {
-        var encoding = options.encoding || "utf8";
+        var encoding = (options && options.encoding) ? options.encoding : "utf8";
         
         // Execute the read and stat calls in parallel
         var done = false, data, stat, err;
@@ -271,8 +271,8 @@ define(function (require, exports, module) {
     }
     
     function writeFile(path, data, options, callback) {
-        var encoding = options.encoding || "utf8";
-        
+        var encoding = (options && options.encoding) ? options.encoding : "utf8";
+	
         exists(path, function (err, alreadyExists) {
             if (err) {
                 callback(err);
