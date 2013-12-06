@@ -790,7 +790,7 @@ define(function (require, exports, module) {
         
         describe("Event timing", function () {
             
-            it("should notify rename callback before 'change' event", function () {
+            it("should apply rename callback before firing the 'rename' event", function () {
                 var origFilePath = "/file1.txt",
                     origFile = fileSystem.getFileForPath(origFilePath),
                     renamedFilePath = "/file1_renamed.txt";
@@ -803,7 +803,7 @@ define(function (require, exports, module) {
                         callback: delay(250)
                     });
                     
-                    $(fileSystem).on("change", function (evt, entry) {
+                    $(fileSystem).on("rename", function (evt, entry) {
                         expect(renameDone).toBe(true);  // this is the important check: callback should have already run!
                         changeDone = true;
                     });
@@ -822,7 +822,7 @@ define(function (require, exports, module) {
             });
             
             
-            it("should notify write callback before 'change' event", function () {
+            it("should apply write callback before firing the 'change' event", function () {
                 var testFilePath = "/file1.txt",
                     testFile = fileSystem.getFileForPath(testFilePath);
                 
