@@ -699,6 +699,7 @@ define(function (require, exports, module) {
                 if (entry.isDirectory) {
                     jsonEntry.children = [];
                     jsonEntry.state = "closed";
+                    jsonEntry.data = _.escape(jsonEntry.data);
                 } else {
                     jsonEntry.data = ViewUtils.getFileEntryDisplay(entry);
                 }
