@@ -671,13 +671,13 @@ define(function (require, exports, module) {
             
             var counter = addedEntries.length + removedEntries.length;
             if (counter === 0) {
-                callback(directory, addedEntries, removedEntries);
+                callback(addedEntries, removedEntries);
                 return;
             }
             
             var watchOrUnwatchCallback = function (err) {
                 if (--counter === 0) {
-                    callback(directory, addedEntries, removedEntries);
+                    callback(addedEntries, removedEntries);
                 }
             };
             
