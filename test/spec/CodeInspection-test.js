@@ -381,7 +381,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should show the name of the linter if only one linter reported errors", function () {
+            it("should show the error count and the name of the linter in the panel title for one error", function () {
                 var codeInspector = createCodeInspector("JavaScript Linter", failLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
@@ -389,11 +389,50 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("JavaScript Linter Issues");
+                    expect($problemPanelTitle).toBe("1 JavaScript Linter Problem");
+
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    expect(tooltip).toBe("1 JavaScript Linter Problem");
                 });
             });
 
-            it("should show the generic title if more than one linter reported errors", function () {
+            it("should show the error count and the name of the linter in the panel title and tooltip for multiple errors", function () {
+                var lintResult = {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        },
+                        {
+                            pos: { line: 1, ch: 5 },
+                            message: "Some errors there and there and over there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                };
+
+                var codeInspector = createCodeInspector("JavaScript Linter", lintResult);
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $problemPanelTitle = $("#problems-panel .title").text();
+                    expect($problemPanelTitle).toBe("2 JavaScript Linter Problems");
+
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    expect(tooltip).toBe("2 JavaScript Linter Problems");
+                });
+            });
+
+            it("should show the generic panel title if more than one inspector reported problems", function () {
                 var lintResult = failLintResult();
 
                 var codeInspector1 = createCodeInspector("JavaScript Linter1", lintResult);
@@ -405,14 +444,53 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("2 Issues");
+                    expect($problemPanelTitle).toBe("2 Problems");
+
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    // tooltip will contain + in the title if the inspection was aborted
+                    expect(tooltip).toBe("2 Problems");
+                });
+            });
+
+            it("should show no problems tooltip in status bar for multiple inspectors", function () {
+                var codeInspector = createCodeInspector("JavaScript Linter1", successfulLintResult());
+                CodeInspection.register("javascript", codeInspector);
+                codeInspector = createCodeInspector("JavaScript Linter2", successfulLintResult());
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    expect(tooltip).toBe("No problems found - good job!");
+                });
+            });
+
+            it("should show no problems tooltip in status bar for 1 inspector", function () {
+                var codeInspector = createCodeInspector("JavaScript Linter1", successfulLintResult());
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    expect(tooltip).toBe("No JavaScript Linter1 problems found - good job!");
                 });
             });
         });
         
         describe("Code Inspector Registration", function () {
             beforeEach(function () {
-                CodeInspection._unregisterAll()
+                CodeInspection._unregisterAll();
             });
 
             it("should overwrite inspector 1 with inspector 2 and inspector 2 should be called", function () {

@@ -223,6 +223,7 @@ define(function (require, exports, module) {
             var numProblemsReportedByProvider = 0;
             var allErrors = [];
             var html;
+            var providerReportingProblems = 0;
 
             // run all the provider in parallel
             inspectFile(currentDoc.file, providerList).then(function (results) {
@@ -240,7 +241,14 @@ define(function (require, exports, module) {
                 if (!errors) {
                     _hasErrors = null;
                     Resizer.hide($problemsPanel);
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", StringUtils.format(Strings.NO_ERRORS, Strings.CODE_INSPECTION_PANEL_TITLE));
+
+                    var message = Strings.NO_ERRORS_MULTIPLE_PROVIDER;
+                    if (providerList.length === 1) {
+                        message = StringUtils.format(Strings.NO_ERRORS, providerList[0].name);
+                    }
+
+                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-valid", message);
+
                     setGotoEnabled(false);
                     return;
                 }
@@ -272,6 +280,10 @@ define(function (require, exports, module) {
                             results:      result.issues.errors,
                             numProblems:  numProblemsReportedByProvider
                         });
+
+                        if (numProblemsReportedByProvider) {
+                            providerReportingProblems++;
+                        }
                     }
                 });
                 
@@ -287,12 +299,12 @@ define(function (require, exports, module) {
                     .append(html)
                     .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
 
-                // Update the title
-                $problemsPanel.find(".title").text(Strings.CODE_INSPECTION_PANEL_TITLE);
-
                 if (!_collapsed) {
                     Resizer.show($problemsPanel);
                 }
+
+                // Update the title
+                $problemsPanel.find(".title").text(Strings.CODE_INSPECTION_PANEL_TITLE);
 
                 if (numProblems === 1 && !aborted) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, Strings.CODE_INSPECTION_PANEL_TITLE));
@@ -302,20 +314,33 @@ define(function (require, exports, module) {
                         numProblems += "+";
                     }
                     StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
-                        StringUtils.format(Strings.MULTIPLE_ERRORS, Strings.CODE_INSPECTION_PANEL_TITLE, numProblems));
+                        StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems));
                 }
+
                 setGotoEnabled(true);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
             
             // don't show a header if there is only one provider available for this file type
-            if (providerList.length === 1) {
+            if (providerReportingProblems === 1) {
                 $problemsPanelTable.find(".inspector-section").hide();
-                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, providerList[0].name));
-            } else {
+
+                var message;
+                if (numProblems === 1) {
+                    message = StringUtils.format(Strings.SINGLE_ERROR, providerList[0].name);
+                } else {
+                    message = StringUtils.format(Strings.MULTIPLE_ERRORS, providerList[0].name, numProblems);
+                }
+
+                $problemsPanel.find(".title").text(message);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
+            } else if (providerReportingProblems > 1) {
                 $problemsPanelTable.find(".inspector-section").show();
-                $problemsPanel.find(".title").text(StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems));
+
+                var message2 = StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems);
+                $problemsPanel.find(".title").text(message2);
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message2);
             }
         } else {
             // No provider for current file
