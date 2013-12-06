@@ -201,6 +201,38 @@ define(function (require, exports, module) {
         return response.promise();
     }
 
+    function updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, providerList, aborted) {
+        // don't show a header if there is only one provider available for this file type
+        var message;
+
+        if (providerReportingProblems === 1) {
+            $problemsPanelTable.find(".inspector-section").hide();
+
+            if (numProblems === 1 && !aborted) {
+                message = StringUtils.format(Strings.SINGLE_ERROR, providerList[0].name);
+            } else {
+                if (aborted) {
+                    numProblems += "+";
+                }
+
+                message = StringUtils.format(Strings.MULTIPLE_ERRORS, providerList[0].name, numProblems);
+            }
+
+            $problemsPanel.find(".title").text(message);
+            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
+        } else if (providerReportingProblems > 1) {
+            $problemsPanelTable.find(".inspector-section").show();
+
+            if (aborted) {
+                numProblems += "+";
+            }
+
+            message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems);
+            $problemsPanel.find(".title").text(message);
+            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
+        }
+    }
+
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel.
@@ -303,45 +335,14 @@ define(function (require, exports, module) {
                     Resizer.show($problemsPanel);
                 }
 
-                // Update the title
-                $problemsPanel.find(".title").text(Strings.CODE_INSPECTION_PANEL_TITLE);
-
-                if (numProblems === 1 && !aborted) {
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", StringUtils.format(Strings.SINGLE_ERROR, Strings.CODE_INSPECTION_PANEL_TITLE));
-                } else {
-                    // If inspector was unable to process the whole file, number of errors is indeterminate; indicate with a "+"
-                    if (aborted) {
-                        numProblems += "+";
-                    }
-                    StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors",
-                        StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems));
-                }
+                updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, providerList, aborted);
 
                 setGotoEnabled(true);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
             
-            // don't show a header if there is only one provider available for this file type
-            if (providerReportingProblems === 1) {
-                $problemsPanelTable.find(".inspector-section").hide();
-
-                var message;
-                if (numProblems === 1) {
-                    message = StringUtils.format(Strings.SINGLE_ERROR, providerList[0].name);
-                } else {
-                    message = StringUtils.format(Strings.MULTIPLE_ERRORS, providerList[0].name, numProblems);
-                }
-
-                $problemsPanel.find(".title").text(message);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
-            } else if (providerReportingProblems > 1) {
-                $problemsPanelTable.find(".inspector-section").show();
-
-                var message2 = StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems);
-                $problemsPanel.find(".title").text(message2);
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message2);
-            }
+            updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, providerList, aborted);
         } else {
             // No provider for current file
             _hasErrors = false;
