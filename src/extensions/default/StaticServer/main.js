@@ -40,9 +40,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {string} fullPath of the StaticServerDomain implementation
+     */
+    var _domainPath = ExtensionUtils.getModulePath(module, "node/StaticServerDomain");
+    
+    /**
+     * @private
      * @type {NodeDomain}
      */
-    var _nodeDomain;
+    var _nodeDomain = new NodeDomain("staticServer", _domainPath);
     
     /**
      * @private
@@ -59,18 +65,11 @@ define(function (require, exports, module) {
         return new StaticServer(config);
     }
     
-    function initExtension() {
-        var modulePath = ExtensionUtils.getModulePath(module, "node/StaticServerDomain");
-        _nodeDomain = new NodeDomain("staticServer", modulePath);
-
-        return _nodeDomain.promise().then(function () {
-            LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
-            return _nodeDomain.connection;
-        });
-    }
-
-    exports.initExtension = initExtension;
-
+    AppInit.appReady(function () {
+        LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
+    });
+    
     // For unit tests only
     exports._getStaticServerProvider = _createStaticServer;
+    exports._nodeDomain = _nodeDomain;
 });

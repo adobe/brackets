@@ -53,6 +53,7 @@ define(function (require, exports, module) {
         // Unit tests for the underlying node server.
         describe("StaticServerDomain", function () {
             var nodeConnection,
+                nodeDomain,
                 logs;
             
             beforeEach(function () {
@@ -61,11 +62,10 @@ define(function (require, exports, module) {
                 if (!nodeConnection) {
                     runs(function () {
                         // wait for StaticServer/main to connect and load the StaticServerDomain
-                        main.initExtension().done(function (conn) {
-                            nodeConnection = conn;
-                        });
+                        nodeDomain = main._nodeDomain;
+                        nodeConnection = nodeDomain.connection;
 
-                        waitsFor(function () { return nodeConnection; }, "NodeConnection connected", CONNECT_TIMEOUT);
+                        waitsFor(function () { return nodeDomain.ready(); }, "NodeConnection connected", CONNECT_TIMEOUT);
                     });
 
                     runs(function () {
@@ -418,13 +418,11 @@ define(function (require, exports, module) {
                 var serverInfo,
                     path = testFolder + "/folder1",
                     text,
-                    location,
                     requestId = -1;
                 
                 spyOn(console, "warn").andCallThrough();
                 
                 onRequestFilter(function (request) {
-                    location = request.location;
                     requestId = request.id;
                 });
                 

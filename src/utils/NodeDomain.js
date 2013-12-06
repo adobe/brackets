@@ -40,7 +40,7 @@ define(function (require, exports, module) {
      * a promise-returning method that can safely be called regardless of the
      * current status of the underlying connection. Example usage:
      * 
-     * var myDomain = new NodeDomain("someDomain", pathToSomeDomainDef);
+     * var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
      *     $result = myDomain.exec("someCommand", arg1, arg2);
      * 
      * $result.done(function (value) {
@@ -54,6 +54,10 @@ define(function (require, exports, module) {
      * To handle domain events, just listen for the event on the domain:
      * 
      * $(myDomain).on("someEvent", someHandler);
+     * 
+     * @constructor
+     * @param {string} domainName Name of the registered Node Domain
+     * @param {string} domainPath Full path of the JavaScript Node domain specification
      */
     function NodeDomain(domainName, domainPath) {
         var connection = new NodeConnection();
@@ -62,13 +66,14 @@ define(function (require, exports, module) {
         this._domainName = domainName;
         this._domainPath = domainPath;
         this._domainLoaded = false;
+        this._load = this._load.bind(this);
         this._connectionPromise = connection.connect(true)
-            .then(this._load.bind(this));
+            .then(this._load);
         
         $(connection).on("close", function (event, promise) {
             $(this.connection).off(EVENT_NAMESPACE);
             this._domainLoaded = false;
-            this._connectionPromise = promise.then(this._load.bind(this));
+            this._connectionPromise = promise.then(this._load);
         }.bind(this));
     }
     
@@ -159,7 +164,7 @@ define(function (require, exports, module) {
         if (this._connectionPromise) {
             return this._connectionPromise;
         } else {
-            var deferred = $.Deferred();
+            var deferred = new $.Deferred();
             
             if (this.ready()) {
                 deferred.resolve();
@@ -191,7 +196,7 @@ define(function (require, exports, module) {
                 if (fn) {
                     return fn.apply(domain, params);
                 } else {
-                    return $.Deferred.reject().promise();
+                    return new $.Deferred().reject().promise();
                 }
             }.bind(this);
         
@@ -200,7 +205,7 @@ define(function (require, exports, module) {
         } else if (this._connectionPromise) {
             return this._connectionPromise.then(execConnected);
         } else {
-            return $.Deferred.reject().promise();
+            return new $.Deferred.reject().promise();
         }
     };
         
