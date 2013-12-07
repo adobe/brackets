@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
-    var searchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
+    var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
@@ -141,7 +141,6 @@ define(function (require, exports, module) {
         
         } else {
             // Query is a plain string. Turn it into a regexp
-            query = StringUtils.regexEscape(query);
             return new RegExp(StringUtils.regexEscape(query), caseSensitive ? "g" : "gi");
         }
     }

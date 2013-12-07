@@ -52,7 +52,8 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         ViewUtils           = require("utils/ViewUtils");
     
-    var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
+    var searchBarTemplate            = require("text!htmlContent/findreplace-bar.html"),
+        searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
         searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
 
     /** @const Maximum file size to search within (in chars) */
@@ -230,20 +231,6 @@ define(function (require, exports, module) {
         });
     }
     
-    var findDialog =
-            "<div class='search-input-container'><input type='text' id='find-what'/><div class='error'></div><span id='find-counter'></span></div>" +
-            "<button id='find-case-sensitive' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_CASESENSITIVE_HINT + "'><div class='button-icon'></div></button>" +
-            "<button id='find-regexp' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_REGEXP_HINT + "'><div class='button-icon'></div></button>" +
-            "<div class='navigator'>" +
-                "<button id='find-prev' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
-                "<button id='find-next' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
-            "</div>";
-    
-    var replaceDialog = findDialog +
-            "<input type='text' id='replace-with' placeholder='" + Strings.REPLACE_PLACEHOLDER + "'/>" +
-            "<button id='replace-yes' class='btn no-focus' tabindex='-1'>" + Strings.BUTTON_REPLACE + "</button>" +
-            "<button id='replace-all' class='btn no-focus' tabindex='-1'>" + Strings.BUTTON_REPLACE_ALL + "</button>";
-    
     function addShortcutToTooltip($elem, commandId) {
         var replaceShortcut = KeyBindingManager.getKeyBindings(commandId)[0];
         if (replaceShortcut) {
@@ -267,7 +254,7 @@ define(function (require, exports, module) {
 
     /**
      * Called each time the search query changes or document is modified (via Replace). Updates
-     * the match count, match highlights, and scrollbar tickmarks. Does not change the cursor pos.
+     * the match count, match highlights and scrollbar tickmarks. Does not change the cursor pos.
      */
     function updateResultSet(editor) {
         var cm = editor._codeMirror,
@@ -370,8 +357,10 @@ define(function (require, exports, module) {
     /**
      * Opens the search bar with the given HTML content (Find or Find-Replace), attaches common Find behaviors,
      * and prepopulates the query field.
+     * @param {!Editor} editor
+     * @param {!Object} templateVars
      */
-    function openSearchBar(template, editor) {
+    function openSearchBar(editor, templateVars) {
         var cm = editor._codeMirror,
             state = getSearchState(cm);
         
@@ -388,7 +377,8 @@ define(function (require, exports, module) {
         }
         
         // Create the search bar UI (closing any previous modalBar in the process)
-        createModalBar(template);
+        var htmlContent = Mustache.render(searchBarTemplate, $.extend(templateVars, Strings));
+        createModalBar(htmlContent);
         addShortcutToTooltip($("#find-next"), Commands.EDIT_FIND_NEXT);
         addShortcutToTooltip($("#find-prev"), Commands.EDIT_FIND_PREVIOUS);
         
@@ -462,7 +452,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        openSearchBar(findDialog, editor);
+        openSearchBar(editor, {});
     }
 
     /**
@@ -597,7 +587,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        openSearchBar(replaceDialog, editor);
+        openSearchBar(editor, {replace: true});
         addShortcutToTooltip($("#replace-yes"), Commands.EDIT_REPLACE);
         
         var cm = editor._codeMirror,
@@ -623,6 +613,19 @@ define(function (require, exports, module) {
             } else if (e.target.id === "replace-all") {
                 modalBar.close();
                 _showReplaceAllPanel(editor, state.query, getReplaceWith());
+            }
+        });
+        
+        // One-off hack to make Find/Replace fields a self-contained tab cycle - TODO: remove once https://trello.com/c/lTSJgOS2 implemented
+        modalBar.getRoot().on("keydown", function (e) {
+            if (e.keyCode === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (e.target.id === "replace-with" && !e.shiftKey) {
+                    $("#find-what").focus();
+                    e.preventDefault();
+                } else if (e.target.id === "find-what" && e.shiftKey) {
+                    $("#replace-with").focus();
+                    e.preventDefault();
+                }
             }
         });
     }
