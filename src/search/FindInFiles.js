@@ -887,8 +887,8 @@ define(function (require, exports, module) {
             // 'added' and 'removed' parameters to this function to easily determine
             // which files/folders have been added or removed.
             //
-            // In the meantime, do a quick check for directory changed events to see
-            // if any of the search results files have been deleted.
+            // In the meantime, at least check for directory changed events to see
+            // if any of the search results files have been deleted within Brackets.
             if (searchResultsPanel.isVisible()) {
                 entry.getContents(function (err, contents) {
                     if (!err) {
@@ -900,6 +900,7 @@ define(function (require, exports, module) {
                         
                         // Update the search results
                         _.forEach(searchResults, function (item, fullPath) {
+                            // Is entry the parent folder of this search result set? (simple approximate check)
                             if (fullPath.lastIndexOf("/") === entry.fullPath.length - 1) {
                                 // The changed directory includes this entry. Make sure the file still exits.
                                 if (!_includesPath(fullPath)) {

@@ -165,9 +165,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Check to see if the entry exists on disk.
+     * Check to see if the entry exists on disk. Note that there will NOT be an
+     * error returned if the file does not exist on the disk; in that case the
+     * error parameter will be null and the boolean will be false. The error 
+     * parameter will only be truthy when an unexpected error was encountered
+     * during the test, in which case the state of the entry should be considered
+     * unknown.
      *
-     * @param {function (boolean)} callback Callback with a single parameter.
+     * @param {function (?string, boolean)} callback Callback with a FileSystemError
+     *      string or a boolean indicating whether or not the file exists.
      */
     FileSystemEntry.prototype.exists = function (callback) {
         this._impl.exists(this._path, callback);
@@ -212,8 +218,8 @@ define(function (require, exports, module) {
     };
         
     /**
-     * Unlink (delete) this entry. For Directories, this will delete the directory
-     * and all of its contents. 
+     * Permanently delete this entry. For Directories, this will delete the directory
+     * and all of its contents. For reversible delete, see moveToTrash().
      *
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
@@ -261,20 +267,35 @@ define(function (require, exports, module) {
      * Private helper function for FileSystemEntry.visit that requires sanitized options.
      *
      * @private
+     * @param {FileSystemStats} stats - the stats for this entry
+     * @param {{string: boolean}} visitedPaths - the set of fullPaths that have already been visited
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{failFast: boolean, maxDepth: number, maxEntriesCounter: {value: number}}} options
+     * @param {{maxDepth: number, maxEntriesCounter: {value: number}}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    FileSystemEntry.prototype._visitHelper = function (visitor, options, callback) {
-        var failFast = options.failFast,
-            maxDepth = options.maxDepth,
+    FileSystemEntry.prototype._visitHelper = function (stats, visitedPaths, visitor, options, callback) {
+        var maxDepth = options.maxDepth,
             maxEntriesCounter = options.maxEntriesCounter;
         
         if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
-            callback(failFast ? FileSystemError.TOO_MANY_ENTRIES : null);
+            // The outer FileSystemEntry.visit call is responsible for applying
+            // the main callback to FileSystemError.TOO_MANY_FILES in this case
+            callback(null);
             return;
+        }
+        
+        if (this.isDirectory) {
+            var visitedPath = stats.realPath || this.fullPath;
+    
+            if (visitedPaths.hasOwnProperty(visitedPath)) {
+                // Link cycle detected
+                callback(null);
+                return;
+            }
+            
+            visitedPaths[visitedPath] = true;
         }
         
         if (!visitor(this) || this.isFile) {
@@ -282,31 +303,32 @@ define(function (require, exports, module) {
             return;
         }
         
-        this.getContents(function (err, entries) {
-            var counter = entries ? entries.length : 0,
-                nextOptions = {
-                    failFast: failFast,
-                    maxDepth: maxDepth,
-                    maxEntriesCounter: maxEntriesCounter
-                };
-
-            if (err || counter === 0) {
-                callback(failFast ? err : null);
+        this.getContents(function (err, entries, entriesStats) {
+            if (err) {
+                callback(err);
                 return;
             }
             
-            entries.forEach(function (entry) {
-                entry._visitHelper(visitor, nextOptions, function (err) {
-                    if (err && failFast) {
-                        counter = 0;
-                        callback(err);
-                        return;
-                    }
-                    
-                    if (--counter === 0) {
-                        callback(null);
-                    }
-                });
+            var counter = entries.length;
+            if (counter === 0) {
+                callback(null);
+                return;
+            }
+
+            function helperCallback(err) {
+                if (--counter === 0) {
+                    callback(null);
+                }
+            }
+            
+            var nextOptions = {
+                maxDepth: maxDepth,
+                maxEntriesCounter: maxEntriesCounter
+            };
+            
+            entries.forEach(function (entry, index) {
+                var stats = entriesStats[index];
+                entry._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
             });
         }.bind(this));
     };
@@ -315,9 +337,9 @@ define(function (require, exports, module) {
      * Visit this entry and its descendents with the supplied visitor function.
      *
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
-     *      applied to descendent FileSystemEntry objects. If the function returns false for
-     *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{failFast: boolean=, maxDepth: number=, maxEntries: number=}=} options
+     *      applied to this entry and all descendent FileSystemEntry objects. If the function returns
+     *      false for a particular Directory entry, that directory's descendents will not be visited.
+     * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
     FileSystemEntry.prototype.visit = function (visitor, options, callback) {
@@ -326,10 +348,6 @@ define(function (require, exports, module) {
             options = {};
         } else if (options === undefined) {
             options = {};
-        }
-        
-        if (options.failFast === undefined) {
-            options.failFast = false;
         }
         
         if (options.maxDepth === undefined) {
@@ -342,21 +360,28 @@ define(function (require, exports, module) {
 
         options.maxEntriesCounter = { value: options.maxEntries };
         
-        this._visitHelper(visitor, options, function (err) {
-            if (callback) {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-                
-                if (options.maxEntriesCounter.value < 0) {
-                    callback(FileSystemError.TOO_MANY_ENTRIES);
-                    return;
-                }
-                
-                callback(null);
+        this.stat(function (err, stats) {
+            if (err) {
+                callback(err);
+                return;
             }
-        });
+            
+            this._visitHelper(stats, {}, visitor, options, function (err) {
+                if (callback) {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    
+                    if (options.maxEntriesCounter.value < 0) {
+                        callback(FileSystemError.TOO_MANY_ENTRIES);
+                        return;
+                    }
+                    
+                    callback(null);
+                }
+            }.bind(this));
+        }.bind(this));
     };
     
     // Export this class

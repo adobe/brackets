@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} fel",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} problem",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Lint-problem",
     "SINGLE_ERROR"                          : "1 {0} fel",
     "MULTIPLE_ERRORS"                       : "{1} {0} fel",
     "NO_ERRORS"                             : "Inga {0} fel - bra jobbat!",
@@ -460,6 +462,7 @@ define({
     "LOCALE_PL"                                 : "Polska",
     "LOCALE_PT_BR"                              : "Portugisiska, Brasilien",
     "LOCALE_PT_PT"                              : "Portugisiska",
+    "LOCALE_RO"                                 : "Rumänska",
     "LOCALE_RU"                                 : "Ryska",
     "LOCALE_SK"                                 : "Slovakiska",
     "LOCALE_SR"                                 : "Serbiska",

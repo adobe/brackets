@@ -187,8 +187,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "Erreurs {0}",
-	"ERRORS_PANEL_TITLE_SINGLE": "[7365058] !é={0} Issues=!",
-	"ERRORS_PANEL_TITLE_MULTI": "[7365057] !é=Lint Issues=!",
+	"ERRORS_PANEL_TITLE_SINGLE": "Problèmes {0}",
+	"ERRORS_PANEL_TITLE_MULTI": "Problèmes Lint",
 	"SINGLE_ERROR": "1 erreur {0}",
 	"MULTIPLE_ERRORS": "{1} erreurs {0}",
 	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
@@ -462,6 +462,7 @@ define({
 	"LOCALE_PL": "Polonais",
 	"LOCALE_PT_BR": "Portugais (Brésil)",
 	"LOCALE_PT_PT": "Portugais",
+	"LOCALE_RO": "Roumain",
 	"LOCALE_RU": "Russe",
 	"LOCALE_SK": "Slovaque",
 	"LOCALE_SR": "Serbe",
