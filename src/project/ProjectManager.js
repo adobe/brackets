@@ -1739,7 +1739,10 @@ define(function (require, exports, module) {
     
     /**
      * @private 
-     * Respond to a FileSystem change event.
+     * Respond to a FileSystem change event. Note that if renames are initiated
+     * externally, they may be reported as a separate removal and addition. In
+     * this case, the editor state isn't currently preserved.
+     * 
      * @param {$.Event} event
      * @param {File|Directory} entry File or Directory changed
      * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
@@ -1759,23 +1762,20 @@ define(function (require, exports, module) {
                 // Find parent node to add to. Use shallowSearch=true to
                 // skip adding a child if it's parent is not visible
                 _findTreeNode(entry, true).done(function ($directoryNode) {
-                    var json;
-                    
-                    added.forEach(function (addedEntry) {
-                        json = _entryToJSON(addedEntry);
-                        
-                        // _entryToJSON returns null if the added file is filtered from view
-                        if (json) {
-                            // position is irrelevant due to sorting
-                            _createNode($directoryNode, null, json, true);
-                        }
-                    });
+                    if ($directoryNode) {
+                        added.forEach(function (addedEntry) {
+                            var json = _entryToJSON(addedEntry);
+                            
+                            // _entryToJSON returns null if the added file is filtered from view
+                            if (json) {
+                                console.log("Adding: ", addedEntry.fullPath);
+                                // position is irrelevant due to sorting
+                                _createNode($directoryNode, null, json, true);
+                            }
+                        });
+                    }
                 });
             }
-
-            // FIXME (jasonsanjose): File rename is handled as a remove and add
-            // If the active editor is selected in the file tree (instead of
-            // the working set), how can we fix the selection?
         } else {
             refreshFileTree();
         }
