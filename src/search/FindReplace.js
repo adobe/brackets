@@ -42,7 +42,6 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
-        KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
@@ -571,25 +570,6 @@ define(function (require, exports, module) {
                         } else if (e.target.id === "replace-stop") {
                             // Destroy modalBar on stop
                             modalBar = null;
-                        }
-                    });
-                    modalBar.getRoot().on("keyup", function (e) {
-                        switch (e.keyCode) {
-                        case KeyEvent.DOM_VK_ESCAPE:
-                            modalBar.close();
-                            break;
-                        case KeyEvent.DOM_VK_Y:
-                            doReplace(match);
-                            break;
-                        case KeyEvent.DOM_VK_A:
-                            _showReplaceAllPanel(editor, query, text);
-                            break;
-                        case KeyEvent.DOM_VK_N:
-                            advance();
-                            break;
-                        case KeyEvent.DOM_VK_S:
-                            modalBar.close();
-                            break;
                         }
                     });
                 };
