@@ -489,7 +489,6 @@ define(function (require, exports, module) {
         return new $.Deferred().resolve(doc).promise();
     }
     
-    
     /**
      * Create a new file in the project tree.
      */
@@ -599,7 +598,6 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved with the saved document's File. Rejected in
      *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
-    
     var stillSaving = false; //This prevents two new files from saving at the same time. Issue #6121
     function _doSaveAs(doc, settings) {
         if (stillSaving) {
@@ -654,9 +652,10 @@ define(function (require, exports, module) {
             if (path === origPath) {
                 doSave(doc).then(result.resolve, result.reject);
                 return;
-            }            
+            }
+
             // First, write document's current text to new file
-            newFile = FileSystem.getFileForPath(path); 
+            newFile = FileSystem.getFileForPath(path);
             FileUtils.writeText(newFile, doc.getText()).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
