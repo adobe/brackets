@@ -727,11 +727,6 @@ define(function (require, exports, module) {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
                     
-                    if (added && added.length === 0 && removed && removed.length === 0) {
-                        console.info("Detected duplicate directory change event: ", entry.fullPath);
-                        return;
-                    }
-                    
                     this._fireChangeEvent(entry, added, removed);
                 }.bind(this));
             }
