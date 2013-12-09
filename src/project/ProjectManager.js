@@ -85,6 +85,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {Async.PromiseQueue}
+     * Used to serialize changes to the file tree
+     */
+    var _fileTreeChangeQueue = new Async.PromiseQueue();
+
+    
+    /**
+     * @private
      * File and folder names which are not displayed or searched
      * TODO: We should add the rest of the file names that TAR excludes:
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
@@ -1255,14 +1263,20 @@ define(function (require, exports, module) {
      * @param {?number|string} position Position to insert
      * @param {!Object} data
      * @param {!boolean} skipRename
+     * @return {jQuery.Promise} Resolves once the node has been created.
      */
     function _createNode($target, position, data, skipRename) {
+        var deferred = new $.Deferred();
+        
         if (typeof data === "string") {
             data = { data: data };
         }
         
         // Create the node and open the editor
+        _projectTree.one("create.jstree", deferred.resolve);
         _projectTree.jstree("create", $target, position || 0, data, null, skipRename);
+        
+        return deferred.promise();
     }
 
     /**
@@ -1602,6 +1616,7 @@ define(function (require, exports, module) {
         
         _findTreeNode(entry, true).done(function ($node) {
             if (!$node) {
+                deferred.resolve();
                 return;
             }
             
@@ -1620,15 +1635,17 @@ define(function (require, exports, module) {
                         sel.addClass("jstree-closed");
                     }
                 }
+                deferred.resolve();
             });
             
             var oldSuppressToggleOpen = suppressToggleOpen;
             suppressToggleOpen = true;
             _projectTree.jstree("delete_node", $node);
             suppressToggleOpen = oldSuppressToggleOpen;
+        }).fail(function () {
+            deferred.resolve();
         }).always(function () {
             _redraw(true);
-            deferred.resolve();
         });
         
         if (DocumentManager.getCurrentDocument()) {
@@ -1736,7 +1753,7 @@ define(function (require, exports, module) {
             return (LanguageManager.getLanguageForPath(file.fullPath).getId() === languageId);
         };
     }
-    
+        
     /**
      * @private 
      * Respond to a FileSystem change event. Note that if renames are initiated
@@ -1752,28 +1769,35 @@ define(function (require, exports, module) {
         if (entry) {
             // Directory contents removed
             if (removed && removed.length) {
-                removed.forEach(function (removedEntry) {
-                    _deleteTreeNode(removedEntry);
+                _fileTreeChangeQueue.add(function () {
+                    return Async.doSequentially(removed, function (removedEntry) {
+                        return _deleteTreeNode(removedEntry);
+                    }, false);
                 });
             }
 
             // Directory contents added
             if (added && added.length) {
-                // Find parent node to add to. Use shallowSearch=true to
-                // skip adding a child if it's parent is not visible
-                _findTreeNode(entry, true).done(function ($directoryNode) {
-                    if ($directoryNode) {
-                        added.forEach(function (addedEntry) {
-                            var json = _entryToJSON(addedEntry);
-                            
-                            // _entryToJSON returns null if the added file is filtered from view
-                            if (json) {
-                                console.log("Adding: ", addedEntry.fullPath);
-                                // position is irrelevant due to sorting
-                                _createNode($directoryNode, null, json, true);
-                            }
-                        });
-                    }
+                _fileTreeChangeQueue.add(function () {
+                    // Find parent node to add to. Use shallowSearch=true to
+                    // skip adding a child if it's parent is not visible
+                    return _findTreeNode(entry, true).then(function ($directoryNode) {
+                        if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
+                            return Async.doSequentially(added, function (addedEntry) {
+                                var json = _entryToJSON(addedEntry);
+                                
+                                // _entryToJSON returns null if the added file is filtered from view
+                                if (json) {
+                                    // position is irrelevant due to sorting
+                                    return _createNode($directoryNode, null, json, true);
+                                } else {
+                                    return new $.Deferred().resolve();
+                                }
+                            }, false);
+                        } else {
+                            return new $.Deferred().resolve();
+                        }
+                    });
                 });
             }
         } else {
