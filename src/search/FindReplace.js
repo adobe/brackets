@@ -83,7 +83,12 @@ define(function (require, exports, module) {
         $replaceAllSummary,
         $replaceAllTable;
 
+    /** @type {?ModalBar} Currently open Find or Find/Replace bar, if any */
     var modalBar;
+    
+    /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
+    var closeFindInFilesBar;
+    
 
     function SearchState() {
         this.searchStartPos = null;
@@ -104,11 +109,11 @@ define(function (require, exports, module) {
         return cm.getSearchCursor(query, pos, !$("#find-case-sensitive").is(".active"));
     }
     
-    function updateSearchBarFromPrefs() {
+    function _updateSearchBarFromPrefs() {
         $("#find-case-sensitive").toggleClass("active", _prefs.getValue("caseSensitive"));
         $("#find-regexp").toggleClass("active",         _prefs.getValue("regexp"));
     }
-    function updatePrefsFromSearchBar() {
+    function _updatePrefsFromSearchBar() {
         _prefs.setValue("caseSensitive", $("#find-case-sensitive").is(".active"));
         _prefs.setValue("regexp",        $("#find-regexp").is(".active"));
     }
@@ -213,17 +218,27 @@ define(function (require, exports, module) {
         });
     }
     
+    function _closeFindBar() {
+        if (modalBar) {
+            // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
+            modalBar.close(true, false);
+        }
+    }
+    function _registerFindInFilesCloser(closer) {
+        closeFindInFilesBar = closer;
+    }
+    
     function createModalBar(template) {
         // Normally, creating a new modal bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
         // cause the new one to think it should close, too. The old CodeMirror version
         // of this handled it by adding a timeout within which a blur wouldn't cause
         // the modal bar to close. Rather than reinstate that hack, we simply explicitly
-        // close the old modal bar before creating a new one.
-        if (modalBar) {
-            // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
-            modalBar.close(true, false);
-        }
+        // close the old modal bar (which may be a Find, Replace, *or* Find in Files bar
+        // before creating a new one. (TODO: remove once #6203 fixed)
+        _closeFindBar();
+        closeFindInFilesBar();
+        
         modalBar = new ModalBar(template, true);  // 2nd arg = auto-close on Esc/blur
         
         $(modalBar).on("close", function (event) {
@@ -402,7 +417,7 @@ define(function (require, exports, module) {
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass('active');
-                updatePrefsFromSearchBar();
+                _updatePrefsFromSearchBar();
                 
                 handleQueryChange(editor, state);
             })
@@ -436,7 +451,7 @@ define(function (require, exports, module) {
         $("#find-what")
             .val(initialQuery)
             .get(0).select();
-        updateSearchBarFromPrefs();
+        _updateSearchBarFromPrefs();
         
         handleQueryChange(editor, state);
     }
@@ -689,6 +704,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
     
     // APIs shared with FindInFiles
-    exports.updatePrefsFromSearchBar = updatePrefsFromSearchBar;
-    exports.updateSearchBarFromPrefs = updateSearchBarFromPrefs;
+    exports._updatePrefsFromSearchBar  = _updatePrefsFromSearchBar;
+    exports._updateSearchBarFromPrefs  = _updateSearchBarFromPrefs;
+    exports._closeFindBar              = _closeFindBar;
+    exports._registerFindInFilesCloser = _registerFindInFilesCloser;
 });

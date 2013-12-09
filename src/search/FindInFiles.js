@@ -469,7 +469,6 @@ define(function (require, exports, module) {
 
             if (dialog) {
                 dialog._close();
-                dialog = null;
             }
         } else {
 
@@ -655,7 +654,6 @@ define(function (require, exports, module) {
         if (!currentQueryExpr) {
             StatusBar.hideBusyIndicator();
             dialog._close();
-            dialog = null;
             return;
         }
         
@@ -720,9 +718,11 @@ define(function (require, exports, module) {
 
 
     /**
-     * Closes the search dialog and resolves the promise that showDialog returned
+     * Closes the search dialog and resolves the promise that showDialog returned.
+     * @param {boolean=} suppressAnimation Used to hide the search bar immediately, when another
+     *      one is synchronously about to be shown.
      */
-    FindInFilesDialog.prototype._close = function (value) {
+    FindInFilesDialog.prototype._close = function (suppressAnimation) {
         if (this.closed) {
             return;
         }
@@ -731,8 +731,9 @@ define(function (require, exports, module) {
         $(".modal-bar .error").hide();
         
         this.closed = true;
-        this.modalBar.close();
+        this.modalBar.close(true, !suppressAnimation);
         EditorManager.focusEditor();
+        dialog = null;
     };
     
     /**
@@ -749,6 +750,10 @@ define(function (require, exports, module) {
             },
             dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
             that       = this;
+        
+        // Synchronously close Find/Replace bar first, if open (TODO: remove once #6203 fixed)
+        // (Any previous open FindInFiles bar instance was already handled by our caller)
+        FindReplace._closeFindBar();
         
         this.modalBar    = new ModalBar(dialogHTML, false);
         
@@ -775,7 +780,7 @@ define(function (require, exports, module) {
                     var query = $searchField.val();
                     
                     if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                        that._close(null);
+                        that._close();
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
@@ -788,19 +793,19 @@ define(function (require, exports, module) {
                 if (that.getDialogTextField().attr("disabled")) {
                     return;
                 }
-                that._close(null);
+                that._close();
             })
             .focus();
         
         this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
             $(e.currentTarget).toggleClass('active');
-            FindReplace.updatePrefsFromSearchBar();
+            FindReplace._updatePrefsFromSearchBar();
             
             handleQueryChange();  // re-validate regexp if needed
         });
         
         // Initial UI state (including prepopulated initialString passed into template)
-        FindReplace.updateSearchBarFromPrefs();
+        FindReplace._updateSearchBarFromPrefs();
         handleQueryChange();
     };
 
@@ -832,7 +837,7 @@ define(function (require, exports, module) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
             initialString = dialog.getDialogTextField().val();
-            dialog.modalBar.close(true, false);
+            dialog._close(true);
         }
 
         dialog             = new FindInFilesDialog();
@@ -947,6 +952,12 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     FileSystem.on("change", _fileSystemChangeHandler);
+    
+    FindReplace._registerFindInFilesCloser(function () {
+        if (dialog) {
+            dialog._close(true);
+        }
+    });
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
