@@ -698,7 +698,7 @@ define(function (require, exports, module) {
         function _parseDeclarationList() {
 
             var j;
-            declListStartLine = line;
+            declListStartLine = Math.min(line, lineCount - 1);
             declListStartChar = stream.start;
             
             // Extract the entire selector group we just saw.
