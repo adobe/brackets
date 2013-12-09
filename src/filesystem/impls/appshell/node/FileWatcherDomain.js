@@ -42,9 +42,7 @@ var _domainManager,
  */
 function unwatchPath(path) {
     var watcher = _watcherMap[path];
-    
-    console.info("Unwatching: " + path);
-    
+        
     if (watcher) {
         try {
             if (fsevents) {
@@ -68,9 +66,7 @@ function watchPath(path) {
     if (_watcherMap.hasOwnProperty(path)) {
         return;
     }
-    
-    console.info("Watching: " + path);
-    
+        
     try {
         var watcher;
         
