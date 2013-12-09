@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * Called any time inline is closed, whether manually or automatically.
      */
     InlineWidget.prototype.onClosed = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("close");
     };
 
     /**
