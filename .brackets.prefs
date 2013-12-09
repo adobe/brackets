@@ -1,5 +1,5 @@
 {
-    "jslintOptions": {
+    "jslint.options": {
         "vars": true,
         "plusplus": true,
         "devel": true,
