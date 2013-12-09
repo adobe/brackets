@@ -499,6 +499,16 @@ define(function (require, exports, module) {
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
+        
+        $(this).on("change", function (e, data) {
+            var pref = this._knownPrefs[data.id];
+            if (pref) {
+                $(pref).trigger("change", {
+                    oldValue: data.oldValue,
+                    newValue: data.newValue
+                });
+            }
+        }.bind(this));
     }
     
     PreferencesManager.prototype = new MergedMap();
@@ -509,13 +519,18 @@ define(function (require, exports, module) {
             if (this._knownPrefs.hasOwnProperty(id)) {
                 throw new Error("Preference " + id + " was redefined");
             }
-            this._knownPrefs[id] = {
+            var pref = this._knownPrefs[id] = {
                 type: type,
                 initial: initial,
                 name: options.name,
                 description: options.description
             };
             MergedMap.prototype.set.call(this, "default", id, initial);
+            return pref;
+        },
+        
+        getPreference: function (id) {
+            return this._knownPrefs[id];
         },
         
         addScope: function (id, scope) {

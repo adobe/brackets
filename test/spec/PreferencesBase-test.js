@@ -747,6 +747,25 @@ define(function (require, exports, module) {
                     newValue: 2
                 }]);
             });
+            
+            it("can notify changes for single preference objects", function () {
+                var pm = new PreferencesBase.PreferencesManager();
+                var pref = pm.definePreference("spaceUnits", "number", 4);
+                var retrievedPref = pm.getPreference("spaceUnits");
+                expect(retrievedPref).toBe(pref);
+                var changes = [];
+                $(pref).on("change", function (e, data) {
+                    changes.push(data);
+                });
+                var newScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
+                    spaceUnits: 2
+                }));
+                pm.addScope("new", newScope);
+                expect(changes).toEqual([{
+                    oldValue: 4,
+                    newValue: 2
+                }]);
+            });
         });
         
         describe("File Storage", function () {
