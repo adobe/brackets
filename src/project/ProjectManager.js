@@ -1739,6 +1739,11 @@ define(function (require, exports, module) {
             _reloadProjectPreferencesScope();
         }
     });
+    
+    $(EditorManager).on("currentlyViewedFileChange", function () {
+        var filepath = makeProjectRelativeIfPossible(EditorManager.getCurrentlyViewedPath());
+        PreferencesManager._setCurrentEditingFile(filepath);
+    });
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

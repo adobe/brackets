@@ -195,14 +195,25 @@ define(function (require, exports, module) {
         
         _reset: function (key) {
             var levelData = this._levelData,
-                mergedAtLevel = this._mergedAtLevel;
+                hasBeenReset = false;
             
             this._levels.forEach(function (level, levelNumber) {
                 var value = levelData[level][key];
                 if (value !== undefined) {
                     this._performSetAndNotification(level, key, value, true);
+                    hasBeenReset = true;
                 }
             }.bind(this));
+            if (!hasBeenReset) {
+                delete this._mergedAtLevel[key];
+                var oldValue = this.merged[key];
+                delete this.merged[key];
+                $(this).trigger("change", {
+                    id: key,
+                    oldValue: oldValue,
+                    newValue: undefined
+                });
+            }
         }
     };
     

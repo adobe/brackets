@@ -7,5 +7,11 @@
         "indent": 4,
         "maxerr": 50
     },
-    "defaultExtension": "js"
+    "defaultExtension": "js",
+    "path": {
+        "src/thirdparty/CodeMirror2/**/*.js": {
+            "spaceUnits": 2
+        }
+    },
+    "spaceUnits": 4
 }

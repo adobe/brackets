@@ -218,6 +218,9 @@ define(function (require, exports, module) {
     var languageLayer = new PreferencesBase.LanguageLayer();
     preferencesManager.addLayer("language", languageLayer);
     
+    var pathLayer = new PreferencesBase.PathLayer();
+    preferencesManager.addLayer("path", pathLayer);
+    
     $(preferencesManager).on("change", function (e, data) {
         $(exports).trigger("preferenceChange", data);
     });
@@ -236,6 +239,7 @@ define(function (require, exports, module) {
     exports._manager = preferencesManager;
     exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
     exports._projectFileStorage = projectFileStorage;
+    exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
     
     // Public API    
     exports.get = preferencesManager.get.bind(preferencesManager);

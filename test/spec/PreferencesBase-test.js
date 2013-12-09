@@ -261,7 +261,6 @@ define(function (require, exports, module) {
                     spaceUnits: 11
                 }]);
                 
-                
                 changes = [];
                 dataChanges = [];
                 
@@ -269,7 +268,8 @@ define(function (require, exports, module) {
                 projectMap.addLevel("base");
                 projectMap.setData("base", {
                     spaceUnits: 9,
-                    planets: 8
+                    planets: 8,
+                    moons: 37
                 });
                 
                 map.addLevel("project", {
@@ -277,10 +277,11 @@ define(function (require, exports, module) {
                 });
                 expect(map.merged).toEqual({
                     spaceUnits: 9,
-                    planets: 8
+                    planets: 8,
+                    moons: 37
                 });
                 expect(map.get("planets")).toBe(8);
-                expect(changes.length).toBe(2);
+                expect(changes.length).toBe(3);
                 expect(dataChanges).toEqual([map.merged]);
                 
                 changes = [];
@@ -289,6 +290,11 @@ define(function (require, exports, module) {
                 expect(changes.length).toBe(0);
                 expect(dataChanges.length).toBe(0);
                 expect(userMap.get("planets")).toBe(8);
+                
+                changes = [];
+                dataChanges = [];
+                projectMap.setData("base", {});
+                expect(map.get("moons")).toBeUndefined();
             });
         });
         
@@ -448,6 +454,10 @@ define(function (require, exports, module) {
                 expect(dataChanges).toEqual([{
                     spaceUnits: 5
                 }]);
+                
+                dataChanges = [];
+                layer.setFilename("foo.js");
+                expect(dataChanges).toEqual([{}]);
             });
         });
         
@@ -479,6 +489,34 @@ define(function (require, exports, module) {
                 layer.setLanguage("html");
                 expect(scope.get("spaceUnits")).toBe(2);
                 expect(scope.get("useTabChar")).toBe(false);
+                layer.setLanguage("js");
+                expect(scope.get("spaceUnits")).toBe(4);
+            });
+            
+            it("should look up a value with a path layer", function () {
+                var data = {
+                    spaceUnits: 4,
+                    path: {
+                        "src/*js": {
+                            spaceUnits: 2
+                        }
+                    }
+                };
+                
+                var layer = new PreferencesBase.PathLayer();
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                scope.load();
+                
+                scope.addLevel("path", {
+                    layer: layer
+                });
+                
+                expect(scope.get("path")).toBeUndefined();
+                expect(scope.get("spaceUnits")).toBe(4);
+                layer.setFilename("src/foo.js");
+                expect(scope.get("spaceUnits")).toBe(2);
+                layer.setFilename("top.js");
+                expect(scope.get("spaceUnits")).toBe(4);
             });
         });
         
@@ -693,11 +731,13 @@ define(function (require, exports, module) {
                 });
                 
                 pm.addLayer("language", layer);
-                expect(eventData).toEqual([{
+                // The first element in eventData in this instance is actually the
+                // exclusion of the layer's data, which is not very interesting
+                expect(eventData[1]).toEqual({
                     id: "spaceUnits",
                     oldValue: 4,
                     newValue: 3291
-                }]);
+                });
                 
                 eventData = [];
                 layer.setLanguage("html");
