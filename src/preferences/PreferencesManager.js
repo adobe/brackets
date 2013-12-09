@@ -203,7 +203,7 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
-    var SETTINGS_FILENAME = "brackets.settings.json",
+    var SETTINGS_FILENAME = "brackets.prefs",
         STATE_FILENAME    = "state.json";
     
     var preferencesManager = new PreferencesBase.PreferencesManager();
@@ -245,6 +245,7 @@ define(function (require, exports, module) {
     exports.get = preferencesManager.get.bind(preferencesManager);
     exports.set = preferencesManager.set.bind(preferencesManager);
     exports.save = preferencesManager.save.bind(preferencesManager);
+    exports.getPreference = preferencesManager.getPreference.bind(preferencesManager);
     exports.setValueAndSave = setValueAndSave;
     exports.addScope = preferencesManager.addScope.bind(preferencesManager);
     exports.stateManager = stateManager;

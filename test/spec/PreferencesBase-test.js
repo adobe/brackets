@@ -769,8 +769,8 @@ define(function (require, exports, module) {
         });
         
         describe("File Storage", function () {
-            var settingsFile = FileSystem.getFileForPath(testPath + "/brackets.settings.json"),
-                newSettingsFile = FileSystem.getFileForPath(testPath + "/new.settings.json"),
+            var settingsFile = FileSystem.getFileForPath(testPath + "/brackets.prefs"),
+                newSettingsFile = FileSystem.getFileForPath(testPath + "/new.prefs"),
                 filestorage,
                 originalText;
             
@@ -814,7 +814,7 @@ define(function (require, exports, module) {
             });
             
             it("can load preferences from disk", function () {
-                var filestorage = new PreferencesBase.FileStorage(testPath + "/brackets.settings.json");
+                var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
                 var pm = new PreferencesBase.PreferencesManager();
                 var projectScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("project", projectScope));
@@ -829,7 +829,7 @@ define(function (require, exports, module) {
             });
             
             it("can save preferences", function () {
-                var filestorage = new PreferencesBase.FileStorage(testPath + "/brackets.settings.json");
+                var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
                 var pm = new PreferencesBase.PreferencesManager();
                 var projectScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("project", projectScope));

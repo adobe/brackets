@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         Strings            = brackets.getModule("strings");
     
     
-    PreferencesManager.definePreference("jslintOptions", "object");
+    PreferencesManager.definePreference("jslint.options", "object");
     
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         }
         text = arr.join("\n");
         
-        var options = PreferencesManager.get("jslintOptions");
+        var options = PreferencesManager.get("jslint.options");
         var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {

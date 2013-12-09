@@ -10,7 +10,8 @@
     "defaultExtension": "js",
     "path": {
         "src/thirdparty/CodeMirror2/**/*.js": {
-            "spaceUnits": 2
+            "spaceUnits": 2,
+            "linting.enabled": false
         }
     },
     "spaceUnits": 4
