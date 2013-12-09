@@ -155,7 +155,7 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
             var codeMirror = this.editor._codeMirror;
-            var selector = CSSUtils.findSelectorAtDocumentPos(this.editor, codeMirror.getCursor());
+            var selector = CSSUtils.findSelectorAtDocumentPos(this.editor, this.editor.getCursor());
             if (selector) {
                 HighlightAgent.rule(selector);
             } else {

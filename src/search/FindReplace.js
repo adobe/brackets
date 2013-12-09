@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                 
                 // No result found, period: clear selection & bail
                 if (!cursor.find(rev)) {
-                    cm.setCursor(cm.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
+                    cm.setCursor(editor.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
                     found = false;
                     return;
                 }
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
         // start with a pre-populated search and enter an additional character,
         // it will extend the initial selection instead of jumping to the next
         // occurrence.
-        var searchStartPos = cm.getCursor(true);
+        var searchStartPos = editor.getCursor(true);
         
         //Helper method to enable next / prev navigation in Find modal bar.
         function enableFindNavigator(show) {
@@ -350,7 +350,7 @@ define(function (require, exports, module) {
                 // entered any search text *or* pressed Cmd-G/F3 to find the
                 // next occurrence. In this case we want to start searching
                 // *after* the current selection so we find the next occurrence.
-                searchStartPos = cm.getCursor(false);
+                searchStartPos = editor.getCursor(false);
                 findFirst(query);
             }
         });
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
             $(modalBar).on("commit", function (e, text) {
                 text = text || "";
                 clearSearch(cm);
-                var cursor = getSearchCursor(cm, query, cm.getCursor(true));
+                var cursor = getSearchCursor(cm, query, editor.getCursor(true));
                 var advance = function () {
                     var start = cursor.from(),
                         match = cursor.findNext();
