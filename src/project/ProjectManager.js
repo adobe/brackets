@@ -1726,10 +1726,9 @@ define(function (require, exports, module) {
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     
     function _reloadProjectPreferencesScope() {
-        PreferencesManager.removeScope("project");
         var root = getProjectRoot();
         if (root) {
-            PreferencesManager.addScope("project", new PreferencesManager.FileStorage(root.fullPath + PreferencesManager.SETTINGS_FILENAME), "user");
+            PreferencesManager._projectFileStorage.setPath(root.fullPath + PreferencesManager.SETTINGS_FILENAME);
         }
     }
     

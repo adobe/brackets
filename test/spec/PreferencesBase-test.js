@@ -528,7 +528,7 @@ define(function (require, exports, module) {
                 pm.addScope("user", userScope);
                 pm.addScope("project", projectScope);
                 
-                expect(pm.getValue("spaceUnits")).toEqual(4);
+                expect(pm.get("spaceUnits")).toEqual(4);
                 
                 pm.set("user", "useTabChar", true);
                 pm.set("user", "tabSize", 8);
@@ -760,12 +760,12 @@ define(function (require, exports, module) {
                 var projectScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("project", projectScope));
                 runs(function () {
-                    expect(pm.getValue("spaceUnits")).toBe(92);
+                    expect(pm.get("spaceUnits")).toBe(92);
                     
                     var layer = new PreferencesBase.LanguageLayer();
                     layer.setLanguage("go");
                     pm.addLayer("language", layer);
-                    expect(pm.getValue("spaceUnits")).toBe(27);
+                    expect(pm.get("spaceUnits")).toBe(27);
                 });
             });
             
@@ -792,8 +792,8 @@ define(function (require, exports, module) {
                 var newScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("new", newScope), "adding scope");
                 runs(function () {
-                    pm.setValue("new", "unicorn-filled", true);
-                    expect(pm.getValue("unicorn-filled")).toBe(true);
+                    pm.set("new", "unicorn-filled", true);
+                    expect(pm.get("unicorn-filled")).toBe(true);
                     
                     waitsForDone(pm.save(), "saving prefs");
                     
@@ -811,6 +811,33 @@ define(function (require, exports, module) {
                     waitsForDone(deferred.promise(), "checking file");
                 });
                 
+            });
+            
+            it("can load preferences later", function () {
+                var filestorage = new PreferencesBase.FileStorage();
+                var pm = new PreferencesBase.PreferencesManager();
+                pm.addLayer("language", new PreferencesBase.LanguageLayer());
+                var newScope = new PreferencesBase.Scope(filestorage);
+                var changes = [];
+                waitsForDone(pm.addScope("new", newScope), "adding scope");
+                $(pm).on("change", function (change, data) {
+                    changes.push(data);
+                });
+                runs(function () {
+                    expect(pm.get("spaceUnits")).toBeUndefined();
+                    filestorage.setPath(settingsFile.fullPath);
+                });
+                waitsFor(function () {
+                    return changes.length > 0;
+                });
+                runs(function () {
+                    expect(pm.get("spaceUnits")).toBe(92);
+                    expect(changes).toEqual([{
+                        id: "spaceUnits",
+                        oldValue: undefined,
+                        newValue: 92
+                    }]);
+                });
             });
         });
     });

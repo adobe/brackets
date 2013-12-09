@@ -211,6 +211,8 @@ define(function (require, exports, module) {
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    var projectFileStorage = new PreferencesBase.FileStorage();
+    preferencesManager.addScope("project", projectFileStorage);
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
     
     var languageLayer = new PreferencesBase.LanguageLayer();
@@ -233,6 +235,7 @@ define(function (require, exports, module) {
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager = preferencesManager;
     exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
+    exports._projectFileStorage = projectFileStorage;
     
     // Public API    
     exports.get = preferencesManager.get.bind(preferencesManager);

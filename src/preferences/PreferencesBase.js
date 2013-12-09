@@ -243,22 +243,26 @@ define(function (require, exports, module) {
             var path = this.path;
             var createIfNew = this.createIfNew;
             
-            var prefFile = FileSystem.getFileForPath(path);
-            prefFile.read({}, function (err, text) {
-                if (err) {
-                    if (createIfNew) {
-                        result.resolve({});
-                    } else {
-                        result.reject(new Error("Unable to load prefs at " + path + " " + err));
+            if (path) {
+                var prefFile = FileSystem.getFileForPath(path);
+                prefFile.read({}, function (err, text) {
+                    if (err) {
+                        if (createIfNew) {
+                            result.resolve({});
+                        } else {
+                            result.reject(new Error("Unable to load prefs at " + path + " " + err));
+                        }
+                        return;
                     }
-                    return;
-                }
-                try {
-                    result.resolve(JSON.parse(text));
-                } catch (e) {
-                    result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
-                }
-            });
+                    try {
+                        result.resolve(JSON.parse(text));
+                    } catch (e) {
+                        result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                    }
+                });
+            } else {
+                result.resolve({});
+            }
             
             return result.promise();
         },
@@ -268,24 +272,41 @@ define(function (require, exports, module) {
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
-            try {
-                prefFile.write(JSON.stringify(newData, null, 4), {}, function (err) {
-                    if (err) {
-                        result.reject("Unable to save prefs at " + path + " " + err);
-                    } else {
-                        result.resolve();
-                    }
-                });
-            } catch (e) {
-                result.reject("Unable to convert prefs to JSON" + e.toString());
+            if (path) {
+                try {
+                    prefFile.write(JSON.stringify(newData, null, 4), {}, function (err) {
+                        if (err) {
+                            result.reject("Unable to save prefs at " + path + " " + err);
+                        } else {
+                            result.resolve();
+                        }
+                    });
+                } catch (e) {
+                    result.reject("Unable to convert prefs to JSON" + e.toString());
+                }
+            } else {
+                result.resolve();
             }
             return result.promise();
+        },
+        
+        /**
+         * Changes the path to the preferences file.
+         * This sends a "changed" event to listeners, regardless of whether
+         * the path has changed.
+         * 
+         * @param {string} newPath location of this settings file
+         */
+        setPath: function (newPath) {
+            this.path = newPath;
+            $(this).trigger("changed");
         }
     };
     
     function Scope(storage) {
         MergedMap.apply(this);
         this.storage = storage;
+        $(storage).on("changed", this.load.bind(this));
         this.data = undefined;
         this._dirty = false;
         this.addLevel("base");
@@ -500,9 +521,9 @@ define(function (require, exports, module) {
                 map: scope
             });
             
-            this._layers.forEach(function (layer) {
-                scope.addLevel(id, {
-                    layer: layer
+            this._layers.forEach(function (layerInfo) {
+                scope.addLevel(layerInfo.id, {
+                    layer: layerInfo.layer
                 });
             });
             
