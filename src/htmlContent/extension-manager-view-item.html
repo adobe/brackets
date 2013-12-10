@@ -51,7 +51,7 @@
         {{/showInstallButton}}
         {{#isInstalled}}
             {{#showUpdateButton}}
-                <button class="btn btn-mini update" data-extension-id="{{metadata.name}}" {{^allowUpdate}}disabled title="{{Strings.CANT_UPDATE}}"{{/allowUpdate}}>
+                <button class="btn btn-mini update" data-extension-id="{{metadata.name}}" {{^allowUpdate}}disabled title="{{Strings.CANT_UPDATE}}"{{/allowUpdate}} {{^allowUpdate_dev}}disabled title="{{Strings.CANT_UPDATE_DEV}}"{{/allowUpdate_dev}}>
                     {{Strings.UPDATE}}
                 </button>
             {{/showUpdateButton}}
