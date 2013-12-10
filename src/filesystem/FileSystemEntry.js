@@ -21,6 +21,45 @@
  * 
  */
 
+/*
+ * To ensure cache coherence, current and future asynchronous state-changing 
+ * operations of FileSystemEntry and its subclasses should implement the 
+ * following high-level sequence of steps:
+ * 
+ * 1. Block external filesystem change events;
+ * 2. Execute the low-level state-changing operation;
+ * 3. Update the internal filesystem state, including caches;
+ * 4. Apply the callback;
+ * 5. Fire an appropriate internal change notification; and
+ * 6. Unblock external change events.
+ *
+ * Note that because internal filesystem state is updated first, both the original 
+ * caller and the change notification listeners observe filesystem state that is
+ * current w.r.t. the operation. Furthermore, because external change events are
+ * blocked before the operation begins, listeners will only receive the internal
+ * change event for the operation and not additional (or possibly inconsistent)
+ * external change events.
+ * 
+ * State-changing operations that block external filesystem change events must
+ * take care to always subsequently unblock the external change events in all
+ * control paths. It is safe to assume, however, that the underlying impl will
+ * always apply the callback with some value.
+ 
+ * Caches should be conservative. Consequently, the entry's cached data should
+ * always be cleared if the underlying impl's operation fails. This is the case
+ * event for read-only operations because an unexpected failure implies that the
+ * system is in an unknown state. The entry should communicate this by failing
+ * where appropriate, and should not use the cache to hide failure.
+ * 
+ * Only watched entries should make use of cached data because change events are
+ * only expected for such entries, and change events are used to granularly
+ * invalidate out-of-date caches.
+ *
+ * By convention, callbacks are optional for asynchronous, state-changing
+ * operations, but required for read-only operations. The first argument to the
+ * callback should always be a nullable error string from FileSystemError.
+ */
+
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
@@ -414,6 +453,12 @@ define(function (require, exports, module) {
     
     /**
      * Visit this entry and its descendents with the supplied visitor function.
+     * Correctly handles symbolic link cycles and options can be provided to limit
+     * search depth and total number of entries visited. No particular traversal
+     * order is guaranteed; instead of relying on such an order, it is preferable
+     * to use the visit function to build a list of visited entries, sort those
+     * entries as desired, and then process them. Whenever possible, deep
+     * filesystem traversals should use this method. 
      *
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to this entry and all descendent FileSystemEntry objects. If the function returns
