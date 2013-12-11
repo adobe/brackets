@@ -306,14 +306,6 @@ define(function (require, exports, module) {
                 var resultSet = [];
                 while (cursor.findNext()) {
                     resultSet.push(cursor.pos);  // pos is unique obj per search result
-                    
-                    // TODO: remove this section when https://github.com/marijnh/CodeMirror/issues/1155 is fixed
-                    if (cursor.pos.match && cursor.pos.match[0] === "") {
-                        if (cursor.to().line + 1 === cm.lineCount()) {
-                            break;
-                        }
-                        cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
-                    }
                 }
                 
                 // Highlight all matches if there aren't too many
