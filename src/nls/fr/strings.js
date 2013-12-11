@@ -110,22 +110,28 @@ define({
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
+    // Generic dialog/button labels
+	"OK": "OK",
+	"CANCEL": "Annuler",
+	"DONT_SAVE": "Ne pas enregistrer",
+	"SAVE": "Enregistrer",
+	"DELETE": "Supprimer",
+	"BUTTON_YES": "Oui",
+	"BUTTON_NO": "Non",
+    
     // Find, Replace, Find in Files
-	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
-	"WITH": "Avec",
-	"BUTTON_YES": "Oui",
-	"BUTTON_NO": "Non",
+	"REPLACE_PLACEHOLDER": "[7389016] !é=Replace with\u2026=!",
 	"BUTTON_REPLACE_ALL": "Tout\u2026",
-	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
-            
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "Résultat suivant",
 	"BUTTON_PREV_HINT": "Résultat précédent",
+	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
+	"BUTTON_REGEXP_HINT": "Expression régulière",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -135,10 +141,12 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
+    // Replace All (in single file)
 	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
 	"FIND_REPLACE_TITLE_PART2": " » par « ",
 	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
 
+    // Find in Files
 	"FIND_IN_FILES_TITLE_PART1": "« ",
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
@@ -307,11 +315,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"OK": "OK",
-	"DONT_SAVE": "Ne pas enregistrer",
-	"SAVE": "Enregistrer",
-	"CANCEL": "Annuler",
-	"DELETE": "Supprimer",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
