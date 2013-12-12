@@ -1788,8 +1788,22 @@ define(function (require, exports, module) {
                                 
                                 // _entryToJSON returns null if the added file is filtered from view
                                 if (json) {
-                                    // position is irrelevant due to sorting
-                                    return _createNode($directoryNode, null, json, true);
+                                    
+                                    // Before creating a new node, make sure it doesn't already exist.
+                                    // TODO: Improve the efficiency of this search!
+                                    return _findTreeNode(addedEntry).then(function ($childNode) {
+                                        if ($childNode) {
+                                            // the node already exists; do nothing;
+                                            return new $.Deferred().resolve();
+                                        } else {
+                                            // The node wasn't found; create it.
+                                            // Position is irrelevant due to sorting
+                                            return _createNode($directoryNode, null, json, true);
+                                        }
+                                    }, function () {
+                                        // The node doesn't exist; create it.
+                                        return _createNode($directoryNode, null, json, true);
+                                    });
                                 } else {
                                     return new $.Deferred().resolve();
                                 }
