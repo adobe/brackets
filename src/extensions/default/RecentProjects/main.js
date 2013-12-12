@@ -373,6 +373,8 @@ define(function (require, exports, module) {
 
     /**
      * Show or hide the recent projects dropdown.
+     *
+     * @param {{pageX:number, pageY:number}} position - the absolute position where to open the dropdown
      */
     function showDropdown(position) {
         // If the dropdown is already visible, just return (so the root click handler on html
