@@ -209,7 +209,7 @@ define(function (require, exports, module) {
             selectInitial = false;
             
         
-        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
             selectInitial = true;
         }
         
