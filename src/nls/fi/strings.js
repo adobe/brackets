@@ -59,21 +59,21 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa tiedostoa",
     "ERROR_DELETING_FILE"               : "Tapahtui virhe yrittäessä poistaa tiedosto <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Kelpaamaton {0}nimi",
-    "INVALID_FILENAME_MESSAGE"          : "Tiedostonimi ei voi sisältää seuraavia merkkejä: /?*:;{}<>\\| tai mitään järjestelmän varaamia sanoja.",
+    "INVALID_FILENAME_MESSAGE"          : "Tiedostonimet eivät voi sisältää seuraavia merkkejä: /?*:;{}<>\\| tai mitään järjestelmän varaamia sanoja.",
     "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> on jo olemassa.",
     "ERROR_CREATING_FILE_TITLE"         : "Virhe luodessa {0}a",
     "ERROR_CREATING_FILE"               : "Virhe yrittäessä luoda {0}a <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME}-sovellusta ei voi suorittaa vielä selaimissa.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} on rakennettu HTML:llä, mutta nyt se toimii kuten työpöydän sovellus, jotta voit käyttää sitä muokataksesi paikallisia tiedostoja. Käytäthän sovellus-shelliä osoitteen <b>github.com/adobe/brackets-shell</b> repo:ssa suorittaaksesi {APP_NAME}-sovelluksen.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} ei toimi vielä selaimissa.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} on rakennettu HTML:llä, mutta nyt se toimii kuten työpöydän sovellus, jotta voit käyttää sitä muokataksesi paikallisia tiedostoja. Käytäthän sovelluksen ”shelliä” osoitteen <b>github.com/adobe/brackets-shell</b> repo:ssa suorittaaksesi {APP_NAME}in.",
 
-    // FileIndexManager error string
-    "ERROR_MAX_FILES_TITLE"             : "Virhe indeksoidessa tiedostoja",
-    "ERROR_MAX_FILES"                   : "Suurin sallittu määrä tiedostoja on indeksoitu. Toiminnot, jotka tarkistavat tiedostoja indeksistä, voivat toimia virheellisesti.",
+    // ProjectManager max files error string
+    "ERROR_MAX_FILES_TITLE"             : "Virhe tiedostojen indeksoinnissa",
+    "ERROR_MAX_FILES"                   : "Suurin sallittu määrä tiedostoja on indeksoitu. Toiminnot, jotka etsivät tiedostoja indeksistä, voivat toimia virheellisesti.",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe avattaessa selainta",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistäessä selainta",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome -selainta ei löydy. Varmista, että se on asennettu.",
     "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe avattaessa selainta. (virhe {0})",
     
@@ -81,19 +81,19 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Yhdistetään selaimeen",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi yhdistää, Chromen tarvitsee käynnistyä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Ei kyetty lataamaan reaaliaikaisen kehityksen sivua",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Avaa HTML-tiedosto käyttääksesi esikatselua.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Käynnistääksesi reaaliaikaisen esikatselun palvelimen puoleisella tiedostolla, tämän projektin URL-osoite on määritettävä.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistäessä HTTP-palvelinta reaaliaikaisen kehityksen tiedostoja varten. Yritäthän uudelleen.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa reaaliaikaiseen esikatseluun!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}-sovelluksen verkkoselaimeesi. Se avaa HTML-tiedostosi esikatselun selaimessa ja päivittyy sitten välittömästi tehdässäsi muutoksia koodiin.<br /><br />Tässä aikaisessa {APP_NAME}-sovelluksen versioissa esikatselu toimii vain <strong>Google Chrome -selaimella</strong> ja päivittää reaaliaikaisesti muokatessasi CSS-tiedostoja. Muutokset HTML- tai JavaScript-tiedostolle päivittyvät automaattisesi, kun tallennat sen.<br /><br />(Näet tämän viestin vain kerran.)",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Avaa HTML-tiedosto tai varmista, että projektissasi on index.html-tiedosto käynnistääksesi esikatselun.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Käynnistääksesi esikatselun palvelimella sijaitsevalla tiedostolla on tämän projektin URL-osoite määritettävä.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistäessä HTTP-palvelinta reaaliaikaisen kehityksen tiedostoille. Yritäthän uudelleen.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa esikatseluun!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa HTML-tiedostosi esikatselun selaimessa ja päivittyy sitten välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong>-selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja katso <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Esikatselu",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Esikatselu: Yhdistetään\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Esikatselu: Valmistellaan\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Katkaise esikatselun yhteys",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Esikatselu: Napsauta katkaistaksesi yhteys (Tallenna tiedosto päivittääksesi)",
-    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Esikatselu (ei päivity johtuen syntaksivirheestä)",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Esikatselu (tallenna tiedosto päivittämiseksi)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Esikatselu (ei päivity syntaksivirheen takia)",
     
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Esikatselu peruutettiin, koska selaimen kehitystyökalut avattiin",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Esikatselu peruutettiin, koska sivu suljettiin selaimessa",
@@ -107,25 +107,31 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Vahvista poisto",
     "CONFIRM_FOLDER_DELETE"             : "Oletko varma, että haluat poistaa kansion <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Tiedosto poistettu",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä, mutta on myös tallentamattomia muutoksia {APP_NAME}-sovelluksessa.<br /><br />Kumman version haluat säilyttää?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä, mutta on tallentamattomia muutoksia {APP_NAME}-sovelluksessa.<br /><br />Haluatko säilyttää muutoksesi?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä, mutta sillä on myös tallentamattomia muutoksia {APP_NAME}issa.<br /><br />Kumman version haluat säilyttää?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> on poistettu levyltä, mutta sillä on tallentamattomia muutoksia {APP_NAME}issa.<br /><br />Haluatko säilyttää muutoksesi?",
+    
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Peruuta",
+    "DONT_SAVE"                         : "Älä tallenna",
+    "SAVE"                              : "Tallenna",
+    "DELETE"                            : "Poista",
+    "BUTTON_YES"                        : "Kyllä",
+    "BUTTON_NO"                         : "Ei",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Käytä /re/-syntaksia hakeaksesi säännöllisellä lausekkeella",
     "FIND_RESULT_COUNT"                 : "{0} tulosta",
     "FIND_RESULT_COUNT_SINGLE"          : "1 tulos",
     "FIND_NO_RESULTS"                   : "Ei tuloksia",
-    "WITH"                              : "merkkijonolla",
-    "BUTTON_YES"                        : "Kyllä",
-    "BUTTON_NO"                         : "Ei",
+    "REPLACE_PLACEHOLDER"               : "Korvaa merkkijonolla\u2026",
     "BUTTON_REPLACE_ALL"                : "Kaikki\u2026",
-    "BUTTON_STOP"                       : "Lopeta",
     "BUTTON_REPLACE"                    : "Korvaa",
-    
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Seuraava vastaavuus",
     "BUTTON_PREV_HINT"                  : "Edellinen vastaavuus",
+    "BUTTON_CASESENSITIVE_HINT"         : "Huomioi kirjainkoko",
+    "BUTTON_REGEXP_HINT"                : "Säännöllinen lauseke",
 
     "OPEN_FILE"                         : "Avaa tiedosto",
     "SAVE_FILE_AS"                      : "Tallenna tiedosto",
@@ -133,12 +139,14 @@ define({
 
     "RELEASE_NOTES"                     : "Julkaisutiedot",
     "NO_UPDATE_TITLE"                   : "Olet ajantasalla!",
-    "NO_UPDATE_MESSAGE"                 : "Käytät uusinta versiota sovelluksesta {APP_NAME}.",
-    
+    "NO_UPDATE_MESSAGE"                 : "Käytät uusinta {APP_NAME}-versiota.",
+
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Korvaa ”",
     "FIND_REPLACE_TITLE_PART2"          : "” merkkijonolla ”",
     "FIND_REPLACE_TITLE_PART3"          : "” &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "”",
     "FIND_IN_FILES_TITLE_PART2"         : "” löytyi",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} {3} {4}",
@@ -158,7 +166,7 @@ define({
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Ladataan\u2026",
-    "UNTITLED"          : "nimetön",
+    "UNTITLED"          : "Nimetön",
     "WORKING_FILES"     : "Työtiedostot",
 
     /**
@@ -187,6 +195,8 @@ define({
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0}-virheet",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} ongelmaa",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Tarkistuksen ongelmat",
     "SINGLE_ERROR"                          : "1 {0}-virhe",
     "MULTIPLE_ERRORS"                       : "{1} {0}-virhettä",
     "NO_ERRORS"                             : "Ei {0}-virheitä – hyvää työtä!",
@@ -223,7 +233,7 @@ define({
     "CMD_FILE_DELETE"                     : "Poista",
     "CMD_INSTALL_EXTENSION"               : "Asenna laajennus\u2026",
     "CMD_EXTENSION_MANAGER"               : "Laajennusten hallinta\u2026",
-    "CMD_FILE_REFRESH"                    : "Päivitä",
+    "CMD_FILE_REFRESH"                    : "Päivitä tiedostopuu",
     "CMD_QUIT"                            : "Lopeta",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Poistu",
@@ -294,7 +304,7 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "Ohje",
     "CMD_CHECK_FOR_UPDATE"                : "Tarkista päivitykset",
-    "CMD_HOW_TO_USE_BRACKETS"             : "Miten käyttää {APP_NAME}-sovellusta",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Miten käyttää {APP_NAME}ia",
     "CMD_FORUM"                           : "{APP_NAME}-keskustelupalsta",
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
     "CMD_REPORT_AN_ISSUE"                 : "Ilmoita ongelmasta",
@@ -305,34 +315,29 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Älä tallenna",
-    "SAVE"                                 : "Tallenna",
-    "CANCEL"                               : "Peruuta",
-    "DELETE"                               : "Poista",
     "RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
     "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset editorissa",
-    "CLOSE_DONT_SAVE"                      : "Sulje (älä tallenna)",
+    "CLOSE_DONT_SAVE"                      : "Sulje (Älä tallenna)",
     "RELAUNCH_CHROME"                      : "Käynnistä Chrome uudelleen",
     "ABOUT"                                : "Tietoja",
     "CLOSE"                                : "Sulje",
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
-    "ABOUT_TEXT_LINE3"                     : "Ilmoitukset ja ehdot liittyen kolmannen osapuolen ohjelmistoihin sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetty viitteisiin täällä.",
+    "ABOUT_TEXT_LINE3"                     : "Ilmoitukset ja ehdot liittyen kolmannen osapuolen ohjelmistoihin sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetään viitteisiin tässä.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät \u2764lla ja JavaScriptilla:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on ongelmia ladata näitä tietoja nyt).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Sovellusalustan dokumentaatiot ja sovellusalustan graafinen logo on lisensoitu Creative Commons Attribution -lisenssin alla, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}-sovelluksesta on saatavilla uusi versio! Napsauta tästä saadaksesi lisätietoja.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Sovellusalustan dokumentaatio ja sovellusalustan graafinen logo on lisensoitu Creative Commons Attribution -lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}ista on saatavilla uusi versio! Napsauta tästä saadaksesi lisätietoja.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
-    "UPDATE_MESSAGE"                       : "Hei! {APP_NAME}-sovelluksesta on saatavilla uusi versio. Tässä on joitakin uusista ominaisuuksista:",
+    "UPDATE_MESSAGE"                       : "Hei, {APP_NAME}ista on saatavilla uusi versio. Tässä on joitakin uusista ominaisuuksista:",
     "GET_IT_NOW"                           : "Hae nyt!",
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun URL-osoite",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Käyttääksesi paikallista palvelinta anna URL, kuten http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Käyttääksesi paikallista palvelinta anna url, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
-    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei saa sisältää hakuparametreja, kuten ”{0}”.",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei saa sisältää ristikkomerkkejä, kuten ”{0}”.",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten '{0}', täytyy olla %-koodattu.",
+    "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten ’{0}’, täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
     
     // CSS Quick Edit
@@ -348,16 +353,16 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
     "UPDATE_EXTENSION_TITLE"               : "Päivitä laajennus",
     "INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
-    "INSTALL_EXTENSION_HINT"               : "Laajennuksen zip-tiedoston URL-osoite tai GitHub repo",
+    "INSTALL_EXTENSION_HINT"               : "Laajennuksen zip-tiedoston URL-osoite tai GitHub-repo",
     "INSTALLING_FROM"                      : "Asennetaan laajennus kohteesta {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Asennus on valmis!",
     "INSTALL_FAILED"                       : "Asennus epäonnistui.",
     "CANCELING_INSTALL"                    : "Peruutetaan\u2026",
-    "CANCELING_HUNG"                       : "Asennuksen peruutus on kestänyt pitkään. On voinut tapahtua sisäinen virhe.",
+    "CANCELING_HUNG"                       : "Asennuksen peruutus kestää pitkään. On voinut tapahtua sisäinen virhe.",
     "INSTALL_CANCELED"                     : "Asennus peruutettu.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
-    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (Virhe: {0}).",
+    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (virhe oli: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Tiedostolle package.json ei ole määritelty paketin nimeä.",
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
     "MISSING_PACKAGE_VERSION"              : "Tiedostolle package.json ei ole määritelty paketin versiota.",
@@ -375,8 +380,8 @@ define({
     "CANNOT_WRITE_TEMP"                    : "Latausta ei kyetty tallentamaan väliaikaiseen tiedostoon.",
     "ERROR_LOADING"                        : "Laajennus kohtasi virheen käynnistyessä.",
     "MALFORMED_URL"                        : "URL-osoite on virheellinen. Tarkista, että annoit sen oikein.",
-    "UNSUPPORTED_PROTOCOL"                 : "URL-osoitteen on oltava protokollaltaan joko http tai https.",
-    "UNKNOWN_ERROR"                        : "Tuntematon (sisäinen) virhe.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL-osoitteen on oltava http- tai https-URL.",
+    "UNKNOWN_ERROR"                        : "Tuntematon sisäinen virhe.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Laajennusten hallinta",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Virhe käytettäessä laajennusten rekisteriä. Yritä myöhemmin uudelleen.",
@@ -392,14 +397,14 @@ define({
     "EXTENSION_ERROR"                      : "Laajennusvirhe",
     "EXTENSION_KEYWORDS"                   : "Avainsanat",
     "EXTENSION_INSTALLED"                  : "Asennettu",
-    "EXTENSION_UPDATE_INSTALLED"           : "Tämä laajennuksen päivitys on ladattu ja asennetaan, kun poistut {APP_NAME}-sovelluksesta.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Tämä laajennuksen päivitys on ladattu ja asennetaan, kun poistut {APP_NAME}ista.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Haku",
     "EXTENSION_MORE_INFO_LINK"             : "Lisää",
     "BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
     "EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Virhe poistettaessa yhtä tai useampaa laajennusta: {0}. {APP_NAME} haluaa yhä sulkeutua.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Yhden tai useamman laajennuksen poistaminen epäonnistui: {0}. {APP_NAME} haluaa yhä sulkeutua.",
     "EXTENSION_MANAGER_UPDATE"             : "Päivitä laajennus",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Virhe päivittäessä yhtä tai useampaa laajennusta: {0}. {APP_NAME} haluaa yhä sulkeutua.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Yhden tai useamman laajennuksen päivittäminen epäonnistui: {0}. {APP_NAME} haluaa yhä sulkeutua.",
     "MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
     "UNDO_REMOVE"                          : "Kumoa",
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
@@ -410,15 +415,15 @@ define({
     "CHANGE_AND_QUIT"                      : "Muuta laajennuksia ja poistu",
     "UPDATE_AND_QUIT"                      : "Päivitä laajennukset ja poistu",
     "EXTENSION_NOT_INSTALLED"              : "Ei voida poistaa laajennusta {0}, koska sitä ei ole asennettu.",
-    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta ”Asenna URL-osoitteesta” -painiketta alhaalta aloittaaksesi.",
-    "NO_EXTENSION_MATCHES"                 : "Mikään laajennus ei vastannut hakuasi.",
+    "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta Saatavilla-välilehteä yläpuolelta aloittaaksesi.",
+    "NO_EXTENSION_MATCHES"                 : "Ei hakuasi vastaavia laajennuksia.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Asennettu",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Saatavilla",
     "EXTENSIONS_UPDATES_TITLE"             : "Päivitykset",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Vastaavuuksia ei saatavilla.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta ”Uusi sääntö” luodaksesi uuden.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta ”Uusi sääntö” luodaksesi sellaisen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projektissasi ei ole tyylitiedostoja.<br>Luo sellainen lisätäksesi CSS-sääntöjä.",
     
     /**
@@ -426,7 +431,7 @@ define({
      */
 
     "UNIT_PIXELS"                          : "pikseliä",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Kehitys",
     "CMD_SHOW_DEV_TOOLS"                        : "Näytä kehitystyökalut",
@@ -455,9 +460,12 @@ define({
     "LOCALE_IT"                                 : "italia",
     "LOCALE_JA"                                 : "japani",
     "LOCALE_NB"                                 : "norja",
+    "LOCALE_NL"                                 : "hollanti",
+    "LOCALE_FA_IR"                              : "persia-farsi",
     "LOCALE_PL"                                 : "puola",
     "LOCALE_PT_BR"                              : "portugali, Brasilia",
     "LOCALE_PT_PT"                              : "portugali",
+    "LOCALE_RO"                                 : "romania",
     "LOCALE_RU"                                 : "venäjä",
     "LOCALE_SK"                                 : "slovakia",
     "LOCALE_SR"                                 : "serbia",
