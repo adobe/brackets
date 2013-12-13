@@ -1006,7 +1006,7 @@ a, img {
     font-size: 14px;
     color: @tc-text;
     background: @tc-gray-panel;
-    overflow: hidden;
+    overflow: visible;  // needed for .error popup
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
@@ -1049,25 +1049,102 @@ a, img {
             box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);
         }
     }
+    
+    #find-what, #replace-with {
+        width: 295px;
+    }
 
-    .message {
+    .search-input-container {
+        position: relative;
+        display: inline;
+        
+        .error {  // "popup" that hangs below search field
+            position: absolute;
+            left: 6px;
+            top: 24px;
+            min-width: 295px + 2px;  // to align with search field above it
+            
+            background-color: #f74687;
+            color: @bc-white;
+            font-size: 12px;
+            padding: 5px;
+            border-radius: 0 0 3px 3px;
+        }
+        
+        #find-what {
+            padding-right: 62px;  // room for #find-counter overlay
+            width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
+        }
+        #find-counter {
+            position: absolute;
+            color: @tc-light-weight-quiet-text;
+            top: 1px;
+            right: 2px;
+            font-size: 12px;
+        }
+    }
+    
+    #find-group, #replace-group {
+        display: inline-block;
+        white-space: nowrap;
+    }
+    
+    .message, .no-results-message {
         display: inline-block;
     }
-
-    .error {
-        display: none;
     
-        .alert {
-            padding-top: 4px;
-            padding-bottom: 4px;
-        }
+    #find-case-sensitive, #find-regexp {
+        padding: 1px 5px;
+    }
+    .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
+        .sprite-icon(0, 0, 24px, 24px, "images/find-replace-sprites.svg");
+        background-repeat: no-repeat;
+    }
+    #find-regexp.active .button-icon {
+        .sprite-swap(0, 24px);
+    }
+    #find-case-sensitive .button-icon {
+        .sprite-swap(0, 48px);
+    }
+    #find-case-sensitive.active .button-icon {
+        .sprite-swap(0, 72px);
+    }
+    #find-regexp.active, #find-case-sensitive.active {
+        background-color: @tc-highlight;
     }
 
-    .navigator {
-        display: none;
-        button {
-            margin: 2px 1px 3px;
-        }
+    .navigator {  // next/prev buttons
+        display: inline-block;
+    }
+    button {
+        margin: 2px 1px 3px;
+    }
+    #find-prev {
+        margin-left: 5px;
+    }
+    
+    // Make button pairs snug
+    #find-prev, #replace-yes, #find-case-sensitive {
+        border-right: none;
+        margin-right: 0;
+    }
+    #find-next, #replace-all, #find-regexp {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        margin-left: 0;
+    }
+    
+    // Make find field snug with options buttons
+    //    & replace snug with replace commands
+    #find-what, #replace-with {
+        margin-right: 0px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    #find-case-sensitive, #replace-yes {
+        border-left: none;
+        margin-left: 0px;
+        border-radius: 0;
     }
 }
 

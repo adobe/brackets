@@ -24,11 +24,152 @@
 module.exports = function (grunt) {
     'use strict';
 
+    // load dependencies
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin']});
+    grunt.loadTasks('tasks');
+
     var common = require("./tasks/lib/common")(grunt);
     
     // Project configuration.
     grunt.initConfig({
         pkg  : grunt.file.readJSON("package.json"),
+        clean: {
+            dist: {
+                files: [{
+                    dot: true,
+                    src: [
+                        'dist',
+                        'src/.index.html',
+                        'src/styles/brackets.css'
+                    ]
+                }]
+            }
+        },
+        copy: {
+            dist: {
+                files: [
+                    {
+                        'dist/index.html': 'src/.index.html'
+                    },
+                    /* static files */
+                    {
+                        expand: true,
+                        dest: 'dist/',
+                        cwd: 'src/',
+                        src: [
+                            'nls/{,*/}*.js',
+                            'xorigin.js',
+                            'dependencies.js',
+                            'thirdparty/requirejs/require.js',
+                            'LiveDevelopment/launch.html'
+                        ]
+                    },
+                    /* extensions and CodeMirror modes */
+                    {
+                        expand: true,
+                        dest: 'dist/',
+                        cwd: 'src/',
+                        src: [
+                            'extensibility/**/*',
+                            '!extensions/default/*/unittest-files/**/*',
+                            '!extensions/default/*/unittests.js',
+                            'extensions/default/*/**/*',
+                            'thirdparty/CodeMirror2/addon/{,*/}*',
+                            'thirdparty/CodeMirror2/keymap/{,*/}*',
+                            'thirdparty/CodeMirror2/lib/{,*/}*',
+                            'thirdparty/CodeMirror2/mode/{,*/}*',
+                            'thirdparty/CodeMirror2/theme/{,*/}*',
+                            'thirdparty/i18n/*.js',
+                            'thirdparty/text/*.js'
+                        ]
+                    },
+                    /* styles, fonts and images */
+                    {
+                        expand: true,
+                        dest: 'dist/styles',
+                        cwd: 'src/styles',
+                        src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*']
+                    }
+                ]
+            }
+        },
+        less: {
+            dist: {
+                files: {
+                    "src/styles/brackets.min.css": "src/styles/brackets.less"
+                },
+                options: {
+                    compress: true,
+                    sourceMap: true,
+                    sourceMapFilename: 'src/styles/brackets.min.css.map',
+                    outputSourceFiles: true,
+                    sourceMapRootpath: '',
+                    sourceMapBasepath: 'src/styles'
+                }
+            }
+        },
+        requirejs: {
+            dist: {
+                // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
+                options: {
+                    // `name` and `out` is set by grunt-usemin
+                    baseUrl: 'src',
+                    optimize: 'uglify2',
+                    // TODO: Figure out how to make sourcemaps work with grunt-usemin
+                    // https://github.com/yeoman/grunt-usemin/issues/30
+                    generateSourceMaps: true,
+                    useSourceUrl: true,
+                    // required to support SourceMaps
+                    // http://requirejs.org/docs/errors.html#sourcemapcomments
+                    preserveLicenseComments: false,
+                    useStrict: true,
+                    // Disable closure, we want define/require to be globals
+                    wrap: false,
+                    exclude: ["text!config.json"],
+                    uglify2: {} // https://github.com/mishoo/UglifyJS2
+                }
+            }
+        },
+        targethtml: {
+            dist: {
+                files: {
+                    'src/.index.html': 'src/index.html'
+                }
+            }
+        },
+        useminPrepare: {
+            options: {
+                dest: 'dist'
+            },
+            html: 'src/.index.html'
+        },
+        usemin: {
+            options: {
+                dirs: ['dist']
+            },
+            html: ['dist/{,*/}*.html']
+        },
+        htmlmin: {
+            dist: {
+                options: {
+                    /*removeCommentsFromCDATA: true,
+                    // https://github.com/yeoman/grunt-usemin/issues/44
+                    //collapseWhitespace: true,
+                    collapseBooleanAttributes: true,
+                    removeAttributeQuotes: true,
+                    removeRedundantAttributes: true,
+                    useShortDoctype: true,
+                    removeEmptyAttributes: true,
+                    removeOptionalTags: true*/
+                },
+                files: [{
+                    expand: true,
+                    cwd: 'src',
+                    src: '*.html',
+                    dest: 'dist'
+                }]
+            }
+        },
         meta : {
             src   : [
                 'src/**/*.js',
@@ -144,16 +285,9 @@ module.exports = function (grunt) {
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
-
-    // load dependencies
-    grunt.loadTasks('tasks');
-    grunt.loadNpmTasks('grunt-contrib-jasmine');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-jasmine-node');
     
     // task: install
-    grunt.registerTask('install', ['write-config']);
+    grunt.registerTask('install', ['write-config', 'less']);
 
     // task: test
     grunt.registerTask('test', ['jshint:all', 'jasmine']);
@@ -162,6 +296,24 @@ module.exports = function (grunt) {
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
+
+    // task: build
+    grunt.registerTask('build', [
+        'jshint:src',
+        'jasmine',
+        'clean',
+        'less',
+        'targethtml',
+        'useminPrepare',
+        'htmlmin',
+        'requirejs',
+        'concat',
+        /*'cssmin',*/
+        /*'uglify',*/
+        'copy',
+        'usemin',
+        'build-config'
+    ]);
 
     // Default task.
     grunt.registerTask('default', ['test']);
