@@ -216,6 +216,10 @@ define(function (require, exports, module) {
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
 
+        if (this.info.offset === 0) {
+            return null;
+        }
+        
         if (context === CSSUtils.PROP_VALUE) {
             // When switching from a NAME to a VALUE context, restart the session
             // to give other more specialized providers a chance to intervene.
