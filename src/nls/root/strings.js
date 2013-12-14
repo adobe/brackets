@@ -477,8 +477,8 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
-    "BEZIER_EDITOR_INFO"                        : "Bezier curve endpoints can be dragged with mouse. Click in grid to move closest point. Use arrow keys to move selected point. Use Shift key for acceleration.",
-    "STEPS_EDITOR_INFO"                         : "Use up/down arrow keys to change number of steps. Use left arrow key for start and right arrow key for end",
+    "BEZIER_EDITOR_INFO"                        : "Bezier curve endpoints can be dragged with mouse. Click in grid to move closest point. Use ↑ ↓ ← → arrow keys to move selected point. Use Shift key for acceleration.",
+    "STEPS_EDITOR_INFO"                         : "Use ↑ ↓ arrow keys to change number of steps. Use ← arrow key for 'start' and → arrow key for 'end'",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
