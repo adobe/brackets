@@ -1381,29 +1381,32 @@ define(function (require, exports, module) {
                                 }
                             });
                         } else {
-                            // Create an file
+                            // Create a file
                             var file = FileSystem.getFileForPath(newItemPath);
-                            //If a path is specified, copy that data into the file.
-                            if (copyFilePath) { 
-                                var copyFile = FileSystem.getFileForPath(copyFilePath);                               
-                                copyFile.read(function (readError, data) {
-                                    file.write(data, function (err) {
-                                        if (err) {
-                                            errorCallback(err);
-                                        } else {
-                                            successCallback(file);
-                                        }
-                                    });
-                                });
-                            } else {
-                                //No path is specified, so just create an empty file
-                                file.write("", function (err) {
+                            // Function to write data to a file
+                            var writeDataToFile = function (file, data) {
+                                file.write(data, function (err) {
                                     if (err) {
                                         errorCallback(err);
                                     } else {
                                         successCallback(file);
                                     }
                                 });
+                            };
+                            // If a path is specified, copy that data into the file.
+                            if (copyFilePath) {
+                                var copyFile = FileSystem.getFileForPath(copyFilePath);
+                                copyFile.read(function (readError, data) {
+                                    if (readError) {
+                                        // No need to write data if there is any read-error.
+                                        errorCallback(FileSystemError.NOT_READABLE, copyFilePath);
+                                    } else {
+                                        writeDataToFile(file, data);
+                                    }
+                                });
+                            } else {
+                                //No path is specified, so just create an empty file
+                                writeDataToFile(file, "");
                             }
                         }
                     }
@@ -1413,7 +1416,6 @@ define(function (require, exports, module) {
                 errorCleanup();
             }
         });
-        
         
         // TODO (issue #115): Need API to get tree node for baseDir.
         // In the meantime, pass null for node so new item is placed

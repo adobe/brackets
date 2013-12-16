@@ -1293,13 +1293,18 @@ define(function (require, exports, module) {
     function handleFileDuplicate() {
         var entry = ProjectManager.getSelectedItem();
         if (entry.isDirectory) {
-            ProjectManager.createNewItem(entry._parentPath, entry._name + "-copy", false, true, entry._path);
+            ProjectManager.createNewItem(entry._parentPath, entry._name + "-" + Strings.COPY_SUFFIX, false, true, entry._path);
         } else {
             /* Create duplicated item */
             var pos = entry._name.lastIndexOf('.');
-            var copiedFileName = entry._name.substring(0, pos) + '-copy.' + entry._name.substring(pos + 1);
+            var copiedFileName;
+            if (pos !== -1) {
+                copiedFileName = entry._name.substring(0, pos) + "-" + Strings.COPY_SUFFIX + "." + entry._name.substring(pos + 1);
+            } else {
+                //No '.' found in filename.
+                copiedFileName = entry._name + "-" + Strings.COPY_SUFFIX;
+            }
             ProjectManager.createNewItem(entry._parentPath, copiedFileName, false, false, entry._path);
-            
         }
     }
 

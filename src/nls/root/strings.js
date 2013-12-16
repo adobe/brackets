@@ -313,6 +313,7 @@ define({
     "SAVE"                                 : "Save",
     "CANCEL"                               : "Cancel",
     "DELETE"                               : "Delete",
+    "COPY_SUFFIX"                          : "copy",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
