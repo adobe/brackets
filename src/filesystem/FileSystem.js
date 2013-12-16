@@ -253,11 +253,11 @@ define(function (require, exports, module) {
         var genericProcessChild;
         if (shouldWatch) {
             genericProcessChild = function (child) {
-                child._setWatched();
+                child._setWatched(true);
             };
         } else {
             genericProcessChild = function (child) {
-                child._clearCachedData();
+                child._setWatched(false);
             };
         }
         
@@ -485,6 +485,31 @@ define(function (require, exports, module) {
         
         return path;
     };
+
+    /**
+     * Return a (strict subclass of a) FileSystemEntry object for the specified
+     * path using the provided constuctor. For now, the provided constructor
+     * should be either File or Directory.
+     *
+     * @private
+     * @param {function(string, FileSystem)} EntryConstructor Constructor with
+     *      which to initialize new FileSystemEntry objects.
+     * @param {string} path Absolute path of file. 
+     * @return {File|Directory} The File or Directory object. This file may not
+     *      yet exist on disk.
+     */
+    FileSystem.prototype._getEntryForPath = function (EntryConstructor, path) {
+        var isDirectory = EntryConstructor === Directory;
+        path = this._normalizePath(path, isDirectory);
+        var entry = this._index.getEntry(path);
+        
+        if (!entry) {
+            entry = new EntryConstructor(path, this);
+            this._index.addEntry(entry);
+        }
+                
+        return entry;
+    };
     
     /**
      * Return a File object for the specified path.
@@ -494,20 +519,7 @@ define(function (require, exports, module) {
      * @return {File} The File object. This file may not yet exist on disk.
      */
     FileSystem.prototype.getFileForPath = function (path) {
-        path = this._normalizePath(path, false);
-        var file = this._index.getEntry(path);
-        
-        if (!file) {
-            file = new File(path, this);
-            
-            if (this._isEntryWatched(file)) {
-                file._setWatched();
-            }
-            
-            this._index.addEntry(file);
-        }
-                
-        return file;
+        return this._getEntryForPath(File, path);
     };
      
     /**
@@ -518,20 +530,7 @@ define(function (require, exports, module) {
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
     FileSystem.prototype.getDirectoryForPath = function (path) {
-        path = this._normalizePath(path, true);
-        var directory = this._index.getEntry(path);
-        
-        if (!directory) {
-            directory = new Directory(path, this);
-            
-            if (this._isEntryWatched(directory)) {
-                directory._setWatched();
-            }
-
-            this._index.addEntry(directory);
-        }
-        
-        return directory;
+        return this._getEntryForPath(Directory, path);
     };
     
     /**
@@ -870,6 +869,9 @@ define(function (require, exports, module) {
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
 
+    // Private helper methods used by internal filesystem modules
+    exports._isEntryWatched = _wrap(FileSystem.prototype._isEntryWatched);
+    
     // Export "on" and "off" methods
     
     /**

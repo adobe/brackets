@@ -89,6 +89,7 @@ define(function (require, exports, module) {
         this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
+        this._setWatched(fileSystem._isEntryWatched(this));
     }
     
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
@@ -195,13 +196,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Mark this entry as being watched after construction. There is no way to
-     * set an entry as being unwatched after construction because entries should
-     * be discarded upon being unwatched.
+     * Mark this entry as being watched or unwatched. Setting an entry as being
+     * unwatched will cause its cached data to be cleared.
      * @private
+     * @param watched Whether or not the entry is watched
      */
-    FileSystemEntry.prototype._setWatched = function () {
-        this._isWatched = true;
+    FileSystemEntry.prototype._setWatched = function (watched) {
+        this._isWatched = watched;
+        
+        if (!watched) {
+            this._clearCachedData();
+        }
     };
     
     /**
