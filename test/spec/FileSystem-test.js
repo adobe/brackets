@@ -788,33 +788,42 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Event timing", function () {
+        describe("Event ordering", function () {
+            
+            function eventOrderingTest(eventName, implOpName, entry, methodName) {
+                var params = Array.prototype.slice.call(arguments, 4);
+                
+                runs(function () {
+                    var opDone = false, eventDone = false;
+                    
+                    // Delay impl callback to happen after impl watcher notification
+                    MockFileSystemImpl.when(implOpName, entry.fullPath, {
+                        callback: delay(250)
+                    });
+                    
+                    $(fileSystem).on(eventName, function (evt, entry) {
+                        expect(opDone).toBe(true);  // this is the important check: callback should have already run!
+                        eventDone = true;
+                    });
+                    
+                    params.push(function (err) {
+                        expect(err).toBeFalsy();
+                        expect(eventDone).toBe(false);
+                        opDone = true;
+                    });
+                    
+                    entry[methodName].apply(entry, params);
+                    
+                    waitsFor(function () { return opDone && eventDone; });
+                });
+            }
             
             it("should apply rename callback before firing the 'rename' event", function () {
                 var origFilePath = "/file1.txt",
                     origFile = fileSystem.getFileForPath(origFilePath),
                     renamedFilePath = "/file1_renamed.txt";
                 
-                runs(function () {
-                    var renameDone = false, changeDone = false;
-                    
-                    // Delay impl callback to happen after impl watcher notification
-                    MockFileSystemImpl.when("rename", origFilePath, {
-                        callback: delay(250)
-                    });
-                    
-                    $(fileSystem).on("rename", function (evt, entry) {
-                        expect(renameDone).toBe(true);  // this is the important check: callback should have already run!
-                        changeDone = true;
-                    });
-                    
-                    origFile.rename(renamedFilePath, function (err) {
-                        expect(err).toBeFalsy();
-                        renameDone = true;
-                    });
-                    
-                    waitsFor(function () { return changeDone && renameDone; });
-                });
+                eventOrderingTest("rename", "rename", origFile, "rename", renamedFilePath);
                 
                 runs(function () {
                     expect(origFile.fullPath).toBe(renamedFilePath);
@@ -826,26 +835,28 @@ define(function (require, exports, module) {
                 var testFilePath = "/file1.txt",
                     testFile = fileSystem.getFileForPath(testFilePath);
                 
-                runs(function () {
-                    var writeDone = false, changeDone = false;
-                    
-                    // Delay impl callback to happen after impl watcher notification
-                    MockFileSystemImpl.when("writeFile", testFilePath, {
-                        callback: delay(250)
-                    });
-                    
-                    $(fileSystem).on("change", function (evt, entry) {
-                        expect(writeDone).toBe(true);  // this is the important check: callback should have already run!
-                        changeDone = true;
-                    });
-                    
-                    testFile.write("Foobar", { blind: true }, function (err) {
-                        expect(err).toBeFalsy();
-                        writeDone = true;
-                    });
-                    
-                    waitsFor(function () { return changeDone && writeDone; });
-                });
+                eventOrderingTest("change", "writeFile", testFile, "write", "Foobar", { blind: true });
+            });
+            
+            it("should apply unlink callback before firing the 'change' event", function () {
+                var testFilePath = "/file1.txt",
+                    testFile = fileSystem.getFileForPath(testFilePath);
+                
+                eventOrderingTest("change", "unlink", testFile, "unlink");
+            });
+
+            it("should apply moveToTrash callback before firing the 'change' event", function () {
+                var testFilePath = "/file1.txt",
+                    testFile = fileSystem.getFileForPath(testFilePath);
+                
+                eventOrderingTest("change", "moveToTrash", testFile, "moveToTrash");
+            });
+            
+            it("should apply create callback before firing the 'change' event", function () {
+                var testDirPath = "/a/new/directory.txt",
+                    testDir = fileSystem.getDirectoryForPath(testDirPath);
+                
+                eventOrderingTest("change", "create", testDir, "create");
             });
             
             // Used for various tests below where two write operations (to two different files) overlap in various ways
@@ -1169,6 +1180,15 @@ define(function (require, exports, module) {
                     cb1 = readCallback(),
                     cb2 = readCallback(),
                     savedHash;
+
+                // confirm watched and empty cached data
+                runs(function () {
+                    file = fileSystem.getFileForPath(filename);
+                    
+                    expect(file._isWatched).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                });
                 
                 // unwatch root directory
                 runs(function () {
