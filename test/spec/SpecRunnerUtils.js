@@ -800,8 +800,8 @@ define(function (require, exports, module) {
     
     /**
      * Copy a directory source to a destination
-     * @param {!Directory} source Directory for the source directory to copy
-     * @param {!string} destination Destination path to copy the source directory
+     * @param {!Directory} source Directory to copy
+     * @param {!string} destination Destination path to copy the source directory to
      * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
      *     parseOffsets - allows optional offset markup parsing. File is written to the
      *       destination path without offsets. Offset data is passed to the

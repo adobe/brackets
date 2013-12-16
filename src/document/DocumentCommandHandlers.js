@@ -522,13 +522,16 @@ define(function (require, exports, module) {
         );
     }
     
+    
+    
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
+     * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem
      * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
-    function doSave(docToSave) {
+    function doSave(docToSave, force) {
         var result = new $.Deferred(),
             file = docToSave.file;
         
@@ -538,18 +541,61 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
         }
+        
+        function handleContentsModified() {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.EXT_MODIFIED_TITLE,
+                StringUtils.format(
+                    Strings.EXT_MODIFIED_WARNING,
+                    StringUtils.breakableUrl(docToSave.file.name)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_SAVE_AS,
+                        text      : Strings.SAVE_AS
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE_AND_OVERWRITE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Re-do the save, ignoring any CONTENTS_MODIFIED errors
+                        doSave(docToSave, true).then(result.resolve, result.reject);
+                    } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
+                        // Let the user choose a different path at which to write the file
+                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                    }
+                });
+        }
             
         if (docToSave.isDirty) {
             var writeError = false;
             
             // We don't want normalized line endings, so it's important to pass true to getText()
-            FileUtils.writeText(file, docToSave.getText(true))
+            FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
                 })
                 .fail(function (err) {
-                    handleError(err);
+                    if (err === FileSystemError.CONTENTS_MODIFIED) {
+                        handleContentsModified();
+                    } else {
+                        handleError(err);
+                    }
                 });
         } else {
             result.resolve(file);
@@ -643,13 +689,10 @@ define(function (require, exports, module) {
                 });
             }
             
-            if (!path) {
-                // save as dialog was canceled; workaround for #4418
-                return result.reject(USER_CANCELED).promise();
-            }
-            
+            // Same name as before - just do a regular Save
             if (path === origPath) {
-                return doSave(doc);
+                doSave(doc).then(result.resolve, result.reject);
+                return;
             }
             
             // First, write document's current text to new file
@@ -694,9 +737,13 @@ define(function (require, exports, module) {
                 saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
             }
             defaultName = FileUtils.getBaseName(origPath);
-            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selection) {
+            FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
                 if (!err) {
-                    _doSaveAfterSaveDialog(selection);
+                    if (selectedPath) {
+                        _doSaveAfterSaveDialog(selectedPath);
+                    } else {
+                        result.reject(USER_CANCELED);
+                    }
                 } else {
                     result.reject(err);
                 }
@@ -741,10 +788,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown but after dismissing we continue saving the other files; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed (the error given is the
+     * Saves all unsaved documents corresponding to 'fileList'. Returns a Promise that will be resolved
+     * once ALL the save operations have been completed. If ANY save operation fails, an error dialog is
+     * immediately shown but after dismissing we continue saving the other files; after all files have
+     * been processed, the Promise is rejected if any ONE save operation failed (the error given is the
      * first one encountered). If the user cancels any Save As dialog (for untitled files), the
      * Promise is immediately rejected.
      *
@@ -792,11 +839,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If ANY save operation fails, an error dialog is immediately
-     * shown and the other files wait to save until it is dismissed; after all files have been
-     * processed, the Promise is rejected if any ONE save operation failed.
-     *
+     * Saves all unsaved documents. See _saveFileList() for details on the semantics.
      * @return {$.Promise}
      */
     function saveAll() {
@@ -988,7 +1031,12 @@ define(function (require, exports, module) {
         return promise;
     }
     
-    function _doCloseDocumentList(list, promptOnly, clearCurrentDoc) {
+    /**
+     * @param {!Array.<FileEntry>} list
+     * @param {boolean} promptOnly
+     * @param {boolean} clearCurrentDoc
+     */
+    function _closeList(list, promptOnly, clearCurrentDoc) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
         
@@ -1090,7 +1138,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _doCloseDocumentList(DocumentManager.getWorkingSet(),
+        return _closeList(DocumentManager.getWorkingSet(),
                                     (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
@@ -1099,7 +1147,7 @@ define(function (require, exports, module) {
     }
     
     function handleFileCloseList(commandData) {
-        return _doCloseDocumentList((commandData && commandData.documentList), false, false).done(function () {
+        return _closeList(commandData.fileList, false, false).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager.closeCustomViewer();
             }

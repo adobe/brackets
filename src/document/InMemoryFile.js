@@ -31,7 +31,7 @@
  * InMemoryFile`), but it's better to check `doc.isUntitled` where possible.
  * 
  * Attempts to read/write an InMemoryFile will always fail, and exists() always yields false. InMemoryFile.fullPath
- * is just a placeholder, and should not be displayed anywhere in the UI.
+ * is just a placeholder, and should not be displayed anywhere in the UI; fullPath IS guaranteed to be unique, however.
  * 
  * An InMemoryFile is not added to the filesystem index, so if you ask the the filesystem anything about this
  * object, it won't know what you're talking about (`filesystem.getFileForPath(someInMemFile.fullPath)` will not
@@ -52,6 +52,14 @@ define(function (require, exports, module) {
     InMemoryFile.prototype.parentClass = File.prototype;
     
     
+    /**
+     * Clear any cached data for this file.
+     * @private
+     */
+    InMemoryFile.prototype._clearCachedData = function () {
+        File.prototype._clearCachedData.apply(this);
+    };
+    
     // Stub out invalid calls inherited from File
     
     /**
@@ -59,7 +67,7 @@ define(function (require, exports, module) {
      *
      * Read a file as text. 
      *
-     * @param {object=} options Currently unused.
+     * @param {Object=} options Currently unused.
      * @param {function (number, string, object)} callback
      */
     InMemoryFile.prototype.read = function (options, callback) {

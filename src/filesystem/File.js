@@ -70,14 +70,14 @@ define(function (require, exports, module) {
      * @private
      */
     File.prototype._clearCachedData = function () {
-        this.parentClass._clearCachedData.apply(this);
+        FileSystemEntry.prototype._clearCachedData.apply(this);
         this._contents = undefined;
     };
     
     /**
      * Read a file.
      *
-     * @param {object=} options Currently unused.
+     * @param {Object=} options Currently unused.
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
@@ -139,40 +139,51 @@ define(function (require, exports, module) {
         this._fileSystem._beginWrite();
         
         this._impl.writeFile(this._path, data, options, function (err, stat, created) {
-            try {
-                if (err) {
-                    this._clearCachedData();
+            if (err) {
+                this._clearCachedData();
+                try {
                     callback(err);
                     return;
+                } finally {
+                    // Always unblock external change events
+                    this._fileSystem._endWrite();
                 }
-                
-                this._hash = stat._hash;
-                
+            }
+            
+            // Update internal filesystem state
+            this._hash = stat._hash;
+            this._stat = stat;
+            
+            // Only cache the contents of watched files
+            if (watched) {
+                this._contents = data;
+            }
+            
+            if (created) {
+                var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+                this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                    try {
+                        // Notify the caller
+                        callback(null, stat);
+                    } finally {
+                        // If the write succeeded, fire a synthetic change event
+                        this._fileSystem._fireChangeEvent(parent, added, removed);
+                        
+                        // Always unblock external change events
+                        this._fileSystem._endWrite();
+                    }
+                }.bind(this));
+            } else {
                 try {
+                    // Notify the caller
                     callback(null, stat);
                 } finally {
-                    // If the write succeeded, fire a synthetic change event
-                    if (created) {
-                        // new file created
-                        this._fileSystem._handleWatchResult(this._parentPath);
-                    } else {
-                        // existing file modified
-                        this._fileSystem._handleWatchResult(this._path, stat);
-                    }
+                    // existing file modified
+                    this._fileSystem._fireChangeEvent(this);
                     
-                    // Wait until AFTER the synthetic change has been processed
-                    // to update the cached stats so the change handler recognizes
-                    // it is a non-duplicate change event.
-                    this._stat = stat;
-                    
-                    // Only cache the contents of watched files
-                    if (watched) {
-                        this._contents = data;
-                    }
+                    // Always unblock external change events
+                    this._fileSystem._endWrite();
                 }
-            } finally {
-                // Always unblock external change events
-                this._fileSystem._endWrite();
             }
         }.bind(this));
     };

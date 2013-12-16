@@ -155,6 +155,8 @@ define(function (require, exports, module) {
             result = Strings.NOT_READABLE_ERR;
         } else if (name === FileSystemError.NOT_WRITABLE) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
+        } else if (name === FileSystemError.CONTENTS_MODIFIED) {
+            result = Strings.CONTENTS_MODIFIED_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }

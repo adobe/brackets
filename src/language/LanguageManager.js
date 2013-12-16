@@ -177,7 +177,8 @@ define(function (require, exports, module) {
      */
     function _setLanguageForMode(mode, language) {
         if (_modeToLanguageMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + ", won't register for " + language._name);
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + " - cannot fully register language " + language._name +
+                         " using the same mode. Some features will treat all content with this mode as language " + _modeToLanguageMap[mode]._name);
             return;
         }
 

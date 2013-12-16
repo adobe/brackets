@@ -21,6 +21,45 @@
  * 
  */
 
+/*
+ * To ensure cache coherence, current and future asynchronous state-changing 
+ * operations of FileSystemEntry and its subclasses should implement the 
+ * following high-level sequence of steps:
+ * 
+ * 1. Block external filesystem change events;
+ * 2. Execute the low-level state-changing operation;
+ * 3. Update the internal filesystem state, including caches;
+ * 4. Apply the callback;
+ * 5. Fire an appropriate internal change notification; and
+ * 6. Unblock external change events.
+ *
+ * Note that because internal filesystem state is updated first, both the original 
+ * caller and the change notification listeners observe filesystem state that is
+ * current w.r.t. the operation. Furthermore, because external change events are
+ * blocked before the operation begins, listeners will only receive the internal
+ * change event for the operation and not additional (or possibly inconsistent)
+ * external change events.
+ * 
+ * State-changing operations that block external filesystem change events must
+ * take care to always subsequently unblock the external change events in all
+ * control paths. It is safe to assume, however, that the underlying impl will
+ * always apply the callback with some value.
+ 
+ * Caches should be conservative. Consequently, the entry's cached data should
+ * always be cleared if the underlying impl's operation fails. This is the case
+ * event for read-only operations because an unexpected failure implies that the
+ * system is in an unknown state. The entry should communicate this by failing
+ * where appropriate, and should not use the cache to hide failure.
+ * 
+ * Only watched entries should make use of cached data because change events are
+ * only expected for such entries, and change events are used to granularly
+ * invalidate out-of-date caches.
+ *
+ * By convention, callbacks are optional for asynchronous, state-changing
+ * operations, but required for read-only operations. The first argument to the
+ * callback should always be a nullable error string from FileSystemError.
+ */
+
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
@@ -50,9 +89,7 @@ define(function (require, exports, module) {
         this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
-        
-        var watchedRoot = fileSystem._findWatchedRootForPath(path);
-        this._watched = !!(watchedRoot && watchedRoot.active);
+        this._setWatched(fileSystem._isEntryWatched(this));
     }
     
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
@@ -159,13 +196,17 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Mark this entry as being watched after construction. There is no way to
-     * set an entry as being unwatched after construction because entries should
-     * be discarded upon being unwatched.
+     * Mark this entry as being watched or unwatched. Setting an entry as being
+     * unwatched will cause its cached data to be cleared.
      * @private
+     * @param watched Whether or not the entry is watched
      */
-    FileSystemEntry.prototype._setWatched = function () {
-        this._isWatched = true;
+    FileSystemEntry.prototype._setWatched = function (watched) {
+        this._isWatched = watched;
+        
+        if (!watched) {
+            this._clearCachedData();
+        }
     };
     
     /**
@@ -245,7 +286,10 @@ define(function (require, exports, module) {
      */
     FileSystemEntry.prototype.rename = function (newFullPath, callback) {
         callback = callback || function () {};
+        
+        // Block external change events until after the write has finished
         this._fileSystem._beginWrite();
+        
         this._impl.rename(this._path, newFullPath, function (err) {
             try {
                 if (err) {
@@ -254,11 +298,15 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                // Update internal filesystem state
+                this._fileSystem._handleRename(this._path, newFullPath, this.isDirectory);
+                
                 try {
-                    callback(null);  // notify caller
+                    // Notify the caller
+                    callback(null);
                 } finally {
-                    // Notify the file system of the name change
-                    this._fileSystem._entryRenamed(this._path, newFullPath, this.isDirectory);
+                    // Notify rename listeners
+                    this._fileSystem._fireRenameEvent(this._path, newFullPath);
                 }
             } finally {
                 // Unblock external change events
@@ -268,8 +316,8 @@ define(function (require, exports, module) {
     };
         
     /**
-     * Unlink (delete) this entry. For Directories, this will delete the directory
-     * and all of its contents. 
+     * Permanently delete this entry. For Directories, this will delete the directory
+     * and all of its contents. For reversible delete, see moveToTrash().
      *
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
@@ -277,18 +325,29 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype.unlink = function (callback) {
         callback = callback || function () {};
         
-        this._clearCachedData();
+        // Block external change events until after the write has finished
+        this._fileSystem._beginWrite();
         
+        this._clearCachedData();
         this._impl.unlink(this._path, function (err) {
-            try {
-                callback(err);
-            } finally {
-                this._fileSystem._handleWatchResult(this._parentPath);
-                this._fileSystem._index.removeEntry(this);
-            }
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+
+            // Update internal filesystem state
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    // Notify the caller 
+                    callback(err);
+                } finally {
+                    // Notify change listeners
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
+            }.bind(this));
         }.bind(this));
     };
-        
+    
     /**
      * Move this entry to the trash. If the underlying file system doesn't support move
      * to trash, the item is permanently deleted.
@@ -303,16 +362,27 @@ define(function (require, exports, module) {
         }
 
         callback = callback || function () {};
+
+        // Block external change events until after the write has finished
+        this._fileSystem._beginWrite();
         
         this._clearCachedData();
-        
         this._impl.moveToTrash(this._path, function (err) {
-            try {
-                callback(err);
-            } finally {
-                this._fileSystem._handleWatchResult(this._parentPath);
-                this._fileSystem._index.removeEntry(this);
-            }
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+
+            // Update internal filesystem state
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    // Notify the caller
+                    callback(err);
+                } finally {
+                    // Notify change listeners
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
+            }.bind(this));
         }.bind(this));
     };
     
@@ -388,10 +458,16 @@ define(function (require, exports, module) {
     
     /**
      * Visit this entry and its descendents with the supplied visitor function.
+     * Correctly handles symbolic link cycles and options can be provided to limit
+     * search depth and total number of entries visited. No particular traversal
+     * order is guaranteed; instead of relying on such an order, it is preferable
+     * to use the visit function to build a list of visited entries, sort those
+     * entries as desired, and then process them. Whenever possible, deep
+     * filesystem traversals should use this method. 
      *
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
-     *      applied to descendent FileSystemEntry objects. If the function returns false for
-     *      a particular Directory entry, that directory's descendents will not be visited.
+     *      applied to this entry and all descendent FileSystemEntry objects. If the function returns
+     *      false for a particular Directory entry, that directory's descendents will not be visited.
      * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */

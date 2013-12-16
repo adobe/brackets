@@ -45,7 +45,7 @@ define(function (require, exports, module) {
             workingSet   = dm.getWorkingSet().slice(0),
             start = (mode === close_below) ? (targetIndex + 1) : 0,
             end   = (mode === close_above) ? (targetIndex) : (workingSet.length),
-            docList = [],
+            files = [],
             i;
         
         if (mode === close_others) {
@@ -54,10 +54,10 @@ define(function (require, exports, module) {
         }
         
         for (i = start; i < end; i++) {
-            docList.push(workingSet[i]);
+            files.push(workingSet[i]);
         }
         
-        CommandManager.execute(Commands.FILE_CLOSE_LIST, {documentList: docList});
+        CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
     }
 
     if (settings.close_below) {

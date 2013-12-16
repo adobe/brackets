@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     /*
      * @constructor
@@ -76,8 +76,15 @@ define(function (require, exports, module) {
      * Clear any cached data for this directory
      * @private
      */
-    Directory.prototype._clearCachedData = function () {
-        this.parentClass._clearCachedData.apply(this);
+    Directory.prototype._clearCachedData = function (stopRecursing) {
+        FileSystemEntry.prototype._clearCachedData.apply(this);
+        
+        if (!stopRecursing && this._contents) {
+            this._contents.forEach(function (child) {
+                child._clearCachedData(true);
+            });
+        }
+        
         this._contents = undefined;
         this._contentsStats = undefined;
         this._contentsStatsErrors = undefined;
@@ -106,7 +113,7 @@ define(function (require, exports, module) {
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, object.<string: string>=)} callback
+     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, Object.<string, string>=)} callback
      *          Callback that is passed an error code or the stat-able contents
      *          of the directory along with the stats for these entries and a
      *          fullPath-to-FileSystemError string map of unstat-able entries
@@ -199,20 +206,35 @@ define(function (require, exports, module) {
      */
     Directory.prototype.create = function (callback) {
         callback = callback || function () {};
+        
+        // Block external change events until after the write has finished
+        this._fileSystem._beginWrite();
+        
         this._impl.mkdir(this._path, function (err, stat) {
             if (err) {
                 this._clearCachedData();
-                callback(err);
-                return;
+                try {
+                    callback(err);
+                    return;
+                } finally {
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
             }
-            
-            this._stat = stat;
 
-            try {
-                callback(null, stat);
-            } finally {
-                this._fileSystem._handleWatchResult(this.parent, stat);
-            }
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+            
+            // Update internal filesystem state
+            this._stat = stat;
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    callback(null, stat);
+                } finally {
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    // Unblock external change events
+                    this._fileSystem._endWrite();
+                }
+            }.bind(this));
         }.bind(this));
     };
     
