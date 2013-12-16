@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      * @private
      */
     Directory.prototype._clearCachedData = function (stopRecursing) {
-        this.parentClass._clearCachedData.apply(this);
+        FileSystemEntry.prototype._clearCachedData.apply(this);
         
         if (!stopRecursing && this._contents) {
             this._contents.forEach(function (child) {

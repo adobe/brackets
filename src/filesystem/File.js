@@ -70,7 +70,7 @@ define(function (require, exports, module) {
      * @private
      */
     File.prototype._clearCachedData = function () {
-        this.parentClass._clearCachedData.apply(this);
+        FileSystemEntry.prototype._clearCachedData.apply(this);
         this._contents = undefined;
     };
     
