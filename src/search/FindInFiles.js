@@ -717,8 +717,9 @@ define(function (require, exports, module) {
                     results.forEach(function (result, index) {
                         var file = filesToRead[index];
                         
-                        if (!result.err) {
-                            _addSearchMatches(file.fullPath, result.data, currentQueryExpr);
+                        if (typeof results !== "string") {
+                            var data = result[0];
+                            _addSearchMatches(file.fullPath, data, currentQueryExpr);
                         }
                     });
                     deferred.resolve();

@@ -570,37 +570,101 @@ define(function (require, exports, module) {
         }.bind(this));
     };
     
+    function _readAllInto(results, indexMap, files, options, callback) {
+        var count = files.length;
+        
+        if (count === 0) {
+            callback();
+            return;
+        }
+        
+        files.forEach(function (file, index) {
+            file.read(options, function (err, data, stats) {
+                if (err) {
+                    results[indexMap(index)] = err;
+                } else {
+                    results[indexMap(index)] = [data, stats];
+                }
+                
+                if (--count === 0) {
+                    callback();
+                }
+            });
+        });
+    }
+    
     FileSystem.prototype.readAll = function (files, options, callback) {
         if (typeof options === "function") {
             callback = options;
             options = {};
         }
+
+        var count = files.count,
+            results = new Array(count);
         
         if (this._impl.hasOwnProperty("readAllFiles")) {
-            // TODO: Only read uncached files
-            var paths = files.map(function (file) { return file.fullPath; });
-            this._impl.readAllFiles(paths, options, callback);
-        } else {
-            var count = files.length,
-                results = new Array(count);
-            
-            if (count === 0) {
-                callback(null, results);
-                return;
-            }
-            
+            var cachedIndices = [],
+                cachedFiles = [],
+                uncachedIndices = [],
+                uncachedPaths = [],
+                cachedDone = false,
+                uncachedDone = false;
+    
             files.forEach(function (file, index) {
-                file.read(options, function (err, data) {
-                    if (err) {
-                        results[index] = {err: err};
-                    } else {
-                        results[index] = {data: data};
-                    }
+                if (file._contents && file._stat) {
+                    cachedIndices.push(index);
+                    cachedFiles.push(file);
+                } else {
+                    uncachedIndices.push(index);
+                    uncachedPaths.push(file.fullPath);
+                }
+            });
+            
+            _readAllInto(results, function (i) { return cachedIndices[i]; }, cachedFiles, options, function () {
+                if (uncachedDone) {
+                    callback(null, results);
+                } else {
+                    cachedDone = true;
+                }
+            });
+
+            this._impl.readAllFiles(uncachedPaths, options, function (err, implResults) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                implResults.forEach(function (result, index) {
+                    var sourceIndex = uncachedIndices[index],
+                        sourceFile = files[sourceIndex];
                     
-                    if (--count === 0) {
-                        callback(null, results);
+                    results[uncachedIndices[index]] = result;
+                    
+                    if (typeof result === "string") {
+                        sourceFile._clearCachedData();
+                    } else {
+                        var data = result[0],
+                            stat = result[1];
+                        
+                        sourceFile._stat = stat;
+                        sourceFile._hash = stat._hash;
+                        
+                        // Only cache the contents of watched files
+                        if (sourceFile._isWatched) {
+                            sourceFile._contents = data;
+                        }
                     }
                 });
+                
+                if (cachedDone) {
+                    callback(null, results);
+                } else {
+                    uncachedDone = true;
+                }
+            });
+        } else {
+            _readAllInto(results, function (i) { return i; }, files, options, function () {
+                callback(null, results);
             });
         }
     };
