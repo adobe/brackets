@@ -110,22 +110,28 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
     
+    // Generic dialog/button labels
+    "OK"                                : "Aceptar",
+    "CANCEL"                            : "Cancelar",
+    "DONT_SAVE"                         : "No guardar",
+    "SAVE"                              : "Guardar",
+    "DELETE"                            : "Eliminar",
+    "BUTTON_YES"                        : "Sí",
+    "BUTTON_NO"                         : "No",
+    
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Utiliza /re/ para búsquedas con expresiones regulares",
     "FIND_RESULT_COUNT"                 : "{0} resultados",
     "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
     "FIND_NO_RESULTS"                   : "No hay resultados",
-    "WITH"                              : "Con",
-    "BUTTON_YES"                        : "Sí",
-    "BUTTON_NO"                         : "No",
+    "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
     "BUTTON_REPLACE_ALL"                : "Todo\u2026",
-    "BUTTON_STOP"                       : "Parar",
     "BUTTON_REPLACE"                    : "Reemplazar",
-    
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Siguiente coincidencia",
     "BUTTON_PREV_HINT"                  : "Anterior coincidencia",
+    "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
+    "BUTTON_REGEXP_HINT"                : "Expresión regular",
     
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
@@ -135,10 +141,12 @@ define({
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Reemplazar \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" con \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
     
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} en {3} {4}",
@@ -307,11 +315,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
-    "OK"                                   : "Aceptar",
-    "DONT_SAVE"                            : "No guardar",
-    "SAVE"                                 : "Guardar",
-    "CANCEL"                               : "Cancelar",
-    "DELETE"                               : "Eliminar",
     "RELOAD_FROM_DISK"                     : "Volver a cargar desde disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar los cambios del editor",
     "CLOSE_DONT_SAVE"                      : "Cerrar (No guardar)",
@@ -428,7 +431,6 @@ define({
      */
 
     "UNIT_PIXELS"                          : "píxeles",
-
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Desarrollo",
