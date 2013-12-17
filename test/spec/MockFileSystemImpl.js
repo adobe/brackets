@@ -67,6 +67,9 @@ define(function (require, exports, module) {
     
     // Indicates whether, by default, the FS should perform UNC Path normalization
     var _normalizeUNCPathsDefault = false;
+
+    // Indicates whether, by default, the FS should perform watch and unwatch recursively
+    var _recursiveWatchDefault = true;
     
     // "Live" data for this instance of the file system. Use reset() to 
     // initialize with _initialData
@@ -365,6 +368,7 @@ define(function (require, exports, module) {
         _hooks = {};
         
         exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
+        exports.recursiveWatch = _recursiveWatchDefault;
     };
     
     /**
