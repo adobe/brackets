@@ -1748,8 +1748,11 @@ define(function (require, exports, module) {
     });
     
     $(EditorManager).on("currentlyViewedFileChange", function () {
-        var filepath = makeProjectRelativeIfPossible(EditorManager.getCurrentlyViewedPath());
-        PreferencesManager._setCurrentEditingFile(filepath);
+        var currentPath = EditorManager.getCurrentlyViewedPath();
+        if (currentPath) {
+            var filepath = makeProjectRelativeIfPossible(currentPath);
+            PreferencesManager._setCurrentEditingFile(filepath);
+        }
     });
 
     // Event Handlers
