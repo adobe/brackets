@@ -110,22 +110,29 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiter verwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Abbrechen",
+    "DONT_SAVE"                         : "Nicht speichern",
+    "SAVE"                              : "Speichern",
+    "DELETE"                            : "Löschen",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nein",
+
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
     "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "FIND_RESULT_COUNT_SINGLE"          : "1 Ergebnis",
     "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
-    "WITH"                              : "Mit",
-    "BUTTON_YES"                        : "Ja",
-    "BUTTON_NO"                         : "Nein",
+    "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
-    "BUTTON_STOP"                       : "Stopp",
     "BUTTON_REPLACE"                    : "Ersetzen",
 
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Nächster Treffer",
     "BUTTON_PREV_HINT"                  : "Vorheriger Treffer",
+    "BUTTON_CASESENSITIVE_HINT"         : "Groß-/Kleinschreibung beachten",
+    "BUTTON_REGEXP_HINT"                : "Regulärer Ausdruck",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
@@ -135,10 +142,12 @@ define({
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "\"",
     "FIND_REPLACE_TITLE_PART2"          : "\" durch \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" ersetzen &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
@@ -307,11 +316,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Nicht speichern",
-    "SAVE"                                 : "Speichern",
-    "CANCEL"                               : "Abbrechen",
-    "DELETE"                               : "Löschen",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
