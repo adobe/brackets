@@ -85,7 +85,8 @@ define(function (require, exports, module) {
         // Initialize the watch/unwatch request queue
         this._watchRequests = [];
         
-        this._watchResults = [];
+        // Initialize the queue of pending external changes
+        this._externalChanges = [];
     }
     
     /**
@@ -98,47 +99,53 @@ define(function (require, exports, module) {
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
-
+    
     /**
-     * Refcount of any pending write operations. Used to guarantee file-watcher callbacks don't
-     * run until after operation-specific callbacks & index fixups complete (this is important for
-     * distinguishing rename from an unrelated delete-add pair).
+     * Refcount of any pending filesystem mutation operations (e.g., writes,
+     * unlinks, etc.). Used to ensure that external change events aren't processed
+     * until after index fixups, operation-specific callbacks, and internal change
+     * events are complete. (This is important for distinguishing rename from
+     * an unrelated delete-add pair).
      * @type {number}
      */
-    FileSystem.prototype._writeCount = 0;
+    FileSystem.prototype._activeChangeCount = 0;
     
+    /**
+     * Queue of arguments with which to invoke _handleExternalChanges(); triggered
+     * once _activeChangeCount drops to zero.
+     * @type {!Array.<{path:?string, stat:FileSystemStats=}>}
+     */
+    FileSystem.prototype._externalChanges = null;
+    
+    /** Process all queued watcher results, by calling _handleExternalChange() on each */
+    FileSystem.prototype._triggerExternalChangesNow = function () {
+        this._externalChanges.forEach(function (info) {
+            this._handleExternalChange(info.path, info.stat);
+        }, this);
+        this._externalChanges.length = 0;
+    };
+    
+    /**
+     * Receives a result from the impl's watcher callback, and either processes it
+     * immediately (if _activeChangeCount is 0) or otherwise stores it for later
+     * processing.
+     * @param {?string} path The fullPath of the changed entry
+     * @param {FileSystemStats=} stat An optional stat object for the changed entry
+     */
+    FileSystem.prototype._enqueueExternalChange = function (path, stat) {
+        this._externalChanges.push({path: path, stat: stat});
+        if (!this._activeChangeCount) {
+            this._triggerExternalChangesNow();
+        }
+    };
+    
+
     /**
      * The queue of pending watch/unwatch requests.
      * @type {Array.<{fn: function(), cb: function()}>}
      */
     FileSystem.prototype._watchRequests = null;
     
-    /**
-     * Queue of arguments to invoke _handleWatchResult() with; triggered once _writeCount drops to zero
-     * @type {!Array.<{path:string, stat:Object}>}
-     */
-    FileSystem.prototype._watchResults = null;
-    
-    /** Process all queued watcher results, by calling _handleExternalChange() on each */
-    FileSystem.prototype._triggerWatchCallbacksNow = function () {
-        this._watchResults.forEach(function (info) {
-            this._handleExternalChange(info.path, info.stat);
-        }, this);
-        this._watchResults.length = 0;
-    };
-    
-    /**
-     * Receives a result from the impl's watcher callback, and either processes it immediately (if
-     * _writeCount is 0) or stores it for later processing (if _writeCount > 0).
-     */
-    FileSystem.prototype._enqueueWatchResult = function (path, stat) {
-        this._watchResults.push({path: path, stat: stat});
-        if (!this._writeCount) {
-            this._triggerWatchCallbacksNow();
-        }
-    };
-    
-
     /**
      * Dequeue and process all pending watch/unwatch requests
      */
@@ -250,16 +257,9 @@ define(function (require, exports, module) {
             watchOrUnwatch = this._impl[commandName].bind(this, entry.fullPath),
             visitor;
         
-        var genericProcessChild;
-        if (shouldWatch) {
-            genericProcessChild = function (child) {
-                child._setWatched(true);
-            };
-        } else {
-            genericProcessChild = function (child) {
-                child._setWatched(false);
-            };
-        }
+        var genericProcessChild = function (child) {
+            child._setWatched(shouldWatch);
+        };
         
         var genericVisitor = function (processChild, child) {
             if (watchedRoot.filter(child.name, child.parentPath)) {
@@ -315,6 +315,7 @@ define(function (require, exports, module) {
             };
             
             this._enqueueWatchRequest(function (callback) {
+                genericProcessChild(entry);
                 visitor = genericVisitor.bind(this, processChild);
                 entry.visit(visitor, callback);
             }.bind(this), callback);
@@ -358,7 +359,7 @@ define(function (require, exports, module) {
     FileSystem.prototype.init = function (impl) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
         
-        var changeCallback = this._enqueueWatchResult.bind(this),
+        var changeCallback = this._enqueueExternalChange.bind(this),
             offlineCallback = this._unwatchAll.bind(this);
                 
         this._impl = impl;
@@ -398,20 +399,20 @@ define(function (require, exports, module) {
     };
     
     FileSystem.prototype._beginWrite = function () {
-        this._writeCount++;
-        //console.log("> beginWrite  -> " + this._writeCount);
+        this._activeChangeCount++;
+        //console.log("> beginWrite  -> " + this._activeChangeCount);
     };
     
     FileSystem.prototype._endWrite = function () {
-        this._writeCount--;
-        //console.log("< endWrite    -> " + this._writeCount);
+        this._activeChangeCount--;
+        //console.log("< endWrite    -> " + this._activeChangeCount);
         
         if (this._writeCount < 0) {
-            console.error("FileSystem _writeCount has fallen below zero!");
+            console.error("FileSystem _activeChangeCount has fallen below zero!");
         }
         
-        if (!this._writeCount) {
-            this._triggerWatchCallbacksNow();
+        if (!this._activeChangeCount) {
+            this._triggerExternalChangesNow();
         }
     };
     
@@ -615,10 +616,25 @@ define(function (require, exports, module) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     };
 
-    FileSystem.prototype._fireRenameEvent = function (oldName, newName) {
-        $(this).trigger("rename", [oldName, newName]);
+    /**
+     * Fire a rename event. Clients listen for these events using FileSystem.on.
+     * 
+     * @param {string} oldPath The entry's previous fullPath
+     * @param {string} newPath The entry's current fullPath
+     */
+    FileSystem.prototype._fireRenameEvent = function (oldPath, newPath) {
+        $(this).trigger("rename", [oldPath, newPath]);
     };
-    
+
+    /**
+     * Fire a change event. Clients listen for these events using FileSystem.on.
+     * 
+     * @param {File|Directory} entry The entry that has changed
+     * @param {Array<File|Directory>=} added If the entry is a directory, this
+     *      is a set of new entries in the directory.
+     * @param {Array<File|Directory>=} removed If the entry is a directory, this
+     *      is a set of removed entries from the directory.
+     */
     FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
         $(this).trigger("change", [entry, added, removed]);
     };
@@ -636,6 +652,18 @@ define(function (require, exports, module) {
         this._index.entryRenamed(oldName, newName, isDirectory);
     };
     
+    /**
+     * Notify the filesystem that the given directory has changed. Updates the filesystem's
+     * internal state as a result of the change, and calls back with the set of added and
+     * removed entries. Mutating FileSystemEntry operations should call this method before
+     * applying the operation's callback, and pass along the resulting change sets in the
+     * internal change event.
+     * 
+     * @param {Directory} directory The directory that has changed.
+     * @param {function(Array<File|Directory>=, Array<File|Directory>=)} callback
+     *      The callback that will be applied to a set of added and a set of removed
+     *      FileSystemEntry objects.
+     */
     FileSystem.prototype._handleDirectoryChange = function (directory, callback) {
         var oldContents = directory._contents || [];
         
@@ -872,7 +900,8 @@ define(function (require, exports, module) {
     // Private helper methods used by internal filesystem modules
     exports._isEntryWatched = _wrap(FileSystem.prototype._isEntryWatched);
     
-    // Export "on" and "off" methods
+    // For testing only
+    exports._activeChangeCount = _wrap(FileSystem.prototype._activeChangeCount);
     
     /**
      * Add an event listener for a FileSystem event.

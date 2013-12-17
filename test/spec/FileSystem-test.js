@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
     describe("FileSystem", function () {
-                        
+        
         // Callback factories
         function resolveCallback() {
             var callback = function (err, entry) {
@@ -117,7 +117,12 @@ define(function (require, exports, module) {
             waitsFor(function () { return cb.wasCalled; });
             runs(function () {
                 expect(cb.error).toBeFalsy();
+                expect(fileSystem._activeChangeCount).toBe(0);
             });
+        });
+        
+        afterEach(function () {
+            expect(fileSystem._activeChangeCount).toBe(0);
         });
         
         describe("Path normalization", function () {
