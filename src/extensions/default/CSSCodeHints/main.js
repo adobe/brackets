@@ -260,14 +260,15 @@ define(function (require, exports, module) {
                 selectInitial: selectInitial
             };
         } else if (context === CSSUtils.PROP_NAME) {
+            lastContext = CSSUtils.PROP_NAME;
+            needle = needle.substr(0, this.info.offset);
             
             // Select initial property if anything has been typed
-            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 ||
+                    needle !== "") {
                 selectInitial = true;
             }
             
-            lastContext = CSSUtils.PROP_NAME;
-            needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {
                 if (pname.indexOf(needle) === 0) {
                     return pname;
