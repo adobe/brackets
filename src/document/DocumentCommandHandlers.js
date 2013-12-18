@@ -548,7 +548,7 @@ define(function (require, exports, module) {
                 Strings.EXT_MODIFIED_TITLE,
                 StringUtils.format(
                     Strings.EXT_MODIFIED_WARNING,
-                    StringUtils.breakableUrl(docToSave.file.name)
+                    StringUtils.breakableUrl(docToSave.file.fullPath)
                 ),
                 [
                     {
