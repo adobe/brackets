@@ -406,6 +406,21 @@ define(function (require, exports, module) {
         // read call completes first with an error; otherwise wait for both
         // to finish.
         var done = false, data, stat, err;
+
+        if (options.stat) {
+            done = true;
+            stat = options.stat;
+        } else {
+            exports.stat(path, function (_err, _stat) {
+                if (done) {
+                    callback(_err, _err ? null : data, _stat);
+                } else {
+                    done = true;
+                    stat = _stat;
+                    err = _err;
+                }
+            });
+        }
         
         appshell.fs.readFile(path, encoding, function (_err, _data) {
             if (_err) {
@@ -418,16 +433,6 @@ define(function (require, exports, module) {
             } else {
                 done = true;
                 data = _data;
-            }
-        });
-
-        exports.stat(path, function (_err, _stat) {
-            if (done) {
-                callback(_err, _err ? null : data, _stat);
-            } else {
-                done = true;
-                stat = _stat;
-                err = _err;
             }
         });
     }

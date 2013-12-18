@@ -96,6 +96,11 @@ define(function (require, exports, module) {
             return;
         }
         
+        var isWatched = this._isWatched();
+        if (isWatched) {
+            options.stat = this._stat;
+        }
+        
         this._impl.readFile(this._path, options, function (err, data, stat) {
             if (err) {
                 this._clearCachedData();
@@ -107,7 +112,7 @@ define(function (require, exports, module) {
             this._hash = stat._hash;
             
             // Only cache the contents of watched files
-            if (this._isWatched()) {
+            if (isWatched) {
                 this._contents = data;
             }
             
