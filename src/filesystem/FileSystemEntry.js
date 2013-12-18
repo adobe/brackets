@@ -167,7 +167,7 @@ define(function (require, exports, module) {
     
     /**
      * Cached copy of this entry's watched root
-     * @type {WatchedRoot}
+     * @type {entry: File|Directory, filter: function(FileSystemEntry):boolean, active: boolean}
      */
     FileSystemEntry.prototype._watchedRoot = null;
 

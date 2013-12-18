@@ -26,7 +26,8 @@
 
 "use strict";
 
-var fs = require("fs"),
+var fspath = require("path"),
+    fs = require("fs"),
     fsevents;
 
 if (process.platform === "darwin") {
@@ -73,9 +74,8 @@ function watchPath(path) {
         if (fsevents) {
             watcher = fsevents(path);
             watcher.on("change", function (filename, info) {
-                var lastIndex = filename.lastIndexOf("/") + 1,
-                    parent = lastIndex && filename.substring(0, lastIndex),
-                    name = lastIndex && filename.substring(lastIndex),
+                var parent = filename && (fspath.dirname(filename) + "/"),
+                    name = filename && fspath.basename(filename),
                     type = info.event === "modified" ? "change" : "rename";
                 
                 _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);

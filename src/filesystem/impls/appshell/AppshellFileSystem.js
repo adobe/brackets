@@ -326,14 +326,16 @@ define(function (require, exports, module) {
      * Read the contents of the file at the given path, calling back
      * asynchronously with either a FileSystemError string, or with the data and
      * the FileSystemStats object associated with the read file. The options
-     * parameter can be used to specify an encoding (default "utf8").
+     * parameter can be used to specify an encoding (default "utf8"), and also
+     * a cached stats object that the implementation is free to use in order
+     * to avoid an additional stat call.
      * 
      * Note: if either the read or the stat call fails then neither the read data
      * nor stat will be passed back, and the call should be considered to have failed.
      * If both calls fail, the error from the read call is passed back.
      * 
      * @param {string} path
-     * @param {{encoding : string=}} options
+     * @param {{encoding: string=, stat: FileSystemStats=}} options
      * @param {function(?string, string=, FileSystemStats=)} callback
      */
     function readFile(path, options, callback) {
@@ -377,18 +379,19 @@ define(function (require, exports, module) {
     /**
      * Write data to the file at the given path, calling back asynchronously with
      * either a FileSystemError string or the FileSystemStats object associated
-     * with the written file. If no file exists at the given path, a new file will
-     * be created. The options parameter can be used to specify an encoding
-     * (default "utf8"), an octal mode (default unspecified and implementation
-     * dependent), and a consistency hash, which is used to the current state
-     * of the file before overwriting it. If a consistency hash is provided but
-     * does not match the hash of the file on disk, a
-     * FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
+     * with the written file and a boolean that indicates whether the file was
+     * created by the write (true) or not (false). If no file exists at the
+     * given path, a new file will be created. The options parameter can be used
+     * to specify an encoding (default "utf8"), an octal mode (default
+     * unspecified and implementation dependent), and a consistency hash, which
+     * is used to the current state of the file before overwriting it. If a
+     * consistency hash is provided but does not match the hash of the file on
+     * disk, a FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
      * 
      * @param {string} path
      * @param {string} data
      * @param {{encoding : string=, mode : number=, hash : string=}} options
-     * @param {function(?string, FileSystemStats=)} callback
+     * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
         var encoding = options.encoding || "utf8";
@@ -563,7 +566,6 @@ define(function (require, exports, module) {
      */
     exports.recursiveWatch = appshell.platform === "mac";
     
-    // 
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC
      * paths. If set, then //server/directory/ is a normalized path; otherwise the
