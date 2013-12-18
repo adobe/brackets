@@ -62,7 +62,7 @@ define({
     "INVALID_FILENAME_MESSAGE"          : "文件名不得包含: /?*:;{}<>\\| 或使用操作系统保留文件名",
     "FILE_ALREADY_EXISTS"               : "该文件 {0} <span class='dialog-filename'>{1}</span> 已经存在.",
     "ERROR_CREATING_FILE_TITLE"         : "创建文件 {0} 错误",
-    "ERROR_CREATING_FILE"               : "试图创建 {0} 时出现错误 <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_CREATING_FILE"               : "试图创建 {0} <span class='dialog-filename'>{1}</span> 时出现错误. {2}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂无法运行在浏览器窗口中.",
