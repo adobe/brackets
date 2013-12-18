@@ -44,6 +44,8 @@ define(function (require, exports, module) {
      * @param {boolean} autoClose If true, then close the dialog if the user hits RETURN
      *      in the first input field. Dispatches jQuery events for these cases:
      *      "commit" on RETURN and "close" always. 
+     *      The "close" event is passed the reason for closing (one of CLOSE_*), and the
+     *      Promise that close() will return.
      * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
      *      close it immediately.
      */
@@ -120,6 +122,17 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Optional callback invoked before close() takes any action. Passed the reason for closing, one of
+     * ModalBar.CLOSE_*. The returned object can be used to override the defalt parameters of close().
+     * @type {?function(string):{restoreScrollPos:?boolean, animate:?boolean}}
+     */
+    ModalBar.prototype.onBeforeClose = null;
+    
+    ModalBar.CLOSE_ESCAPE = "escape";
+    ModalBar.CLOSE_BLUR = "blur";
+    ModalBar.CLOSE_API = "api";
+    
+    /**
      * @return {number} Height of the modal bar in pixels, if open.
      */
     ModalBar.prototype.height = function () {
@@ -171,9 +184,10 @@ define(function (require, exports, module) {
      *     function if you call it first).
      * @param {boolean=} animate If true (the default), animate the closing of the ModalBar,
      *     otherwise close it immediately.
+     * @param {string=} _reason For internal use only.
      * @return {$.Promise} promise resolved when close is finished
      */
-    ModalBar.prototype.close = function (restoreScrollPos, animate) {
+    ModalBar.prototype.close = function (restoreScrollPos, animate, _reason) {
         var result = new $.Deferred(),
             self = this;
 
@@ -184,9 +198,20 @@ define(function (require, exports, module) {
             animate = true;
         }
         
+        if (this.onBeforeClose) {
+            var overrides = this.onBeforeClose(_reason || ModalBar.CLOSE_API) || {};
+            if (overrides.restoreScrollPos !== undefined) {
+                restoreScrollPos = overrides.restoreScrollPos;
+            }
+            if (overrides.animate !== undefined) {
+                animate = overrides.animate;
+            }
+        }
+        
         // If someone hasn't already called `prepareClose()` to pop the ModalBar out of the flow
         // and resize the editor, then do that here.
         if (!this._$root.hasClass("popout")) {
+            console.log("ModalBar restoring pos");
             this.prepareClose(restoreScrollPos);
         }
 
@@ -194,7 +219,7 @@ define(function (require, exports, module) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
 
-        $(this).triggerHandler("close");
+        $(this).triggerHandler("close", [_reason, result]);
         
         function doRemove() {
             self._$root.remove();
@@ -222,7 +247,7 @@ define(function (require, exports, module) {
             e.preventDefault();
             
             var value = this._getFirstInput().val();
-            this.close();
+            this.close(undefined, undefined, ModalBar.CLOSE_ESCAPE);
             if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                 $(this).triggerHandler("commit", [value]);
             }
@@ -236,7 +261,7 @@ define(function (require, exports, module) {
     ModalBar.prototype._handleFocusChange = function (e) {
         if (!$.contains(this._$root.get(0), e.target)) {
             var value = this._getFirstInput().val();
-            this.close();
+            this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
         }
     };
     

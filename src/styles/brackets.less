@@ -1121,25 +1121,16 @@ a, img {
 
 /* Quick Open search bar & dropdown */
 
-.smart_autocomplete_container {
-
-    // the borders show up even if the container is empty, must set height to zero using JS.
+.quick-search-container {
     border: 1px solid @tc-gray-panel-border;
-
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
     box-shadow: @tc-normal-shadow-bottom;
 
-    // so that border won't show when height is 0.
-    box-sizing: border-box;
-
-    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 434px !important;
-
-    /* smart auto complete doesn't correctly position the container
-     * so these specific padding and margin values are necessary*/
     padding: 0px;
     margin: 9px 0 0;
+    
+    z-index: @z-index-brackets-context-menu-base;
 
     .quick-open-path {
         color: #666;
@@ -1163,7 +1154,7 @@ a, img {
             background-color: @tc-hover-highlight;
         }
 
-        &.smart_autocomplete_highlight {
+        &.highlight {
             background-color: @tc-highlight;
         }
     }

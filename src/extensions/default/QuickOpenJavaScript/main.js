@@ -120,11 +120,12 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Select the selected item in the current document
+     * Scroll top the selected item in the current document (unless no query string entered yet,
+     * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
      */
-    function itemFocus(selectedItem) {
-        if (!selectedItem) {
+    function itemFocus(selectedItem, query) {
+        if (!selectedItem || query.length < 2) {
             return;
         }
         var fileLocation = selectedItem.fileLocation;
@@ -134,8 +135,8 @@ define(function (require, exports, module) {
         EditorManager.getCurrentFullEditor().setSelection(from, to, true);
     }
 
-    function itemSelect(selectedItem) {
-        itemFocus(selectedItem);
+    function itemSelect(selectedItem, query) {
+        itemFocus(selectedItem, query);
     }
 
 
