@@ -992,7 +992,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1004,7 +1004,7 @@ define(function (require, exports, module) {
                 // confirm impl read and cached data and then read again
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb1.stat);
                     expect(file._contents).toBe(cb1.data);
                     expect(file._hash).toBeTruthy();
@@ -1019,7 +1019,7 @@ define(function (require, exports, module) {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.stat).toBe(cb1.stat);
                     expect(cb2.data).toBe(cb1.data);
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(cb2.data);
                     expect(file._hash).toBeTruthy();
@@ -1035,7 +1035,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then write blindly
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(writeCalls).toBe(0);
@@ -1048,7 +1048,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb1.error).toBe(FileSystemError.CONTENTS_MODIFIED);
                     expect(cb1.stat).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
@@ -1062,7 +1062,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.stat).toBeTruthy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(newFileContent);
                     expect(file._hash).toBeTruthy();
@@ -1079,7 +1079,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1092,7 +1092,7 @@ define(function (require, exports, module) {
                 // confirm impl read and cached data and then write
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb1.stat);
                     expect(file._contents).toBe(cb1.data);
                     expect(file._hash).toBeTruthy();
@@ -1109,7 +1109,7 @@ define(function (require, exports, module) {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.stat).not.toBe(cb1.stat);
                     expect(cb2.stat).toBeTruthy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(newFileContent);
                     expect(file._hash).not.toBe(savedHash);
@@ -1128,7 +1128,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1140,7 +1140,7 @@ define(function (require, exports, module) {
                 // confirm impl read and cached data and then fire a synthetic change event
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb1.stat);
                     expect(file._contents).toBe(cb1.data);
                     expect(file._hash).toBeTruthy();
@@ -1159,7 +1159,7 @@ define(function (require, exports, module) {
                 
                 // confirm now-empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy(); // contents and stat should be cleared
                     expect(file._hash).toBe(savedHash); // but hash should not be cleared
@@ -1171,7 +1171,7 @@ define(function (require, exports, module) {
                 // confirm impl read and new cached data
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(cb2.data);
                     expect(file._hash).toBeTruthy();
@@ -1190,7 +1190,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     file = fileSystem.getFileForPath(filename);
                     
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                 });
@@ -1207,7 +1207,7 @@ define(function (require, exports, module) {
                     
                     file = fileSystem.getFileForPath(filename);
                     
-                    expect(file._isWatched).toBe(false);
+                    expect(file._isWatched()).toBe(false);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1219,7 +1219,7 @@ define(function (require, exports, module) {
                 // confirm impl read, empty cached data and then read again
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(false);
+                    expect(file._isWatched()).toBe(false);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeTruthy();
                     expect(readCalls).toBe(1);
@@ -1233,7 +1233,7 @@ define(function (require, exports, module) {
                 // confirm impl read and empty cached data
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
-                    expect(file._isWatched).toBe(false);
+                    expect(file._isWatched()).toBe(false);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBe(savedHash);
                     expect(readCalls).toBe(2);

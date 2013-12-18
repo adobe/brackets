@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
         FileViewController    = require("project/FileViewController"),
+        LanguageManager       = require("language/LanguageManager"),
         FindReplace           = require("search/FindReplace"),
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
@@ -674,6 +675,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Used to filter out image files when building a list of file in which to
+     * search. Ideally this would filter out ALL binary files.
+     * @private
+     * @param {FileSystemEntry} entry The entry to test
+     * @return {boolean} Whether or not the entry's contents should be searched
+     */
+    function _findInFilesFilter(entry) {
+        var language = LanguageManager.getLanguageForPath(entry.fullPath);
+        return language.getId() !== "image";
+    }
+    
+    /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
@@ -691,7 +704,7 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        ProjectManager.getAllFiles(true)
+        ProjectManager.getAllFiles(_findInFilesFilter, true)
             .then(function (fileListResult) {
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
                 return Async.doInParallel(fileListResult, doSearch);
