@@ -191,22 +191,26 @@ define(function (require, exports, module) {
             params = Array.prototype.slice.call(arguments, 1),
             execConnected = function () {
                 var domain  = connection.domains[this._domainName],
-                    fn      = domain && domain[name];
+                    fn      = domain && domain[name],
+                    execResult;
         
                 if (fn) {
-                    return fn.apply(domain, params);
+                    execResult = fn.apply(domain, params);
                 } else {
-                    return new $.Deferred().reject().promise();
+                    execResult = new $.Deferred().reject().promise();
                 }
+                return execResult;
             }.bind(this);
         
+        var result;
         if (this.ready()) {
-            return execConnected();
+            result = execConnected();
         } else if (this._connectionPromise) {
-            return this._connectionPromise.then(execConnected);
+            result = this._connectionPromise.then(execConnected);
         } else {
-            return new $.Deferred.reject().promise();
+            result = new $.Deferred.reject().promise();
         }
+        return result;
     };
         
     module.exports = NodeDomain;
