@@ -75,7 +75,7 @@
     
     /**
      * @private
-     * @type {Object.<number, {Object.<string, http.ServerResponse>}}
+     * @type {Object.<string, {Object.<number, http.ServerResponse>}}
      * A map from a request identifier to its request/response mapping.
      */
     var _requests = {};
