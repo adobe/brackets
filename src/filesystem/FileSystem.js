@@ -367,14 +367,14 @@ define(function (require, exports, module) {
     
     FileSystem.prototype._beginChange = function () {
         this._activeChangeCount++;
-        //console.log("> beginWrite  -> " + this._activeChangeCount);
+        //console.log("> beginChange  -> " + this._activeChangeCount);
     };
     
     FileSystem.prototype._endChange = function () {
         this._activeChangeCount--;
-        //console.log("< endWrite    -> " + this._activeChangeCount);
+        //console.log("< endChange    -> " + this._activeChangeCount);
         
-        if (this._writeCount < 0) {
+        if (this._activeChangeCount < 0) {
             console.error("FileSystem _activeChangeCount has fallen below zero!");
         }
         
@@ -724,8 +724,6 @@ define(function (require, exports, module) {
                     entry._clearCachedData();
                     entry._stat = stat;
                     this._fireChangeEvent(entry);
-                } else {
-                    console.info("Detected duplicate file change event: ", path);
                 }
             } else {
                 this._handleDirectoryChange(entry, function (added, removed) {
