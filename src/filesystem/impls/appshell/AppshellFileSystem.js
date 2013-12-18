@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var FileUtils           = require("file/FileUtils"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        NodeConnection      = require("utils/NodeConnection");
+        NodeDomain          = require("utils/NodeDomain");
     
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
@@ -44,40 +44,10 @@ define(function (require, exports, module) {
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/FileWatcherDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        _nodeConnection = new NodeConnection(),
-        _domainLoaded   = false;    // Whether the fileWatcher domain has been loaded
+        _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
     
-    /**
-     * A promise that resolves when the NodeConnection object is connected and
-     * the fileWatcher domain has been loaded.
-     *
-     * @type {?jQuery.Promise}
-     */
-    var _nodeConnectionPromise;
-    
-    /**
-     * Load the fileWatcher domain on the assumed-open NodeConnection object
-     *
-     * @private
-     */
-    function _loadDomains() {
-        return _nodeConnection
-            .loadDomains(_domainPath, true)
-            .done(function () {
-                _domainLoaded = true;
-                _nodeConnectionPromise = null;
-            });
-    }
-        
-    // Initialize the connection and connection promise
-    _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
-    
-    // Setup the close handler. Re-initializes the connection promise and
-    // notifies the FileSystem that watchers have gone offline.
-    $(_nodeConnection).on("close", function (event, promise) {
-        _domainLoaded = false;
-        _nodeConnectionPromise = promise.then(_loadDomains);
-        
+    // If the connection closes, notify the FileSystem that watchers have gone offline.
+    $(_nodeDomain.connection).on("close", function (event, promise) {
         if (_offlineCallback) {
             _offlineCallback();
         }
@@ -145,40 +115,7 @@ define(function (require, exports, module) {
     }
 
     // Setup the change handler. This only needs to happen once.
-    $(_nodeConnection).on("fileWatcher.change", _fileWatcherChange);
-    
-    /**
-     * Execute the named function from the fileWatcher domain when the
-     * NodeConnection is connected and the domain has been loaded. Additional
-     * parameters are passed as arguments to the command.
-     * 
-     * @param {string} name The name of the command to execute
-     * @return {jQuery.Promise} Resolves with the results of the command.
-     * @private
-     */
-    function _execWhenConnected(name) {
-        var params = Array.prototype.slice.call(arguments, 1);
-        
-        function execConnected() {
-            var domains = _nodeConnection.domains,
-                domain = domains && domains.fileWatcher,
-                fn = domain && domain[name];
-            
-            if (fn) {
-                return fn.apply(domain, params);
-            } else {
-                return $.Deferred().reject().promise();
-            }
-        }
-        
-        if (_domainLoaded && _nodeConnection.connected()) {
-            return execConnected();
-        } else if (_nodeConnectionPromise) {
-            return _nodeConnectionPromise.then(execConnected);
-        } else {
-            return $.Deferred().reject().promise();
-        }
-    }
+    $(_nodeDomain).on("change", _fileWatcherChange);
 
     /**
      * Convert appshell error codes to FileSystemError values.
@@ -557,9 +494,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _execWhenConnected("watchPath", path)
-                .done(callback.bind(undefined, null))
-                .fail(callback);
+            _nodeDomain.exec("watchPath", path)
+                .then(callback, callback);
         });
     }
     
@@ -578,9 +514,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _execWhenConnected("unwatchPath", path)
-                .done(callback.bind(undefined, null))
-                .fail(callback);
+            _nodeDomain.exec("unwatchPath", path)
+                .then(callback, callback);
         });
     }
     
@@ -598,9 +533,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _execWhenConnected("unwatchAll")
-                .done(callback.bind(undefined, null))
-                .fail(callback);
+            _nodeDomain.exec("unwatchAll")
+                .then(callback, callback);
         });
     }
     
