@@ -388,15 +388,15 @@ define(function (require, exports, module) {
     /**
      * Read the contents of the file at the given path, calling back
      * asynchronously with either a FileSystemError string, or with the data and
-     * the FileSystemStats object associated with the read file. The (optional)
-     * options parameter can be used to specify an encoding (default "utf8").
+     * the FileSystemStats object associated with the read file. The options
+     * parameter can be used to specify an encoding (default "utf8").
      * 
      * Note: if either the read or the stat call fails then neither the read data
      * nor stat will be passed back, and the call should be considered to have failed.
      * If both calls fail, the error from the read call is passed back.
      * 
      * @param {string} path
-     * @param {{encoding : string=}=} options
+     * @param {{encoding : string=}} options
      * @param {function(?string, string=, FileSystemStats=)} callback
      */
     function readFile(path, options, callback) {
@@ -441,16 +441,16 @@ define(function (require, exports, module) {
      * Write data to the file at the given path, calling back asynchronously with
      * either a FileSystemError string or the FileSystemStats object associated
      * with the written file. If no file exists at the given path, a new file will
-     * be created. The (optional) options parameter can be used to specify an
-     * encoding (default "utf8"), an octal mode (default unspecified and
-     * implementation dependent), and a consistency hash, which is used to the
-     * current state of the file before overwriting it. If a consistency hash is
-     * provided but does not match the hash of the file on disk, a
+     * be created. The options parameter can be used to specify an encoding
+     * (default "utf8"), an octal mode (default unspecified and implementation
+     * dependent), and a consistency hash, which is used to the current state
+     * of the file before overwriting it. If a consistency hash is provided but
+     * does not match the hash of the file on disk, a
      * FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, hash : string=}=} options
+     * @param {{encoding : string=, mode : number=, hash : string=}} options
      * @param {function(?string, FileSystemStats=)} callback
      */
     function writeFile(path, data, options, callback) {
