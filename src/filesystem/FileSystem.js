@@ -215,22 +215,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Indicates whether the given FileSystemEntry is watched.
-     *
-     * @param {FileSystemEntry} entry A FileSystemEntry that may or may not be watched.
-     * @return {boolean} True iff the path is watched.
-     */
-    FileSystem.prototype._isEntryWatched = function (entry) {
-        var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
-        
-        if (watchedRoot && watchedRoot.active) {
-            return watchedRoot.filter(entry.name, entry.parentPath);
-        }
-        
-        return false;
-    };
-    
-    /**
      * Helper function to watch or unwatch a filesystem entry beneath a given
      * watchedRoot.
      * 
@@ -244,80 +228,63 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var recursiveWatch = this._impl.recursiveWatch;
-        
-        if (recursiveWatch && entry !== watchedRoot.entry) {
-            // Watch and unwatch calls to children of the watched root are
-            // no-ops if the impl supports recursiveWatch
-            callback(null);
-            return;
-        }
-        
-        var commandName = shouldWatch ? "watchPath" : "unwatchPath",
-            watchOrUnwatch = this._impl[commandName].bind(this, entry.fullPath),
-            visitor;
-        
-        var genericProcessChild = function (child) {
-            child._setWatched(shouldWatch);
-        };
-        
-        var genericVisitor = function (processChild, child) {
-            if (watchedRoot.filter(child.name, child.parentPath)) {
-                processChild.call(this, child);
-                
-                return true;
-            }
-            return false;
-        };
+        var recursiveWatch = this._impl.recursiveWatch,
+            commandName = shouldWatch ? "watchPath" : "unwatchPath",
+            watchOrUnwatch = this._impl[commandName].bind(this);
 
         if (recursiveWatch) {
-            // The impl will handle finding all subdirectories to watch. Here we
-            // just need to find all entries in order to either mark them as
-            // watched or to remove them from the index.
-            this._enqueueWatchRequest(function (callback) {
-                watchOrUnwatch(function (err) {
+            if (entry !== watchedRoot.entry) {
+                // Watch and unwatch calls to children of the watched root are
+                // no-ops if the impl supports recursiveWatch
+                callback(null);
+            } else {
+                // The impl will handle finding all subdirectories to watch. Here we
+                // just need to find all entries in order to either mark them as
+                // watched or to remove them from the index.
+                this._enqueueWatchRequest(function (requestCb) {
+                    watchOrUnwatch(entry.fullPath, requestCb);
+                }.bind(this), callback);
+            }
+        } else {
+            // The impl can't handle recursive watch requests, so it's up to the
+            // filesystem to recursively watch or unwatch all subdirectories.
+            this._enqueueWatchRequest(function (requestCb) {
+                // First construct a list of entries to watch or unwatch
+                var entriesToWatchOrUnwatch = [];
+                
+                var visitor = function (child) {
+                    if (watchedRoot.filter(child.name, child.parentPath)) {
+                        if (child.isDirectory || child === watchedRoot.entry) {
+                            entriesToWatchOrUnwatch.push(child);
+                        }
+                        return true;
+                    }
+                    return false;
+                };
+                
+                entry.visit(visitor, function (err) {
                     if (err) {
-                        console.warn("Watch error: ", entry.fullPath, err);
-                        callback(err);
+                        requestCb(err);
                         return;
                     }
                     
-                    visitor = genericVisitor.bind(this, genericProcessChild);
-                    entry.visit(visitor, callback);
+                    // Then watch or unwatched all these entries
+                    var count = entriesToWatchOrUnwatch.length;
+                    if (count === 0) {
+                        requestCb(null);
+                        return;
+                    }
+                    
+                    var watchOrUnwatchCallback = function () {
+                        if (--count === 0) {
+                            requestCb(null);
+                        }
+                    };
+                    
+                    entriesToWatchOrUnwatch.forEach(function (entry) {
+                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
+                    });
                 }.bind(this));
-            }.bind(this), callback);
-        } else {
-            // The impl can't handle recursive watch requests, so it's up to the
-            // filesystem to recursively watch or unwatch all subdirectories, as
-            // well as either marking all children as watched or removing them
-            // from the index.
-            var processChild = function (child) {
-                if (child.isDirectory || child === watchedRoot.entry) {
-                    watchOrUnwatch(function (err) {
-                        if (err) {
-                            console.warn("Watch error: ", child.fullPath, err);
-                            return;
-                        }
-                        
-                        if (child.isDirectory) {
-                            child.getContents(function (err, contents) {
-                                if (err) {
-                                    return;
-                                }
-                                
-                                contents.forEach(function (child) {
-                                    genericProcessChild.call(this, child);
-                                }, this);
-                            }.bind(this));
-                        }
-                    }.bind(this));
-                }
-            };
-            
-            this._enqueueWatchRequest(function (callback) {
-                genericProcessChild(entry);
-                visitor = genericVisitor.bind(this, processChild);
-                entry.visit(visitor, callback);
             }.bind(this), callback);
         }
     };
@@ -398,12 +365,12 @@ define(function (require, exports, module) {
         return true;
     };
     
-    FileSystem.prototype._beginWrite = function () {
+    FileSystem.prototype._beginChange = function () {
         this._activeChangeCount++;
         //console.log("> beginWrite  -> " + this._activeChangeCount);
     };
     
-    FileSystem.prototype._endWrite = function () {
+    FileSystem.prototype._endChange = function () {
         this._activeChangeCount--;
         //console.log("< endWrite    -> " + this._activeChangeCount);
         
@@ -550,25 +517,33 @@ define(function (require, exports, module) {
             item = this._index.getEntry(normalizedPath);
         }
         
-        if (item && item._stat && item._isWatched) {
-            callback(null, item, item._stat);
-            return;
+        if (item) {
+            item.stat(function (err, stat) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                callback(null, item, stat);
+            });
+        } else {
+            this._impl.stat(path, function (err, stat) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                if (stat.isFile) {
+                    item = this.getFileForPath(path);
+                } else {
+                    item = this.getDirectoryForPath(path);
+                }
+                
+                item._stat = stat;
+                
+                callback(null, item, stat);
+            }.bind(this));
         }
-        
-        this._impl.stat(path, function (err, stat) {
-            if (err) {
-                callback(err);
-                return;
-            }
-            
-            if (stat.isFile) {
-                item = this.getFileForPath(path);
-            } else {
-                item = this.getDirectoryForPath(path);
-            }
-            
-            callback(null, item, stat);
-        }.bind(this));
     };
     
     /**
@@ -896,9 +871,6 @@ define(function (require, exports, module) {
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
-
-    // Private helper methods used by internal filesystem modules
-    exports._isEntryWatched = _wrap(FileSystem.prototype._isEntryWatched);
     
     // For testing only
     exports._activeChangeCount = _wrap(FileSystem.prototype._activeChangeCount);

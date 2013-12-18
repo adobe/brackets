@@ -71,7 +71,7 @@ define(function (require, exports, module) {
      */
     File.prototype._clearCachedData = function () {
         FileSystemEntry.prototype._clearCachedData.apply(this);
-        this._contents = undefined;
+        this._contents = null;
     };
     
     /**
@@ -87,9 +87,11 @@ define(function (require, exports, module) {
             options = {};
         }
         
-        // We don't need to check isWatched here because contents are only saved
-        // for watched files
-        if (this._contents && this._stat) {
+        // We don't need to check isWatched() here because contents are only saved
+        // for watched files. Note that we need to explicitly test this._contents
+        // for a default value; otherwise it could be the empty string, which is
+        // falsey.
+        if (this._contents !== null && this._stat) {
             callback(null, this._contents, this._stat);
             return;
         }
@@ -105,7 +107,7 @@ define(function (require, exports, module) {
             this._hash = stat._hash;
             
             // Only cache the contents of watched files
-            if (this._isWatched) {
+            if (this._isWatched()) {
                 this._contents = data;
             }
             
@@ -130,13 +132,13 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         // Request a consistency check if the file is watched and the write is not blind
-        var watched = this._isWatched;
+        var watched = this._isWatched();
         if (watched && !options.blind) {
             options.hash = this._hash;
         }
         
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._impl.writeFile(this._path, data, options, function (err, stat, created) {
             if (err) {
@@ -146,7 +148,7 @@ define(function (require, exports, module) {
                     return;
                 } finally {
                     // Always unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }
             
@@ -170,7 +172,7 @@ define(function (require, exports, module) {
                         this._fileSystem._fireChangeEvent(parent, added, removed);
                         
                         // Always unblock external change events
-                        this._fileSystem._endWrite();
+                        this._fileSystem._endChange();
                     }
                 }.bind(this));
             } else {
@@ -182,7 +184,7 @@ define(function (require, exports, module) {
                     this._fileSystem._fireChangeEvent(this);
                     
                     // Always unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }
         }.bind(this));

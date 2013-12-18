@@ -129,7 +129,7 @@ define(function (require, exports, module) {
         }
 
         // Return cached contents if the directory is watched
-        if (this._contents && this._isWatched) {
+        if (this._contents && this._isWatched()) {
             callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
@@ -162,12 +162,6 @@ define(function (require, exports, module) {
                             // entryStats is a FileSystemStats object
                             if (entryStats.isFile) {
                                 entry = this._fileSystem.getFileForPath(entryPath);
-                                
-                                // If file already existed, its cache may now be invalid (a change
-                                // to file content may be messaged EITHER as a watcher change 
-                                // directly on that file, OR as a watcher change to its parent dir)
-                                // TODO: move this to FileSystem._handleWatchResult()?
-                                entry._clearCachedData();
                             } else {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
@@ -208,7 +202,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._impl.mkdir(this._path, function (err, stat) {
             if (err) {
@@ -232,7 +226,7 @@ define(function (require, exports, module) {
                 } finally {
                     this._fileSystem._fireChangeEvent(parent, added, removed);
                     // Unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }.bind(this));
         }.bind(this));

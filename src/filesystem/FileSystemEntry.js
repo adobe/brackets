@@ -89,7 +89,6 @@ define(function (require, exports, module) {
         this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
-        this._setWatched(fileSystem._isEntryWatched(this));
     }
     
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
@@ -167,10 +166,50 @@ define(function (require, exports, module) {
     FileSystemEntry.prototype._isDirectory = false;
     
     /**
-     * Whether or not the entry is watched.
+     * Cached copy of this entry's watched root
+     * @type {WatchedRoot}
+     */
+    FileSystemEntry.prototype._watchedRoot = null;
+
+    /**
+     * Cached result of _watchedRoot.filter(this.name, this.parentPath).
      * @type {boolean}
      */
-    FileSystemEntry.prototype._isWatched = false;
+    FileSystemEntry.prototype._watchedRootFilterResult = false;
+    
+    /**
+     * Determines whether or not the entry is watched.
+     * @return {boolean}
+     */
+    FileSystemEntry.prototype._isWatched = function () {
+        var watchedRoot = this._watchedRoot,
+            filterResult = this._watchedRootFilterResult;
+        
+        if (!watchedRoot) {
+            watchedRoot = this._fileSystem._findWatchedRootForPath(this._path);
+            
+            if (watchedRoot) {
+                this._watchedRoot = watchedRoot;
+                filterResult = watchedRoot.filter(this._name, this._parentPath);
+                this._watchedRootFilterResult = filterResult;
+            }
+        }
+        
+        if (watchedRoot) {
+            if (watchedRoot.active) {
+                if (!filterResult) {
+                    console.warn("Not watched (inactive): ", this._path);
+                }
+                return filterResult;
+            } else {
+                // We had a watched root, but it's no longer active, so it must now be invalid.
+                this._watchedRoot = undefined;
+                this._watchedRootFilterResult = false;
+            }
+        }
+        console.warn("Not watched (root): ", this._path);
+        return false;
+    };
     
     /**
      * Update the path for this entry
@@ -192,21 +231,13 @@ define(function (require, exports, module) {
             this._parentPath = null;
         }
 
-        this._path = newPath;
-    };
-    
-    /**
-     * Mark this entry as being watched or unwatched. Setting an entry as being
-     * unwatched will cause its cached data to be cleared.
-     * @private
-     * @param watched Whether or not the entry is watched
-     */
-    FileSystemEntry.prototype._setWatched = function (watched) {
-        this._isWatched = watched;
-        
-        if (!watched) {
-            this._clearCachedData();
+        // Update watchedRootFilterResult
+        var watchedRoot = this._watchedRoot;
+        if (watchedRoot) {
+            this._watchedRootFilterResult = watchedRoot.filter(this._name, this._parentPath);
         }
+        
+        this._path = newPath;
     };
     
     /**
@@ -259,7 +290,7 @@ define(function (require, exports, module) {
      *      FileSystemError string or FileSystemStats object.
      */
     FileSystemEntry.prototype.stat = function (callback) {
-        if (this._stat && this._isWatched) {
+        if (this._stat && this._isWatched()) {
             callback(null, this._stat);
             return;
         }
@@ -288,7 +319,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._impl.rename(this._path, newFullPath, function (err) {
             try {
@@ -310,7 +341,7 @@ define(function (require, exports, module) {
                 }
             } finally {
                 // Unblock external change events
-                this._fileSystem._endWrite();
+                this._fileSystem._endChange();
             }
         }.bind(this));
     };
@@ -326,7 +357,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._clearCachedData();
         this._impl.unlink(this._path, function (err) {
@@ -342,7 +373,7 @@ define(function (require, exports, module) {
                     this._fileSystem._fireChangeEvent(parent, added, removed);
                     
                     // Unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }.bind(this));
         }.bind(this));
@@ -364,7 +395,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
 
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._clearCachedData();
         this._impl.moveToTrash(this._path, function (err) {
@@ -380,7 +411,7 @@ define(function (require, exports, module) {
                     this._fileSystem._fireChangeEvent(parent, added, removed);
                     
                     // Unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }.bind(this));
         }.bind(this));
