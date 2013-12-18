@@ -301,6 +301,28 @@ define(function (require, exports, module) {
         
     }
     
+    function copyItem(sourcePath, destinationPath, options, callback) {
+        //var encoding = options.encoding || "utf8";
+        
+        exists(sourcePath, function (err, alreadyExists) {
+            if (err) {
+                callback(err);
+                return;
+            }
+//            fs.copy('/tmp/myfile', '/tmp/mynewfile', function(err){
+//                if (err) return console.error(err);
+//            
+//                console.log("success!")
+//            }); //copies file
+            appshell.fs.copyFile(sourcePath, destinationPath, function (err) {
+                if (err) {
+                    return console.error(err);
+                }
+                console.log("success copying!");
+            });
+        });
+    }
+    
     function unlink(path, callback) {
         appshell.fs.unlink(path, function (err) {
             try {
@@ -419,6 +441,7 @@ define(function (require, exports, module) {
     exports.stat            = stat;
     exports.readFile        = readFile;
     exports.writeFile       = writeFile;
+    exports.copyItem        = copyItem;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;

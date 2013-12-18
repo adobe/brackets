@@ -149,6 +149,22 @@ define(function (require, exports, module) {
         this._path = newPath;
     };
     
+    //COPY
+    FileSystemEntry.prototype.copyItem = function (destination, options, callback) {
+        if (typeof (options) === "function") {
+            callback = options;
+            options = {};
+        }
+        
+        this._impl.copyItem(this._path, destination, function (err, data, stat) {
+            if (!err) {
+                this._stat = stat;
+                // this._contents = data;
+            }
+            callback(err, data, stat);
+        }.bind(this));
+    };
+    
     /**
      * Clear any cached data for this entry
      * @private

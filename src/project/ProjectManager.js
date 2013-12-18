@@ -1396,14 +1396,15 @@ define(function (require, exports, module) {
                             // If a path is specified, copy that data into the file.
                             if (copyFilePath) {
                                 var copyFile = FileSystem.getFileForPath(copyFilePath);
-                                copyFile.read(function (readError, data) {
-                                    if (readError) {
-                                        // No need to write data if there is any read-error.
-                                        errorCallback(FileSystemError.NOT_READABLE, copyFilePath);
-                                    } else {
-                                        writeDataToFile(file, data);
-                                    }
-                                });
+//                                copyFile.read(function (readError, data) {
+//                                    if (readError) {
+//                                        // No need to write data if there is any read-error.
+//                                        errorCallback(FileSystemError.NOT_READABLE, copyFilePath);
+//                                    } else {
+//                                        writeDataToFile(file, data);
+//                                    }
+//                                });
+                                copyFile.copyItem(newItemPath);
                             } else {
                                 //No path is specified, so just create an empty file
                                 writeDataToFile(file, "");
