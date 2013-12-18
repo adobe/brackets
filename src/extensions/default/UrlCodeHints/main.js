@@ -137,7 +137,10 @@ define(function (require, exports, module) {
                     contents.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
                             // convert to doc relative path
-                            var entryStr = entry.fullPath.replace(docDir, "");
+                            var entryStr = queryDir + entry._name;
+                            if (entry._isDirectory) {
+                                entryStr += "/";
+                            }
 
                             // code hints show the unencoded string so the
                             // choices are easier to read.  The encoded string
