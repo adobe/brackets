@@ -58,11 +58,6 @@ define(function (require, exports, module) {
     UrlCodeHints.prototype._getUrlList = function (query) {
         var doc,
             result = [];
-        
-        // site-root relative links are not yet supported, so filter them out
-        if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
-            return result;
-        }
 
         // get path to current document
         doc = DocumentManager.getCurrentDocument();
@@ -81,7 +76,15 @@ define(function (require, exports, module) {
         }
 
         // build target folder path
-        var targetDir = docDir + decodeURI(queryDir);
+        var targetDir;
+        if (queryDir.length > 0 && queryDir[0] === "/") {
+            // site-root relative path
+            targetDir = ProjectManager.getProjectRoot().fullPath +
+                        decodeURI(queryDir).substring(1);
+        } else {
+            // page relative path
+            targetDir = docDir + decodeURI(queryDir);
+        }
 
         // get list of files from target folder
         var unfiltered = [];
