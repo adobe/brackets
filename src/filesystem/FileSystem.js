@@ -539,7 +539,9 @@ define(function (require, exports, module) {
                     item = this.getDirectoryForPath(path);
                 }
                 
-                item._stat = stat;
+                if (item._isWatched()) {
+                    item._stat = stat;
+                }
                 
                 callback(null, item, stat);
             }.bind(this));

@@ -197,17 +197,14 @@ define(function (require, exports, module) {
         
         if (watchedRoot) {
             if (watchedRoot.active) {
-                if (!filterResult) {
-                    console.warn("Not watched (inactive): ", this._path);
-                }
                 return filterResult;
             } else {
                 // We had a watched root, but it's no longer active, so it must now be invalid.
                 this._watchedRoot = undefined;
                 this._watchedRootFilterResult = false;
+                this._clearCachedData();
             }
         }
-        console.warn("Not watched (root): ", this._path);
         return false;
     };
     
@@ -290,7 +287,7 @@ define(function (require, exports, module) {
      *      FileSystemError string or FileSystemStats object.
      */
     FileSystemEntry.prototype.stat = function (callback) {
-        if (this._stat && this._isWatched()) {
+        if (this._stat) {
             callback(null, this._stat);
             return;
         }
@@ -302,7 +299,9 @@ define(function (require, exports, module) {
                 return;
             }
             
-            this._stat = stat;
+            if (this._isWatched()) {
+                this._stat = stat;
+            }
             
             callback(null, stat);
         }.bind(this));

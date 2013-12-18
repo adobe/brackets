@@ -129,7 +129,7 @@ define(function (require, exports, module) {
         }
 
         // Return cached contents if the directory is watched
-        if (this._contents && this._isWatched()) {
+        if (this._contents) {
             callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
@@ -144,12 +144,14 @@ define(function (require, exports, module) {
             if (err) {
                 this._clearCachedData();
             } else {
+                var watched = this._isWatched();
+                
                 entries.forEach(function (name, index) {
-                    var entryPath = this.fullPath + name,
-                        entry;
+                    var entryPath = this.fullPath + name;
                     
                     if (this._fileSystem._indexFilter(entryPath, name)) {
-                        var entryStats = stats[index];
+                        var entryStats = stats[index],
+                            entry;
                         
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {
@@ -166,18 +168,21 @@ define(function (require, exports, module) {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
                             
-                            entry._stat = entryStats;
+                            if (watched) {
+                                entry._stat = entryStats;
+                            }
                             
                             contents.push(entry);
                             contentsStats.push(entryStats);
                         }
-                    
                     }
                 }, this);
 
-                this._contents = contents;
-                this._contentsStats = contentsStats;
-                this._contentsStatsErrors = contentsStatsErrors;
+                if (watched) {
+                    this._contents = contents;
+                    this._contentsStats = contentsStats;
+                    this._contentsStatsErrors = contentsStatsErrors;
+                }
             }
             
             // Reset the callback list before we begin calling back so that
@@ -219,7 +224,10 @@ define(function (require, exports, module) {
             var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
             
             // Update internal filesystem state
-            this._stat = stat;
+            if (this._isWatched()) {
+                this._stat = stat;
+            }
+            
             this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
                 try {
                     callback(null, stat);

@@ -96,8 +96,8 @@ define(function (require, exports, module) {
             return;
         }
         
-        var isWatched = this._isWatched();
-        if (isWatched) {
+        var watched = this._isWatched();
+        if (watched) {
             options.stat = this._stat;
         }
         
@@ -107,12 +107,11 @@ define(function (require, exports, module) {
                 callback(err);
                 return;
             }
-
-            this._stat = stat;
-            this._hash = stat._hash;
             
-            // Only cache the contents of watched files
-            if (isWatched) {
+            // Only cache data for watched files
+            if (watched) {
+                this._stat = stat;
+                this._hash = stat._hash;
                 this._contents = data;
             }
             
@@ -157,12 +156,10 @@ define(function (require, exports, module) {
                 }
             }
             
-            // Update internal filesystem state
-            this._hash = stat._hash;
-            this._stat = stat;
-            
-            // Only cache the contents of watched files
+            // Only cache data for watched files
             if (watched) {
+                this._stat = stat;
+                this._hash = stat._hash;
                 this._contents = data;
             }
             
