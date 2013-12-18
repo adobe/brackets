@@ -108,10 +108,12 @@ define(function (require, exports, module) {
                 return;
             }
             
+            // Always store the hash
+            this._hash = stat._hash;
+            
             // Only cache data for watched files
             if (watched) {
                 this._stat = stat;
-                this._hash = stat._hash;
                 this._contents = data;
             }
             
@@ -156,10 +158,12 @@ define(function (require, exports, module) {
                 }
             }
             
+            // Always store the hash
+            this._hash = stat._hash;
+            
             // Only cache data for watched files
             if (watched) {
                 this._stat = stat;
-                this._hash = stat._hash;
                 this._contents = data;
             }
             
