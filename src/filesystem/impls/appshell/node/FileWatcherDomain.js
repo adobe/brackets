@@ -30,6 +30,31 @@ var fspath = require("path"),
     fs = require("fs"),
     fsevents;
 
+/*
+ * NOTE: The fsevents package is a temporary solution for file-watching on darwin.
+ * Node's native fs.watch call would be preferable, but currently has a hard limit
+ * of 451 watched directories and fails silently after that! In the next stable
+ * version of Node (0.12), fs.watch on darwin will support a new "recursive" option
+ * that will allow us to only request a single watched path per directory structure.
+ * When that is stable, we should switch back to fs.watch for all platforms, and
+ * we should use the recursive option where available. As of January 2014, the
+ * current experimental Node branch (0.11) only supports the recursive option for
+ * darwin.
+ * 
+ * In the meantime, the fsevents package makes direct use of the Mac OS fsevents
+ * API to provide file watching capabilities. Its behavior is also recursive
+ * (like fs.watch with the recursive option), but the events it emits are not
+ * exactly the same as those emitted by Node watchers. Consequently, we require,
+ * for now, dual implementations of the FileWatcher domain. 
+ * 
+ * ALSO NOTE: the fsevents package as installed by NPM is not suitable for
+ * distribution with Brackets! The problem is that the native code embedded in
+ * the fsevents module is compiled by default for x86-64, but the Brackets-node
+ * process is compiled for x86-32. Consequently, the fsevents module must be
+ * compiled manually, which is why it is checked into Brackets source control
+ * and not managed by NPM. Changing compilation from 64- to 32-bit just requires
+ * changing a couple of definitions in the .gyp file used to build fsevents.
+ */
 if (process.platform === "darwin") {
     fsevents = require("fsevents");
 }
