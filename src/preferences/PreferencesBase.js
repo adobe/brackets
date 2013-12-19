@@ -25,8 +25,43 @@
 /*unittests: Preferences Base */
 
 /**
- * Base infrastructure for managing preferences.
+ * Infrastructure for the preferences system.
  *
+ * At the top, the level at which most people will interact, is the `PreferencesManager` object.
+ * The most common operation is `get(id)`, which simply retrieve the value of a given preference.
+ * 
+ * The PreferencesManager has an ordered collection of Scopes. Each Scope holds one level of 
+ * settings. 
+ * 
+ * PreferencesManager.js sets up a singleton PreferencesManager that has the following Scopes:
+ *
+ *  default (the default values for any settings that are explicitly registered)
+ *  user (the user's customized settings – the equivalent of Brackets' old 
+ *        localStorage-based system. This is the settings file that lives in AppData)
+ *  project (the useful new one: brackets.settings.json file in the root of a project)
+ *  session (in-memory only settings for the current editing session)
+ * 
+ * For example, if spaceUnits has a value set at the project level, then a call 
+ * to get("spaceUnits") would return the project level value. Project values come 
+ * first, user values next, default values last. If the setting is not known 
+ * at all, undefined is returned.
+ * 
+ * Each Scope has an associated Storage object that knows how to load and 
+ * save the preferences value for that Scope. There are two implementations: 
+ * MemoryStorage and FileStorage.
+ * 
+ * The final concept used is that of Layers. A Layer applies to every Scope and 
+ * provides an additional level for preference lookups. Generally, a Layer looks 
+ * for a collection of preferences that are nested in some fashion in the Scope's 
+ * data. Under certain circumstances (decided upon by the Layer object), 
+ * those nested preferences will take precedence over the main preferences in the Scope.
+ * 
+ * There is a data structure that sits underneath the PreferencesManager and Scopes: 
+ * the MergedMap. A MergedMap is a map-like object that merges multiple maps 
+ * into a single one for lookups and sends out change notifications when there 
+ * is a change to a value in the map. The PreferencesManager itself is a 
+ * MergedMap and the Scopes are nested MergedMaps. The Layers are implemented as 
+ * additional levels in the Scopes.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -656,11 +691,21 @@ define(function (require, exports, module) {
     LanguageLayer.prototype = {
         exclusions: ["language"],
         
+        /**
+         * Sets the data used by this scope.
+         * 
+         * @param {Object} data Data that this scope will look at to see if the layer applies
+         */
         setData: function (data) {
             this.data = data;
             this._signalChange();
         },
         
+        /**
+         * Sets the language currently being edited (which determines the prefs applied).
+         * 
+         * @param {string} languageID Identifier for the language that is currently being edited.
+         */
         setLanguage: function (languageID) {
             if (languageID !== this.language) {
                 this.language = languageID;
@@ -668,6 +713,14 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * @private
+         * 
+         * Manages changes to data and language to signal that there has been a change in the
+         * prefs provided by this layer. This is called whenever the data or language has
+         * changed and its up to the listeners of the `dataChange` event to decide whether an
+         * interesting change has occurred.
+         */
         _signalChange: function () {
             var data = this.data,
                 languageData;
@@ -681,6 +734,24 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Provides layered preferences based on file globs, generally following the model provided
+     * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
+     * (switching to single line comments because the glob interferes with the multiline comment):
+     */
+    
+//    "path": {
+//        "src/thirdparty/CodeMirror2/**/*.js": {
+//            "spaceUnits": 2,
+//            "linting.enabled": false
+//        }
+//    }
+    
+    /**
+     * There can be multiple paths and they are each checked in turn. The first that matches the
+     * currently edited file wins.
+     */
+    
     function PathLayer() {
         this.data = undefined;
         this.filename = undefined;
@@ -689,16 +760,33 @@ define(function (require, exports, module) {
     PathLayer.prototype = {
         exclusions: ["path"],
         
+        /**
+         * Sets the data in use for this layer. (This and the `dataChange` event are the
+         * standard parts of the Layer interface.
+         * 
+         * @param {Object} data Current data to be used for this layer.
+         */
         setData: function (data) {
             this.data = data;
             this._signalChange();
         },
         
+        /**
+         * Sets the filename of the currently edited file. This filename should be
+         * expressed as relative to the prefs file.
+         * 
+         * @param {string} filename Edited file relative to the prefs file
+         */
         setFilename: function (filename) {
             this.filename = filename;
             this._signalChange();
         },
         
+        /**
+         * @private
+         * 
+         * Sends a change notification based on the current data and filename.
+         */
         _signalChange: function () {
             var data = this.data,
                 pathData;
@@ -707,12 +795,21 @@ define(function (require, exports, module) {
                 var glob = this._findMatchingGlob(data.path);
                 pathData = data.path[glob];
             }
+            
             if (pathData === undefined) {
                 pathData = {};
             }
+            
             $(this).trigger("dataChange", pathData);
         },
         
+        /**
+         * @private
+         * 
+         * Look for a matching file glob among the collection of paths.
+         * 
+         * @param {Object} path The keys are globs and the values are the preferences for that glob
+         */
         _findMatchingGlob: function (path) {
             var globs = Object.keys(path),
                 filename = this.filename,
@@ -732,6 +829,16 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * PreferencesManager ties everything together to provide a simple interface for
+     * managing the whole prefs system.
+     * 
+     * It is a MergedMap with Scopes at each level. It also keeps track of Layers that
+     * are applied at each Scope.
+     * 
+     * It also provides the ability to register preferences, which gives a fine-grained
+     * means for listening for changes and will ultimately allow for automatic UI generation.
+     */
     function PreferencesManager() {
         MergedMap.apply(this);
         this._knownPrefs = {};
@@ -741,6 +848,8 @@ define(function (require, exports, module) {
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
         
+        // When we signal a general change message on this manager, we also signal a change
+        // on the individual preference object.
         $(this).on("change", function (e, data) {
             var pref = this._knownPrefs[data.id];
             if (pref) {
@@ -755,6 +864,17 @@ define(function (require, exports, module) {
     PreferencesManager.prototype = new MergedMap();
     
     _.extend(PreferencesManager.prototype, {
+        
+        /**
+         * Defines a new preference.
+         * 
+         * @param {string} id identifier of the preference. Generally a dotted name.
+         * @param {string} type Data type for the preference (generally, string, boolean, number)
+         * @param {Object} initial Default value for the preference
+         * @param {?Object} options Additional options for the pref. Can include name and description
+         *                          that will ultimately be used in UI.
+         * @return {Object} The preference object.
+         */
         definePreference: function (id, type, initial, options) {
             options = options || {};
             if (this._knownPrefs.hasOwnProperty(id)) {
@@ -770,10 +890,24 @@ define(function (require, exports, module) {
             return pref;
         },
         
+        /**
+         * Get the preference object for the given ID.
+         * 
+         * @param {string} id ID of the pref to retrieve.
+         */
         getPreference: function (id) {
             return this._knownPrefs[id];
         },
         
+        /**
+         * Adds a new Scope. New Scopes are added at the highest precedence. The new Scope
+         * is automatically loaded.
+         * 
+         * @param {string} id Name of the Scope
+         * @param {Scope} scope the Scope object itself. Can be given a Storage directly for convenience
+         * @return {Promise} Promise that is resolved when the Scope is loaded. It is resolved
+         *                   with id and scope.
+         */
         addScope: function (id, scope) {
             if (this._levels.indexOf(id) > -1) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
@@ -811,6 +945,12 @@ define(function (require, exports, module) {
             return deferred.promise();
         },
         
+        /**
+         * Adds a Layer that applies to each Scope.
+         * 
+         * @param {string} id Name of the layer
+         * @param {Layer} layer The Layer object itself.
+         */
         addLayer: function (id, layer) {
             this._layers.push({
                 id: id,
@@ -823,6 +963,14 @@ define(function (require, exports, module) {
             });
         },
         
+        /**
+         * Sets a preference in the chosen Scope.
+         * 
+         * @param {string} scopeName Scope to set the preference in
+         * @param {string} id Identifier of the preference to set
+         * @param {Object} value New value for the preference
+         * @return {boolean} True if the preference was changed.
+         */
         set: function (scopeName, id, value) {
             if (!this._childMaps[scopeName]) {
                 throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
@@ -830,10 +978,23 @@ define(function (require, exports, module) {
             return MergedMap.prototype.set.call(this, [scopeName, "base"], id, value);
         },
         
+        /**
+         * Replace the data in the given Scope.
+         * 
+         * @param {string} scopeName Scope in which to replace the data
+         * @param {Object} data New data for the Scope
+         * 
+         */
         setData: function (scopeName, data) {
-            return MergedMap.prototype.setData.call(this, [scopeName, "base"], data);
+            MergedMap.prototype.setData.call(this, [scopeName, "base"], data);
         },
         
+        /**
+         * Saves the preferences. If a save is already in progress, a Promise is returned for
+         * that save operation.
+         * 
+         * @return {Promise} Resolved when the preferences are done saving.
+         */
         save: function () {
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
@@ -869,6 +1030,7 @@ define(function (require, exports, module) {
         }
     });
     
+    // Public interface
     exports.MergedMap = MergedMap;
     exports.PreferencesManager = PreferencesManager;
     exports.Scope = Scope;

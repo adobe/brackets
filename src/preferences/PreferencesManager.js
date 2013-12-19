@@ -22,7 +22,6 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, localStorage, brackets */
 /*unittests: Preferences Manager */
 
@@ -203,33 +202,40 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
+    // The SETTINGS_FILENAME is used with a preceding "." within user projects
     var SETTINGS_FILENAME = "brackets.prefs",
         STATE_FILENAME    = "state.json";
     
     var preferencesManager = new PreferencesBase.PreferencesManager();
     
+    // User-level preferences
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    
+    // Project-level preferences
     var projectFileStorage = new PreferencesBase.FileStorage();
     preferencesManager.addScope("project", projectFileStorage);
+    
+    // Session-level preferences
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
     
+    // Set up the layers
     var languageLayer = new PreferencesBase.LanguageLayer();
     preferencesManager.addLayer("language", languageLayer);
     
     var pathLayer = new PreferencesBase.PathLayer();
     preferencesManager.addLayer("path", pathLayer);
     
-    $(preferencesManager).on("change", function (e, data) {
-        $(exports).trigger("preferenceChange", data);
-    });
-    
+    // "State" is stored like preferences but it is not generally intended to be user-editable.
+    // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesManager();
     var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
-        
+    
+    // Convenience function that sets a preference and then saves the file, mimicking the
+    // old behavior a bit more closely.
     function setValueAndSave(scopeName, id, value) {
         preferencesManager.set(scopeName, id, value);
         preferencesManager.save();
@@ -241,7 +247,14 @@ define(function (require, exports, module) {
     exports._projectFileStorage = projectFileStorage;
     exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
     
-    // Public API    
+    // Public API
+    
+    // PreferencesManager change messages are sent out as preferenceChange messages
+    // from this module.
+    $(preferencesManager).on("change", function (e, data) {
+        $(exports).trigger("preferenceChange", data);
+    });
+    
     exports.get = preferencesManager.get.bind(preferencesManager);
     exports.set = preferencesManager.set.bind(preferencesManager);
     exports.save = preferencesManager.save.bind(preferencesManager);
