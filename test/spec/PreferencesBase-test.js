@@ -296,6 +296,61 @@ define(function (require, exports, module) {
                 projectMap.setData("base", {});
                 expect(map.get("moons")).toBeUndefined();
             });
+            
+            it("supports inserting and deleting levels", function () {
+                var map = new PreferencesBase.MergedMap();
+                
+                var changes = [];
+                $(map).on("change", function (e, data) {
+                    changes.push(data);
+                });
+                
+                map.addLevel("base");
+                map.setData("base", {
+                    spaceUnits: 1,
+                    baseLevel: true
+                });
+                map.addLevel("user");
+                map.setData("user", {
+                    spaceUnits: 3,
+                    userLevel: true
+                });
+                
+                changes = [];
+                map.addLevel("between", {
+                    before: "base"
+                });
+                map.setData("between", {
+                    spaceUnits: 2,
+                    betweenLevel: true,
+                    baseLevel: false
+                });
+                
+                expect(changes).toEqual([
+                    {
+                        id: "betweenLevel",
+                        oldValue: undefined,
+                        newValue: true
+                    },
+                    {
+                        id: "baseLevel",
+                        oldValue: true,
+                        newValue: false
+                    }
+                ]);
+                
+                expect(map.get("betweenLevel")).toBe(true);
+                expect(map.get("spaceUnits")).toBe(3);
+                expect(map.get("baseLevel")).toBe(false);
+                
+                changes = [];
+                
+                map.deleteLevel("between");
+                expect(map.get("betweenLevel")).toBeUndefined();
+                expect(map.get("baseLevel")).toBe(true);
+                
+                expect(changes.length).toEqual(2);
+            });
         });
         
         describe("Memory Storage", function () {

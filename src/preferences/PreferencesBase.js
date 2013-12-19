@@ -100,24 +100,38 @@ define(function (require, exports, module) {
         
         /**
          * Adds a new level from which values are merged. New levels are added
-         * with the highest precedence.
+         * with the highest precedence by default. If you pass the "before"
+         * option with the name of the level that this should be inserted before,
+         * then this new level will be added before that named level in the 
+         * precedence change.
          * 
          * @param {string} name Name for the new level
-         * @param {{map: ?MergedMap}} options Additional options for the level.
+         * @param {{map: ?MergedMap, before: ?string}} options Additional options for the level.
          *                            `map` supports having a MergedMap as a level
+         *                            `before` name of level before which this new level 
+         *                                     should be inserted
          */
         addLevel: function (name, options) {
             options = options || {};
             
-            // Levels are always added at the beginning of the list
-            this._levels.unshift(name);
+            var insertingAt = 0;
+            if (options.before) {
+                insertingAt = this._levels.indexOf(options.before);
+                if (insertingAt === -1) {
+                    insertingAt = 0;
+                }
+            }
+            
+            this._levels.splice(insertingAt, 0, name);
             var mergedAtLevel = this._mergedAtLevel;
             
             // `_mergedAtLevel` keeps track of which level each key was found at.
             // Since we're adding a level at the beginning, we need to bump all of
             // these values up by one.
             _.forIn(mergedAtLevel, function (value, key) {
-                mergedAtLevel[key] = value + 1;
+                if (value >= insertingAt) {
+                    mergedAtLevel[key] = value + 1;
+                }
             });
             
             // If a child MergedMap has been provided, we need to merge it in now, otherwise
@@ -136,6 +150,36 @@ define(function (require, exports, module) {
             } else {
                 this._levelData[name] = {};
             }
+        },
+        
+        /**
+         * Deletes the named level (resetting any preferences that were set at that
+         * level).
+         * 
+         * @param {string} name Name of level to delete.
+         */
+        deleteLevel: function (name) {
+            var levelIndex = this._levels.indexOf(name);
+            if (levelIndex === -1) {
+                return;
+            }
+            
+            this._levels.splice(levelIndex, 1);
+            delete this._levelData[name];
+            
+            var mergedAtLevel = this._mergedAtLevel;
+            
+            _.forIn(mergedAtLevel, function (value, key) {
+                
+                // For any value set at this level, we need to reset its value
+                if (value === levelIndex) {
+                    this._reset(key);
+                    
+                // for any value set after this level, we need to move its index up by one
+                } else if (value > levelIndex) {
+                    mergedAtLevel[key] = value - 1;
+                }
+            }.bind(this));
         },
         
         /**
