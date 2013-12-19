@@ -30,8 +30,11 @@ define(function (require, exports, module) {
     var FileSystemError     = require("filesystem/FileSystemError"),
         FileSystemStats     = require("filesystem/FileSystemStats");
     
-    // Watcher callback function
+    // Watcher change callback function
     var _watcherCallback;
+    
+    // Watcher offline callback function
+    var _offlineCallback;
     
     // Initial file system data. 
     var _initialData = {
@@ -326,8 +329,9 @@ define(function (require, exports, module) {
         }
     }
     
-    function initWatchers(callback) {
-        _watcherCallback = callback;
+    function initWatchers(changeCallback, offlineCallback) {
+        _watcherCallback = changeCallback;
+        _offlineCallback = offlineCallback;
     }
     
     function watchPath(path, callback) {
@@ -369,6 +373,13 @@ define(function (require, exports, module) {
         
         exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
         exports.recursiveWatch = _recursiveWatchDefault;
+    };
+    
+    // Simulate file watchers going offline
+    exports.goOffline = function () {
+        if (_offlineCallback) {
+            _offlineCallback();
+        }
     };
     
     /**

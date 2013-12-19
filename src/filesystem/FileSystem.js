@@ -852,11 +852,13 @@ define(function (require, exports, module) {
         console.warn("File watchers went offline!");
         
         Object.keys(this._watchedRoots).forEach(function (path) {
-            var entry = this._index.getEntry(path);
-            
-            if (entry) {
-                this.unwatch(entry);
-            }
+            var watchedRoot = this._watchedRoots[path];
+
+            watchedRoot.active = false;
+            delete this._watchedRoots[path];
+            this._unwatchEntry(watchedRoot.entry, watchedRoot, function () {
+                console.warn("Watching disabled for", watchedRoot.entry.fullPath);
+            });
         }, this);
         
         // Fire a wholesale change event because all previously watched entries

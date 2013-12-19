@@ -1289,6 +1289,52 @@ define(function (require, exports, module) {
                     expect(readCalls).toBe(2);
                 });
             });
+            
+            it("should unwatch when watchers go offline", function () {
+                var file,
+                    cb0 = readCallback(),
+                    cb1 = readCallback(),
+                    savedHash;
+
+                // confirm watched and empty cached data
+                runs(function () {
+                    file = fileSystem.getFileForPath(filename);
+                    
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    
+                    file.read(cb0);
+                });
+                waitsFor(function () { return cb0.wasCalled; });
+                
+                // confirm impl read and cached data, and then unwatch root directory
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBeTruthy();
+                    expect(file._contents).toBe(cb0.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    MockFileSystemImpl.goOffline();
+                });
+                waits(500);
+                
+                // read again
+                runs(function () {
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and empty cached data
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(cb1.data).toBe(cb0.data);
+                    expect(file._isWatched()).toBe(false);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(2);
+                });
+            });
         });
     });
 });
