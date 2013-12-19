@@ -39,8 +39,19 @@ define(function (require, exports, module) {
         Async             = require("utils/Async"),
         globmatch         = require("thirdparty/globmatch");
     
+    // CONSTANTS
     var PREFERENCE_CHANGE = "preferenceChange";
     
+    /**
+     * A MergedMap is a map-style object that merges multiple sub-maps (called
+     * "levels") into a single map. You can use `get` to retrieve the current
+     * value for a key. The `merged` property contains the current merged values.
+     * 
+     * MergedMap has two events of note:
+     * 
+     * * change: object with id, oldValue and newValue emitted for each key that changes
+     * * dataChange: complete map of id/values that is emitted whenever any key changes
+     */
     function MergedMap() {
         this.merged = {};
         this._levels = [];
@@ -51,18 +62,38 @@ define(function (require, exports, module) {
     }
     
     MergedMap.prototype = {
+        
+        /**
+         * Adds a new level from which values are merged. New levels are added
+         * with the highest precedence.
+         * 
+         * @param {string} name Name for the new level
+         * @param {{map: ?MergedMap}} options Additional options for the level.
+         *                            `map` supports having a MergedMap as a level
+         */
         addLevel: function (name, options) {
             options = options || {};
             
+            // Levels are always added at the beginning of the list
             this._levels.unshift(name);
             var mergedAtLevel = this._mergedAtLevel;
+            
+            // `_mergedAtLevel` keeps track of which level each key was found at.
+            // Since we're adding a level at the beginning, we need to bump all of
+            // these values up by one.
             _.forIn(mergedAtLevel, function (value, key) {
                 mergedAtLevel[key] = value + 1;
             });
             
+            // If a child MergedMap has been provided, we need to merge it in now, otherwise
+            // we just create a new object to hold values for this level.
             if (options.map) {
                 var childMap = options.map;
                 this._childMaps[name] = childMap;
+                
+                // Set the data for this level based on the current values in the childMap
+                // and then add a listener so that this level stays up to date with changes in
+                // the child.
                 this.setData(name, childMap.merged);
                 $(childMap).on("dataChange", function (e, data) {
                     this._performSetData(name, data);
@@ -72,10 +103,19 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * Excludes a key from this map. This is used for cases where a key is not directly
+         * used for configuration (see layers farther down in this file).
+         * 
+         * @param {string} id Key to exclude
+         */
         addExclusion: function (id) {
             var merged = this.merged;
             
             this._exclusions[id] = true;
+            
+            // Check to see if this exclusion is already defined. If so, we need to
+            // undefine it and notify listeners of the change.
             if (merged[id] !== undefined) {
                 var oldValue = merged[id];
                 delete merged[id];
@@ -90,16 +130,41 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * Retrieve the current value of the key `id` from the map.
+         * 
+         * @param {string} id Key to retrieve from the map
+         */
         get: function (id) {
             return this.merged[id];
         },
         
+        /**
+         * @protected
+         * 
+         * The first half of setting a value in the map. This part checks to see if this `id` 
+         * is excluded or if we need to recurse into child maps in order to actually do the
+         * set. This is split this way for subclasses.
+         * 
+         * `levelName` can be an array, in which case we try to traverse the levels listed
+         * in the array as childMaps.
+         * 
+         * @param {(string|Array.<string>)} levelName Level at which to set the value
+         * @param {string} id Key to set
+         * @param {*} value Value for this key
+         * @return {boolean} whether the value was changed
+         */
         _performSet: function (levelName, id, value) {
+            // eliminate excluded ids
             if (this._exclusions[id]) {
                 return;
             }
             
+            // Check to see if we need to recurse into child maps
             if (_.isArray(levelName)) {
+                
+                // If we're on the last element of the array, we've reached the
+                // end so we treat this as a set against this map.
                 if (levelName.length === 1) {
                     levelName = levelName[0];
                 } else {
@@ -119,9 +184,24 @@ define(function (require, exports, module) {
                 }
             }
             
+            // Continue on to part two.
             return this._performSetAndNotification(levelName, id, value);
         },
         
+        /**
+         * @protected
+         * 
+         * The second half of setting a value on the map. This part checks to see if the ID
+         * is masked by a higher precedence level. Assuming that the set will make a difference,
+         * this will set the value on the merged map and send a change notification
+         * 
+         * @param {(string|Array.<string>)} levelName Level at which to set the value
+         * @param {string} id Key to set
+         * @param {*} value Value for this key
+         * @param {?boolean} resetting True if we are resetting the value of this `id` (in which
+         *                                  case we don't check the level ranking)
+         * @return {boolean} whether value was changed
+         */
         _performSetAndNotification: function (levelName, id, value, resetting) {
             var merged = this.merged,
                 mergedAtLevel = this._mergedAtLevel,
@@ -134,6 +214,7 @@ define(function (require, exports, module) {
             }
             
             var oldValue = merged[id];
+            
             if (resetting || oldValue === undefined || mergedAtLevel[id] >= levelRank) {
                 mergedAtLevel[id] = levelRank;
                 if (value !== oldValue) {
@@ -149,6 +230,15 @@ define(function (require, exports, module) {
             return changed;
         },
         
+        /**
+         * Sets the value for `id` at the given level and sends out notifications if
+         * the merged value has actually changed.
+         * 
+         * @param {(string|Array.<string>)} levelName Level at which to set the value
+         * @param {string} id Key to set
+         * @param {*} value Value for this key
+         * @return {boolean} true if the value was changed
+         */
         set: function (levelName, id, value) {
             var changed = this._performSet(levelName, id, value);
             if (changed) {
@@ -158,9 +248,22 @@ define(function (require, exports, module) {
             return changed;
         },
         
+        /**
+         * @protected
+         * 
+         * Sets the data at the given level, sending notifications for any changed
+         * properties. This function is here to allow convenient overriding.
+         * 
+         * @param {string} levelName Level to set
+         * @param {Object} data New data for that level.
+         */
         _performSetData: function (levelName, data) {
             var hadChanges = false;
             
+            // TODO: if levelName is an array, shouldn't we head down through childMaps
+            // until we get to the destination?
+            
+            // Try to set each key/value
             _.forIn(data, function (value, key) {
                 hadChanges = this._performSet(levelName, key, value) || hadChanges;
             }, this);
@@ -187,14 +290,30 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * Provides all-new data for the given level.
+         * 
+         * @param {(string|Array.<string>)} levelName Level to apply data at
+         * @param {Object} data New data for the level
+         */
         setData: function (levelName, data) {
             this._performSetData(levelName, data);
         },
         
+        /**
+         * @private
+         * 
+         * Resets the given key to whatever its current value should be, based on
+         * precedence. If the key is not present, then we delete it.
+         * 
+         * @param {string} key Key to reset.
+         */
         _reset: function (key) {
             var levelData = this._levelData,
                 hasBeenReset = false;
             
+            // Loop through the levels until we find the first that defines this
+            // key.
             this._levels.forEach(function (level, levelNumber) {
                 var value = levelData[level][key];
                 if (value !== undefined) {
@@ -202,6 +321,8 @@ define(function (require, exports, module) {
                     hasBeenReset = true;
                 }
             }.bind(this));
+            
+            // If this key is not present on *any* level, then we delete it.
             if (!hasBeenReset) {
                 delete this._mergedAtLevel[key];
                 var oldValue = this.merged[key];
@@ -215,17 +336,41 @@ define(function (require, exports, module) {
         }
     };
     
+    /*
+     * Storages manage the loading and saving of preference data. 
+     */
+    
+    /**
+     * MemoryStorage, as the name implies, stores the preferences in memory.
+     * This is suitable for single session data or testing.
+     * 
+     * @param {?Object} data Initial data for the storage.
+     */
     function MemoryStorage(data) {
         this.data = data || {};
     }
     
     MemoryStorage.prototype = {
+        
+        /**
+         * *Synchronously* returns the data stored in this storage.
+         * The original object (not a clone) is returned.
+         * 
+         * @return {Promise} promise that is already resolved
+         */
         load: function () {
             var result = $.Deferred();
             result.resolve(this.data);
             return result.promise();
         },
         
+        /**
+         * *Synchronously* saves the data to this storage. This saves
+         * the `newData` object reference without cloning it.
+         * 
+         * @param {Object} newData The data to store.
+         * @return {Promise} promise that is already resolved
+         */
         save: function (newData) {
             var result = $.Deferred();
             this.data = newData;
@@ -234,11 +379,11 @@ define(function (require, exports, module) {
         }
     };
     
-    function FileStorage(path, createIfNew) {
-        this.path = path;
-        this.createIfNew = createIfNew;
-    }
-    
+    /**
+     * Error type for problems parsing preference files.
+     * 
+     * @param {string} message Error message
+     */
     function ParsingError(message) {
         this.name = "ParsingError";
         this.message = message || "";
@@ -246,7 +391,27 @@ define(function (require, exports, module) {
     
     ParsingError.prototype = Error.prototype;
     
+    /**
+     * Loads/saves preferences from a JSON file on disk.
+     * 
+     * @param {string} path Path to the preferences file
+     * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
+     *                              If this is not true, an exception will be thrown if the
+     *                              file does not exist.
+     */
+    function FileStorage(path, createIfNew) {
+        this.path = path;
+        this.createIfNew = createIfNew;
+    }
+    
     FileStorage.prototype = {
+        
+        /**
+         * Loads the preferences from disk. Can throw an exception if the file is not
+         * readable or parseable.
+         * 
+         * @return {Promise} Resolved with the data once it has been parsed.
+         */
         load: function () {
             var result = $.Deferred();
             var path = this.path;
@@ -276,6 +441,12 @@ define(function (require, exports, module) {
             return result.promise();
         },
         
+        /**
+         * Saves the new data to disk.
+         * 
+         * @param {Object} newData data to save
+         * @return {Promise} Promise resolved (with no arguments) once the data has been saved
+         */
         save: function (newData) {
             var result = $.Deferred();
             var path = this.path;
@@ -312,6 +483,18 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * A `Scope` is a `MergedMap` that is tied to a `Storage`. Essentially, it combines
+     * the methods of `MergedMap` and `Storage`.
+     * 
+     * Additionally, `Scope`s support "layers" which are additional levels of preferences
+     * that are stored within a single preferences file.
+     * 
+     * `Scope`s work by having a "base" level in the MergedMap that represents the data from
+     * the `Storage` and an additional level for each layer.
+     * 
+     * @param {Storage} storage Storage object from which prefs are loaded/saved
+     */
     function Scope(storage) {
         MergedMap.apply(this);
         this.storage = storage;
@@ -325,6 +508,14 @@ define(function (require, exports, module) {
     Scope.prototype = new MergedMap();
     
     _.extend(Scope.prototype, {
+        /**
+         * Overrides the base `addLevel` call to add support for layers.
+         * 
+         * @param {string} name Name for the new level
+         * @param {{map: ?MergedMap, layer: ?Layer}} options Additional options for the level.
+         *                            `map` supports having a MergedMap as a level
+         *                            `layer' adds a layer as a new level
+         */
         addLevel: function (name, options) {
             options = options || {};
             
@@ -342,12 +533,22 @@ define(function (require, exports, module) {
                 MergedMap.prototype.addLevel.call(this, name, options);
             }
         },
+        
+        /**
+         * Loads the prefs for this `Scope` from the `Storage`.
+         * 
+         * @return {Promise} Promise that is resolved once loading is complete
+         */
         load: function () {
             var result = $.Deferred();
             this.storage.load()
                 .then(function (data) {
                     this.data = data;
+                    
+                    // Update the base level with the new data
                     this.setData("base", data);
+                    
+                    // For each layer, re-evaluate the data for the layer
                     _.forIn(this._layers, function (layer) {
                         layer.setData(data);
                     });
@@ -358,6 +559,12 @@ define(function (require, exports, module) {
                 });
             return result.promise();
         },
+        
+        /**
+         * Saves the prefs for this `Scope`.
+         * 
+         * @return {Promise} promise resolved once the data is saved.
+         */
         save: function () {
             var self = this;
             if (this._dirty) {
@@ -369,6 +576,15 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * @private
+         * 
+         * `Scope`s suppport a more limited subset of levels than a generic `MergedMap`.
+         * This function normalizes the level to those supported by `Scope`s.
+         * 
+         * @param {(string|Array.<string>)} levelName name to normalize
+         * @return {?string} normalized name
+         */
         _normalizeLevelName: function (levelName) {
             if (_.isArray(levelName)) {
                 levelName = levelName[0];
@@ -379,6 +595,15 @@ define(function (require, exports, module) {
             return levelName;
         },
         
+        /**
+         * Sets the value for `id` at the given level and sends out notifications if
+         * the merged value has actually changed.
+         * 
+         * @param {(string|Array.<string>)} levelName Level at which to set the value
+         * @param {string} id Key to set
+         * @param {*} value Value for this key
+         * @return {boolean} true if the value was changed
+         */
         set: function (levelName, id, value) {
             // Scopes do not support changing settings on layers at this
             // time. Ultimately, the need to do so will be based on
@@ -392,6 +617,12 @@ define(function (require, exports, module) {
             return MergedMap.prototype.set.call(this, levelName, id, value);
         },
         
+        /**
+         * Provides all-new data for the given level.
+         * 
+         * @param {(string|Array.<string>)} levelName Level to apply data at
+         * @param {Object} data New data for the level
+         */
         setData: function (levelName, data) {
             // As with `set` above, setData is not supported on layers
             // at this time.
@@ -405,6 +636,18 @@ define(function (require, exports, module) {
         }
     });
     
+    /**
+     * A Layer which provides preferences scoped to a particular language that is being
+     * edited. These are defined in the JSON file as in this example:
+     * 
+     * {
+     *     "language": {
+     *         "html": {
+     *             "somePref": "someValue"
+     *         }
+     *     }
+     * }
+     */
     function LanguageLayer() {
         this.data = undefined;
         this.language = undefined;
