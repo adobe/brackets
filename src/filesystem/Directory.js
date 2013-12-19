@@ -217,7 +217,7 @@ define(function (require, exports, module) {
                     return;
                 } finally {
                     // Unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }
 

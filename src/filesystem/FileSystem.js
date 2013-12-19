@@ -283,10 +283,10 @@ define(function (require, exports, module) {
                     };
                     
                     entriesToWatchOrUnwatch.forEach(function (entry) {
-                        watchOrUnwatch(impl, entry.fullPath, watchOrUnwatchCallback);
+                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
                     });
-                }.bind(this));
-            }.bind(this), callback);
+                });
+            }, callback);
         }
     };
     
