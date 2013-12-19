@@ -631,7 +631,7 @@ define(function (require, exports, module) {
             while (token !== "," && token !== "{") {
                 currentSelector += token;
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    return false; // eof
                 }
             }
             
@@ -671,25 +671,34 @@ define(function (require, exports, module) {
                 currentSelector = "";
             }
             selectorStartChar = -1;
+
+            return true;
         }
         
         function _parseSelectorList() {
             selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
             selectorGroupStartChar = stream.start;
 
-            _parseSelector(stream.start);
+            if (!_parseSelector(stream.start)) {
+                return false;
+            }
+
             while (token === ",") {
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    return false; // eof
                 }
-                _parseSelector(stream.start);
+                if (!_parseSelector(stream.start)) {
+                    return false;
+                }
             }
+
+            return true;
         }
 
         function _parseDeclarationList() {
 
             var j;
-            declListStartLine = line;
+            declListStartLine = Math.min(line, lineCount - 1);
             declListStartChar = stream.start;
             
             // Extract the entire selector group we just saw.
@@ -773,10 +782,14 @@ define(function (require, exports, module) {
                 // Skip everything until the opening '{'
                 while (token !== "{") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
-                _nextTokenSkippingWhitespace();    // skip past '{', to next non-ws token
+
+                // skip past '{', to next non-ws token
+                if (!_nextTokenSkippingWhitespace()) {
+                    return; // eof
+                }
 
                 // Parse rules until we see '}'
                 _parseRuleList("}");
@@ -788,7 +801,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next ';'
                 while (token !== ";") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
                 
@@ -799,7 +812,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next '}'
                 while (token !== "}") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
             }
@@ -807,7 +820,10 @@ define(function (require, exports, module) {
 
         // parse a style rule
         function _parseRule() {
-            _parseSelectorList();
+            if (!_parseSelectorList()) {
+                return false;
+            }
+
             _parseDeclarationList();
         }
         
