@@ -39,7 +39,10 @@ define(function (require, exports, module) {
         Strings            = brackets.getModule("strings");
     
     
-    PreferencesManager.definePreference("jslint.options", "object");
+    PreferencesManager.definePreference("jslint.options", "object")
+        .on("change", function (e, data) {
+            CodeInspection.requestRun(Strings.JSLINT_NAME);
+        });
     
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
@@ -86,7 +89,6 @@ define(function (require, exports, module) {
         }
         return null;
     }
-    
     
     // Register for JS files
     CodeInspection.register("javascript", {

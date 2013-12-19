@@ -187,19 +187,22 @@ define(function (require, exports, module) {
 
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
-     * bottom panel.
+     * bottom panel. Does not run if inspection is disabled or if a providerName is given and does not
+     * match the current doc's provider name.
+     * 
+     * @param {?string} providerName name of the provider that is requesting a run
      */
-    function run() {
-        if (!_enabled) {
+    function run(providerName) {
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
+        
+        if (!_enabled || (providerName && providerName !== provider.name)) {
             _lastResult = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
             return;
         }
-        
-        var currentDoc = DocumentManager.getCurrentDocument(),
-            provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
         
         if (provider) {
             inspectFile(currentDoc.file, provider).then(function (result) {
@@ -435,4 +438,5 @@ define(function (require, exports, module) {
     exports.Type          = Type;
     exports.toggleEnabled = toggleEnabled;
     exports.inspectFile   = inspectFile;
+    exports.requestRun    = run;
 });
