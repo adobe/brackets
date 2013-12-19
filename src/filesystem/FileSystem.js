@@ -228,9 +228,9 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var recursiveWatch = this._impl.recursiveWatch,
-            commandName = shouldWatch ? "watchPath" : "unwatchPath",
-            watchOrUnwatch = this._impl[commandName].bind(this);
+        var impl = this._impl,
+            recursiveWatch = impl.recursiveWatch,
+            commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
         if (recursiveWatch) {
             if (entry !== watchedRoot.entry) {
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
                 // just need to find all entries in order to either mark them as
                 // watched or to remove them from the index.
                 this._enqueueWatchRequest(function (requestCb) {
-                    watchOrUnwatch(entry.fullPath, requestCb);
+                    impl[commandName].call(impl, entry.fullPath, requestCb);
                 }.bind(this), callback);
             }
         } else {
@@ -250,7 +250,8 @@ define(function (require, exports, module) {
             // filesystem to recursively watch or unwatch all subdirectories.
             this._enqueueWatchRequest(function (requestCb) {
                 // First construct a list of entries to watch or unwatch
-                var entriesToWatchOrUnwatch = [];
+                var entriesToWatchOrUnwatch = [],
+                    watchOrUnwatch = impl[commandName].bind(impl);
                 
                 var visitor = function (child) {
                     if (watchedRoot.filter(child.name, child.parentPath)) {
@@ -282,7 +283,7 @@ define(function (require, exports, module) {
                     };
                     
                     entriesToWatchOrUnwatch.forEach(function (entry) {
-                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
+                        watchOrUnwatch(impl, entry.fullPath, watchOrUnwatchCallback);
                     });
                 }.bind(this));
             }.bind(this), callback);
