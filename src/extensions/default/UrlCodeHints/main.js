@@ -491,8 +491,14 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                result = $.map(asyncHints, function (item) {
+                    if (item.indexOf(filter) === 0) {
+                        return item;
+                    }
+                }).sort(sortFunc);
+
                 deferred.resolveWith(this, [{
-                    hints: asyncHints,
+                    hints: result,
                     match: query.queryStr,
                     selectInitial: true,
                     handleWideResults: false
