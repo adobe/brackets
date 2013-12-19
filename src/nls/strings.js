@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         "hu": true,
         "it": true,
         "ja": true,
+        "ko": true,
         "nb": true,
         "nl": true,
         "pl": true,
