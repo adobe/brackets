@@ -166,18 +166,15 @@ define(function (require, exports, module) {
             var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
             
             function projectScopeIsReady() {
-                return PreferencesManager._manager._childMaps.project !== undefined;
+                return Object.keys(PreferencesManager._manager._childMaps.project.merged).length > 0;
             }
             waitsFor(projectScopeIsReady);
             runs(function () {
                 expect(PreferencesManager.get("spaceUnits")).toBe(92);
-            });
-            
-            // Changing projects will force a change in the project scope.
-            SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
-            runs(function () {
+                // Changing projects will force a change in the project scope.
+                SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
                 expect(PreferencesManager.get("spaceUnits")).toBeUndefined();
-            });
+            });            
         });
     });
 });

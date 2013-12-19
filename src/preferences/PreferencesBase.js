@@ -38,7 +38,7 @@
  *  default (the default values for any settings that are explicitly registered)
  *  user (the user's customized settings – the equivalent of Brackets' old 
  *        localStorage-based system. This is the settings file that lives in AppData)
- *  project (the useful new one: brackets.settings.json file in the root of a project)
+ *  project (the useful new one: .brackets.prefs file in the root of a project)
  *  session (in-memory only settings for the current editing session)
  * 
  * For example, if spaceUnits has a value set at the project level, then a call 

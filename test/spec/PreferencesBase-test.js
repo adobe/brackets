@@ -769,7 +769,7 @@ define(function (require, exports, module) {
         });
         
         describe("File Storage", function () {
-            var settingsFile = FileSystem.getFileForPath(testPath + "/brackets.prefs"),
+            var settingsFile = FileSystem.getFileForPath(testPath + "/.brackets.prefs"),
                 newSettingsFile = FileSystem.getFileForPath(testPath + "/new.prefs"),
                 filestorage,
                 originalText;
