@@ -315,7 +315,17 @@ define(function (require, exports, module) {
      *      watch is complete, possibly with a FileSystemError string.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, callback, false);
+        this._watchOrUnwatchEntry(entry, watchedRoot, function (err) {
+            // Make sure to clear cached data for all unwatched entries because
+            // entries always return cached data if it exists!
+            this._index.visitAll(function (child) {
+                if (child.fullPath.indexOf(entry.fullPath) === 0) {
+                    child._clearCachedData();
+                }
+            }.bind(this));
+            
+            callback(err);
+        }.bind(this), false);
     };
     
     /**
