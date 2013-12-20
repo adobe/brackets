@@ -235,6 +235,10 @@ define(function (require, exports, module) {
         
         exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
         exports.recursiveWatch = _recursiveWatchDefault;
+        
+        // Allows unit tests to manipulate the filesystem directly in order to
+        // simulate external change events
+        exports._model = _model;
     };
     
     // Simulate file watchers going offline

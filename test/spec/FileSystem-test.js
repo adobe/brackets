@@ -1305,5 +1305,75 @@ define(function (require, exports, module) {
                 });
             });
         });
+        describe("External change events", function () {
+            var _model,
+                changedEntry,
+                addedEntries,
+                removedEntries,
+                changeDone;
+            
+            beforeEach(function () {
+                _model = MockFileSystemImpl._model;
+                
+                changedEntry = null;
+                addedEntries = null;
+                removedEntries = null;
+                changeDone = false;
+                
+                runs(function () {
+                    $(fileSystem).on("change", function (event, entry, added, removed) {
+                        changedEntry = entry;
+                        addedEntries = added;
+                        removedEntries = removed;
+                        changeDone = true;
+                    });
+                
+                });
+            });
+            
+            it("should forward external change events on file creation", function () {
+                var dirname = "/subdir/",
+                    newfilename = "/subdir/file.that.does.not.exist",
+                    dir,
+                    newfile;
+                
+                runs(function () {
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    newfile = fileSystem.getFileForPath(newfilename);
+                    
+                    _model.writeFile(newfilename, "a lost spacecraft, a collapsed building");
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    var newfileAdded = addedEntries.some(function (entry) {
+                        return entry === newfile;
+                    });
+                        
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBeGreaterThan(0);
+                    expect(newfileAdded).toBe(true);
+                    expect(removedEntries.length).toBe(0);
+                });
+            });
+            
+            it("should forward external change events on file update", function () {
+                var oldfilename = "/subdir/file3.txt",
+                    oldfile;
+                
+                runs(function () {
+                    oldfile = fileSystem.getFileForPath(oldfilename);
+                    
+                    _model.writeFile(oldfilename, "a crashed aeroplane, or a world war");
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(oldfile);
+                    expect(addedEntries).toBeFalsy();
+                    expect(removedEntries).toBeFalsy();
+                });
+            });
+        });
     });
 });
