@@ -150,12 +150,10 @@ define(function (require, exports, module) {
         {
             name: "html ids",
             languageIds: ["html"],
-            done: function () {},
             search: search,
             match: match,
             itemFocus: itemFocus,
-            itemSelect: itemSelect,
-            resultsFormatter: null // use default
+            itemSelect: itemSelect
         }
     );
 

@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
         FileViewController    = require("project/FileViewController"),
+        FindReplace           = require("search/FindReplace"),
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
         PanelManager          = require("view/PanelManager"),
@@ -65,7 +66,7 @@ define(function (require, exports, module) {
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
-    var searchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
+    var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
@@ -119,38 +120,29 @@ define(function (require, exports, module) {
      * @return {RegExp}
      */
     function _getQueryRegExp(query) {
+        $(".modal-bar .error").hide();  // Clear any pending RegEx error message
+        
         if (!query) {
             return null;
         }
-        
-        // Clear any pending RegEx error message
-        $(".modal-bar .message").css("display", "inline-block");
-        $(".modal-bar .error").css("display", "none");
 
-        // If query is a regular expression, use it directly
-        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
-        if (isRE) {
-            // Make sure the 'g' flag is set
-            var flags = isRE[2] || "g";
-            if (flags.search("g") === -1) {
-                flags += "g";
-            }
+        var caseSensitive = $("#find-case-sensitive").is(".active");
+        
+        // Is it a (non-blank) regex?
+        if ($("#find-regexp").is(".active")) {
             try {
-                return new RegExp(isRE[1], flags);
+                return new RegExp(query, caseSensitive ? "g" : "gi");
             } catch (e) {
-                $(".modal-bar .message").css("display", "none");
                 $(".modal-bar .error")
-                    .css("display", "inline-block")
-                    .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
+                    .show()
+                    .text(e.message);
                 return null;
             }
-        }
-
-        // Query is a string. Turn it into a case-insensitive regexp
         
-        // Escape regex special chars
-        query = StringUtils.regexEscape(query);
-        return new RegExp(query, "gi");
+        } else {
+            // Query is a plain string. Turn it into a regexp
+            return new RegExp(StringUtils.regexEscape(query), caseSensitive ? "g" : "gi");
+        }
     }
     
     /**
@@ -477,7 +469,6 @@ define(function (require, exports, module) {
 
             if (dialog) {
                 dialog._close();
-                dialog = null;
             }
         } else {
 
@@ -487,9 +478,7 @@ define(function (require, exports, module) {
                 dialog.getDialogTextField().addClass("no-results")
                                             .removeAttr("disabled")
                                             .get(0).select();
-                                            
-                $(".modal-bar .message").css("display", "none");
-                $(".modal-bar .error").css("display", "inline-block").html(Strings.FIND_NO_RESULTS);
+                $(".modal-bar .no-results-message").show();
             }
         }
     }
@@ -665,7 +654,6 @@ define(function (require, exports, module) {
         if (!currentQueryExpr) {
             StatusBar.hideBusyIndicator();
             dialog._close();
-            dialog = null;
             return;
         }
         
@@ -730,16 +718,22 @@ define(function (require, exports, module) {
 
 
     /**
-     * Closes the search dialog and resolves the promise that showDialog returned
+     * Closes the search dialog and resolves the promise that showDialog returned.
+     * @param {boolean=} suppressAnimation Used to hide the search bar immediately, when another
+     *      one is synchronously about to be shown.
      */
-    FindInFilesDialog.prototype._close = function (value) {
+    FindInFilesDialog.prototype._close = function (suppressAnimation) {
         if (this.closed) {
             return;
         }
         
+        // Hide error popup, since it hangs down low enough to make the slide-out look awkward
+        $(".modal-bar .error").hide();
+        
         this.closed = true;
-        this.modalBar.close();
+        this.modalBar.close(true, !suppressAnimation);
         EditorManager.focusEditor();
+        dialog = null;
     };
     
     /**
@@ -757,8 +751,24 @@ define(function (require, exports, module) {
             dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
             that       = this;
         
+        // Synchronously close Find/Replace bar first, if open (TODO: remove once #6203 fixed)
+        // (Any previous open FindInFiles bar instance was already handled by our caller)
+        FindReplace._closeFindBar();
+        
         this.modalBar    = new ModalBar(dialogHTML, false);
-        var $searchField = $("input#searchInput");
+        
+        var $searchField = $("input#find-what");
+        
+        function handleQueryChange() {
+            // Check the query expression on every input event. This way the user is alerted
+            // to any RegEx syntax errors immediately.
+            var query = _getQueryRegExp($searchField.val());
+            
+            // Clear any no-results indicator since query has changed
+            // But input field may still have error style if its content is an invalid regexp
+            that.getDialogTextField().toggleClass("no-results", Boolean($searchField.val() && query === null));
+            $(".modal-bar .no-results-message").hide();
+        }
         
         $searchField.get(0).select();
         $searchField
@@ -770,7 +780,7 @@ define(function (require, exports, module) {
                     var query = $searchField.val();
                     
                     if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                        that._close(null);
+                        that._close();
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
@@ -778,19 +788,25 @@ define(function (require, exports, module) {
                     }
                 }
             })
-            .bind("input", function (event) {
-                // Check the query expression on every input event. This way the user is alerted
-                // to any RegEx syntax errors immediately.
-                _getQueryRegExp($searchField.val());
-                that.getDialogTextField().removeClass("no-results");
-            })
+            .bind("input", handleQueryChange)
             .blur(function () {
                 if (that.getDialogTextField().attr("disabled")) {
                     return;
                 }
-                that._close(null);
+                that._close();
             })
             .focus();
+        
+        this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
+            $(e.currentTarget).toggleClass('active');
+            FindReplace._updatePrefsFromSearchBar();
+            
+            handleQueryChange();  // re-validate regexp if needed
+        });
+        
+        // Initial UI state (including prepopulated initialString passed into template)
+        FindReplace._updateSearchBarFromPrefs();
+        handleQueryChange();
     };
 
     /**
@@ -821,7 +837,7 @@ define(function (require, exports, module) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
             initialString = dialog.getDialogTextField().val();
-            dialog.modalBar.close(true, false);
+            dialog._close(true);
         }
 
         dialog             = new FindInFilesDialog();
@@ -887,8 +903,8 @@ define(function (require, exports, module) {
             // 'added' and 'removed' parameters to this function to easily determine
             // which files/folders have been added or removed.
             //
-            // In the meantime, do a quick check for directory changed events to see
-            // if any of the search results files have been deleted.
+            // In the meantime, at least check for directory changed events to see
+            // if any of the search results files have been deleted within Brackets.
             if (searchResultsPanel.isVisible()) {
                 entry.getContents(function (err, contents) {
                     if (!err) {
@@ -900,6 +916,7 @@ define(function (require, exports, module) {
                         
                         // Update the search results
                         _.forEach(searchResults, function (item, fullPath) {
+                            // Is entry the parent folder of this search result set? (simple approximate check)
                             if (fullPath.lastIndexOf("/") === entry.fullPath.length - 1) {
                                 // The changed directory includes this entry. Make sure the file still exits.
                                 if (!_includesPath(fullPath)) {
@@ -936,6 +953,12 @@ define(function (require, exports, module) {
     $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
     
     FileSystem.on("change", _fileSystemChangeHandler);
+    
+    FindReplace._registerFindInFilesCloser(function () {
+        if (dialog) {
+            dialog._close(true);
+        }
+    });
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
