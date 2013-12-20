@@ -212,6 +212,10 @@ define(function (require, exports, module) {
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
 
+        if (this.info.offset === 0 && lastContext !== null) {
+            return null;
+        }
+        
         if (context === CSSUtils.PROP_VALUE) {
             
             // Always select initial value
@@ -262,7 +266,7 @@ define(function (require, exports, module) {
         } else if (context === CSSUtils.PROP_NAME) {
             
             // Select initial property if anything has been typed
-            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || needle !== "") {
                 selectInitial = true;
             }
             
