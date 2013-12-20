@@ -216,7 +216,7 @@ define(function (require, exports, module) {
      * @param {string} template A string template or jQuery object to use as the dialog HTML.
      * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
      *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
-     *      key, and dismiss the dialog yourself when ready with `cancelModalDialogIfOpen()`.
+     *      key, and dismiss the dialog yourself when ready by calling `close()` on the returned dialog.
      * @return {Dialog}
      */
     function showModalDialogUsingTemplate(template, autoDismiss) {
@@ -313,9 +313,12 @@ define(function (require, exports, module) {
      * @param {Array.<{className: string, id: string, text: string}>=} buttons An array of buttons where each button
      *      has a class, id and text property. The id is used in "data-button-id". Defaults to a single Ok button.
      *      Typically className is one of DIALOG_BTN_CLASS_*, id is one of DIALOG_BTN_*
+     * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
+     *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
+     *      key, and dismiss the dialog yourself when ready by calling `close()` on the returned dialog.
      * @return {Dialog}
      */
-    function showModalDialog(dlgClass, title, message, buttons) {
+    function showModalDialog(dlgClass, title, message, buttons, autoDismiss) {
         var templateVars = {
             dlgClass: dlgClass,
             title:    title   || "",
@@ -324,7 +327,7 @@ define(function (require, exports, module) {
         };
         var template = Mustache.render(DialogTemplate, templateVars);
         
-        return showModalDialogUsingTemplate(template);
+        return showModalDialogUsingTemplate(template, autoDismiss);
     }
     
     /**
