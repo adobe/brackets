@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
+        NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
         NativeApp               = require("utils/NativeApp");

@@ -209,10 +209,6 @@ define(function (require, exports, module) {
             selectInitial = false;
             
         
-        if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || implicitChar === null) {
-            selectInitial = true;
-        }
-        
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
 
@@ -221,6 +217,10 @@ define(function (require, exports, module) {
         }
         
         if (context === CSSUtils.PROP_VALUE) {
+            
+            // Always select initial value
+            selectInitial = true;
+            
             // When switching from a NAME to a VALUE context, restart the session
             // to give other more specialized providers a chance to intervene.
             if (lastContext === CSSUtils.PROP_NAME) {
@@ -264,6 +264,12 @@ define(function (require, exports, module) {
                 selectInitial: selectInitial
             };
         } else if (context === CSSUtils.PROP_NAME) {
+            
+            // Select initial property if anything has been typed
+            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+                selectInitial = true;
+            }
+            
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {
