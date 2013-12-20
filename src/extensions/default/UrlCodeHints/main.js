@@ -75,7 +75,6 @@ define(function (require, exports, module) {
         docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
         
         // get relative path from query string
-        // TODO: handle site-root relative
         queryUrl = window.PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
