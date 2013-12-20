@@ -266,7 +266,7 @@ define(function (require, exports, module) {
         } else if (context === CSSUtils.PROP_NAME) {
             
             // Select initial property if anything has been typed
-            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) {
+            if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || needle !== "") {
                 selectInitial = true;
             }
             
