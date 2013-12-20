@@ -1761,64 +1761,69 @@ define(function (require, exports, module) {
      * this case, the editor state isn't currently preserved.
      * 
      * @param {$.Event} event
-     * @param {File|Directory} entry File or Directory changed
+     * @param {?(File|Directory)} entry File or Directory changed
      * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
      * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed children
      */
     _fileSystemChange = function (event, entry, added, removed) {
-        if (entry) {
-            // Directory contents removed
-            if (removed && removed.length) {
-                _fileTreeChangeQueue.add(function () {
-                    return Async.doSequentially(removed, function (removedEntry) {
-                        return _deleteTreeNode(removedEntry);
-                    }, false);
-                });
+        FileSyncManager.syncOpenDocuments();
+
+        if (!entry) {
+            refreshFileTree();
+            return;
+        }
+
+        if (entry.isDirectory) {
+            if (!added || !removed) {
+                // TODO: just update children of entry in this case.
+                refreshFileTree();
+                return;
             }
 
+            // Directory contents removed
+            _fileTreeChangeQueue.add(function () {
+                return Async.doSequentially(removed, function (removedEntry) {
+                    return _deleteTreeNode(removedEntry);
+                }, false);
+            });
+
             // Directory contents added
-            if (added && added.length) {
-                _fileTreeChangeQueue.add(function () {
-                    // Find parent node to add to. Use shallowSearch=true to
-                    // skip adding a child if it's parent is not visible
-                    return _findTreeNode(entry, true).then(function ($directoryNode) {
-                        if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
-                            return Async.doSequentially(added, function (addedEntry) {
-                                var json = _entryToJSON(addedEntry);
+            _fileTreeChangeQueue.add(function () {
+                // Find parent node to add to. Use shallowSearch=true to
+                // skip adding a child if it's parent is not visible
+                return _findTreeNode(entry, true).then(function ($directoryNode) {
+                    if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
+                        return Async.doSequentially(added, function (addedEntry) {
+                            var json = _entryToJSON(addedEntry);
+                            
+                            // _entryToJSON returns null if the added file is filtered from view
+                            if (json) {
                                 
-                                // _entryToJSON returns null if the added file is filtered from view
-                                if (json) {
-                                    
-                                    // Before creating a new node, make sure it doesn't already exist.
-                                    // TODO: Improve the efficiency of this search!
-                                    return _findTreeNode(addedEntry).then(function ($childNode) {
-                                        if ($childNode) {
-                                            // the node already exists; do nothing;
-                                            return new $.Deferred().resolve();
-                                        } else {
-                                            // The node wasn't found; create it.
-                                            // Position is irrelevant due to sorting
-                                            return _createNode($directoryNode, null, json, true);
-                                        }
-                                    }, function () {
-                                        // The node doesn't exist; create it.
+                                // Before creating a new node, make sure it doesn't already exist.
+                                // TODO: Improve the efficiency of this search!
+                                return _findTreeNode(addedEntry).then(function ($childNode) {
+                                    if ($childNode) {
+                                        // the node already exists; do nothing;
+                                        return new $.Deferred().resolve();
+                                    } else {
+                                        // The node wasn't found; create it.
+                                        // Position is irrelevant due to sorting
                                         return _createNode($directoryNode, null, json, true);
-                                    });
-                                } else {
-                                    return new $.Deferred().resolve();
-                                }
-                            }, false);
-                        } else {
-                            return new $.Deferred().resolve();
-                        }
-                    });
+                                    }
+                                }, function () {
+                                    // The node doesn't exist; create it.
+                                    return _createNode($directoryNode, null, json, true);
+                                });
+                            } else {
+                                return new $.Deferred().resolve();
+                            }
+                        }, false);
+                    } else {
+                        return new $.Deferred().resolve();
+                    }
                 });
-            }
-        } else {
-            refreshFileTree();
+            });
         }
-        
-        FileSyncManager.syncOpenDocuments();
     };
 
     /**

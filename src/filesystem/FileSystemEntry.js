@@ -227,14 +227,20 @@ define(function (require, exports, module) {
             // root directories have no parent path
             this._parentPath = null;
         }
-
-        // Update watchedRootFilterResult
-        var watchedRoot = this._watchedRoot;
-        if (watchedRoot) {
-            this._watchedRootFilterResult = watchedRoot.filter(this._name, this._parentPath);
-        }
         
         this._path = newPath;
+        
+        var watchedRoot = this._watchedRoot;
+        if (watchedRoot) {
+            if (watchedRoot.entry.fullPath.indexOf(newPath) === 0) {
+                // Update watchedRootFilterResult
+                this._watchedRootFilterResult = watchedRoot.filter(this._name, this._parentPath);
+            } else {
+                // The entry was moved outside of the watched root
+                this._watchedRoot = null;
+                this._watchedRootFilterResult = false;
+            }
+        }
     };
     
     /**
@@ -274,6 +280,10 @@ define(function (require, exports, module) {
                 this._clearCachedData();
                 callback(err);
                 return;
+            }
+            
+            if (!exists) {
+                this._clearCachedData();
             }
             
             callback(null, exists);

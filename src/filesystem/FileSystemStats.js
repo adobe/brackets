@@ -33,7 +33,7 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
-     * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string}} options
+     * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string, hash: object}} options
      */
     function FileSystemStats(options) {
         var isFile = options.isFile;
@@ -101,6 +101,12 @@ define(function (require, exports, module) {
      * @type {Number}
      */
     FileSystemStats.prototype._size = null;
+
+    /**
+     * Consistency hash for a file
+     * @type {object}
+     */
+    FileSystemStats.prototype._hash = null;
     
     /**
      * The canonical path of this file or directory ONLY if it is a symbolic link,

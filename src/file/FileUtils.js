@@ -73,7 +73,9 @@ define(function (require, exports, module) {
      * Asynchronously writes a file as UTF-8 encoded text.
      * @param {!File} file File to write
      * @param {!string} text
-     * @param {boolean=} allowBlindWrite 
+     * @param {boolean=} allowBlindWrite Indicates whether or not CONTENTS_MODIFIED
+     *      errors---which can be triggered if the actual file contents differ from 
+     *      the FileSystem's last-known contents---should be ignored.
      * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a FileSystemError.
      */

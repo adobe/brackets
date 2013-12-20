@@ -73,13 +73,19 @@ define(function (require, exports, module) {
     Directory.prototype._contentsStatsErrors = null;
     
     /**
-     * Clear any cached data for this directory
+     * Clear any cached data for this directory. By default, we clear the contents
+     * of immediate children as well, because in some cases file watchers fail 
+     * provide precise change notifications. (Sometimes, like after a "git
+     * checkout", they just report that some directory has changed when in fact
+     * many of the file within the directory have changed.
+     * 
      * @private
+     * @param {boolean=} preserveImmediateChildren
      */
-    Directory.prototype._clearCachedData = function (stopRecursing) {
+    Directory.prototype._clearCachedData = function (preserveImmediateChildren) {
         FileSystemEntry.prototype._clearCachedData.apply(this);
         
-        if (!stopRecursing && this._contents) {
+        if (!preserveImmediateChildren && this._contents) {
             this._contents.forEach(function (child) {
                 child._clearCachedData(true);
             });
@@ -136,7 +142,7 @@ define(function (require, exports, module) {
         
         this._contentsCallbacks = [callback];
         
-        this._impl.readdir(this.fullPath, function (err, entries, stats) {
+        this._impl.readdir(this.fullPath, function (err, names, stats) {
             var contents = [],
                 contentsStats = [],
                 contentsStatsErrors;
@@ -146,7 +152,7 @@ define(function (require, exports, module) {
             } else {
                 var watched = this._isWatched();
                 
-                entries.forEach(function (name, index) {
+                names.forEach(function (name, index) {
                     var entryPath = this.fullPath + name;
                     
                     if (this._fileSystem._indexFilter(entryPath, name)) {

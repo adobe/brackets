@@ -157,7 +157,7 @@ define(function (require, exports, module) {
         
         var cb = _getCallback("writeFile", path, callback);
                 
-        if (_model.exists(path) && options.hasOwnProperty("hash") && options.hash !== _model.stat(path)._hash) {
+        if (_model.exists(path) && options.hasOwnProperty("expectedHash") && options.expectedHash !== _model.stat(path)._hash) {
             cb(FileSystemError.CONTENTS_MODIFIED);
             return;
         }

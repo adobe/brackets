@@ -117,12 +117,12 @@ define(function (require, exports, module) {
             waitsFor(function () { return cb.wasCalled; });
             runs(function () {
                 expect(cb.error).toBeFalsy();
-                expect(fileSystem._activeChangeCount).toBe(0);
+                expect(fileSystem._getActiveChangeCount()).toBe(0);
             });
         });
         
         afterEach(function () {
-            expect(fileSystem._activeChangeCount).toBe(0);
+            expect(fileSystem._getActiveChangeCount()).toBe(0);
         });
         
         describe("Path normalization", function () {
@@ -1331,7 +1331,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should forward external change events on file creation", function () {
+            it("should fire change event on external file creation", function () {
                 var dirname = "/subdir/",
                     newfilename = "/subdir/file.that.does.not.exist",
                     dir,
@@ -1341,23 +1341,21 @@ define(function (require, exports, module) {
                     dir = fileSystem.getDirectoryForPath(dirname);
                     newfile = fileSystem.getFileForPath(newfilename);
                     
-                    _model.writeFile(newfilename, "a lost spacecraft, a collapsed building");
+                    dir.getContents(function () {
+                        _model.writeFile(newfilename, "a lost spacecraft, a collapsed building");
+                    });
                 });
                 waitsFor(function () { return changeDone; }, "external change event");
                 
                 runs(function () {
-                    var newfileAdded = addedEntries.some(function (entry) {
-                        return entry === newfile;
-                    });
-                        
                     expect(changedEntry).toBe(dir);
-                    expect(addedEntries.length).toBeGreaterThan(0);
-                    expect(newfileAdded).toBe(true);
+                    expect(addedEntries.length).toBe(1);
+                    expect(addedEntries[0]).toBe(newfile);
                     expect(removedEntries.length).toBe(0);
                 });
             });
             
-            it("should forward external change events on file update", function () {
+            it("should fire change event on external file update", function () {
                 var oldfilename = "/subdir/file3.txt",
                     oldfile;
                 

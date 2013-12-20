@@ -390,7 +390,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, hash : string=}} options
+     * @param {{encoding : string=, mode : number=, expectedHash : object=}} options
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
@@ -420,8 +420,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (options.hasOwnProperty("hash") && options.hash !== stats._hash) {
-                console.warn("Blind write attempted: ", path, stats._hash, options.hash);
+            if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
+                console.warn("Blind write attempted: ", path, stats._hash, options.expectedHash);
                 callback(FileSystemError.CONTENTS_MODIFIED);
                 return;
             }
@@ -511,15 +511,8 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, callback) {
-        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
-            if (err || isNetworkDrive) {
-                callback(FileSystemError.UNKNOWN);
-                return;
-            }
-            
-            _nodeDomain.exec("unwatchPath", path)
-                .then(callback, callback);
-        });
+        _nodeDomain.exec("unwatchPath", path)
+            .then(callback, callback);
     }
     
     /**
@@ -530,15 +523,8 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchAll(callback) {
-        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
-            if (err || isNetworkDrive) {
-                callback(FileSystemError.UNKNOWN);
-                return;
-            }
-            
-            _nodeDomain.exec("unwatchAll")
-                .then(callback, callback);
-        });
+        _nodeDomain.exec("unwatchAll")
+            .then(callback, callback);
     }
     
     // Export public API
