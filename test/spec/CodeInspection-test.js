@@ -165,7 +165,7 @@ define(function (require, exports, module) {
                     expect(codeInspector1.scanFile).toHaveBeenCalled();
                     expect(result.length).toEqual(1);
                     expect(result[0].provider.name).toEqual("javascript linter");
-                    expect(result[0].issues.errors.length).toEqual(1);
+                    expect(result[0].result.errors.length).toEqual(1);
                 });
             });
 
@@ -188,8 +188,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(result.length).toEqual(2);
-                    expect(result[0].issues.errors.length).toEqual(1);
-                    expect(result[1].issues.errors.length).toEqual(1);
+                    expect(result[0].result.errors.length).toEqual(1);
+                    expect(result[1].result.errors.length).toEqual(1);
                 });
             });
 
@@ -493,8 +493,8 @@ define(function (require, exports, module) {
                 CodeInspection._unregisterAll();
             });
 
-            it("should overwrite inspector 1 with inspector 2 and inspector 2 should be called", function () {
-                var codeInspector1 = createCodeInspector("javascript inspector", successfulLintResult());
+            it("should unregister JSLint linter if a new javascript linter is registered", function () {
+                var codeInspector1 = createCodeInspector("JSLint", successfulLintResult());
                 CodeInspection.register("javascript", codeInspector1);
                 var codeInspector2 = createCodeInspector("javascript inspector", successfulLintResult());
                 CodeInspection.register("javascript", codeInspector2, true);
@@ -532,23 +532,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(codeInspector1.scanFile).toHaveBeenCalled();
                     expect(codeInspector2.scanFile).toHaveBeenCalled();
-                });
-            });
-
-            it("should register the same inspector multiple times and overwrite it with some other inspector with the same name", function () {
-                var codeInspector1 = createCodeInspector("javascript inspector", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector1);
-                var codeInspector2 = createCodeInspector("javascript inspector", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector2);
-                var codeInspector3 = createCodeInspector("javascript inspector", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector3, true);
-
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
-
-                runs(function () {
-                    expect(codeInspector1.scanFile).not.toHaveBeenCalled();
-                    expect(codeInspector2.scanFile).not.toHaveBeenCalled();
-                    expect(codeInspector3.scanFile).toHaveBeenCalled();
                 });
             });
         });

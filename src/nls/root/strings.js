@@ -186,8 +186,7 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
 
     // CodeInspection: errors/warnings
-    "CODE_INSPECTION_PANEL_TITLE"           : "Code Inspection",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Problems",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
     "SINGLE_ERROR"                          : "1 {0} Problem",
     "MULTIPLE_ERRORS"                       : "{1} {0} Problems",
     "NO_ERRORS"                             : "No {0} problems found - good job!",

@@ -157,15 +157,16 @@ define(function (require, exports, module) {
      * These results will reflect any unsaved changes present in the file that is currently opened.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param ?[{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}] providerList
-     * @return {$.Promise} a jQuery promise that will be resolved with Array.<{provider: {{name:string, scanFile:function(string, string)}, issues: ?{!errors:Array, aborted:boolean}}}>
+     * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array.<{pos:{line:integer, pos:integer}, message:string, type:String}>, aborted:boolean}} provider
+     * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array.<{pos:{line:integer, pos:integer}, message:string, type:String}>, aborted:boolean}
      */
     function inspectFile(file, providerList) {
         var response = new $.Deferred(),
-            _providerList = (providerList || getProvidersForPath(file.fullPath)) || [],
             results = [];
 
-        if (!_providerList.length) {
+        providerList = (providerList || getProvidersForPath(file.fullPath)) || [];
+
+        if (!providerList.length) {
             response.resolve(null);
             return response.promise();
         }
@@ -174,12 +175,12 @@ define(function (require, exports, module) {
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath);
 
-                _providerList.forEach(function (provider) {
+                providerList.forEach(function (provider) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
 
                     try {
                         var scanResult = provider.scanFile(fileText, file.fullPath);
-                        results.push({provider: provider, issues: scanResult});
+                        results.push({provider: provider, result: scanResult});
                     } catch (err) {
                         console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
                         response.reject(err);
@@ -188,10 +189,10 @@ define(function (require, exports, module) {
 
                     PerfUtils.addMeasurement(perfTimerProvider);
                 });
-                
-                response.resolve(results);
 
                 PerfUtils.addMeasurement(perfTimerInspector);
+
+                response.resolve(results);
             })
             .fail(function (err) {
                 console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
@@ -201,33 +202,41 @@ define(function (require, exports, module) {
         return response.promise();
     }
 
-    function updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, providerList, aborted) {
-        // don't show a header if there is only one provider available for this file type
+    /**
+     * Update the title of the problem panel and the tooltip of the status bar icon. The title and the tooltip will
+     * change based on the number of problems reported and how many provider reported problems.
+     * 
+     * @param {Number} numProblems - how many problems have been reported
+     * @param {Array.<{name:string, scanFile:function(string, string):Object}>} providerReportingProblems - provider that reported problems
+     * @param {boolean} aborted - code inspection was aborted previously
+     */
+    function updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, aborted) {
         var message;
 
-        if (providerReportingProblems === 1) {
+        if (providerReportingProblems.length === 1) {
+            // don't show a header if there is only one provider available for this file type
             $problemsPanelTable.find(".inspector-section").hide();
 
             if (numProblems === 1 && !aborted) {
-                message = StringUtils.format(Strings.SINGLE_ERROR, providerList[0].name);
+                message = StringUtils.format(Strings.SINGLE_ERROR, providerReportingProblems[0].name);
             } else {
                 if (aborted) {
                     numProblems += "+";
                 }
 
-                message = StringUtils.format(Strings.MULTIPLE_ERRORS, providerList[0].name, numProblems);
+                message = StringUtils.format(Strings.MULTIPLE_ERRORS, providerReportingProblems[0].name, numProblems);
             }
 
             $problemsPanel.find(".title").text(message);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
-        } else if (providerReportingProblems > 1) {
+        } else if (providerReportingProblems.length > 1) {
             $problemsPanelTable.find(".inspector-section").show();
 
             if (aborted) {
                 numProblems += "+";
             }
 
-            message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_SINGLE, numProblems);
+            message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, numProblems);
             $problemsPanel.find(".title").text(message);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
         }
@@ -252,10 +261,9 @@ define(function (require, exports, module) {
         if (providerList && providerList.length) {
             var numProblems = 0;
             var aborted = false;
-            var numProblemsReportedByProvider = 0;
             var allErrors = [];
             var html;
-            var providerReportingProblems = 0;
+            var providerReportingProblems = [];
 
             // run all the provider in parallel
             inspectFile(currentDoc.file, providerList).then(function (results) {
@@ -265,13 +273,12 @@ define(function (require, exports, module) {
                 }
 
                 // how many errors in total?
-                var errors = results.reduce(function (a, item) { return a + (item.issues ? item.issues.errors.length : 0); }, 0);
+                var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
 
                 // save for later and make the amount of errors easily available
                 _hasErrors = !!errors;
 
                 if (!errors) {
-                    _hasErrors = null;
                     Resizer.hide($problemsPanel);
 
                     var message = Strings.NO_ERRORS_MULTIPLE_PROVIDER;
@@ -286,35 +293,35 @@ define(function (require, exports, module) {
                 }
 
                 // Augment error objects with additional fields needed by Mustache template
-                results.forEach(function (result) {
-                    numProblemsReportedByProvider = 0;
-                    var provider = result.provider;
+                results.forEach(function (inspectionResult) {
+                    var provider = inspectionResult.provider;
 
-                    if (result.issues) {
-                        result.issues.errors.forEach(function (error) {
-                            error.friendlyLine = error.pos.line + 1;
-                            error.codeSnippet = currentDoc.getLine(error.pos.line);
-                            error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                    if (inspectionResult.result) {
+                        inspectionResult.result.errors.forEach(function (error) {
+                            // the CSS linter return an "you have specific issues ion your file message without line number and snippet
+                            if (!isNaN(error.pos.line)) {
+                                error.friendlyLine = error.pos.line + 1;
+                                error.codeSnippet = currentDoc.getLine(error.pos.line);
+                                error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                            }
 
                             if (error.type !== Type.META) {
                                 numProblems++;
-                                numProblemsReportedByProvider++;
                             }
                         });
 
                         // if the code inspector was unable to process the whole file, we keep track to show a different status
-                        if (result.issues.aborted) {
+                        if (inspectionResult.result.aborted) {
                             aborted = true;
                         }
 
-                        allErrors.push({
-                            providerName: provider.name,
-                            results:      result.issues.errors,
-                            numProblems:  numProblemsReportedByProvider
-                        });
+                        if (inspectionResult.result.errors) {
+                            allErrors.push({
+                                providerName: provider.name,
+                                results:      inspectionResult.result.errors
+                            });
 
-                        if (numProblemsReportedByProvider) {
-                            providerReportingProblems++;
+                            providerReportingProblems.push(provider);
                         }
                     }
                 });
@@ -335,14 +342,12 @@ define(function (require, exports, module) {
                     Resizer.show($problemsPanel);
                 }
 
-                updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, providerList, aborted);
-
                 setGotoEnabled(true);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
             
-            updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, providerList, aborted);
+            updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, aborted);
         } else {
             // No provider for current file
             _hasErrors = false;
@@ -368,20 +373,22 @@ define(function (require, exports, module) {
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
      */
-    function register(languageId, provider, replaceProvider) {
+    function register(languageId, provider) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
         }
 
-        if (replaceProvider) {
-            // remove the provider with the same name from the list
-            console.log("[CodeInspection] Replacing code inspector '" + provider.name + "' with new implementation");
+        if (languageId === "javascript") {
+            // This is a special case to enable extension provider to replace the JSLint provider
+            // in favor of their own implementation
             _.remove(_providers[languageId], function (registeredProvider) {
-                return registeredProvider.name === provider.name;
+                return registeredProvider.name === "JSLint";
             });
         }
 
         _providers[languageId].push(provider);
+        
+        run();
     }
 
     /**
@@ -454,7 +461,6 @@ define(function (require, exports, module) {
         }
     }
 
-
     // Register command handlers
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
@@ -491,11 +497,14 @@ define(function (require, exports, module) {
                     // Grab the required position data
                     var lineTd    = $selectedRow.find(".line-number");
                     var line      = parseInt(lineTd.text(), 10) - 1;  // convert friendlyLine back to pos.line
-                    var character = lineTd.data("character");
-
-                    var editor = EditorManager.getCurrentFullEditor();
-                    editor.setCursorPos(line, character, true);
-                    EditorManager.focusEditor();
+                    // if there is no line number available, don't do anything
+                    if (!isNaN(line)) {
+                        var character = lineTd.data("character");
+    
+                        var editor = EditorManager.getCurrentFullEditor();
+                        editor.setCursorPos(line, character, true);
+                        EditorManager.focusEditor();
+                    }
                 }
             });
 
