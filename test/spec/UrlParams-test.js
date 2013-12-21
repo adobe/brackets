@@ -60,6 +60,14 @@ define(function (require, exports, module) {
                 expect(params.get("three")).toEqual("foobar");
             });
             
+            it("should create a parameter object with three parameters with empty string values", function () {
+                params.parse("http://www.brackets.io?one&two&three");
+                
+                expect(params.get("one")).toEqual("");
+                expect(params.get("two")).toEqual("");
+                expect(params.get("three")).toEqual("");
+            });
+            
             it("should create a parameter object with no parameters", function () {
                 params.parse("http://www.brackets.io");
                 
@@ -156,6 +164,32 @@ define(function (require, exports, module) {
                 
                 expect(params.isEmpty()).toBeFalsy();
                 expect(params.toString()).toNotEqual("");
+            });
+        });
+        
+        describe("Test for malformed or unusual query strings", function () {
+            var params = new UrlParams();
+            
+            it("should parse a missing query string as an empty object", function () {
+                params.parse("http://www.brackets.io?");
+                
+                expect(params.isEmpty()).toBeTruthy();
+                expect(params.toString()).toEqual("");
+            });
+            
+            it("should parse a query string of whitespace as an empty object", function () {
+                params.parse("http://www.brackets.io?   ");
+                
+                expect(params.isEmpty()).toBeTruthy();
+                expect(params.toString()).toEqual("");
+            });
+            
+            it("should parse a random number (used to circumvent browser cache)", function () {
+                params.parse("http://www.brackets.io?28945893575608");
+                
+                expect(params.get("28945893575608")).toEqual("");
+                expect(params.isEmpty()).toBeFalsy();
+                expect(params.toString()).toEqual("28945893575608=");
             });
         });
     });

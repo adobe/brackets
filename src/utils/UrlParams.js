@@ -42,22 +42,25 @@ define(function (require, exports, module) {
      * @param {string} url
      */
     UrlParams.prototype.parse = function (url) {
-        var searchString = "",
+        var queryString = "",
             urlParams,
             p,
             self = this;
         
         if (!url) {
-            searchString = window.document.location.search.substring(1);
+            queryString = window.document.location.search.substring(1);
         } else if (url.indexOf("?") !== -1) {
-            searchString = url.substring(url.indexOf("?") + 1);
+            queryString = url.substring(url.indexOf("?") + 1);
         }
         
-        if (searchString) {
-            urlParams = searchString.split("&");
+        queryString = queryString.trimRight();
+        
+        if (queryString) {
+            urlParams = queryString.split("&");
             
             urlParams.forEach(function (param) {
                 p = param.split("=");
+                p[1] = p[1] || "";
                 self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
             });
         } else {
