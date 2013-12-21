@@ -47,6 +47,8 @@ define(function (require, exports, module) {
             p,
             self = this;
         
+        self._store = {};
+        
         if (!url) {
             queryString = window.document.location.search.substring(1);
         } else if (url.indexOf("?") !== -1) {
@@ -63,8 +65,6 @@ define(function (require, exports, module) {
                 p[1] = p[1] || "";
                 self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
             });
-        } else {
-            self._store = {};
         }
     };
     
