@@ -32,6 +32,7 @@
     ::-webkit-scrollbar {
         width: 9px;
         height: 9px;
+        background-color: transparent;
     }
 
     ::-webkit-scrollbar-corner {
@@ -39,6 +40,7 @@
     }
 
     ::-webkit-scrollbar-thumb {
+        background-color: transparent;
         box-shadow: none;
         border: none;
     }
@@ -95,5 +97,33 @@
 
     ::-webkit-scrollbar-thumb:window-inactive {
         box-shadow: 0 0 0 5px @custom-scrollbar-thumb-inactive inset;
+    }
+}
+
+.platform-win {
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+        background-color: rgb(240, 240, 240);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        box-shadow: none;
+        border: none;
+        background-color: rgb(206, 206, 206);
+    }
+    
+    ::-webkit-scrollbar-track:vertical {
+        margin: 0 0 12px 0;
+        min-height: 20px;
+    }
+
+    ::-webkit-scrollbar-track:horizontal {
+        margin: 0 12px 0 0;
+        min-width: 20px;
+    }
+    
+    ::-webkit-scrollbar-corner {
+        background-color: transparent;
     }
 }
