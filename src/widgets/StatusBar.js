@@ -98,13 +98,14 @@ define(function (require, exports, module) {
      * @param {boolean=} visible Shows or hides the indicator over the statusbar.
      * @param {string=} style Sets the attribute "class" of the indicator.
      * @param {string=} tooltip Sets the attribute "title" of the indicator.
+     * @param {string=} _beforeID For internal use by CodeInspection module.
      */
-    function addIndicator(id, indicator, visible, style, tooltip) {
+    function addIndicator(id, indicator, visible, style, tooltip, _beforeID) {
         if (!_init) {
             console.error("StatusBar API invoked before status bar created");
             return;
         }
-
+        
         indicator = indicator || document.createElement("div");
         tooltip = tooltip || "";
         style = style || "";
@@ -121,6 +122,13 @@ define(function (require, exports, module) {
             $indicator.hide();
         }
         
+        if (_beforeID) {
+            $("#" + _beforeID).before($indicator);
+        } else {
+            // The "busy" spinner should always be leftmost
+            var $busyIndicator = $("#status-bar .spinner");
+            $indicator.insertBefore($busyIndicator);
+        }
     }
     
     /**
