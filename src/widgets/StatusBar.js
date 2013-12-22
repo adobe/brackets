@@ -123,7 +123,7 @@ define(function (require, exports, module) {
         }
         
         if (_beforeID) {
-            $("#" + _beforeID).before($indicator);
+            $indicator.insertBefore("#" + _beforeID);
         } else {
             // The "busy" spinner should always be leftmost
             var $busyIndicator = $("#status-bar .spinner");
