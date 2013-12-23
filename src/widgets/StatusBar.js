@@ -122,7 +122,7 @@ define(function (require, exports, module) {
             $indicator.hide();
         }
         
-        if (_beforeID) {
+        if (_beforeID && $("#" + _beforeID).length > 0) {
             $indicator.insertBefore("#" + _beforeID);
         } else {
             // The "busy" spinner should always be leftmost
