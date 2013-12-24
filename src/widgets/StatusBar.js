@@ -98,9 +98,11 @@ define(function (require, exports, module) {
      * @param {boolean=} visible Shows or hides the indicator over the statusbar.
      * @param {string=} style Sets the attribute "class" of the indicator.
      * @param {string=} tooltip Sets the attribute "title" of the indicator.
-     * @param {string=} _beforeID For internal use by CodeInspection module.
+     * @param {string=} insertBefore An id of an existing status bar indicator.
+     *          The new indicator will be inserted before (i.e. to the left of)
+     *          the indicator specified by this parameter.
      */
-    function addIndicator(id, indicator, visible, style, tooltip, _beforeID) {
+    function addIndicator(id, indicator, visible, style, tooltip, insertBefore) {
         if (!_init) {
             console.error("StatusBar API invoked before status bar created");
             return;
@@ -122,10 +124,13 @@ define(function (require, exports, module) {
             $indicator.hide();
         }
         
-        if (_beforeID && $("#" + _beforeID).length > 0) {
-            $indicator.insertBefore("#" + _beforeID);
+        // This code looks backwards because the DOM model is ordered
+        // top-to-bottom but the UI view is ordered right-to-left. The concept
+        // of "before" in the model is "after" in the view, and vice versa.
+        if (insertBefore && $("#" + insertBefore).length > 0) {
+            $indicator.insertAfter("#" + insertBefore);
         } else {
-            // The "busy" spinner should always be leftmost
+            // No positioning is provided, put after "busy" indicator
             var $busyIndicator = $("#status-bar .spinner");
             $indicator.insertBefore($busyIndicator);
         }
