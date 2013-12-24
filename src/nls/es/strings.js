@@ -138,7 +138,7 @@ define({
     "CHOOSE_FOLDER"                     : "Elige una carpeta",
 
     "RELEASE_NOTES"                     : "Notas sobre la versión",
-    "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
+    "NO_UPDATE_TITLE"                   : "Estás al dia",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
     // Replace All (in single file)
@@ -468,7 +468,7 @@ define({
     "LOCALE_RO"                                 : "Rumano",
     "LOCALE_RU"                                 : "Ruso",
     "LOCALE_SK"                                 : "Eslovaco",
-    "LOCALE_SR"					: "Serbio",
+    "LOCALE_SR"				                    : "Serbio",
     "LOCALE_SV"                                 : "Sueco",
     "LOCALE_TR"                                 : "Turco",
     "LOCALE_ZH_CN"                              : "Chino, simplificado",
