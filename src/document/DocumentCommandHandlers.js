@@ -77,6 +77,8 @@ define(function (require, exports, module) {
     
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
+    
+    PreferencesManager.definePreference("defaultExtension", "string", "");
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -482,7 +484,12 @@ define(function (require, exports, module) {
      * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
-        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, "");
+        var defaultExtension = PreferencesManager.get("defaultExtension");
+        if (defaultExtension) {
+            defaultExtension = "." + defaultExtension;
+        }
+        
+        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
         DocumentManager.setCurrentDocument(doc);
         EditorManager.focusEditor();
         

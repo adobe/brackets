@@ -57,12 +57,7 @@ define(function (require, exports, module) {
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
     
-    var INDICATOR_ID = "status-inspection",
-        defaultPrefs = {
-            enabled: brackets.config["linting.enabled_by_default"],
-            collapsed: false
-        };
-    
+    var INDICATOR_ID = "status-inspection";
     /** Values for problem's 'type' property */
     var Type = {
         /** Unambiguous error, such as a syntax error */
@@ -74,10 +69,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @private
-     * @type {PreferenceStorage}
+     * Constants for the preferences defined in this file.
      */
-    var _prefs = null;
+    var PREF_ENABLED = "linting.enabled",
+        PREF_COLLAPSED = "linting.collapsed";
+    
+    PreferencesManager.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"]);
+    PreferencesManager.definePreference(PREF_COLLAPSED, "boolean", false);
     
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
@@ -189,19 +187,22 @@ define(function (require, exports, module) {
 
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
-     * bottom panel.
+     * bottom panel. Does not run if inspection is disabled or if a providerName is given and does not
+     * match the current doc's provider name.
+     * 
+     * @param {?string} providerName name of the provider that is requesting a run
      */
-    function run() {
-        if (!_enabled) {
+    function run(providerName) {
+        var currentDoc = DocumentManager.getCurrentDocument(),
+            provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
+        
+        if (!_enabled || (providerName && providerName !== provider.name)) {
             _lastResult = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
             return;
         }
-        
-        var currentDoc = DocumentManager.getCurrentDocument(),
-            provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
         
         if (provider) {
             inspectFile(currentDoc.file, provider).then(function (result) {
@@ -317,8 +318,9 @@ define(function (require, exports, module) {
     /**
      * Enable or disable all inspection.
      * @param {?boolean} enabled Enabled state. If omitted, the state is toggled.
+     * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
      */
-    function toggleEnabled(enabled) {
+    function toggleEnabled(enabled, doNotSave) {
         if (enabled === undefined) {
             enabled = !_enabled;
         }
@@ -326,7 +328,9 @@ define(function (require, exports, module) {
         
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
-        _prefs.setValue("enabled", _enabled);
+        if (!doNotSave) {
+            PreferencesManager.set("user", PREF_ENABLED, _enabled);
+        }
     
         // run immediately
         run();
@@ -339,14 +343,17 @@ define(function (require, exports, module) {
      * collapsed, the panel will not reopen automatically on switch files or save.
      * 
      * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
+     * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
      */
-    function toggleCollapsed(collapsed) {
+    function toggleCollapsed(collapsed, doNotSave) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
         
         _collapsed = collapsed;
-        _prefs.setValue("collapsed", _collapsed);
+        if (doNotSave) {
+            PreferencesManager.setValue("user", PREF_COLLAPSED, _collapsed);
+        }
         
         if (_collapsed) {
             Resizer.hide($problemsPanel);
@@ -370,8 +377,13 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
-    // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    $(PreferencesManager.getPreference(PREF_ENABLED)).on("change", function (e, data) {
+        toggleEnabled(data.newValue, true);
+    });
+    
+    $(PreferencesManager.getPreference(PREF_COLLAPSED)).on("change", function (e, data) {
+        toggleCollapsed(data.newValue, true);
+    });
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -416,8 +428,8 @@ define(function (require, exports, module) {
         
         
         // Set initial UI state
-        toggleEnabled(_prefs.getValue("enabled"));
-        toggleCollapsed(_prefs.getValue("collapsed"));
+        toggleEnabled(PreferencesManager.get(PREF_ENABLED), true);
+        toggleCollapsed(PreferencesManager.get(PREF_COLLAPSED), true);
     });
     
     
@@ -426,4 +438,5 @@ define(function (require, exports, module) {
     exports.Type          = Type;
     exports.toggleEnabled = toggleEnabled;
     exports.inspectFile   = inspectFile;
+    exports.requestRun    = run;
 });
