@@ -50,7 +50,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
-        Resizer             = require("utils/Resizer");
+        Resizer             = require("utils/Resizer"),
+        PanelManager        = require("view/PanelManager");
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
@@ -143,6 +144,9 @@ define(function (require, exports, module) {
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
             $openFilesContainer.triggerHandler("scroll");
+            
+            // set the minimum width of the frame window
+            brackets.app.setMinWindowWidth($sidebar.width() + PanelManager.MIN_WIDTH_EDITOR_AREA);
         });
 		
         $sidebar.on("panelCollapsed", function (evt, width) {
