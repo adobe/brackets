@@ -1372,6 +1372,82 @@ define(function (require, exports, module) {
                     expect(removedEntries).toBeFalsy();
                 });
             });
+            
+            it("should fire change event on external directory creation", function () {
+                var dirname = "/subdir/",
+                    newdirname = "/subdir/dir.that.does.not.exist/",
+                    dir,
+                    newdir;
+                
+                runs(function () {
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    newdir = fileSystem.getDirectoryForPath(newdirname);
+                    
+                    dir.getContents(function () {
+                        _model.mkdir(newdirname);
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(1);
+                    expect(addedEntries[0]).toBe(newdir);
+                    expect(removedEntries.length).toBe(0);
+                });
+            });
+            
+            it("should fire change event on external unlink", function () {
+                var dirname = "/",
+                    olddirname = "/subdir/",
+                    dir,
+                    olddir;
+                
+                runs(function () {
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    olddir = fileSystem.getFileForPath(olddirname);
+                    
+                    dir.getContents(function () {
+                        _model.unlink(olddirname);
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(0);
+                    expect(removedEntries.length).toBe(1);
+                    expect(removedEntries[0]).toBe(olddir);
+                });
+            });
+            
+            it("should fire change event on external file rename", function () {
+                var dirname = "/subdir/",
+                    oldfilename = "/subdir/file3.txt",
+                    newfilename = "/subdir/file3.new.txt",
+                    oldfile,
+                    newfile,
+                    dir;
+                
+                runs(function () {
+                    oldfile = fileSystem.getFileForPath(oldfilename);
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    
+                    dir.getContents(function () {
+                        _model.rename(oldfilename, newfilename);
+                        newfile = fileSystem.getFileForPath(newfilename);
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(1);
+                    expect(removedEntries.length).toBe(1);
+                    expect(addedEntries[0]).toBe(newfile);
+                    expect(removedEntries[0]).toBe(oldfile);
+                });
+            });
         });
     });
 });
