@@ -682,7 +682,7 @@ define(function (require, exports, module) {
      */
     function _findInFilesFilter(entry) {
         var language = LanguageManager.getLanguageForPath(entry.fullPath);
-        return language.getId() !== "image";
+        return !language.isBinary();
     }
     
     /**
