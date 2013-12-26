@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var FileUtils           = require("file/FileUtils"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        NodeConnection      = require("utils/NodeConnection");
+        NodeDomain          = require("utils/NodeDomain");
     
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
@@ -44,40 +44,10 @@ define(function (require, exports, module) {
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/FileWatcherDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        _nodeConnection = new NodeConnection(),
-        _domainLoaded   = false;    // Whether the fileWatcher domain has been loaded
+        _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
     
-    /**
-     * A promise that resolves when the NodeConnection object is connected and
-     * the fileWatcher domain has been loaded.
-     *
-     * @type {?jQuery.Promise}
-     */
-    var _nodeConnectionPromise;
-    
-    /**
-     * Load the fileWatcher domain on the assumed-open NodeConnection object
-     *
-     * @private
-     */
-    function _loadDomains() {
-        return _nodeConnection
-            .loadDomains(_domainPath, true)
-            .done(function () {
-                _domainLoaded = true;
-                _nodeConnectionPromise = null;
-            });
-    }
-        
-    // Initialize the connection and connection promise
-    _nodeConnectionPromise = _nodeConnection.connect(true).then(_loadDomains);
-    
-    // Setup the close handler. Re-initializes the connection promise and
-    // notifies the FileSystem that watchers have gone offline.
-    $(_nodeConnection).on("close", function (event, promise) {
-        _domainLoaded = false;
-        _nodeConnectionPromise = promise.then(_loadDomains);
-        
+    // If the connection closes, notify the FileSystem that watchers have gone offline.
+    $(_nodeDomain.connection).on("close", function (event, promise) {
         if (_offlineCallback) {
             _offlineCallback();
         }
@@ -145,40 +115,7 @@ define(function (require, exports, module) {
     }
 
     // Setup the change handler. This only needs to happen once.
-    $(_nodeConnection).on("fileWatcher.change", _fileWatcherChange);
-    
-    /**
-     * Execute the named function from the fileWatcher domain when the
-     * NodeConnection is connected and the domain has been loaded. Additional
-     * parameters are passed as arguments to the command.
-     * 
-     * @param {string} name The name of the command to execute
-     * @return {jQuery.Promise} Resolves with the results of the command.
-     * @private
-     */
-    function _execWhenConnected(name) {
-        var params = Array.prototype.slice.call(arguments, 1);
-        
-        function execConnected() {
-            var domains = _nodeConnection.domains,
-                domain = domains && domains.fileWatcher,
-                fn = domain && domain[name];
-            
-            if (fn) {
-                return fn.apply(domain, params);
-            } else {
-                return $.Deferred().reject().promise();
-            }
-        }
-        
-        if (_domainLoaded && _nodeConnection.connected()) {
-            return execConnected();
-        } else if (_nodeConnectionPromise) {
-            return _nodeConnectionPromise.then(execConnected);
-        } else {
-            return $.Deferred().reject().promise();
-        }
-    }
+    $(_nodeDomain).on("change", _fileWatcherChange);
 
     /**
      * Convert appshell error codes to FileSystemError values.
@@ -388,15 +325,17 @@ define(function (require, exports, module) {
     /**
      * Read the contents of the file at the given path, calling back
      * asynchronously with either a FileSystemError string, or with the data and
-     * the FileSystemStats object associated with the read file. The (optional)
-     * options parameter can be used to specify an encoding (default "utf8").
+     * the FileSystemStats object associated with the read file. The options
+     * parameter can be used to specify an encoding (default "utf8"), and also
+     * a cached stats object that the implementation is free to use in order
+     * to avoid an additional stat call.
      * 
      * Note: if either the read or the stat call fails then neither the read data
      * nor stat will be passed back, and the call should be considered to have failed.
      * If both calls fail, the error from the read call is passed back.
      * 
      * @param {string} path
-     * @param {{encoding : string=}=} options
+     * @param {{encoding: string=, stat: FileSystemStats=}} options
      * @param {function(?string, string=, FileSystemStats=)} callback
      */
     function readFile(path, options, callback) {
@@ -406,6 +345,21 @@ define(function (require, exports, module) {
         // read call completes first with an error; otherwise wait for both
         // to finish.
         var done = false, data, stat, err;
+
+        if (options.stat) {
+            done = true;
+            stat = options.stat;
+        } else {
+            exports.stat(path, function (_err, _stat) {
+                if (done) {
+                    callback(_err, _err ? null : data, _stat);
+                } else {
+                    done = true;
+                    stat = _stat;
+                    err = _err;
+                }
+            });
+        }
         
         appshell.fs.readFile(path, encoding, function (_err, _data) {
             if (_err) {
@@ -420,33 +374,24 @@ define(function (require, exports, module) {
                 data = _data;
             }
         });
-
-        exports.stat(path, function (_err, _stat) {
-            if (done) {
-                callback(_err, _err ? null : data, _stat);
-            } else {
-                done = true;
-                stat = _stat;
-                err = _err;
-            }
-        });
     }
     
     /**
      * Write data to the file at the given path, calling back asynchronously with
      * either a FileSystemError string or the FileSystemStats object associated
-     * with the written file. If no file exists at the given path, a new file will
-     * be created. The (optional) options parameter can be used to specify an
-     * encoding (default "utf8"), an octal mode (default unspecified and
-     * implementation dependent), and a consistency hash, which is used to the
-     * current state of the file before overwriting it. If a consistency hash is
-     * provided but does not match the hash of the file on disk, a
-     * FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
+     * with the written file and a boolean that indicates whether the file was
+     * created by the write (true) or not (false). If no file exists at the
+     * given path, a new file will be created. The options parameter can be used
+     * to specify an encoding (default "utf8"), an octal mode (default
+     * unspecified and implementation dependent), and a consistency hash, which
+     * is used to the current state of the file before overwriting it. If a
+     * consistency hash is provided but does not match the hash of the file on
+     * disk, a FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, hash : string=}=} options
-     * @param {function(?string, FileSystemStats=)} callback
+     * @param {{encoding : string=, mode : number=, expectedHash : object=}} options
+     * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
         var encoding = options.encoding || "utf8";
@@ -475,8 +420,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (options.hasOwnProperty("hash") && options.hash !== stats._hash) {
-                console.warn("Blind write attempted: ", path, stats._hash, options.hash);
+            if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
+                console.warn("Blind write attempted: ", path, stats._hash, options.expectedHash);
                 callback(FileSystemError.CONTENTS_MODIFIED);
                 return;
             }
@@ -552,9 +497,8 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _execWhenConnected("watchPath", path)
-                .done(callback.bind(undefined, null))
-                .fail(callback);
+            _nodeDomain.exec("watchPath", path)
+                .then(callback, callback);
         });
     }
     
@@ -567,16 +511,8 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, callback) {
-        appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
-            if (err || isNetworkDrive) {
-                callback(FileSystemError.UNKNOWN);
-                return;
-            }
-            
-            _execWhenConnected("unwatchPath", path)
-                .done(callback.bind(undefined, null))
-                .fail(callback);
-        });
+        _nodeDomain.exec("unwatchPath", path)
+            .then(callback, callback);
     }
     
     /**
@@ -587,16 +523,8 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchAll(callback) {
-        appshell.fs.isNetworkDrive(function (err, isNetworkDrive) {
-            if (err || isNetworkDrive) {
-                callback(FileSystemError.UNKNOWN);
-                return;
-            }
-            
-            _execWhenConnected("unwatchAll")
-                .done(callback.bind(undefined, null))
-                .fail(callback);
-        });
+        _nodeDomain.exec("unwatchAll")
+            .then(callback, callback);
     }
     
     // Export public API
@@ -624,7 +552,6 @@ define(function (require, exports, module) {
      */
     exports.recursiveWatch = appshell.platform === "mac";
     
-    // 
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC
      * paths. If set, then //server/directory/ is a normalized path; otherwise the

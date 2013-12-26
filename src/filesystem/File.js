@@ -54,13 +54,19 @@ define(function (require, exports, module) {
     File.prototype.parentClass = FileSystemEntry.prototype;
     
     /**
-     * Contents of this file.
+     * Cached contents of this file. This value is nullable but should NOT be undefined.
+     * @private
+     * @type {?string}
      */
     File.prototype._contents = null;
     
     /**
      * Consistency hash for this file. Reads and writes update this value, and
-     * writes confirm the hash before overwriting existing files.
+     * writes confirm the hash before overwriting existing files. The type of
+     * this object is dependent on the FileSystemImpl; the only constraint is
+     * that === can be used as an equality relation on hashes.
+     * @private
+     * @type {?object}
      */
     File.prototype._hash = null;
     
@@ -71,7 +77,7 @@ define(function (require, exports, module) {
      */
     File.prototype._clearCachedData = function () {
         FileSystemEntry.prototype._clearCachedData.apply(this);
-        this._contents = undefined;
+        this._contents = null;
     };
     
     /**
@@ -87,11 +93,18 @@ define(function (require, exports, module) {
             options = {};
         }
         
-        // We don't need to check isWatched here because contents are only saved
-        // for watched files
-        if (this._contents && this._stat) {
+        // We don't need to check isWatched() here because contents are only saved
+        // for watched files. Note that we need to explicitly test this._contents
+        // for a default value; otherwise it could be the empty string, which is
+        // falsey.
+        if (this._contents !== null && this._stat) {
             callback(null, this._contents, this._stat);
             return;
+        }
+        
+        var watched = this._isWatched();
+        if (watched) {
+            options.stat = this._stat;
         }
         
         this._impl.readFile(this._path, options, function (err, data, stat) {
@@ -100,12 +113,13 @@ define(function (require, exports, module) {
                 callback(err);
                 return;
             }
-
-            this._stat = stat;
+            
+            // Always store the hash
             this._hash = stat._hash;
             
-            // Only cache the contents of watched files
-            if (this._isWatched) {
+            // Only cache data for watched files
+            if (watched) {
+                this._stat = stat;
                 this._contents = data;
             }
             
@@ -129,14 +143,13 @@ define(function (require, exports, module) {
         
         callback = callback || function () {};
         
-        // Request a consistency check if the file is watched and the write is not blind
-        var watched = this._isWatched;
-        if (watched && !options.blind) {
-            options.hash = this._hash;
+        // Request a consistency check if the write is not blind
+        if (!options.blind) {
+            options.expectedHash = this._hash;
         }
         
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._impl.writeFile(this._path, data, options, function (err, stat, created) {
             if (err) {
@@ -146,16 +159,16 @@ define(function (require, exports, module) {
                     return;
                 } finally {
                     // Always unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }
             
-            // Update internal filesystem state
+            // Always store the hash
             this._hash = stat._hash;
-            this._stat = stat;
             
-            // Only cache the contents of watched files
-            if (watched) {
+            // Only cache data for watched files
+            if (this._isWatched()) {
+                this._stat = stat;
                 this._contents = data;
             }
             
@@ -170,7 +183,7 @@ define(function (require, exports, module) {
                         this._fileSystem._fireChangeEvent(parent, added, removed);
                         
                         // Always unblock external change events
-                        this._fileSystem._endWrite();
+                        this._fileSystem._endChange();
                     }
                 }.bind(this));
             } else {
@@ -182,7 +195,7 @@ define(function (require, exports, module) {
                     this._fileSystem._fireChangeEvent(this);
                     
                     // Always unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }
         }.bind(this));

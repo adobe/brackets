@@ -40,7 +40,9 @@
  *
  * FileSystem dispatches the following events:
  *    change - Sent whenever there is a change in the file system. The handler
- *          is passed one argument -- entry. This argument can be...
+ *          is passed up to three arguments: the changed entry and, if that changed entry 
+ *          is a Directory, a list of entries added to the directory and a list of entries 
+ *          removed from the Directory. The entry argument can be:
  *          *  a File - the contents of the file have changed, and should be reloaded.
  *          *  a Directory - an immediate child of the directory has been added, removed,
  *             or renamed/moved. Not triggered for "grandchildren".
@@ -51,7 +53,9 @@
  *    rename - Sent whenever a File or Directory is renamed. All affected File and Directory
  *          objects have been updated to reflect the new path by the time this event is dispatched.
  *          This event should be used to trigger any UI updates that may need to occur when a path
- *          has changed.
+ *          has changed. Note that these events will only be sent for rename operations that happen
+ *          within the filesystem. If a file is renamed externally, a change event on the parent
+ *          directory will be sent instead.
  * 
  * FileSystem may perform caching. But it guarantees:
  *    * File contents & metadata - reads are guaranteed to be up to date (cached data is not used
@@ -85,7 +89,8 @@ define(function (require, exports, module) {
         // Initialize the watch/unwatch request queue
         this._watchRequests = [];
         
-        this._watchResults = [];
+        // Initialize the queue of pending external changes
+        this._externalChanges = [];
     }
     
     /**
@@ -98,47 +103,58 @@ define(function (require, exports, module) {
      * The FileIndex used by this object. This is initialized in the constructor.
      */
     FileSystem.prototype._index = null;
-
+    
     /**
-     * Refcount of any pending write operations. Used to guarantee file-watcher callbacks don't
-     * run until after operation-specific callbacks & index fixups complete (this is important for
-     * distinguishing rename from an unrelated delete-add pair).
+     * Refcount of any pending filesystem mutation operations (e.g., writes,
+     * unlinks, etc.). Used to ensure that external change events aren't processed
+     * until after index fixups, operation-specific callbacks, and internal change
+     * events are complete. (This is important for distinguishing rename from
+     * an unrelated delete-add pair).
      * @type {number}
      */
-    FileSystem.prototype._writeCount = 0;
+    FileSystem.prototype._activeChangeCount = 0;
     
+    // For unit testing only
+    FileSystem.prototype._getActiveChangeCount = function () {
+        return this._activeChangeCount;
+    };
+    
+    /**
+     * Queue of arguments with which to invoke _handleExternalChanges(); triggered
+     * once _activeChangeCount drops to zero.
+     * @type {!Array.<{path:?string, stat:FileSystemStats=}>}
+     */
+    FileSystem.prototype._externalChanges = null;
+    
+    /** Process all queued watcher results, by calling _handleExternalChange() on each */
+    FileSystem.prototype._triggerExternalChangesNow = function () {
+        this._externalChanges.forEach(function (info) {
+            this._handleExternalChange(info.path, info.stat);
+        }, this);
+        this._externalChanges.length = 0;
+    };
+    
+    /**
+     * Receives a result from the impl's watcher callback, and either processes it
+     * immediately (if _activeChangeCount is 0) or otherwise stores it for later
+     * processing.
+     * @param {?string} path The fullPath of the changed entry
+     * @param {FileSystemStats=} stat An optional stat object for the changed entry
+     */
+    FileSystem.prototype._enqueueExternalChange = function (path, stat) {
+        this._externalChanges.push({path: path, stat: stat});
+        if (!this._activeChangeCount) {
+            this._triggerExternalChangesNow();
+        }
+    };
+    
+
     /**
      * The queue of pending watch/unwatch requests.
      * @type {Array.<{fn: function(), cb: function()}>}
      */
     FileSystem.prototype._watchRequests = null;
     
-    /**
-     * Queue of arguments to invoke _handleWatchResult() with; triggered once _writeCount drops to zero
-     * @type {!Array.<{path:string, stat:Object}>}
-     */
-    FileSystem.prototype._watchResults = null;
-    
-    /** Process all queued watcher results, by calling _handleExternalChange() on each */
-    FileSystem.prototype._triggerWatchCallbacksNow = function () {
-        this._watchResults.forEach(function (info) {
-            this._handleExternalChange(info.path, info.stat);
-        }, this);
-        this._watchResults.length = 0;
-    };
-    
-    /**
-     * Receives a result from the impl's watcher callback, and either processes it immediately (if
-     * _writeCount is 0) or stores it for later processing (if _writeCount > 0).
-     */
-    FileSystem.prototype._enqueueWatchResult = function (path, stat) {
-        this._watchResults.push({path: path, stat: stat});
-        if (!this._writeCount) {
-            this._triggerWatchCallbacksNow();
-        }
-    };
-    
-
     /**
      * Dequeue and process all pending watch/unwatch requests
      */
@@ -179,10 +195,13 @@ define(function (require, exports, module) {
 
     /**
      * The set of watched roots, encoded as a mapping from full paths to objects
-     * which contain a file entry, filter function, and change handler function.
+     * which contain a file entry, filter function, and an indication of whether
+     * the watched root is full active (instead of, e.g., in the process of 
+     * starting up).
      * 
      * @type{Object.<string, {entry: FileSystemEntry,
-     *                        filter: function(string): boolean} >}
+     *                        filter: function(string): boolean,
+     *                        active: boolean} >}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -208,22 +227,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Indicates whether the given FileSystemEntry is watched.
-     *
-     * @param {FileSystemEntry} entry A FileSystemEntry that may or may not be watched.
-     * @return {boolean} True iff the path is watched.
-     */
-    FileSystem.prototype._isEntryWatched = function (entry) {
-        var watchedRoot = this._findWatchedRootForPath(entry.fullPath);
-        
-        if (watchedRoot && watchedRoot.active) {
-            return watchedRoot.filter(entry.name, entry.parentPath);
-        }
-        
-        return false;
-    };
-    
-    /**
      * Helper function to watch or unwatch a filesystem entry beneath a given
      * watchedRoot.
      * 
@@ -237,87 +240,63 @@ define(function (require, exports, module) {
      *      or unwatched (false).
      */
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var recursiveWatch = this._impl.recursiveWatch;
-        
-        if (recursiveWatch && entry !== watchedRoot.entry) {
-            // Watch and unwatch calls to children of the watched root are
-            // no-ops if the impl supports recursiveWatch
-            callback(null);
-            return;
-        }
-        
-        var commandName = shouldWatch ? "watchPath" : "unwatchPath",
-            watchOrUnwatch = this._impl[commandName].bind(this, entry.fullPath),
-            visitor;
-        
-        var genericProcessChild;
-        if (shouldWatch) {
-            genericProcessChild = function (child) {
-                child._setWatched(true);
-            };
-        } else {
-            genericProcessChild = function (child) {
-                child._setWatched(false);
-            };
-        }
-        
-        var genericVisitor = function (processChild, child) {
-            if (watchedRoot.filter(child.name, child.parentPath)) {
-                processChild.call(this, child);
-                
-                return true;
-            }
-            return false;
-        };
+        var impl = this._impl,
+            recursiveWatch = impl.recursiveWatch,
+            commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
         if (recursiveWatch) {
-            // The impl will handle finding all subdirectories to watch. Here we
-            // just need to find all entries in order to either mark them as
-            // watched or to remove them from the index.
-            this._enqueueWatchRequest(function (callback) {
-                watchOrUnwatch(function (err) {
+            if (entry !== watchedRoot.entry) {
+                // Watch and unwatch calls to children of the watched root are
+                // no-ops if the impl supports recursiveWatch
+                callback(null);
+            } else {
+                // The impl will handle finding all subdirectories to watch. 
+                this._enqueueWatchRequest(function (requestCb) {
+                    impl[commandName].call(impl, entry.fullPath, requestCb);
+                }.bind(this), callback);
+            }
+        } else {
+            // The impl can't handle recursive watch requests, so it's up to the
+            // filesystem to recursively watch or unwatch all subdirectories.
+            this._enqueueWatchRequest(function (requestCb) {
+                // First construct a list of entries to watch or unwatch
+                var entriesToWatchOrUnwatch = [],
+                    watchOrUnwatch = impl[commandName].bind(impl);
+                
+                var visitor = function (child) {
+                    if (watchedRoot.filter(child.name, child.parentPath)) {
+                        if (child.isDirectory || child === watchedRoot.entry) {
+                            entriesToWatchOrUnwatch.push(child);
+                        }
+                        return true;
+                    }
+                    return false;
+                };
+                
+                entry.visit(visitor, function (err) {
                     if (err) {
-                        console.warn("Watch error: ", entry.fullPath, err);
-                        callback(err);
+                        requestCb(err);
                         return;
                     }
                     
-                    visitor = genericVisitor.bind(this, genericProcessChild);
-                    entry.visit(visitor, callback);
-                }.bind(this));
-            }.bind(this), callback);
-        } else {
-            // The impl can't handle recursive watch requests, so it's up to the
-            // filesystem to recursively watch or unwatch all subdirectories, as
-            // well as either marking all children as watched or removing them
-            // from the index.
-            var processChild = function (child) {
-                if (child.isDirectory || child === watchedRoot.entry) {
-                    watchOrUnwatch(function (err) {
-                        if (err) {
-                            console.warn("Watch error: ", child.fullPath, err);
-                            return;
+                    // Then watch or unwatched all these entries
+                    var count = entriesToWatchOrUnwatch.length;
+                    if (count === 0) {
+                        requestCb(null);
+                        return;
+                    }
+                    
+                    var watchOrUnwatchCallback = function () {
+                        if (--count === 0) {
+                            requestCb(null);
                         }
-                        
-                        if (child.isDirectory) {
-                            child.getContents(function (err, contents) {
-                                if (err) {
-                                    return;
-                                }
-                                
-                                contents.forEach(function (child) {
-                                    genericProcessChild.call(this, child);
-                                }, this);
-                            }.bind(this));
-                        }
-                    }.bind(this));
-                }
-            };
-            
-            this._enqueueWatchRequest(function (callback) {
-                visitor = genericVisitor.bind(this, processChild);
-                entry.visit(visitor, callback);
-            }.bind(this), callback);
+                    };
+                    
+                    entriesToWatchOrUnwatch.forEach(function (entry) {
+                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
+                    });
+                });
+            }, callback);
         }
     };
     
@@ -346,7 +325,17 @@ define(function (require, exports, module) {
      *      watch is complete, possibly with a FileSystemError string.
      */
     FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, callback, false);
+        this._watchOrUnwatchEntry(entry, watchedRoot, function (err) {
+            // Make sure to clear cached data for all unwatched entries because
+            // entries always return cached data if it exists!
+            this._index.visitAll(function (child) {
+                if (child.fullPath.indexOf(entry.fullPath) === 0) {
+                    child._clearCachedData();
+                }
+            }.bind(this));
+            
+            callback(err);
+        }.bind(this), false);
     };
     
     /**
@@ -358,7 +347,7 @@ define(function (require, exports, module) {
     FileSystem.prototype.init = function (impl) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
         
-        var changeCallback = this._enqueueWatchResult.bind(this),
+        var changeCallback = this._enqueueExternalChange.bind(this),
             offlineCallback = this._unwatchAll.bind(this);
                 
         this._impl = impl;
@@ -397,21 +386,39 @@ define(function (require, exports, module) {
         return true;
     };
     
-    FileSystem.prototype._beginWrite = function () {
-        this._writeCount++;
-        //console.log("> beginWrite  -> " + this._writeCount);
+    /**
+     * Indicates that a filesystem-mutating operation has begun. As long as there
+     * are changes taking place, change events from the external watchers are
+     * blocked and queued, to be handled once changes have finished. This is done
+     * because for mutating operations that originate from within the filesystem,
+     * synthetic change events are fired that do not depend on external file
+     * watchers, and we prefer the former over the latter for the following
+     * reasons: 1) there is no delay; and 2) they may have higher fidelity --- 
+     * e.g., a rename operation can be detected as such, instead of as a nearly
+     * simultaneous addition and deletion.
+     * 
+     * All operations that mutate the file system MUST begin with a call to 
+     * _beginChange and must end with a call to _endChange.
+     */
+    FileSystem.prototype._beginChange = function () {
+        this._activeChangeCount++;
+        //console.log("> beginChange  -> " + this._activeChangeCount);
     };
     
-    FileSystem.prototype._endWrite = function () {
-        this._writeCount--;
-        //console.log("< endWrite    -> " + this._writeCount);
+    /**
+     * Indicates that a filesystem-mutating operation has completed. See 
+     * FileSystem._beginChange above.
+     */
+    FileSystem.prototype._endChange = function () {
+        this._activeChangeCount--;
+        //console.log("< endChange    -> " + this._activeChangeCount);
         
-        if (this._writeCount < 0) {
-            console.error("FileSystem _writeCount has fallen below zero!");
+        if (this._activeChangeCount < 0) {
+            console.error("FileSystem _activeChangeCount has fallen below zero!");
         }
         
-        if (!this._writeCount) {
-            this._triggerWatchCallbacksNow();
+        if (!this._activeChangeCount) {
+            this._triggerExternalChangesNow();
         }
     };
     
@@ -425,7 +432,7 @@ define(function (require, exports, module) {
         return (fullPath[0] === "/" || fullPath[1] === ":");
     };
 
-    function _appendTrailingSlash(path) {
+    function _ensureTrailingSlash(path) {
         if (path[path.length - 1] !== "/") {
             path += "/";
         }
@@ -475,7 +482,7 @@ define(function (require, exports, module) {
         
         if (isDirectory) {
             // Make sure path DOES include trailing slash
-            path = _appendTrailingSlash(path);
+            path = _ensureTrailingSlash(path);
         }
         
         if (isUNCPath) {
@@ -545,29 +552,39 @@ define(function (require, exports, module) {
             item = this._index.getEntry(normalizedPath);
 
         if (!item) {
-            normalizedPath = _appendTrailingSlash(normalizedPath);
+            normalizedPath = _ensureTrailingSlash(normalizedPath);
             item = this._index.getEntry(normalizedPath);
         }
         
-        if (item && item._stat && item._isWatched) {
-            callback(null, item, item._stat);
-            return;
+        if (item) {
+            item.stat(function (err, stat) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                callback(null, item, stat);
+            });
+        } else {
+            this._impl.stat(path, function (err, stat) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                if (stat.isFile) {
+                    item = this.getFileForPath(path);
+                } else {
+                    item = this.getDirectoryForPath(path);
+                }
+                
+                if (item._isWatched()) {
+                    item._stat = stat;
+                }
+                
+                callback(null, item, stat);
+            }.bind(this));
         }
-        
-        this._impl.stat(path, function (err, stat) {
-            if (err) {
-                callback(err);
-                return;
-            }
-            
-            if (stat.isFile) {
-                item = this.getFileForPath(path);
-            } else {
-                item = this.getDirectoryForPath(path);
-            }
-            
-            callback(null, item, stat);
-        }.bind(this));
     };
     
     function _readAllInto(results, indexMap, files, options, callback) {
@@ -739,10 +756,25 @@ define(function (require, exports, module) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     };
 
-    FileSystem.prototype._fireRenameEvent = function (oldName, newName) {
-        $(this).trigger("rename", [oldName, newName]);
+    /**
+     * Fire a rename event. Clients listen for these events using FileSystem.on.
+     * 
+     * @param {string} oldPath The entry's previous fullPath
+     * @param {string} newPath The entry's current fullPath
+     */
+    FileSystem.prototype._fireRenameEvent = function (oldPath, newPath) {
+        $(this).trigger("rename", [oldPath, newPath]);
     };
-    
+
+    /**
+     * Fire a change event. Clients listen for these events using FileSystem.on.
+     * 
+     * @param {File|Directory} entry The entry that has changed
+     * @param {Array<File|Directory>=} added If the entry is a directory, this
+     *      is a set of new entries in the directory.
+     * @param {Array<File|Directory>=} removed If the entry is a directory, this
+     *      is a set of removed entries from the directory.
+     */
     FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
         $(this).trigger("change", [entry, added, removed]);
     };
@@ -751,45 +783,57 @@ define(function (require, exports, module) {
      * @private
      * Notify the system when an entry name has changed.
      *
-     * @param {string} oldName 
-     * @param {string} newName
+     * @param {string} oldFullPath
+     * @param {string} newFullPath
      * @param {boolean} isDirectory
      */
-    FileSystem.prototype._handleRename = function (oldName, newName, isDirectory) {
+    FileSystem.prototype._handleRename = function (oldFullPath, newFullPath, isDirectory) {
         // Update all affected entries in the index
-        this._index.entryRenamed(oldName, newName, isDirectory);
+        this._index.entryRenamed(oldFullPath, newFullPath, isDirectory);
     };
     
+    /**
+     * Notify the filesystem that the given directory has changed. Updates the filesystem's
+     * internal state as a result of the change, and calls back with the set of added and
+     * removed entries. Mutating FileSystemEntry operations should call this method before
+     * applying the operation's callback, and pass along the resulting change sets in the
+     * internal change event.
+     * 
+     * @param {Directory} directory The directory that has changed.
+     * @param {function(Array<File|Directory>=, Array<File|Directory>=)} callback
+     *      The callback that will be applied to a set of added and a set of removed
+     *      FileSystemEntry objects.
+     */
     FileSystem.prototype._handleDirectoryChange = function (directory, callback) {
-        var oldContents = directory._contents || [];
+        var oldContents = directory._contents;
         
         directory._clearCachedData();
         directory.getContents(function (err, contents) {
-            var addedEntries = contents.filter(function (entry) {
+            var addedEntries = oldContents && contents.filter(function (entry) {
                 return oldContents.indexOf(entry) === -1;
             });
             
-            var removedEntries = oldContents.filter(function (entry) {
+            var removedEntries = oldContents && oldContents.filter(function (entry) {
                 return contents.indexOf(entry) === -1;
             });
 
-            // If directory is not watched, clear the cache the children of removed
-            // entries manually. Otherwise, this is handled by the unwatch call.
+            // If directory is not watched, clear children's caches manually.
             var watchedRoot = this._findWatchedRootForPath(directory.fullPath);
             if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
-                removedEntries.forEach(function (removed) {
-                    this._index.visitAll(function (entry) {
-                        if (entry.fullPath.indexOf(removed.fullPath) === 0) {
-                            entry._clearCachedData();
-                        }
-                    }.bind(this));
-                }, this);
+                this._index.visitAll(function (entry) {
+                    if (entry.fullPath.indexOf(directory.fullPath) === 0) {
+                        entry._clearCachedData();
+                    }
+                }.bind(this));
                 
                 callback(addedEntries, removedEntries);
                 return;
             }
+
+            var addedCounter = addedEntries ? addedEntries.length : 0,
+                removedCounter = removedEntries ? removedEntries.length : 0,
+                counter = addedCounter + removedCounter;
             
-            var counter = addedEntries.length + removedEntries.length;
             if (counter === 0) {
                 callback(addedEntries, removedEntries);
                 return;
@@ -801,13 +845,17 @@ define(function (require, exports, module) {
                 }
             };
             
-            addedEntries.forEach(function (entry) {
-                this._watchEntry(entry, watchedRoot, watchOrUnwatchCallback);
-            }, this);
+            if (addedEntries) {
+                addedEntries.forEach(function (entry) {
+                    this._watchEntry(entry, watchedRoot, watchOrUnwatchCallback);
+                }, this);
+            }
 
-            removedEntries.forEach(function (entry) {
-                this._unwatchEntry(entry, watchedRoot, watchOrUnwatchCallback);
-            }, this);
+            if (removedEntries) {
+                removedEntries.forEach(function (entry) {
+                    this._unwatchEntry(entry, watchedRoot, watchOrUnwatchCallback);
+                }, this);
+            }
         }.bind(this));
     };
     
@@ -823,8 +871,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._handleExternalChange = function (path, stat) {
 
         if (!path) {
-            // This is a "wholesale" change event
-            // Clear all caches (at least those that won't do a stat() double-check before getting used)
+            // This is a "wholesale" change event; clear all caches
             this._index.visitAll(function (entry) {
                 entry._clearCachedData();
             });
@@ -837,20 +884,20 @@ define(function (require, exports, module) {
         
         var entry = this._index.getEntry(path);
         if (entry) {
+            var oldStat = entry._stat;
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
-                if (!(stat && entry._stat && stat.mtime.getTime() === entry._stat.mtime.getTime())) {
+                if (!(stat && oldStat && stat.mtime.getTime() === oldStat.mtime.getTime())) {
                     entry._clearCachedData();
                     entry._stat = stat;
                     this._fireChangeEvent(entry);
-                } else {
-                    console.info("Detected duplicate file change event: ", path);
                 }
             } else {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
-                    
-                    this._fireChangeEvent(entry, added, removed);
+                    if (!(added && added.length === 0 && removed && removed.length === 0)) {
+                        this._fireChangeEvent(entry, added, removed);
+                    }
                 }.bind(this));
             }
         }
@@ -932,6 +979,8 @@ define(function (require, exports, module) {
             return;
         }
 
+        // Mark this as inactive, but don't delete the entry until the unwatch is complete.
+        // This is useful for making sure we don't try to concurrently watch overlapping roots.
         watchedRoot.active = false;
         
         this._unwatchEntry(entry, watchedRoot, function (err) {
@@ -961,10 +1010,18 @@ define(function (require, exports, module) {
     FileSystem.prototype._unwatchAll = function () {
         console.warn("File watchers went offline!");
         
-        Object.keys(this._watchedRoots).forEach(this.unwatch, this);
+        Object.keys(this._watchedRoots).forEach(function (path) {
+            var watchedRoot = this._watchedRoots[path];
+
+            watchedRoot.active = false;
+            delete this._watchedRoots[path];
+            this._unwatchEntry(watchedRoot.entry, watchedRoot, function () {
+                console.warn("Watching disabled for", watchedRoot.entry.fullPath);
+            });
+        }, this);
         
-        // Fire a wholesale change event because all previously watched entries
-        // have been removed from the index and should no longer be referenced
+        // Fire a wholesale change event, clearing all caches and request that
+        // clients manually update their state.
         this._handleExternalChange(null);
     };
 
@@ -993,11 +1050,9 @@ define(function (require, exports, module) {
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
-
-    // Private helper methods used by internal filesystem modules
-    exports._isEntryWatched = _wrap(FileSystem.prototype._isEntryWatched);
     
-    // Export "on" and "off" methods
+    // For testing only
+    exports._getActiveChangeCount = _wrap(FileSystem.prototype._getActiveChangeCount);
     
     /**
      * Add an event listener for a FileSystem event.

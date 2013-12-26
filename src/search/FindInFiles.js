@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
         FileViewController    = require("project/FileViewController"),
+        LanguageManager       = require("language/LanguageManager"),
         FindReplace           = require("search/FindReplace"),
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
@@ -662,9 +663,8 @@ define(function (require, exports, module) {
             DocumentManager.getDocumentText(file)
                 .done(function (text) {
                     addMatches(file.fullPath, text, currentQueryExpr);
-                    result.resolve();
                 })
-                .fail(function (error) {
+                .always(function () {
                     // Always resolve. If there is an error, this file
                     // is skipped and we move on to the next file.
                     result.resolve();
@@ -673,6 +673,18 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Used to filter out image files when building a list of file in which to
+     * search. Ideally this would filter out ALL binary files.
+     * @private
+     * @param {FileSystemEntry} entry The entry to test
+     * @return {boolean} Whether or not the entry's contents should be searched
+     */
+    function _findInFilesFilter(entry) {
+        var language = LanguageManager.getLanguageForPath(entry.fullPath);
+        return !language.isBinary();
+    }
+    
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
@@ -691,7 +703,7 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        ProjectManager.getAllFiles(true)
+        ProjectManager.getAllFiles(_findInFilesFilter, true)
             .then(function (fileListResult) {
                 var filesToRead = fileListResult.filter(function (file) {
                     if (!_inScope(file, currentScope)) {
@@ -941,87 +953,93 @@ define(function (require, exports, module) {
      * @param {Array.<FileSystemEntry>=} removed Removed children
      */
     _fileSystemChangeHandler = function (event, entry, added, removed) {
-        if (entry && entry.isDirectory) {
-            var resultsChanged = false;
-            
-            if (removed && removed.length > 0) {
-                var _includesPath = function (fullPath) {
-                    return _.some(removed, function (item) {
-                        return fullPath.indexOf(item.fullPath) === 0;
-                    });
-                };
-                
-                // Clear removed entries from the search results
-                _.forEach(searchResults, function (item, fullPath) {
-                    if (fullPath.indexOf(entry.fullPath) === 0 && _includesPath(fullPath)) {
-                        // The changed directory includes this entry and it was not removed.
-                        delete searchResults[fullPath];
-                        resultsChanged = true;
-                    }
-                });
-            }
-            
-            var addPromise;
-            if (added && added.length > 0) {
-                var doSearch = _doSearchInOneFile.bind(undefined, function () {
-                    var resultsAdded = _addSearchMatches.apply(undefined, arguments);
-                    resultsChanged = resultsChanged || resultsAdded;
-                });
-                
-                var addedFiles = [],
-                    addedDirectories = [];
-                
-                // sort added entries into files and directories
-                added.forEach(function (entry) {
-                    if (entry.isFile) {
-                        addedFiles.push(entry);
-                    } else {
-                        addedDirectories.push(entry);
-                    }
-                });
-                
-                // visit added directories and add their included files
-                var visitor = function (child) {
-                    if (ProjectManager.shouldShow(child)) {
-                        if (child.isFile) {
-                            addedFiles.push(child);
-                        }
-                        return true;
-                    }
-                };
+        var resultsChanged = false;
 
-                var visitPromise = Async.doInParallel(addedDirectories, function (directory) {
-                    var deferred = $.Deferred();
-                    
-                    directory.visit(visitor, function (err) {
-                        if (err) {
-                            deferred.reject(err);
-                            return;
-                        }
-                        
-                        deferred.resolve();
-                    });
-                    
-                    return deferred.promise();
-                });
-
-                // find additional matches in all added files
-                addPromise = visitPromise.then(function () {
-                    return Async.doInParallel(addedFiles, doSearch);
-                });
-            } else {
-                addPromise = $.Deferred().resolve().promise();
-            }
-            
-            addPromise.done(function () {
-                // Restore the results if needed
-                if (resultsChanged) {
-                    _restoreSearchResults();
+        /*
+         * Remove existing search results that match the given entry's path
+         * @param {File|Directory}
+         */
+        function _removeSearchResultsForEntry(entry) {
+            Object.keys(searchResults).forEach(function (fullPath) {
+                if (fullPath.indexOf(entry.fullPath) === 0) {
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
                 }
-            }).fail(function (err) {
-                console.warn("Failed to update FindInFiles results: ", err);
             });
         }
+    
+        /*
+         * Add new search results for this entry and all of its children
+         * @param {File|Directory}
+         * @param {jQuery.Promise} Resolves when the results have been added
+         */
+        function _addSearchResultsForEntry(entry) {
+            var addedFiles = [],
+                deferred = new $.Deferred();
+            
+            var doSearch = _doSearchInOneFile.bind(undefined, function () {
+                if (_addSearchMatches.apply(undefined, arguments)) {
+                    resultsChanged = true;
+                }
+            });
+            
+            // gather up added files
+            var visitor = function (child) {
+                if (ProjectManager.shouldShow(child)) {
+                    if (child.isFile) {
+                        addedFiles.push(child);
+                    }
+                    return true;
+                }
+                return false;
+            };
+    
+            entry.visit(visitor, function (err) {
+                if (err) {
+                    deferred.reject(err);
+                    return;
+                }
+                
+                // find additional matches in all added files
+                Async.doInParallel(addedFiles, doSearch).always(deferred.resolve);
+            });
+    
+            return deferred.promise();
+        }
+        
+        if (!entry) {
+            // TODO: re-execute the search completely?
+            return;
+        }
+        
+        var addPromise;
+        if (entry.isDirectory) {
+            if (!added || !removed) {
+                // If the added or removed sets are null, we should redo the
+                // search for the entire directory
+                _removeSearchResultsForEntry(entry);
+                
+                var deferred = $.Deferred();
+                addPromise = deferred.promise();
+                entry.getContents(function (err, entries) {
+                    Async.doInParallel(entries, _addSearchResultsForEntry).always(deferred.resolve);
+                });
+            } else {
+                removed.forEach(_removeSearchResultsForEntry);
+                addPromise = Async.doInParallel(added, _addSearchResultsForEntry);
+            }
+        } else { // entry.isFile
+            _removeSearchResultsForEntry(entry);
+            addPromise = _addSearchResultsForEntry(entry);
+        }
+        
+        addPromise.always(function () {
+            // Restore the results if needed
+            if (resultsChanged) {
+                _restoreSearchResults();
+            }
+        });
+
     };
     
     // Initialize items dependent on HTML DOM

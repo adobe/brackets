@@ -51,15 +51,6 @@ define(function (require, exports, module) {
     InMemoryFile.prototype.constructor = InMemoryFile;
     InMemoryFile.prototype.parentClass = File.prototype;
     
-    
-    /**
-     * Clear any cached data for this file.
-     * @private
-     */
-    InMemoryFile.prototype._clearCachedData = function () {
-        File.prototype._clearCachedData.apply(this);
-    };
-    
     // Stub out invalid calls inherited from File
     
     /**

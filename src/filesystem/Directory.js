@@ -73,13 +73,19 @@ define(function (require, exports, module) {
     Directory.prototype._contentsStatsErrors = null;
     
     /**
-     * Clear any cached data for this directory
+     * Clear any cached data for this directory. By default, we clear the contents
+     * of immediate children as well, because in some cases file watchers fail 
+     * provide precise change notifications. (Sometimes, like after a "git
+     * checkout", they just report that some directory has changed when in fact
+     * many of the file within the directory have changed.
+     * 
      * @private
+     * @param {boolean=} preserveImmediateChildren
      */
-    Directory.prototype._clearCachedData = function (stopRecursing) {
+    Directory.prototype._clearCachedData = function (preserveImmediateChildren) {
         FileSystemEntry.prototype._clearCachedData.apply(this);
         
-        if (!stopRecursing && this._contents) {
+        if (!preserveImmediateChildren && this._contents) {
             this._contents.forEach(function (child) {
                 child._clearCachedData(true);
             });
@@ -129,14 +135,14 @@ define(function (require, exports, module) {
         }
 
         // Return cached contents if the directory is watched
-        if (this._contents && this._isWatched) {
+        if (this._contents) {
             callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
         
         this._contentsCallbacks = [callback];
         
-        this._impl.readdir(this.fullPath, function (err, entries, stats) {
+        this._impl.readdir(this.fullPath, function (err, names, stats) {
             var contents = [],
                 contentsStats = [],
                 contentsStatsErrors;
@@ -144,12 +150,14 @@ define(function (require, exports, module) {
             if (err) {
                 this._clearCachedData();
             } else {
-                entries.forEach(function (name, index) {
-                    var entryPath = this.fullPath + name,
-                        entry;
+                var watched = this._isWatched();
+                
+                names.forEach(function (name, index) {
+                    var entryPath = this.fullPath + name;
                     
                     if (this._fileSystem._indexFilter(entryPath, name)) {
-                        var entryStats = stats[index];
+                        var entryStats = stats[index],
+                            entry;
                         
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {
@@ -162,28 +170,25 @@ define(function (require, exports, module) {
                             // entryStats is a FileSystemStats object
                             if (entryStats.isFile) {
                                 entry = this._fileSystem.getFileForPath(entryPath);
-                                
-                                // If file already existed, its cache may now be invalid (a change
-                                // to file content may be messaged EITHER as a watcher change 
-                                // directly on that file, OR as a watcher change to its parent dir)
-                                // TODO: move this to FileSystem._handleWatchResult()?
-                                entry._clearCachedData();
                             } else {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
                             
-                            entry._stat = entryStats;
+                            if (watched) {
+                                entry._stat = entryStats;
+                            }
                             
                             contents.push(entry);
                             contentsStats.push(entryStats);
                         }
-                    
                     }
                 }, this);
 
-                this._contents = contents;
-                this._contentsStats = contentsStats;
-                this._contentsStatsErrors = contentsStatsErrors;
+                if (watched) {
+                    this._contents = contents;
+                    this._contentsStats = contentsStats;
+                    this._contentsStatsErrors = contentsStatsErrors;
+                }
             }
             
             // Reset the callback list before we begin calling back so that
@@ -208,7 +213,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         // Block external change events until after the write has finished
-        this._fileSystem._beginWrite();
+        this._fileSystem._beginChange();
         
         this._impl.mkdir(this._path, function (err, stat) {
             if (err) {
@@ -218,21 +223,24 @@ define(function (require, exports, module) {
                     return;
                 } finally {
                     // Unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }
 
             var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
             
             // Update internal filesystem state
-            this._stat = stat;
+            if (this._isWatched()) {
+                this._stat = stat;
+            }
+            
             this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
                 try {
                     callback(null, stat);
                 } finally {
                     this._fileSystem._fireChangeEvent(parent, added, removed);
                     // Unblock external change events
-                    this._fileSystem._endWrite();
+                    this._fileSystem._endChange();
                 }
             }.bind(this));
         }.bind(this));

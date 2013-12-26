@@ -110,22 +110,28 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> har ändrats men har också osparade ändringar i {APP_NAME}.<br /><br />Vilken version vill du behålla?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> har raderats man har också osparade ändringar i {APP_NAME}.<br /><br />Vill du behålla dina ändringar?",
     
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Avbryt",
+    "DONT_SAVE"                         : "Spara inte",
+    "SAVE"                              : "Spara",
+    "DELETE"                            : "Radera",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nej",
+    
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Använd /re/ syntax för regexp-sökning",
     "FIND_RESULT_COUNT"                 : "{0} träffar",
     "FIND_RESULT_COUNT_SINGLE"          : "1 träff",
     "FIND_NO_RESULTS"                   : "Inga träffar",
-    "WITH"                              : "med",
-    "BUTTON_YES"                        : "Ja",
-    "BUTTON_NO"                         : "Nej",
+    "REPLACE_PLACEHOLDER"               : "Ersätt med\u2026",
     "BUTTON_REPLACE_ALL"                : "Alla\u2026",
-    "BUTTON_STOP"                       : "Avbryt",
     "BUTTON_REPLACE"                    : "Ersätt",
-            
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Nästa träff",
     "BUTTON_PREV_HINT"                  : "Föregående träff",
+    "BUTTON_CASESENSITIVE_HINT"         : "Skiftlägeskänslig",
+    "BUTTON_REGEXP_HINT"                : "Regular Expression",
 
     "OPEN_FILE"                         : "Öppna fil",
     "SAVE_FILE_AS"                      : "Spara fil som",
@@ -135,10 +141,12 @@ define({
     "NO_UPDATE_TITLE"                   : "Du är uppdaterad!",
     "NO_UPDATE_MESSAGE"                 : "Du använder den senaste versionen av {APP_NAME}.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Ersätt \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" med \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" hittades",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} i {3} {4}",
@@ -307,11 +315,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Spara inte",
-    "SAVE"                                 : "Spara",
-    "CANCEL"                               : "Avbryt",
-    "DELETE"                               : "Radera",
     "RELOAD_FROM_DISK"                     : "Ladda om",
     "KEEP_CHANGES_IN_EDITOR"               : "Behåll ändringar i editorn",
     "CLOSE_DONT_SAVE"                      : "Stäng (spara inte)",

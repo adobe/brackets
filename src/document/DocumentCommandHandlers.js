@@ -548,7 +548,7 @@ define(function (require, exports, module) {
                 Strings.EXT_MODIFIED_TITLE,
                 StringUtils.format(
                     Strings.EXT_MODIFIED_WARNING,
-                    StringUtils.breakableUrl(docToSave.file.name)
+                    StringUtils.breakableUrl(docToSave.file.fullPath)
                 ),
                 [
                     {
@@ -697,6 +697,11 @@ define(function (require, exports, module) {
             
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
+            
+            // Save as warns you when you're about to overwrite a file, so we
+            // explictly allow "blind" writes to the filesystem in this case,
+            // ignoring warnings about the contents being modified outside of
+            // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {

@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
     describe("FileSystem", function () {
-                        
+        
         // Callback factories
         function resolveCallback() {
             var callback = function (err, entry) {
@@ -117,7 +117,12 @@ define(function (require, exports, module) {
             waitsFor(function () { return cb.wasCalled; });
             runs(function () {
                 expect(cb.error).toBeFalsy();
+                expect(fileSystem._getActiveChangeCount()).toBe(0);
             });
+        });
+        
+        afterEach(function () {
+            expect(fileSystem._getActiveChangeCount()).toBe(0);
         });
         
         describe("Path normalization", function () {
@@ -452,7 +457,7 @@ define(function (require, exports, module) {
                     };
                 }
                 
-                MockFileSystemImpl.when("readdir", "/subdir/", {callback: delayedCallback});
+                MockFileSystemImpl.when("readdir", "/subdir/", delayedCallback);
                 
                 // Fire off 2 getContents() calls in rapid succession
                 runs(function () {
@@ -733,7 +738,7 @@ define(function (require, exports, module) {
                 function addSymbolicLink(dir, name, target) {
 
                     // Add the symbolic link to the base directory
-                    MockFileSystemImpl.when("readdir", dir, { callback: function (cb) {
+                    MockFileSystemImpl.when("readdir", dir, function (cb) {
                         return function (err, contents, contentsStats, contentsStatsErrors) {
                             contents.push("/" + name);
                             contentsStats.push(new FileSystemStats({
@@ -744,14 +749,14 @@ define(function (require, exports, module) {
                             
                             cb(err, contents, contentsStats, contentsStatsErrors);
                         };
-                    }});
+                    });
                     
                     // use the target's contents when listing the contents of the link
-                    MockFileSystemImpl.when("readdir", dir + name + "/", { callback: function (cb) {
+                    MockFileSystemImpl.when("readdir", dir + name + "/", function (cb) {
                         return function (err, contents, contentsStats, contentsStatsErrors) {
                             MockFileSystemImpl.readdir(target, cb);
                         };
-                    }});
+                    });
                     
                     // clear cached data for the base directory so readdir will be called
                     fileSystem.getDirectoryForPath(dir)._clearCachedData();
@@ -788,33 +793,40 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Event timing", function () {
+        describe("Event ordering", function () {
+            
+            function eventOrderingTest(eventName, implOpName, entry, methodName) {
+                var params = Array.prototype.slice.call(arguments, 4);
+                
+                runs(function () {
+                    var opDone = false, eventDone = false;
+                    
+                    // Delay impl callback to happen after impl watcher notification
+                    MockFileSystemImpl.when(implOpName, entry.fullPath, delay(250));
+                    
+                    $(fileSystem).on(eventName, function (evt, entry) {
+                        expect(opDone).toBe(true);  // this is the important check: callback should have already run!
+                        eventDone = true;
+                    });
+                    
+                    params.push(function (err) {
+                        expect(err).toBeFalsy();
+                        expect(eventDone).toBe(false);
+                        opDone = true;
+                    });
+                    
+                    entry[methodName].apply(entry, params);
+                    
+                    waitsFor(function () { return opDone && eventDone; });
+                });
+            }
             
             it("should apply rename callback before firing the 'rename' event", function () {
                 var origFilePath = "/file1.txt",
                     origFile = fileSystem.getFileForPath(origFilePath),
                     renamedFilePath = "/file1_renamed.txt";
                 
-                runs(function () {
-                    var renameDone = false, changeDone = false;
-                    
-                    // Delay impl callback to happen after impl watcher notification
-                    MockFileSystemImpl.when("rename", origFilePath, {
-                        callback: delay(250)
-                    });
-                    
-                    $(fileSystem).on("rename", function (evt, entry) {
-                        expect(renameDone).toBe(true);  // this is the important check: callback should have already run!
-                        changeDone = true;
-                    });
-                    
-                    origFile.rename(renamedFilePath, function (err) {
-                        expect(err).toBeFalsy();
-                        renameDone = true;
-                    });
-                    
-                    waitsFor(function () { return changeDone && renameDone; });
-                });
+                eventOrderingTest("rename", "rename", origFile, "rename", renamedFilePath);
                 
                 runs(function () {
                     expect(origFile.fullPath).toBe(renamedFilePath);
@@ -826,30 +838,32 @@ define(function (require, exports, module) {
                 var testFilePath = "/file1.txt",
                     testFile = fileSystem.getFileForPath(testFilePath);
                 
-                runs(function () {
-                    var writeDone = false, changeDone = false;
-                    
-                    // Delay impl callback to happen after impl watcher notification
-                    MockFileSystemImpl.when("writeFile", testFilePath, {
-                        callback: delay(250)
-                    });
-                    
-                    $(fileSystem).on("change", function (evt, entry) {
-                        expect(writeDone).toBe(true);  // this is the important check: callback should have already run!
-                        changeDone = true;
-                    });
-                    
-                    testFile.write("Foobar", { blind: true }, function (err) {
-                        expect(err).toBeFalsy();
-                        writeDone = true;
-                    });
-                    
-                    waitsFor(function () { return changeDone && writeDone; });
-                });
+                eventOrderingTest("change", "writeFile", testFile, "write", "Foobar", { blind: true });
+            });
+            
+            it("should apply unlink callback before firing the 'change' event", function () {
+                var testFilePath = "/file1.txt",
+                    testFile = fileSystem.getFileForPath(testFilePath);
+                
+                eventOrderingTest("change", "unlink", testFile, "unlink");
+            });
+
+            it("should apply moveToTrash callback before firing the 'change' event", function () {
+                var testFilePath = "/file1.txt",
+                    testFile = fileSystem.getFileForPath(testFilePath);
+                
+                eventOrderingTest("change", "moveToTrash", testFile, "moveToTrash");
+            });
+            
+            it("should apply create callback before firing the 'change' event", function () {
+                var testDirPath = "/a/new/directory.txt",
+                    testDir = fileSystem.getDirectoryForPath(testDirPath);
+                
+                eventOrderingTest("change", "create", testDir, "create");
             });
             
             // Used for various tests below where two write operations (to two different files) overlap in various ways
-            function dualWrite(cb1Delay, watcher1Delay, cb2Delay, watcher2Delay) {
+            function dualWrite(cb1Delay, cb2Delay) {
                 var testFile1 = fileSystem.getFileForPath("/file1.txt"),
                     testFile2 = fileSystem.getFileForPath("/file2.txt");
                 
@@ -858,14 +872,8 @@ define(function (require, exports, module) {
                     var write2Done = false, change2Done = false;
                     
                     // Delay impl callback to happen after impl watcher notification
-                    MockFileSystemImpl.when("writeFile", "/file1.txt", {
-                        callback: delay(cb1Delay),
-                        notify: delay(watcher1Delay)
-                    });
-                    MockFileSystemImpl.when("writeFile", "/file2.txt", {
-                        callback: delay(cb2Delay),
-                        notify: delay(watcher2Delay)
-                    });
+                    MockFileSystemImpl.when("writeFile", "/file1.txt", delay(cb1Delay));
+                    MockFileSystemImpl.when("writeFile", "/file2.txt", delay(cb2Delay));
                     
                     $(fileSystem).on("change", function (evt, entry) {
                         // change for file N should not precede write callback for write to N
@@ -874,8 +882,10 @@ define(function (require, exports, module) {
                         
                         expect(entry.fullPath === "/file1.txt" || entry.fullPath === "/file2.txt").toBe(true);
                         if (entry.fullPath === "/file1.txt") {
+                            expect(change1Done).toBe(false); // we do NOT expect to receive duplicate change events
                             change1Done = true;
                         } else {
+                            expect(change2Done).toBe(false);
                             change2Done = true;
                         }
                     });
@@ -894,48 +904,27 @@ define(function (require, exports, module) {
                     waitsFor(function () { return change1Done && write1Done && change2Done && write2Done; });
                 });
             }
-            
-            it("should handle overlapping writes to different files - 2nd file finishes much faster", function () {
-                dualWrite(100, 200, 0, 0);
+
+            it("should handle overlapping writes to different files", function () {
+                dualWrite(0, 0);
             });
-            it("should handle overlapping writes to different files - 2nd file finishes much faster, 1st file watcher runs early", function () {
-                dualWrite(200, 100, 0, 0);
+            it("should handle overlapping writes to different files - 2nd file finishes faster", function () {
+                dualWrite(100, 0);
+            });
+            it("should handle overlapping writes to different files - 2nd file finishes much faster", function () {
+                dualWrite(200, 0);
+            });
+            it("should handle overlapping writes to different files - 1st file finishes faster", function () {
+                dualWrite(0, 100);
             });
             it("should handle overlapping writes to different files - 1st file finishes much faster", function () {
-                dualWrite(0, 0, 100, 200);
+                dualWrite(0, 200);
             });
-            it("should handle overlapping writes to different files - 1st file finishes much faster, 2nd file watcher runs early", function () {
-                dualWrite(0, 0, 200, 100);
+            it("should handle overlapping writes to different files - 1st file finishes less slowly", function () {
+                dualWrite(100, 200);
             });
-            it("should handle overlapping writes to different files - both watchers run early", function () {
-                dualWrite(100, 0, 200, 0);
-            });
-            it("should handle overlapping writes to different files - both watchers run early, reversed", function () {
-                dualWrite(100, 50, 200, 0);
-            });
-            it("should handle overlapping writes to different files - 2nd file finishes faster, both watchers run early", function () {
-                dualWrite(200, 0, 100, 0);
-            });
-            it("should handle overlapping writes to different files - 2nd file finishes faster, both watchers run early, reversed", function () {
-                dualWrite(200, 50, 100, 0);
-            });
-            it("should handle overlapping writes to different files - watchers run in order", function () {
-                dualWrite(0, 100, 0, 200);
-            });
-            it("should handle overlapping writes to different files - watchers reversed", function () {
-                dualWrite(0, 200, 0, 100);
-            });
-            it("should handle overlapping writes to different files - nonoverlapping in order", function () {
-                dualWrite(0, 50, 100, 200);
-            });
-            it("should handle overlapping writes to different files - nonoverlapping reversed", function () {
-                dualWrite(100, 200, 0, 50);
-            });
-            it("should handle overlapping writes to different files - overlapped in order", function () {
-                dualWrite(0, 100, 50, 200);
-            });
-            it("should handle overlapping writes to different files - overlapped reversed", function () {
-                dualWrite(50, 200, 0, 100);
+            it("should handle overlapping writes to different files - 2nd file finishes less slowly", function () {
+                dualWrite(200, 100);
             });
         });
         
@@ -948,24 +937,20 @@ define(function (require, exports, module) {
                 readCalls = 0;
                 writeCalls = 0;
                 
-                MockFileSystemImpl.when("readFile", filename, {
-                    callback: function (cb) {
-                        return function () {
-                            var args = arguments;
-                            readCalls++;
-                            cb.apply(undefined, args);
-                        };
-                    }
+                MockFileSystemImpl.when("readFile", filename, function (cb) {
+                    return function () {
+                        var args = arguments;
+                        readCalls++;
+                        cb.apply(undefined, args);
+                    };
                 });
                 
-                MockFileSystemImpl.when("writeFile", filename, {
-                    callback: function (cb) {
-                        return function () {
-                            var args = arguments;
-                            writeCalls++;
-                            cb.apply(undefined, args);
-                        };
-                    }
+                MockFileSystemImpl.when("writeFile", filename, function (cb) {
+                    return function () {
+                        var args = arguments;
+                        writeCalls++;
+                        cb.apply(undefined, args);
+                    };
                 });
             });
             
@@ -976,7 +961,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -988,7 +973,7 @@ define(function (require, exports, module) {
                 // confirm impl read and cached data and then read again
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb1.stat);
                     expect(file._contents).toBe(cb1.data);
                     expect(file._hash).toBeTruthy();
@@ -1003,7 +988,7 @@ define(function (require, exports, module) {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.stat).toBe(cb1.stat);
                     expect(cb2.data).toBe(cb1.data);
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(cb2.data);
                     expect(file._hash).toBeTruthy();
@@ -1019,7 +1004,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then write blindly
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(writeCalls).toBe(0);
@@ -1032,7 +1017,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb1.error).toBe(FileSystemError.CONTENTS_MODIFIED);
                     expect(cb1.stat).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
@@ -1046,7 +1031,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.stat).toBeTruthy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(newFileContent);
                     expect(file._hash).toBeTruthy();
@@ -1063,7 +1048,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1076,7 +1061,7 @@ define(function (require, exports, module) {
                 // confirm impl read and cached data and then write
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb1.stat);
                     expect(file._contents).toBe(cb1.data);
                     expect(file._hash).toBeTruthy();
@@ -1093,7 +1078,7 @@ define(function (require, exports, module) {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.stat).not.toBe(cb1.stat);
                     expect(cb2.stat).toBeTruthy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(newFileContent);
                     expect(file._hash).not.toBe(savedHash);
@@ -1112,7 +1097,7 @@ define(function (require, exports, module) {
                 
                 // confirm empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1124,7 +1109,7 @@ define(function (require, exports, module) {
                 // confirm impl read and cached data and then fire a synthetic change event
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb1.stat);
                     expect(file._contents).toBe(cb1.data);
                     expect(file._hash).toBeTruthy();
@@ -1143,7 +1128,7 @@ define(function (require, exports, module) {
                 
                 // confirm now-empty cached data and then read
                 runs(function () {
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBeFalsy();
                     expect(file._contents).toBeFalsy(); // contents and stat should be cleared
                     expect(file._hash).toBe(savedHash); // but hash should not be cleared
@@ -1155,7 +1140,7 @@ define(function (require, exports, module) {
                 // confirm impl read and new cached data
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
-                    expect(file._isWatched).toBe(true);
+                    expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBe(cb2.stat);
                     expect(file._contents).toBe(cb2.data);
                     expect(file._hash).toBeTruthy();
@@ -1169,6 +1154,15 @@ define(function (require, exports, module) {
                     cb1 = readCallback(),
                     cb2 = readCallback(),
                     savedHash;
+
+                // confirm watched and empty cached data
+                runs(function () {
+                    file = fileSystem.getFileForPath(filename);
+                    
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                });
                 
                 // unwatch root directory
                 runs(function () {
@@ -1182,7 +1176,7 @@ define(function (require, exports, module) {
                     
                     file = fileSystem.getFileForPath(filename);
                     
-                    expect(file._isWatched).toBe(false);
+                    expect(file._isWatched()).toBe(false);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeFalsy();
                     expect(readCalls).toBe(0);
@@ -1194,7 +1188,7 @@ define(function (require, exports, module) {
                 // confirm impl read, empty cached data and then read again
                 runs(function () {
                     expect(cb1.error).toBeFalsy();
-                    expect(file._isWatched).toBe(false);
+                    expect(file._isWatched()).toBe(false);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeTruthy();
                     expect(readCalls).toBe(1);
@@ -1208,13 +1202,252 @@ define(function (require, exports, module) {
                 // confirm impl read and empty cached data
                 runs(function () {
                     expect(cb2.error).toBeFalsy();
-                    expect(file._isWatched).toBe(false);
+                    expect(file._isWatched()).toBe(false);
                     expect(file._contents).toBeFalsy();
                     expect(file._hash).toBe(savedHash);
                     expect(readCalls).toBe(2);
                 });
             });
             
+            it("should invalidate cached data after unwatch", function () {
+                var file,
+                    cb0 = readCallback(),
+                    cb1 = errorCallback(),
+                    cb2 = readCallback(),
+                    savedHash;
+
+                // confirm watched and empty cached data
+                runs(function () {
+                    file = fileSystem.getFileForPath(filename);
+                    
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    
+                    file.read(cb0);
+                });
+                waitsFor(function () { return cb0.wasCalled; });
+                
+                // confirm impl read and cached data, and then unwatch root directory
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBeTruthy();
+                    expect(file._contents).toBe(cb0.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    fileSystem.unwatch(fileSystem.getDirectoryForPath("/"), cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // read again
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._hash).toBeTruthy();
+                    
+                    file.read(cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl read and empty cached data
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(cb2.data).toBe(cb0.data);
+                    expect(file._isWatched()).toBe(false);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(2);
+                });
+            });
+            
+            it("should unwatch when watchers go offline", function () {
+                var file,
+                    cb0 = readCallback(),
+                    cb1 = readCallback(),
+                    savedHash;
+
+                // confirm watched and empty cached data
+                runs(function () {
+                    file = fileSystem.getFileForPath(filename);
+                    
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    
+                    file.read(cb0);
+                });
+                waitsFor(function () { return cb0.wasCalled; });
+                
+                // confirm impl read and cached data, and then unwatch root directory
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBeTruthy();
+                    expect(file._contents).toBe(cb0.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    MockFileSystemImpl.goOffline();
+                });
+                waits(500);
+                
+                // read again
+                runs(function () {
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and empty cached data
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(cb1.data).toBe(cb0.data);
+                    expect(file._isWatched()).toBe(false);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(2);
+                });
+            });
+        });
+        describe("External change events", function () {
+            var _model,
+                changedEntry,
+                addedEntries,
+                removedEntries,
+                changeDone;
+            
+            beforeEach(function () {
+                _model = MockFileSystemImpl._model;
+                
+                changedEntry = null;
+                addedEntries = null;
+                removedEntries = null;
+                changeDone = false;
+                
+                runs(function () {
+                    $(fileSystem).on("change", function (event, entry, added, removed) {
+                        changedEntry = entry;
+                        addedEntries = added;
+                        removedEntries = removed;
+                        changeDone = true;
+                    });
+                
+                });
+            });
+            
+            it("should fire change event on external file creation", function () {
+                var dirname = "/subdir/",
+                    newfilename = "/subdir/file.that.does.not.exist",
+                    dir,
+                    newfile;
+                
+                runs(function () {
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    newfile = fileSystem.getFileForPath(newfilename);
+                    
+                    dir.getContents(function () {
+                        _model.writeFile(newfilename, "a lost spacecraft, a collapsed building");
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(1);
+                    expect(addedEntries[0]).toBe(newfile);
+                    expect(removedEntries.length).toBe(0);
+                });
+            });
+            
+            it("should fire change event on external file update", function () {
+                var oldfilename = "/subdir/file3.txt",
+                    oldfile;
+                
+                runs(function () {
+                    oldfile = fileSystem.getFileForPath(oldfilename);
+                    
+                    _model.writeFile(oldfilename, "a crashed aeroplane, or a world war");
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(oldfile);
+                    expect(addedEntries).toBeFalsy();
+                    expect(removedEntries).toBeFalsy();
+                });
+            });
+            
+            it("should fire change event on external directory creation", function () {
+                var dirname = "/subdir/",
+                    newdirname = "/subdir/dir.that.does.not.exist/",
+                    dir,
+                    newdir;
+                
+                runs(function () {
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    newdir = fileSystem.getDirectoryForPath(newdirname);
+                    
+                    dir.getContents(function () {
+                        _model.mkdir(newdirname);
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(1);
+                    expect(addedEntries[0]).toBe(newdir);
+                    expect(removedEntries.length).toBe(0);
+                });
+            });
+            
+            it("should fire change event on external unlink", function () {
+                var dirname = "/",
+                    olddirname = "/subdir/",
+                    dir,
+                    olddir;
+                
+                runs(function () {
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    olddir = fileSystem.getFileForPath(olddirname);
+                    
+                    dir.getContents(function () {
+                        _model.unlink(olddirname);
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(0);
+                    expect(removedEntries.length).toBe(1);
+                    expect(removedEntries[0]).toBe(olddir);
+                });
+            });
+            
+            it("should fire change event on external file rename", function () {
+                var dirname = "/subdir/",
+                    oldfilename = "/subdir/file3.txt",
+                    newfilename = "/subdir/file3.new.txt",
+                    oldfile,
+                    newfile,
+                    dir;
+                
+                runs(function () {
+                    oldfile = fileSystem.getFileForPath(oldfilename);
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    
+                    dir.getContents(function () {
+                        _model.rename(oldfilename, newfilename);
+                        newfile = fileSystem.getFileForPath(newfilename);
+                    });
+                });
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(1);
+                    expect(removedEntries.length).toBe(1);
+                    expect(addedEntries[0]).toBe(newfile);
+                    expect(removedEntries[0]).toBe(oldfile);
+                });
+            });
         });
     });
 });
