@@ -130,7 +130,8 @@ define(function (require, exports, module) {
         if (insertBefore && $("#" + insertBefore).length > 0) {
             $indicator.insertAfter("#" + insertBefore);
         } else {
-            // No positioning is provided, put after "busy" indicator
+            // No positioning is provided, put on left end of indicators, but
+            // to right of "busy" indicator (which is usually hidden).
             var $busyIndicator = $("#status-bar .spinner");
             $indicator.insertBefore($busyIndicator);
         }
