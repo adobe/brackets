@@ -301,24 +301,17 @@ define(function (require, exports, module) {
         
     }
     
-    function copyItem(sourcePath, destinationPath, options, callback) {
-        //var encoding = options.encoding || "utf8";
-        
+    function copyItem(sourcePath, destinationPath, callback) {
         exists(sourcePath, function (err, alreadyExists) {
             if (err) {
                 callback(err);
                 return;
             }
-//            fs.copy('/tmp/myfile', '/tmp/mynewfile', function(err){
-//                if (err) return console.error(err);
-//            
-//                console.log("success!")
-//            }); //copies file
             appshell.fs.copyFile(sourcePath, destinationPath, function (err) {
                 if (err) {
                     return console.error(err);
                 }
-                console.log("success copying!");
+                callback(err);
             });
         });
     }
