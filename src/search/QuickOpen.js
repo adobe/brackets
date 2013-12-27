@@ -70,6 +70,11 @@ define(function (require, exports, module) {
      * The currently open quick open dialog.
      */
     var _curDialog;
+    
+    /**
+     * The width of the window.
+     */
+    var _windowWidth;
 
     /**
      * Defines API for new QuickOpen plug-ins
@@ -848,6 +853,13 @@ define(function (require, exports, module) {
 
         this.setSearchFieldValue(prefix, initialString);
         
+        // Set the smart_autocomplete_container's max-height for scroll bars
+        // and margin-left to keep it aligned with the QuickOpen input area
+        var _smartAutocompleteContainerHeight = parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
+        $(".smart_autocomplete_container").css({"height": _smartAutocompleteContainerHeight, "margin-left": "0px"});
+        // Set the initial window width every time QuickOpen is opened. Used to calculate the change in width of the window
+        _windowWidth = window.document.width;
+        
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
         fileListPromise = ProjectManager.getAllFiles(true)
@@ -914,6 +926,15 @@ define(function (require, exports, module) {
     // Listen for a change of project to invalidate our file list
     $(ProjectManager).on("projectOpen", function () {
         fileList = null;
+    });
+    
+    // Listen for the resizing of window to resize and move the smart_autocomplete_container accordingly
+    $(window).resize(function() {
+        var _smartAutocompleteContainerHeight = parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
+        $(".smart_autocomplete_container").css({"height": _smartAutocompleteContainerHeight});
+        // move the smart_autocomplete_container according to change in the width of the window
+        var _widthChange = window.document.width - _windowWidth;
+        $(".smart_autocomplete_container").css({"margin-left": _widthChange});
     });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
