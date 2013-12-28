@@ -103,6 +103,7 @@ define(function (require, exports, module) {
             options = {};
         }
         
+        options = options || {};
         callback = callback || function () {};
         
         this._fileSystem._beginWrite();
