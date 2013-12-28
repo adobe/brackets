@@ -162,6 +162,7 @@ define(function (require, exports, module) {
         // Bind event handlers
         this._handleItemSelect         = this._handleItemSelect.bind(this);
         this._handleItemFocus          = this._handleItemFocus.bind(this);
+        this._handleItemFocus          = this._handleItemFocus.bind(this);
         this._handleKeyUp              = this._handleKeyUp.bind(this);
         this._handleResultsReady       = this._handleResultsReady.bind(this);
         this._handleShowResults        = this._handleShowResults.bind(this);
@@ -856,7 +857,7 @@ define(function (require, exports, module) {
         // Set the smart_autocomplete_container's max-height for scroll bars
         // and margin-left to keep it aligned with the QuickOpen input area
         var _smartAutocompleteContainerHeight = parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
-        $(".smart_autocomplete_container").css({"height": _smartAutocompleteContainerHeight, "margin-left": "0px"});
+        $(".smart_autocomplete_container").css({"max-height": _smartAutocompleteContainerHeight, "margin-left": "0px"});
         // Set the initial window width every time QuickOpen is opened. Used to calculate the change in width of the window
         _windowWidth = window.document.width;
         
@@ -929,9 +930,9 @@ define(function (require, exports, module) {
     });
     
     // Listen for the resizing of window to resize and move the smart_autocomplete_container accordingly
-    $(window).resize(function() {
+    $(window).resize(function () {
         var _smartAutocompleteContainerHeight = parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
-        $(".smart_autocomplete_container").css({"height": _smartAutocompleteContainerHeight});
+        $(".smart_autocomplete_container").css({"max-height": _smartAutocompleteContainerHeight});
         // move the smart_autocomplete_container according to change in the width of the window
         var _widthChange = window.document.width - _windowWidth;
         $(".smart_autocomplete_container").css({"margin-left": _widthChange});
