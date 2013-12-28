@@ -456,6 +456,13 @@ define(function (require, exports, module) {
         if ($(".smart_autocomplete_highlight").length === 0) {
             this._handleItemFocus(null, $(".smart_autocomplete_container > li:first-child").get(0));
         }
+        
+        // Set the smart_autocomplete_container's max-height for scroll bars
+        // and margin-left to keep it aligned with the QuickOpen input area
+        var _smartAutocompleteContainerHeight = parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
+        $(".smart_autocomplete_container").css({"max-height": _smartAutocompleteContainerHeight, "margin-left": "0px"});
+        // Set the initial window width every time QuickOpen is opened. Used to calculate the change in width of the window
+        _windowWidth = window.document.width;
     };
 
     /**
@@ -853,13 +860,6 @@ define(function (require, exports, module) {
         });
 
         this.setSearchFieldValue(prefix, initialString);
-        
-        // Set the smart_autocomplete_container's max-height for scroll bars
-        // and margin-left to keep it aligned with the QuickOpen input area
-        var _smartAutocompleteContainerHeight = parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
-        $(".smart_autocomplete_container").css({"max-height": _smartAutocompleteContainerHeight, "margin-left": "0px"});
-        // Set the initial window width every time QuickOpen is opened. Used to calculate the change in width of the window
-        _windowWidth = window.document.width;
         
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
