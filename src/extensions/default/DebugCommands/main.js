@@ -176,10 +176,6 @@ define(function (require, exports, module) {
         
         _browserReload(href);
     }
-        
-    function _handleNewBracketsWindow() {
-        window.open(window.location.href);
-    }
     
     function _handleReloadWithoutUserExts() {
         var href    = window.location.href,
@@ -202,6 +198,10 @@ define(function (require, exports, module) {
         
         href += "?" + params;
         _browserReload(href);
+    }
+        
+    function _handleNewBracketsWindow() {
+        window.open(window.location.href);
     }
     
     function _handleShowPerfData() {
