@@ -142,7 +142,7 @@ define(function (require, exports, module) {
         /*
          * Extensions menu
          */
-        menu = Menus.addMenu(Strings.EXTENSIONS_MENU, Menus.AppMenuBar.EXTENSION_MENU);
+        menu = Menus.addMenu(Strings.EXTENSIONS_MENU, Menus.AppMenuBar.EXTENSIONS_MENU);
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
 
         /*
