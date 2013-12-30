@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
+        EXTENSION_MENU  : "extension-menu",
         HELP_MENU       : "help-menu"
     };
 
