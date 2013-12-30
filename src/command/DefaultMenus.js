@@ -55,8 +55,6 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
         
         // suppress redundant quit menu item on mac
         if (brackets.platform !== "mac" || !brackets.nativeMenus) {
@@ -140,6 +138,12 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CSS_QUICK_EDIT_NEW_RULE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
+        
+        /*
+         * Extensions menu
+         */
+        menu = Menus.addMenu(Strings.EXTENSIONS_MENU, Menus.AppMenuBar.EXTENSION_MENU);
+        menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
 
         /*
          * Help menu
