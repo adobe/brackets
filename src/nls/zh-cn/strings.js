@@ -232,7 +232,6 @@ define({
     "CMD_FILE_RENAME"                     : "重命名",
     "CMD_FILE_DELETE"                     : "删除",
     "CMD_INSTALL_EXTENSION"               : "安装扩展\u2026",
-    "CMD_EXTENSION_MANAGER"               : "扩展管理器\u2026",
     "CMD_FILE_REFRESH"                    : "刷新文件列表",
     "CMD_QUIT"                            : "退出",
     // Used in native File menu on Windows
@@ -300,6 +299,10 @@ define({
     "CMD_PREV_DOC"                        : "上一个文件",
     "CMD_SHOW_IN_TREE"                    : "在侧边栏显示",
     "CMD_SHOW_IN_OS"                      : "打开文件所在目录",
+    
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "扩展",
+    "CMD_EXTENSION_MANAGER"               : "扩展管理器\u2026",
     
     // Help menu commands
     "HELP_MENU"                           : "帮助",
