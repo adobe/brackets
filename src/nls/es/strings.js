@@ -232,7 +232,6 @@ define({
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_FILE_DELETE"                     : "Eliminar",
     "CMD_INSTALL_EXTENSION"               : "Instalar extensión\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
     "CMD_FILE_REFRESH"                    : "Actualizar árbol de archivos",
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
@@ -300,6 +299,10 @@ define({
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
+
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Extensiones",
+    "CMD_EXTENSION_MANAGER"               : "Gestionar extensiones\u2026",
     
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",

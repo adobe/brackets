@@ -200,7 +200,6 @@ define({
     "CMD_FILE_RENAME"                     : "Premenovať",
     "CMD_FILE_DELETE"                     : "Zmazať",
     "CMD_INSTALL_EXTENSION"               : "Inštalovať rozšírenia\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Správca rozšírení\u2026",
     "CMD_FILE_REFRESH"                    : "Obnoviť strom súborov",
     "CMD_QUIT"                            : "Koniec",
     // Použité v natívnom menu Súborov na Windows 
@@ -264,6 +263,10 @@ define({
     "CMD_PREV_DOC"                        : "Predchádzajúci dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobraziť stromovú štruktúru",
     "CMD_SHOW_IN_OS"                      : "Zobraziť v OS",
+
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Extensions",
+    "CMD_EXTENSION_MANAGER"               : "Správca rozšírení\u2026",
     
     // Help menu commands
     "HELP_MENU"                           : "Nápoveda",

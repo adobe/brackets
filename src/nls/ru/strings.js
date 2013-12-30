@@ -211,6 +211,9 @@ define({
     "CMD_NEXT_DOC"                        : "Следующий документ",
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве файлов",
+
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Extensions",
     
     // Help menu commands
     "HELP_MENU"                           : "Помощь",

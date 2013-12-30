@@ -213,6 +213,9 @@ define({
     "CMD_SHOW_IN_TREE"                    : "Dosya Listesinde Göster",
     "CMD_SHOW_IN_OS"                      : "Bulunduğu Konumu Aç",
     
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Uzantıları",
+    
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",

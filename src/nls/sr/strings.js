@@ -217,7 +217,6 @@ define({
     "CMD_FILE_RENAME"                     : "Преименуј",
     "CMD_FILE_DELETE"                     : "Обриши",
     "CMD_INSTALL_EXTENSION"               : "Инсталирај екстензију\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Менаџер екстензија\u2026",
     "CMD_FILE_REFRESH"                    : "Освежи стабло датотека",
     "CMD_QUIT"                            : "Прекини",
     // Used in native File menu on Windows
@@ -284,6 +283,10 @@ define({
     "CMD_PREV_DOC"                        : "Претходни документ",
     "CMD_SHOW_IN_TREE"                    : "Прикажи у стаблу датотека",
     "CMD_SHOW_IN_OS"                      : "Прикажи у оперативном систему",
+    
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Extensions",
+    "CMD_EXTENSION_MANAGER"               : "Менаџер екстензија\u2026",
     
     // Help menu commands
     "HELP_MENU"                           : "Помоћ",
