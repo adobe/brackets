@@ -326,7 +326,7 @@ define(function (require, exports, module) {
         params.parse();
         
         if (params.get("reloadWithoutUserExts") === "true") {
-            paths = ["default", "dev"];
+            paths = ["default"];
         }
         
         // Load extensions before restoring the project
