@@ -232,7 +232,6 @@ define({
     "CMD_FILE_RENAME"                     : "Byt namn",
     "CMD_FILE_DELETE"                     : "Radera",
     "CMD_INSTALL_EXTENSION"               : "Installera tillägg\u2026",
-    "CMD_EXTENSION_MANAGER"               : "Tilläggshanteraren\u2026",
     "CMD_FILE_REFRESH"                    : "Uppdatera filträd",
     "CMD_QUIT"                            : "Avsluta",
     // Used in native File menu on Windows
@@ -300,6 +299,10 @@ define({
     "CMD_PREV_DOC"                        : "Föregående dokument",
     "CMD_SHOW_IN_TREE"                    : "Visa i filträdet",
     "CMD_SHOW_IN_OS"                      : "Visa i operativsystemet",
+    
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Tilläggshanterarens",
+    "CMD_EXTENSION_MANAGER"               : "Tilläggshanteraren\u2026",
     
     // Help menu commands
     "HELP_MENU"                           : "Hjälp",
