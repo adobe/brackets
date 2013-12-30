@@ -209,6 +209,9 @@ define({
     "CMD_PREV_DOC"                        : "Ficheiro anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar na lista de pastas",
 
+    // Extensions menu commands
+    "EXTENSIONS_MENU"                     : "Extenções",
+
     // Help menu commands
     "HELP_MENU"                           : "Ajuda",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
