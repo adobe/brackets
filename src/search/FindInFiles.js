@@ -98,6 +98,9 @@ define(function (require, exports, module) {
     /** @type {Array.<File>} An array of the files where it should look or null/empty to search the entire project */
     var currentScope = null;
     
+    /** @type{Array.<string>} An array of the extensions that must be excluded from the search */
+    var excludedExtensions = ["png", "jpg"];
+    
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
     
@@ -616,6 +619,26 @@ define(function (require, exports, module) {
         }
         return true;
     }
+    
+     /**
+     * @private
+     * Return true if the extension of the file in question is included in the excluded extensions
+     * @param {!File} file File in question
+     * @return {boolean}
+     */
+    function _inExcludedExtensions(file) {
+        var filename = file._name;
+        var extension = filename.substring(filename.lastIndexOf(".") + 1, filename.length);
+        var i;
+
+        for (i = 0; i < excludedExtensions.length; i++) {
+            if (excludedExtensions[i] === extension) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
     /**
      * @private
@@ -665,7 +688,7 @@ define(function (require, exports, module) {
                 Async.doInParallel(fileListResult, function (file) {
                     var result = new $.Deferred();
                     
-                    if (!_inScope(file, currentScope)) {
+                    if (!_inScope(file, currentScope) || _inExcludedExtensions(file)) {
                         result.resolve();
                     } else {
                         DocumentManager.getDocumentText(file)
