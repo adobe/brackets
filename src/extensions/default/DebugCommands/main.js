@@ -70,7 +70,7 @@ define(function (require, exports, module) {
     
     
     
-    function handleShowDeveloperTools(commandData) {
+    function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
     }
     
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
      * Disables Brackets' cache via the remote debugging protocol.
      * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
      */
-    function _disableCache() {
+    function disableCache() {
         var result = new $.Deferred();
         
         if (brackets.inBrowser) {
@@ -138,7 +138,7 @@ define(function (require, exports, module) {
     * Does a full reload of the browser window
     * @param {string} href The url to reload into the window
     */
-    function _browserReload(href) {
+    function browserReload(href) {
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
             // Give everyone a chance to save their state - but don't let any problems block
             // us from quitting
@@ -149,13 +149,13 @@ define(function (require, exports, module) {
             }
            
             // Disable the cache to make reloads work
-            _disableCache().always(function () {
+            disableCache().always(function () {
                 window.location.href = href;
             });
         });
     }
     
-    function handleFileReload(commandData) {
+    function handleReload() {
         var href    = window.location.href,
             params  = new UrlParams();
         
@@ -171,13 +171,13 @@ define(function (require, exports, module) {
         }
         
         if (!params.isEmpty()) {
-            href += "?" + params;
+            href += "?" + params.toString();
         }
         
-        _browserReload(href);
+        browserReload(href);
     }
     
-    function _handleReloadWithoutUserExts() {
+    function handleReloadWithoutUserExts() {
         var href    = window.location.href,
             params  = new UrlParams();
         
@@ -196,15 +196,15 @@ define(function (require, exports, module) {
             href = href.substring(0, href.indexOf("?"));
         }
         
-        href += "?" + params;
-        _browserReload(href);
+        href += "?" + params.toString();
+        browserReload(href);
     }
         
-    function _handleNewBracketsWindow() {
+    function handleNewBracketsWindow() {
         window.open(window.location.href);
     }
     
-    function _handleShowPerfData() {
+    function handleShowPerfData() {
         var templateVars = {
             delimitedPerfData: PerfUtils.getDelimitedPerfData(),
             perfData: []
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function _handleSwitchLanguage() {
+    function handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
         FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
@@ -314,7 +314,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function _enableRunTestsMenuItem() {
+    function enableRunTestsMenuItem() {
         if (brackets.inBrowser) {
             return;
         }
@@ -339,23 +339,23 @@ define(function (require, exports, module) {
     // Show Developer Tools (optionally enabled)
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,             DEBUG_SHOW_DEVELOPER_TOOLS,     handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,             DEBUG_REFRESH_WINDOW,           handleFileReload);
-    CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, _handleReloadWithoutUserExts);
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,             DEBUG_REFRESH_WINDOW,           handleReload);
+    CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        handleSwitchLanguage);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
-    _enableRunTestsMenuItem();
+    enableRunTestsMenuItem();
     
     
     /*
@@ -394,6 +394,7 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
             $icon.css({display: "none"});
             StatusBar.addIndicator(USER_EXT_STATUS_ID, $indicator, true);
+            console.log("Brackets reloaded with user extensions disabled");
         } else {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(true);
             // Toolbar and status bar reload back to default states, no need to set
