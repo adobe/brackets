@@ -106,6 +106,7 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             _connectionsToAutoDisconnect.forEach(function (c) {
+                $(c).off("close");
                 c.disconnect();
             });
         });
@@ -210,6 +211,24 @@ define(function (require, exports, module) {
                 },
                 CONNECTION_TIMEOUT
             );
+        });
+        
+        it("should parse domain event specifications", function () {
+            var connection = createConnection();
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["TestCommandsOne"], false);
+            runs(function () {
+                expect(connection.domainEvents.test.eventOne.length).toBe(2);
+                expect(connection.domainEvents.test.eventOne[0].name).toBe('argOne');
+                expect(connection.domainEvents.test.eventOne[0].type).toBe('string');
+                expect(connection.domainEvents.test.eventOne[1].name).toBe('argTwo');
+                expect(connection.domainEvents.test.eventOne[1].type).toBe('string');
+                expect(connection.domainEvents.test.eventTwo.length).toBe(2);
+                expect(connection.domainEvents.test.eventTwo[0].name).toBe('argOne');
+                expect(connection.domainEvents.test.eventTwo[0].type).toBe('boolean');
+                expect(connection.domainEvents.test.eventTwo[1].name).toBe('argTwo');
+                expect(connection.domainEvents.test.eventTwo[1].type).toBe('boolean');
+            });
         });
         
         it("should receive command errors and continue to run", function () {
@@ -339,6 +358,15 @@ define(function (require, exports, module) {
                 CONNECTION_TIMEOUT,
                 "additional test commands should be defined in all connections"
             );
+            
+            var reconnectResolved = false, closeHandlerCalled = false;
+            $(connectionOne).on("close", function (e, reconnectPromise) {
+                closeHandlerCalled = true;
+                reconnectPromise.then(function () {
+                    reconnectResolved = true;
+                });
+            });
+            
             waitThenRunRestartServer(connectionOne);
             waitsFor(
                 function () {
@@ -365,6 +393,8 @@ define(function (require, exports, module) {
                 "test.reverse command should be re-registered"
             );
             runs(function () {
+                expect(closeHandlerCalled).toBe(true);
+                expect(reconnectResolved).toBe(true);
                 expect(connectionOne.domains.test.reverseAsync).toBeFalsy();
             });
 

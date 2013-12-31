@@ -9,7 +9,7 @@ What makes Brackets different from other web code editors?
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
 environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
 context-specific code and tools inline.
-* **Brackets is in sync with your browser.** With Live Development, Brackets
+* **Brackets is in sync with your browser.** With Live Preview, Brackets
 works directly with your browser to push code edits instantly and jump
 back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
@@ -24,13 +24,9 @@ How to install and run Brackets
 -------------------------------
 
 
-#### Brackets isn't ready for general use yet.
+#### Brackets is getting close to 1.0
 
-Some of the features you would expect in a code editor are missing, and some existing features might be
-incomplete or not as useful as you'd want.  That said, what's there is reasonably stable&mdash;the
-Brackets team uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know
-what's missing!
-
+Together with your contributions, we're getting close to our first release condidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
 
 #### Download
 
@@ -46,7 +42,7 @@ By default, Brackets opens a folder containing some simple "Getting Started" con
 You can choose a different folder to edit using *File > Open Folder*.
 
 Most of Brackets should be pretty self-explanatory, but for information on how
-to use its unique features, like Quick Edit and Live Development, please read
+to use its unique features, like Quick Edit and Live Preview, please read
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.

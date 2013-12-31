@@ -1,35 +1,35 @@
 h1, h2, h3 {
-    color: "red";
+    color: red;
 }
 
 h3, h1, h2 {
-    color: "green";
+    color: green;
 }
 
 h1 {
-    color: "orange";
+    color: orange;
 }
 
 h3, h2, h1 {
-    color: "yellow";
+    color: yellow;
 }
 
 h2 {
-    color: "white";
+    color: white;
 }
 
 h3 {
-    color: "black";
+    color: black;
 }
 
 .a,
 .b, .c,
 .d
 {
-    color: "black";
+    color: black;
 }
 
-.f { color: "black"; } .g,
+.f { color: black; } .g,
 .h {
-    color: "white";
+    color: white;
 }

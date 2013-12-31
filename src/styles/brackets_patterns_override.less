@@ -267,8 +267,14 @@ a:focus {
     // Menu dropdown appearance
     .dropdown-menu {
         top: 34px; // Offset from top of menubar item
-
         margin-top: 0;
+        
+        // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
+        // the menu item label and keyboard shortcut. This takes away the "gotta get narrower" pressure.
+        // This technique won't work on all browsers; see comments in #4593 for alternative options.
+        width: -webkit-max-content;
+        width: -moz-max-content;
+
         background-color: @bc-white;
         .border-radius(0 0 3px 3px);
         box-shadow: @tc-dropdown-shadow;
@@ -436,6 +442,7 @@ a:focus {
         max-height: 160px;
         overflow-y: auto;
         max-width: none;
+        min-width: 200px;
         z-index: @z-index-brackets-stylesheet-menu;
     }
     
@@ -455,9 +462,17 @@ a:focus {
         color: @tc-text;
     }
     
+    .stylesheet-dir {
+        color: @tc-quiet-text;
+    }
+    
     &.dropdown-menu a.selected {
         background: @tc-highlight;
         color: @bc-black !important;
+    }
+
+    &.dropdown-menu a:not(.selected):hover {
+         background: none;
     }
 }
 
@@ -711,6 +726,20 @@ a[href^="http"] {
             > .active > a:hover {
                 background-color: #dfe2e2;
                 border-color: #b4b7b7 #b4b7b7 transparent #b4b7b7;
+            }
+            
+            > li {
+                position: relative;  // for positioning .notification icon
+                > .notification {
+                    display: none;  // hidden by default
+                    background-color: #91CC41;
+                    color: white;
+                    border-radius: 16px;
+                    padding: 0 5px;
+                    position: absolute;
+                    right: 19px;
+                    top: 8px;
+                }
             }
         }
 
@@ -1001,14 +1030,14 @@ input[type="color"],
     // Focus state for keyboard and accessibility
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #6fb5f1;
+        box-shadow: @tc-button-highlight, @tc-input-glow;
         color: @tc-text;
         outline: none;
     }
 
     // Active and Disabled states
-    &.active,
-    &:active {
+    &.active:not([disabled]),
+    &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
         box-shadow: @tc-button-down-shadow;
@@ -1032,6 +1061,7 @@ input[type="color"],
             background-image: none;
             background-color: @tc-call-to-action-down;
             box-shadow: @tc-call-to-action-down-shadow;
+            color: @tc-call-to-action-text;
         }
 
         &:focus {
@@ -1056,6 +1086,11 @@ input[type="color"],
     font-size: 11px;
     font-weight: normal;
     line-height: 14px;
+    &:focus {
+        border: 1px solid @tc-gray-component-focused-border;
+        box-shadow: @tc-button-highlight, @tc-input-small-glow;
+        outline: none;
+    }
 }
 
 /* Tables */

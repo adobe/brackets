@@ -33,9 +33,9 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
 
@@ -56,13 +56,15 @@ define(function (require, exports, module) {
      * @return {Array.<string>|$.Deferred} The (possibly deferred) hints.
      */
     UrlCodeHints.prototype._getUrlList = function (query) {
-        var doc,
-            result = [];
-        
-        // site-root relative links are not yet supported, so filter them out
-        if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
-            return result;
-        }
+        var directory,
+            doc,
+            docDir,
+            queryDir = "",
+            queryUrl,
+            result = [],
+            self,
+            targetDir,
+            unfiltered = [];
 
         // get path to current document
         doc = DocumentManager.getCurrentDocument();
@@ -70,23 +72,26 @@ define(function (require, exports, module) {
             return result;
         }
 
-        var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
-
+        docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
+        
         // get relative path from query string
-        // TODO: handle site-root relative
-        var queryDir = "";
-        var queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = window.PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
 
         // build target folder path
-        var targetDir = docDir + decodeURI(queryDir);
+        if (queryDir.length > 0 && queryDir[0] === "/") {
+            // site-root relative path
+            targetDir = ProjectManager.getProjectRoot().fullPath +
+                        decodeURI(queryDir).substring(1);
+        } else {
+            // page relative path
+            targetDir = docDir + decodeURI(queryDir);
+        }
 
-        // get list of files from target folder
-        var unfiltered = [];
-
-        // Getting the file/folder info is an asynch operation, so it works like this:
+        // Get list of files from target folder. Getting the file/folder info is an
+        // asynch operation, so it works like this:
         //
         // The initial pass initiates the asynchronous retrieval of data and returns an
         // empty list, so no code hints are displayed. In the async callback, the code
@@ -121,7 +126,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var self = this;
+            directory = FileSystem.getDirectoryForPath(targetDir);
+            self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -131,17 +137,22 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
-                fs.root.createReader().readEntries(function (entries) {
+            directory.getContents(function (err, contents) {
+                var currentDeferred, entryStr, syncResults;
 
-                    entries.forEach(function (entry) {
+                if (!err) {
+                    contents.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
                             // convert to doc relative path
-                            var entryStr = entry.fullPath.replace(docDir, "");
+                            entryStr = queryDir + entry._name;
+                            if (entry._isDirectory) {
+                                entryStr += "/";
+                            }
 
-                            // code hints show the same strings that are inserted into text,
-                            // so strings in list will be encoded. wysiwyg, baby!
-                            unfiltered.push(encodeURI(entryStr));
+                            // code hints show the unencoded string so the
+                            // choices are easier to read.  The encoded string
+                            // will still be inserted into the editor.
+                            unfiltered.push(entryStr);
                         }
                     });
 
@@ -151,11 +162,12 @@ define(function (require, exports, module) {
                     self.cachedHints.docDir     = docDir;
                     
                     if (self.cachedHints.deferred.state() !== "rejected") {
-                        var currentDeferred = self.cachedHints.deferred;
+                        currentDeferred = self.cachedHints.deferred;
+
                         // Since we've cached the results, the next call to _getUrlList should be synchronous.
                         // If it isn't, we've got a problem and should reject both the current deferred
                         // and any new deferred that got created on the call.
-                        var syncResults = self._getUrlList(query);
+                        syncResults = self._getUrlList(query);
                         if (syncResults instanceof Array) {
                             currentDeferred.resolveWith(self, [syncResults]);
                         } else {
@@ -170,7 +182,7 @@ define(function (require, exports, module) {
                             }
                         }
                     }
-                });
+                }
             });
 
             return self.cachedHints.deferred;
@@ -225,7 +237,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Determines whether font hints are available in the current editor
+     * Determines whether url hints are available in the current editor
      * context.
      *
      * @param {Editor} editor
@@ -361,7 +373,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns a list of availble font hints, if possible, for the current
+     * Returns a list of available url hints, if possible, for the current
      * editor context.
      *
      * @return {jQuery.Deferred|{
@@ -478,8 +490,14 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                result = $.map(asyncHints, function (item) {
+                    if (item.indexOf(filter) === 0) {
+                        return item;
+                    }
+                }).sort(sortFunc);
+
                 deferred.resolveWith(this, [{
-                    hints: asyncHints,
+                    hints: result,
                     match: query.queryStr,
                     selectInitial: true,
                     handleWideResults: false
@@ -504,6 +522,10 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype.insertHint = function (completion) {
         var mode = this.editor.getModeForSelection();
+        
+        // Encode the string just prior to inserting the hint into the editor
+        completion = encodeURI(completion);
+        
         if (mode === "html") {
             return this.insertHtmlHint(completion);
         } else if (mode === "css") {
@@ -750,6 +772,16 @@ define(function (require, exports, module) {
 
         var urlHints = new UrlCodeHints();
         CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
+        
+        function _clearCachedHints() {
+            // Cache may or may not be stale. Main benefit of cache is to limit async lookups
+            // during typing. File tree updates cannot happen during typing, so it's probably
+            // not worth determining whether cache may still be valid. Just delete it.
+            urlHints.cachedHints = null;
+        }
+        
+        FileSystem.on("change", _clearCachedHints);
+        FileSystem.on("rename", _clearCachedHints);
 
         // For unit testing
         exports.hintProvider = urlHints;

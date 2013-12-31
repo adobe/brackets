@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("lodash");
+    var _ = require("thirdparty/lodash");
     
     /**
      * Convert between URL querystring and name/value pairs. Decodes and encodes URL parameters.
@@ -42,20 +42,30 @@ define(function (require, exports, module) {
      * @param {string} url
      */
     UrlParams.prototype.parse = function (url) {
-        if (url) {
-            url = url.substring(url.indexOf("?") + 1);
-        } else {
-            url = window.document.location.search.substring(1);
-        }
-        
-        var urlParams = url.split("&"),
+        var queryString = "",
+            urlParams,
             p,
             self = this;
         
-        urlParams.forEach(function (param) {
-            p = param.split("=");
-            self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-        });
+        self._store = {};
+        
+        if (!url) {
+            queryString = window.document.location.search.substring(1);
+        } else if (url.indexOf("?") !== -1) {
+            queryString = url.substring(url.indexOf("?") + 1);
+        }
+        
+        queryString = queryString.trimRight();
+        
+        if (queryString) {
+            urlParams = queryString.split("&");
+            
+            urlParams.forEach(function (param) {
+                p = param.split("=");
+                p[1] = p[1] || "";
+                self._store[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+            });
+        }
     };
     
     /**
@@ -68,15 +78,33 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Retreive a value by name
+     * Retrieve a value by name
      * @param {!string} name
+     * @return {string}
      */
     UrlParams.prototype.get = function (name) {
         return this._store[name];
     };
     
     /**
+     * Remove a name/value string pair
+     * @param {!string} name
+     */
+    UrlParams.prototype.remove = function (name) {
+        delete this._store[name];
+    };
+    
+    /**
+     * Returns true if the parameter list is empty, else returns false.
+     * @return {boolean}
+     */
+    UrlParams.prototype.isEmpty = function (name) {
+        return _.isEmpty(this._store);
+    };
+    
+    /**
      * Encode name/value pairs as URI components.
+     * @return {string}
      */
     UrlParams.prototype.toString = function () {
         var strs = [],
@@ -88,7 +116,7 @@ define(function (require, exports, module) {
         
         return strs.join("&");
     };
-
+    
     // Define public API
     exports.UrlParams = UrlParams;
 });

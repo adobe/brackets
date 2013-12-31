@@ -69,7 +69,6 @@ define(function (require, exports, module) {
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
         $dlg.modal("hide");
-        $(".modal-wrapper:last").remove();
     }
 
     /**
@@ -120,9 +119,10 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     var _keydownHook = function (e, autoDismiss) {
-        var $primaryBtn = this.find(".primary"),
-            buttonId    = null,
-            which       = String.fromCharCode(e.which);
+        var $primaryBtn     = this.find(".primary"),
+            buttonId        = null,
+            which           = String.fromCharCode(e.which),
+            $focusedElement = this.find(".dialog-button:focus, a:focus");
         
         // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
         var inTextArea    = (e.target.tagName === "TEXTAREA"),
@@ -133,11 +133,11 @@ define(function (require, exports, module) {
         } else if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
         } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
-            // Click primary button
+            // Click primary
             $primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button or link
-            this.find(".dialog-button:focus, a:focus").click();
+            $focusedElement.click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
             if (e.metaKey && (which === "D")) {
@@ -259,6 +259,9 @@ define(function (require, exports, module) {
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
+            
+            //Remove wrapper
+            $(".modal-wrapper:last").remove();
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");

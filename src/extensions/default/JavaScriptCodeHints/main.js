@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = brackets.getModule("lodash");
+    var _ = brackets.getModule("thirdparty/lodash");
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
@@ -56,6 +56,27 @@ define(function (require, exports, module) {
         ignoreChange;         // can ignore next "change" event if true;
 
     /**
+     * Sets the configuration, generally for testing/debugging use.
+     * Configuration keys are merged into the current configuration.
+     * The Tern worker is automatically updated to the new config as well.
+     *
+     * * debug: Set to true if you want verbose logging
+     * * noReset: Set to true if you don't want the worker to restart periodically
+     *
+     * @param {Object} configUpdate keys/values to merge into the config
+     */
+    function setConfig(configUpdate) {
+        var config = setConfig.config;
+        Object.keys(configUpdate).forEach(function (key) {
+            config[key] = configUpdate[key];
+        });
+        
+        ScopeManager._setConfig(configUpdate);
+    }
+    
+    setConfig.config = {};
+
+    /**
      *  Get the value of current session.
      *  Used for unit testing.
      * @return {Session} - the current session.
@@ -79,6 +100,10 @@ define(function (require, exports, module) {
         var trimmedQuery,
             formattedHints;
 
+        if (setConfig.config.debug) {
+            console.debug("Hints", _.pluck(hints, "label"));
+        }
+        
         /*
          * Returns a formatted list of hints with the query substring
          * highlighted.
@@ -578,8 +603,10 @@ define(function (require, exports, module) {
          *      for changes
          */
         function uninstallEditorListeners(editor) {
-            $(editor)
-                .off(HintUtils.eventName("change"));
+            if (editor) {
+                $(editor)
+                    .off(HintUtils.eventName("change"));
+            }
         }
 
         /*
@@ -745,9 +772,12 @@ define(function (require, exports, module) {
 
             return response;
         }
-
+        
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;
+        
+        // Configuration function used for debugging
+        brackets._configureJSCodeHints = setConfig;
   
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         

@@ -67,8 +67,8 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
@@ -110,22 +110,28 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Cancel",
+    "DONT_SAVE"                         : "Don't Save",
+    "SAVE"                              : "Save",
+    "DELETE"                            : "Delete",
+    "BUTTON_YES"                        : "Yes",
+    "BUTTON_NO"                         : "No",
+    
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",
-    "WITH"                              : "With",
-    "BUTTON_YES"                        : "Yes",
-    "BUTTON_NO"                         : "No",
+    "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
     "BUTTON_REPLACE_ALL"                : "All\u2026",
-    "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Replace",
-            
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Next Match",
     "BUTTON_PREV_HINT"                  : "Previous Match",
+    "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
+    "BUTTON_REGEXP_HINT"                : "Regular Expression",
 
     "OPEN_FILE"                         : "Open File",
     "SAVE_FILE_AS"                      : "Save File",
@@ -135,10 +141,12 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" found",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
@@ -187,6 +195,8 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Errors",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Issues",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Lint Issues",
     "SINGLE_ERROR"                          : "1 {0} Error",
     "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
     "NO_ERRORS"                             : "No {0} errors - good job!",
@@ -206,6 +216,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
+    "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Close",
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
@@ -304,11 +315,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Don't Save",
-    "SAVE"                                 : "Save",
-    "CANCEL"                               : "Cancel",
-    "DELETE"                               : "Delete",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
@@ -384,6 +390,8 @@ define({
     "EXTENSION_DATE"                       : "Date",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "This extension requires a newer version of {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "This extension currently only works with older versions of {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Version {0} of this extension requires a newer version of {APP_NAME}. But you can install the earlier version {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Version {0} of this extension only works with older versions of {APP_NAME}. But you can install the earlier version {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "No description",
     "EXTENSION_MORE_INFO"                  : "More info...",
     "EXTENSION_ERROR"                      : "Extension error",
@@ -452,19 +460,23 @@ define({
     "LOCALE_IT"                                 : "Italian",
     "LOCALE_JA"                                 : "Japanese",
     "LOCALE_NB"                                 : "Norwegian",
+    "LOCALE_NL"                                 : "Dutch",
+    "LOCALE_FA_IR"                              : "Persian-Farsi",
     "LOCALE_PL"                                 : "Polish",
     "LOCALE_PT_BR"                              : "Portuguese, Brazil",
     "LOCALE_PT_PT"                              : "Portuguese",
+    "LOCALE_RO"                                 : "Romanian",
     "LOCALE_RU"                                 : "Russian",
     "LOCALE_SK"                                 : "Slovak",
+    "LOCALE_SR"                                 : "Serbian",
     "LOCALE_SV"                                 : "Swedish",
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
     "LOCALE_HU"                                 : "Hungarian",
     
-    // extensions/default/InlineBezierCurveEditor
-    "INLINE_BEZIER_EDITOR_TIME"                 : "Time",
-    "INLINE_BEZIER_EDITOR_PROGRESSION"          : "Progression",
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Time",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

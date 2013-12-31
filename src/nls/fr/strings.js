@@ -67,8 +67,8 @@ define({
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
 	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
 
@@ -110,22 +110,28 @@ define({
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
+    // Generic dialog/button labels
+	"OK": "OK",
+	"CANCEL": "Annuler",
+	"DONT_SAVE": "Ne pas enregistrer",
+	"SAVE": "Enregistrer",
+	"DELETE": "Supprimer",
+	"BUTTON_YES": "Oui",
+	"BUTTON_NO": "Non",
+    
     // Find, Replace, Find in Files
-	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
-	"WITH": "Avec",
-	"BUTTON_YES": "Oui",
-	"BUTTON_NO": "Non",
+	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
 	"BUTTON_REPLACE_ALL": "Tout\u2026",
-	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
-            
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "Résultat suivant",
 	"BUTTON_PREV_HINT": "Résultat précédent",
+	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
+	"BUTTON_REGEXP_HINT": "Expression régulière",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -135,10 +141,12 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
+    // Replace All (in single file)
 	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
 	"FIND_REPLACE_TITLE_PART2": " » par « ",
 	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
 
+    // Find in Files
 	"FIND_IN_FILES_TITLE_PART1": "« ",
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
@@ -187,6 +195,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "Erreurs {0}",
+	"ERRORS_PANEL_TITLE_SINGLE": "Problèmes {0}",
+	"ERRORS_PANEL_TITLE_MULTI": "Problèmes Lint",
 	"SINGLE_ERROR": "1 erreur {0}",
 	"MULTIPLE_ERRORS": "{1} erreurs {0}",
 	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
@@ -206,6 +216,7 @@ define({
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
+	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
@@ -304,11 +315,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"OK": "OK",
-	"DONT_SAVE": "Ne pas enregistrer",
-	"SAVE": "Enregistrer",
-	"CANCEL": "Annuler",
-	"DELETE": "Supprimer",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
@@ -384,6 +390,8 @@ define({
 	"EXTENSION_DATE": "Date",
 	"EXTENSION_INCOMPATIBLE_NEWER": "Cette extension nécessite une version plus récente de l’application {APP_NAME}.",
 	"EXTENSION_INCOMPATIBLE_OLDER": "Cette extension n’est actuellement compatible qu’avec les versions antérieures de l’application {APP_NAME}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "La version {0} de cette extension nécessite une version plus récente de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "La version {0} de cette extension n’est compatible qu’avec les anciennes versions de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
 	"EXTENSION_MORE_INFO": "Plus d’infos...",
 	"EXTENSION_ERROR": "Erreur d’extension",
@@ -452,19 +460,23 @@ define({
 	"LOCALE_IT": "Italien",
 	"LOCALE_JA": "Japonais",
 	"LOCALE_NB": "Norvégien",
+	"LOCALE_NL": "Hollandais",
+	"LOCALE_FA_IR": "Persan/Farsi",
 	"LOCALE_PL": "Polonais",
 	"LOCALE_PT_BR": "Portugais (Brésil)",
 	"LOCALE_PT_PT": "Portugais",
+	"LOCALE_RO": "Roumain",
 	"LOCALE_RU": "Russe",
 	"LOCALE_SK": "Slovaque",
+	"LOCALE_SR": "Serbe",
 	"LOCALE_SV": "Suédois",
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
     
-    // extensions/default/InlineBezierCurveEditor
-	"INLINE_BEZIER_EDITOR_TIME": "Heure",
-	"INLINE_BEZIER_EDITOR_PROGRESSION": "Progression",
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "Temps",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

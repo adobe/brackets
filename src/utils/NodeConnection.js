@@ -202,7 +202,11 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Connect to the node server
+     * Connect to the node server. After connecting, the NodeConnection
+     * object will trigger a "close" event when the underlying socket
+     * is closed. If the connection is set to autoReconnect, then the
+     * event will also include a jQuery promise for the connection.
+     * 
      * @param {boolean} autoReconnect Whether to automatically try to
      *    reconnect to the server if the connection succeeds and then
      *    later disconnects. Note if this connection fails initially, the
@@ -224,9 +228,11 @@ define(function (require, exports, module) {
             function success() {
                 self._ws.onclose = function () {
                     if (self._autoReconnect) {
-                        self.connect(true);
+                        var $promise = self.connect(true);
+                        $(self).triggerHandler("close", [$promise]);
                     } else {
                         self._cleanup();
+                        $(self).triggerHandler("close");
                     }
                 };
                 deferred.resolve();
@@ -474,11 +480,17 @@ define(function (require, exports, module) {
             
             // TODO: Don't replace the domain object every time. Instead, merge.
             self.domains = {};
+            self.domainEvents = {};
             spec.forEach(function (domainSpec) {
                 self.domains[domainSpec.domain] = {};
                 domainSpec.commands.forEach(function (commandSpec) {
                     self.domains[domainSpec.domain][commandSpec.name] =
                         makeCommandFunction(domainSpec.domain, commandSpec);
+                });
+                self.domainEvents[domainSpec.domain] = {};
+                domainSpec.events.forEach(function (eventSpec) {
+                    var parameters = eventSpec.parameters;
+                    self.domainEvents[domainSpec.domain][eventSpec.name] = parameters;
                 });
             });
             deferred.resolve();

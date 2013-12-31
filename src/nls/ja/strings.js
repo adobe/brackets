@@ -67,8 +67,8 @@ define({
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
 	"ERROR_IN_BROWSER": "{APP_NAME} は HTML で構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリのアプリケーションシェルを使用してください。",
-
-    // FileIndexManager error string
+    
+    // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "ファイルのインデックス時にエラーが発生しました。",
 	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
 
@@ -110,22 +110,28 @@ define({
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
+    // Generic dialog/button labels
+	"OK": "OK",
+	"CANCEL": "キャンセル",
+	"DONT_SAVE": "保存しない",
+	"SAVE": "保存",
+	"DELETE": "削除",
+	"BUTTON_YES": "はい",
+	"BUTTON_NO": "いいえ",
+    
     // Find, Replace, Find in Files
-	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
 	"FIND_RESULT_COUNT": "{0} 件",
 	"FIND_RESULT_COUNT_SINGLE": "1 件",
 	"FIND_NO_RESULTS": "該当なし",
-	"WITH": "置換後の文字列",
-	"BUTTON_YES": "はい",
-	"BUTTON_NO": "いいえ",
+	"REPLACE_PLACEHOLDER": "\u2026 に置換",
 	"BUTTON_REPLACE_ALL": "すべて\u2026",
-	"BUTTON_STOP": "終了",
 	"BUTTON_REPLACE": "置換",
-            
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "次の候補に移動",
 	"BUTTON_PREV_HINT": "前の候補に移動",
+	"BUTTON_CASESENSITIVE_HINT": "大文字と小文字を区別",
+	"BUTTON_REGEXP_HINT": "正規表現",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -135,10 +141,12 @@ define({
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
+    // Replace All (in single file)
 	"FIND_REPLACE_TITLE_PART1": "「",
 	"FIND_REPLACE_TITLE_PART2": "」を「",
 	"FIND_REPLACE_TITLE_PART3": "」に置き換え &mdash; {2} {0} {1}",
 
+    // Find in Files
 	"FIND_IN_FILES_TITLE_PART1": "「",
 	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {3}個の{4}内で {1}件{0}{2}",
@@ -187,6 +195,8 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "{0} のエラー",
+	"ERRORS_PANEL_TITLE_SINGLE": "{0} 件のエラー",
+	"ERRORS_PANEL_TITLE_MULTI": "Lint エラー",
 	"SINGLE_ERROR": "1 個の {0} エラー",
 	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
 	"NO_ERRORS": "{0} エラーはありません - Good job!",
@@ -206,6 +216,7 @@ define({
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
 	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
+	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",
 	"CMD_FILE_CLOSE_ALL": "すべて閉じる",
@@ -304,11 +315,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"OK": "OK",
-	"DONT_SAVE": "保存しない",
-	"SAVE": "保存",
-	"CANCEL": "キャンセル",
-	"DELETE": "削除",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
@@ -384,6 +390,8 @@ define({
 	"EXTENSION_DATE": "日付",
 	"EXTENSION_INCOMPATIBLE_NEWER": "この拡張機能には新しいバージョンの {APP_NAME} が必要です。",
 	"EXTENSION_INCOMPATIBLE_OLDER": "この拡張機能は現在、古いバージョンの {APP_NAME} でしか動作しません。",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "この拡張機能のバージョン {0} には {APP_NAME} の新しいバージョンが必要です。ただし、以前のバージョン {1} をインストールすることができます。",
+	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "この拡張機能のバージョン {0} は {APP_NAME} の古いバージョンでのみ動作します。ただし、以前のバージョン {1} をインストールすることができます。",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
 	"EXTENSION_MORE_INFO": "詳細情報...",
 	"EXTENSION_ERROR": "拡張機能のエラー",
@@ -452,19 +460,23 @@ define({
 	"LOCALE_IT": "イタリア語",
 	"LOCALE_JA": "日本語",
 	"LOCALE_NB": "ノルウェー語",
+	"LOCALE_NL": "オランダ語",
+	"LOCALE_FA_IR": "ペルシャ語-ファルシ語",
 	"LOCALE_PL": "ポーランド語",
 	"LOCALE_PT_BR": "ポルトガル語 (ブラジル)",
 	"LOCALE_PT_PT": "ポルトガル語",
+	"LOCALE_RO": "ルーマニア語",
 	"LOCALE_RU": "ロシア語",
 	"LOCALE_SK": "スロバキア語",
+	"LOCALE_SR": "セルビア語",
 	"LOCALE_SV": "スウェーデン語",
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
     
-    // extensions/default/InlineBezierCurveEditor
-	"INLINE_BEZIER_EDITOR_TIME": "時刻",
-	"INLINE_BEZIER_EDITOR_PROGRESSION": "進行",
+    // extensions/default/InlineTimingFunctionEditor
+	"INLINE_TIMING_EDITOR_TIME": "時間",
+	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

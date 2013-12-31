@@ -40,8 +40,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileIndexManager    = require("project/FileIndexManager"),
-        DocumentManager     = require("document/DocumentManager"),
+    var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
@@ -75,7 +74,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions) {
+    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions, label) {
         this.name = name;
         this.languageIds = languageIds;
         this.done = done;
@@ -85,39 +84,41 @@ define(function (require, exports, module) {
         this.itemSelect = itemSelect;
         this.resultsFormatter = resultsFormatter;
         this.matcherOptions = matcherOptions;
+        this.label = label;
     }
     
     /**
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          languageIds:Array.<string>,
-     *          done: function(),
+     *          languageIds: Array.<string>,
+     *          done: ?function(),
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
-     *          itemFocus: function(?SearchResult|string),
-     *          itemSelect: funciton(?SearchResult|string),
-     *          resultsFormatter: ?function(SearchResult|string, string):string
-     *          matcherOptions: Object
+     *          itemFocus: ?function(?SearchResult|string),
+     *          itemSelect: function(?SearchResult|string),
+     *          resultsFormatter: ?function(SearchResult|string, string):string,
+     *          matcherOptions: ?Object,
+     *          label: ?string
      *        } pluginDef
      *
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. An empty array
-     *      indicates all language IDs.
-     * done - called when quick open is complete. Plug-in should clear its internal state.
-     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query.
+     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. To allow any language, pass []. Required.
+     * done - called when quick open is complete. Plug-in should clear its internal state. Optional.
+     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query. Required.
      * match - takes a query string and returns true if this plug-in wants to provide
-     *      results for this query.
+     *      results for this query. Required.
      * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
-     *      The highlighted search result item (as returned by search()) is passed as an argument.
+     *      The highlighted search result item (as returned by search()) is passed as an argument. Optional.
      * itemSelect - performs an action when a result is chosen.
-     *      The selected search result item (as returned by search()) is passed as an argument.
-     * resultFormatter - takes a query string and an item string and returns 
-     *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     *      The selected search result item (as returned by search()) is passed as an argument. Required.
+     * resultsFormatter - takes a query string and an item string and returns 
+     *      a <LI> item to insert into the displayed search results. Optional.
      * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
-     *          for available options)
+     *          for available options). Optional.
+     * label - if provided, the label to show before the query field. Optional.
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
@@ -141,7 +142,8 @@ define(function (require, exports, module) {
             pluginDef.itemFocus,
             pluginDef.itemSelect,
             pluginDef.resultsFormatter,
-            pluginDef.matcherOptions
+            pluginDef.matcherOptions,
+            pluginDef.label
         ));
     }
 
@@ -360,7 +362,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleItemFocus = function (e, selectedDOMItem) {
         var selectedItem = domItemToSearchResult(selectedDOMItem);
         
-        if (currentPlugin) {
+        if (currentPlugin && currentPlugin.itemFocus) {
             currentPlugin.itemFocus(selectedItem);
         }
         // TODO: Disable opening files on focus for now since this causes focus related bugs between 
@@ -473,7 +475,9 @@ define(function (require, exports, module) {
         var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
-            plugin.done();
+            if (plugin.done) {
+                plugin.done();
+            }
         }
 
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
@@ -523,7 +527,7 @@ define(function (require, exports, module) {
     }
 
     function searchFileList(query, matcher) {
-        // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
+        // The file index may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
             // Smart Autocomplete allows us to return a Promise instead...
             var asyncResult = new $.Deferred();
@@ -579,9 +583,6 @@ define(function (require, exports, module) {
             return getLastFilterResult();
         }
         
-        // Reflect current search mode in UI
-        this._updateDialogLabel(query);
-        
         // "Go to line" mode is special-cased
         var gotoLine = extractLineNumber(query);
         if (!isNaN(gotoLine)) {
@@ -592,27 +593,31 @@ define(function (require, exports, module) {
         }
         
         // Try to invoke a search plugin
-        var curDoc = DocumentManager.getCurrentDocument();
+        var curDoc = DocumentManager.getCurrentDocument(), languageId;
         if (curDoc) {
-            var languageId = curDoc.getLanguage().getId();
+            languageId = curDoc.getLanguage().getId();
+        }
 
-            var i;
-            for (i = 0; i < plugins.length; i++) {
-                var plugin = plugins[i];
-                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (languageIdMatch && plugin.match && plugin.match(query)) {
-                    currentPlugin = plugin;
-                    
-                    // Look up the StringMatcher for this plugin.
-                    var matcher = this._matchers[currentPlugin.name];
-                    if (!matcher) {
-                        matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
-                        this._matchers[currentPlugin.name] = matcher;
-                    }
-                    return plugin.search(query, matcher);
+        var i;
+        for (i = 0; i < plugins.length; i++) {
+            var plugin = plugins[i];
+            var languageIdMatch = plugin.languageIds.length === 0 || plugin.languageIds.indexOf(languageId) !== -1;
+            if (languageIdMatch && plugin.match && plugin.match(query)) {
+                currentPlugin = plugin;
+                
+                // Look up the StringMatcher for this plugin.
+                var matcher = this._matchers[currentPlugin.name];
+                if (!matcher) {
+                    matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
+                    this._matchers[currentPlugin.name] = matcher;
                 }
+                this._updateDialogLabel(plugin, query);
+                return plugin.search(query, matcher);
             }
         }
+        
+        // Reflect current search mode in UI
+        this._updateDialogLabel(null, query);
         
         // No matching plugin: use default file search mode
         currentPlugin = null;
@@ -729,31 +734,34 @@ define(function (require, exports, module) {
         // Kick smart-autocomplete to update (it only listens for keyboard events)
         // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
         $field.trigger("keyIn", [initialString]);
-        
-        this._updateDialogLabel(initialString);
     };
     
     /**
-     * Sets the dialog label based on the type of the given query.
+     * Sets the dialog label based on the current plugin (if any) and the current query.
+     * @param {Object} plugin The current Quick Open plugin, or none if there is none.
      * @param {string} query The user's current query.
      */
-    QuickNavigateDialog.prototype._updateDialogLabel = function (query) {
-        var prefix = (query.length > 0 ? query.charAt(0) : "");
-        
-        // Update the dialog label based on the current prefix.
+    QuickNavigateDialog.prototype._updateDialogLabel = function (plugin, query) {
         var dialogLabel = "";
-        switch (prefix) {
-        case ":":
-            dialogLabel = Strings.CMD_GOTO_LINE;
-            break;
-        case "@":
-            dialogLabel = Strings.CMD_GOTO_DEFINITION;
-            break;
-        default:
-            dialogLabel = Strings.CMD_QUICK_OPEN;
-            break;
+        if (plugin && plugin.label) {
+            dialogLabel = plugin.label;
+        } else {
+            var prefix = (query.length > 0 ? query.charAt(0) : "");
+            
+            // Update the dialog label based on the current prefix.
+            switch (prefix) {
+            case ":":
+                dialogLabel = Strings.CMD_GOTO_LINE;
+                break;
+            case "@":
+                dialogLabel = Strings.CMD_GOTO_DEFINITION;
+                break;
+            default:
+                dialogLabel = Strings.CMD_QUICK_OPEN;
+                break;
+            }
         }
-        $(".find-dialog-label", this.dialog).text(dialogLabel);
+        $(".find-dialog-label", this.dialog).text(dialogLabel + ":");
     };
     
     /**
@@ -806,7 +814,7 @@ define(function (require, exports, module) {
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span>: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
+        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span> <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
@@ -840,9 +848,9 @@ define(function (require, exports, module) {
 
         this.setSearchFieldValue(prefix, initialString);
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
+        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = FileIndexManager.getFileInfoList("all")
+        fileListPromise = ProjectManager.getAllFiles(true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
