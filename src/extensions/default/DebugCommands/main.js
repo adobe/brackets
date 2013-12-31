@@ -381,7 +381,7 @@ define(function (require, exports, module) {
     exports._runUnitTests = _runUnitTests;
     
     AppInit.htmlReady(function () {
-        // If in Reload Without User Extensions mode, update menu, toolbar, and status bar
+        // If in Reload Without User Extensions mode, update UI and log console message
         var USER_EXT_STATUS_ID = "status-user-exts";
         
         var params      = new UrlParams(),
