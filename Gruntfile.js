@@ -74,6 +74,8 @@ module.exports = function (grunt) {
                             '!extensions/default/*/unittest-files/**/*',
                             '!extensions/default/*/unittests.js',
                             'extensions/default/*/**/*',
+                            'extensions/dev/*',
+                            'extensions/samples/**/*',
                             'thirdparty/CodeMirror2/addon/{,*/}*',
                             'thirdparty/CodeMirror2/keymap/{,*/}*',
                             'thirdparty/CodeMirror2/lib/{,*/}*',
