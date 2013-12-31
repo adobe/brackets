@@ -55,8 +55,14 @@ define(function (require, exports, module) {
         }
     }
     
+    function _hideGuidesAndTip() {
+        $("#img-tip").hide();
+        $(".img-guide").hide();
+    }
+    
     /** handle editor resize event, i.e. update scale sticker */
     function _onEditorAreaResize() {
+        _hideGuidesAndTip();
         _updateScale($("#img-preview").width());
     }
         
@@ -148,8 +154,8 @@ define(function (require, exports, module) {
             return;
         }
         
-        var x                   = Math.floor(e.offsetX * 100 / _scale),
-            y                   = Math.floor(e.offsetY * 100 / _scale),
+        var x                   = Math.round(e.offsetX * 100 / _scale),
+            y                   = Math.round(e.offsetY * 100 / _scale),
             $target             = $(e.target),
             targetPos           = $target.position(),
             tipPos              = $("#img-tip").position(),
@@ -177,26 +183,26 @@ define(function (require, exports, module) {
                     return;
                 }
                 left = targetPos.left;
-                x = Math.floor(left * 100 / _scale);
+                x = Math.round((left - imagePos.left) * 100 / _scale);
             } else {
                 if (targetPos.top === 0) {
                     return;
                 }
                 top = targetPos.top;
-                y = Math.floor(top * 100 / _scale);
+                y = Math.round((top - imagePos.top) * 100 / _scale);
             }
         } else if (!$target.is("#img-preview")) {
             if ($target.is("#img-scale")) {
                 left = scaleDivPos.left + e.offsetX;
                 top = scaleDivPos.top + e.offsetY;
-                x = Math.floor(left * 100 / _scale);
-                y = Math.floor(top * 100 / _scale);
+                x = Math.round((left - imagePos.left) * 100 / _scale);
+                y = Math.round((top - imagePos.top) * 100 / _scale);
             } else if (tipPos.left && tipPos.top) {
                 // Cursor must be inside the image tip.
                 left = tipPos.left + e.offsetX;
                 top = tipPos.top + e.offsetY;
-                x = Math.floor(left * 100 / _scale);
-                y = Math.floor(top * 100 / _scale);
+                x = Math.round((left - imagePos.left) * 100 / _scale);
+                y = Math.round((top - imagePos.top) * 100 / _scale);
             } else {
                 return;
             }
@@ -252,50 +258,51 @@ define(function (require, exports, module) {
             imagePos  = $("#img-preview").position(),
             right     = imagePos.left + $("#img-preview").width(),
             bottom    = imagePos.top + $("#img-preview").height(),
-            offsetX   = e.offsetX,
-            offsetY   = e.offsetY;
-        
-        if ($target.is(".img-guide")) {
-            offsetX = targetPos.left + offsetX;
-            offsetY = targetPos.top + offsetY;
-        }
+            x         = targetPos.left + e.offsetX,
+            y         = targetPos.top + e.offsetY;
         
         // Hide image tip and guides only if the cursor is outside of the image.
-        if (offsetX < imagePos.left || offsetX >= right ||
-                offsetY < imagePos.top || offsetY >= bottom) {
-            $("#img-tip").hide();
-            $(".img-guide").hide();
+        if (x < imagePos.left || x >= right ||
+                y < imagePos.top || y >= bottom) {
+            _hideGuidesAndTip();
+            if (_scaleDivInfo) {
+                _scaleDivInfo = null;
+                $("#img-scale").show();
+            }
+        } else if (!_scaleDivInfo && $target.is("#img-scale")) {
+            // Remember image scale div coordinates before hiding it.
+            _scaleDivInfo = {left: targetPos.left,
+                             top: targetPos.top,
+                             right: targetPos.left + $target.width(),
+                             bottom: targetPos.top + $target.height()};
+            $("#img-scale").hide();
         }
     }
 
-    /**
-     * creates a DOM node to place in the editor-holder
-     * in order to display an image.
-     * @param {!string} fullPath  path to image file
-     * @return {JQuery}
-     *
-     */
-    function getCustomViewHolder(fullPath) {
-        return $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
-    }
     
     /** 
-     *    
+     * sign off listeners when editor manager closes
+     * the image viewer
      */
-    function _removeListeners() {
+    function onRemove() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
         $("#img").off("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
                  .off("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
     }
-    
+
     /** 
      * Perform decorations on the view that require loading the image in the browser,
      * i.e. getting actual and natural width and height andplacing the scale sticker
-     * @param {!string} fullPath path to the image file
+     * @param {!string} fullPath Path to the image file
+     * @param {!jQueryObject} $editorHolder The DOM element to append the view to.
      */
-    function render(fullPath) {
-        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+    function render(fullPath, $editorHolder) {
+        var relPath = ProjectManager.makeProjectRelativeIfPossible(fullPath),
+            $customViewer = $(Mustache.render(ImageHolderTemplate, {fullPath: fullPath}));
+
+        // place DOM node to hold image
+        $editorHolder.append($customViewer);
 
         _scale = 100;   // initialize to 100
         _scaleDivInfo = null;
@@ -325,10 +332,11 @@ define(function (require, exports, module) {
                 }
             });
             $("#image-holder").show();
+            
             // listen to resize to  update the scale sticker
             $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
-            // listen to removal to stop listening to resize events
-            $(EditorManager).on("removeCustomViewer", _removeListeners);
+            
+            // make sure we always show the right file name
             $(DocumentManager).on("fileNameChange", _onFileNameChange);
 
             $("#img-tip").hide();
@@ -337,6 +345,7 @@ define(function (require, exports, module) {
                      .on("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
 
             _updateScale($(this).width());
+
             minimumPixels = Math.floor(minimumPixels * 100 / _scale);
 
             // If the image size is too narrow in width or height, then 
@@ -347,8 +356,14 @@ define(function (require, exports, module) {
                 $(".img-guide").css("cursor", "crosshair");
             }
         });
+        return $customViewer;
     }
     
-    exports.getCustomViewHolder = getCustomViewHolder;
+    EditorManager.registerCustomViewer("image", {
+        render: render,
+        onRemove: onRemove
+    });
+    
     exports.render              = render;
+    exports.onRemove            = onRemove;
 });

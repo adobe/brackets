@@ -497,7 +497,7 @@ define(function (require, exports, module) {
                 return;
             }
         } else {
-            brackets.app.removeMenuItem(menuItemID, function (err) {
+            brackets.app.removeMenuItem(menuItem.dividerId, function (err) {
                 if (err) {
                     console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
                 }
@@ -643,7 +643,9 @@ define(function (require, exports, module) {
         }
 
         // Initialize MenuItem state
-        if (!menuItem.isDivider) {
+        if (menuItem.isDivider) {
+            menuItem.dividerId = commandID;
+        } else {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
                 if (!Array.isArray(keyBindings)) {

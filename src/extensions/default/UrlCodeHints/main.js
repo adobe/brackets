@@ -56,13 +56,15 @@ define(function (require, exports, module) {
      * @return {Array.<string>|$.Deferred} The (possibly deferred) hints.
      */
     UrlCodeHints.prototype._getUrlList = function (query) {
-        var doc,
-            result = [];
-        
-        // site-root relative links are not yet supported, so filter them out
-        if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
-            return result;
-        }
+        var directory,
+            doc,
+            docDir,
+            queryDir = "",
+            queryUrl,
+            result = [],
+            self,
+            targetDir,
+            unfiltered = [];
 
         // get path to current document
         doc = DocumentManager.getCurrentDocument();
@@ -70,23 +72,26 @@ define(function (require, exports, module) {
             return result;
         }
 
-        var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
+        docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
         
         // get relative path from query string
-        // TODO: handle site-root relative
-        var queryDir = "";
-        var queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = window.PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
 
         // build target folder path
-        var targetDir = docDir + decodeURI(queryDir);
+        if (queryDir.length > 0 && queryDir[0] === "/") {
+            // site-root relative path
+            targetDir = ProjectManager.getProjectRoot().fullPath +
+                        decodeURI(queryDir).substring(1);
+        } else {
+            // page relative path
+            targetDir = docDir + decodeURI(queryDir);
+        }
 
-        // get list of files from target folder
-        var unfiltered = [];
-
-        // Getting the file/folder info is an asynch operation, so it works like this:
+        // Get list of files from target folder. Getting the file/folder info is an
+        // asynch operation, so it works like this:
         //
         // The initial pass initiates the asynchronous retrieval of data and returns an
         // empty list, so no code hints are displayed. In the async callback, the code
@@ -121,8 +126,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var directory = FileSystem.getDirectoryForPath(targetDir),
-                self = this;
+            directory = FileSystem.getDirectoryForPath(targetDir);
+            self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -133,11 +138,16 @@ define(function (require, exports, module) {
             self.cachedHints.unfiltered = [];
 
             directory.getContents(function (err, contents) {
+                var currentDeferred, entryStr, syncResults;
+
                 if (!err) {
                     contents.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
                             // convert to doc relative path
-                            var entryStr = entry.fullPath.replace(docDir, "");
+                            entryStr = queryDir + entry._name;
+                            if (entry._isDirectory) {
+                                entryStr += "/";
+                            }
 
                             // code hints show the unencoded string so the
                             // choices are easier to read.  The encoded string
@@ -152,11 +162,12 @@ define(function (require, exports, module) {
                     self.cachedHints.docDir     = docDir;
                     
                     if (self.cachedHints.deferred.state() !== "rejected") {
-                        var currentDeferred = self.cachedHints.deferred;
+                        currentDeferred = self.cachedHints.deferred;
+
                         // Since we've cached the results, the next call to _getUrlList should be synchronous.
                         // If it isn't, we've got a problem and should reject both the current deferred
                         // and any new deferred that got created on the call.
-                        var syncResults = self._getUrlList(query);
+                        syncResults = self._getUrlList(query);
                         if (syncResults instanceof Array) {
                             currentDeferred.resolveWith(self, [syncResults]);
                         } else {
@@ -479,8 +490,14 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                result = $.map(asyncHints, function (item) {
+                    if (item.indexOf(filter) === 0) {
+                        return item;
+                    }
+                }).sort(sortFunc);
+
                 deferred.resolveWith(this, [{
-                    hints: asyncHints,
+                    hints: result,
                     match: query.queryStr,
                     selectInitial: true,
                     handleWideResults: false
@@ -755,17 +772,18 @@ define(function (require, exports, module) {
 
         var urlHints = new UrlCodeHints();
         CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
+        
+        function _clearCachedHints() {
+            // Cache may or may not be stale. Main benefit of cache is to limit async lookups
+            // during typing. File tree updates cannot happen during typing, so it's probably
+            // not worth determining whether cache may still be valid. Just delete it.
+            urlHints.cachedHints = null;
+        }
+        
+        FileSystem.on("change", _clearCachedHints);
+        FileSystem.on("rename", _clearCachedHints);
 
         // For unit testing
         exports.hintProvider = urlHints;
     });
-    
-    function _clearCachedHints() {
-        // Cache may or may not be stale. Main benefit of cache is to limit async lookups
-        // during typing. File tree updates cannot happen during typing, so it's probably
-        // not worth determining whether cache may still be valid. Just delete it.
-        exports.hintProvider.cachedHints = null;
-    }
-    FileSystem.on("change", _clearCachedHints);
-    FileSystem.on("rename", _clearCachedHints);
 });
