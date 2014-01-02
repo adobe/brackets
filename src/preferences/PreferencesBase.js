@@ -468,7 +468,7 @@ define(function (require, exports, module) {
         this.message = message || "";
     }
     
-    ParsingError.prototype = Error.prototype;
+    ParsingError.prototype = new Error();
     
     /**
      * Loads/saves preferences from a JSON file on disk.
