@@ -95,7 +95,8 @@ define(function (require, exports, module) {
         }
         return ((state.context.type === "prop" &&
                     (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
-                    (state.context.type === "(" && (state.context.type === "prop")));
+                    (state.context.type === "(" && state.context.prev.type === "prop") ||
+                    (state.context.type === "parens" && state.context.prev.type === "prop"));
     }
     
     /**
@@ -115,8 +116,7 @@ define(function (require, exports, module) {
         if (!state.context) {
             return false;
         }
-        // TODO: probably doesn't work
-        return (state.context.type === "@import");
+        return (state.context.type === "at");
     }
 
     /**
