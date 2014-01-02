@@ -146,11 +146,12 @@
     position: absolute;
     z-index: 1;
     top: 20px;
-    left: 200px;
+    left: 170px;
     width: 400px;
 
-    font-family: sans-serif;
-    font-size: 0.85em;
+    font-family: SourceSansPro;
+    font-size: 11px;
+    line-height: 1.9 !important;
 }
 
 
@@ -254,9 +255,34 @@
     position: absolute;
     z-index: 1;
     top: 20px;
-    left: 200px;
+    left: 180px;
     width: 400px;
 
-    font-family: sans-serif;
-    font-size: 0.85em;
+    font-family: SourceSansPro;
+    font-size: 11px;
+    line-height: 1.9 !important;
 }
+
+.bezier-curve-editor kbd,
+.step-editor kbd {
+    font-size: 15px;
+    font-weight: bold;
+    color: #454545;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin: 0 2px 2px 0;
+    padding: 0 3px 2px;
+    border-radius: 2px;
+    vertical-align: top;
+    line-height: 1;
+}
+
+.bezier-curve-editor kbd.text,
+.step-editor kbd.text {
+    font-size: 10px;
+    font-family: SourceSansPro;
+    font-weight: normal;
+    padding: 4px 4px;
+}
+
