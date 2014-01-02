@@ -1094,7 +1094,9 @@ define(function (require, exports, module) {
         function findInSubtree($nodes, segmentI) {
             var seg = pathSegments[segmentI];
             var match = _.findIndex($nodes, function (node, i) {
-                var nodeName = $(node).data("entry").name;
+                var entry = $(node).data("entry"),
+                    nodeName = entry ? entry.name : null;
+                
                 return nodeName === seg;
             });
             
