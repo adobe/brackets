@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Encoding API Tests</title>
+<link rel="stylesheet" href="testharness.css">
+</head>
+<body>
+<h1>Encoding API Tests</h1>
+<div id="log"></div>
+<script src="testharness.js"></script>
+<script src="testharnessreport.js"></script>
+<script>
+setup({explicit_timeout: true});
+</script>
+
+<script type="text/javascript" src="encoding-indexes.js"></script>
+<script type="text/javascript" src="encoding.js"></script>
+
+<script type="text/javascript" src="tests.js"></script>
+<!-- TODO: test for all single-byte encoding indexes -->
+<xscript type="text/javascript" src="test-gbk.js"></xscript>
+<!-- TODO: gb18030 -->
+<script type="text/javascript" src="test-hz-gb-2312.js"></script>
+<script type="text/javascript" src="test-big5.js"></script>
+<script type="text/javascript" src="test-euc-jp.js"></script>
+<script type="text/javascript" src="test-iso-2022-jp.js"></script>
+<script type="text/javascript" src="test-shift_jis.js"></script>
+<script type="text/javascript" src="test-euc-kr.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<script src="encoding-indexes.js"></script>
+<script src="encoding.js"></script>
+<script>
+function encodeArrayOfStrings(strings, encoding) {
+  var encoder, encoded, len, i, bytes, view, offset;
+
+  encoder = new TextEncoder(encoding);
+  encoded = [];
+
+  len = Uint32Array.BYTES_PER_ELEMENT;
+  for (i = 0; i < strings.length; i += 1) {
+    len += Uint32Array.BYTES_PER_ELEMENT;
+    encoded[i] = new TextEncoder(encoding).encode(strings[i]);
+    len += encoded[i].byteLength;
+  }
+
+  bytes = new Uint8Array(len);
+  view = new DataView(bytes.buffer);
+  offset = 0;
+
+  view.setUint32(offset, strings.length);
+  offset += Uint32Array.BYTES_PER_ELEMENT;
+  for (i = 0; i < encoded.length; i += 1) {
+    len = encoded[i].byteLength;
+    view.setUint32(offset, len);
+    offset += Uint32Array.BYTES_PER_ELEMENT;
+    bytes.set(encoded[i], offset);
+    offset += len;
+  }
+  return bytes.buffer;
+}
+
+function decodeArrayOfStrings(buffer, encoding) {
+  var decoder, view, offset, num_strings, strings, i, len;
+
+  decoder = new TextDecoder(encoding);
+  view = new DataView(buffer);
+  offset = 0;
+  strings = [];
+
+  num_strings = view.getUint32(offset);
+  offset += Uint32Array.BYTES_PER_ELEMENT;
+  for (i = 0; i < num_strings; i += 1) {
+    len = view.getUint32(offset);
+    offset += Uint32Array.BYTES_PER_ELEMENT;
+    strings[i] = decoder.decode(
+      new DataView(view.buffer, offset, len));
+    offset += len;
+  }
+  return strings;
+}
+
+var strings = ["Hello", "string", "encoding!"];
+var buffer = encodeArrayOfStrings(strings, "utf-8");
+var results = decodeArrayOfStrings(buffer, "utf-8");
+document.write("Encoded " + JSON.stringify(strings) + "<br>");
+document.write("Decoded " + JSON.stringify(results) + "<br>");
+</script>
