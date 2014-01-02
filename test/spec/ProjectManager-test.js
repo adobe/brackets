@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, require, describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global $, define, require, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files"),
+            changeEventFired,
             testWindow,
             brackets;
 
@@ -57,6 +58,10 @@ define(function (require, exports, module) {
                 FileSystem     = testWindow.brackets.test.FileSystem;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                
+                FileSystem.on("change", function () {
+                    changeEventFired = true;
+                });
             });
         });
 
@@ -273,12 +278,17 @@ define(function (require, exports, module) {
                 // Delete the selected file.
                 runs(function () {
                     complete = false;
+                    changeEventFired = false;
+                    
                     // delete the new file
                     ProjectManager.deleteItem(selectedFile)
                         .always(function () { complete = true; });
                 });
 
-                waitsFor(function () { return complete; }, "ProjectManager.deleteItem() timeout", 1000);
+                waitsFor(function () { return complete && changeEventFired; }, "ProjectManager.deleteItem() timeout", 1000);
+                
+                // Wait for the call to refreshFileTree, which is triggered by the change event, to complete.
+                waits(500);
 
                 // Verify that file no longer exists.
                 runs(function () {
@@ -399,11 +409,15 @@ define(function (require, exports, module) {
                 // Delete the root folder and all files/folders in it.
                 runs(function () {
                     complete = false;
-
+                    changeEventFired = false;
+                    
                     ProjectManager.deleteItem(rootFolderEntry)
                         .always(function () { complete = true; });
                 });
-                waitsFor(function () { return complete; }, "ProjectManager.deleteItem() timeout", 1000);
+                waitsFor(function () { return complete && changeEventFired; }, "ProjectManager.deleteItem() timeout", 1000);
+                
+                // Wait for the call to refreshFileTree, which is triggered by the change event, to complete.
+                waits(500);
 
                 // Verify that the root folder no longer exists.
                 runs(function () {
