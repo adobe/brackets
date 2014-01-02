@@ -69,6 +69,7 @@ define(function (require, exports, module) {
     require("spec/StringUtils-test");
     require("spec/TextRange-test");
     require("spec/UpdateNotification-test");
+    require("spec/UrlParams-test");
     require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");

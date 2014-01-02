@@ -220,17 +220,31 @@ define(function (require, exports, module) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             cursor = this.editor.getCursorPos(),
-            match,
-            matchSemicolonPos;
+            line = this.editor.document.getLine(cursor.line),
+            subLine,
+            ampersandPos,
+            semicolonPos,
+            entityMatch;
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - this.currentQuery.length;
-        match = this.editor.document.getLine(cursor.line).slice(cursor.ch);
-        matchSemicolonPos = match.indexOf(";");
+        subLine = line.slice(cursor.ch);
+        ampersandPos = subLine.indexOf("&");
+        semicolonPos = subLine.indexOf(";");
         end.ch = start.ch + this.currentQuery.length;
-        
-        if (matchSemicolonPos !== -1 && /^(#*[0-9]+)|([a-zA-Z]+)$/.test(match.slice(0, matchSemicolonPos))) {
-            end.ch = this.editor.document.getLine(cursor.line).indexOf(";", start.ch) + 1;
+
+        // We're looking for ';' in line before next '&'
+        if (semicolonPos !== -1 && (ampersandPos === -1 || ampersandPos > semicolonPos)) {
+
+            subLine = subLine.slice(0, semicolonPos);
+
+            // regexp must match entire subLine string
+            entityMatch = subLine.match(/^(#?[0-9]+)|([a-zA-Z]+)$/);
+            if (entityMatch && entityMatch.length > 0 && entityMatch.index === 0 &&
+                    entityMatch[0].length === subLine.length) {
+                // replace entity
+                end.ch = line.indexOf(";", start.ch) + 1;
+            }
         }
         
         completion = completion.slice(0, completion.indexOf(" "));

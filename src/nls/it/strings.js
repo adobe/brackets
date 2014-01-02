@@ -99,7 +99,7 @@ define({
     "WITH"                              : "Con",
     "BUTTON_YES"                        : "Si",
     "BUTTON_NO"                         : "No",
-    "BUTTON_STOP"                       : "Stop",
+    "BUTTON_STOP"                       : "Fermi",
 
     "OPEN_FILE"                         : "Apri File",
     "CHOOSE_FOLDER"                     : "Scegli una cartella",
@@ -125,7 +125,7 @@ define({
      * ProjectManager
      */
 
-    "UNTITLED" : "Senza nome",
+    "UNTITLED" : "Senza titolo",
 
     /**
      * Keyboard modifier names
@@ -221,9 +221,9 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"                : "Controlla aggiornamenti",
-    "CMD_HOW_TO_USE_BRACKETS"             : "Guida all'uso di {APP_NAME}",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Come usare {APP_NAME}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
-    "CMD_RELEASE_NOTES"                   : "Release Notes",
+    "CMD_RELEASE_NOTES"                   : "Note del lancio",
     "CMD_REPORT_AN_ISSUE"                 : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostra cartella estensioni",
     "CMD_TWITTER"                         : "{TWITTER_NAME} su Twitter",
@@ -275,7 +275,7 @@ define({
     "CMD_SHOW_PERF_DATA"                        : "Mostra dati sulle prestazioni",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Abilita il debugger Node",
     "CMD_LOG_NODE_STATE"                        : "Log lo stato del debugger Node nella Console",
-    "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_RESTART_NODE"                          : "Riavvi Node",
     
     "LANGUAGE_TITLE"                            : "Cambia lingua",
     "LANGUAGE_MESSAGE"                          : "Scegli una lingua dlla lista sottostante:",
