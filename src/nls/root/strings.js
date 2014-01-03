@@ -453,6 +453,7 @@ define({
     // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Czech",
     "LOCALE_DE"                                 : "German",
+    "LOCALE_EL"                                 : "Greek",
     "LOCALE_EN"                                 : "English",
     "LOCALE_ES"                                 : "Spanish",
     "LOCALE_FI"                                 : "Finnish",
