@@ -180,6 +180,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {?jQuery.Promise.<Array<File>>}
+     * A promise that is resolved with an array of all project files. Used by 
+     * ProjectManager.getAllFiles().
+     */
+    var _allFilesCachePromise = null;
+    
+    /**
+     * @private
      */
     function _hasFileSelectionFocus() {
         return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
@@ -920,6 +928,9 @@ define(function (require, exports, module) {
                 console.error("Error watching project root: ", rootPath, err);
             }
         });
+        
+        // Reset allFiles cache
+        _allFilesCachePromise = null;
     }
 
         
@@ -937,6 +948,9 @@ define(function (require, exports, module) {
                     console.error("Error unwatching project root: ", _projectRoot.fullPath, err);
                 }
             });
+            
+            // Reset allFiles cache
+            _allFilesCachePromise = null;
         }
     }
     
@@ -1689,6 +1703,46 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns a promise that resolves with a cached copy of all project files.
+     * Used by ProjectManager.getAllFiles(). Ensures that at most one un-cached
+     * directory traversal is active at a time, which is useful at project load
+     * time when watchers (and hence filesystem-level caching) has not finished
+     * starting up. The cache is cleared on every filesystem change event, and
+     * also on project load and unload.
+     * 
+     * @private
+     * @return {jQuery.Promise.<Array.<File>>}
+     */
+    function _getAllFilesCache() {
+        if (!_allFilesCachePromise) {
+            var deferred = new $.Deferred(),
+                allFiles = [],
+                allFilesVisitor = function (entry) {
+                    if (shouldShow(entry)) {
+                        if (entry.isFile && !isBinaryFile(entry.name)) {
+                            allFiles.push(entry);
+                        }
+                        return true;
+                    }
+                    return false;
+                };
+
+            _allFilesCachePromise = deferred.promise();
+            
+            getProjectRoot().visit(allFilesVisitor, function (err) {
+                if (err) {
+                    deferred.reject();
+                    _allFilesCachePromise = null;
+                } else {
+                    deferred.resolve(allFiles);
+                }
+            });
+        }
+        
+        return _allFilesCachePromise;
+    }
+    
+    /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files filtered
      * out by shouldShow() OR isBinaryFile() are excluded.
@@ -1701,9 +1755,6 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
     function getAllFiles(filter, includeWorkingSet) {
-        var deferred = new $.Deferred(),
-            result = [];
-        
         // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
         // specified.
@@ -1712,19 +1763,8 @@ define(function (require, exports, module) {
             filter = null;
         }
 
-        
-        function visitor(entry) {
-            if (shouldShow(entry)) {
-                if (entry.isFile && !isBinaryFile(entry.name)) {
-                    result.push(entry);
-                }
-                return true;
-            }
-            return false;
-        }
-        
         // First gather all files in project proper
-        getProjectRoot().visit(visitor, function (err) {
+        return _getAllFilesCache().then(function (result) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
                 DocumentManager.getWorkingSet().forEach(function (file) {
@@ -1739,10 +1779,8 @@ define(function (require, exports, module) {
                 result = result.filter(filter);
             }
             
-            deferred.resolve(result);
+            return result;
         });
-        
-        return deferred.promise();
     }
     
     /**
@@ -1769,6 +1807,9 @@ define(function (require, exports, module) {
      */
     _fileSystemChange = function (event, entry, added, removed) {
         FileSyncManager.syncOpenDocuments();
+        
+        // Reset allFiles cache
+        _allFilesCachePromise = null;
 
         if (!entry) {
             refreshFileTree();
