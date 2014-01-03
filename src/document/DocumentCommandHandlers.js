@@ -1289,22 +1289,22 @@ define(function (require, exports, module) {
         }
     }
     
-    /* Duplicate the selected file in the same folder. Filename will be original file name + '-copy'*/
+    /* Duplicate the selected file in the same folder. Filename will be original file name with an added number and '-copy'*/
     function handleFileDuplicate() {
         var entry = ProjectManager.getSelectedItem();
-        if (entry.isDirectory) {
-            ProjectManager.createNewItem(entry._parentPath, entry._name + "-" + Strings.COPY_SUFFIX, false, true, entry._path);
-        } else {
+              
+        if (!entry.isDirectory) {
             /* Create duplicated item */
-            var pos = entry._name.lastIndexOf('.');
-            var copiedFileName;
-            if (pos !== -1) {
-                copiedFileName = entry._name.substring(0, pos) + "-" + Strings.COPY_SUFFIX + "." + entry._name.substring(pos + 1);
-            } else {
-                //No '.' found in filename.
-                copiedFileName = entry._name + "-" + Strings.COPY_SUFFIX;
-            }
-            ProjectManager.createNewItem(entry._parentPath, copiedFileName, false, false, entry._path);
+            var pointPos = FileUtils.getBaseName(entry._path).lastIndexOf('.');
+            var extensionName = "." + FileUtils.getFileExtension(entry._path);
+            var baseFileName = FileUtils.getBaseName(entry._path).replace(extensionName, "");
+            var createWithSuggestedName = function (suggestedBaseName) {
+                var suggestedFileName = suggestedBaseName + "-" + Strings.COPY_SUFFIX + (extensionName === "." ? "" : extensionName);
+                return ProjectManager.createNewItem(entry._parentPath, suggestedFileName, false, false, entry._path)
+                    .always(function () { fileNewInProgress = false; });
+            };
+            _getUntitledFileSuggestion(entry._path, baseFileName, false)
+                .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, baseFileName));
         }
     }
 
