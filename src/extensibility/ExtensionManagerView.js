@@ -216,9 +216,13 @@ define(function (require, exports, module) {
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
         context.allowInstall = context.isCompatible && !context.isInstalled;
-        context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
-        context.allowUpdate = context.showUpdateButton && context.isCompatible && context.isCompatibleLatest;
-        context.allowUpdate_dev = context.allowRemove; // if the file is in the "dev" folder, we won't update it
+
+        var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
+        context.allowRemove = isInstalledInUserFolder;
+        context.allowUpdate = context.showUpdateButton && context.isCompatible && context.isCompatibleLatest && isInstalledInUserFolder;
+        if (!context.allowUpdate) {
+            context.updateNotAllowedReason = isInstalledInUserFolder ? Strings.CANT_UPDATE : Strings.CANT_UPDATE_DEV;
+        }
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
