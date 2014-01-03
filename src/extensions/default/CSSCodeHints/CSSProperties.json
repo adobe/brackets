@@ -103,7 +103,7 @@
     "font-stretch":                {"values": ["condensed", "expanded", "extra-condensed", "extra-expanded", "normal", "semi-condensed", "semi-expanded", "ultra-condensed", "ultra-expanded"]},
     "font-style":                  {"values": ["italic", "normal", "oblique"]},
     "font-synthesis":              {"values": ["none", "style", "weight"]},
-    "font-variant":                {"values": ["normal", "none"]},
+    "font-variant":                {"values": ["normal", "small-caps", "inherit"]},
     "font-variant-alternates":     {"values": ["normal"]},
     "font-variant-caps":           {"values": ["normal", "small-caps", "all-small-caps", "petite-caps", "all-petite-caps", "unicase", "titling-caps"]},
     "font-variant-east-asian":     {"values": ["normal"]},
