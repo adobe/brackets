@@ -132,16 +132,20 @@ define(function (require, exports, module) {
      *
      * @param {string} data Data to write.
      * @param {object=} options Currently unused.
-     * @param {!function (?string, FileSystemStats=)=} callback Callback that is passed the
+     * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
      *              FileSystemError string or the file's new stats.
      */
     File.prototype.write = function (data, options, callback) {
-        if (typeof (options) === "function") {
+        if (typeof options === "function") {
             callback = options;
             options = {};
+        } else {
+            if (options === undefined) {
+                options = {};
+            }
+            
+            callback = callback || function () {};
         }
-        
-        callback = callback || function () {};
         
         // Request a consistency check if the write is not blind
         if (!options.blind) {

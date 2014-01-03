@@ -520,8 +520,12 @@ define(function (require, exports, module) {
         if (typeof options === "function") {
             callback = options;
             options = {};
-        } else if (options === undefined) {
-            options = {};
+        } else {
+            if (options === undefined) {
+                options = {};
+            }
+            
+            callback = callback || function () {};
         }
         
         if (options.maxDepth === undefined) {
