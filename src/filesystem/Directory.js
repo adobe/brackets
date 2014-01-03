@@ -150,7 +150,9 @@ define(function (require, exports, module) {
             if (err) {
                 this._clearCachedData();
             } else {
-                var watched = this._isWatched();
+                // Use the "relaxed" parameter to _isWatched because it's OK to
+                // cache data even while watchers are still starting up
+                var watched = this._isWatched(true);
                 
                 names.forEach(function (name, index) {
                     var entryPath = this.fullPath + name;
