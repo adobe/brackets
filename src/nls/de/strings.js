@@ -126,7 +126,6 @@ define({
     "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_REPLACE"                    : "Ersetzen",
-
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Nächster Treffer",
@@ -160,7 +159,6 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
 
@@ -194,6 +192,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Benutzerdefinierte Erweiterungen deaktiviert",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
@@ -205,6 +204,7 @@ define({
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
+
 
     /**
      * Command Name Constants
@@ -437,6 +437,7 @@ define({
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne benutzerdefinierte Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
     "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
