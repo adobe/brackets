@@ -320,13 +320,13 @@ define(function (require, exports, module) {
         }
         
         if (!paths) {
-            paths = ["default", "dev", getUserExtensionPath()];
-        }
-        
-        params.parse();
-        
-        if (params.get("reloadWithoutUserExts") === "true") {
-            paths = ["default"];
+            params.parse();
+            
+            if (params.get("reloadWithoutUserExts") === "true") {
+                paths = ["default"];
+            } else {
+                paths = ["default", "dev", getUserExtensionPath()];
+            }
         }
         
         // Load extensions before restoring the project
