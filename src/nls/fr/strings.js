@@ -453,6 +453,7 @@ define({
     // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "Tchèque",
 	"LOCALE_DE": "Allemand",
+	"LOCALE_EL": "Grec",
 	"LOCALE_EN": "Anglais",
 	"LOCALE_ES": "Espagnol",
 	"LOCALE_FI": "Finnois",
@@ -477,6 +478,8 @@ define({
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
+	"BEZIER_EDITOR_INFO": "[7394779] !é=<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units=!",
+	"STEPS_EDITOR_INFO": "[7394781] !é=<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'=!",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
