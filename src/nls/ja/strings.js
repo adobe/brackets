@@ -192,6 +192,7 @@ define({
 	"STATUSBAR_TAB_SIZE": "タブ幅 :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "!能=[7394783] User Extensions Disabled_=!",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "{0} のエラー",
@@ -436,6 +437,7 @@ define({
 	"DEBUG_MENU": "デバッグ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
 	"CMD_REFRESH_WINDOW": "{APP_NAME} をリロード",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "!能=[7394782] Reload Without User Extensions_=!",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
