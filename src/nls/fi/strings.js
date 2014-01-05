@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -192,6 +192,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Sarkaimen koko:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rivi",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} riviä",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0}-virheet",
@@ -436,6 +437,7 @@ define({
     "DEBUG_MENU"                                : "Kehitys",
     "CMD_SHOW_DEV_TOOLS"                        : "Näytä kehitystyökalut",
     "CMD_REFRESH_WINDOW"                        : "Päivitä {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Päivitä ilman laajennuksia",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Uusi {APP_NAME}-ikkuna",
     "CMD_SWITCH_LANGUAGE"                       : "Vaihda kieltä",
     "CMD_RUN_UNIT_TESTS"                        : "Suorita testejä",
@@ -453,6 +455,7 @@ define({
     // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "tšekki",
     "LOCALE_DE"                                 : "saksa",
+    "LOCALE_EL"                                 : "kreikka",
     "LOCALE_EN"                                 : "englanti",
     "LOCALE_ES"                                 : "espanja",
     "LOCALE_FI"                                 : "suomi",
@@ -477,6 +480,8 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Edistyminen",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Lisää tai vähennä askelmia<br><kbd>←</kbd><kbd>→</kbd> ”Start” tai ”end”",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nykyinen väri",
