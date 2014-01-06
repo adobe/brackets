@@ -182,6 +182,20 @@ define(function (require, exports, module) {
                     newValue: undefined
                 }]);
                 expect(dataChanges).toEqual([{}]);
+                
+                changes = [];
+                dataChanges = [];
+                map.removeExclusion("spaceUnits");
+                expect(map._exclusions.spaceUnits).toBeUndefined();
+                expect(map.get("spaceUnits")).toBe(4);
+                expect(changes).toEqual([{
+                    id: "spaceUnits",
+                    oldValue: undefined,
+                    newValue: 4
+                }]);
+                expect(dataChanges).toEqual([{
+                    spaceUnits: 4
+                }]);
             });
             
             it("supports nested MergedMaps", function () {
@@ -300,11 +314,16 @@ define(function (require, exports, module) {
             it("supports inserting and deleting levels", function () {
                 var map = new PreferencesBase.MergedMap();
                 
-                var changes = [];
+                var changes = [],
+                    dataChanges = [];
                 $(map).on("change", function (e, data) {
                     changes.push(data);
                 });
                 
+                $(map).on("dataChange", function (e, data) {
+                    dataChanges.push(data);
+                });
+                                
                 map.addLevel("base");
                 map.setData("base", {
                     spaceUnits: 1,
@@ -344,12 +363,14 @@ define(function (require, exports, module) {
                 expect(map.get("baseLevel")).toBe(false);
                 
                 changes = [];
+                dataChanges = [];
                 
-                map.deleteLevel("between");
+                map.removeLevel("between");
                 expect(map.get("betweenLevel")).toBeUndefined();
                 expect(map.get("baseLevel")).toBe(true);
                 
                 expect(changes.length).toEqual(2);
+                expect(dataChanges.length).toEqual(1);
             });
         });
         
@@ -820,6 +841,19 @@ define(function (require, exports, module) {
                     oldValue: 4,
                     newValue: 2
                 }]);
+            });
+            
+            it("supports removal of scopes", function () {
+                var pm = new PreferencesBase.PreferencesManager();
+                pm.addScope("first", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 1
+                }));
+                pm.addScope("second", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 2
+                }));
+                expect(pm.get("spaceUnits")).toBe(2);
+                pm.removeScope("second");
+                expect(pm.get("spaceUnits")).toBe(1);
             });
         });
         

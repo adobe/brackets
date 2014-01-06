@@ -158,7 +158,7 @@ define(function (require, exports, module) {
          * 
          * @param {string} name Name of level to delete.
          */
-        deleteLevel: function (name) {
+        removeLevel: function (name) {
             var levelIndex = this._levels.indexOf(name);
             if (levelIndex === -1) {
                 return;
@@ -180,6 +180,7 @@ define(function (require, exports, module) {
                     mergedAtLevel[key] = value - 1;
                 }
             }.bind(this));
+            $(this).trigger("dataChange", this.merged);
         },
         
         /**
@@ -210,6 +211,19 @@ define(function (require, exports, module) {
         },
         
         /**
+         * Removes the exclusion of a key so that values for that key will now appear.
+         * 
+         * @param {string} id Key to now include
+         */
+        removeExclusion: function (id) {
+            if (this._exclusions[id] !== undefined) {
+                delete this._exclusions[id];
+                this._reset(id);
+                $(this).trigger("dataChange", this.merged);
+            }
+        },
+        
+        /**
          * Retrieve the current value of the key `id` from the map.
          * 
          * @param {string} id Key to retrieve from the map
@@ -236,6 +250,7 @@ define(function (require, exports, module) {
         _performSet: function (levelName, id, value) {
             // eliminate excluded ids
             if (this._exclusions[id]) {
+                this._levelData[levelName][id] = value;
                 return;
             }
             
@@ -287,6 +302,10 @@ define(function (require, exports, module) {
                 levelRank = this._levels.indexOf(levelName),
                 changed = false;
             
+            if (!this._childMaps[levelName]) {
+                this._levelData[levelName][id] = value;
+            }
+            
             // Check for a reference to undefined level.
             if (levelRank === -1) {
                 throw new Error("Attempt to set preference in non-existent level: " + levelName);
@@ -323,7 +342,6 @@ define(function (require, exports, module) {
             if (changed) {
                 $(this).trigger("dataChange", this.merged);
             }
-            this._levelData[id] = value;
             return changed;
         },
         
@@ -611,6 +629,20 @@ define(function (require, exports, module) {
             } else {
                 MergedMap.prototype.addLevel.call(this, name, options);
             }
+        },
+        
+        /**
+         * Overrides the base `removeLevel` to add support for layers.
+         * 
+         * @param {string} name Name of the level to remove
+         */
+        removeLevel: function (name) {
+            var layer = this._layers[name];
+            if (layer) {
+                delete this._layers[name];
+                $(layer).off("dataChange");
+            }
+            MergedMap.prototype.removeLevel.call(this, name);
         },
         
         /**
@@ -988,6 +1020,13 @@ define(function (require, exports, module) {
             
             return deferred.promise();
         },
+        
+        /**
+         * Removes a scope.
+         * 
+         * @param {string} id Name of the scope to remove
+         */
+        removeScope: MergedMap.prototype.removeLevel,
         
         /**
          * Adds a Layer that applies to each Scope.
