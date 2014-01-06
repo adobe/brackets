@@ -80,14 +80,17 @@ define(function (require, exports, module) {
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
+            currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
-            if (currentDoc) {
+            if (currentlyViewedPath) {
                 _$title.text(_currentTitlePath);
-                _$title.attr("title", currentDoc.file.fullPath);
-                // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-                _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                _$title.attr("title", currentlyViewedPath);
+                if (currentDoc) {
+                    // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                    _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                }
             } else {
                 _$title.text("");
                 _$title.attr("title", "");
@@ -111,8 +114,11 @@ define(function (require, exports, module) {
         }
 
         // build shell/browser window title, e.g. "• file.html — Brackets"
-        if (currentDoc) {
+        if (currentlyViewedPath) {
             windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+        }
+        
+        if (currentDoc) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         }
 
@@ -150,7 +156,12 @@ define(function (require, exports, module) {
         if (newDocument) {
             _currentTitlePath = _shortTitleForDocument(newDocument);
         } else {
-            _currentTitlePath = null;
+            var currentlyViewedFilePath = EditorManager.getCurrentlyViewedPath();
+            if (currentlyViewedFilePath) {
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFilePath);
+            } else {
+                _currentTitlePath = null;
+            }
         }
         
         // Update title text & "dirty dot" display
@@ -1352,7 +1363,8 @@ define(function (require, exports, module) {
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
+    $(DocumentManager).on("fileNameChange", updateDocumentTitle);
+    $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
