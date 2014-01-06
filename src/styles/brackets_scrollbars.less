@@ -40,7 +40,6 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        background-color: transparent;
         box-shadow: none;
         border: none;
     }
@@ -108,9 +107,16 @@
     }
     
     ::-webkit-scrollbar-thumb {
-        box-shadow: none;
-        border: none;
-        background-color: rgb(206, 206, 206);
+        box-shadow: 0 0 0 12px rgb(206, 206, 206) inset;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover,
+    ::-webkit-scrollbar-thumb:focus {
+        box-shadow: 0 0 0 12px rgb(166, 166, 166) inset;
+    }
+    
+    ::-webkit-scrollbar-thumb:active {
+        box-shadow: 0 0 0 12px rgb(96, 96, 96) inset;
     }
     
     ::-webkit-scrollbar-track:vertical {
