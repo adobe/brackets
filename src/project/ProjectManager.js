@@ -1155,20 +1155,30 @@ define(function (require, exports, module) {
      *  fails to reload.
      */
     function refreshFileTree() {
-        var selectedEntry;
+        var selectedEntry,
+            deferred = new $.Deferred();
+
         if (_lastSelected) {
             selectedEntry = _lastSelected.data("entry");
+        } else {
+            selectedEntry = getSelectedItem();
         }
         _lastSelected = null;
         
-        return _loadProject(getProjectRoot().fullPath, true)
-            .done(function () {
+        _loadProject(getProjectRoot().fullPath, true)
+            .then(function () {
                 if (selectedEntry) {
-                    _findTreeNode(selectedEntry).done(function ($node) {
-                        _forceSelection(null, $node);
-                    });
+                    _findTreeNode(selectedEntry)
+                        .then(function ($node) {
+                            _forceSelection(null, $node);
+                            deferred.resolve();
+                        }, deferred.reject);
+                } else {
+                    deferred.resolve();
                 }
-            });
+            }, deferred.reject);
+
+        return deferred.promise();
     }
     
     /**
