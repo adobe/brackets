@@ -73,7 +73,8 @@ define(function (require, exports, module) {
     
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
-        FileIndex       = require("filesystem/FileIndex");
+        FileIndex       = require("filesystem/FileIndex"),
+        WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
      * @constructor
@@ -194,14 +195,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * The set of watched roots, encoded as a mapping from full paths to objects
-     * which contain a file entry, filter function, and an indication of whether
-     * the watched root is full active (instead of, e.g., in the process of 
-     * starting up).
+     * The set of watched roots, encoded as a mapping from full paths to WatchedRoot
+     * objects which contain a file entry, filter function, and an indication of
+     * whether the watched root is inactive, starting up or fully active.
      * 
-     * @type{Object.<string, {entry: FileSystemEntry,
-     *                        filter: function(string): boolean,
-     *                        active: boolean} >}
+     * @type{Object.<string, WatchedRoot>}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -233,7 +231,7 @@ define(function (require, exports, module) {
      * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
-     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {WatchedRoot} watchedRoot - See FileSystem._watchedRoots.
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      * @param {boolean} shouldWatch - Whether the entry should be watched (true)
@@ -306,7 +304,7 @@ define(function (require, exports, module) {
      * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
-     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {WatchedRoot} watchedRoot - See FileSystem._watchedRoots.
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      */
@@ -320,7 +318,7 @@ define(function (require, exports, module) {
      * @private
      * @param {FileSystemEntry} entry - The FileSystemEntry to watch. Must be a
      *      non-strict descendent of watchedRoot.entry.
-     * @param {Object} watchedRoot - See FileSystem._watchedRoots.
+     * @param {WatchedRoot} watchedRoot - See FileSystem._watchedRoots.
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      */
@@ -792,17 +790,14 @@ define(function (require, exports, module) {
      *      string parametr.
      */
     FileSystem.prototype.watch = function (entry, filter, callback) {
-        var fullPath = entry.fullPath,
-            watchedRoot = {
-                entry   : entry,
-                filter  : filter,
-                active  : false
-            };
+        var fullPath = entry.fullPath;
         
         callback = callback || function () {};
         
         var watchingParentRoot = this._findWatchedRootForPath(fullPath);
-        if (watchingParentRoot && watchingParentRoot.active) {
+        if (watchingParentRoot &&
+                (watchingParentRoot.status === WatchedRoot.STARTING ||
+                 watchingParentRoot.status === WatchedRoot.ACTIVE)) {
             callback("A parent of this root is already watched");
             return;
         }
@@ -814,12 +809,20 @@ define(function (require, exports, module) {
             return watchedPath.indexOf(fullPath) === 0;
         }, this);
         
-        if (watchingChildRoot && watchingChildRoot.active) {
+        if (watchingChildRoot &&
+                (watchingChildRoot.status === WatchedRoot.STARTING ||
+                 watchingChildRoot.status === WatchedRoot.ACTIVE)) {
             callback("A child of this root is already watched");
             return;
         }
         
+        var watchedRoot = new WatchedRoot(entry, filter);
+        
         this._watchedRoots[fullPath] = watchedRoot;
+
+        // Enter the STARTING state early to indiate that watched Directory
+        // objects may cache their contents. See FileSystemEntry._isWatched.
+        watchedRoot.status = WatchedRoot.STARTING;
         
         this._watchEntry(entry, watchedRoot, function (err) {
             if (err) {
@@ -829,7 +832,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            watchedRoot.active = true;
+            watchedRoot.status = WatchedRoot.ACTIVE;
             
             callback(null);
         }.bind(this));
@@ -857,7 +860,7 @@ define(function (require, exports, module) {
 
         // Mark this as inactive, but don't delete the entry until the unwatch is complete.
         // This is useful for making sure we don't try to concurrently watch overlapping roots.
-        watchedRoot.active = false;
+        watchedRoot.status = WatchedRoot.INACTIVE;
         
         this._unwatchEntry(entry, watchedRoot, function (err) {
             delete this._watchedRoots[fullPath];
@@ -889,7 +892,7 @@ define(function (require, exports, module) {
         Object.keys(this._watchedRoots).forEach(function (path) {
             var watchedRoot = this._watchedRoots[path];
 
-            watchedRoot.active = false;
+            watchedRoot.status = WatchedRoot.INACTIVE;
             delete this._watchedRoots[path];
             this._unwatchEntry(watchedRoot.entry, watchedRoot, function () {
                 console.warn("Watching disabled for", watchedRoot.entry.fullPath);

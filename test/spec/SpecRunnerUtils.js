@@ -743,9 +743,12 @@ define(function (require, exports, module) {
      */
     function createTextFile(path, text, fileSystem) {
         var deferred = new $.Deferred(),
-            file = fileSystem.getFileForPath(path);
+            file = fileSystem.getFileForPath(path),
+            options = {
+                blind: true // overwriting previous files is OK
+            };
         
-        file.write(text, function (err) {
+        file.write(text, options, function (err) {
             if (!err) {
                 deferred.resolve(file);
             } else {

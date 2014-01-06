@@ -67,7 +67,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemError = require("filesystem/FileSystemError");
+    var FileSystemError = require("filesystem/FileSystemError"),
+        WatchedRoot     = require("filesystem/WatchedRoot");
     
     var VISIT_DEFAULT_MAX_DEPTH = 100,
         VISIT_DEFAULT_MAX_ENTRIES = 30000;
@@ -179,9 +180,12 @@ define(function (require, exports, module) {
     
     /**
      * Determines whether or not the entry is watched.
+     * @param {boolean=} relaxed If falsey, the method will only return true if
+     *      the watched root is fully active. If true, the method will return
+     *      true if the watched root is either starting up or fully active.
      * @return {boolean}
      */
-    FileSystemEntry.prototype._isWatched = function () {
+    FileSystemEntry.prototype._isWatched = function (relaxed) {
         var watchedRoot = this._watchedRoot,
             filterResult = this._watchedRootFilterResult;
         
@@ -196,7 +200,8 @@ define(function (require, exports, module) {
         }
         
         if (watchedRoot) {
-            if (watchedRoot.active) {
+            if (watchedRoot.status === WatchedRoot.ACTIVE ||
+                    (relaxed && watchedRoot.status === WatchedRoot.STARTING)) {
                 return filterResult;
             } else {
                 // We had a watched root, but it's no longer active, so it must now be invalid.
@@ -515,8 +520,12 @@ define(function (require, exports, module) {
         if (typeof options === "function") {
             callback = options;
             options = {};
-        } else if (options === undefined) {
-            options = {};
+        } else {
+            if (options === undefined) {
+                options = {};
+            }
+            
+            callback = callback || function () {};
         }
         
         if (options.maxDepth === undefined) {
