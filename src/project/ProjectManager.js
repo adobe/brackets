@@ -1149,13 +1149,15 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Reloads the project's file tree
+     * Reloads the project's file tree, maintaining the current selection.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project tree is reloaded, or rejected if the project path
-     *  fails to reload.
+     *  fails to reload. If the previous selected entry is not found, 
+     *  the promise is still resolved.
      */
     function refreshFileTree() {
-        var selectedEntry;
+        var selectedEntry,
+            deferred = new $.Deferred();
 
         if (_lastSelected) {
             selectedEntry = _lastSelected.data("entry");
@@ -1164,15 +1166,21 @@ define(function (require, exports, module) {
         }
         _lastSelected = null;
         
-        return _loadProject(getProjectRoot().fullPath, true)
+        _loadProject(getProjectRoot().fullPath, true)
             .then(function () {
                 if (selectedEntry) {
-                    return _findTreeNode(selectedEntry)
+                    // restore selection, always resolve
+                    _findTreeNode(selectedEntry)
                         .done(function ($node) {
                             _forceSelection(null, $node);
-                        });
+                        })
+                        .always(deferred.resolve);
+                } else {
+                    deferred.resolve();
                 }
-            });
+            }, deferred.reject);
+
+        return deferred.promise();
     }
     
     /**
