@@ -192,7 +192,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Benutzerdefinierte Erweiterungen deaktiviert",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
@@ -437,7 +437,7 @@ define({
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
-    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne benutzerdefinierte Erweiterungen neu laden",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
     "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
