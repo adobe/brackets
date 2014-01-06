@@ -473,7 +473,7 @@ define({
     "LOCALE_TR": "터키어",
     "LOCALE_ZH_CN": "중국어 (간체)",
     "LOCALE_HU": "헝가리어",
-    "LOCALE_KR": "한국어",
+    "LOCALE_KO": "한국어",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME": "시간",
