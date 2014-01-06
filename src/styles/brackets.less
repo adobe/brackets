@@ -703,10 +703,10 @@ a, img {
 }
 
 .file-status-icon {
-    margin: 2px 0 0 8px;
+    margin: 0 0 0 8px;
     position: absolute;
-    left: 0px;
-    top: 1px;
+    left: 0;
+    top: 0;
 
     &.dirty:before,
     &.can-close:before {
@@ -716,11 +716,12 @@ a, img {
     
     &.dirty:before {
         content: "\2022";
-        line-height: 11px;
+        line-height: 1em;
     }
     
     &.can-close:before {
         content: "\00D7";
+        line-height: 1.1em;
     }
     
     &.can-close:hover:before {
