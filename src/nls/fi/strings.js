@@ -462,6 +462,7 @@ define({
     "LOCALE_FR"                                 : "ranska",
     "LOCALE_IT"                                 : "italia",
     "LOCALE_JA"                                 : "japani",
+    "LOCALE_KO"                                 : "korea",
     "LOCALE_NB"                                 : "norja",
     "LOCALE_NL"                                 : "hollanti",
     "LOCALE_FA_IR"                              : "persia-farsi",
