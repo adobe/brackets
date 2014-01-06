@@ -1155,8 +1155,7 @@ define(function (require, exports, module) {
      *  fails to reload.
      */
     function refreshFileTree() {
-        var selectedEntry,
-            deferred = new $.Deferred();
+        var selectedEntry;
 
         if (_lastSelected) {
             selectedEntry = _lastSelected.data("entry");
@@ -1165,20 +1164,15 @@ define(function (require, exports, module) {
         }
         _lastSelected = null;
         
-        _loadProject(getProjectRoot().fullPath, true)
+        return _loadProject(getProjectRoot().fullPath, true)
             .then(function () {
                 if (selectedEntry) {
-                    _findTreeNode(selectedEntry)
-                        .then(function ($node) {
+                    return _findTreeNode(selectedEntry)
+                        .done(function ($node) {
                             _forceSelection(null, $node);
-                            deferred.resolve();
-                        }, deferred.reject);
-                } else {
-                    deferred.resolve();
+                        });
                 }
-            }, deferred.reject);
-
-        return deferred.promise();
+            });
     }
     
     /**
