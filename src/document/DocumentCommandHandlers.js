@@ -90,6 +90,9 @@ define(function (require, exports, module) {
                 if (currentDoc) {
                     // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
                     _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                } else {
+                    // hide dirty dot if there is no document
+                    _$dirtydot.css("visibility", "hidden");                    
                 }
             } else {
                 _$title.text("");
@@ -120,6 +123,9 @@ define(function (require, exports, module) {
         
         if (currentDoc) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
+        } else {
+            // hide dirty dot if there is no document
+            _$dirtydot.css("visibility", "hidden");                    
         }
 
         // update shell/browser window title
