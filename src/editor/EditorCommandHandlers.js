@@ -755,7 +755,7 @@ define(function (require, exports, module) {
         } else {
             doc.replaceRange("\n", {line: line, ch: 0}, null, "+input");
         }
-        cm.indentLine(line, "smart", false);
+        cm.indentLine(line, "smart", true);
         editor.setSelection({line: line, ch: null});
     }
 
