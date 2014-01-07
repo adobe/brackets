@@ -999,13 +999,12 @@ define(function (require, exports, module) {
 //        }
 //    });
 //    
-    $(exports).on("currentlyViewedFileChange", function () {
-        var currentPath = getCurrentlyViewedPath();
-        if (currentPath) {
-            PreferencesManager._setCurrentEditingFile(currentPath);
+    
+    $(exports).on("activeEditorChange", function (e, current) {
+        if (current && current.document && current.document.file) {
+            PreferencesManager._setCurrentEditingFile(current.document.file.fullPath);
         }
     });
-
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {
