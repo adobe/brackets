@@ -498,13 +498,6 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
         
-        // Set the language layer in the preferences.
-        if (doc.language) {
-            PreferencesManager._setLanguage(doc.language.getId());
-        } else {
-            PreferencesManager._setLanguage();
-        }
-
         PerfUtils.addMeasurement(perfTimerName);
     }
 

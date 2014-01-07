@@ -216,13 +216,6 @@ define(function (require, exports, module) {
     // Session-level preferences
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
     
-    // Set up the layers
-    var languageLayer = new PreferencesBase.LanguageLayer();
-    preferencesManager.addLayer("language", languageLayer);
-    
-    var pathLayer = new PreferencesBase.PathLayer();
-    preferencesManager.addLayer("path", pathLayer);
-    
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesManager();
@@ -239,8 +232,7 @@ define(function (require, exports, module) {
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager = preferencesManager;
-    exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
-    exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
+//    exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
     
     // Public API
     
