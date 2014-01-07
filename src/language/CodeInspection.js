@@ -351,8 +351,8 @@ define(function (require, exports, module) {
         }
         
         _collapsed = collapsed;
-        if (doNotSave) {
-            PreferencesManager.setValue("user", PREF_COLLAPSED, _collapsed);
+        if (!doNotSave) {
+            PreferencesManager.set("user", PREF_COLLAPSED, _collapsed);
         }
         
         if (_collapsed) {

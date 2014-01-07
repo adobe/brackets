@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         FileUtils         = require("file/FileUtils"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
         PreferencesBase   = require("preferences/PreferencesBase"),
+        FileSystem        = require("filesystem/FileSystem"),
         _                 = require("thirdparty/lodash");
     
     /**
@@ -216,6 +217,22 @@ define(function (require, exports, module) {
     // Session-level preferences
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
     
+    preferencesManager.addPathScopes(".brackets.prefs", {
+        before: "user",
+        checkExists: function (filename) {
+            var result = new $.Deferred(),
+                file = FileSystem.getFileForPath(filename);
+            file.exists(function (err, doesExist) {
+                console.log("file", filename, doesExist);
+                result.resolve(doesExist);
+            });
+            return result.promise();
+        },
+        getScopeForFile: function (filename) {
+            return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
+        }
+    });
+    
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesManager();
@@ -232,7 +249,7 @@ define(function (require, exports, module) {
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager = preferencesManager;
-//    exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
+    exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
     
     // Public API
     

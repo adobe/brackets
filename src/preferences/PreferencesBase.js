@@ -1162,7 +1162,7 @@ define(function (require, exports, module) {
                 self = this,
                 result = new $.Deferred(),
                 scopesToCheck = [],
-                scopeAdders = []
+                scopeAdders = [];
             
             this._pathScopeContext = contextFilename;
             
@@ -1170,7 +1170,7 @@ define(function (require, exports, module) {
             _.forIn(this._pathScopes, function (scopeGenerator, preferencesFilename) {
                 var lastSeen = scopeGenerator.before,
                     counter,
-                    scopeName;
+                    scopeNameToRemove;
                 
                 // First, look for how much is common with the old filename
                 for (counter = 0; counter < parts.length && counter < oldParts.length; counter++) {
@@ -1181,13 +1181,13 @@ define(function (require, exports, module) {
                 
                 // Remove all of the scopes that weren't the same in old and new
                 for (counter = counter + 1; counter < oldParts.length; counter++) {
-                    scopeName = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
-                    self.removeScope(scopeName);
+                    scopeNameToRemove = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
+                    self.removeScope(scopeNameToRemove);
                 }
                 
                 // Now add new scopes as required
                 _.forEach(parts, function (part, i) {
-                    var prefDirectory, filename, scope, pathLayer;
+                    var prefDirectory, filename, scope, scopeName, pathLayer;
                     prefDirectory = _.first(parts, i + 1).join("/") + "/";
                     filename = prefDirectory + preferencesFilename;
                     scopeName = "path:" + filename;
@@ -1195,7 +1195,7 @@ define(function (require, exports, module) {
                     
                     // Check to see if the scope already exists
                     if (scope) {
-                        pathLayer = scope._layers["path"];
+                        pathLayer = scope._layers.path;
                         pathLayer.setFilename(contextFilename.substr(prefDirectory.length));
                         lastSeen = scopeName;
                     } else {
@@ -1214,9 +1214,9 @@ define(function (require, exports, module) {
                                     layer: pathLayer
                                 });
                                 loadingPromises.push(self.addScope(scopeName, scope,
-                                                                   {
-                                                                       before: lastSeen
-                                                                   }));
+                                    {
+                                        before: lastSeen
+                                    }));
                             }
                         });
                     }

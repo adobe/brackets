@@ -999,13 +999,12 @@ define(function (require, exports, module) {
 //        }
 //    });
 //    
-//    $(exports).on("currentlyViewedFileChange", function () {
-//        var currentPath = EditorManager.getCurrentlyViewedPath();
-//        if (currentPath) {
-//            var filepath = makeProjectRelativeIfPossible(currentPath);
-//            PreferencesManager._setCurrentEditingFile(filepath);
-//        }
-//    });
+    $(exports).on("currentlyViewedFileChange", function () {
+        var currentPath = getCurrentlyViewedPath();
+        if (currentPath) {
+            PreferencesManager._setCurrentEditingFile(currentPath);
+        }
+    });
 
     
     // Initialize: command handlers
