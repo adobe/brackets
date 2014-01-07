@@ -1184,6 +1184,17 @@ define(function (require, exports, module) {
     }
     
     /**
+     * A debounced version of refreshFileTree that executes on the leading edge
+     * and also on the trailing edge after a short timeout if called more than
+     * once.
+     * @private
+     */
+    var _refreshFileTreeDebounced = _.debounce(refreshFileTree, 100, {
+        leading: true,
+        trailing: true
+    });
+    
+    /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
      * path lies outside the project, or if it doesn't exist.
      *
@@ -1827,15 +1838,24 @@ define(function (require, exports, module) {
         // Reset allFiles cache
         _allFilesCachePromise = null;
 
+        // A whole-sale change event; refresh the entire file tree
         if (!entry) {
-            refreshFileTree();
+            _fileTreeChangeQueue.removeAll();
+            _refreshFileTreeDebounced();
             return;
         }
-
+        
+        // A change event for a different directory; ignore
+        if (!isWithinProject(entry.fullPath)) {
+            return;
+        }
+        
         if (entry.isDirectory) {
+            // A change event with unknown added and removed sets
             if (!added || !removed) {
                 // TODO: just update children of entry in this case.
-                refreshFileTree();
+                _fileTreeChangeQueue.removeAll();
+                _refreshFileTreeDebounced();
                 return;
             }
 
