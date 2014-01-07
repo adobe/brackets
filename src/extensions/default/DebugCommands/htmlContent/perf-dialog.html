@@ -4,12 +4,12 @@
     </div>
     <div class="modal-body no-padding">
         <table class="table table-striped">
-            <thead><th>Operation</th><th>Time (ms)</th></thead>
+            <thead><th>Operation</th><th class="right">Time (ms)</th></thead>
             <tbody>
                 {{#perfData}}
                 <tr>
                     <td>{{{testName}}}</td>
-                    <td>{{value}}</td>
+                    <td class="right">{{value}}</td>
                 </tr>
                 {{/perfData}}
             </tbody>

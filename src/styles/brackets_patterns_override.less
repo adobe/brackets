@@ -521,9 +521,14 @@ a:focus {
     padding: 0;
 }
 
-.modal-body td,
-.modal-body th {
+.modal-body.no-padding td:first-child,
+.modal-body.no-padding th:first-child {
     padding-left: 15px;
+}
+
+.modal-body.no-padding td:last-child,
+.modal-body.no-padding th:last-child {
+    padding-right: 15px;
 }
 
 .modal-body, .modal-header, .modal-footer {
@@ -1113,6 +1118,9 @@ input[type="color"],
     }
     tbody th {
         border-top: 1px solid transparent);
+    }
+    .right {
+        text-align: right;
     }
 }
 
