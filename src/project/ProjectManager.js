@@ -1840,7 +1840,7 @@ define(function (require, exports, module) {
             }
 
             // Directory contents removed
-            if (removed) {
+            if (removed.length > 0) {
                 _fileTreeChangeQueue.add(function () {
                     return Async.doSequentially(removed, function (removedEntry) {
                         return _deleteTreeNode(removedEntry);
@@ -1849,7 +1849,7 @@ define(function (require, exports, module) {
             }
 
             // Directory contents added
-            if (added) {
+            if (added.length > 0) {
                 _fileTreeChangeQueue.add(function () {
                     // Find parent node to add to. Use shallowSearch=true to
                     // skip adding a child if it's parent is not visible
