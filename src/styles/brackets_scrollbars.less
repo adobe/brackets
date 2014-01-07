@@ -86,7 +86,7 @@
 
     ::-webkit-scrollbar-thumb {
         border-radius: 999px;
-        box-shadow: 0 0 0 4px @custom-scrollbar-thumb inset;
+        box-shadow: 0 0 0 4px @linux-scrollbar-thumb inset;
         border: 2px solid transparent;
     }
 
@@ -95,7 +95,7 @@
     }
 
     ::-webkit-scrollbar-thumb:window-inactive {
-        box-shadow: 0 0 0 5px @custom-scrollbar-thumb-inactive inset;
+        box-shadow: 0 0 0 5px @linux-scrollbar-thumb-inactive inset;
     }
 }
 
@@ -103,33 +103,28 @@
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
-        background-color: rgb(240, 240, 240);
+        background-color: @win-scrollbar-track;
     }
     
     ::-webkit-scrollbar-thumb {
-        box-shadow: 0 0 0 12px rgb(206, 206, 206) inset;
+        box-shadow: 0 0 0 12px @win-scrollbar-thumb inset;
     }
-    
     ::-webkit-scrollbar-thumb:hover,
     ::-webkit-scrollbar-thumb:focus {
-        box-shadow: 0 0 0 12px rgb(166, 166, 166) inset;
+        box-shadow: 0 0 0 12px @win-scrollbar-thumb-hover inset;
     }
-    
     ::-webkit-scrollbar-thumb:active {
-        box-shadow: 0 0 0 12px rgb(96, 96, 96) inset;
+        box-shadow: 0 0 0 12px @win-scrollbar-thumb-active inset;
     }
     
-    ::-webkit-scrollbar-track:vertical {
-        margin: 0 0 12px 0;
+    ::-webkit-scrollbar-thumb:vertical {
         min-height: 20px;
     }
-
-    ::-webkit-scrollbar-track:horizontal {
-        margin: 0 12px 0 0;
+    ::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
     }
     
     ::-webkit-scrollbar-corner {
-        background-color: transparent;
+        background: none;
     }
 }
