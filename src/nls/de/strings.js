@@ -476,6 +476,7 @@ define({
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     "LOCALE_HU"                                 : "Ungarisch",
+    "LOCALE_KO"                                 : "Koreanisch",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
