@@ -192,6 +192,7 @@ define({
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions utilisateur désactivées",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE": "Erreurs {0}",
@@ -436,6 +437,7 @@ define({
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions utilisateur",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
@@ -474,12 +476,13 @@ define({
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
+	"LOCALE_KO": "Coréen",
     
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
-	"BEZIER_EDITOR_INFO": "[7394779] !é=<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units=!",
-	"STEPS_EDITOR_INFO": "[7394781] !é=<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'=!",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Décaler</kbd> Déplacer de dix unités",
+	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

@@ -24,32 +24,8 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
-define(function (require, exports, module) {
-    
-    "use strict";
-    
-    // Registry for languages that have specific per-language URLs or file paths that we use
-    // elsewhere in Brackets.
-    //
-    // TODO: dynamically populate the local prefix list below?
-    module.exports = {
-        root: true,
-        "cs": true,
-        "de": true,
-        "es": true,
-		"fa-ir": true,
-        "fi": true,
-        "fr": true,
-        "it": true,
-        "ja": true,
-        "ko": true,
-        "nb": true,
-        "pl": true,
-        "pt-br": true,
-        "pt-pt": true,
-        "ru": true,
-        "sv": true,
-        "zh-cn": true,
-        "tr": true
-    };
+define({
+    // Relative to the samples folder
+    "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_kr/",
+    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/"
 });
