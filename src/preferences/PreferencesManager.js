@@ -223,7 +223,6 @@ define(function (require, exports, module) {
             var result = new $.Deferred(),
                 file = FileSystem.getFileForPath(filename);
             file.exists(function (err, doesExist) {
-                console.log("file", filename, doesExist);
                 result.resolve(doesExist);
             });
             return result.promise();
