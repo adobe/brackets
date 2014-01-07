@@ -37,8 +37,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
-        ViewUtils           = require("utils/ViewUtils"),
-        CollectionUtils     = require("utils/CollectionUtils");
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * Brackets Application Menu Constants
@@ -949,7 +948,7 @@ define(function (require, exports, module) {
         // Remove all of the menu items in the menu
         menu = getMenu(id);
         
-        CollectionUtils.forEach(menuItemMap, function (value, key) {
+        _.forEach(menuItemMap, function (value, key) {
             if (key.substring(0, id.length) === id) {
                 if (value.isDivider) {
                     menu.removeMenuDivider(key);

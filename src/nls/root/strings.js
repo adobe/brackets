@@ -192,6 +192,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "User Extensions Disabled",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Errors",
@@ -436,6 +437,7 @@ define({
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without User Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
@@ -453,6 +455,7 @@ define({
     // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Czech",
     "LOCALE_DE"                                 : "German",
+    "LOCALE_EL"                                 : "Greek",
     "LOCALE_EN"                                 : "English",
     "LOCALE_ES"                                 : "Spanish",
     "LOCALE_FI"                                 : "Finnish",
@@ -473,10 +476,13 @@ define({
     "LOCALE_TR"                                 : "Turkish",
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
     "LOCALE_HU"                                 : "Hungarian",
+    "LOCALE_KO"                                 : "Korean",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
