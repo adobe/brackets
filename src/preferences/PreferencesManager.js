@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, localStorage */
+/*global define, $, localStorage, brackets */
+/*unittests: Preferences Manager */
 
 /**
  * PreferencesManager
@@ -32,11 +32,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash");
-    
-    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
+    var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),
-        ExtensionLoader   = require("utils/ExtensionLoader");
+        ExtensionLoader   = require("utils/ExtensionLoader"),
+        PreferencesBase   = require("preferences/PreferencesBase"),
+        _                 = require("thirdparty/lodash");
     
     /**
      * The local storage ID
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
             });
         }
 
-        return new PreferenceStorage(clientID, prefs);
+        return new OldPreferenceStorage(clientID, prefs);
     }
 
     /**
@@ -198,4 +198,71 @@ define(function (require, exports, module) {
     // Unit test use only
     exports._reset                  = _reset;
     exports._getExtensionPaths      = _getExtensionPaths;
+    
+    // New code follows. The code above (with the exception of the imports) is
+    // deprecated.
+    
+    // The SETTINGS_FILENAME is used with a preceding "." within user projects
+    var SETTINGS_FILENAME = "brackets.prefs",
+        STATE_FILENAME    = "state.json";
+    
+    var preferencesManager = new PreferencesBase.PreferencesManager();
+    
+    // User-level preferences
+    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    
+    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    
+    // Project-level preferences
+    var projectFileStorage = new PreferencesBase.FileStorage();
+    preferencesManager.addScope("project", projectFileStorage);
+    
+    // Session-level preferences
+    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
+    
+    // Set up the layers
+    var languageLayer = new PreferencesBase.LanguageLayer();
+    preferencesManager.addLayer("language", languageLayer);
+    
+    var pathLayer = new PreferencesBase.PathLayer();
+    preferencesManager.addLayer("path", pathLayer);
+    
+    // "State" is stored like preferences but it is not generally intended to be user-editable.
+    // It's for more internal, implicit things like window size, working set, etc.
+    var stateManager = new PreferencesBase.PreferencesManager();
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    
+    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
+    
+    // Convenience function that sets a preference and then saves the file, mimicking the
+    // old behavior a bit more closely.
+    function setValueAndSave(scopeName, id, value) {
+        preferencesManager.set(scopeName, id, value);
+        preferencesManager.save();
+    }
+    
+    // Private API for unit testing and use elsewhere in Brackets core
+    exports._manager = preferencesManager;
+    exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
+    exports._projectFileStorage = projectFileStorage;
+    exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
+    
+    // Public API
+    
+    // PreferencesManager change messages are sent out as preferenceChange messages
+    // from this module.
+    $(preferencesManager).on("change", function (e, data) {
+        $(exports).trigger("preferenceChange", data);
+    });
+    
+    exports.get = preferencesManager.get.bind(preferencesManager);
+    exports.set = preferencesManager.set.bind(preferencesManager);
+    exports.save = preferencesManager.save.bind(preferencesManager);
+    exports.getPreference = preferencesManager.getPreference.bind(preferencesManager);
+    exports.setValueAndSave = setValueAndSave;
+    exports.addScope = preferencesManager.addScope.bind(preferencesManager);
+    exports.stateManager = stateManager;
+    exports.FileStorage = PreferencesBase.FileStorage;
+    exports.SETTINGS_FILENAME = SETTINGS_FILENAME;
+    exports.definePreference = preferencesManager.definePreference.bind(preferencesManager);
 });

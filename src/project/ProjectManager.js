@@ -98,6 +98,13 @@ define(function (require, exports, module) {
      * @type {RegExp}
      */
     var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
+    
+    /**
+     * @private
+     * Filename to use for project settings files.
+     * @type {string}
+     */
+    var SETTINGS_FILENAME = "." + PreferencesManager.SETTINGS_FILENAME;
 
     /**
      * @private
@@ -1724,6 +1731,29 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
+    
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            PreferencesManager._projectFileStorage.setPath(root.fullPath + SETTINGS_FILENAME);
+        }
+    }
+    
+    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
+    
+    $(DocumentManager).on("documentSaved", function (e, document) {
+        if (document.file && FileUtils.getDirectoryPath(document.file.fullPath) === _projectRoot.fullPath && document.file.name === SETTINGS_FILENAME) {
+            _reloadProjectPreferencesScope();
+        }
+    });
+    
+    $(EditorManager).on("currentlyViewedFileChange", function () {
+        var currentPath = EditorManager.getCurrentlyViewedPath();
+        if (currentPath) {
+            var filepath = makeProjectRelativeIfPossible(currentPath);
+            PreferencesManager._setCurrentEditingFile(filepath);
+        }
+    });
 
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

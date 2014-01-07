@@ -39,6 +39,10 @@
 define(function (require, exports, module) {
     "use strict";
     
+    // Minimum width of editor area enforced when resizing the sidebar
+    var MIN_WIDTH_EDITOR_AREA = 100;
+
+    
     var AppInit                 = require("utils/AppInit"),
         Resizer                 = require("utils/Resizer");
     
@@ -87,6 +91,17 @@ define(function (require, exports, module) {
         });
     }
     
+    /** Updates sidebar resize limits to disallow shrinking the editor width to 0 */
+    function updateSidebarLimits() {
+        var editorAreaWidth = $editorHolder.width();
+        var $sidebar = $("#sidebar");
+        if ($sidebar) {
+            $sidebar.data("maxsize", editorAreaWidth + $sidebar.width() - MIN_WIDTH_EDITOR_AREA);
+
+            // set the minimum width of the frame window
+            brackets.app.setMinWindowWidth($sidebar.width() + MIN_WIDTH_EDITOR_AREA);
+        }
+    }
     
     /**
      * Calculates a new size for editor-holder and resizes it accordingly, then and dispatches the "editorAreaResize"
@@ -129,6 +144,7 @@ define(function (require, exports, module) {
             $(window.document).one("mousemove", function () {
                 windowResizing = false;
                 updateResizeLimits();
+                updateSidebarLimits();
             });
         }
     }
@@ -206,6 +222,7 @@ define(function (require, exports, module) {
     function _notifyLayoutChange(refreshHint) {
         triggerEditorResize(refreshHint);
         updateResizeLimits();
+        updateSidebarLimits();
     }
     
     
@@ -240,4 +257,5 @@ define(function (require, exports, module) {
     exports.createBottomPanel    = createBottomPanel;
     exports._notifyLayoutChange  = _notifyLayoutChange;
     exports._setMockDOM          = _setMockDOM;
+    exports.MIN_WIDTH_EDITOR_AREA = MIN_WIDTH_EDITOR_AREA;
 });

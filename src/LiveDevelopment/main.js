@@ -55,7 +55,7 @@ define(function main(require, exports, module) {
     var prefs;
     var params = new UrlParams();
     var config = {
-        experimental: false, // enable experimental features
+        experimental: true, // enable experimental features
         debug: true, // enable debug output and helpers
         autoconnect: false, // go live automatically after startup?
         highlight: true, // enable highlighting?
