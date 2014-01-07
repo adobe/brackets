@@ -1301,7 +1301,11 @@ define(function (require, exports, module) {
         }
         
         // Create the node and open the editor
-        _projectTree.one("create.jstree", deferred.resolve);
+        _projectTree.one("create.jstree", function () {
+            // Redraw selection
+            _redraw(true);
+            deferred.resolve();
+        });
         _projectTree.jstree("create", $target, position || 0, data, null, skipRename);
         
         return deferred.promise();
@@ -1836,48 +1840,52 @@ define(function (require, exports, module) {
             }
 
             // Directory contents removed
-            _fileTreeChangeQueue.add(function () {
-                return Async.doSequentially(removed, function (removedEntry) {
-                    return _deleteTreeNode(removedEntry);
-                }, false);
-            });
+            if (removed) {
+                _fileTreeChangeQueue.add(function () {
+                    return Async.doSequentially(removed, function (removedEntry) {
+                        return _deleteTreeNode(removedEntry);
+                    }, false);
+                });
+            }
 
             // Directory contents added
-            _fileTreeChangeQueue.add(function () {
-                // Find parent node to add to. Use shallowSearch=true to
-                // skip adding a child if it's parent is not visible
-                return _findTreeNode(entry, true).then(function ($directoryNode) {
-                    if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
-                        return Async.doSequentially(added, function (addedEntry) {
-                            var json = _entryToJSON(addedEntry);
-                            
-                            // _entryToJSON returns null if the added file is filtered from view
-                            if (json) {
+            if (added) {
+                _fileTreeChangeQueue.add(function () {
+                    // Find parent node to add to. Use shallowSearch=true to
+                    // skip adding a child if it's parent is not visible
+                    return _findTreeNode(entry, true).then(function ($directoryNode) {
+                        if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
+                            return Async.doSequentially(added, function (addedEntry) {
+                                var json = _entryToJSON(addedEntry);
                                 
-                                // Before creating a new node, make sure it doesn't already exist.
-                                // TODO: Improve the efficiency of this search!
-                                return _findTreeNode(addedEntry).then(function ($childNode) {
-                                    if ($childNode) {
-                                        // the node already exists; do nothing;
-                                        return new $.Deferred().resolve();
-                                    } else {
-                                        // The node wasn't found; create it.
-                                        // Position is irrelevant due to sorting
+                                // _entryToJSON returns null if the added file is filtered from view
+                                if (json) {
+                                    
+                                    // Before creating a new node, make sure it doesn't already exist.
+                                    // TODO: Improve the efficiency of this search!
+                                    return _findTreeNode(addedEntry).then(function ($childNode) {
+                                        if ($childNode) {
+                                            // the node already exists; do nothing;
+                                            return new $.Deferred().resolve();
+                                        } else {
+                                            // The node wasn't found; create it.
+                                            // Position is irrelevant due to sorting
+                                            return _createNode($directoryNode, null, json, true);
+                                        }
+                                    }, function () {
+                                        // The node doesn't exist; create it.
                                         return _createNode($directoryNode, null, json, true);
-                                    }
-                                }, function () {
-                                    // The node doesn't exist; create it.
-                                    return _createNode($directoryNode, null, json, true);
-                                });
-                            } else {
-                                return new $.Deferred().resolve();
-                            }
-                        }, false);
-                    } else {
-                        return new $.Deferred().resolve();
-                    }
+                                    });
+                                } else {
+                                    return new $.Deferred().resolve();
+                                }
+                            }, false);
+                        } else {
+                            return new $.Deferred().resolve();
+                        }
+                    });
                 });
-            });
+            }
         }
     };
 
