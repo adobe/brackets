@@ -211,10 +211,6 @@ define(function (require, exports, module) {
         
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
-
-        if (this.info.offset === 0 && lastContext !== null) {
-            return null;
-        }
         
         if (context === CSSUtils.PROP_VALUE) {
             
