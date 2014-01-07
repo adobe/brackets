@@ -91,7 +91,7 @@ define(function (require, exports, module) {
                         .done(function () { didCreate = true; })
                         .fail(function () { gotError = true; });
                 });
-                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 5000);
 
                 var error, stat, complete = false;
                 var filePath = tempDir + "/Untitled.js";
@@ -122,7 +122,7 @@ define(function (require, exports, module) {
                         .done(function () { didCreate = true; })
                         .fail(function () { gotError = true; });
                 });
-                waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 5000);
 
                 runs(function () {
                     expect(gotError).toBeTruthy();
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
                         .done(function () { didCreate = true; })
                         .fail(function () { gotError = true; });
                 });
-                waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 5000);
 
                 runs(function () {
                     expect(gotError).toBeTruthy();
@@ -181,7 +181,7 @@ define(function (require, exports, module) {
                     charAt = chars.charAt(i);
 
                     runs(createFile);
-                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
+                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 5000);
                     runs(assertFile);
                 }
             });
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
                     fileAt = files[i];
 
                     runs(createFile);
-                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 1000);
+                    waitsFor(waitForFileCreate, "ProjectManager.createNewItem() timeout", 5000);
                     runs(assertFile);
                 }
             });
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
                     ProjectManager.createNewItem(tempDir, "brackets_unittests_delete_me.js", true)
                         .always(function () { complete = true; });
                 });
-                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 1000);
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 5000);
 
                 runs(function () {
                     complete = false;
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     // delete the new file
                     var promise = ProjectManager.deleteItem(selectedFile);
-                    waitsForDone(promise, "ProjectManager.deleteItem() timeout", 1000);
+                    waitsForDone(promise, "ProjectManager.deleteItem() timeout", 5000);
                 });
                 
                 // Verify that file no longer exists.
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                 // Delete the root folder and all files/folders in it.
                 runs(function () {
                     promise = ProjectManager.deleteItem(rootFolderEntry);
-                    waitsForDone(promise, "ProjectManager.deleteItem() timeout", 1000);
+                    waitsForDone(promise, "ProjectManager.deleteItem() timeout", 5000);
                 });
 
                 // Verify that the root folder no longer exists.
