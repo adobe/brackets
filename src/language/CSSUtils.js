@@ -95,17 +95,16 @@ define(function (require, exports, module) {
         }
         return ((state.context.type === "prop" &&
                     (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
-                    (state.context.type === "(" && state.context.prev.type === "prop") ||
                     (state.context.type === "parens" && state.context.prev.type === "prop"));
     }
     
     /**
      * @private
-     * Checks if the current cursor position is inside an @import rule
+     * Checks if the current cursor position is inside an at-rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {boolean} true if the context is in property value
      */
-    function _isInImportRule(ctx) {
+    function _isInAtRule(ctx) {
         var state;
         if (!ctx || !ctx.token || !ctx.token.state) {
             return false;
@@ -482,7 +481,7 @@ define(function (require, exports, module) {
             return _getRuleInfoStartingFromPropValue(ctx, editor);
         }
 
-        if (_isInImportRule(ctx)) {
+        if (_isInAtRule(ctx)) {
             return _getImportUrlInfo(ctx, editor);
         }
         
