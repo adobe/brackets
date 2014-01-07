@@ -310,6 +310,21 @@ define(function (require, exports, module) {
         
     }
     
+    function copyItem(sourcePath, destinationPath, callback) {
+        exists(sourcePath, function (err, alreadyExists) {
+            if (err) {
+                callback(err);
+                return;
+            }
+            appshell.fs.copyFile(sourcePath, destinationPath, function (err) {
+                if (err) {
+                    return console.error(err);
+                }
+                callback(err);
+            });
+        });
+    }
+    
     function unlink(path, callback) {
         appshell.fs.unlink(path, function (err) {
             try {
@@ -428,6 +443,7 @@ define(function (require, exports, module) {
     exports.stat            = stat;
     exports.readFile        = readFile;
     exports.writeFile       = writeFile;
+    exports.copyItem        = copyItem;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;

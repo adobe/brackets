@@ -1290,6 +1290,25 @@ define(function (require, exports, module) {
             ProjectManager.deleteItem(entry);
         }
     }
+    
+    /* Duplicate the selected file in the same folder. Filename will be original file name with an added number and '-copy'*/
+    function handleFileDuplicate() {
+        var entry = ProjectManager.getSelectedItem();
+              
+        if (!entry.isDirectory) {
+            /* Create duplicated item */
+            var pointPos = FileUtils.getBaseName(entry._path).lastIndexOf('.');
+            var extensionName = "." + FileUtils.getFileExtension(entry._path);
+            var baseFileName = FileUtils.getBaseName(entry._path).replace(extensionName, "");
+            var createWithSuggestedName = function (suggestedBaseName) {
+                var suggestedFileName = suggestedBaseName + "-" + Strings.COPY_SUFFIX + (extensionName === "." ? "" : extensionName);
+                return ProjectManager.createNewItem(entry._parentPath, suggestedFileName, false, false, entry._path)
+                    .always(function () { fileNewInProgress = false; });
+            };
+            _getUntitledFileSuggestion(entry._path, baseFileName, false)
+                .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, baseFileName));
+        }
+    }
 
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
     function handleShowInOS() {
@@ -1329,6 +1348,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
     CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
     CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
+    CommandManager.register(Strings.CMD_FILE_DUPLICATE,     Commands.FILE_DUPLICATE, handleFileDuplicate);
     
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
@@ -1344,6 +1364,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+
     
     // Those commands have no UI representation, and are only used internally 
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,        _handleAbortQuit);

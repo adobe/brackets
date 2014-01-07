@@ -1233,11 +1233,12 @@ define(function (require, exports, module) {
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
      * @param isFolder {boolean} If true, create a folder instead of a file
+     * @param copyFilePath {File} If defined, this file will be used for duplicating the file
      * @return {$.Promise} A promise object that will be resolved with the File
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
-    function createNewItem(baseDir, initialName, skipRename, isFolder) {
+    function createNewItem(baseDir, initialName, skipRename, isFolder, copyFilePath) {
         var node                = null,
             selection           = _projectTree.jstree("get_selected"),
             selectionEntry      = null,
@@ -1380,16 +1381,32 @@ define(function (require, exports, module) {
                                 }
                             });
                         } else {
-                            // Create an empty file
+                            // Create a file
                             var file = FileSystem.getFileForPath(newItemPath);
-                            
-                            file.write("", function (err) {
-                                if (err) {
-                                    errorCallback(err);
-                                } else {
-                                    successCallback(file);
-                                }
-                            });
+                            // Function to write data to a file
+                            var writeDataToFile = function (file, data) {
+                                file.write(data, function (err) {
+                                    if (err) {
+                                        errorCallback(err);
+                                    } else {
+                                        successCallback(file);
+                                    }
+                                });
+                            };
+                            // If a path is specified, copy that data into the file.
+                            if (copyFilePath) {
+                                var copyFile = FileSystem.getFileForPath(copyFilePath);
+                                copyFile.copyItem(newItemPath, function (copyError) {
+                                    if (copyError) {
+                                        errorCallback(copyError);
+                                    } else {
+                                        successCallback(file);
+                                    }
+                                });
+                            } else {
+                                //No path is specified, so just create an empty file
+                                writeDataToFile(file, "");
+                            }
                         }
                     }
                 });

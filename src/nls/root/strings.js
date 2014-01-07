@@ -232,6 +232,7 @@ define({
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
+    "CMD_FILE_DUPLICATE"                  : "Duplicate",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_FILE_REFRESH"                    : "Refresh File Tree",
@@ -340,6 +341,9 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
+    
+    //The duplication-string that automatically adds when duplicating files.
+    "COPY_SUFFIX"                          : "copy",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
