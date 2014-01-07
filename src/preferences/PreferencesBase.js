@@ -407,12 +407,14 @@ define(function (require, exports, module) {
          */
         _reset: function (key) {
             var levelData = this._levelData,
+                childMaps = this._childMaps,
                 hasBeenReset = false;
             
             // Loop through the levels until we find the first that defines this
             // key.
             this._levels.forEach(function (level, levelNumber) {
-                var value = levelData[level][key];
+                var thisLevel = levelData[level] || childMaps[level];
+                var value = thisLevel[key];
                 if (value !== undefined) {
                     this._performSetAndNotification(level, key, value, true);
                     hasBeenReset = true;
@@ -924,6 +926,8 @@ define(function (require, exports, module) {
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
         
+        this._pathScopes = {};
+        
         // When we signal a general change message on this manager, we also signal a change
         // on the individual preference object.
         $(this).on("change", function (e, data) {
@@ -981,10 +985,13 @@ define(function (require, exports, module) {
          * 
          * @param {string} id Name of the Scope
          * @param {Scope} scope the Scope object itself. Can be given a Storage directly for convenience
+         * @param {{before: string}} options optional behavior when adding (e.g. setting which scope this comes before)
          * @return {Promise} Promise that is resolved when the Scope is loaded. It is resolved
          *                   with id and scope.
          */
-        addScope: function (id, scope) {
+        addScope: function (id, scope, options) {
+            options = options || {};
+            
             if (this._levels.indexOf(id) > -1) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
             }
@@ -995,7 +1002,8 @@ define(function (require, exports, module) {
             }
             
             this.addLevel(id, {
-                map: scope
+                map: scope,
+                before: options.before
             });
             
             this._layers.forEach(function (layerInfo) {
@@ -1110,6 +1118,124 @@ define(function (require, exports, module) {
                 });
             
             return deferred.promise();
+        },
+        
+        /**
+         * Path Scopes provide special handling for scopes that are managed by a
+         * collection of files in the file tree. The idea is that files are
+         * searched for going up the file tree to the root.
+         * 
+         * This function just sets up the path scopes. You need to call
+         * `setPathScopeContext` to activate the path scopes.
+         * 
+         * The `scopeGenerator` is an object that provides the following:
+         * * `before`: all scopes added will be before (higher precedence) this named scope
+         * * `checkExists`: takes an absolute filename and determines if there is a valid file there. Returns a promise resolving to a boolean.
+         * * `getScopeForFile`: Called after checkExists. Synchronously returns a Scope object for the given file. Only called where `checkExists` is true.
+         * 
+         * @param {string} preferencesFilename Name for the preferences files managed by this scopeGenerator (e.g. `.brackets.prefs`)
+         * @param {Object} scopeGenerator defines the behavior used to generate scopes for these files
+         * @return {Promise} promise resolved when the scopes have been added.
+         */
+        addPathScopes: function (preferencesFilename, scopeGenerator) {
+            this._pathScopes[preferencesFilename] = scopeGenerator;
+            
+            if (this._pathScopeContext) {
+                return this.setPathScopeContext(this._pathScopeContext);
+            } else {
+                return new $.Deferred().resolve().promise();
+            }
+        },
+        
+        /**
+         * Sets the current path scope context. This causes a reloading of paths as needed.
+         * Paths that are common between the old and new context files are not reloaded.
+         * All path scopes are updated by this function.
+         * 
+         * @param {string} contextFilename New filename used to resolve preferences
+         * @return {Promise} resolved when the path scope context change is complete. Note that *this promise is resolved before the scopes are done loading*.
+         */
+        setPathScopeContext: function (contextFilename) {
+            var oldParts = this._pathScopeContext ? this._pathScopeContext.split("/") : [],
+                parts = _.initial(contextFilename.split("/")),
+                loadingPromises = [],
+                self = this,
+                result = new $.Deferred(),
+                scopesToCheck = [],
+                scopeAdders = []
+            
+            this._pathScopeContext = contextFilename;
+            
+            // Loop over the path scopes
+            _.forIn(this._pathScopes, function (scopeGenerator, preferencesFilename) {
+                var lastSeen = scopeGenerator.before,
+                    counter,
+                    scopeName;
+                
+                // First, look for how much is common with the old filename
+                for (counter = 0; counter < parts.length && counter < oldParts.length; counter++) {
+                    if (parts[counter] !== oldParts[counter]) {
+                        break;
+                    }
+                }
+                
+                // Remove all of the scopes that weren't the same in old and new
+                for (counter = counter + 1; counter < oldParts.length; counter++) {
+                    scopeName = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
+                    self.removeScope(scopeName);
+                }
+                
+                // Now add new scopes as required
+                _.forEach(parts, function (part, i) {
+                    var prefDirectory, filename, scope, pathLayer;
+                    prefDirectory = _.first(parts, i + 1).join("/") + "/";
+                    filename = prefDirectory + preferencesFilename;
+                    scopeName = "path:" + filename;
+                    scope = self._childMaps[scopeName];
+                    
+                    // Check to see if the scope already exists
+                    if (scope) {
+                        pathLayer = scope._layers["path"];
+                        pathLayer.setFilename(contextFilename.substr(prefDirectory.length));
+                        lastSeen = scopeName;
+                    } else {
+                        
+                        // New scope. First check to see if the file exists.
+                        scopesToCheck.push(scopeGenerator.checkExists(filename));
+                        
+                        // Keep a function closure for the scope that will be added
+                        // if checkExists is true. We store these so that we can
+                        // run them in order.
+                        scopeAdders.push(function () {
+                            scope = scopeGenerator.getScopeForFile(filename);
+                            if (scope) {
+                                pathLayer = new PathLayer();
+                                scope.addLevel("path", {
+                                    layer: pathLayer
+                                });
+                                loadingPromises.push(self.addScope(scopeName, scope,
+                                                                   {
+                                                                       before: lastSeen
+                                                                   }));
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // When all of the scope checks are done, run through them in order
+            // and then call the adders for each file that exists.
+            $.when.apply(this, scopesToCheck).done(function () {
+                var i;
+                for (i = 0; i < arguments.length; i++) {
+                    if (arguments[i]) {
+                        scopeAdders[i]();
+                    }
+                }
+                result.resolve();
+            });
+            
+            return result.promise();
         }
     });
     

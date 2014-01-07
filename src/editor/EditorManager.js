@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var Commands            = require("command/Commands"),
         PanelManager        = require("view/PanelManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -989,6 +990,23 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+    
+    // File preferences handling
+    
+//    $(DocumentManager).on("documentSaved", function (e, document) {
+//        if (document.file && FileUtils.getDirectoryPath(document.file.fullPath) === _projectRoot.fullPath && document.file.name === SETTINGS_FILENAME) {
+//            _reloadProjectPreferencesScope();
+//        }
+//    });
+//    
+//    $(exports).on("currentlyViewedFileChange", function () {
+//        var currentPath = EditorManager.getCurrentlyViewedPath();
+//        if (currentPath) {
+//            var filepath = makeProjectRelativeIfPossible(currentPath);
+//            PreferencesManager._setCurrentEditingFile(filepath);
+//        }
+//    });
+
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {

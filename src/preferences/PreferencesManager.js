@@ -213,10 +213,6 @@ define(function (require, exports, module) {
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
-    // Project-level preferences
-    var projectFileStorage = new PreferencesBase.FileStorage();
-    preferencesManager.addScope("project", projectFileStorage);
-    
     // Session-level preferences
     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
     
@@ -244,7 +240,6 @@ define(function (require, exports, module) {
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager = preferencesManager;
     exports._setLanguage = languageLayer.setLanguage.bind(languageLayer);
-    exports._projectFileStorage = projectFileStorage;
     exports._setCurrentEditingFile = pathLayer.setFilename.bind(pathLayer);
     
     // Public API
