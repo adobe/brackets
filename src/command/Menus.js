@@ -1051,18 +1051,24 @@ define(function (require, exports, module) {
         closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
-        var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
-        if (bottomOverhang > 0) {
-            posTop = Math.max(0, posTop - bottomOverhang);
+        var elementRect = {
+                top:    posTop,
+                left:   posLeft,
+                height: $menuWindow.height() + 25,
+                width:  $menuWindow.width()
+            },
+            clip = ViewUtils.getElementClipSize($window, elementRect);
+        
+        if (clip.bottom > 0) {
+            posTop = Math.max(0, posTop - clip.bottom);
         }
         posTop -= 30;   // shift top for hidden parent element
         posLeft += 5;
         
-        var rightOverhang = posLeft + $menuWindow.width() - $window.width();
-        if (rightOverhang > 0) {
-            posLeft = Math.max(0, posLeft - rightOverhang);
+        if (clip.right > 0) {
+            posLeft = Math.max(0, posLeft - clip.right);
         }
-
+        
         // open the context menu at final location
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});

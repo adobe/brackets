@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings");
+        Strings             = brackets.getModule("strings"),
+        ViewUtils           = brackets.getModule("utils/ViewUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -108,12 +109,23 @@ define(function (require, exports, module) {
             top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
             left          = xpos - previewWidth / 2,
             $editorHolder = $("#editor-holder"),
-            editorLeft    = $editorHolder.offset().left;
+            elementRect = {
+                top:    top,
+                left:   left - POPOVER_HORZ_MARGIN,
+                height: $previewContainer.outerHeight() + POINTER_HEIGHT,
+                width:  previewWidth + 2 * POPOVER_HORZ_MARGIN
+            },
+            clip = ViewUtils.getElementClipSize($editorHolder, elementRect);
 
-        left = Math.max(left, editorLeft + POPOVER_HORZ_MARGIN);
-        left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
-        
-        if (top < 0) {
+        // Prevent horizontal clipping
+        if (clip.left > 0) {
+            left += clip.left;
+        } else if (clip.right > 0) {
+            left -= clip.right;
+        }
+
+        // If clipped on top, flip popover below line
+        if (clip.top > 0) {
             top = ybot + POINTER_HEIGHT;
             $previewContainer
                 .removeClass("preview-bubble-above")
@@ -123,6 +135,7 @@ define(function (require, exports, module) {
                 .removeClass("preview-bubble-below")
                 .addClass("preview-bubble-above");
         }
+        
         $previewContainer
             .css({
                 left: left,
