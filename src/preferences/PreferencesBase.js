@@ -21,7 +21,8 @@
  * 
  */
 
-/*global define, $, localStorage, brackets */
+/*global define, $, localStorage, brackets, console */
+/*jslint plusplus:true, vars: true, nomen: true */
 /*unittests: Preferences Base */
 
 /**
@@ -908,19 +909,21 @@ define(function (require, exports, module) {
         }
     };
     
-    function _PathScopeAdder(filename, scopeName, scopeGenerator, before) {
+    function PathScopeAdder(filename, scopeName, scopeGenerator, before, pathLayerFilename) {
         this.filename = filename;
         this.scopeName = scopeName;
         this.scopeGenerator = scopeGenerator;
         this.before = before;
+        this.pathLayerFilename = pathLayerFilename;
     }
     
-    _PathScopeAdder.prototype = {
+    PathScopeAdder.prototype = {
         add: function (pm, before) {
             console.log("Adding scope", this.scopeName, "before", before);
             var scope = this.scopeGenerator.getScopeForFile(this.filename);
             if (scope) {
                 var pathLayer = new PathLayer();
+                pathLayer.setFilename(this.pathLayerFilename);
                 scope.addLevel("path", {
                     layer: pathLayer
                 });
@@ -1216,17 +1219,19 @@ define(function (require, exports, module) {
                 
                 // Now add new scopes as required
                 _.forEach(parts, function (part, i) {
-                    var prefDirectory, filename, scope, scopeName, pathLayer;
+                    var prefDirectory, filename, scope, scopeName, pathLayer, pathLayerFilename;
                     prefDirectory = _.first(parts, i + 1).join("/") + "/";
                     filename = prefDirectory + preferencesFilename;
                     scopeName = "path:" + filename;
                     scope = self._childMaps[scopeName];
                     console.log("scope", scopeName, scope);
                     
+                    pathLayerFilename = contextFilename.substr(prefDirectory.length);
+                    
                     // Check to see if the scope already exists
                     if (scope) {
                         pathLayer = scope._layers.path;
-                        pathLayer.setFilename(contextFilename.substr(prefDirectory.length));
+                        pathLayer.setFilename(pathLayerFilename);
                         lastSeen = scopeName;
                         console.log("lastSeen is now", lastSeen);
                     } else {
@@ -1236,7 +1241,7 @@ define(function (require, exports, module) {
                         // Keep a function closure for the scope that will be added
                         // if checkExists is true. We store these so that we can
                         // run them in order.
-                        scopeAdders.unshift(new _PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen));
+                        scopeAdders.unshift(new PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen, pathLayerFilename));
                     }
                 });
             });
