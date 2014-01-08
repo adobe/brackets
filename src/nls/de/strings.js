@@ -36,6 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
+    "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
     "DIRECTORY"                         : "Verzeichnis",
@@ -107,7 +108,8 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiter verwenden?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert.<br /><br />Wollen Sie die Datei speichern und diese Änderungen überschreiben?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiterverwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
     // Generic dialog/button labels
@@ -115,6 +117,8 @@ define({
     "CANCEL"                            : "Abbrechen",
     "DONT_SAVE"                         : "Nicht speichern",
     "SAVE"                              : "Speichern",
+    "SAVE_AS"                           : "Speichern unter\u2026",
+    "SAVE_AND_OVERWRITE"                : "Überschreiben",
     "DELETE"                            : "Löschen",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
@@ -436,7 +440,7 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
-    "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_REFRESH_WINDOW"                        : "Mit Erweiterungen neu laden",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
