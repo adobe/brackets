@@ -757,11 +757,11 @@ define(function (require, exports, module) {
                 dialogLabel = Strings.CMD_GOTO_DEFINITION;
                 break;
             default:
-                dialogLabel = Strings.CMD_QUICK_OPEN;
+                dialogLabel = "";
                 break;
             }
         }
-        $(".find-dialog-label", this.dialog).text(dialogLabel + ":");
+        $(".find-dialog-label", this.dialog).text(dialogLabel);
     };
     
     /**
@@ -814,7 +814,7 @@ define(function (require, exports, module) {
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span> <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
+        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='Quick Open…' style='width: 30em'><span class='find-dialog-label'></span> </div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
