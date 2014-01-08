@@ -32,16 +32,20 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        EditorManager       = require("editor/EditorManager"),
-        Editor              = require("editor/Editor").Editor,
-        KeyEvent            = require("utils/KeyEvent"),
-        StatusBar           = require("widgets/StatusBar"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+    var AppInit                      = require("utils/AppInit"),
+        CollectionUtils              = require("utils/CollectionUtils"),
+        DefaultDialogs               = require("widgets/DefaultDialogs"),
+        Dialogs                      = require("widgets/Dialogs"),
+        EditorManager                = require("editor/EditorManager"),
+        Editor                       = require("editor/Editor").Editor,
+        KeyEvent                     = require("utils/KeyEvent"),
+        LanguageManager              = require("language/LanguageManager"),
+        StatusBar                    = require("widgets/StatusBar"),
+        Strings                      = require("strings"),
+        StringUtils                  = require("utils/StringUtils");
     
     /* StatusBar indicators */
-    var $languageInfo,
+    var $languageSelect,
         $cursorInfo,
         $fileInfo,
         $indentType,
@@ -54,7 +58,11 @@ define(function (require, exports, module) {
     }
     
     function _updateLanguageInfo(editor) {
-        $languageInfo.text(editor.document.getLanguage().getName());
+        var lang = editor.document.getLanguage();
+        $languageSelect.empty();
+        $("<option />").val(lang.getId()).text(lang.getName())
+            .appendTo($languageSelect);
+        $languageSelect.val(lang.getId());
     }
     
     function _updateFileInfo(editor) {
@@ -170,8 +178,52 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Setup and populate a custom <select> dropdown for switching the language
+     * mode for the given document.
+     * @param {!Document} document The document for which to switch the language
+     */
+    function _setupLanguageSelect(document) {
+        // Lazy load the languages in the dropdown to avoid having to receive
+        // updates from LanguageManager (not to mention unnecessary processing
+        // since most users will not need to manually set the language).
+        var languages = LanguageManager.getLanguages();
+        
+        // lock width of <select>, else it changes when it's populated
+        $languageSelect.css("width", $languageSelect.css("width"));
+        
+        // fill the dropbown using the languages list
+        $languageSelect.empty();
+        CollectionUtils.forEach(languages, function (lang) {
+            $("<option />").val(lang.getId()).text(lang.getName())
+                .appendTo($languageSelect);
+        });
+        $languageSelect.val(document.getLanguage().getId());
+        
+        // sort dropdown alphabetically
+        $languageSelect.html($languageSelect.find("option").sort(
+            function (a, b) {
+                return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
+            }
+        ));
+        
+        // set change handler for select box
+        $languageSelect.on("change", function () {
+            var selectedLang = LanguageManager.getLanguage($(this).val()),
+                defaultLang = LanguageManager.getLanguageForPath(
+                    document.file.fullPath
+                );
+            // if default language selected, don't "force"" it
+            // (passing in null will reset the force flag)
+            document.forceLanguage(
+                selectedLang === defaultLang ? null : selectedLang
+            );
+            $languageSelect.css("width", "auto"); // unlock width
+        });
+    }
+    
     function _init() {
-        $languageInfo       = $("#status-language");
+        $languageSelect     = $("#language-select");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
         $indentType         = $("#indent-type");
@@ -203,7 +255,13 @@ define(function (require, exports, module) {
             });
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
-
+        
+        // When language select clicked, set up dropdown.
+        // Using mousedown because the dropdown opens before mouseup.
+        $languageSelect.on("mousedown", function () {
+            _setupLanguageSelect(EditorManager.getActiveEditor().document);
+        });
+        
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
 

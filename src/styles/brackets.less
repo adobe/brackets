@@ -171,6 +171,33 @@ a, img {
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
+    
+    /**
+     * Custom <select> styling currently only being used for language selection
+     * but could be reused elsewhere.
+     * (Here's a good intro to custom form fields: http://goo.gl/T4EPg)
+     */
+    select.status-bar-select {
+        -webkit-appearance: none;
+        -webkit-font-smoothing: inherit;
+        background: url("images/select-triangles.svg") no-repeat right center;
+        border: 0;
+        // have to explicitly inherit some styles to override <select> defaults
+        color: inherit;
+        font-family: inherit;
+        font-size: inherit;
+        height: inherit;
+        line-height: inherit;
+        margin: 0;
+        padding: 0 12px 0 0;
+        width: auto;
+        &:focus {
+            outline: 0;
+        }
+        &:hover {
+            text-decoration: underline;
+        }
+    }
 }
 
 @-webkit-keyframes spinner-sprites-12 {

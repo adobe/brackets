@@ -253,6 +253,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns all of the languages currently defined in the LanguageManager.
+     * @return {Object.<string, Language>} A map containing all of the
+     * languages currently defined.
+     */
+    function getLanguages() {
+        return $.extend({}, _languages); // copy to prevent modification
+    }
+    
+    /**
      * Resolves a CodeMirror mode to a Language object.
      * @param {!string} mode CodeMirror mode
      * @return {Language} The language for the provided mode or the fallback language
@@ -804,4 +813,5 @@ define(function (require, exports, module) {
     exports.defineLanguage          = defineLanguage;
     exports.getLanguage             = getLanguage;
     exports.getLanguageForPath      = getLanguageForPath;
+    exports.getLanguages            = getLanguages;
 });
