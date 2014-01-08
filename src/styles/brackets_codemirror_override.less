@@ -21,7 +21,7 @@
 /* Brackets / CodeMirror Code Formatting */
 
 .CodeMirror pre {
-    padding: 0 @code-padding;
+    padding: 0 @code-padding 0 0;
 }
 
 .CodeMirror-scroll {
@@ -53,7 +53,8 @@
         height: 100%;
     }
     .CodeMirror-gutter-elt {
-        background: @activeline-bgcolor;
+        background: #dde4e5;
+        color: #222;
     }
 }
 
@@ -135,7 +136,7 @@
         color: @accent-comment;
         min-width: 2.5em;
         /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
-        padding: 0 3px 0 10px;  /* left padding for project panel selection triangle */
+        padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
     }
     &.CodeMirror-focused .CodeMirror-selected {
         background: @selection-color-focused;
