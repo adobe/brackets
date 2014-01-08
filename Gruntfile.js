@@ -64,13 +64,24 @@ module.exports = function (grunt) {
                             'LiveDevelopment/launch.html'
                         ]
                     },
+                    /* node domains are not minified and must be copied to dist */
+                    {
+                        expand: true,
+                        dest: 'dist/',
+                        cwd: 'src/',
+                        src: [
+                            'extensibility/node/**',
+                            '!extensibility/node/spec/**',
+                            'filesystem/impls/appshell/node/**',
+                            '!filesystem/impls/appshell/node/spec/**'
+                        ]
+                    },
                     /* extensions and CodeMirror modes */
                     {
                         expand: true,
                         dest: 'dist/',
                         cwd: 'src/',
                         src: [
-                            'extensibility/**/*',
                             '!extensions/default/*/unittest-files/**/*',
                             '!extensions/default/*/unittests.js',
                             'extensions/default/*/**/*',

@@ -522,13 +522,16 @@ define(function (require, exports, module) {
         );
     }
     
+    
+    
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
+     * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem
      * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
-    function doSave(docToSave) {
+    function doSave(docToSave, force) {
         var result = new $.Deferred(),
             file = docToSave.file;
         
@@ -538,18 +541,61 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
         }
+        
+        function handleContentsModified() {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.EXT_MODIFIED_TITLE,
+                StringUtils.format(
+                    Strings.EXT_MODIFIED_WARNING,
+                    StringUtils.breakableUrl(docToSave.file.fullPath)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_SAVE_AS,
+                        text      : Strings.SAVE_AS
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE_AND_OVERWRITE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Re-do the save, ignoring any CONTENTS_MODIFIED errors
+                        doSave(docToSave, true).then(result.resolve, result.reject);
+                    } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
+                        // Let the user choose a different path at which to write the file
+                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                    }
+                });
+        }
             
         if (docToSave.isDirty) {
             var writeError = false;
             
             // We don't want normalized line endings, so it's important to pass true to getText()
-            FileUtils.writeText(file, docToSave.getText(true))
+            FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
                 })
                 .fail(function (err) {
-                    handleError(err);
+                    if (err === FileSystemError.CONTENTS_MODIFIED) {
+                        handleContentsModified();
+                    } else {
+                        handleError(err);
+                    }
                 });
         } else {
             result.resolve(file);
@@ -651,7 +697,12 @@ define(function (require, exports, module) {
             
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
-            FileUtils.writeText(newFile, doc.getText()).done(function () {
+            
+            // Save as warns you when you're about to overwrite a file, so we
+            // explictly allow "blind" writes to the filesystem in this case,
+            // ignoring warnings about the contents being modified outside of
+            // the editor.
+            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old

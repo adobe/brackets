@@ -25,25 +25,49 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
 
-/**
- * FileSystemError describes the errors that can occur when using the FileSystem, File,
- * and Directory modules.
- *
- * Error values are strings. Any "falsy" value: null, undefined or "" means "no error".
- */
 define(function (require, exports, module) {
     "use strict";
+    
+    /*
+     * @constructor
+     * Represents file or directory structure watched by the FileSystem. If the
+     * entry is a directory, all children (that pass the supplied filter function)
+     * are also watched. A WatchedRoot object begins and ends its life in the
+     * INACTIVE state. While in the process of starting up watchers, the WatchedRoot
+     * is in the STARTING state. When watchers are ready, the WatchedRoot enters
+     * the ACTIVE state.
+     *
+     * See the FileSystem class for more details.
+     *
+     * @param {File|Directory} entry 
+     * @param {function(string, string):boolean} filter 
+     */
+    function WatchedRoot(entry, filter) {
+        this.entry = entry;
+        this.filter = filter;
+    }
 
-    module.exports = {
-        UNKNOWN             : "Unknown",
-        INVALID_PARAMS      : "InvalidParams",
-        NOT_FOUND           : "NotFound",
-        NOT_READABLE        : "NotReadable",
-        NOT_WRITABLE        : "NotWritable",
-        OUT_OF_SPACE        : "OutOfSpace",
-        TOO_MANY_ENTRIES    : "TooManyEntries",
-        ALREADY_EXISTS      : "AlreadyExists",
-        CONTENTS_MODIFIED   : "ContentsModified"
-        // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
-    };
+    // Status constants
+    WatchedRoot.INACTIVE = 0;
+    WatchedRoot.STARTING = 1;
+    WatchedRoot.ACTIVE = 2;
+
+    /**
+     * @type {File|Directory}
+     */
+    WatchedRoot.prototype.entry = null;
+    
+    /**
+     * @type {function(string, string):boolean}
+     */
+    WatchedRoot.prototype.filter = null;
+
+    /**
+     * @type {number}
+     */
+    WatchedRoot.prototype.status = WatchedRoot.INACTIVE;
+    
+    
+    // Export this class
+    module.exports = WatchedRoot;
 });
