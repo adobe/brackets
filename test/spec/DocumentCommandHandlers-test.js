@@ -110,7 +110,7 @@ define(function (require, exports, module) {
             });
             runs(function () {
                 var promise = SpecRunnerUtils.deletePath(fullPath);
-                waitsForDone(promise, "Remove testfile " + fullPath);
+                waitsForDone(promise, "Remove testfile " + fullPath, 5000);
             });
         }
         
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
                     });
 
                     promise = CommandManager.execute(Commands.FILE_SAVE);
-                    waitsForDone(promise, "Provide new filename");
+                    waitsForDone(promise, "Provide new filename", 5000);
                 });
 
                 runs(function () {

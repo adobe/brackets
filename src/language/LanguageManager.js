@@ -325,6 +325,9 @@ define(function (require, exports, module) {
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
     
+    /** @type {boolean} Whether or not the language is binary */
+    Language.prototype._isBinary = false;
+    
     /**
      * Returns the identifier for this language.
      * @return {string} The identifier
@@ -648,6 +651,22 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Indicates whether or not the language is binary (e.g., image or audio).
+     * @return {boolean}
+     */
+    Language.prototype.isBinary = function () {
+        return this._isBinary;
+    };
+    
+    /**
+     * Sets whether or not the language is binary
+     * @param {!boolean} isBinary
+     */
+    Language.prototype._setBinary = function (isBinary) {
+        this._isBinary = isBinary;
+    };
+    
+    /**
      * Defines a language.
      *
      * @param {!string}               id                        Unique identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
@@ -695,6 +714,9 @@ define(function (require, exports, module) {
                     language.addFileName(fileNames[i]);
                 }
             }
+            
+            language._setBinary(!!definition.isBinary);
+            
             // store language to language map
             _languages[language.getId()] = language;
         }
