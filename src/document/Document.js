@@ -142,6 +142,13 @@ define(function (require, exports, module) {
      * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
+    
+    /**
+     * Whether this document's language was forced (manually selected) or not.
+     * If true, the language will not change when _updateLanguage() is called.
+     * @type {boolean}
+     */
+    Document.prototype._languageWasForced = false;
 
     /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
@@ -446,14 +453,35 @@ define(function (require, exports, module) {
     Document.prototype.getLanguage = function () {
         return this.language;
     };
+    
+    /**
+     * Overrides the default language of this document and sets it to the given
+     * language.
+     * @param {?Language} language The language to be set for this document; if
+     * null, the language will be set back to the default.
+     */
+    Document.prototype.forceLanguage = function (language) {
+        if (language) {
+            var oldLanguage = this.language;
+            this._languageWasForced = true;
+            this.language = language;
+            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+        } else { // if language was null, reset to default language
+            this._languageWasForced = false;
+            this._updateLanguage();
+        }
+    };
 
     /**
-     * Updates the language according to the file extension
+     * Updates the language according to the file extension. If the current
+     * language was forced (set manually by user), don't change it.
      */
     Document.prototype._updateLanguage = function () {
+        if (this._languageWasForced) {
+            return;
+        }
         var oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
-        
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
         }
