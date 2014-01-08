@@ -300,6 +300,7 @@ define(function (require, exports, module) {
      *
      * @param {!DOMElement} $view - A jQuery scrolling container
      * @param {!Object} elementRect - rectangle of element's default position/size
+     * @return {Object} amount element rect is clipped on top, right, bottom, and left
      */
     function getElementClipSize($view, elementRect) {
         var delta,
@@ -307,24 +308,25 @@ define(function (require, exports, module) {
             viewOffset = $view.offset() || { top: 0, left: 0},
             viewScroller = $view.get(0);
 
+        // Check if element extends below viewport
         delta = (elementRect.top + elementRect.height) - (viewOffset.top + $view.height());
         if (delta > 0) {
-            // below viewport
             clip.bottom = delta;
         }
 
+        // Check if element extends above viewport
         delta = viewOffset.top - elementRect.top;
         if (delta > 0) {
-            // above viewport
             clip.top = delta;
         }
 
+        // Check if element extends to the left of viewport
         delta = viewOffset.left - elementRect.left;
         if (delta > 0) {
-            // left of viewport
             clip.left = delta;
         }
 
+        // Check if element extends to the right of viewport
         delta = (elementRect.left + elementRect.width) - (viewOffset.left + $view.width());
         if (delta > 0) {
             clip.right = delta;
