@@ -960,6 +960,14 @@ define(function (require, exports, module) {
                     expect(pm._levels).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
                 });
                 
+                console.log("--- Important test");
+                requestedFiles = [];
+                pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js").done(function () {
+                    expect(pm._levels.length).toBe(6);
+                    expect(requestedFiles.length).toBe(2);
+                    expect(pm.get("spaceUnits")).toBe(7);
+                });
+                
                 expect(didComplete).toBe(true);
             });
         });

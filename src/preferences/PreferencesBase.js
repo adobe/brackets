@@ -166,6 +166,7 @@ define(function (require, exports, module) {
             
             this._levels.splice(levelIndex, 1);
             delete this._levelData[name];
+            delete this._childMaps[name];
             
             var mergedAtLevel = this._mergedAtLevel;
             
@@ -907,6 +908,30 @@ define(function (require, exports, module) {
         }
     };
     
+    function _PathScopeAdder(filename, scopeName, scopeGenerator, before) {
+        this.filename = filename;
+        this.scopeName = scopeName;
+        this.scopeGenerator = scopeGenerator;
+        this.before = before;
+    }
+    
+    _PathScopeAdder.prototype = {
+        add: function (pm, before) {
+            console.log("Adding scope", this.scopeName, "before", before);
+            var scope = this.scopeGenerator.getScopeForFile(this.filename);
+            if (scope) {
+                var pathLayer = new PathLayer();
+                scope.addLevel("path", {
+                    layer: pathLayer
+                });
+                return pm.addScope(this.scopeName, scope,
+                    {
+                        before: before
+                    });
+            }
+        }
+    };
+    
     /**
      * PreferencesManager ties everything together to provide a simple interface for
      * managing the whole prefs system.
@@ -1182,8 +1207,12 @@ define(function (require, exports, module) {
                 // Remove all of the scopes that weren't the same in old and new
                 for (counter = counter + 1; counter < oldParts.length; counter++) {
                     scopeNameToRemove = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
+                    console.log("Removing", scopeNameToRemove);
                     self.removeScope(scopeNameToRemove);
                 }
+                
+                console.log("Scopes is now", self._childMaps);
+                
                 
                 // Now add new scopes as required
                 _.forEach(parts, function (part, i) {
@@ -1192,33 +1221,22 @@ define(function (require, exports, module) {
                     filename = prefDirectory + preferencesFilename;
                     scopeName = "path:" + filename;
                     scope = self._childMaps[scopeName];
+                    console.log("scope", scopeName, scope);
                     
                     // Check to see if the scope already exists
                     if (scope) {
                         pathLayer = scope._layers.path;
                         pathLayer.setFilename(contextFilename.substr(prefDirectory.length));
                         lastSeen = scopeName;
+                        console.log("lastSeen is now", lastSeen);
                     } else {
-                        
                         // New scope. First check to see if the file exists.
-                        scopesToCheck.push(scopeGenerator.checkExists(filename));
+                        scopesToCheck.unshift(scopeGenerator.checkExists(filename));
                         
                         // Keep a function closure for the scope that will be added
                         // if checkExists is true. We store these so that we can
                         // run them in order.
-                        scopeAdders.push(function () {
-                            scope = scopeGenerator.getScopeForFile(filename);
-                            if (scope) {
-                                pathLayer = new PathLayer();
-                                scope.addLevel("path", {
-                                    layer: pathLayer
-                                });
-                                loadingPromises.push(self.addScope(scopeName, scope,
-                                    {
-                                        before: lastSeen
-                                    }));
-                            }
-                        });
+                        scopeAdders.unshift(new _PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen));
                     }
                 });
             });
@@ -1226,12 +1244,17 @@ define(function (require, exports, module) {
             // When all of the scope checks are done, run through them in order
             // and then call the adders for each file that exists.
             $.when.apply(this, scopesToCheck).done(function () {
-                var i;
+                var i, before, scopeAdder;
                 for (i = 0; i < arguments.length; i++) {
                     if (arguments[i]) {
-                        scopeAdders[i]();
+                        scopeAdder = scopeAdders[i];
+                        if (!before) {
+                            before = scopeAdder.before;
+                        }
+                        loadingPromises.push(scopeAdder.add(self, before));
                     }
                 }
+                console.log("final scopes", self._levels);
                 result.resolve();
             });
             

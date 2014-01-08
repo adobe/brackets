@@ -196,7 +196,7 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument(),
             provider = currentDoc && getProviderForPath(currentDoc.file.fullPath);
         
-        if (!_enabled || (providerName && providerName !== provider.name)) {
+        if (!_enabled || (provider && providerName && providerName !== provider.name)) {
             _lastResult = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
@@ -377,13 +377,13 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
-    $(PreferencesManager.getPreference(PREF_ENABLED)).on("change", function (e, data) {
-        toggleEnabled(data.newValue, true);
-    });
-    
-    $(PreferencesManager.getPreference(PREF_COLLAPSED)).on("change", function (e, data) {
-        toggleCollapsed(data.newValue, true);
-    });
+//    $(PreferencesManager.getPreference(PREF_ENABLED)).on("change", function (e, data) {
+//        toggleEnabled(data.newValue, true);
+//    });
+//    
+//    $(PreferencesManager.getPreference(PREF_COLLAPSED)).on("change", function (e, data) {
+//        toggleCollapsed(data.newValue, true);
+//    });
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

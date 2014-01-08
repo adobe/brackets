@@ -255,6 +255,7 @@ define(function (require, exports, module) {
     // PreferencesManager change messages are sent out as preferenceChange messages
     // from this module.
     $(preferencesManager).on("change", function (e, data) {
+        console.log("Pref change", data);
         $(exports).trigger("preferenceChange", data);
     });
     
