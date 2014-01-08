@@ -401,7 +401,7 @@ define(function (require, exports, module) {
             
         });
         
-        describe("rename file extension", function () {
+        describe("Document language updating", function () {
             this.category = "integration";
 
             it("should update the document's language when a file is renamed", function () {
@@ -585,6 +585,97 @@ define(function (require, exports, module) {
                 // cleanup
                 doc.releaseRef();
             });
+            
+            it("should update the document's language via setLanguageOverride(), then keep it locked", function () {
+                var unknownLang = LanguageManager.getLanguage("unknown"),
+                    phpLang = LanguageManager.getLanguage("php"),
+                    doc,
+                    modifiedLanguage,
+                    spy,
+                    promise;
+                
+                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo2" });
+                
+                // listen for event
+                spy = jasmine.createSpy("languageChanged event handler");
+                $(doc).on("languageChanged", spy);
+                
+                // sanity check language
+                expect(doc.getLanguage()).toBe(unknownLang);
+                
+                // make active
+                doc.addRef();
+                
+                doc.setLanguageOverride(phpLang);
+                
+                // language should change
+                expect(doc.getLanguage()).toBe(phpLang);
+                expect(spy.callCount).toEqual(1);
+                expect(spy.mostRecentCall.args[1]).toBe(unknownLang);
+                expect(spy.mostRecentCall.args[2]).toBe(phpLang);
+                
+                // add 'foo2' extension to some other language
+                modifiedLanguage = LanguageManager.getLanguage("html");
+                modifiedLanguage.addFileExtension("foo2");
+                
+                // language should NOT change
+                expect(doc.getLanguage()).toBe(phpLang);
+                expect(spy.callCount).toEqual(1);
+                
+                // cleanup
+                doc.releaseRef();
+            });
+            
+            it("should unlock the document's language for updates after setLanguageOverride(null)", function () {
+                var unknownLang = LanguageManager.getLanguage("unknown"),
+                    phpLang = LanguageManager.getLanguage("php"),
+                    doc,
+                    modifiedLanguage,
+                    spy,
+                    promise;
+                
+                doc = SpecRunnerUtils.createMockActiveDocument({ filename: "/test.foo3" });
+                
+                // listen for event
+                spy = jasmine.createSpy("languageChanged event handler");
+                $(doc).on("languageChanged", spy);
+                
+                // sanity check language
+                expect(doc.getLanguage()).toBe(unknownLang);
+                
+                // make active
+                doc.addRef();
+                
+                doc.setLanguageOverride(phpLang);
+                
+                // language should change
+                expect(doc.getLanguage()).toBe(phpLang);
+                expect(spy.callCount).toEqual(1);
+                expect(spy.mostRecentCall.args[1]).toBe(unknownLang);
+                expect(spy.mostRecentCall.args[2]).toBe(phpLang);
+                
+                doc.setLanguageOverride(null);
+                
+                // language should revert
+                expect(doc.getLanguage()).toBe(unknownLang);
+                expect(spy.callCount).toEqual(2);
+                expect(spy.mostRecentCall.args[1]).toBe(phpLang);
+                expect(spy.mostRecentCall.args[2]).toBe(unknownLang);
+                
+                // add 'foo3' extension to some other language
+                modifiedLanguage = LanguageManager.getLanguage("html");
+                modifiedLanguage.addFileExtension("foo3");
+                
+                // language should change
+                expect(doc.getLanguage()).toBe(modifiedLanguage);
+                expect(spy.callCount).toEqual(3);
+                expect(spy.mostRecentCall.args[1]).toBe(unknownLang);
+                expect(spy.mostRecentCall.args[2]).toBe(modifiedLanguage);
+                
+                // cleanup
+                doc.releaseRef();
+            });
+            
         });
     });
 });

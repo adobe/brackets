@@ -32,10 +32,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit                      = require("utils/AppInit"),
-        CollectionUtils              = require("utils/CollectionUtils"),
-        DefaultDialogs               = require("widgets/DefaultDialogs"),
-        Dialogs                      = require("widgets/Dialogs"),
+    var _                            = require("thirdparty/lodash"),
+        AppInit                      = require("utils/AppInit"),
         EditorManager                = require("editor/EditorManager"),
         Editor                       = require("editor/Editor").Editor,
         KeyEvent                     = require("utils/KeyEvent"),
@@ -58,7 +56,16 @@ define(function (require, exports, module) {
     }
     
     function _updateLanguageInfo(editor) {
-        var lang = editor.document.getLanguage();
+        var doc = editor.document,
+            lang = doc.getLanguage();
+        
+        // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
+        $languageSelect.css("width", "auto");
+        
+        // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
+        $languageSelect.prop("disabled", doc.isUntitled());
+        
+        // Only show the current language (full list populated only when dropdown is opened)
         $languageSelect.empty();
         $("<option />").val(lang.getId()).text(lang.getName())
             .appendTo($languageSelect);
@@ -168,7 +175,9 @@ define(function (require, exports, module) {
             });
             
             current.document.addRef();
-            $(current.document).on("languageChanged.statusbar", function () { _updateLanguageInfo(current); });
+            $(current.document).on("languageChanged.statusbar", function () {
+                _updateLanguageInfo(current);
+            });
             
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);
@@ -183,18 +192,15 @@ define(function (require, exports, module) {
      * mode for the given document.
      * @param {!Document} document The document for which to switch the language
      */
-    function _setupLanguageSelect(document) {
+    function _populateLanguageSelect(document) {
         // Lazy load the languages in the dropdown to avoid having to receive
         // updates from LanguageManager (not to mention unnecessary processing
         // since most users will not need to manually set the language).
         var languages = LanguageManager.getLanguages();
         
-        // lock width of <select>, else it changes when it's populated
-        $languageSelect.css("width", $languageSelect.css("width"));
-        
         // fill the dropbown using the languages list
         $languageSelect.empty();
-        CollectionUtils.forEach(languages, function (lang) {
+        _.forEach(languages, function (lang) {
             $("<option />").val(lang.getId()).text(lang.getName())
                 .appendTo($languageSelect);
         });
@@ -206,20 +212,6 @@ define(function (require, exports, module) {
                 return a.text.toLowerCase().localeCompare(b.text.toLowerCase());
             }
         ));
-        
-        // set change handler for select box
-        $languageSelect.on("change", function () {
-            var selectedLang = LanguageManager.getLanguage($(this).val()),
-                defaultLang = LanguageManager.getLanguageForPath(
-                    document.file.fullPath
-                );
-            // if default language selected, don't "force"" it
-            // (passing in null will reset the force flag)
-            document.forceLanguage(
-                selectedLang === defaultLang ? null : selectedLang
-            );
-            $languageSelect.css("width", "auto"); // unlock width
-        });
     }
     
     function _init() {
@@ -256,10 +248,24 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
         
-        // When language select clicked, set up dropdown.
-        // Using mousedown because the dropdown opens before mouseup.
+        // When language select clicked, fully populate the dropdown before it opens
+        // (which occurs on mouseup)
         $languageSelect.on("mousedown", function () {
-            _setupLanguageSelect(EditorManager.getActiveEditor().document);
+            // Lock width of <select>, else it changes when it's populated
+            // (this is reverted in _updateLanguageInfo())
+            $languageSelect.css("width", $languageSelect.css("width"));
+            
+            _populateLanguageSelect(EditorManager.getActiveEditor().document);
+        });
+        
+        // Language select change handler
+        $languageSelect.on("change", function () {
+            var document = EditorManager.getActiveEditor().document,
+                selectedLang = LanguageManager.getLanguage($languageSelect.val()),
+                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath);
+            // if default language selected, don't "force" it
+            // (passing in null will reset the force flag)
+            document.setLanguageOverride(selectedLang === defaultLang ? null : selectedLang);
         });
         
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);

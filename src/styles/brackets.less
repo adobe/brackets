@@ -173,9 +173,7 @@ a, img {
     }
     
     /**
-     * Custom <select> styling currently only being used for language selection
-     * but could be reused elsewhere.
-     * (Here's a good intro to custom form fields: http://goo.gl/T4EPg)
+     * Custom <select> styling - currently only used for language selection
      */
     select.status-bar-select {
         -webkit-appearance: none;
@@ -196,6 +194,11 @@ a, img {
         }
         &:hover {
             text-decoration: underline;
+        }
+        &[disabled] {
+            cursor: inherit;
+            background: none;
+            text-decoration: none;
         }
     }
 }
