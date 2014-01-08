@@ -1789,9 +1789,11 @@ define(function (require, exports, module) {
             includeWorkingSet = filter;
             filter = null;
         }
-
+        
+        var filteredFilesDeferred = new $.Deferred();
+        
         // First gather all files in project proper
-        return _getAllFilesCache().then(function (result) {
+        _getAllFilesCache().done(function (result) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
                 DocumentManager.getWorkingSet().forEach(function (file) {
@@ -1806,8 +1808,18 @@ define(function (require, exports, module) {
                 result = result.filter(filter);
             }
             
-            return result;
+            // If a done handler attached to the returned filtered files promise
+            // throws an exception that isn't handled here then it will leave
+            // _allFilesPromise in an inconsistent state such that no additional
+            // done handlers will ever be called!
+            try {
+                filteredFilesDeferred.resolve(result);
+            } catch (e) {
+                filteredFilesDeferred.reject(e);
+            }
         });
+        
+        return filteredFilesDeferred.promise();
     }
     
     /**
