@@ -67,11 +67,11 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 1) {
+        if (!state.context) {
             return false;
         }
         
-        lastToken = state.stack[state.stack.length - 1];
+        lastToken = state.context.type;
         return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
     
@@ -90,21 +90,21 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 2) {
+        if (!state.context || !state.context.prev) {
             return false;
         }
-        return ((state.stack[state.stack.length - 1] === "propertyValue" &&
-                    (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block")) ||
-                    (state.stack[state.stack.length - 1] === "(" && (state.stack[state.stack.length - 2] === "propertyValue")));
+        return ((state.context.type === "prop" &&
+                    (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
+                    (state.context.type === "parens" && state.context.prev.type === "prop"));
     }
     
     /**
      * @private
-     * Checks if the current cursor position is inside an @import rule
+     * Checks if the current cursor position is inside an at-rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {boolean} true if the context is in property value
      */
-    function _isInImportRule(ctx) {
+    function _isInAtRule(ctx) {
         var state;
         if (!ctx || !ctx.token || !ctx.token.state) {
             return false;
@@ -112,10 +112,10 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 1) {
+        if (!state.context) {
             return false;
         }
-        return (state.stack[0] === "@import");
+        return (state.context.type === "at");
     }
 
     /**
@@ -451,7 +451,7 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
-        if (mode !== "css" && mode !== "text/x-scss" && mode !== "less") {
+        if (mode !== "css" && mode !== "text/x-scss" && mode !== "text/x-less") {
             return createInfo();
         }
 
@@ -481,7 +481,7 @@ define(function (require, exports, module) {
             return _getRuleInfoStartingFromPropValue(ctx, editor);
         }
 
-        if (_isInImportRule(ctx)) {
+        if (_isInAtRule(ctx)) {
             return _getImportUrlInfo(ctx, editor);
         }
         
