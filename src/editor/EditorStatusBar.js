@@ -201,8 +201,10 @@ define(function (require, exports, module) {
         // fill the dropbown using the languages list
         $languageSelect.empty();
         _.forEach(languages, function (lang) {
-            $("<option />").val(lang.getId()).text(lang.getName())
-                .appendTo($languageSelect);
+            if (!lang.isBinary()) {
+                $("<option />").val(lang.getId()).text(lang.getName())
+                    .appendTo($languageSelect);
+            }
         });
         $languageSelect.val(document.getLanguage().getId());
         
