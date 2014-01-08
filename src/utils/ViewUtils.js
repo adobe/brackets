@@ -299,8 +299,10 @@ define(function (require, exports, module) {
      * Determine how much of an element rect is clipped in view.
      *
      * @param {!DOMElement} $view - A jQuery scrolling container
-     * @param {!Object} elementRect - rectangle of element's default position/size
-     * @return {Object} amount element rect is clipped on top, right, bottom, and left
+     * @param {!{top: number, left: number, height: number, width: number}}
+     *          elementRect - rectangle of element's default position/size
+     * @return {{top: number, right: number, bottom: number, left: number}}
+     *          amount element rect is clipped in each direction
      */
     function getElementClipSize($view, elementRect) {
         var delta,
