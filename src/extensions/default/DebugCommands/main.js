@@ -364,7 +364,7 @@ define(function (require, exports, module) {
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
     menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
-    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS);
+    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
