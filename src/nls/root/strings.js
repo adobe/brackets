@@ -196,7 +196,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "User Extensions Disabled",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Errors",

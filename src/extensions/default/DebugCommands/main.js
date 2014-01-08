@@ -394,7 +394,7 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
             $icon.css({display: "none"});
             StatusBar.addIndicator(USER_EXT_STATUS_ID, $indicator, true);
-            console.log("Brackets reloaded with user extensions disabled");
+            console.log("Brackets reloaded with extensions disabled");
         } else {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(true);
             // Toolbar and status bar reload back to default states, no need to set
