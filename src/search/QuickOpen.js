@@ -814,7 +814,7 @@ define(function (require, exports, module) {
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='Quick Open…' style='width: 30em'><span class='find-dialog-label'></span> </div>";
+        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='Quick Open…' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
