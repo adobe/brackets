@@ -1810,12 +1810,12 @@ define(function (require, exports, module) {
             
             // If a done handler attached to the returned filtered files promise
             // throws an exception that isn't handled here then it will leave
-            // _allFilesPromise in an inconsistent state such that no additional
-            // done handlers will ever be called!
+            // _allFilesCachePromise in an inconsistent state such that no
+            // additional done handlers will ever be called!
             try {
                 filteredFilesDeferred.resolve(result);
             } catch (e) {
-                filteredFilesDeferred.reject(e);
+                console.warn("Unhandled exception in getAllFiles handler: ", e);
             }
         });
         
