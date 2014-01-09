@@ -152,13 +152,18 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Runs a file inspection over passed file, specifying a provider is optional.
+     * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
+     * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
-     * These results will reflect any unsaved changes present in the file that is currently opened.
+     * These results will reflect any unsaved changes present in the file if currently open.
+     * 
+     * The Promise yields an array of provider-result pair objects (the result is the return value of the
+     * provider's scanFile() - see register() for details). The result object may be null if there were no
+     * errors from that provider. The array is empty if there are no providers registered for this file.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param ?{{name:string, scanFile:function(string, string):?{!errors:Array.<{pos:{line:integer, pos:integer}, message:string, type:String}>, aborted:boolean}} provider
-     * @return {$.Promise} a jQuery promise that will be resolved with ?{!errors:Array.<{pos:{line:integer, pos:integer}, message:string, type:String}>, aborted:boolean}
+     * @param ?{Array.<{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}}>} providerList
+     * @return {$.Promise} a jQuery promise that will be resolved with !Array.<{provider:Object, result: ?{!errors:Array, aborted:boolean}}>
      */
     function inspectFile(file, providerList) {
         var response = new $.Deferred(),
@@ -206,30 +211,30 @@ define(function (require, exports, module) {
      * Update the title of the problem panel and the tooltip of the status bar icon. The title and the tooltip will
      * change based on the number of problems reported and how many provider reported problems.
      * 
-     * @param {Number} numProblems - how many problems have been reported
-     * @param {Array.<{name:string, scanFile:function(string, string):Object}>} providerReportingProblems - provider that reported problems
-     * @param {boolean} aborted - code inspection was aborted previously
+     * @param {Number} numProblems - total number of problems across all providers
+     * @param {Array.<{name:string, scanFile:function(string, string):Object}>} providersReportingProblems - providers that reported problems
+     * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
-    function updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, aborted) {
+    function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
         var message;
 
-        if (providerReportingProblems.length === 1) {
+        if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
             $problemsPanelTable.find(".inspector-section").hide();
 
             if (numProblems === 1 && !aborted) {
-                message = StringUtils.format(Strings.SINGLE_ERROR, providerReportingProblems[0].name);
+                message = StringUtils.format(Strings.SINGLE_ERROR, providersReportingProblems[0].name);
             } else {
                 if (aborted) {
                     numProblems += "+";
                 }
 
-                message = StringUtils.format(Strings.MULTIPLE_ERRORS, providerReportingProblems[0].name, numProblems);
+                message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, numProblems);
             }
 
             $problemsPanel.find(".title").text(message);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
-        } else if (providerReportingProblems.length > 1) {
+        } else if (providersReportingProblems.length > 1) {
             $problemsPanelTable.find(".inspector-section").show();
 
             if (aborted) {
@@ -263,9 +268,9 @@ define(function (require, exports, module) {
             var aborted = false;
             var allErrors = [];
             var html;
-            var providerReportingProblems = [];
+            var providersReportingProblems = [];
 
-            // run all the provider in parallel
+            // run all the providers registered for this file type
             inspectFile(currentDoc.file, providerList).then(function (results) {
                 // check if current document wasn't changed while inspectFile was running
                 if (currentDoc !== DocumentManager.getCurrentDocument()) {
@@ -275,8 +280,7 @@ define(function (require, exports, module) {
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
 
-                // save for later and make the amount of errors easily available
-                _hasErrors = !!errors;
+                _hasErrors = Boolean(errors);
 
                 if (!errors) {
                     Resizer.hide($problemsPanel);
@@ -292,13 +296,15 @@ define(function (require, exports, module) {
                     return;
                 }
 
+                var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
+                
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (inspectionResult) {
                     var provider = inspectionResult.provider;
 
                     if (inspectionResult.result) {
                         inspectionResult.result.errors.forEach(function (error) {
-                            // the CSS linter return an "you have specific issues ion your file message without line number and snippet
+                            // some inspectors don't always provide a line number
                             if (!isNaN(error.pos.line)) {
                                 error.friendlyLine = error.pos.line + 1;
                                 error.codeSnippet = currentDoc.getLine(error.pos.line);
@@ -321,18 +327,14 @@ define(function (require, exports, module) {
                                 results:      inspectionResult.result.errors
                             });
 
-                            providerReportingProblems.push(provider);
+                            providersReportingProblems.push(provider);
                         }
                     }
                 });
                 
+                // Update results table
                 html = Mustache.render(ResultsTemplate, {reportList: allErrors});
-            });
-
-            // Update results table
-            var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-
-            if (numProblems) {
+                
                 $problemsPanelTable
                     .empty()
                     .append(html)
@@ -342,12 +344,12 @@ define(function (require, exports, module) {
                     Resizer.show($problemsPanel);
                 }
 
+                updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted);
                 setGotoEnabled(true);
-            }
 
-            PerfUtils.addMeasurement(perfTimerDOM);
-            
-            updatePanelTitleAndStatusBar(numProblems, providerReportingProblems, aborted);
+                PerfUtils.addMeasurement(perfTimerDOM);
+            });
+
         } else {
             // No provider for current file
             _hasErrors = false;
@@ -366,6 +368,10 @@ define(function (require, exports, module) {
      * The provider is passed the text of the file and its fullPath. Providers should not assume
      * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
      * that the file on disk matches the text given (file may have unsaved changes).
+     * 
+     * Registering any provider for the "javascript" language automatically unregisters the built-in
+     * Brackets JSLint provider. This is a temporary convenience until UI exists for disabling
+     * registered providers.
      *
      * @param {string} languageId
      * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
@@ -388,7 +394,7 @@ define(function (require, exports, module) {
 
         _providers[languageId].push(provider);
         
-        run();
+        run();  // in case a file of this type is open currently
     }
 
     /**
