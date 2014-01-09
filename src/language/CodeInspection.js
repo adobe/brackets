@@ -520,8 +520,7 @@ define(function (require, exports, module) {
 
         // Status bar indicator - icon & tooltip updated by run()
         var statusIconHtml = Mustache.render("<div id=\"status-inspection\">&nbsp;</div>", Strings);
-        $(statusIconHtml).insertBefore("#status-language");
-        StatusBar.addIndicator(INDICATOR_ID, $("#status-inspection"));
+        StatusBar.addIndicator(INDICATOR_ID, $(statusIconHtml), true, "", "", "status-indent");
 
         $("#status-inspection").click(function () {
             // Clicking indicator toggles error panel, if any errors in current file

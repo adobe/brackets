@@ -404,6 +404,13 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Removes all pending promises from the queue.
+     */
+    PromiseQueue.prototype.removeAll = function () {
+        this._queue = [];
+    };
+    
+    /**
      * @private
      * Pulls the next operation off the queue and executes it.
      */

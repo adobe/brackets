@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     var DIALOG_BTN_CANCEL           = "cancel",
         DIALOG_BTN_OK               = "ok",
         DIALOG_BTN_DONTSAVE         = "dontsave",
+        DIALOG_BTN_SAVE_AS          = "save_as",
         DIALOG_CANCELED             = "_canceled",
         DIALOG_BTN_DOWNLOAD         = "download";
     
@@ -345,6 +346,7 @@ define(function (require, exports, module) {
     exports.DIALOG_BTN_CANCEL            = DIALOG_BTN_CANCEL;
     exports.DIALOG_BTN_OK                = DIALOG_BTN_OK;
     exports.DIALOG_BTN_DONTSAVE          = DIALOG_BTN_DONTSAVE;
+    exports.DIALOG_BTN_SAVE_AS           = DIALOG_BTN_SAVE_AS;
     exports.DIALOG_CANCELED              = DIALOG_CANCELED;
     exports.DIALOG_BTN_DOWNLOAD          = DIALOG_BTN_DOWNLOAD;
     

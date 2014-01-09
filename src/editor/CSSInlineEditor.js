@@ -248,20 +248,24 @@ define(function (require, exports, module) {
                 .appendTo($("body"));
             
             var toggleOffset   = $newRuleButton.offset(),
-                $window        = $(window),
                 posLeft        = toggleOffset.left,
                 posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
-                bottomOverhang = posTop  + $dropdown.height() - $window.height(),
-                rightOverhang  = posLeft + $dropdown.width()  - $window.width();
+                elementRect = {
+                    top:    posTop,
+                    left:   posLeft,
+                    height: $dropdown.height(),
+                    width:  $dropdown.width()
+                },
+                clip = ViewUtils.getElementClipSize($(window), elementRect);
             
-            if (bottomOverhang > 0) {
+            if (clip.bottom > 0) {
                 // Bottom is clipped, so move entire menu above button
                 posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
             }
             
-            if (rightOverhang > 0) {
+            if (clip.right > 0) {
                 // Right is clipped, so adjust left to fit menu in editor
-                posLeft = Math.max(0, posLeft - rightOverhang);
+                posLeft = Math.max(0, posLeft - clip.right);
             }
             
             $dropdown.css({

@@ -28,49 +28,23 @@ define(function (require, exports, module) {
     "use strict";
 
     var FileSystemError     = require("filesystem/FileSystemError"),
-        FileSystemStats     = require("filesystem/FileSystemStats");
+        FileSystemStats     = require("filesystem/FileSystemStats"),
+        MockFileSystemModel = require("./MockFileSystemModel");
     
-    // Watcher callback function
-    var _watcherCallback;
+    // A sychronous model of a file system
+    var _model;
     
-    // Initial file system data. 
-    var _initialData = {
-        "/": {
-            isFile: false,
-            mtime: Date.now()
-        },
-        "/file1.txt": {
-            isFile: true,
-            mtime: Date.now(),
-            contents: "File 1 Contents"
-        },
-        "/file2.txt": {
-            isFile: true,
-            mtime: Date.now(),
-            contents: "File 2 Contents"
-        },
-        "/subdir/": {
-            isFile: false,
-            mtime: Date.now()
-        },
-        "/subdir/file3.txt": {
-            isFile: true,
-            mtime: Date.now(),
-            contents: "File 3 Contents"
-        },
-        "/subdir/file4.txt": {
-            isFile: true,
-            mtime: Date.now(),
-            contents: "File 4 Contents"
-        }
-    };
+    // Watcher change callback function
+    var _changeCallback;
+    
+    // Watcher offline callback function
+    var _offlineCallback;
     
     // Indicates whether, by default, the FS should perform UNC Path normalization
     var _normalizeUNCPathsDefault = false;
-    
-    // "Live" data for this instance of the file system. Use reset() to 
-    // initialize with _initialData
-    var _data;
+
+    // Indicates whether, by default, the FS should perform watch and unwatch recursively
+    var _recursiveWatchDefault = true;
     
     // Callback hooks, set in when(). See when() for more details.
     var _hooks;
@@ -81,58 +55,12 @@ define(function (require, exports, module) {
     
     function _getCallback(method, path, cb) {
         var entry = _getHookEntry(method, path),
-            result = entry && entry.callback && entry.callback(cb);
+            result = entry && entry(cb);
         
         if (!result) {
             result = cb;
         }
         return result;
-    }
-    
-    function _getNotification(method, path, cb) {
-        var entry = _getHookEntry(method, path),
-            result = entry && entry.notify && entry.notify(cb);
-        
-        if (!result) {
-            result = cb;
-        }
-        return result;
-    }
-    
-    function _getStat(path) {
-        var entry = _data[path],
-            stat = null;
-        
-        if (entry) {
-            stat = new FileSystemStats({
-                isFile: entry.isFile,
-                mtime: entry.mtime,
-                size: 0
-            });
-        }
-        
-        return stat;
-    }
-    
-    function _sendWatcherNotification(path) {
-        if (_watcherCallback) {
-            _watcherCallback(path);
-        }
-    }
-    
-    function _sendDirectoryWatcherNotification(path) {
-        // Path may be a file or a directory. If it's a file,
-        // strip the file name off
-        if (path[path.length - 1] !== "/") {
-            path = path.substr(0, path.lastIndexOf("/") + 1);
-        }
-        _sendWatcherNotification(path);
-    }
-    
-    function init(callback) {
-        if (callback) {
-            callback();
-        }
     }
 
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
@@ -147,36 +75,24 @@ define(function (require, exports, module) {
 
     function exists(path, callback) {
         var cb = _getCallback("exists", path, callback);
-        cb(null, !!_data[path]);
+        cb(null, _model.exists(path));
     }
     
     function readdir(path, callback) {
-        var cb = _getCallback("readdir", path, callback),
-            entry,
-            contents = [],
-            stats = [];
+        var cb = _getCallback("readdir", path, callback);
         
-        if (!_data[path]) {
+        if (!_model.exists(path)) {
             cb(FileSystemError.NOT_FOUND);
             return;
         }
         
-        for (entry in _data) {
-            if (_data.hasOwnProperty(entry)) {
-                var isDir = false;
-                if (entry[entry.length - 1] === "/") {
-                    entry = entry.substr(0, entry.length - 1);
-                    isDir = true;
-                }
-                if (entry !== path &&
-                        entry.indexOf(path) === 0 &&
-                        entry.lastIndexOf("/") === path.lastIndexOf("/")) {
-                    contents.push(entry.substr(entry.lastIndexOf("/")) + (isDir ? "/" : ""));
-                    stats.push(_getStat(entry + (isDir ? "/" : "")));
-                }
-            }
-        }
-        cb(null, contents, stats);
+        var contents = _model.readdir(path),
+            trimmedPath = path.substring(0, path.length - 1),
+            stats = contents.map(function (name) {
+                return _model.stat(trimmedPath + name);
+            });
+
+        cb(null, contents, stats, []);
     }
     
     function mkdir(path, mode, callback) {
@@ -184,74 +100,37 @@ define(function (require, exports, module) {
             callback = mode;
             mode = null;
         }
-        var cb = _getCallback("mkdir", path, callback),
-            notify = _getNotification("mkdir", path, _sendDirectoryWatcherNotification);
         
-        if (_data[path]) {
+        var cb = _getCallback("mkdir", path, callback);
+        
+        if (_model.exists(path)) {
             cb(FileSystemError.ALREADY_EXISTS);
         } else {
-            var entry = {
-                isFile: false,
-                mtime: Date.now()
-            };
-            _data[path] = entry;
-            cb(null, _getStat(path));
-            
-            // Strip the trailing slash off the directory name so the
-            // notification gets sent to the parent
-            var notifyPath = path.substr(0, path.length - 1);
-            notify(notifyPath);
+            _model.mkdir(path);
+            cb(null, _model.stat(path));
         }
     }
     
     function rename(oldPath, newPath, callback) {
-        var cb = _getCallback("rename", oldPath, callback),
-            notify = _getNotification("rename", oldPath, _sendDirectoryWatcherNotification);
+        var cb = _getCallback("rename", oldPath, callback);
         
-        if (_data[newPath]) {
+        if (_model.exists(newPath)) {
             cb(FileSystemError.ALREADY_EXISTS);
-        } else if (!_data[oldPath]) {
+        } else if (!_model.exists(oldPath)) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            _data[newPath] = _data[oldPath];
-            delete _data[oldPath];
-            if (!_data[newPath].isFile) {
-                var entry, i,
-                    toDelete = [];
-                
-                for (entry in _data) {
-                    if (_data.hasOwnProperty(entry)) {
-                        if (entry.indexOf(oldPath) === 0) {
-                            _data[newPath + entry.substr(oldPath.length)] = _data[entry];
-                            toDelete.push(entry);
-                        }
-                    }
-                }
-                for (i = toDelete.length; i; i--) {
-                    delete _data[toDelete.pop()];
-                }
-            }
+            _model.rename(oldPath, newPath);
             cb(null);
-            
-            // If renaming a Directory, remove the slash from the notification
-            // name so the *parent* directory is notified of the change
-            var notifyPath;
-            
-            if (oldPath[oldPath.length - 1] === "/") {
-                notifyPath = oldPath.substr(0, oldPath.length - 1);
-            } else {
-                notifyPath = oldPath;
-            }
-            notify(notifyPath);
         }
     }
     
     function stat(path, callback) {
         var cb = _getCallback("stat", path, callback);
-        if (!_data[path]) {
+        
+        if (!_model.exists(path)) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            cb(null, _getStat(path));
+            cb(null, _model.stat(path));
         }
     }
     
@@ -263,10 +142,10 @@ define(function (require, exports, module) {
         
         var cb = _getCallback("readFile", path, callback);
         
-        if (!_data[path]) {
+        if (!_model.exists(path)) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            cb(null, _data[path].contents);
+            cb(null, _model.readFile(path), _model.stat(path));
         }
     }
     
@@ -276,57 +155,53 @@ define(function (require, exports, module) {
             options = null;
         }
         
-        exists(path, function (err, exists) {
-            var cb = _getCallback("writeFile", path, callback);
-            
-            if (err) {
-                cb(err);
-                return;
-            }
-            
-            var notification = exists ? _sendWatcherNotification : _sendDirectoryWatcherNotification,
-                notify = _getNotification("writeFile", path, notification);
-            
-            if (!_data[path]) {
-                _data[path] = {
-                    isFile: true
-                };
-            }
-            _data[path].contents = data;
-            _data[path].mtime = Date.now();
-            cb(null);
-            notify(path);
-        });
+        var cb = _getCallback("writeFile", path, callback);
+                
+        if (_model.exists(path) && options.hasOwnProperty("expectedHash") && options.expectedHash !== _model.stat(path)._hash) {
+            cb(FileSystemError.CONTENTS_MODIFIED);
+            return;
+        }
+        
+        _model.writeFile(path, data);
+        cb(null, _model.stat(path));
     }
     
     function unlink(path, callback) {
-        var cb = _getCallback("unlink", path, callback),
-            notify = _getNotification("unlink", path, _sendDirectoryWatcherNotification);
+        var cb = _getCallback("unlink", path, callback);
         
-        if (!_data[path]) {
+        if (!_model.exists(path)) {
             cb(FileSystemError.NOT_FOUND);
         } else {
-            delete _data[path];
+            _model.unlink(path);
             cb(null);
-            notify(path);
         }
     }
     
-    function initWatchers(callback) {
-        _watcherCallback = callback;
+    function initWatchers(changeCallback, offlineCallback) {
+        _changeCallback = changeCallback;
+        _offlineCallback = offlineCallback;
     }
     
-    function watchPath(path) {
+    function watchPath(path, callback) {
+        var cb = _getCallback("watchPath", path, callback);
+        
+        _model.watchPath(path);
+        cb(null);
     }
     
-    function unwatchPath(path) {
+    function unwatchPath(path, callback) {
+        var cb = _getCallback("unwatchPath", path, callback);
+        _model.unwatchPath(path);
+        cb(null);
     }
     
-    function unwatchAll() {
+    function unwatchAll(callback) {
+        var cb = _getCallback("unwatchAll", null, callback);
+        _model.unwatchAll();
+        cb(null);
     }
 
     
-    exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;
     exports.showSaveDialog  = showSaveDialog;
     exports.exists          = exists;
@@ -343,28 +218,47 @@ define(function (require, exports, module) {
     exports.unwatchAll      = unwatchAll;
     
     exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
+    exports.recursiveWatch = _recursiveWatchDefault;
     
     // Test methods
     exports.reset = function () {
-        _data = {};
-        $.extend(_data, _initialData);
+        _model = new MockFileSystemModel();
         _hooks = {};
+        _changeCallback = null;
+        _offlineCallback = null;
+
+        $(_model).on("change", function (event, path) {
+            if (_changeCallback) {
+                _changeCallback(path, _model.stat(path));
+            }
+        });
         
         exports.normalizeUNCPaths = _normalizeUNCPathsDefault;
+        exports.recursiveWatch = _recursiveWatchDefault;
+        
+        // Allows unit tests to manipulate the filesystem directly in order to
+        // simulate external change events
+        exports._model = _model;
+    };
+    
+    // Simulate file watchers going offline
+    exports.goOffline = function () {
+        if (_offlineCallback) {
+            _offlineCallback();
+        }
     };
     
     /**
-     * Add a callback and notification hooks to be used when specific
-     * methods are called with a specific path.
+     * Add callback hooks to be used when specific methods are called with a
+     * specific path.
      *
      * @param {string} method The name of the method
      * @param {string} path The path that must be matched
-     * @param {object} callbacks Object with optional 'callback' and 'notify'
-     *           fields. These are functions that have one parameter and
-     *           must return a function.
+     * @param {function} getCallback A function that has one parameter and
+     *           must return a callback function.
      *
-     * Here is an example that delays the callback and change notifications by 300ms when
-     * writing a file named "/foo.txt".
+     * Here is an example that delays the callback by 300ms when writing a file
+     * named "/foo.txt".
      *
      * function delayedCallback(cb) {
      *     return function () {
@@ -375,12 +269,12 @@ define(function (require, exports, module) {
      *     };
      * }
      *
-     * MockFileSystem.when("writeFile", "/foo.txt", {callback: delayedCallback, notify: delayedCallback});
+     * MockFileSystem.when("writeFile", "/foo.txt", delayedCallback);
      */
-    exports.when = function (method, path, callbacks) {
+    exports.when = function (method, path, getCallback) {
         if (!_hooks[method]) {
             _hooks[method] = {};
         }
-        _hooks[method][path] = callbacks;
+        _hooks[method][path] = getCallback;
     };
 });

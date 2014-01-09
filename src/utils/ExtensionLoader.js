@@ -39,9 +39,10 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils"),
-        Async               = require("utils/Async");
+    var FileSystem  = require("filesystem/FileSystem"),
+        FileUtils   = require("file/FileUtils"),
+        Async       = require("utils/Async"),
+        UrlParams   = require("utils/UrlParams").UrlParams;
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
@@ -311,15 +312,23 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function init(paths) {
+        var params = new UrlParams();
+        
         if (_init) {
             // Only init once. Return a resolved promise.
             return new $.Deferred().resolve().promise();
         }
         
         if (!paths) {
-            paths = ["default", "dev", getUserExtensionPath()];
+            params.parse();
+            
+            if (params.get("reloadWithoutUserExts") === "true") {
+                paths = ["default"];
+            } else {
+                paths = ["default", "dev", getUserExtensionPath()];
+            }
         }
-
+        
         // Load extensions before restoring the project
         
         // Get a Directory for the user extension directory and create it if it doesn't exist.

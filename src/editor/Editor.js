@@ -986,10 +986,14 @@ define(function (require, exports, module) {
             return;
         }
         
+        // We set clearWhenEmpty: false so that if there's a blank line at the beginning or end of
+        // the document, and that's the only hidden line, we can still actually hide it. Doing so
+        // requires us to create a 0-length marked span, which would ordinarily be cleaned up by CM
+        // if clearWithEmpty is true. See https://groups.google.com/forum/#!topic/codemirror/RB8VNF8ow2w
         var value = this._codeMirror.markText(
             {line: from, ch: 0},
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
+            {collapsed: true, inclusiveLeft: true, inclusiveRight: true, clearWhenEmpty: false}
         );
         
         return value;
