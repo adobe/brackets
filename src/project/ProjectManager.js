@@ -1083,6 +1083,11 @@ define(function (require, exports, module) {
      * @return {?jQuery} The jQuery node for this entry or null if not found
      */
     function _getTreeNode(entry) {
+        // Special case if the entry matches the project root
+        if (entry === getProjectRoot()) {
+            return $projectTreeList;
+        }
+        
         var id = _projectInitialLoad.fullPathToIdMap[entry.fullPath],
             node = null;
         
