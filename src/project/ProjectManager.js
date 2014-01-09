@@ -82,13 +82,6 @@ define(function (require, exports, module) {
      */
     var _fileSystemChange,
         _fileSystemRename;
-    
-    /**
-     * @private
-     * @type {Async.PromiseQueue}
-     * Used to serialize changes to the file tree
-     */
-    var _fileTreeChangeQueue = new Async.PromiseQueue();
 
     
     /**
@@ -1078,8 +1071,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Lookup jQuery node for a give FileSystem Entry
-     * @param {!File|Directory} entry
+     * Lookup jQuery node for a given FileSystem Entry
+     * @param {!File|Directory} entry File or directory entry to find in the tree
      * @return {?jQuery} The jQuery node for this entry or null if not found
      */
     function _getTreeNode(entry) {
@@ -1764,6 +1757,7 @@ define(function (require, exports, module) {
             _redraw(true);
         }
         
+        // Trigger notifications after tree updates are complete
         arr.forEach(function (entry) {
             if (DocumentManager.getCurrentDocument()) {
                 DocumentManager.notifyPathDeleted(entry.fullPath);
@@ -1926,35 +1920,27 @@ define(function (require, exports, module) {
 
         // A whole-sale change event; refresh the entire file tree
         if (!entry) {
-            _fileTreeChangeQueue.removeAll();
-            _fileTreeChangeQueue.add(function () {
-                return refreshFileTree();
-            });
+            refreshFileTree();
             return;
         }
         
         var $directoryNode = _getTreeNode(entry),
-            doRedraw = false,
-            isVisible = !!$directoryNode || entry === getProjectRoot();
+            doRedraw = false;
         
         // Ignore change event when: the entry is not a directory, the directory
         // was not yet rendered or the directory is outside the current project
-        if (!entry.isDirectory || !isVisible || !isWithinProject(entry.fullPath)) {
+        if (!entry.isDirectory || !$directoryNode || !isWithinProject(entry.fullPath)) {
             return;
         }
             
-        // If there is a change event with unknown added and removed sets,
-        // or if there are too many pending file tree fixups to deal with
-        // in a timely manner, just clear the queue and refresh the tree.
+        // If there is a change event with unknown added and removed sets
+        // just refresh the tree.
         // 
         // TODO: in the former case we really should just refresh the affected
         // directory instead of refreshing the entire tree.
-        if (!added || !removed || _fileTreeChangeQueue.length > 100) {
-            _fileTreeChangeQueue.removeAll();
-
-            return _fileTreeChangeQueue.add(function () {
-                return refreshFileTree();
-            });
+        if (!added || !removed) {
+            refreshFileTree();
+            return;
         }
 
         // Directory contents removed
