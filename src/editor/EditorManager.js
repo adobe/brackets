@@ -831,7 +831,7 @@ define(function (require, exports, module) {
         if (!fullPath || _currentlyViewedPath === fullPath) {
             openAlternateFile();
         }
-    }
+    };
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
