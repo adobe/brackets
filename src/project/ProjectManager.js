@@ -1096,11 +1096,16 @@ define(function (require, exports, module) {
      * outside the project, or if it doesn't exist).
      *
      * @param {!(File|Directory)} entry File or Directory to find
-     * @param {boolean} shallowSearch Flag to return no result if the node is not loaded
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
      */
-    function _findTreeNode(entry, shallowSearch) {
-        var result = new $.Deferred();
+    function _findTreeNode(entry) {
+        var result = new $.Deferred(),
+            $renderedNode = _getTreeNode(entry);
+        
+        // Check if tree node was already rendered
+        if ($renderedNode) {
+            return result.resolve($renderedNode).promise();
+        }
         
         var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
 
@@ -1140,7 +1145,7 @@ define(function (require, exports, module) {
                     var subChildren = treeAPI._get_children($node);
                     if (subChildren.length > 0) {
                         findInSubtree(subChildren, segmentI + 1);
-                    } else if (!shallowSearch) {
+                    } else {
                         // Subtree not loaded yet: force async load & try again
                         treeAPI.load_node($node, function (data) {
                             subChildren = treeAPI._get_children($node);
@@ -1148,9 +1153,6 @@ define(function (require, exports, module) {
                         }, function (err) {
                             result.reject();  // includes case where folder is empty
                         });
-                    } else {
-                        // Stop searching
-                        result.resolve(null);
                     }
                 }
             }
