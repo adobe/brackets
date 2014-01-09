@@ -280,8 +280,7 @@ define(function (require, exports, module) {
         
         return masterDeferred.promise();
     }
-    
-    
+        
     /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
     var ERROR_TIMEOUT = {};
     
