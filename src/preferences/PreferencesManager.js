@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets */
+/*global define, $, localStorage, brackets, console */
 /*unittests: Preferences Manager */
 
 /**
