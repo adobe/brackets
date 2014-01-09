@@ -204,7 +204,7 @@ define(function (require, exports, module) {
     // deprecated.
     
     // The SETTINGS_FILENAME is used with a preceding "." within user projects
-    var SETTINGS_FILENAME = "brackets.prefs",
+    var SETTINGS_FILENAME = "brackets.json",
         STATE_FILENAME    = "state.json";
     
     var preferencesManager = new PreferencesBase.PreferencesManager();
@@ -214,8 +214,8 @@ define(function (require, exports, module) {
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
-    // Set up the .brackets.prefs file handling
-    preferencesManager.addPathScopes(".brackets.prefs", {
+    // Set up the .brackets.json file handling
+    preferencesManager.addPathScopes(".brackets.json", {
         before: "user",
         checkExists: function (filename) {
             var result = new $.Deferred(),

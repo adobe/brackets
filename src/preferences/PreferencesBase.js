@@ -22,7 +22,6 @@
  */
 
 /*global define, $, localStorage, brackets, console */
-/*jslint plusplus:true, vars: true, nomen: true */
 /*unittests: Preferences Base */
 
 /**
@@ -39,10 +38,10 @@
  * * default (the default values for any settings that are explicitly registered)
  * *  user (the user's customized settings – the equivalent of Brackets' old 
  *        localStorage-based system. This is the settings file that lives in AppData)
- * * Additional scopes for each .brackets.prefs file going upward in the file tree from the
+ * * Additional scopes for each .brackets.json file going upward in the file tree from the
  *        current file
  * 
- * For example, if spaceUnits has a value set in a .brackets.prefs file near the open file, 
+ * For example, if spaceUnits has a value set in a .brackets.json file near the open file, 
  * then a call to get("spaceUnits") would return the value from that file. File values come 
  * first, user values next, default values last. If the setting is not known 
  * at all, undefined is returned.
@@ -865,7 +864,7 @@ define(function (require, exports, module) {
          * * `checkExists`: takes an absolute filename and determines if there is a valid file there. Returns a promise resolving to a boolean.
          * * `getScopeForFile`: Called after checkExists. Synchronously returns a Scope object for the given file. Only called where `checkExists` is true.
          * 
-         * @param {string} preferencesFilename Name for the preferences files managed by this scopeGenerator (e.g. `.brackets.prefs`)
+         * @param {string} preferencesFilename Name for the preferences files managed by this scopeGenerator (e.g. `.brackets.json`)
          * @param {ScopeGenerator} scopeGenerator defines the behavior used to generate scopes for these files
          * @return {Promise} promise resolved when the scopes have been added.
          */
