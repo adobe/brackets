@@ -421,7 +421,7 @@ define(function (require, exports, module) {
             }
             
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
-                console.warn("Blind write attempted: ", path, stats._hash, options.expectedHash);
+                console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
                 callback(FileSystemError.CONTENTS_MODIFIED);
                 return;
             }
