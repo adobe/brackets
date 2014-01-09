@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets, xdescribe */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, spyOn, brackets */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
@@ -31,349 +31,12 @@ define(function (require, exports, module) {
     // Load dependent modules
     var PreferencesBase         = require("preferences/PreferencesBase"),
         FileSystem              = require("filesystem/FileSystem"),
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        _                       = require("thirdparty/lodash");
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files");
 
     describe("Preferences Base", function () {
-        describe("Merged Map", function () {
-            it("should support basic multilevel merging", function () {
-                var map = new PreferencesBase.MergedMap();
-                map.addLevel("user");
-                map.setData("user", {
-                    spaceUnits: 4
-                });
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 4
-                });
-                expect(map.get("spaceUnits")).toBe(4);
-                
-                map.addLevel("project");
-                map.setData("project", {
-                    spaceUnits: 2
-                });
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 2
-                });
-                expect(map.get("spaceUnits")).toBe(2);
-                
-                map.setData("user", {
-                    spaceUnits: 4,
-                    useTabChar: false
-                });
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 2,
-                    useTabChar: false
-                });
-                
-                map.setData("project", { });
-                expect(map.merged).toEqual({
-                    spaceUnits: 4,
-                    useTabChar: false
-                });
-            });
-            
-            it("notifies of changes", function () {
-                var map = new PreferencesBase.MergedMap();
-                
-                var changes = [],
-                    dataChanges = [];
-                $(map).on("change", function (e, data) {
-                    changes.push(data);
-                });
-                
-                $(map).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                
-                map.addLevel("user");
-                map.setData("user", {
-                    spaceUnits: 4,
-                    useTabChar: false
-                });
-                
-                expect(changes.length).toEqual(2);
-                expect(dataChanges).toEqual([
-                    {
-                        spaceUnits: 4,
-                        useTabChar: false
-                    }
-                ]);
-                
-                changes = [];
-                dataChanges = [];
-                map.addLevel("project");
-                map.setData("project", {
-                    spaceUnits: 4
-                });
-                expect(changes.length).toBe(0);
-                expect(dataChanges.length).toBe(0);
-                
-                map.setData("project", {
-                    useTabChar: true
-                });
-                
-                expect(changes).toEqual([
-                    {
-                        id: "useTabChar",
-                        oldValue: false,
-                        newValue: true
-                    }
-                ]);
-                
-                expect(dataChanges).toEqual([
-                    {
-                        spaceUnits: 4,
-                        useTabChar: true
-                    }
-                ]);
-                
-                changes = [];
-                dataChanges = [];
-                map.set("project", "spaceUnits", 4);
-                expect(changes.length).toBe(0);
-                expect(dataChanges.length).toBe(0);
-                map.set("project", "spaceUnits", 8);
-                expect(changes).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: 4,
-                    newValue: 8
-                }]);
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 8,
-                    useTabChar: true
-                }]);
-            });
-            
-            it("allows excluded properties", function () {
-                var map = new PreferencesBase.MergedMap();
-                map.addExclusion("path");
-                
-                map.addLevel("user");
-                map.setData("user", {
-                    spaceUnits: 4,
-                    path: {
-                        "**.js": {
-                            spaceUnits: 27
-                        }
-                    }
-                });
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 4
-                });
-                
-                var changes = [];
-                var dataChanges = [];
-                $(map).on("change", function (e, change) {
-                    changes.push(change);
-                });
-                $(map).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                
-                map.addExclusion("spaceUnits");
-                expect(changes).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: 4,
-                    newValue: undefined
-                }]);
-                expect(dataChanges).toEqual([{}]);
-                
-                changes = [];
-                dataChanges = [];
-                map.removeExclusion("spaceUnits");
-                expect(map._exclusions.spaceUnits).toBeUndefined();
-                expect(map.get("spaceUnits")).toBe(4);
-                expect(changes).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: undefined,
-                    newValue: 4
-                }]);
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 4
-                }]);
-            });
-            
-            it("supports nested MergedMaps", function () {
-                var changes = [],
-                    dataChanges = [],
-                    map = new PreferencesBase.MergedMap(),
-                    userMap = new PreferencesBase.MergedMap();
-                
-                $(map).on("change", function (e, data) {
-                    changes.push(data);
-                });
-                $(map).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                
-                userMap.addLevel("base");
-                userMap.addLevel("path");
-                userMap.setData("base", {
-                    spaceUnits: 4
-                });
-                
-                map.addLevel("user", {
-                    map: userMap
-                });
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 4
-                });
-                expect(changes).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: undefined,
-                    newValue: 4
-                }]);
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 4
-                }]);
-                
-                changes = [];
-                dataChanges = [];
-                
-                userMap.setData("path", {
-                    spaceUnits: 27
-                });
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 27
-                });
-                expect(userMap.merged).toEqual({
-                    spaceUnits: 27
-                });
-                expect(changes).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: 4,
-                    newValue: 27
-                }]);
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 27
-                }]);
-                
-                changes = [];
-                dataChanges = [];
-                
-                map.set(["user", "path"], "spaceUnits", 11);
-                
-                expect(map.merged).toEqual({
-                    spaceUnits: 11
-                });
-                expect(userMap.merged).toEqual({
-                    spaceUnits: 11
-                });
-                expect(changes).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: 27,
-                    newValue: 11
-                }]);
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 11
-                }]);
-                
-                changes = [];
-                dataChanges = [];
-                
-                var projectMap = new PreferencesBase.MergedMap();
-                projectMap.addLevel("base");
-                projectMap.setData("base", {
-                    spaceUnits: 9,
-                    planets: 8,
-                    moons: 37
-                });
-                
-                map.addLevel("project", {
-                    map: projectMap
-                });
-                expect(map.merged).toEqual({
-                    spaceUnits: 9,
-                    planets: 8,
-                    moons: 37
-                });
-                expect(map.get("planets")).toBe(8);
-                expect(changes.length).toBe(3);
-                expect(dataChanges).toEqual([map.merged]);
-                
-                changes = [];
-                dataChanges = [];
-                map.set(["user", "base"], "planets", 8);
-                expect(changes.length).toBe(0);
-                expect(dataChanges.length).toBe(0);
-                expect(userMap.get("planets")).toBe(8);
-                
-                changes = [];
-                dataChanges = [];
-                projectMap.setData("base", {});
-                expect(map.get("moons")).toBeUndefined();
-            });
-            
-            it("supports inserting and deleting levels", function () {
-                var map = new PreferencesBase.MergedMap();
-                
-                var changes = [],
-                    dataChanges = [];
-                $(map).on("change", function (e, data) {
-                    changes.push(data);
-                });
-                
-                $(map).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                                
-                map.addLevel("base");
-                map.setData("base", {
-                    spaceUnits: 1,
-                    baseLevel: true
-                });
-                map.addLevel("user");
-                map.setData("user", {
-                    spaceUnits: 3,
-                    userLevel: true
-                });
-                
-                changes = [];
-                map.addLevel("between", {
-                    before: "base"
-                });
-                map.setData("between", {
-                    spaceUnits: 2,
-                    betweenLevel: true,
-                    baseLevel: false
-                });
-                
-                expect(changes).toEqual([
-                    {
-                        id: "betweenLevel",
-                        oldValue: undefined,
-                        newValue: true
-                    },
-                    {
-                        id: "baseLevel",
-                        oldValue: true,
-                        newValue: false
-                    }
-                ]);
-                
-                expect(map.get("betweenLevel")).toBe(true);
-                expect(map.get("spaceUnits")).toBe(3);
-                expect(map.get("baseLevel")).toBe(false);
-                
-                changes = [];
-                dataChanges = [];
-                
-                map.removeLevel("between");
-                expect(map.get("betweenLevel")).toBeUndefined();
-                expect(map.get("baseLevel")).toBe(true);
-                
-                expect(changes.length).toEqual(2);
-                expect(dataChanges.length).toEqual(1);
-            });
-        });
-        
         describe("Memory Storage", function () {
             it("should support get and save operations", function () {
                 var sampleData = {
@@ -398,41 +61,6 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Language Layer", function () {
-            var data = {
-                spaceUnits: 4,
-                useTabChar: false,
-                language: {
-                    html: {
-                        spaceUnits: 2
-                    }
-                }
-            };
-            
-            it("should be able to notify of language changes", function () {
-                var layer = new PreferencesBase.LanguageLayer();
-                
-                expect(layer.exclusions).toEqual(["language"]);
-                
-                var dataChanges = [];
-                
-                $(layer).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                
-                layer.setData(data);
-                expect(dataChanges).toEqual([{}]);
-                
-                dataChanges = [];
-                layer.setLanguage("html");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 2
-                }]);
-                
-                dataChanges = [];
-            });
-        });
-        
         describe("Path Layer", function () {
             var data = {
                 spaceUnits: 4,
@@ -444,96 +72,47 @@ define(function (require, exports, module) {
                 }
             };
             
-            it("should be able to notify based on path", function () {
-                var layer = new PreferencesBase.PathLayer();
-                
-                expect(layer.exclusions).toEqual(["path"]);
-                
-                var dataChanges = [];
-                $(layer).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                
-                layer.setData(data);
-                
-                expect(dataChanges).toEqual([{}]);
-                
-                dataChanges = [];
-                layer.setFilename("index.html");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 2
-                }]);
-            });
-            
             it("handles a variety of glob patterns", function () {
                 var data = {
-                    spaceUnits: 1,
-                    path: {
-                        "**.html": {
-                            spaceUnits: 2
-                        },
-                        "lib/*.js": {
-                            spaceUnits: 3
-                        },
-                        "lib/**.css": {
-                            spaceUnits: 4
-                        },
-                        "*.{md,txt}": {
-                            spaceUnits: 5
-                        }
+                    "**.html": {
+                        spaceUnits: 2
+                    },
+                    "lib/*.js": {
+                        spaceUnits: 3
+                    },
+                    "lib/**.css": {
+                        spaceUnits: 4
+                    },
+                    "*.{md,txt}": {
+                        spaceUnits: 5
                     }
                 };
                 
-                var layer = new PreferencesBase.PathLayer();
+                var layer = new PreferencesBase.PathLayer("/.brackets.prefs");
                 
-                var dataChanges = [];
-                $(layer).on("dataChange", function (e, data) {
-                    dataChanges.push(data);
-                });
-                layer.setData(data);
+                expect(layer.get(data, "spaceUnits", {
+                    filename: "/public/index.html"
+                })).toBe(2);
                 
-                expect(dataChanges).toEqual([{}]);
+                expect(layer.get(data, "spaceUnits", {
+                    filename: "/lib/script.js"
+                })).toBe(3);
                 
-                dataChanges = [];
-                layer.setFilename("public/index.html");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 2
-                }]);
+                expect(layer.get(data, "spaceUnits", {
+                    filename: "/lib/foo/script.js"
+                })).toBeUndefined();
                 
-                dataChanges = [];
-                layer.setFilename("lib/script.js");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 3
-                }]);
+                expect(layer.get(data, "spaceUnits", {
+                    filename: "/lib/foo/styles.css"
+                })).toBe(4);
                 
-                dataChanges = [];
-                layer.setFilename("lib/foo/script.js");
-                expect(dataChanges).toEqual([{}]);
+                expect(layer.get(data, "spaceUnits", {
+                    filename: "/README.md"
+                })).toBe(5);
                 
-                dataChanges = [];
-                layer.setFilename("lib/foo/styles.css");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 4
-                }]);
-                
-                dataChanges = [];
-                layer.setFilename("README.md");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 5
-                }]);
-                
-                // Note that even though the value doesn't change, it still
-                // registers as a data change. The MergedMap handles detection
-                // of the fact that there was no actual change.
-                dataChanges = [];
-                layer.setFilename("LICENSE.txt");
-                expect(dataChanges).toEqual([{
-                    spaceUnits: 5
-                }]);
-                
-                dataChanges = [];
-                layer.setFilename("foo.js");
-                expect(dataChanges).toEqual([{}]);
+                expect(layer.get(data, "spaceUnits", {
+                    filename: "foo.js"
+                })).toBeUndefined();
             });
         });
         
@@ -541,32 +120,15 @@ define(function (require, exports, module) {
             it("should look up a value", function () {
                 var data = {
                     spaceUnits: 4,
-                    useTabChar: false,
-                    language: {
-                        html: {
-                            spaceUnits: 2
-                        }
-                    }
+                    useTabChar: false
                 };
-                
-                var layer = new PreferencesBase.LanguageLayer();
                 
                 var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
                 // MemoryStorage operates synchronously
                 scope.load();
                 
-                scope.addLevel("language", {
-                    layer: layer
-                });
-                
-                expect(scope.get("language")).toBeUndefined();
-                
                 expect(scope.get("spaceUnits")).toBe(4);
-                layer.setLanguage("html");
-                expect(scope.get("spaceUnits")).toBe(2);
-                expect(scope.get("useTabChar")).toBe(false);
-                layer.setLanguage("js");
-                expect(scope.get("spaceUnits")).toBe(4);
+                expect(_.difference(scope.getKeys(), ["spaceUnits", "useTabChar"])).toEqual([]);
             });
             
             it("should look up a value with a path layer", function () {
@@ -579,20 +141,22 @@ define(function (require, exports, module) {
                     }
                 };
                 
-                var layer = new PreferencesBase.PathLayer();
+                var layer = new PreferencesBase.PathLayer("/");
                 var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
                 scope.load();
                 
-                scope.addLevel("path", {
-                    layer: layer
-                });
+                scope.addLayer(layer);
                 
                 expect(scope.get("path")).toBeUndefined();
                 expect(scope.get("spaceUnits")).toBe(4);
-                layer.setFilename("src/foo.js");
-                expect(scope.get("spaceUnits")).toBe(2);
-                layer.setFilename("top.js");
-                expect(scope.get("spaceUnits")).toBe(4);
+                
+                expect(scope.get("spaceUnits", {
+                    filename: "/src/foo.js"
+                })).toBe(2);
+                
+                expect(scope.get("spaceUnits", {
+                    filename: "/top.js"
+                })).toBe(4);
             });
         });
         
@@ -675,48 +239,23 @@ define(function (require, exports, module) {
                 
                 var pm = new PreferencesBase.PreferencesManager();
                 pm.definePreference("testKey", "number", 0);
-                pm.addScope("storage1", new PreferencesBase.Scope(storage1));
-                pm.addScope("storage2", new PreferencesBase.Scope(storage2));
+                pm.addScope("storage1", new PreferencesBase.Scope(storage1), {
+                    before: "storage2"
+                });
+                pm.addScope("storage2", new PreferencesBase.Scope(storage2), {
+                    before: "default"
+                });
                 
                 expect(pm.get("testKey")).toBe(0);
                 
-                deferred2.resolve(storage2.data);
-                expect(pm.get("testKey")).toBe(2);
-                
                 deferred1.resolve(storage1.data);
-                expect(pm.get("testKey")).toBe(2);
+                expect(pm.get("testKey")).toBe(0);
+                
+                deferred2.resolve(storage2.data);
+                expect(pm.get("testKey")).toBe(1);
             });
             
-            it("supports layers over the nested scopes", function () {
-                var pm = new PreferencesBase.PreferencesManager();
-                var userScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
-                    "spaceUnits": 4,
-                    "language": {
-                        "html": {
-                            "spaceUnits": 2
-                        },
-                        "css": {
-                            "spaceUnits": 8
-                        }
-                    }
-                }));
-                pm.addScope("user", userScope);
-                var layer = new PreferencesBase.LanguageLayer();
-                pm.addLayer("language", layer);
-                
-                expect(pm.get("spaceUnits")).toBe(4);
-                
-                layer.setLanguage("html");
-                expect(pm.get("spaceUnits")).toBe(2);
-                
-                layer.setLanguage("css");
-                expect(pm.get("spaceUnits")).toBe(8);
-                
-                layer.setLanguage("python");
-                expect(pm.get("spaceUnits")).toBe(4);
-            });
-            
-            it("can notify of preference changes through setValue", function () {
+            it("can notify of preference changes through set", function () {
                 var pm = new PreferencesBase.PreferencesManager();
                 pm.definePreference("spaceUnits", "number", 4);
                 pm.addScope("user", new PreferencesBase.MemoryStorage());
@@ -726,37 +265,14 @@ define(function (require, exports, module) {
                 });
                 
                 pm.set("user", "testing", true);
-                expect(eventData).toBeDefined();
-                expect(eventData.id).toBe("testing");
-                expect(eventData.newValue).toBe(true);
+                expect(eventData).toEqual({
+                    ids: ["testing"]
+                });
                 
                 eventData = undefined;
                 pm.set("user", "spaceUnits", 4);
-                expect(eventData).toBeUndefined();
-                
-                eventData = undefined;
-                pm.set("user", "testing", true);
-                expect(eventData).toBeUndefined();
-                
-                pm.addScope("session", new PreferencesBase.MemoryStorage());
-                eventData = undefined;
-                pm.set("session", "testing", true);
-                expect(eventData).toBeUndefined();
-                
-                eventData = undefined;
-                pm.set("user", "testing", false);
-                expect(eventData).toBeUndefined();
-                
-                eventData = undefined;
-                pm.set("session", "testing", false);
-                expect(eventData).toBeDefined();
-                
-                eventData = undefined;
-                pm.set("user", "spaceUnits", 2);
                 expect(eventData).toEqual({
-                    id: "spaceUnits",
-                    newValue: 2,
-                    oldValue: 4
+                    ids: ["spaceUnits"]
                 });
             });
             
@@ -775,9 +291,13 @@ define(function (require, exports, module) {
                 }));
                 
                 expect(eventData).toEqual([{
-                    id: "elephants",
-                    oldValue: undefined,
-                    newValue: "charging"
+                    ids: ["spaceUnits", "elephants"]
+                }]);
+                
+                eventData = [];
+                pm.removeScope("user");
+                expect(eventData).toEqual([{
+                    ids: ["spaceUnits", "elephants"]
                 }]);
             });
             
@@ -787,41 +307,38 @@ define(function (require, exports, module) {
                 var data = {
                     spaceUnits: 4,
                     useTabChar: false,
-                    language: {
-                        html: {
-                            spaceUnits: 2
-                        },
-                        go: {
-                            spaceUnits: 3291
+                    path: {
+                        "foo.txt": {
+                            spaceUnits: 2,
+                            alpha: "bravo"
                         }
                     }
                 };
-                pm.addScope("user", new PreferencesBase.MemoryStorage(data));
                 
-                var layer = new PreferencesBase.LanguageLayer();
-                layer.setLanguage("go");
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                pm.addScope("user", scope);
                 
                 var eventData = [];
                 $(pm).on("change", function (e, data) {
                     eventData.push(data);
                 });
                 
-                pm.addLayer("language", layer);
-                // The first element in eventData in this instance is actually the
-                // exclusion of the layer's data, which is not very interesting
-                expect(eventData[1]).toEqual({
-                    id: "spaceUnits",
-                    oldValue: 4,
-                    newValue: 3291
+                scope.addLayer(new PreferencesBase.PathLayer("/"));
+
+                expect(eventData).toEqual([{
+                    ids: ["spaceUnits", "alpha"]
+                }]);
+                
+                // Extra verification that layer keys works correctly
+                var keys = scope._layers[0].getKeys(scope.data.path, {
+                    filename: "/bar.txt"
                 });
                 
-                eventData = [];
-                layer.setLanguage("html");
-                expect(eventData).toEqual([{
-                    id: "spaceUnits",
-                    oldValue: 3291,
-                    newValue: 2
-                }]);
+                expect(keys).toEqual([]);
+                keys = scope._layers[0].getKeys(scope.data.path, {
+                    filename: "/foo.txt"
+                });
+                expect(_.difference(keys, ["spaceUnits", "alpha"])).toEqual([]);
             });
             
             it("can notify changes for single preference objects", function () {
@@ -829,31 +346,40 @@ define(function (require, exports, module) {
                 var pref = pm.definePreference("spaceUnits", "number", 4);
                 var retrievedPref = pm.getPreference("spaceUnits");
                 expect(retrievedPref).toBe(pref);
-                var changes = [];
-                $(pref).on("change", function (e, data) {
-                    changes.push(data);
+                var changes = 0;
+                $(pref).on("change", function (e) {
+                    changes++;
                 });
                 var newScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 2
                 }));
                 pm.addScope("new", newScope);
-                expect(changes).toEqual([{
-                    oldValue: 4,
-                    newValue: 2
-                }]);
+                expect(changes).toEqual(1);
             });
             
             it("supports removal of scopes", function () {
                 var pm = new PreferencesBase.PreferencesManager();
+                var events = [];
+                $(pm).on("change", function (e, data) {
+                    events.push(data);
+                });
+                
                 pm.addScope("first", new PreferencesBase.MemoryStorage({
                     spaceUnits: 1
                 }));
                 pm.addScope("second", new PreferencesBase.MemoryStorage({
                     spaceUnits: 2
                 }));
+                
+                events = [];
                 expect(pm.get("spaceUnits")).toBe(2);
                 pm.removeScope("second");
                 expect(pm.get("spaceUnits")).toBe(1);
+                expect(events).toEqual([
+                    {
+                        ids: ["spaceUnits"]
+                    }
+                ]);
             });
             
             it("can manage preferences files in the file tree", function () {
@@ -916,7 +442,7 @@ define(function (require, exports, module) {
                     didComplete = true;
                     expect(requestedFiles).toEqual(["/.brackets.prefs"]);
                     expect(pm.get("spaceUnits")).toBe(1);
-                    expect(pm._levels).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
                 });
                 
                 requestedFiles = [];
@@ -937,8 +463,10 @@ define(function (require, exports, module) {
                 
                 pm.setPathScopeContext("/projects/brackets/README.md").done(function () {
                     expect(requestedFiles).toEqual(["/projects/brackets/.brackets.prefs"]);
-                    expect(pm._levels).toEqual(["session", "path:/projects/brackets/.brackets.prefs",
-                                                "path:/.brackets.prefs", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(
+                        ["session", "path:/projects/brackets/.brackets.prefs",
+                            "path:/.brackets.prefs", "user", "default"]
+                    );
                     expect(pm.get("spaceUnits")).toBe(5);
                 });
                 
@@ -957,13 +485,13 @@ define(function (require, exports, module) {
                 pm.setPathScopeContext("/README.md").done(function () {
                     expect(requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(1);
-                    expect(pm._levels).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
                 });
                 
                 console.log("--- Important test");
                 requestedFiles = [];
                 pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js").done(function () {
-                    expect(pm._levels.length).toBe(6);
+                    expect(_.keys(pm._scopes).length).toBe(6);
                     expect(requestedFiles.length).toBe(2);
                     expect(pm.get("spaceUnits")).toBe(7);
                 });
@@ -1023,12 +551,13 @@ define(function (require, exports, module) {
                 var projectScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("project", projectScope));
                 runs(function () {
+                    projectScope.addLayer(new PreferencesBase.PathLayer("/"));
                     expect(pm.get("spaceUnits")).toBe(92);
                     
-                    var layer = new PreferencesBase.LanguageLayer();
-                    layer.setLanguage("go");
-                    pm.addLayer("language", layer);
-                    expect(pm.get("spaceUnits")).toBe(27);
+                    expect(pm.get("spaceUnits", {
+                        scopeOrder: ["project"],
+                        filename: "/foo.go"
+                    })).toBe(27);
                 });
             });
             
@@ -1079,8 +608,8 @@ define(function (require, exports, module) {
             it("can load preferences later", function () {
                 var filestorage = new PreferencesBase.FileStorage();
                 var pm = new PreferencesBase.PreferencesManager();
-                pm.addLayer("language", new PreferencesBase.LanguageLayer());
                 var newScope = new PreferencesBase.Scope(filestorage);
+                newScope.addLayer(new PreferencesBase.PathLayer("/"));
                 var changes = [];
                 waitsForDone(pm.addScope("new", newScope), "adding scope");
                 $(pm).on("change", function (change, data) {
@@ -1096,9 +625,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(pm.get("spaceUnits")).toBe(92);
                     expect(changes).toEqual([{
-                        id: "spaceUnits",
-                        oldValue: undefined,
-                        newValue: 92
+                        ids: ["spaceUnits"]
                     }]);
                 });
             });

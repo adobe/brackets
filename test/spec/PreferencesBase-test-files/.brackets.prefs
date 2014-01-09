@@ -1,7 +1,7 @@
 {
     "spaceUnits": 92,
-    "language": {
-        "go": {
+    "path": {
+        "foo.go": {
             "spaceUnits": 27
         }
     }

@@ -76,366 +76,7 @@ define(function (require, exports, module) {
         globmatch         = require("thirdparty/globmatch");
     
     // CONSTANTS
-    var PREFERENCE_CHANGE = "preferenceChange";
-    
-    /**
-     * A MergedMap is a map-style object that merges multiple sub-maps (called
-     * "levels") into a single map. You can use `get` to retrieve the current
-     * value for a key. The `merged` property contains the current merged values.
-     * 
-     * MergedMap has two events of note:
-     * 
-     * * change: object with id, oldValue and newValue emitted for each key that changes
-     * * dataChange: complete map of id/values that is emitted whenever any key changes
-     */
-    function MergedMap() {
-        this.merged = {};
-        this._levels = [];
-        this._mergedAtLevel = {};
-        this._exclusions = {};
-        this._childMaps = {};
-        this._levelData = {};
-    }
-    
-    MergedMap.prototype = {
-        
-        /**
-         * Adds a new level from which values are merged. New levels are added
-         * with the highest precedence by default. If you pass the "before"
-         * option with the name of the level that this should be inserted before,
-         * then this new level will be added before that named level in the 
-         * precedence change.
-         * 
-         * @param {string} name Name for the new level
-         * @param {{map: ?MergedMap, before: ?string}} options Additional options for the level.
-         *                            `map` supports having a MergedMap as a level
-         *                            `before` name of level before which this new level 
-         *                                     should be inserted
-         */
-        addLevel: function (name, options) {
-            options = options || {};
-            
-            var insertingAt = 0;
-            if (options.before) {
-                insertingAt = this._levels.indexOf(options.before);
-                if (insertingAt === -1) {
-                    insertingAt = 0;
-                }
-            }
-            
-            this._levels.splice(insertingAt, 0, name);
-            var mergedAtLevel = this._mergedAtLevel;
-            
-            // `_mergedAtLevel` keeps track of which level each key was found at.
-            // Since we're adding a level at the beginning, we need to bump all of
-            // these values up by one.
-            _.forIn(mergedAtLevel, function (value, key) {
-                if (value >= insertingAt) {
-                    mergedAtLevel[key] = value + 1;
-                }
-            });
-            
-            // If a child MergedMap has been provided, we need to merge it in now, otherwise
-            // we just create a new object to hold values for this level.
-            if (options.map) {
-                var childMap = options.map;
-                this._childMaps[name] = childMap;
-                
-                // Set the data for this level based on the current values in the childMap
-                // and then add a listener so that this level stays up to date with changes in
-                // the child.
-                this.setData(name, childMap.merged);
-                $(childMap).on("dataChange", function (e, data) {
-                    this._performSetData(name, data);
-                }.bind(this));
-            } else {
-                this._levelData[name] = {};
-            }
-        },
-        
-        /**
-         * Deletes the named level (resetting any preferences that were set at that
-         * level).
-         * 
-         * @param {string} name Name of level to delete.
-         */
-        removeLevel: function (name) {
-            var levelIndex = this._levels.indexOf(name);
-            if (levelIndex === -1) {
-                return;
-            }
-            
-            this._levels.splice(levelIndex, 1);
-            delete this._levelData[name];
-            delete this._childMaps[name];
-            
-            var mergedAtLevel = this._mergedAtLevel;
-            
-            _.forIn(mergedAtLevel, function (value, key) {
-                
-                // For any value set at this level, we need to reset its value
-                if (value === levelIndex) {
-                    this._reset(key);
-                    
-                // for any value set after this level, we need to move its index up by one
-                } else if (value > levelIndex) {
-                    mergedAtLevel[key] = value - 1;
-                }
-            }.bind(this));
-            $(this).trigger("dataChange", this.merged);
-        },
-        
-        /**
-         * Excludes a key from this map. This is used for cases where a key is not directly
-         * used for configuration (see layers farther down in this file).
-         * 
-         * @param {string} id Key to exclude
-         */
-        addExclusion: function (id) {
-            var merged = this.merged;
-            
-            this._exclusions[id] = true;
-            
-            // Check to see if this exclusion is already defined. If so, we need to
-            // undefine it and notify listeners of the change.
-            if (merged[id] !== undefined) {
-                var oldValue = merged[id];
-                delete merged[id];
-                delete this._mergedAtLevel[id];
-                var $this = $(this);
-                $this.trigger("change", {
-                    id: id,
-                    oldValue: oldValue,
-                    newValue: undefined
-                });
-                $this.trigger("dataChange", merged);
-            }
-        },
-        
-        /**
-         * Removes the exclusion of a key so that values for that key will now appear.
-         * 
-         * @param {string} id Key to now include
-         */
-        removeExclusion: function (id) {
-            if (this._exclusions[id] !== undefined) {
-                delete this._exclusions[id];
-                this._reset(id);
-                $(this).trigger("dataChange", this.merged);
-            }
-        },
-        
-        /**
-         * Retrieve the current value of the key `id` from the map.
-         * 
-         * @param {string} id Key to retrieve from the map
-         */
-        get: function (id) {
-            return this.merged[id];
-        },
-        
-        /**
-         * @protected
-         * 
-         * The first half of setting a value in the map. This part checks to see if this `id` 
-         * is excluded or if we need to recurse into child maps in order to actually do the
-         * set. This is split this way for subclasses.
-         * 
-         * `levelName` can be an array, in which case we try to traverse the levels listed
-         * in the array as childMaps.
-         * 
-         * @param {(string|Array.<string>)} levelName Level at which to set the value
-         * @param {string} id Key to set
-         * @param {*} value Value for this key
-         * @return {boolean} whether the value was changed
-         */
-        _performSet: function (levelName, id, value) {
-            // eliminate excluded ids
-            if (this._exclusions[id]) {
-                this._levelData[levelName][id] = value;
-                return;
-            }
-            
-            // Check to see if we need to recurse into child maps
-            if (_.isArray(levelName)) {
-                
-                // If we're on the last element of the array, we've reached the
-                // end so we treat this as a set against this map.
-                if (levelName.length === 1) {
-                    levelName = levelName[0];
-                } else {
-                    var childLevel = levelName[0],
-                        childMap = this._childMaps[childLevel];
-                    
-                    if (!childMap) {
-                        console.error("Attempt to set preference with unknown level (" + childLevel + ") ", levelName, id);
-                        return false;
-                    }
-                    childMap.set(_.rest(levelName), id, value);
-                    
-                    // This is not tracked as a change at this level. The
-                    // handling of the dataChange event will take care of whether or not
-                    // this MergedMap has changed as a result.
-                    return false;
-                }
-            }
-            
-            // Continue on to part two.
-            return this._performSetAndNotification(levelName, id, value);
-        },
-        
-        /**
-         * @protected
-         * 
-         * The second half of setting a value on the map. This part checks to see if the ID
-         * is masked by a higher precedence level. Assuming that the set will make a difference,
-         * this will set the value on the merged map and send a change notification
-         * 
-         * @param {(string|Array.<string>)} levelName Level at which to set the value
-         * @param {string} id Key to set
-         * @param {*} value Value for this key
-         * @param {?boolean} resetting True if we are resetting the value of this `id` (in which
-         *                                  case we don't check the level ranking)
-         * @return {boolean} whether value was changed
-         */
-        _performSetAndNotification: function (levelName, id, value, resetting) {
-            var merged = this.merged,
-                mergedAtLevel = this._mergedAtLevel,
-                levelRank = this._levels.indexOf(levelName),
-                changed = false;
-            
-            if (!this._childMaps[levelName]) {
-                this._levelData[levelName][id] = value;
-            }
-            
-            // Check for a reference to undefined level.
-            if (levelRank === -1) {
-                throw new Error("Attempt to set preference in non-existent level: " + levelName);
-            }
-            
-            var oldValue = merged[id];
-            
-            if (resetting || oldValue === undefined || mergedAtLevel[id] >= levelRank) {
-                mergedAtLevel[id] = levelRank;
-                if (value !== oldValue) {
-                    changed = true;
-                    merged[id] = value;
-                    $(this).trigger("change", {
-                        id: id,
-                        oldValue: oldValue,
-                        newValue: value
-                    });
-                }
-            }
-            return changed;
-        },
-        
-        /**
-         * Sets the value for `id` at the given level and sends out notifications if
-         * the merged value has actually changed.
-         * 
-         * @param {(string|Array.<string>)} levelName Level at which to set the value
-         * @param {string} id Key to set
-         * @param {*} value Value for this key
-         * @return {boolean} true if the value was changed
-         */
-        set: function (levelName, id, value) {
-            var changed = this._performSet(levelName, id, value);
-            if (changed) {
-                $(this).trigger("dataChange", this.merged);
-            }
-            return changed;
-        },
-        
-        /**
-         * @protected
-         * 
-         * Sets the data at the given level, sending notifications for any changed
-         * properties. This function is here to allow convenient overriding.
-         * 
-         * @param {string} levelName Level to set
-         * @param {Object} data New data for that level.
-         */
-        _performSetData: function (levelName, data) {
-            var hadChanges = false;
-            
-            // TODO: if levelName is an array, shouldn't we head down through childMaps
-            // until we get to the destination?
-            
-            // Try to set each key/value
-            _.forIn(data, function (value, key) {
-                hadChanges = this._performSet(levelName, key, value) || hadChanges;
-            }, this);
-            
-            if (_.isArray(levelName) && levelName.length === 1) {
-                levelName = levelName[0];
-            }
-            
-            if (!_.isArray(levelName)) {
-                this._levelData[levelName] = data;
-                
-                // Look for values that have been removed
-                var levelRank = this._levels.indexOf(levelName);
-                _.forIn(this._mergedAtLevel, function (value, key) {
-                    if (value === levelRank && data[key] === undefined) {
-                        this._reset(key);
-                        hadChanges = true;
-                    }
-                }.bind(this));
-            }
-            
-            if (hadChanges) {
-                $(this).trigger("dataChange", this.merged);
-            }
-        },
-        
-        /**
-         * Provides all-new data for the given level.
-         * 
-         * @param {(string|Array.<string>)} levelName Level to apply data at
-         * @param {Object} data New data for the level
-         */
-        setData: function (levelName, data) {
-            this._performSetData(levelName, data);
-        },
-        
-        /**
-         * @private
-         * 
-         * Resets the given key to whatever its current value should be, based on
-         * precedence. If the key is not present, then we delete it.
-         * 
-         * @param {string} key Key to reset.
-         */
-        _reset: function (key) {
-            var levelData = this._levelData,
-                childMaps = this._childMaps,
-                hasBeenReset = false;
-            
-            // Loop through the levels until we find the first that defines this
-            // key.
-            this._levels.forEach(function (level, levelNumber) {
-                var thisLevel = levelData[level] || childMaps[level];
-                var value = thisLevel[key];
-                if (value !== undefined) {
-                    this._performSetAndNotification(level, key, value, true);
-                    hasBeenReset = true;
-                }
-            }.bind(this));
-            
-            // If this key is not present on *any* level, then we delete it.
-            if (!hasBeenReset) {
-                delete this._mergedAtLevel[key];
-                var oldValue = this.merged[key];
-                delete this.merged[key];
-                $(this).trigger("change", {
-                    id: key,
-                    oldValue: oldValue,
-                    newValue: undefined
-                });
-            }
-        }
-    };
+    var PREFERENCE_CHANGE = "change";
     
     /*
      * Storages manage the loading and saving of preference data. 
@@ -580,6 +221,7 @@ define(function (require, exports, module) {
          */
         setPath: function (newPath) {
             this.path = newPath;
+            console.log("FileStorage triggering");
             $(this).trigger("changed");
         }
     };
@@ -597,58 +239,15 @@ define(function (require, exports, module) {
      * @param {Storage} storage Storage object from which prefs are loaded/saved
      */
     function Scope(storage) {
-        MergedMap.apply(this);
         this.storage = storage;
         $(storage).on("changed", this.load.bind(this));
-        this.data = undefined;
+        this.data = {};
         this._dirty = false;
-        this.addLevel("base");
-        this._layers = {};
+        this._layers = [];
+        this._exclusions = [];
     }
     
-    Scope.prototype = new MergedMap();
-    
     _.extend(Scope.prototype, {
-        /**
-         * Overrides the base `addLevel` call to add support for layers.
-         * 
-         * @param {string} name Name for the new level
-         * @param {{map: ?MergedMap, layer: ?Layer}} options Additional options for the level.
-         *                            `map` supports having a MergedMap as a level
-         *                            `layer' adds a layer as a new level
-         */
-        addLevel: function (name, options) {
-            options = options || {};
-            
-            if (options.layer) {
-                var layer = options.layer;
-                
-                MergedMap.prototype.addLevel.call(this, name);
-                this._layers[name] = layer;
-                _.each(layer.exclusions, this.addExclusion, this);
-                $(layer).on("dataChange", function (e, data) {
-                    MergedMap.prototype.setData.call(this, name, data);
-                }.bind(this));
-                layer.setData(this.data);
-            } else {
-                MergedMap.prototype.addLevel.call(this, name, options);
-            }
-        },
-        
-        /**
-         * Overrides the base `removeLevel` to add support for layers.
-         * 
-         * @param {string} name Name of the level to remove
-         */
-        removeLevel: function (name) {
-            var layer = this._layers[name];
-            if (layer) {
-                delete this._layers[name];
-                $(layer).off("dataChange");
-            }
-            MergedMap.prototype.removeLevel.call(this, name);
-        },
-        
         /**
          * Loads the prefs for this `Scope` from the `Storage`.
          * 
@@ -659,13 +258,10 @@ define(function (require, exports, module) {
             this.storage.load()
                 .then(function (data) {
                     this.data = data;
-                    
-                    // Update the base level with the new data
-                    this.setData("base", data);
-                    
-                    // For each layer, re-evaluate the data for the layer
-                    _.forIn(this._layers, function (layer) {
-                        layer.setData(data);
+                    console.log("Loading, this is", this);
+                    // TODO: compare with old data to find removed keys!
+                    $(this).trigger(PREFERENCE_CHANGE, {
+                        ids: this.getKeys()
                     });
                     result.resolve();
                 }.bind(this))
@@ -692,127 +288,56 @@ define(function (require, exports, module) {
         },
         
         /**
-         * @private
-         * 
-         * `Scope`s suppport a more limited subset of levels than a generic `MergedMap`.
-         * This function normalizes the level to those supported by `Scope`s.
-         * 
-         * @param {(string|Array.<string>)} levelName name to normalize
-         * @return {?string} normalized name
-         */
-        _normalizeLevelName: function (levelName) {
-            if (_.isArray(levelName)) {
-                levelName = levelName[0];
-            }
-            if (levelName !== "base") {
-                return undefined;
-            }
-            return levelName;
-        },
-        
-        /**
          * Sets the value for `id` at the given level and sends out notifications if
          * the merged value has actually changed.
          * 
-         * @param {(string|Array.<string>)} levelName Level at which to set the value
          * @param {string} id Key to set
          * @param {*} value Value for this key
          * @return {boolean} true if the value was changed
          */
-        set: function (levelName, id, value) {
+        set: function (id, value) {
             // Scopes do not support changing settings on layers at this
             // time. Ultimately, the need to do so will be based on
             // UI.
-            levelName = this._normalizeLevelName(levelName);
-            if (!levelName) {
-                return false;
-            }
             this._dirty = true;
             this.data[id] = value;
-            return MergedMap.prototype.set.call(this, levelName, id, value);
         },
         
-        /**
-         * Provides all-new data for the given level.
-         * 
-         * @param {(string|Array.<string>)} levelName Level to apply data at
-         * @param {Object} data New data for the level
-         */
-        setData: function (levelName, data) {
-            // As with `set` above, setData is not supported on layers
-            // at this time.
-            levelName = this._normalizeLevelName(levelName);
-            if (!levelName) {
-                return false;
+        get: function (id, context) {
+            var layerCounter,
+                layers = this._layers,
+                layer,
+                data = this.data,
+                result;
+            
+            context = context || {};
+            
+            for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
+                layer = layers[layerCounter];
+                result = layer.get(data[layer.key], id, context);
+                if (result !== undefined) {
+                    return result;
+                }
             }
-            this._dirty = true;
-            _.assign(this.data, data);
-            return MergedMap.prototype.setData.call(this, levelName, data);
+            
+            if (this._exclusions.indexOf(id) === -1) {
+                return this.data[id];
+            }
+        },
+        
+        getKeys: function (context) {
+            context = context || {};
+            return _.difference(_.keys(this.data), this._exclusions);
+        },
+        
+        addLayer: function (layer) {
+            this._layers.push(layer);
+            this._exclusions.push(layer.key);
+            $(this).trigger(PREFERENCE_CHANGE, {
+                ids: layer.getKeys(this.data[layer.key], {})
+            });
         }
     });
-    
-    /**
-     * A Layer which provides preferences scoped to a particular language that is being
-     * edited. These are defined in the JSON file as in this example:
-     * 
-     * {
-     *     "language": {
-     *         "html": {
-     *             "somePref": "someValue"
-     *         }
-     *     }
-     * }
-     */
-    function LanguageLayer() {
-        this.data = undefined;
-        this.language = undefined;
-    }
-    
-    LanguageLayer.prototype = {
-        exclusions: ["language"],
-        
-        /**
-         * Sets the data used by this scope.
-         * 
-         * @param {Object} data Data that this scope will look at to see if the layer applies
-         */
-        setData: function (data) {
-            this.data = data;
-            this._signalChange();
-        },
-        
-        /**
-         * Sets the language currently being edited (which determines the prefs applied).
-         * 
-         * @param {string} languageID Identifier for the language that is currently being edited.
-         */
-        setLanguage: function (languageID) {
-            if (languageID !== this.language) {
-                this.language = languageID;
-                this._signalChange();
-            }
-        },
-        
-        /**
-         * @private
-         * 
-         * Manages changes to data and language to signal that there has been a change in the
-         * prefs provided by this layer. This is called whenever the data or language has
-         * changed and its up to the listeners of the `dataChange` event to decide whether an
-         * interesting change has occurred.
-         */
-        _signalChange: function () {
-            var data = this.data,
-                languageData;
-            if (data && data.language) {
-                languageData = data.language[this.language];
-            }
-            if (languageData === undefined) {
-                languageData = {};
-            }
-            $(this).trigger("dataChange", languageData);
-        }
-    };
     
     /**
      * Provides layered preferences based on file globs, generally following the model provided
@@ -828,59 +353,98 @@ define(function (require, exports, module) {
 //    }
     
     /**
+     * Finds the directory name of the given path. Ensures that the result always ends with a "/".
+     * 
+     * @param {string} filename Filename from which to extract the dirname
+     * @return {string} directory containing the file (ends with "/")
+     */
+    function _getDirName(filename) {
+        if (!filename) {
+            return "/";
+        }
+        
+        var rightMostSlash = filename.lastIndexOf("/");
+        return filename.substr(0, rightMostSlash + 1);
+    }
+    
+    /**
+     * Computes filename as relative to the basePath. For example:
+     * basePath: /foo/bar/, filename: /foo/bar/baz.txt
+     * returns: baz.txt
+     * 
+     * The net effect is that the common prefix is returned. If basePath is not
+     * a prefix of filename, then undefined is returned.
+     * 
+     * @param {string} basePath Path against which we're computing the relative path
+     * @param {string} filename Full path to the file for which we are computing a relative path
+     * @return {string} relative path
+     */
+    function _getRelativeFilename(basePath, filename) {
+        if (!filename || filename.substr(0, basePath.length) !== basePath) {
+            return;
+        }
+        
+        return filename.substr(basePath.length);
+    }
+    
+    /**
      * There can be multiple paths and they are each checked in turn. The first that matches the
      * currently edited file wins.
+     * 
+     * @param {string} prefFilePath path to the preference file
      */
-    
-    function PathLayer() {
-        this.data = undefined;
-        this.filename = undefined;
+    function PathLayer(prefFilePath) {
+        this.prefFilePath = _getDirName(prefFilePath);
     }
     
     PathLayer.prototype = {
-        exclusions: ["path"],
+        key: "path",
         
         /**
-         * Sets the data in use for this layer. (This and the `dataChange` event are the
-         * standard parts of the Layer interface.
+         * Retrieve the current value based on the filename in the context
+         * object, comparing globs relative to the prefFilePath that this
+         * PathLayer was set up with.
          * 
-         * @param {Object} data Current data to be used for this layer.
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} context Object with filename that will be compared to the globs
          */
-        setData: function (data) {
-            this.data = data;
-            this._signalChange();
-        },
-        
-        /**
-         * Sets the filename of the currently edited file. This filename should be
-         * expressed as relative to the prefs file.
-         * 
-         * @param {string} filename Edited file relative to the prefs file
-         */
-        setFilename: function (filename) {
-            this.filename = filename;
-            this._signalChange();
-        },
-        
-        /**
-         * @private
-         * 
-         * Sends a change notification based on the current data and filename.
-         */
-        _signalChange: function () {
-            var data = this.data,
-                pathData;
-            
-            if (data && data.path) {
-                var glob = this._findMatchingGlob(data.path);
-                pathData = data.path[glob];
+        get: function (data, id, context) {
+            if (!data) {
+                return;
             }
             
-            if (pathData === undefined) {
-                pathData = {};
+            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
+            
+            if (!relativeFilename) {
+                return;
             }
             
-            $(this).trigger("dataChange", pathData);
+            var glob = this._findMatchingGlob(data, relativeFilename);
+            
+            if (!glob) {
+                return;
+            }
+            
+            return data[glob][id];
+        },
+        
+        getKeys: function (data, context) {
+            if (!data) {
+                return;
+            }
+            
+            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
+            
+            if (relativeFilename) {
+                var glob = this._findMatchingGlob(data, relativeFilename);
+                if (glob) {
+                    return _.keys(data[glob]);
+                } else {
+                    return [];
+                }
+            }
+            return _.union.apply(null, _.map(_.values(data), _.keys));
         },
         
         /**
@@ -888,15 +452,15 @@ define(function (require, exports, module) {
          * 
          * Look for a matching file glob among the collection of paths.
          * 
-         * @param {Object} path The keys are globs and the values are the preferences for that glob
+         * @param {Object} pathData The keys are globs and the values are the preferences for that glob
+         * @param {string} filename relative filename to match against the globs
          */
-        _findMatchingGlob: function (path) {
-            var globs = Object.keys(path),
-                filename = this.filename,
+        _findMatchingGlob: function (pathData, filename) {
+            var globs = Object.keys(pathData),
                 globCounter;
             
             if (!filename) {
-                return undefined;
+                return;
             }
             
             for (globCounter = 0; globCounter < globs.length; globCounter++) {
@@ -909,12 +473,11 @@ define(function (require, exports, module) {
         }
     };
     
-    function PathScopeAdder(filename, scopeName, scopeGenerator, before, pathLayerFilename) {
+    function PathScopeAdder(filename, scopeName, scopeGenerator, before) {
         this.filename = filename;
         this.scopeName = scopeName;
         this.scopeGenerator = scopeGenerator;
         this.before = before;
-        this.pathLayerFilename = pathLayerFilename;
     }
     
     PathScopeAdder.prototype = {
@@ -922,11 +485,8 @@ define(function (require, exports, module) {
             console.log("Adding scope", this.scopeName, "before", before);
             var scope = this.scopeGenerator.getScopeForFile(this.filename);
             if (scope) {
-                var pathLayer = new PathLayer();
-                pathLayer.setFilename(this.pathLayerFilename);
-                scope.addLevel("path", {
-                    layer: pathLayer
-                });
+                var pathLayer = new PathLayer(this.filename);
+                scope.addLayer(pathLayer);
                 return pm.addScope(this.scopeName, scope,
                     {
                         before: before
@@ -946,30 +506,38 @@ define(function (require, exports, module) {
      * means for listening for changes and will ultimately allow for automatic UI generation.
      */
     function PreferencesManager() {
-        MergedMap.apply(this);
         this._knownPrefs = {};
-        this.addLevel("default");
-        this._layers = [];
+        this._scopes = {
+            "default": new Scope(new MemoryStorage())
+        };
+        
+        this._scopes["default"].load();
+        
+        this._defaultContext = {
+            scopeOrder: ["default"]
+        };
+        
+        this._pendingScopes = {};
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
         
         this._pathScopes = {};
         
+        var notifyPrefChange = function (id) {
+            var pref = this._knownPrefs[id];
+            if (pref) {
+                console.log("Notifying ", pref);
+                $(pref).trigger(PREFERENCE_CHANGE);
+            }
+        }.bind(this);
+        
         // When we signal a general change message on this manager, we also signal a change
         // on the individual preference object.
-        $(this).on("change", function (e, data) {
-            var pref = this._knownPrefs[data.id];
-            if (pref) {
-                $(pref).trigger("change", {
-                    oldValue: data.oldValue,
-                    newValue: data.newValue
-                });
-            }
+        $(this).on(PREFERENCE_CHANGE, function (e, data) {
+            data.ids.forEach(notifyPrefChange);
         }.bind(this));
     }
-    
-    PreferencesManager.prototype = new MergedMap();
     
     _.extend(PreferencesManager.prototype, {
         
@@ -994,7 +562,7 @@ define(function (require, exports, module) {
                 name: options.name,
                 description: options.description
             };
-            MergedMap.prototype.set.call(this, "default", id, initial);
+            this.set("default", id, initial);
             return pref;
         },
         
@@ -1007,6 +575,32 @@ define(function (require, exports, module) {
             return this._knownPrefs[id];
         },
         
+        _addToScopeOrder: function (id, addBefore) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder;
+            
+            if (!addBefore) {
+                defaultScopeOrder.unshift(id);
+            } else {
+                var addIndex = defaultScopeOrder.indexOf(addBefore);
+                if (addIndex > -1) {
+                    defaultScopeOrder.splice(addIndex, 0, id);
+                } else {
+                    var queue = this._pendingScopes[addBefore];
+                    if (!queue) {
+                        queue = [];
+                        this._pendingScopes[addBefore] = queue;
+                    }
+                    queue.unshift(id);
+                }
+            }
+            if (this._pendingScopes[id]) {
+                var pending = this._pendingScopes[id];
+                delete this._pendingScopes[id];
+                pending.forEach(function (scopeID) {
+                    this._addToScopeOrder(scopeID, id);
+                }.bind(this));
+            }
+        },
         /**
          * Adds a new Scope. New Scopes are added at the highest precedence. The new Scope
          * is automatically loaded.
@@ -1020,7 +614,7 @@ define(function (require, exports, module) {
         addScope: function (id, scope, options) {
             options = options || {};
             
-            if (this._levels.indexOf(id) > -1) {
+            if (this._scopes[id]) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
             }
             
@@ -1029,21 +623,16 @@ define(function (require, exports, module) {
                 scope = new Scope(scope);
             }
             
-            this.addLevel(id, {
-                map: scope,
-                before: options.before
-            });
-            
-            this._layers.forEach(function (layerInfo) {
-                scope.addLevel(layerInfo.id, {
-                    layer: layerInfo.layer
-                });
-            });
+            $(scope).on(PREFERENCE_CHANGE, function (e, data) {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }.bind(this));
             
             var deferred = $.Deferred();
             
             scope.load()
-                .done(function (data) {
+                .then(function () {
+                    this._scopes[id] = scope;
+                    this._addToScopeOrder(id, options.before);
                     deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {
@@ -1058,28 +647,38 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Removes a scope.
+         * Removes a Scope from this PreferencesManager. Returns without doing anything
+         * if the Scope does not exist.
          * 
-         * @param {string} id Name of the scope to remove
+         * @param {string} id Name of the Scope to remove
          */
-        removeScope: MergedMap.prototype.removeLevel,
+        removeScope: function (id) {
+            var scope = this._scopes[id];
+            if (!scope) {
+                return;
+            }
+            delete this._scopes[id];
+            _.pull(this._defaultContext.scopeOrder, id);
+            $(scope).off(PREFERENCE_CHANGE);
+            var keys = scope.getKeys();
+            $(this).trigger(PREFERENCE_CHANGE, {
+                ids: keys
+            });
+        },
         
-        /**
-         * Adds a Layer that applies to each Scope.
-         * 
-         * @param {string} id Name of the layer
-         * @param {Layer} layer The Layer object itself.
-         */
-        addLayer: function (id, layer) {
-            this._layers.push({
-                id: id,
-                layer: layer
-            });
-            _.values(this._childMaps).forEach(function (scope) {
-                scope.addLevel(id, {
-                    layer: layer
-                });
-            });
+        get: function (id, context) {
+            var scopeCounter,
+                scopeOrder = this._defaultContext.scopeOrder;
+            
+            context = context || this._defaultContext;
+            
+            for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
+                var scope = this._scopes[scopeOrder[scopeCounter]];
+                var result = scope.get(id, context);
+                if (result !== undefined) {
+                    return result;
+                }
+            }
         },
         
         /**
@@ -1091,21 +690,15 @@ define(function (require, exports, module) {
          * @return {boolean} True if the preference was changed.
          */
         set: function (scopeName, id, value) {
-            if (!this._childMaps[scopeName]) {
+            var scope = this._scopes[scopeName];
+            if (!scope) {
                 throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
             }
-            return MergedMap.prototype.set.call(this, [scopeName, "base"], id, value);
-        },
-        
-        /**
-         * Replace the data in the given Scope.
-         * 
-         * @param {string} scopeName Scope in which to replace the data
-         * @param {Object} data New data for the Scope
-         * 
-         */
-        setData: function (scopeName, data) {
-            MergedMap.prototype.setData.call(this, [scopeName, "base"], data);
+            
+            scope.set(id, value);
+            $(this).trigger(PREFERENCE_CHANGE, {
+                ids: [id]
+            });
         },
         
         /**
@@ -1126,8 +719,7 @@ define(function (require, exports, module) {
             var deferred = this._nextSaveDeferred || $.Deferred();
             this._nextSaveDeferred = null;
             
-            Async.doInParallel(this._levels, function (level) {
-                var scope = this._childMaps[level];
+            Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
                 } else {
@@ -1223,15 +815,12 @@ define(function (require, exports, module) {
                     prefDirectory = _.first(parts, i + 1).join("/") + "/";
                     filename = prefDirectory + preferencesFilename;
                     scopeName = "path:" + filename;
-                    scope = self._childMaps[scopeName];
+                    scope = self._scopes[scopeName];
                     console.log("scope", scopeName, scope);
-                    
-                    pathLayerFilename = contextFilename.substr(prefDirectory.length);
                     
                     // Check to see if the scope already exists
                     if (scope) {
-                        pathLayer = scope._layers.path;
-                        pathLayer.setFilename(pathLayerFilename);
+                        self._defaultContext.filename = contextFilename;
                         lastSeen = scopeName;
                         console.log("lastSeen is now", lastSeen);
                     } else {
@@ -1241,7 +830,7 @@ define(function (require, exports, module) {
                         // Keep a function closure for the scope that will be added
                         // if checkExists is true. We store these so that we can
                         // run them in order.
-                        scopeAdders.unshift(new PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen, pathLayerFilename));
+                        scopeAdders.unshift(new PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen));
                     }
                 });
             });
@@ -1268,11 +857,9 @@ define(function (require, exports, module) {
     });
     
     // Public interface
-    exports.MergedMap = MergedMap;
     exports.PreferencesManager = PreferencesManager;
     exports.Scope = Scope;
     exports.MemoryStorage = MemoryStorage;
-    exports.LanguageLayer = LanguageLayer;
     exports.PathLayer = PathLayer;
     exports.FileStorage = FileStorage;
 });
