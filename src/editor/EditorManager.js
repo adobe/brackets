@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
+        FileSystem          = require("filesystem/FileSystem"),
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         Strings             = require("strings"),
         LanguageManager     = require("language/LanguageManager");
@@ -73,6 +74,8 @@ define(function (require, exports, module) {
     var _currentEditorsDocument = null;
     /** @type {?string} full path to file */
     var _currentlyViewedPath = null;
+    /** @type {?Date} modification time of file */
+    var _currentlyViewedFileMTime = null;
     /** @type {?JQuery} DOM node representing UI of custom view   */
     var _$currentCustomViewer = null;
     /** @type {?Object} view provider */
@@ -598,7 +601,8 @@ define(function (require, exports, module) {
             _currentEditorsDocument = null;
             _currentEditor = null;
             _currentlyViewedPath = null;
-            
+            _currentlyViewedFileMTime = null;
+
             // No other Editor is gaining focus, so in this one special case we must trigger event manually
             _notifyActiveEditorChanged(null);
         }
@@ -610,18 +614,60 @@ define(function (require, exports, module) {
         _nullifyEditor();
     }
     
+    /**
+     * returns the full path to the file currently in view, i.e. a text doc in an editor
+     * or a file in a custom viewer, i.e. an image.
+     */
     function getCurrentlyViewedPath() {
         return _currentlyViewedPath;
     }
-    
+
+    /**
+     * returns the the modification time stamp on disk of the file currently in view, 
+     * i.e. a text doc in an editor or a file in a custom viewer, i.e. an image.
+     */
+    function getCurrentlyViewedFileMTime() {
+        return _currentlyViewedFileMTime;
+    }
+
     function _clearCurrentlyViewedPath() {
         _currentlyViewedPath = null;
+        _currentlyViewedFileMTime = null;
         $(exports).triggerHandler("currentlyViewedFileChange");
     }
-    
-    function _setCurrentlyViewedPath(fullPath) {
-        _currentlyViewedPath = fullPath;
-        $(exports).triggerHandler("currentlyViewedFileChange");
+
+    var notifyPathDeleted;
+
+    function _setCurrentlyViewedPath(fullPath, mtime) {
+
+        if (fullPath) {
+            if (mtime) {
+                _currentlyViewedPath = fullPath;
+                // if this was invoked form an document open command we do have the modification timestamp
+                // and can synchronously save the value
+                _currentlyViewedFileMTime = mtime;
+                $(exports).triggerHandler("currentlyViewedFileChange");
+            } else {
+                _currentlyViewedPath = fullPath;
+                // if this was invoked without the modification time
+                // we will fetch the timestamp asynchrmously
+                var file = FileSystem.getFileForPath(fullPath);
+                file.stat(function (fileError, stat) {
+                    if (!fileError) {
+                        _currentlyViewedFileMTime = stat.mtime.getTime();
+                        $(exports).triggerHandler("currentlyViewedFileChange");
+                    } else {
+                        notifyPathDeleted(fullPath);
+                    }
+                });
+            }
+        } else {
+            // if fullpath is not defined reset path and timestamp
+            _currentlyViewedPath = null;
+            _currentlyViewedFileMTime = null;
+            $(exports).triggerHandler("currentlyViewedFileChange");
+        }
+
     }
     
     /** Remove existing custom view if present */
@@ -652,7 +698,7 @@ define(function (require, exports, module) {
      * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
-    function showCustomViewer(provider, fullPath) {
+    function showCustomViewer(provider, fullPath, mtime) {
         // Don't show the same custom view again if file path
         // and view provider are still the same.
         if (_currentlyViewedPath === fullPath &&
@@ -672,8 +718,8 @@ define(function (require, exports, module) {
         
         // add path, dimensions and file size to the view after loading image
         _$currentCustomViewer = provider.render(fullPath, $("#editor-holder"));
-        
-        _setCurrentlyViewedPath(fullPath);
+
+        _setCurrentlyViewedPath(fullPath, mtime);
     }
 
     /**
@@ -700,6 +746,9 @@ define(function (require, exports, module) {
      * - onRemove
      *      signs off listeners and performs any required clean up when editor manager closes
      *      the custom viewer
+     * - refresh (optional)
+     *      notifies a custom viewer of a timstamp
+     *      change of a file in view in a custom viewer
      *
      * By registering a CustomViewer with EditorManager  Brackets is
      * enabled to view files for one or more given file extensions. 
@@ -742,17 +791,33 @@ define(function (require, exports, module) {
         
         return _customViewerRegistry[lang.getId()];
     }
-    
-    /** 
-     * Clears custom viewer for a file with a given path and displays 
-     * an alternate file or the no editor view. 
-     * If no param fullpath is passed an alternate file will be opened 
+
+    /**
+     * Calls refresh on custom viewer if the custom viewer implements it.
+     * This will happen when a file displayed by a custom viewer changes 
+     * on disk, to allow the custom viewer to force a reload of a file.  
+     * CEF caches files loaded via the file-protocol and doesn't honor the 
+     * files modification date to determin wether it is stale.
+     *
+     * @param {!string} fullPath - path to file to be refreshed by custom viewer     
+     */
+    function refreshCustomViewer(fullPath) {
+        var customViewer = getCustomViewerForPath(fullPath);
+        if (customViewer.refresh) {
+            customViewer.refresh();
+        }
+    }
+
+    /**
+     * Clears custom viewer for a file with a given path and displays
+     * an alternate file or the no editor view.
+     * If no param fullpath is passed an alternate file will be opened
      * regardless of the current value of _currentlyViewedPath.
      * If param fullpath is provided then only if fullpath matches 
      * the currently viewed file an alternate file will be opened.
      * @param {?string} fullPath - file path of deleted file.
      */
-    function notifyPathDeleted(fullPath) {
+    notifyPathDeleted = function (fullPath) {
         function openAlternateFile() {
             var fileToOpen = DocumentManager.getNextPrevFile(1);
             if (fileToOpen) {
@@ -1030,6 +1095,7 @@ define(function (require, exports, module) {
     exports.getFocusedEditor              = getFocusedEditor;
     exports.getActiveEditor               = getActiveEditor;
     exports.getCurrentlyViewedPath        = getCurrentlyViewedPath;
+    exports.getCurrentlyViewedFileMTime   = getCurrentlyViewedFileMTime;
     exports.getFocusedInlineWidget        = getFocusedInlineWidget;
     exports.resizeEditor                  = resizeEditor;
     exports.registerInlineEditProvider    = registerInlineEditProvider;
@@ -1039,6 +1105,7 @@ define(function (require, exports, module) {
     exports.closeInlineWidget             = closeInlineWidget;
     exports.showCustomViewer              = showCustomViewer;
     exports.registerCustomViewer          = registerCustomViewer;
+    exports.refreshCustomViewer           = refreshCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
     exports.closeCustomViewer             = closeCustomViewer;
