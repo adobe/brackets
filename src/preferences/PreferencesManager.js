@@ -214,6 +214,7 @@ define(function (require, exports, module) {
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
+    // Set up the .brackets.prefs file handling
     preferencesManager.addPathScopes(".brackets.prefs", {
         before: "user",
         checkExists: function (filename) {
@@ -232,7 +233,7 @@ define(function (require, exports, module) {
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesManager();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     

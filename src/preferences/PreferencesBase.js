@@ -29,21 +29,21 @@
  * Infrastructure for the preferences system.
  *
  * At the top, the level at which most people will interact, is the `PreferencesManager` object.
- * The most common operation is `get(id)`, which simply retrieve the value of a given preference.
+ * The most common operation is `get(id)`, which simply retrieves the value of a given preference.
  * 
- * The PreferencesManager has an ordered collection of Scopes. Each Scope holds one level of 
- * settings. 
+ * The PreferencesManager has a collection of Scopes, which it traverses in a specified order. 
+ * Each Scope holds one level of settings. 
  * 
  * PreferencesManager.js sets up a singleton PreferencesManager that has the following Scopes:
  *
- *  default (the default values for any settings that are explicitly registered)
- *  user (the user's customized settings – the equivalent of Brackets' old 
+ * * default (the default values for any settings that are explicitly registered)
+ * *  user (the user's customized settings – the equivalent of Brackets' old 
  *        localStorage-based system. This is the settings file that lives in AppData)
- *  project (the useful new one: .brackets.prefs file in the root of a project)
- *  session (in-memory only settings for the current editing session)
+ * * Additional scopes for each .brackets.prefs file going upward in the file tree from the
+ *        current file
  * 
- * For example, if spaceUnits has a value set at the project level, then a call 
- * to get("spaceUnits") would return the project level value. Project values come 
+ * For example, if spaceUnits has a value set in a .brackets.prefs file near the open file, 
+ * then a call to get("spaceUnits") would return the value from that file. File values come 
  * first, user values next, default values last. If the setting is not known 
  * at all, undefined is returned.
  * 
@@ -51,18 +51,10 @@
  * save the preferences value for that Scope. There are two implementations: 
  * MemoryStorage and FileStorage.
  * 
- * The final concept used is that of Layers. A Layer applies to every Scope and 
- * provides an additional level for preference lookups. Generally, a Layer looks 
+ * The final concept used is that of Layers, which can be added to Scopes. Generally, a Layer looks 
  * for a collection of preferences that are nested in some fashion in the Scope's 
  * data. Under certain circumstances (decided upon by the Layer object), 
  * those nested preferences will take precedence over the main preferences in the Scope.
- * 
- * There is a data structure that sits underneath the PreferencesManager and Scopes: 
- * the MergedMap. A MergedMap is a map-like object that merges multiple maps 
- * into a single one for lookups and sends out change notifications when there 
- * is a change to a value in the map. The PreferencesManager itself is a 
- * MergedMap and the Scopes are nested MergedMaps. The Layers are implemented as 
- * additional levels in the Scopes.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -226,14 +218,10 @@ define(function (require, exports, module) {
     };
     
     /**
-     * A `Scope` is a `MergedMap` that is tied to a `Storage`. Essentially, it combines
-     * the methods of `MergedMap` and `Storage`.
+     * A `Scope` is a data container that is tied to a `Storage`.
      * 
      * Additionally, `Scope`s support "layers" which are additional levels of preferences
      * that are stored within a single preferences file.
-     * 
-     * `Scope`s work by having a "base" level in the MergedMap that represents the data from
-     * the `Storage` and an additional level for each layer.
      * 
      * @param {Storage} storage Storage object from which prefs are loaded/saved
      */
@@ -286,12 +274,10 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets the value for `id` at the given level and sends out notifications if
-         * the merged value has actually changed.
+         * Sets the value for `id`.
          * 
          * @param {string} id Key to set
          * @param {*} value Value for this key
-         * @return {boolean} true if the value was changed
          */
         set: function (id, value) {
             // Scopes do not support changing settings on layers at this
@@ -301,6 +287,15 @@ define(function (require, exports, module) {
             this.data[id] = value;
         },
         
+        /**
+         * Get the value for id, given the context. The context is provided to layers
+         * which may override the value from the main data of the Scope. Note that
+         * layers will often exclude values from consideration.
+         * 
+         * @param {string} id Preference to retrieve
+         * @param {?Object} context Optional additional information about the request
+         * @return {*} Current value of the Preference
+         */
         get: function (id, context) {
             var layerCounter,
                 layers = this._layers,
@@ -323,6 +318,14 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * Get the preference IDs that are set in this Scope. All layers are added
+         * in. If context is not provided, the set of all keys in the Scope including
+         * all keys in each layer will be returned.
+         * 
+         * @param {?Object} context Optional additional information for looking up the keys
+         * @return {Array.<string>} Set of preferences set by this Scope
+         */
         getKeys: function (context) {
             context = context || {};
             
@@ -340,6 +343,17 @@ define(function (require, exports, module) {
             return _.union.apply(null, keySets);
         },
         
+        /**
+         * Adds a Layer to this Scope. The Layer object should define a `key`, which
+         * represents the subset of the preference data that the Layer works with.
+         * Layers should also define `get` and `getKeys` operations that are like their
+         * counterparts in Scope but take "data" as the first argument.
+         * 
+         * Listeners are notified of potential changes in preferences with the addition of
+         * this layer.
+         * 
+         * @param {Layer} layer Layer object to add to this Scope
+         */
         addLayer: function (layer) {
             this._layers.push(layer);
             this._exclusions.push(layer.key);
@@ -349,20 +363,11 @@ define(function (require, exports, module) {
         }
     });
     
-    /**
-     * Provides layered preferences based on file globs, generally following the model provided
-     * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
-     * (switching to single line comments because the glob interferes with the multiline comment):
-     */
-    
-//    "path": {
-//        "src/thirdparty/CodeMirror2/**/*.js": {
-//            "spaceUnits": 2,
-//            "linting.enabled": false
-//        }
-//    }
+    // Utility functions for the PathLayer
     
     /**
+     * @private
+     * 
      * Finds the directory name of the given path. Ensures that the result always ends with a "/".
      * 
      * @param {string} filename Filename from which to extract the dirname
@@ -378,6 +383,9 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * 
+     *
      * Computes filename as relative to the basePath. For example:
      * basePath: /foo/bar/, filename: /foo/bar/baz.txt
      * returns: baz.txt
@@ -396,6 +404,45 @@ define(function (require, exports, module) {
         
         return filename.substr(basePath.length);
     }
+    
+    /**
+     * @private
+     * 
+     * Look for a matching file glob among the collection of paths.
+     * 
+     * @param {Object} pathData The keys are globs and the values are the preferences for that glob
+     * @param {string} filename relative filename to match against the globs
+     * @return {?string} glob pattern that matched, if any
+     */
+    function _findMatchingGlob(pathData, filename) {
+        var globs = Object.keys(pathData),
+            globCounter;
+
+        if (!filename) {
+            return;
+        }
+
+        for (globCounter = 0; globCounter < globs.length; globCounter++) {
+            var glob = globs[globCounter];
+
+            if (globmatch(filename, glob)) {
+                return glob;
+            }
+        }
+    }
+
+    /**
+     * Provides layered preferences based on file globs, generally following the model provided
+     * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
+     * (switching to single line comments because the glob interferes with the multiline comment):
+     */
+    
+//    "path": {
+//        "src/thirdparty/CodeMirror2/**/*.js": {
+//            "spaceUnits": 2,
+//            "linting.enabled": false
+//        }
+//    }
     
     /**
      * There can be multiple paths and they are each checked in turn. The first that matches the
@@ -430,7 +477,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var glob = this._findMatchingGlob(data, relativeFilename);
+            var glob = _findMatchingGlob(data, relativeFilename);
             
             if (!glob) {
                 return;
@@ -439,6 +486,14 @@ define(function (require, exports, module) {
             return data[glob][id];
         },
         
+        /**
+         * Retrieves the keys provided by this layer object. If context with a filename is provided,
+         * only the keys for the matching file glob are given. Otherwise, all keys for all globs
+         * are provided.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {?Object} context Additional context data (filename in particular is important)
+         */
         getKeys: function (data, context) {
             if (!data) {
                 return;
@@ -447,7 +502,7 @@ define(function (require, exports, module) {
             var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
             
             if (relativeFilename) {
-                var glob = this._findMatchingGlob(data, relativeFilename);
+                var glob = _findMatchingGlob(data, relativeFilename);
                 if (glob) {
                     return _.keys(data[glob]);
                 } else {
@@ -455,34 +510,21 @@ define(function (require, exports, module) {
                 }
             }
             return _.union.apply(null, _.map(_.values(data), _.keys));
-        },
-        
-        /**
-         * @private
-         * 
-         * Look for a matching file glob among the collection of paths.
-         * 
-         * @param {Object} pathData The keys are globs and the values are the preferences for that glob
-         * @param {string} filename relative filename to match against the globs
-         */
-        _findMatchingGlob: function (pathData, filename) {
-            var globs = Object.keys(pathData),
-                globCounter;
-            
-            if (!filename) {
-                return;
-            }
-            
-            for (globCounter = 0; globCounter < globs.length; globCounter++) {
-                var glob = globs[globCounter];
-                
-                if (globmatch(filename, glob)) {
-                    return glob;
-                }
-            }
         }
+        
     };
     
+    /**
+     * Helper object to add a new path-based Scope to the PreferencesManager. When a path-based
+     * Scope will be added, its existence is first checked and *then* this PathScopeAdder will be
+     * used.
+     * 
+     * @param {string} filename Filename of the preferences file
+     * @param {string} scopeName Name of the new Scope to add
+     * @param {ScopeGenerator} scopeGenerator ScopeGenerator object that knows how to create the
+     *                      Scope with the correct kind of Storage object
+     * @param {string} before Name of the default Scope before which the new Scope should be added
+     */
     function PathScopeAdder(filename, scopeName, scopeGenerator, before) {
         this.filename = filename;
         this.scopeName = scopeName;
@@ -491,6 +533,13 @@ define(function (require, exports, module) {
     }
     
     PathScopeAdder.prototype = {
+        /**
+         * Adds the new Scope to the given PreferencesManager.
+         * 
+         * @param {PreferencesManager} pm PreferencesManager to which the Scope will be added
+         * @param {string} before Name of the Scope before which the new Scope should be added
+         * @return {Promise} Promise resolved once the Scope is loaded
+         */
         add: function (pm, before) {
             var scope = this.scopeGenerator.getScopeForFile(this.filename);
             if (scope) {
@@ -504,15 +553,32 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Represents a single, known Preference.
+     * 
+     * @param {Object} properties Information about the Preference that is stored on this object
+     */
     function Preference(properties) {
         _.extend(this, properties);
     }
     
     _.extend(Preference.prototype, {
+        /**
+         * Sets an event handler on this Preference.
+         * 
+         * @param {string} event Event name
+         * @param {Function} handler Function to handle the event
+         */
         on: function (event, handler) {
             $(this).on(event, handler);
         },
         
+        /**
+         * Removes an event handler from this Preference
+         * 
+         * @param {string} event Event name
+         * @param {?Function} handler Optional specific function to stop receiving events 
+         */
         off: function (event, handler) {
             $(this).off(event, handler);
         }
@@ -522,8 +588,7 @@ define(function (require, exports, module) {
      * PreferencesManager ties everything together to provide a simple interface for
      * managing the whole prefs system.
      * 
-     * It is a MergedMap with Scopes at each level. It also keeps track of Layers that
-     * are applied at each Scope.
+     * It keeps track of multiple Scope levels and also manages path-based Scopes.
      * 
      * It also provides the ability to register preferences, which gives a fine-grained
      * means for listening for changes and will ultimately allow for automatic UI generation.
@@ -597,6 +662,20 @@ define(function (require, exports, module) {
             return this._knownPrefs[id];
         },
         
+        /**
+         * @private
+         * 
+         * Adds the new Scope to the scope order in the correct place.
+         * If the Scope before which this new Scope is being added does not
+         * yet exist, the Scope is held in a "pending scopes" list to be added
+         * once the before Scope is ready.
+         * 
+         * Adding a Scope "before" another Scope means that the new Scope's preferences
+         * will take priority over the "before" Scope's preferences.
+         * 
+         * @param {string} id Name of the new Scope
+         * @param {?string} addBefore Name of the Scope before which this new one is added
+         */
         _addToScopeOrder: function (id, addBefore) {
             var defaultScopeOrder = this._defaultContext.scopeOrder;
             
@@ -624,11 +703,11 @@ define(function (require, exports, module) {
             }
         },
         /**
-         * Adds a new Scope. New Scopes are added at the highest precedence. The new Scope
-         * is automatically loaded.
+         * Adds a new Scope. New Scopes are added at the highest precedence, unless the "before" option
+         * is given. The new Scope is automatically loaded.
          * 
          * @param {string} id Name of the Scope
-         * @param {Scope} scope the Scope object itself. Can be given a Storage directly for convenience
+         * @param {Scope|Storage} scope the Scope object itself. Optionally, can be given a Storage directly for convenience
          * @param {{before: string}} options optional behavior when adding (e.g. setting which scope this comes before)
          * @return {Promise} Promise that is resolved when the Scope is loaded. It is resolved
          *                   with id and scope.
@@ -645,6 +724,7 @@ define(function (require, exports, module) {
                 scope = new Scope(scope);
             }
             
+            // Change events from the Scope should propagate to listeners
             $(scope).on(PREFERENCE_CHANGE, function (e, data) {
                 $(this).trigger(PREFERENCE_CHANGE, data);
             }.bind(this));
@@ -670,7 +750,8 @@ define(function (require, exports, module) {
         
         /**
          * Removes a Scope from this PreferencesManager. Returns without doing anything
-         * if the Scope does not exist.
+         * if the Scope does not exist. Notifies listeners of preferences that may have
+         * changed.
          * 
          * @param {string} id Name of the Scope to remove
          */
@@ -688,11 +769,19 @@ define(function (require, exports, module) {
             });
         },
         
+        /**
+         * Get the current value of a preference. The optional context provides a way to
+         * change scope ordering or the reference filename for path-based scopes.
+         * 
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {?Object} context Optional context object to change the preference lookup
+         */
         get: function (id, context) {
-            var scopeCounter,
-                scopeOrder = this._defaultContext.scopeOrder;
+            var scopeCounter;
             
             context = context || this._defaultContext;
+            
+            var scopeOrder = context.scopeOrder || this._defaultContext.scopeOrder;
             
             for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
                 var scope = this._scopes[scopeOrder[scopeCounter]];
@@ -704,12 +793,12 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets a preference in the chosen Scope.
+         * Sets a preference in the chosen Scope and notifies listeners that there may
+         * have been a change.
          * 
          * @param {string} scopeName Scope to set the preference in
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
-         * @return {boolean} True if the preference was changed.
          */
         set: function (scopeName, id, value) {
             var scope = this._scopes[scopeName];
@@ -768,7 +857,8 @@ define(function (require, exports, module) {
          * searched for going up the file tree to the root.
          * 
          * This function just sets up the path scopes. You need to call
-         * `setPathScopeContext` to activate the path scopes.
+         * `setPathScopeContext` to activate the path scopes. If a path scope context
+         * is already set, the new path scopes will be activated automatically.
          * 
          * The `scopeGenerator` is an object that provides the following:
          * * `before`: all scopes added will be before (higher precedence) this named scope
@@ -776,7 +866,7 @@ define(function (require, exports, module) {
          * * `getScopeForFile`: Called after checkExists. Synchronously returns a Scope object for the given file. Only called where `checkExists` is true.
          * 
          * @param {string} preferencesFilename Name for the preferences files managed by this scopeGenerator (e.g. `.brackets.prefs`)
-         * @param {Object} scopeGenerator defines the behavior used to generate scopes for these files
+         * @param {ScopeGenerator} scopeGenerator defines the behavior used to generate scopes for these files
          * @return {Promise} promise resolved when the scopes have been added.
          */
         addPathScopes: function (preferencesFilename, scopeGenerator) {
@@ -793,6 +883,9 @@ define(function (require, exports, module) {
          * Sets the current path scope context. This causes a reloading of paths as needed.
          * Paths that are common between the old and new context files are not reloaded.
          * All path scopes are updated by this function.
+         * 
+         * Notifications are sent for any preferences that may have changed value as a result
+         * of this operation.
          * 
          * @param {string} contextFilename New filename used to resolve preferences
          * @return {Promise} resolved when the path scope context change is complete. Note that *this promise is resolved before the scopes are done loading*.
@@ -886,6 +979,14 @@ define(function (require, exports, module) {
             return result.promise();
         },
         
+        /**
+         * Sets up a listener for events. Optionally, you can set up a listener for a
+         * specific preference.
+         * 
+         * @param {string} event Name of the event to listen for
+         * @param {string|Function} preferenceID Name of a specific preference or the handler function
+         * @param {?Function} handler Handler for the event
+         */
         on: function (event, preferenceID, handler) {
             if (typeof preferenceID === "function") {
                 handler = preferenceID;
@@ -900,6 +1001,14 @@ define(function (require, exports, module) {
             }
         },
         
+        /**
+         * Turns off the event handlers for a given event, optionally for a specific preference
+         * or a specific handler function.
+         * 
+         * @param {string} event Name of the event for which to turn off listening
+         * @param {string|Function} preferenceID Name of a specific preference or the handler function
+         * @param {?Function} handler Specific handler which should stop being notified
+         */
         off: function (event, preferenceID, handler) {
             if (typeof preferenceID === "function") {
                 handler = preferenceID;
