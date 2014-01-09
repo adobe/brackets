@@ -145,7 +145,7 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}}>} provider
+     * @return ?{Array.<{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
         return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
@@ -159,11 +159,12 @@ define(function (require, exports, module) {
      * 
      * The Promise yields an array of provider-result pair objects (the result is the return value of the
      * provider's scanFile() - see register() for details). The result object may be null if there were no
-     * errors from that provider. The array is empty if there are no providers registered for this file.
+     * errors from that provider.
+     * If there are no providers registered for this file, the Promise yields null instead.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param ?{Array.<{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}}>} providerList
-     * @return {$.Promise} a jQuery promise that will be resolved with !Array.<{provider:Object, result: ?{!errors:Array, aborted:boolean}}>
+     * @param {?Array.<{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
+     * @return {$.Promise} a jQuery promise that will be resolved with ?Array.<{provider:Object, result: ?{errors:!Array, aborted:boolean}}>
      */
     function inspectFile(file, providerList) {
         var response = new $.Deferred(),
@@ -374,7 +375,7 @@ define(function (require, exports, module) {
      * registered providers.
      *
      * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{!errors:Array, aborted:boolean}} provider
+     * @param {{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
