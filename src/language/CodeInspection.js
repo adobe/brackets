@@ -305,9 +305,8 @@ define(function (require, exports, module) {
 
                     if (inspectionResult.result) {
                         inspectionResult.result.errors.forEach(function (error) {
-                            // some inspectors don't always provide a line number
-                            if (!isNaN(error.pos.line)) {
-                                error.friendlyLine = error.pos.line + 1;
+                            // some inspectors don't always provide a line number or report a negative line number
+                            if (!isNaN(error.pos.line) && (error.friendlyLine = error.pos.line + 1) > 0) {
                                 error.codeSnippet = currentDoc.getLine(error.pos.line);
                                 error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
                             }
