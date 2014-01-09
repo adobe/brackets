@@ -201,14 +201,18 @@
     .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: transparent;
     }
-    
+
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, (@bc-color-step-size / 2)); 
-    }
-    .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
+        background: @activeline-bgcolor;
     }
     
+    .CodeMirror-focused .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background: @tc-gray-panel-top-bar;
+            color: @bc-black;
+        }
+    }
+
     .CodeMirror-matchingtag { background: @matching-bracket; }
 }
 
