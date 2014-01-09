@@ -174,7 +174,7 @@ define(function (require, exports, module) {
                 // Changing projects will force a change in the project scope.
                 SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
                 expect(PreferencesManager.get("spaceUnits")).toBeUndefined();
-            });            
+            });
         });
     });
 });

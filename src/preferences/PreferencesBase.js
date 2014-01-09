@@ -221,7 +221,6 @@ define(function (require, exports, module) {
          */
         setPath: function (newPath) {
             this.path = newPath;
-            console.log("FileStorage triggering");
             $(this).trigger("changed");
         }
     };
@@ -257,13 +256,12 @@ define(function (require, exports, module) {
             var result = $.Deferred();
             this.storage.load()
                 .then(function (data) {
+                    var oldKeys = this.getKeys();
                     this.data = data;
-                    console.log("Loading, this is", this);
-                    // TODO: compare with old data to find removed keys!
-                    $(this).trigger(PREFERENCE_CHANGE, {
-                        ids: this.getKeys()
-                    });
                     result.resolve();
+                    $(this).trigger(PREFERENCE_CHANGE, {
+                        ids: _.union(this.getKeys(), oldKeys)
+                    });
                 }.bind(this))
                 .fail(function (error) {
                     result.reject(error);
@@ -327,7 +325,19 @@ define(function (require, exports, module) {
         
         getKeys: function (context) {
             context = context || {};
-            return _.difference(_.keys(this.data), this._exclusions);
+            
+            var layerCounter,
+                layers = this._layers,
+                layer,
+                data = this.data;
+            
+            var keySets = [_.difference(_.keys(data), this._exclusions)];
+            for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
+                layer = layers[layerCounter];
+                keySets.push(layer.getKeys(data[layer.key], context));
+            }
+            
+            return _.union.apply(null, keySets);
         },
         
         addLayer: function (layer) {
@@ -482,7 +492,6 @@ define(function (require, exports, module) {
     
     PathScopeAdder.prototype = {
         add: function (pm, before) {
-            console.log("Adding scope", this.scopeName, "before", before);
             var scope = this.scopeGenerator.getScopeForFile(this.filename);
             if (scope) {
                 var pathLayer = new PathLayer(this.filename);
@@ -494,6 +503,20 @@ define(function (require, exports, module) {
             }
         }
     };
+    
+    function Preference(properties) {
+        _.extend(this, properties);
+    }
+    
+    _.extend(Preference.prototype, {
+        on: function (event, handler) {
+            $(this).on(event, handler);
+        },
+        
+        off: function (event, handler) {
+            $(this).off(event, handler);
+        }
+    });
     
     /**
      * PreferencesManager ties everything together to provide a simple interface for
@@ -527,7 +550,6 @@ define(function (require, exports, module) {
         var notifyPrefChange = function (id) {
             var pref = this._knownPrefs[id];
             if (pref) {
-                console.log("Notifying ", pref);
                 $(pref).trigger(PREFERENCE_CHANGE);
             }
         }.bind(this);
@@ -556,12 +578,12 @@ define(function (require, exports, module) {
             if (this._knownPrefs.hasOwnProperty(id)) {
                 throw new Error("Preference " + id + " was redefined");
             }
-            var pref = this._knownPrefs[id] = {
+            var pref = this._knownPrefs[id] = new Preference({
                 type: type,
                 initial: initial,
                 name: options.name,
                 description: options.description
-            };
+            });
             this.set("default", id, initial);
             return pref;
         },
@@ -760,8 +782,8 @@ define(function (require, exports, module) {
         addPathScopes: function (preferencesFilename, scopeGenerator) {
             this._pathScopes[preferencesFilename] = scopeGenerator;
             
-            if (this._pathScopeContext) {
-                return this.setPathScopeContext(this._pathScopeContext);
+            if (this._defaultContext.filename) {
+                return this.setPathScopeContext(this._defaultContext.filename);
             } else {
                 return new $.Deferred().resolve().promise();
             }
@@ -776,15 +798,21 @@ define(function (require, exports, module) {
          * @return {Promise} resolved when the path scope context change is complete. Note that *this promise is resolved before the scopes are done loading*.
          */
         setPathScopeContext: function (contextFilename) {
-            var oldParts = this._pathScopeContext ? this._pathScopeContext.split("/") : [],
+            var defaultContext = this._defaultContext,
+                oldFilename = this._defaultContext.filename,
+                oldContext = {
+                    filename: oldFilename
+                },
+                oldParts = oldFilename ? oldFilename.split("/") : [],
                 parts = _.initial(contextFilename.split("/")),
                 loadingPromises = [],
                 self = this,
                 result = new $.Deferred(),
                 scopesToCheck = [],
-                scopeAdders = [];
+                scopeAdders = [],
+                notificationKeys = [];
             
-            this._pathScopeContext = contextFilename;
+            defaultContext.filename = contextFilename;
             
             // Loop over the path scopes
             _.forIn(this._pathScopes, function (scopeGenerator, preferencesFilename) {
@@ -802,12 +830,8 @@ define(function (require, exports, module) {
                 // Remove all of the scopes that weren't the same in old and new
                 for (counter = counter + 1; counter < oldParts.length; counter++) {
                     scopeNameToRemove = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
-                    console.log("Removing", scopeNameToRemove);
                     self.removeScope(scopeNameToRemove);
                 }
-                
-                console.log("Scopes is now", self._childMaps);
-                
                 
                 // Now add new scopes as required
                 _.forEach(parts, function (part, i) {
@@ -816,13 +840,13 @@ define(function (require, exports, module) {
                     filename = prefDirectory + preferencesFilename;
                     scopeName = "path:" + filename;
                     scope = self._scopes[scopeName];
-                    console.log("scope", scopeName, scope);
                     
                     // Check to see if the scope already exists
                     if (scope) {
-                        self._defaultContext.filename = contextFilename;
                         lastSeen = scopeName;
-                        console.log("lastSeen is now", lastSeen);
+                        // The old values could have changed, as well as the new values
+                        notificationKeys.push(scope.getKeys(oldContext));
+                        notificationKeys.push(scope.getKeys(defaultContext));
                     } else {
                         // New scope. First check to see if the file exists.
                         scopesToCheck.unshift(scopeGenerator.checkExists(filename));
@@ -834,6 +858,14 @@ define(function (require, exports, module) {
                     }
                 });
             });
+            
+            // Notify listeners of all possible key changes for already loaded scopes
+            // New scopes will notify as soon as the data is loaded.
+            if (notificationKeys.length > 0) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: _.union.apply(null, notificationKeys)
+                });
+            }
             
             // When all of the scope checks are done, run through them in order
             // and then call the adders for each file that exists.
@@ -848,11 +880,38 @@ define(function (require, exports, module) {
                         loadingPromises.push(scopeAdder.add(self, before));
                     }
                 }
-                console.log("final scopes", self._levels);
                 result.resolve();
             });
             
             return result.promise();
+        },
+        
+        on: function (event, preferenceID, handler) {
+            if (typeof preferenceID === "function") {
+                handler = preferenceID;
+                preferenceID = null;
+            }
+            
+            if (preferenceID) {
+                var pref = this.getPreference(preferenceID);
+                pref.on(event, handler);
+            } else {
+                $(this).on(event, handler);
+            }
+        },
+        
+        off: function (event, preferenceID, handler) {
+            if (typeof preferenceID === "function") {
+                handler = preferenceID;
+                preferenceID = null;
+            }
+            
+            if (preferenceID) {
+                var pref = this.getPreference(preferenceID);
+                pref.off(event, handler);
+            } else {
+                $(this).off(event, handler);
+            }
         }
     });
     

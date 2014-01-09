@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                 scope.load();
                 
                 expect(scope.get("spaceUnits")).toBe(4);
-                expect(_.difference(scope.getKeys(), ["spaceUnits", "useTabChar"])).toEqual([]);
+                expect(scope.getKeys().sort()).toEqual(["spaceUnits", "useTabChar"].sort());
             });
             
             it("should look up a value with a path layer", function () {
@@ -157,6 +157,84 @@ define(function (require, exports, module) {
                 expect(scope.get("spaceUnits", {
                     filename: "/top.js"
                 })).toBe(4);
+            });
+            
+            it("can return its keys", function () {
+                var data = {
+                    spaceUnits: 4,
+                    useEmojiForTabs: true,
+                    path: {
+                        "**.js": {
+                            spaceUnits: 3,
+                            showNonWhitespace: false
+                        },
+                        "README.md": {
+                            markdown: false,
+                            useEmojiForTabs: false
+                        }
+                    }
+                };
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                scope.addLayer(new PreferencesBase.PathLayer("/"));
+                scope.load();
+                
+                var keys = scope.getKeys();
+                var expected = ["spaceUnits", "useEmojiForTabs", "showNonWhitespace", "markdown"];
+                expect(keys.sort()).toEqual(expected.sort());
+                
+                keys = scope.getKeys({
+                    filename: "/coffeescript.ts"
+                });
+                expected = ["spaceUnits", "useEmojiForTabs"];
+                expect(keys.sort()).toEqual(expected.sort());
+                
+                keys = scope.getKeys({
+                    filename: "/README.md"
+                });
+                expected = ["spaceUnits", "useEmojiForTabs", "markdown"];
+                expect(keys.sort()).toEqual(expected.sort());
+            });
+            
+            it("notifies of changes", function () {
+                var data1 = {
+                    spaceUnits: 4,
+                    cursorSize: 27,
+                    path: {
+                        "**.js": {
+                            statusBarElephants: false
+                        }
+                    }
+                };
+                
+                var storage = new PreferencesBase.MemoryStorage(data1);
+                var scope = new PreferencesBase.Scope(storage);
+                scope.addLayer(new PreferencesBase.PathLayer("/"));
+                scope.load();
+                
+                var data2 = {
+                    spaceUnits: 4,
+                    path: {
+                        "**.js": {
+                            trafficLight: "green"
+                        },
+                        "**.md": {
+                            statusBarElephants: true
+                        }
+                    }
+                };
+                
+                storage.data = data2;
+                var events = [];
+                $(scope).on("change", function (e, data) {
+                    events.push(data);
+                });
+                scope.load();
+                
+                expect(events.length).toBe(1);
+                expect(events[0].ids.sort()).toEqual(
+                    ["spaceUnits", "cursorSize", "statusBarElephants", "trafficLight"].sort()
+                );
             });
         });
         
@@ -260,7 +338,7 @@ define(function (require, exports, module) {
                 pm.definePreference("spaceUnits", "number", 4);
                 pm.addScope("user", new PreferencesBase.MemoryStorage());
                 var eventData;
-                $(pm).on("change", function (e, data) {
+                pm.on("change", function (e, data) {
                     eventData = data;
                 });
                 
@@ -281,7 +359,7 @@ define(function (require, exports, module) {
                 pm.definePreference("spaceUnits", "number", 4);
                 
                 var eventData = [];
-                $(pm).on("change", function (e, data) {
+                pm.on("change", function (e, data) {
                     eventData.push(data);
                 });
                 
@@ -319,7 +397,7 @@ define(function (require, exports, module) {
                 pm.addScope("user", scope);
                 
                 var eventData = [];
-                $(pm).on("change", function (e, data) {
+                pm.on("change", function (e, data) {
                     eventData.push(data);
                 });
                 
@@ -338,7 +416,7 @@ define(function (require, exports, module) {
                 keys = scope._layers[0].getKeys(scope.data.path, {
                     filename: "/foo.txt"
                 });
-                expect(_.difference(keys, ["spaceUnits", "alpha"])).toEqual([]);
+                expect(keys.sort()).toEqual(["spaceUnits", "alpha"].sort());
             });
             
             it("can notify changes for single preference objects", function () {
@@ -347,7 +425,7 @@ define(function (require, exports, module) {
                 var retrievedPref = pm.getPreference("spaceUnits");
                 expect(retrievedPref).toBe(pref);
                 var changes = 0;
-                $(pref).on("change", function (e) {
+                pref.on("change", function (e) {
                     changes++;
                 });
                 var newScope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
@@ -355,12 +433,23 @@ define(function (require, exports, module) {
                 }));
                 pm.addScope("new", newScope);
                 expect(changes).toEqual(1);
+                
+                pref.off("change");
+                pm.set("new", "spaceUnits", 10);
+                expect(changes).toEqual(1);
+                
+                changes = 0;
+                pm.on("change", "spaceUnits", function () {
+                    changes++;
+                });
+                pm.set("new", "spaceUnits", 11);
+                expect(changes).toEqual(1);
             });
             
             it("supports removal of scopes", function () {
                 var pm = new PreferencesBase.PreferencesManager();
                 var events = [];
-                $(pm).on("change", function (e, data) {
+                pm.on("change", function (e, data) {
                     events.push(data);
                 });
                 
@@ -405,29 +494,36 @@ define(function (require, exports, module) {
                 
                 testScopes["/.brackets.prefs"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 1,
+                    first: 1,
                     path: {
                         "foo.js": {
-                            spaceUnits: 2
+                            spaceUnits: 2,
+                            second: 2
                         },
                         "bar/baz.js": {
-                            spaceUnits: 3
+                            spaceUnits: 3,
+                            third: 3
                         },
                         "projects/**": {
-                            spaceUnits: 4
+                            spaceUnits: 4,
+                            fourth: 4
                         }
                     }
                 }));
                 
                 testScopes["/projects/brackets/.brackets.prefs"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 5,
+                    fifth: 5,
                     path: {
                         "thirdparty/**": {
-                            spaceUnits: 6
+                            spaceUnits: 6,
+                            sixth: 6
                         }
                     }
                 }));
                 testScopes["/projects/brackets/thirdparty/codemirror/.brackets.prefs"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
-                    spaceUnits: 7
+                    spaceUnits: 7,
+                    seventh: 7
                 }));
                 pm.addPathScopes(".brackets.prefs", {
                     getScopeForFile: getScopeForFile,
@@ -437,30 +533,47 @@ define(function (require, exports, module) {
                 
                 var didComplete = false;
                 
+                var events = [];
+                pm.on("change", function (e, data) {
+                    events.push(data);
+                });
+                
                 // this should resolve synchronously
                 pm.setPathScopeContext("/README.txt").done(function () {
                     didComplete = true;
                     expect(requestedFiles).toEqual(["/.brackets.prefs"]);
                     expect(pm.get("spaceUnits")).toBe(1);
                     expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
+                    expect(events.length).toEqual(1);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second", "third", "fourth"].sort());
                 });
                 
                 requestedFiles = [];
+                events = [];
                 pm.setPathScopeContext("/foo.js").done(function () {
                     expect(requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(2);
+                    expect(events.length).toBe(1);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second"].sort());
                 });
                 
+                events = [];
                 pm.setPathScopeContext("/bar/baz.js").done(function () {
                     expect(requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(3);
+                    expect(events.length).toBe(1);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second", "third"].sort());
                 });
                 
+                events = [];
                 pm.setPathScopeContext("/projects/README.txt").done(function () {
                     expect(requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(4);
+                    expect(events.length).toBe(1);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "third", "fourth"].sort());
                 });
                 
+                events = [];
                 pm.setPathScopeContext("/projects/brackets/README.md").done(function () {
                     expect(requestedFiles).toEqual(["/projects/brackets/.brackets.prefs"]);
                     expect(pm._defaultContext.scopeOrder).toEqual(
@@ -468,32 +581,54 @@ define(function (require, exports, module) {
                             "path:/.brackets.prefs", "user", "default"]
                     );
                     expect(pm.get("spaceUnits")).toBe(5);
+                    expect(events.length).toBe(2);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth"].sort());
+                    expect(events[1].ids.sort()).toEqual(["spaceUnits", "fifth", "sixth"].sort());
                 });
                 
                 requestedFiles = [];
-                pm.setPathScopeContext("/projects/brackets/thirdparty/requirejs/require.js").done(function () {
-                    expect(requestedFiles).toEqual([]);
-                    expect(pm.get("spaceUnits")).toBe(6);
-                });
+                events = [];
+                pm.setPathScopeContext("/projects/brackets/thirdparty/requirejs/require.js")
+                    .done(function () {
+                        expect(requestedFiles).toEqual([]);
+                        expect(pm.get("spaceUnits")).toBe(6);
+                        expect(events.length).toBe(1);
+                        expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth", "fifth", "sixth"].sort());
+                    });
                 
-                pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js").done(function () {
-                    expect(requestedFiles).toEqual(["/projects/brackets/thirdparty/codemirror/.brackets.prefs"]);
-                    expect(pm.get("spaceUnits")).toBe(7);
-                });
+                events = [];
+                pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js")
+                    .done(function () {
+                        expect(requestedFiles)
+                            .toEqual(["/projects/brackets/thirdparty/codemirror/.brackets.prefs"]);
+                        expect(pm.get("spaceUnits")).toBe(7);
+                        expect(events.length).toBe(2);
+                        expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth", "fifth", "sixth"].sort());
+                        expect(events[1].ids.sort()).toEqual(["spaceUnits", "seventh"].sort());
+                    });
                 
+                events = [];
                 requestedFiles = [];
                 pm.setPathScopeContext("/README.md").done(function () {
                     expect(requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(1);
                     expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
+                    expect(events.length).toBe(3);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "fifth", "sixth"].sort());
+                    expect(events[1].ids.sort()).toEqual(["spaceUnits", "seventh"].sort());
+                    expect(events[2].ids.sort()).toEqual(["spaceUnits", "first", "fourth"].sort());
                 });
                 
-                console.log("--- Important test");
+                events = [];
                 requestedFiles = [];
                 pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js").done(function () {
                     expect(_.keys(pm._scopes).length).toBe(6);
                     expect(requestedFiles.length).toBe(2);
                     expect(pm.get("spaceUnits")).toBe(7);
+                    expect(events.length).toBe(3);
+                    expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth"].sort());
+                    expect(events[1].ids.sort()).toEqual(["spaceUnits", "seventh"].sort());
+                    expect(events[2].ids.sort()).toEqual(["spaceUnits", "fifth", "sixth"].sort());
                 });
                 
                 expect(didComplete).toBe(true);
@@ -612,7 +747,7 @@ define(function (require, exports, module) {
                 newScope.addLayer(new PreferencesBase.PathLayer("/"));
                 var changes = [];
                 waitsForDone(pm.addScope("new", newScope), "adding scope");
-                $(pm).on("change", function (change, data) {
+                pm.on("change", function (change, data) {
                     changes.push(data);
                 });
                 runs(function () {

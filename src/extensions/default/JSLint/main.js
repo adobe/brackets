@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         Strings            = brackets.getModule("strings");
     
     
-    $(PreferencesManager.definePreference("jslint.options", "object"))
+    PreferencesManager.definePreference("jslint.options", "object")
         .on("change", function (e, data) {
             CodeInspection.requestRun(Strings.JSLINT_NAME);
         });

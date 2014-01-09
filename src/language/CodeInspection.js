@@ -74,9 +74,6 @@ define(function (require, exports, module) {
     var PREF_ENABLED = "linting.enabled",
         PREF_COLLAPSED = "linting.collapsed";
     
-    PreferencesManager.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"]);
-    PreferencesManager.definePreference(PREF_COLLAPSED, "boolean", false);
-    
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
@@ -377,13 +374,18 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
-//    $(PreferencesManager.getPreference(PREF_ENABLED)).on("change", function (e, data) {
-//        toggleEnabled(data.newValue, true);
-//    });
-//    
-//    $(PreferencesManager.getPreference(PREF_COLLAPSED)).on("change", function (e, data) {
-//        toggleCollapsed(data.newValue, true);
-//    });
+    // Register preferences
+    PreferencesManager.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
+        .on("change", function (e, data) {
+            toggleEnabled(PreferencesManager.get(PREF_ENABLED), true);
+        });
+    
+    PreferencesManager.definePreference(PREF_COLLAPSED, "boolean", false)
+        .on("change", function (e, data) {
+            toggleCollapsed(data.newValue, true);
+        });
+    
+
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

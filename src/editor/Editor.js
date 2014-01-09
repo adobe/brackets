@@ -74,7 +74,8 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         Async              = require("utils/Async"),
-        AnimationUtils     = require("utils/AnimationUtils");
+        AnimationUtils     = require("utils/AnimationUtils"),
+        _                  = require("thirdparty/lodash");
     
     PreferencesManager.definePreference("useTabChar", "boolean", false);
     PreferencesManager.definePreference("tabSize", "number", 4);
@@ -1660,11 +1661,21 @@ define(function (require, exports, module) {
         return _wordWrap;
     };
     
-    $(PreferencesManager).on("preferenceChange", function (e, data) {
-        var setterName = "set" + data.id[0].toUpperCase() + data.id.substr(1);
-        if (Editor[setterName]) {
-            Editor[setterName](data.newValue, true);
+    var editorSettings = [];
+    _.keys(Editor).forEach(function (key) {
+        if (key.substr(0, 3) === "set") {
+            editorSettings.push(key[3].toLowerCase() + key.substr(4));
         }
+    });
+    
+    PreferencesManager.on("change", function (e, data) {
+        var settings = _.intersection(data.ids, editorSettings);
+        settings.forEach(function (setting) {
+            var setterName = "set" + setting[0].toUpperCase() + setting.substr(1);
+            if (Editor[setterName]) {
+                Editor[setterName](PreferencesManager.get(setting), true);
+            }
+        });
     });
     
     // Define public API

@@ -212,32 +212,29 @@ define(function (require, exports, module) {
     // User-level preferences
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
-//    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
-    // Session-level preferences
-//    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
-    
-//    preferencesManager.addPathScopes(".brackets.prefs", {
-//        before: "user",
-//        checkExists: function (filename) {
-//            var result = new $.Deferred(),
-//                file = FileSystem.getFileForPath(filename);
-//            file.exists(function (err, doesExist) {
-//                result.resolve(doesExist);
-//            });
-//            return result.promise();
-//        },
-//        getScopeForFile: function (filename) {
-//            return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
-//        }
-//    });
+    preferencesManager.addPathScopes(".brackets.prefs", {
+        before: "user",
+        checkExists: function (filename) {
+            var result = new $.Deferred(),
+                file = FileSystem.getFileForPath(filename);
+            file.exists(function (err, doesExist) {
+                result.resolve(doesExist);
+            });
+            return result.promise();
+        },
+        getScopeForFile: function (filename) {
+            return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
+        }
+    });
     
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesManager();
     var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
-//    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
+    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
     // Convenience function that sets a preference and then saves the file, mimicking the
     // old behavior a bit more closely.
@@ -252,16 +249,11 @@ define(function (require, exports, module) {
     
     // Public API
     
-    // PreferencesManager change messages are sent out as preferenceChange messages
-    // from this module.
-    $(preferencesManager).on("change", function (e, data) {
-        console.log("Pref change", data);
-        $(exports).trigger("preferenceChange", data);
-    });
-    
     exports.get = preferencesManager.get.bind(preferencesManager);
     exports.set = preferencesManager.set.bind(preferencesManager);
     exports.save = preferencesManager.save.bind(preferencesManager);
+    exports.on = preferencesManager.on.bind(preferencesManager);
+    exports.off = preferencesManager.off.bind(preferencesManager);
     exports.getPreference = preferencesManager.getPreference.bind(preferencesManager);
     exports.setValueAndSave = setValueAndSave;
     exports.addScope = preferencesManager.addScope.bind(preferencesManager);
