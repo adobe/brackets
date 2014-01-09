@@ -595,7 +595,7 @@ define(function (require, exports, module) {
                         if (_hasFileSelectionFocus() && curDoc && data) {
                             var entry = data.rslt.obj.data("entry");
                             
-                            if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                            if (entry && curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
                                 _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _redraw(true, false);
@@ -1149,13 +1149,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Reloads the project's file tree, maintaining the current selection.
+     * Internal function to refresh the project's file tree, maintaining the
+     * current selection. This function is expensive and not concurrency-safe,
+     * so most callers should use the synchronized and throttled version below,
+     * refreshFileTree.
+     * 
+     * @private
      * @return {$.Promise} A promise object that will be resolved when the
      *  project tree is reloaded, or rejected if the project path
      *  fails to reload. If the previous selected entry is not found, 
      *  the promise is still resolved.
      */
-    function refreshFileTree() {
+    function _refreshFileTreeInternal() {
         var selectedEntry,
             deferred = new $.Deferred();
 
@@ -1184,15 +1189,61 @@ define(function (require, exports, module) {
     }
     
     /**
-     * A debounced version of refreshFileTree that executes on the leading edge
-     * and also on the trailing edge after a short timeout if called more than
-     * once.
      * @private
+     * @type {?jQuery.Promise} Resolves when the currently running instance of
+     *      _refreshFileTreeInternal completes, or null if there is no currently
+     *      running instance.
      */
-    var _refreshFileTreeDebounced = _.debounce(refreshFileTree, 100, {
-        leading: true,
-        trailing: true
-    });
+    var _refreshFileTreePromise = null;
+    
+    /**
+     * @type {boolean} If refreshFileTree is called before _refreshFileTreePromise
+     *      has resolved then _refreshPending is set, which indicates that 
+     *      refreshFileTree should be called again once the promise resolves.
+     */
+    var _refreshPending = false;
+    
+    /**
+     * @const
+     * @private
+     * @type {number} Minimum delay in milliseconds between calls to refreshFileTree
+     */
+    var _refreshDelay = 1000;
+    
+    /**
+     * Refresh the project's file tree, maintaining the current selection.
+     * 
+     * @return {$.Promise} A promise object that will be resolved when the
+     *  project tree is reloaded, or rejected if the project path
+     *  fails to reload. If the previous selected entry is not found, 
+     *  the promise is still resolved.
+     */
+    function refreshFileTree() {
+        if (!_refreshFileTreePromise) {
+            var internalRefreshPromise  = _refreshFileTreeInternal(),
+                deferred                = new $.Deferred();
+
+            _refreshFileTreePromise = deferred.promise();
+            
+            _refreshFileTreePromise.always(function () {
+                _refreshFileTreePromise = null;
+                
+                if (_refreshPending) {
+                    _refreshPending = false;
+                    refreshFileTree();
+                }
+            });
+
+            // Wait at least one second before resolving the promise
+            window.setTimeout(function () {
+                internalRefreshPromise.then(deferred.resolve, deferred.reject);
+            }, _refreshDelay);
+        } else {
+            _refreshPending = true;
+        }
+
+        return _refreshFileTreePromise;
+    }
     
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
@@ -1853,7 +1904,9 @@ define(function (require, exports, module) {
         // A whole-sale change event; refresh the entire file tree
         if (!entry) {
             _fileTreeChangeQueue.removeAll();
-            _refreshFileTreeDebounced();
+            _fileTreeChangeQueue.add(function () {
+                return refreshFileTree();
+            });
             return;
         }
         
@@ -1863,12 +1916,21 @@ define(function (require, exports, module) {
         }
         
         if (entry.isDirectory) {
-            // A change event with unknown added and removed sets
-            if (!added || !removed) {
-                // TODO: just update children of entry in this case.
+            // If there is a change event with unknown added and removed sets,
+            // or if there are too many pending file tree fixups to deal with
+            // in a timely manner, just clear the queue and refresh the tree.
+            // 
+            // TODO: in the former case we really should just refresh the affected
+            // directory instead of refreshing the entire tree.
+            if (!added || !removed || _fileTreeChangeQueue.length > 100) {
                 _fileTreeChangeQueue.removeAll();
-                _refreshFileTreeDebounced();
-                return;
+                return _fileTreeChangeQueue.add(function () {
+                    return _findTreeNode(entry, true).then(function ($directoryNode) {
+                        if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
+                            return refreshFileTree();
+                        }
+                    });
+                });
             }
 
             // Directory contents removed
