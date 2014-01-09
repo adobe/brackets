@@ -109,6 +109,14 @@ define(function (require, exports, module) {
             this.data = newData;
             result.resolve();
             return result.promise();
+        },
+        
+        /**
+         * MemoryStorage is not stored in a file, so fileChanged is ignored.
+         * 
+         * @param {string} filename File that has changed
+         */
+        fileChanged: function (filename) {
         }
     };
     
@@ -213,6 +221,17 @@ define(function (require, exports, module) {
         setPath: function (newPath) {
             this.path = newPath;
             $(this).trigger("changed");
+        },
+        
+        /**
+         * If the filename matches this Storage's path, a changed message is triggered.
+         * 
+         * @param {string} filename File that has changed
+         */
+        fileChanged: function (filename) {
+            if (filename === this.path) {
+                $(this).trigger("changed");
+            }
         }
     };
     
@@ -359,6 +378,16 @@ define(function (require, exports, module) {
             $(this).trigger(PREFERENCE_CHANGE, {
                 ids: layer.getKeys(this.data[layer.key], {})
             });
+        },
+        
+        /**
+         * Tells the Scope that the given file has been changed so that the
+         * Storage can be reloaded if needed.
+         * 
+         * @param {string} filename Name of the file that has changed
+         */
+        fileChanged: function (filename) {
+            this.storage.fileChanged(filename);
         }
     });
     
@@ -1020,6 +1049,18 @@ define(function (require, exports, module) {
             } else {
                 $(this).off(event, handler);
             }
+        },
+        
+        /**
+         * Tells the PreferencesManager that the given file has been changed so that any
+         * related Scopes can be reloaded.
+         * 
+         * @param {string} filename Name of the file that has changed
+         */
+        fileChanged: function (filename) {
+            _.forEach(this._scopes, function (scope) {
+                scope.fileChanged(filename);
+            });
         }
     });
     

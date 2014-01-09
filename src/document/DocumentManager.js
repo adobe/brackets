@@ -992,6 +992,11 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSaved", doc);
         });
     
+    // Handle file saves that may affect preferences
+    $(exports).on("documentSaved", function (e, doc) {
+        PreferencesManager.fileChanged(doc.file.fullPath);
+    });
+    
     // For unit tests and internal use only
     exports._clearCurrentDocument       = _clearCurrentDocument;
     

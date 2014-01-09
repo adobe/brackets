@@ -991,15 +991,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    // File preferences handling
-    
-//    $(DocumentManager).on("documentSaved", function (e, document) {
-//        if (document.file && FileUtils.getDirectoryPath(document.file.fullPath) === _projectRoot.fullPath && document.file.name === SETTINGS_FILENAME) {
-//            _reloadProjectPreferencesScope();
-//        }
-//    });
-//    
-    
+    // File-based preferences handling
     $(exports).on("activeEditorChange", function (e, current) {
         if (current && current.document && current.document.file) {
             PreferencesManager._setCurrentEditingFile(current.document.file.fullPath);

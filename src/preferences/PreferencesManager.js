@@ -262,4 +262,5 @@ define(function (require, exports, module) {
     exports.FileStorage = PreferencesBase.FileStorage;
     exports.SETTINGS_FILENAME = SETTINGS_FILENAME;
     exports.definePreference = preferencesManager.definePreference.bind(preferencesManager);
+    exports.fileChanged = preferencesManager.fileChanged.bind(preferencesManager);
 });
