@@ -53,10 +53,13 @@
         </p>
         
         <samp>
-            Haluatko nähdä sen toiminnassa? Aseta osoittimesi alla olevan <!-- <samp> --> -tagin päälle ja paina
-            <kbd>Cmd/Ctrl + E</kbd>. Sinun pitäisi nähdä CSS-pikaeditorin ilmestyvän alapuolelle. Oikealla näet
-            luettelon CSS-säännöistä, jotka liittyvät tähän tagiin. Yksinkertaisesti vieritä sääntöjä
-            <kbd>Alt + Up/Down</kbd> -pikanäppäimillä löytääksesi sen säännön, jota haluat muokata.
+            Haluatko nähdä sen toiminnassa? Aseta kursori alla olevan <!-- <samp> --> -tagin päälle ja paina
+            <kbd>Cmd/Ctrl + E</kbd>. Sinun pitäisi nähdä CSS-pikaeditorin ilmestyvän alapuolelle näyttäen CSS-säännön,
+            joka sopii siihen. Pikamuokkaus toimii niin class- kuin id-attribuuttienkin kanssa.
+            
+            Voit luoda uusia sääntöjä samalla tavalla. Napsauta jotakin <!-- <p> -->-tageista alapuolella ja paina
+            <kbd>Cmd/Ctrl + E</kbd>. Sillä ei ole sääntöjä juuri nyt, mutta voit napsauttaa Uusi sääntö -painiketta
+            lisätäksesi uuden säännön <!-- <p> -->-tagille.
         </samp>
         
         <a href="screenshots/quick-edit.png">
@@ -64,24 +67,25 @@
         </a>
         
         <p>
-            Voit käyttää samaa oikotietä JavaScript-koodille näyttääksesi funktion vartalon asettamalla osoittimen
-            sen funktion nimen päälle, jota kutsut. Toistaiseksi sisäeditorit eivät voi olla sisäkkäin, joten voit
-            käyttää pikamuokkausta vain, kun osoitin on täyskokoisessa editorissa.
+            Voit käyttää samaa oikotietä muokataksesi myös muita asioita – kuten funktioita JavaSciptissa,
+            värejä ja animaatoiden ajoitusfunktioita – ja lisäämme yhä enemmän koko ajan.
+            Toistaiseksi sisäeditorit eivät voi olla sisäkkäin, joten voit käyttää pikamuokkausta vain,
+            kun osoitin on täyskokoisessa editorissa.
         </p>
         
         <!--
             ESIKATSELU
         -->
-        <h3>Esikatsele CSS:n muutoksia reaaliaikaisesti selaimessa</h3>
+        <h3>Esikatsele HTML:n ja CSS:n muutoksia reaaliaikaisesti selaimessa</h3>
         <p>
             Tiedätkö sen ”tallenna/päivitä-tanssin”, jota olemme tehneet vuosia? Se, missä tehdään muutoksia
             editorissa, napsautetaan tallenna, vaihdetaan selaimeen ja sitten päivitetään nähdäksemme tulos?
             Brackets-sovelluksessa sinun ei tarvitse harrastaa tätä tanssia.
         </p>
         <p>
-            Brackets avaa <em>reaaliaikaisen yhteyden</em> paikalliseen selaimeesi ja vie CSS:n päivitykset samalla
-            kun kirjoitat! Saatat jo olla tehnyt jotain tämän kaltaista selainpohjaisilla työkaluilla, mutta
-            Bracketsilla ei tarvitse kopioida ja liittää lopullista CSS:ää takaisin editoriin. Koodisi suoritetaan 
+            Brackets avaa <em>reaaliaikaisen yhteyden</em> paikalliseen selaimeesi ja vie HTML:n CSS:n päivitykset
+            samalla kun kirjoitat! Saatat jo olla tehnyt jotain tämän kaltaista selainpohjaisilla työkaluilla, mutta
+            Bracketsilla ei tarvitse kopioida ja liittää lopullista koodia takaisin editoriin. Koodisi suoritetaan 
             selaimessasi, mutta se sijaitsee editorissasi!
         </p>
         
@@ -106,11 +110,10 @@
         </samp>
                 
         <p class="note">
-            Nykyisin Brackets tukee esikatselua vain CSS:lle. Kuitenkin nykyisessä versiossa muutokset HTML- ja
-            JavaScript-tiedostoihin päivitetään automaattisesti, kun tallennat tiedoston. Työskentelemme tällä
-            hetkellä tuodaksemme tuen HTML:lle ja JavaScriptille. Esikatselut ovat myös mahdollisia vain Google
-            Chromella, mutta toivomme saavamme tämän toiminnallisuuden kaikille merkittäville selaimille
-            tulevaisuudessa.
+            Nykyisin Brackets tukee esikatselua vain HTML:lle ja CSS:lle. Kuitenkin nykyisessä versiossa muutokset
+            JavaScript-tiedostoihin päivitetään automaattisesti tallentaessasi tiedoston. Työskentelemme tällä
+            hetkellä esikatselun JavaScript-tuen parissa. Esikatselut ovat mahdollisia vain Google Chromella,
+            mutta toivomme saavamme tämän toiminnallisuuden kaikille merkittäville selaimille tulevaisuudessa.
         </p>
                 
         <h3>Pikanäkymä</h3>
@@ -130,6 +133,16 @@
             kuvan esikatselua aseta osoittimesi kuvankaappauskuvan päälle, joka on aimemmin tässä asiakirjassa.
         </samp>
         
+        <h3>Tarvitsetko jotakin muuta? Kokeile laajennusta!</h3>
+        <p>
+            Sen kaiken hyvän lisäksi, mitä Bracketsiin on rakennettu, suuri ja kasvava laajennuskehittäjien
+            yhteisömme on tehnyt yli sata laajennusta, jotka lisäävät hyödyllistä toiminnallisuutta. Jos on jotakin,
+            mitä tarvitset ja jota Brackets ei tarjoa, enemmän kuin todennäköisesti joku on tehnyt laajennuksen siihen.
+            Selataksesi tai hakeaksesi saatavilla olevien laajennusten luetteloa valitse <strong>Tiedosto &gt;
+            Laajennusten hallinta</strong> ja napsauta ”Saatavilla”-välilehteä. Kun löydät haluamasi laajennuksen,
+            napsauta vain ”Asenna”-painiketta sen vierestä.
+        </p>
+        
         <!--
             ANNA MEIDÄN TIETÄÄ, MITÄ MIELTÄ OLET
         -->
@@ -143,10 +156,10 @@
             <li><a href="http://brackets.io">Brackets.io</a></li>
             <li><a href="http://blog.brackets.io">Brackets-tiimin blogi</a></li>
             <li><a href="http://github.com/adobe/brackets">Brackets GitHubissa</a></li>
-            <li><a href="https://github.com/adobe/brackets/wiki/Brackets-Extensions">Brackets-laajennukset</a></li>
+            <li><a href="https://github.com/adobe/brackets/wiki/Brackets-Extensions">Brackets-laajennusten rekisteri</a></li>
             <li><a href="http://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
             <li><a href="http://groups.google.com/group/brackets-dev">Brackets-kehittäjien postituslista</a></li>
-            <li><a href="https://twitter.com/#!/brackets">@Brackets Twitterissä</a></li>
+            <li><a href="https://twitter.com/#!/brackets">@brackets Twitterissä</a></li>
             <li>Chattaa Brackets-kehittäjien kanssa IRC:ssä #bracketsissa Freenode-palvelussa</li>
         </ul>
 
