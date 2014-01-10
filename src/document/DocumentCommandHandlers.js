@@ -92,7 +92,7 @@ define(function (require, exports, module) {
                     _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
                 } else {
                     // hide dirty dot if there is no document
-                    _$dirtydot.css("visibility", "hidden");                    
+                    _$dirtydot.css("visibility", "hidden");
                 }
             } else {
                 _$title.text("");
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         } else {
             // hide dirty dot if there is no document
-            _$dirtydot.css("visibility", "hidden");                    
+            _$dirtydot.css("visibility", "hidden");
         }
 
         // update shell/browser window title
