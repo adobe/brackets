@@ -1409,6 +1409,11 @@ define(function (require, exports, module) {
             return (typeof node === "string") ? { data: node } : node;
         });
         
+        // remove null nodes
+        arr = arr.filter(function (node) {
+            return !!node;
+        });
+        
         arr.forEach(function (data) {
             _projectTree.jstree("create", $target, position || 0, data, null, skipRename);
         });
@@ -1977,16 +1982,16 @@ define(function (require, exports, module) {
             doRedraw = true;
         }
 
-        // Directory contents added
-        if (added.length > 0) {
-            // Before creating a new node, make sure it doesn't already exist
-            var addedJSON = added.filter(function (addedEntry) {
-                return !_getTreeNode(addedEntry);
-            });
-            
-            // Convert entries to JSON objects for jstree
-            addedJSON = addedJSON.map(_entryToJSON);
+        // Before creating new nodes, make sure it doesn't already exist
+        var addedJSON = added.filter(function (addedEntry) {
+            return !_getTreeNode(addedEntry);
+        });
 
+        // Convert entries to JSON objects for jstree
+        addedJSON = addedJSON.map(_entryToJSON);
+
+        // Directory contents added
+        if (addedJSON.length > 0) {
             // create all new nodes in a batch
             _createNode($directoryNode, null, addedJSON, true, true);
             doRedraw = true;
