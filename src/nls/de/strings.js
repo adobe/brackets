@@ -199,12 +199,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Probleme",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Linting-Probleme",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",
     "SINGLE_ERROR"                          : "1 {0} Fehler",
     "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
     "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Keine Fehler - gute Arbeit!",
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
