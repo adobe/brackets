@@ -199,12 +199,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "User Extensions Disabled",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Errors",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Issues",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Lint Issues",
-    "SINGLE_ERROR"                          : "1 {0} Error",
-    "MULTIPLE_ERRORS"                       : "{1} {0} Errors",
-    "NO_ERRORS"                             : "No {0} errors - good job!",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
+    "SINGLE_ERROR"                          : "1 {0} Problem",
+    "MULTIPLE_ERRORS"                       : "{1} {0} Problems",
+    "NO_ERRORS"                             : "No {0} problems found - good job!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "No problems found - good job!",
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",

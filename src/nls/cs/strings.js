@@ -111,21 +111,21 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
     // Najít, Nahradit, Nahradit v souborech
-    "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
-    "WITH"                              : "S",
+    "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
-    "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradit",
 
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Další shoda",
     "BUTTON_PREV_HINT"                  : "Předchozí shoda",
+    "BUTTON_CASESENSITIVE_HINT"         : "Rozlišovat velká a malá písmena",
+    "BUTTON_REGEXP_HINT"                : "Regulární výraz",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
