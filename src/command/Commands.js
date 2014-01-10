@@ -126,9 +126,7 @@ define(function (require, exports, module) {
     exports.HELP_RELEASE_NOTES          = "help.releaseNotes";          // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_REPORT_AN_ISSUE        = "help.reportAnIssue";         // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
-    exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
-    exports.HELP_OPEN_SETTINGS          = "help.openSettings";          // HelpCommandHandlers.js       _handleOpenSettings();
-    
+    exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()    
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()

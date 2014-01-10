@@ -164,8 +164,6 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
         
-        menu.addMenuItem(Commands.HELP_OPEN_SETTINGS);
-
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         
         // Add final divider only if we have a twitter URL or about item

@@ -315,7 +315,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
-    "CMD_OPEN_SETTINGS"                   : "Open Settings File",
+    "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
