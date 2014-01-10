@@ -485,7 +485,7 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(PREF_COLLAPSED, "boolean", false)
         .on("change", function (e, data) {
-            toggleCollapsed(data.newValue, true);
+            toggleCollapsed(PreferencesManager.get(PREF_COLLAPSED), true);
         });
     
 
