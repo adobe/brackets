@@ -431,7 +431,7 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
         if (!doNotSave) {
-            PreferencesManager.set("user", PREF_ENABLED, _enabled);
+            PreferencesManager.setValueAndSave("user", PREF_ENABLED, _enabled);
         }
     
         // run immediately
@@ -453,7 +453,7 @@ define(function (require, exports, module) {
 
         _collapsed = collapsed;
         if (!doNotSave) {
-            PreferencesManager.set("user", PREF_COLLAPSED, _collapsed);
+            PreferencesManager.setValueAndSave("user", PREF_COLLAPSED, _collapsed);
         }
         
         if (_collapsed) {
