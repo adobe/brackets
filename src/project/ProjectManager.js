@@ -484,11 +484,11 @@ define(function (require, exports, module) {
      * @return {string}
      */
     var _getComparableName = _.memoize(function (a) {
-        var $a = $(a),
-            a1 = $a.text();
+        var entry   = $(a).data("entry"),
+            a1      = entry.name;
         
         if (brackets.platform !== "mac") {
-            a1 = ($a.hasClass("jstree-leaf") ? "1" : "0") + a1;
+            a1 = (entry.isFile ? "1" : "0") + a1;
         }
         
         return a1;
