@@ -435,7 +435,7 @@ define(function (require, exports, module) {
                     });
 
                     var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                    waitsForDone(promise, "FILE_SAVE_ALL");
+                    waitsForDone(promise, "FILE_SAVE_ALL", 5000);
                 });
 
                 runs(function () {
@@ -475,7 +475,7 @@ define(function (require, exports, module) {
                     });
 
                     var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                    waitsForDone(promise, "FILE_CLOSE_ALL");
+                    waitsForDone(promise, "FILE_CLOSE_ALL", 5000);
                 });
 
                 runs(function () {
