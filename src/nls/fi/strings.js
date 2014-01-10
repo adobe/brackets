@@ -253,6 +253,7 @@ define({
     "CMD_SELECT_ALL"                      : "Valitse kaikki",
     "CMD_SELECT_LINE"                     : "Valitse rivi",
     "CMD_FIND"                            : "Etsi",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Etsi\u2026",
     "CMD_FIND_IN_FILES"                   : "Etsi tiedostoista",
     "CMD_FIND_IN_SUBTREE"                 : "Etsi kohteesta\u2026",
     "CMD_FIND_NEXT"                       : "Etsi seuraava",
@@ -292,9 +293,9 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Siirry",
-    "CMD_QUICK_OPEN"                      : "Pika-avaus",
-    "CMD_GOTO_LINE"                       : "Siirry riville",
-    "CMD_GOTO_DEFINITION"                 : "Etsi määrittely nopeasti",
+    "CMD_QUICK_OPEN"                      : "Pika-avaus\u2026",
+    "CMD_GOTO_LINE"                       : "Siirry riville\u2026",
+    "CMD_GOTO_DEFINITION"                 : "Etsi määrittely nopeasti\u2026",
     "CMD_GOTO_FIRST_PROBLEM"              : "Siirry ensimmäiseen virheeseen/varoitukseen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Pikamuokkaus",
     "CMD_TOGGLE_QUICK_DOCS"               : "Pikadokumentaatio",
