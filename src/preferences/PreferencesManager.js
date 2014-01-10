@@ -207,7 +207,7 @@ define(function (require, exports, module) {
     var SETTINGS_FILENAME = "brackets.json",
         STATE_FILENAME    = "state.json";
     
-    var preferencesManager = new PreferencesBase.PreferencesManager();
+    var preferencesManager = new PreferencesBase.PreferencesSystem();
     
     // User-level preferences
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
     
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
-    var stateManager = new PreferencesBase.PreferencesManager();
+    var stateManager = new PreferencesBase.PreferencesSystem();
     var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
