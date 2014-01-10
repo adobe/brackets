@@ -1404,18 +1404,17 @@ define(function (require, exports, module) {
             arr = [arr];
         }
         
-        // Convert strings to json
-        arr = arr.map(function (node) {
-            return (typeof node === "string") ? { data: node } : node;
-        });
+        position = position || 0;
         
-        // remove null nodes
-        arr = arr.filter(function (node) {
-            return !!node;
-        });
-        
-        arr.forEach(function (data) {
-            _projectTree.jstree("create", $target, position || 0, data, null, skipRename);
+        arr.forEach(function (node) {
+            // Convert strings to objects
+            if (typeof node === "string") {
+                node = { data: node };
+            }
+            
+            if (node) {
+                _projectTree.jstree("create", $target, position, node, null, skipRename);
+            }
         });
         
         if (!skipRedraw) {
