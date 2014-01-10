@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
-        this.secondaryTriggerKeys = ":";
+        this.secondaryTriggerKeys = ": ";
         this.exclusion = null;
     }
 
@@ -317,7 +317,7 @@ define(function (require, exports, module) {
             if (this.info.name.length === 0 || CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 // It's a new insertion, so append a colon and set keepHints
                 // to show property value hints.
-                hint += ":";
+                hint += ": ";
                 end.ch = start.ch;
                 end.ch += offset;
                     
@@ -342,12 +342,12 @@ define(function (require, exports, module) {
                     // before we locate the colon following it.
                     TokenUtils.moveNextToken(ctx);
                 }
-                if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ":") {
+                if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ": ") {
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
                 } else {
-                    hint += ":";
+                    hint += ": ";
                 }
             }
         } else {
