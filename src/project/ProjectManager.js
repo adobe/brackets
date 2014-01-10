@@ -1098,7 +1098,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Lookup jQuery node for a given FileSystem Entry
-     * @param {!File|Directory} entry File or directory entry to find in the tree
+     * @param {!File|Directory|string} entry String or File/Directory entry to find in the tree
      * @return {?jQuery} The jQuery node for this entry or null if not found
      */
     function _getTreeNode(entry) {
@@ -1107,7 +1107,8 @@ define(function (require, exports, module) {
             return $projectTreeList;
         }
         
-        var id = _projectInitialLoad.fullPathToIdMap[entry.fullPath],
+        var fullPath = entry.fullPath || entry,
+            id = _projectInitialLoad.fullPathToIdMap[fullPath],
             node = null;
         
         if (id) {
@@ -1426,7 +1427,7 @@ define(function (require, exports, module) {
     /**
      * Create a new item in the project tree.
      *
-     * @param baseDir {string} Full path of the directory where the item should go
+     * @param baseDir {string|Directory} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
      * @param isFolder {boolean} If true, create a folder instead of a file
@@ -1435,41 +1436,18 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        var $selection          = _projectTree.jstree("get_selected"),
-            selectionEntry      = null,
+        // We assume the parent directory exists
+        var baseDirEntry        = (typeof baseDir === "string") ? FileSystem.getDirectoryForPath(baseDir) : baseDir,
+            $baseDirNode        = (baseDir && _getTreeNode(baseDirEntry)) || null,
             position            = "inside",
             escapeKeyPressed    = false,
             result              = new $.Deferred(),
-            wasNodeOpen         = true;
-
-        // get the File or Directory
-        if ($selection) {
-            selectionEntry = $selection.data("entry");
-        }
-
-        // move selection to parent Directory
-        if (selectionEntry) {
-            if (selectionEntry.isFile) {
-                position = "after";
-                
-                var parent = $.jstree._reference(_projectTree)._get_parent($selection);
-                
-                if (typeof (parent.data) === "function") {
-                    // get Entry from tree node
-                    // note that the jstree root will return undefined
-                    selectionEntry = parent.data("entry");
-                } else {
-                    // reset here. will be replaced with project root.
-                    selectionEntry = null;
-                }
-            } else if (selectionEntry.isDirectory) {
-                wasNodeOpen = $selection.hasClass("jstree-open");
-            }
-        }
-
-        // use the project root Directory
-        if (!selectionEntry) {
-            selectionEntry = getProjectRoot();
+            isRoot              = $baseDirNode === $projectTreeList,
+            wasNodeOpen         = isRoot || ($baseDirNode && $baseDirNode.hasClass("jstree-open")) || false;
+        
+        // Silently fail if baseDir assumption fails
+        if (!$baseDirNode) {
+            return result.reject().promise();
         }
 
         _projectTree.on("create.jstree", function (event, data) {
@@ -1515,7 +1493,7 @@ define(function (require, exports, module) {
                     });
 
                     // Create a new node
-                    _createNode($selection, null, _entryToJSON(entry), true, true);
+                    _createNode($baseDirNode, null, _entryToJSON(entry), true, true);
                 };
                 
                 var errorCallback = function (error, entry) {
@@ -1546,7 +1524,7 @@ define(function (require, exports, module) {
                     errorCleanup();
                 };
                 
-                var newItemPath = selectionEntry.fullPath + data.rslt.name;
+                var newItemPath = baseDirEntry.fullPath + data.rslt.name;
                 
                 FileSystem.resolve(newItemPath, function (err, item) {
                     if (!err) {
@@ -1587,7 +1565,7 @@ define(function (require, exports, module) {
         // succession and the node was not yet loaded. To avoid it, first open the node and wait
         // for the open_node event before trying to create the new one. See #2085 for more details.
         if (wasNodeOpen) {
-            _createNode($selection, position, { data: initialName }, skipRename);
+            _createNode($baseDirNode, position, { data: initialName }, skipRename);
 
             if (!skipRename) {
                 var $renameInput = _projectTree.find(".jstree-rename-input");
@@ -1604,11 +1582,11 @@ define(function (require, exports, module) {
             }
         } else {
             _projectTree.one("open_node.jstree", function () {
-                _createNode($selection, position, { data: initialName }, skipRename);
+                _createNode($baseDirNode, position, { data: initialName }, skipRename);
             });
     
             // Open the node before creating the new child
-            _projectTree.jstree("open_node", $selection);
+            _projectTree.jstree("open_node", $baseDirNode);
         }
         
         return result.promise();
