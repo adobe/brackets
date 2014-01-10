@@ -1681,6 +1681,21 @@ define(function (require, exports, module) {
         });
     });
     
+    /**
+     * @private
+     * 
+     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
+     */
+    function convertPreferences() {
+        var rules = {};
+        editorSettings.forEach(function (setting) {
+            rules[setting] = "user";
+        });
+        PreferencesManager.convertPreferences(module, rules);
+    }
+    
+    convertPreferences();
+    
     // Define public API
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
