@@ -1755,7 +1755,8 @@ define(function (require, exports, module) {
      */
     function _deleteTreeNode(target, skipRedraw) {
         var arr = !Array.isArray(target) ? [target] : target,
-            oldSuppressToggleOpen = suppressToggleOpen;
+            oldSuppressToggleOpen = suppressToggleOpen,
+            treeAPI = $.jstree._reference(_projectTree);
         
         suppressToggleOpen = true;
         
@@ -1764,25 +1765,23 @@ define(function (require, exports, module) {
             
             if ($treeNode) {
                 _projectTree.jstree("delete_node", $treeNode);
+                
+                if (entry.parentPath) {
+                    var parentEntry = FileSystem.getDirectoryForPath(entry.parentPath),
+                        parentNode  = _getTreeNode(parentEntry),
+                        siblings    = treeAPI._get_children(parentNode);
+                    
+                    // Make sure it didn't turn into a leaf node. This happens if
+                    // the only file in the directory was deleted
+                    if (siblings.length === 0 && parentNode.hasClass("jstree-leaf")) {
+                        parentNode.removeClass("jstree-leaf jstree-open");
+                        parentNode.addClass("jstree-closed");
+                    }
+                }
             }
         });
         
         suppressToggleOpen = oldSuppressToggleOpen;
-        
-        // When a node is deleted, the previous node is automatically selected.
-        // This works fine as long as the previous node is a file, but doesn't 
-        // work so well if the node is a folder
-        var sel             = _projectTree.jstree("get_selected"),
-            selectedEntry   = sel ? sel.data("entry") : null;
-
-        if (selectedEntry && selectedEntry.isDirectory) {
-            // Make sure it didn't turn into a leaf node. This happens if
-            // the only file in the directory was deleted
-            if (sel.hasClass("jstree-leaf")) {
-                sel.removeClass("jstree-leaf jstree-open");
-                sel.addClass("jstree-closed");
-            }
-        }
         
         if (!skipRedraw) {
             _redraw(true);
