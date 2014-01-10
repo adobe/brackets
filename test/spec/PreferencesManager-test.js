@@ -127,6 +127,30 @@ define(function (require, exports, module) {
             PreferencesManager._reset();
         });
 
+        it("should find preferences in the project", function () {
+            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
+            waitsForDone(SpecRunnerUtils.openProjectFiles(".brackets.json"));
+            function projectPrefsAreSet() {
+                // The test project file, the Brackets repo file, 
+                // user and defaults should be the scopes
+                return Object.keys(PreferencesManager._manager._scopes).length > 3;
+            }
+            waitsFor(projectPrefsAreSet, "prefs appear to be loaded");
+            runs(function () {
+                expect(PreferencesManager.get("spaceUnits")).toBe(92);
+                // Changing projects will force a change in the project scope.
+                SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
+            });
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.openProjectFiles("file_one.js"));
+            });
+            runs(function () {
+                expect(PreferencesManager.get("spaceUnits")).not.toBe(92);
+            });
+        });
+        
+        
+        // Old tests follow
         it("should use default preferences", function () {
             var store = PreferencesManager.getPreferenceStorage(CLIENT_ID, {foo: "default"});
             expect(store.getValue("foo")).toEqual("default");
@@ -162,19 +186,5 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should find preferences in the project", function () {
-            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
-            
-            function projectScopeIsReady() {
-                return Object.keys(PreferencesManager._manager._childMaps.project.merged).length > 0;
-            }
-            waitsFor(projectScopeIsReady);
-            runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).toBe(92);
-                // Changing projects will force a change in the project scope.
-                SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
-                expect(PreferencesManager.get("spaceUnits")).toBeUndefined();
-            });
-        });
     });
 });
