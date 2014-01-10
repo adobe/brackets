@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         
         describe("Preferences Manager", function () {
             it("should yield an error if a preference is redefined", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("foo.bar", "string");
                 try {
                     pm.definePreference("foo.bar", "string");
@@ -251,21 +251,21 @@ define(function (require, exports, module) {
             
             
             it("will automatically wrap a Storage with a Scope", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.addScope("test", new PreferencesBase.MemoryStorage());
                 pm.set("test", "testval", 27);
                 expect(pm.get("testval")).toBe(27);
             });
             
             it("should find the default values", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("foo.bar", "number", 0);
                 expect(pm.get("nonexistent")).not.toBeDefined();
                 expect(pm.get("foo.bar")).toBe(0);
             });
             
             it("should produce an error for setValue on undefined scope", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 try {
                     pm.set("nonscope", "foo", false);
                     expect("Should have gotten an error for nonexistent scope").toBe("but didn't");
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
             });
             
             it("supports nested scopes", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("useTabChar", "boolean", false);
                 pm.definePreference("tabSize", "number", 4);
                 pm.definePreference("spaceUnits", "number", 4);
@@ -315,7 +315,7 @@ define(function (require, exports, module) {
                     return deferred2;
                 };
                 
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("testKey", "number", 0);
                 pm.addScope("storage1", new PreferencesBase.Scope(storage1), {
                     before: "storage2"
@@ -334,7 +334,7 @@ define(function (require, exports, module) {
             });
             
             it("can notify of preference changes through set", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("spaceUnits", "number", 4);
                 pm.addScope("user", new PreferencesBase.MemoryStorage());
                 var eventData;
@@ -355,7 +355,7 @@ define(function (require, exports, module) {
             });
             
             it("can notify of preference changes via scope changes", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("spaceUnits", "number", 4);
                 
                 var eventData = [];
@@ -380,7 +380,7 @@ define(function (require, exports, module) {
             });
             
             it("notifies when there are layer changes", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 
                 var data = {
                     spaceUnits: 4,
@@ -420,7 +420,7 @@ define(function (require, exports, module) {
             });
             
             it("can notify changes for single preference objects", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 var pref = pm.definePreference("spaceUnits", "number", 4);
                 var retrievedPref = pm.getPreference("spaceUnits");
                 expect(retrievedPref).toBe(pref);
@@ -447,7 +447,7 @@ define(function (require, exports, module) {
             });
             
             it("supports removal of scopes", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 var events = [];
                 pm.on("change", function (e, data) {
                     events.push(data);
@@ -472,7 +472,7 @@ define(function (require, exports, module) {
             });
             
             it("can manage preferences files in the file tree", function () {
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 
                 pm.addScope("user", new PreferencesBase.MemoryStorage({
                     spaceUnits: 99
@@ -682,7 +682,7 @@ define(function (require, exports, module) {
             
             it("can load preferences from disk", function () {
                 var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 var projectScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("project", projectScope));
                 runs(function () {
@@ -698,7 +698,7 @@ define(function (require, exports, module) {
             
             it("can save preferences", function () {
                 var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 var projectScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("project", projectScope));
                 runs(function () {
@@ -715,7 +715,7 @@ define(function (require, exports, module) {
             
             it("can create a new pref file", function () {
                 var filestorage = new PreferencesBase.FileStorage(newSettingsFile.fullPath, true);
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 var newScope = new PreferencesBase.Scope(filestorage);
                 waitsForDone(pm.addScope("new", newScope), "adding scope");
                 runs(function () {
@@ -742,7 +742,7 @@ define(function (require, exports, module) {
             
             it("can load preferences later", function () {
                 var filestorage = new PreferencesBase.FileStorage();
-                var pm = new PreferencesBase.PreferencesManager();
+                var pm = new PreferencesBase.PreferencesSystem();
                 var newScope = new PreferencesBase.Scope(filestorage);
                 newScope.addLayer(new PreferencesBase.PathLayer("/"));
                 var changes = [];
