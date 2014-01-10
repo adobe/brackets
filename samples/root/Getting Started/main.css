@@ -5,6 +5,7 @@ html {
     background-image: -moz-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
     background-image: -webkit-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
     background-image: -ms-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -19,7 +20,6 @@ body {
     -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.06);
     -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.06);
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.06);
-    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
