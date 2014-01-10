@@ -478,7 +478,7 @@ define(function (require, exports, module) {
                 verifyAttrHints(hintList, "application/msexcel");
             });
 
-            xit("should NOT list attribute value hints when the cursor is after the end quote of an attribute value", function () {
+            it("should NOT list attribute value hints when the cursor is after the end quote of an attribute value", function () {
                 testDocument.replaceRange("  <input checked accept='' >\n", { line: 9, ch: 0 });  // insert new line
                 
                 // Set cursor after the closing quote of accept attribute

@@ -64,9 +64,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands           = require("command/Commands"),
-        CommandManager     = require("command/CommandManager"),
-        Menus              = require("command/Menus"),
+    var Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
@@ -77,6 +75,7 @@ define(function (require, exports, module) {
         AnimationUtils     = require("utils/AnimationUtils"),
         _                  = require("thirdparty/lodash");
     
+    /** Editor preferences */
     PreferencesManager.definePreference("useTabChar", "boolean", false);
     PreferencesManager.definePreference("tabSize", "number", 4);
     PreferencesManager.definePreference("spaceUnits", "number", 4);
@@ -85,7 +84,8 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("styleActiveLine", "boolean", false);
     PreferencesManager.definePreference("wordWrap", "boolean", true);
     
-    /** Editor preferences */
+    var editorSettings = ["useTabChar", "tabSize", "spaceUnits", "closeBrackets",
+                          "showLineNumbers", "styleActiveLine", "wordWrap"];
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = PreferencesManager.get("useTabChar");
@@ -1641,6 +1641,12 @@ define(function (require, exports, module) {
         _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine", _editorOnly);
     };
     
+    /**
+     * Synonym for setShowActiveLine. This is needed because the preference name
+     * is styleActiveLine and editorSettings automatically calls this setter.
+     */
+    Editor.setStyleActiveLine = Editor.setShowActiveLine;
+    
     /** @type {boolean} Returns true if show active line is enabled for all editors */
     Editor.getShowActiveLine = function () {
         return _styleActiveLine;
@@ -1661,19 +1667,14 @@ define(function (require, exports, module) {
         return _wordWrap;
     };
     
-    var editorSettings = [];
-    _.keys(Editor).forEach(function (key) {
-        if (key.substr(0, 3) === "set") {
-            editorSettings.push(key[3].toLowerCase() + key.substr(4));
-        }
-    });
-    
-    PreferencesManager.on("change", function (e, data) {
-        var settings = _.intersection(data.ids, editorSettings);
-        settings.forEach(function (setting) {
-            var setterName = "set" + setting[0].toUpperCase() + setting.substr(1);
+    // Set up listeners for preference changes
+    editorSettings.forEach(function (setting) {
+        var setterName = "set" + setting[0].toUpperCase() + setting.substr(1);
+        PreferencesManager.on("change", setting, function () {
             if (Editor[setterName]) {
                 Editor[setterName](PreferencesManager.get(setting), true);
+            } else {
+                console.error("No Editor setter for ", setting);
             }
         });
     });

@@ -982,7 +982,7 @@ a, img {
     }
 }
 
-#search-results .disclosure-triangle {
+#search-results .disclosure-triangle, #problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -1334,8 +1334,22 @@ a, img {
     .line {
         text-align: right;  // make line number line up with editor line numbers
     }
-}
 
+    .line-text {
+        white-space: nowrap;
+        width: auto;
+    }
+
+    .line-snippet {
+        white-space: nowrap;
+        width: 100%;
+        padding-left: 10px;
+    }
+    
+    .inspector-section > td {
+        padding-left: 5px;
+    }
+}
 
 /* Line up label text and input text */
 label input {
