@@ -1954,21 +1954,13 @@ define(function (require, exports, module) {
 
         // Directory contents added
         if (added.length > 0) {
-            var addedJSON = [];
-
-            added.forEach(function (addedEntry) {
-                // Before creating a new node, make sure it doesn't already exist
-                if (_getTreeNode(addedEntry)) {
-                    return;
-                }
-
-                // _entryToJSON returns null if the added file is filtered from view
-                var json = _entryToJSON(addedEntry);
-
-                if (json) {
-                    addedJSON.push(json);
-                }
+            // Before creating a new node, make sure it doesn't already exist
+            var addedJSON = added.filter(function (addedEntry) {
+                return !_getTreeNode(addedEntry);
             });
+            
+            // Convert entries to JSON objects for jstree
+            addedJSON = addedJSON.map(_entryToJSON);
 
             // create all new nodes in a batch
             _createNode($directoryNode, null, addedJSON, true, true);
