@@ -476,6 +476,41 @@ define(function (require, exports, module) {
             });
         }
     }
+    
+    /**
+     * A memozied function that returns a sortable name for a given DOM node.
+     * @private
+     * @param {Node} A DOM node with a nodeN id
+     * @return {string}
+     */
+    var _getComparableName = _.memoize(function (a) {
+        var $a = $(a),
+            a1 = $a.text();
+        
+        if (brackets.platform !== "mac") {
+            a1 = ($a.hasClass("jstree-leaf") ? "1" : "0") + a1;
+        }
+        
+        return a1;
+    }, function (a) {
+        return a.id;
+    });
+
+    /**
+     * A memoized comparator of DOM nodes for use with jsTree
+     * @private
+     * @param {Node} First DOM node
+     * @param {Node} Second DOM node
+     * @return {number} Comparator value
+     */
+    var _projectTreeSortComparator = _.memoize(function (a, b) {
+        var a1 = _getComparableName(a),
+            b1 = _getComparableName(b);
+        
+        return FileUtils.compareFilenames(a1, b1, false);
+    }, function (a, b) {
+        return a.id + ":" + b.id;
+    });
 
     /**
      * @private
@@ -505,17 +540,7 @@ define(function (require, exports, module) {
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
-                sort :  function (a, b) {
-                    var a1 = $(a).text(),
-                        b1 = $(b).text();
-                    
-                    // Non-mac: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                    if (brackets.platform !== "mac") {
-                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
-                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
-                    }
-                    return FileUtils.compareFilenames(a1, b1, false);
-                }
+                sort : _projectTreeSortComparator
             }).bind(
                 "before.jstree",
                 function (event, data) {
