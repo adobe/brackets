@@ -181,23 +181,27 @@ define(function (require, exports, module) {
         var href    = window.location.href,
             params  = new UrlParams();
         
-        // Remove all menus to assure extension menus and menu items are removed
-        _.forEach(Menus.getAllMenus(), function (value, key) {
-            Menus.removeMenu(key);
-        });
-        
-        params.parse();
-        
-        if (!params.get("reloadWithoutUserExts")) {
-            params.put("reloadWithoutUserExts", true);
-        }
-        
-        if (href.indexOf("?") !== -1) {
-            href = href.substring(0, href.indexOf("?"));
-        }
-        
-        href += "?" + params.toString();
-        browserReload(href);
+        // Give Mac native menus extra time to update shortcut highlighting prior
+        // to removing menus, or else the highlights get messed up after the reload.
+        window.setTimeout(function () {
+            // Remove all menus to assure extension menus and menu items are removed
+            _.forEach(Menus.getAllMenus(), function (value, key) {
+                Menus.removeMenu(key);
+            });
+            
+            params.parse();
+            
+            if (!params.get("reloadWithoutUserExts")) {
+                params.put("reloadWithoutUserExts", true);
+            }
+            
+            if (href.indexOf("?") !== -1) {
+                href = href.substring(0, href.indexOf("?"));
+            }
+            
+            href += "?" + params.toString();
+            browserReload(href);
+        }, 100);
     }
         
     function handleNewBracketsWindow() {
