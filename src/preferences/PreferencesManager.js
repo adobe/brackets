@@ -109,9 +109,10 @@ define(function (require, exports, module) {
      * Retreive the preferences data for the given clientID.
      * @param {string|{id: string, uri: string}} clientID - A unique identifier or a requireJS module object
      * @param {string} defaults - Default preferences stored as JSON
+     * @param {boolean} _doNotCreate Do not create the storage if it does not already exist. Used for conversion.
      * @return {PreferenceStorage}
      */
-    function getPreferenceStorage(clientID, defaults) {
+    function getPreferenceStorage(clientID, defaults, _doNotCreate) {
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
             return;
@@ -123,6 +124,9 @@ define(function (require, exports, module) {
         var prefs = prefStorage[clientID];
 
         if (prefs === undefined) {
+            if (_doNotCreate) {
+                return;
+            }
             // create a new empty preferences object
             prefs = (defaults && JSON.stringify(defaults)) ? defaults : {};
             prefStorage[clientID] = prefs;
@@ -174,7 +178,7 @@ define(function (require, exports, module) {
             _reset();
         }
     }
-
+    
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
     preferencesKey = localStorage.getItem("preferencesKey");
@@ -212,7 +216,7 @@ define(function (require, exports, module) {
     // User-level preferences
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
     
-    preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
     // Set up the .brackets.json file handling
     preferencesManager.addPathScopes(".brackets.json", {
@@ -230,6 +234,42 @@ define(function (require, exports, module) {
         }
     });
     
+    /**
+     * Converts from the old localStorage-based preferences to the new-style
+     * preferences according to the "rules" given.
+     * 
+     * `rules` is an object, the keys of which refer to the preference names.
+     * The value tells the converter what to do. The following values are available:
+     * 
+     * * `user`: convert to a user-level preference
+     * * `user newkey`: convert to a user-level preference, changing the key to newkey
+     * 
+     * Once conversion is done, the old data is deleted from localStorage.
+     * 
+     * @param {string|Object} clientID ClientID used in the old preferences
+     * @param {Object} rules Rules for conversion (as defined above)
+     */
+    function convertPreferences(clientID, rules) {
+        userScope.done(function () {
+            var prefs = getPreferenceStorage(clientID, null, true);
+            
+            // If this has already been converted, then the prefs will be gone
+            if (!prefs) {
+                return;
+            }
+            
+            prefs.convert(rules).done(function (complete) {
+                if (complete) {
+                    delete prefStorage[getClientID(clientID)];
+                }
+                savePreferences();
+            });
+        }).fail(function (error) {
+            console.error("Error while converting ", getClientID(clientID));
+            console.error(error);
+        });
+    }
+
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesSystem();
@@ -263,4 +303,5 @@ define(function (require, exports, module) {
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
     exports.definePreference    = preferencesManager.definePreference.bind(preferencesManager);
     exports.fileChanged         = preferencesManager.fileChanged.bind(preferencesManager);
+    exports.convertPreferences  = convertPreferences;
 });

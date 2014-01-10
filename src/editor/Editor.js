@@ -86,6 +86,8 @@ define(function (require, exports, module) {
     
     var editorSettings = ["useTabChar", "tabSize", "spaceUnits", "closeBrackets",
                           "showLineNumbers", "styleActiveLine", "wordWrap"];
+
+    /** Editor preferences */
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = PreferencesManager.get("useTabChar");
