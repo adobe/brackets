@@ -1512,7 +1512,7 @@ define(function (require, exports, module) {
                         // Select the new node and resolve
                         _projectTree.jstree("select_node", data.rslt.obj, true);
                         result.resolve(entry);
-                    })
+                    });
 
                     // Create a new node
                     _createNode($selection, null, _entryToJSON(entry), true, true);
