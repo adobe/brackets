@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         StringUtils             = require("utils/StringUtils"),
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
-        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html"),
+        PreferencesManager      = require("preferences/PreferencesManager");
     
     var buildInfo;
     
@@ -63,6 +64,10 @@ define(function (require, exports, module) {
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
             function (err) {} /* Ignore errors */
         );
+    }
+    
+    function _handleOpenSettings() {
+        CommandManager.execute(Commands.FILE_OPEN, { fullPath: PreferencesManager.getUserPrefFile() });
     }
 
     function _handleAboutDialog() {
@@ -131,4 +136,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
     CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleLinkMenuItem(brackets.config.twitter_url));
     CommandManager.register(Strings.CMD_ABOUT,                  Commands.HELP_ABOUT,                _handleAboutDialog);
+    CommandManager.register(Strings.CMD_OPEN_SETTINGS,          Commands.HELP_OPEN_SETTINGS,             _handleOpenSettings);
 });

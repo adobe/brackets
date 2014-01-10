@@ -190,11 +190,16 @@ define(function (require, exports, module) {
 
     // Use localStorage by default
     _initStorage(localStorage);
+    
+    function getUserPrefFile() {
+        return userPrefFile;
+    }     
 
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
     exports.getClientID             = getClientID;
+    exports.getUserPrefFile         = getUserPrefFile;
 
     // Unit test use only
     exports._reset                  = _reset;
