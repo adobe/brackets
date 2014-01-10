@@ -478,7 +478,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * A memozied function that returns a sortable name for a given DOM node.
+     * A memoized function that returns a sortable name for a given DOM node.
      * @private
      * @param {Node} A DOM node with a nodeN id
      * @return {string}
