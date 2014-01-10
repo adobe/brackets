@@ -199,15 +199,11 @@ define(function (require, exports, module) {
     // The SETTINGS_FILENAME is used with a preceding "." within user projects
   
     
-    function getUserPrefFile() {
-        return userPrefFile;
-    }
-
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
     exports.getClientID             = getClientID;
-    exports.getUserPrefFile         = getUserPrefFile;
+
 
     // Unit test use only
     exports._reset                  = _reset;
@@ -216,7 +212,11 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
-
+    function getUserPrefFile() {
+        return userPrefFile;
+    }
+    
+    exports.getUserPrefFile         = getUserPrefFile;
     
     var preferencesManager = new PreferencesBase.PreferencesSystem();
     

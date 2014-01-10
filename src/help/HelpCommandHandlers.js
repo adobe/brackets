@@ -42,8 +42,7 @@ define(function (require, exports, module) {
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-        FileSystem              = require("filesystem/FileSystem"),
-        FileSystemError         = require("filesystem/FileSystemError");
+        FileSystem              = require("filesystem/FileSystem");
     
     var buildInfo;
     
@@ -71,10 +70,10 @@ define(function (require, exports, module) {
     function _handleOpenSettings() {
         var fullPath = PreferencesManager.getUserPrefFile(),
             file = FileSystem.getFileForPath(fullPath);
-        file.stat(function (err, stat) {
-            if (!err) {
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-            } else if (err === FileSystemError.NOT_FOUND) {
+            } else {
                 FileUtils.writeText(file, "", true)
                     .done(function () {
                         CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
