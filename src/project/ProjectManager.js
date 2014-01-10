@@ -82,13 +82,6 @@ define(function (require, exports, module) {
      */
     var _fileSystemChange,
         _fileSystemRename;
-    
-    /**
-     * @private
-     * @type {Async.PromiseQueue}
-     * Used to serialize changes to the file tree
-     */
-    var _fileTreeChangeQueue = new Async.PromiseQueue();
 
     
     /**
@@ -483,6 +476,41 @@ define(function (require, exports, module) {
             });
         }
     }
+    
+    /**
+     * A memoized function that returns a sortable name for a given DOM node.
+     * @private
+     * @param {Node} A DOM node with a nodeN id
+     * @return {string}
+     */
+    var _getComparableName = _.memoize(function (a) {
+        var entry   = $(a).data("entry"),
+            a1      = entry.name;
+        
+        if (brackets.platform !== "mac") {
+            a1 = (entry.isFile ? "1" : "0") + a1;
+        }
+        
+        return a1;
+    }, function (a) {
+        return a.id;
+    });
+
+    /**
+     * A memoized comparator of DOM nodes for use with jsTree
+     * @private
+     * @param {Node} First DOM node
+     * @param {Node} Second DOM node
+     * @return {number} Comparator value
+     */
+    var _projectTreeSortComparator = _.memoize(function (a, b) {
+        var a1 = _getComparableName(a),
+            b1 = _getComparableName(b);
+        
+        return FileUtils.compareFilenames(a1, b1, false);
+    }, function (a, b) {
+        return a.id + ":" + b.id;
+    });
 
     /**
      * @private
@@ -512,17 +540,7 @@ define(function (require, exports, module) {
                 themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                     //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                     // file because jsTree insists on loading one itself)
-                sort :  function (a, b) {
-                    var a1 = $(a).text(),
-                        b1 = $(b).text();
-                    
-                    // Non-mac: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                    if (brackets.platform !== "mac") {
-                        a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + a1;
-                        b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + b1;
-                    }
-                    return FileUtils.compareFilenames(a1, b1, false);
-                }
+                sort : _projectTreeSortComparator
             }).bind(
                 "before.jstree",
                 function (event, data) {
@@ -1077,15 +1095,42 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Lookup jQuery node for a given FileSystem Entry
+     * @param {!File|Directory} entry File or directory entry to find in the tree
+     * @return {?jQuery} The jQuery node for this entry or null if not found
+     */
+    function _getTreeNode(entry) {
+        // Special case if the entry matches the project root
+        if (entry === getProjectRoot()) {
+            return $projectTreeList;
+        }
+        
+        var id = _projectInitialLoad.fullPathToIdMap[entry.fullPath],
+            node = null;
+        
+        if (id) {
+            node = $("#" + id);
+        }
+        
+        return node;
+    }
+    
+    /**
      * Finds the tree node corresponding to the given file/folder (rejected if the path lies
      * outside the project, or if it doesn't exist).
      *
      * @param {!(File|Directory)} entry File or Directory to find
-     * @param {boolean} shallowSearch Flag to return no result if the node is not loaded
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
      */
-    function _findTreeNode(entry, shallowSearch) {
-        var result = new $.Deferred();
+    function _findTreeNode(entry) {
+        var result = new $.Deferred(),
+            $renderedNode = _getTreeNode(entry);
+        
+        // Check if tree node was already rendered
+        if ($renderedNode) {
+            return result.resolve($renderedNode).promise();
+        }
         
         var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
 
@@ -1125,7 +1170,7 @@ define(function (require, exports, module) {
                     var subChildren = treeAPI._get_children($node);
                     if (subChildren.length > 0) {
                         findInSubtree(subChildren, segmentI + 1);
-                    } else if (!shallowSearch) {
+                    } else {
                         // Subtree not loaded yet: force async load & try again
                         treeAPI.load_node($node, function (data) {
                             subChildren = treeAPI._get_children($node);
@@ -1133,9 +1178,6 @@ define(function (require, exports, module) {
                         }, function (err) {
                             result.reject();  // includes case where folder is empty
                         });
-                    } else {
-                        // Stop searching
-                        result.resolve(null);
                     }
                 }
             }
@@ -1351,26 +1393,33 @@ define(function (require, exports, module) {
      * 
      * @param {?jQueryObject} $target Parent or sibling node
      * @param {?number|string} position Position to insert
-     * @param {!Object} data
+     * @param {!Object|Array.<Object>} arr Node data or array of node data
      * @param {!boolean} skipRename
-     * @return {jQuery.Promise} Resolves once the node has been created.
+     * @param {!boolean} skipRedraw
      */
-    function _createNode($target, position, data, skipRename) {
-        var deferred = new $.Deferred();
-        
-        if (typeof data === "string") {
-            data = { data: data };
+    function _createNode($target, position, arr, skipRename, skipRedraw) {
+        if (typeof arr === "string") {
+            arr = [{ data: arr }];
+        } else if (!Array.isArray(arr)) {
+            arr = [arr];
         }
         
-        // Create the node and open the editor
-        _projectTree.one("create.jstree", function () {
-            // Redraw selection
-            _redraw(true);
-            deferred.resolve();
-        });
-        _projectTree.jstree("create", $target, position || 0, data, null, skipRename);
+        position = position || 0;
         
-        return deferred.promise();
+        arr.forEach(function (node) {
+            // Convert strings to objects
+            if (typeof node === "string") {
+                node = { data: node };
+            }
+            
+            if (node) {
+                _projectTree.jstree("create", $target, position, node, null, skipRename);
+            }
+        });
+        
+        if (!skipRedraw) {
+            _redraw(true);
+        }
     }
 
     /**
@@ -1701,54 +1750,52 @@ define(function (require, exports, module) {
     /**
      * @private
      * Deletes a node from jstree. Does not make assumptions on file existence.
-     * 
-     * @param {FileSystemEntry}
-     * @return {$.Promise} Promise that is always resolved
+     * @param {FileSystemEntry|Array.<FileSystemEntry>} target Entry or array of entries to delete
+     * @param {boolean} skipRedraw
      */
-    function _deleteTreeNode(entry) {
-        var deferred = new $.Deferred();
+    function _deleteTreeNode(target, skipRedraw) {
+        var arr = !Array.isArray(target) ? [target] : target,
+            oldSuppressToggleOpen = suppressToggleOpen;
         
-        _findTreeNode(entry, true).done(function ($node) {
-            if (!$node) {
-                deferred.resolve();
-                return;
+        suppressToggleOpen = true;
+        
+        arr.forEach(function (entry) {
+            var $treeNode = _getTreeNode(entry);
+            
+            if ($treeNode) {
+                _projectTree.jstree("delete_node", $treeNode);
             }
-            
-            _projectTree.one("delete_node.jstree", function () {
-                // When a node is deleted, the previous node is automatically selected.
-                // This works fine as long as the previous node is a file, but doesn't 
-                // work so well if the node is a folder
-                var sel     = _projectTree.jstree("get_selected"),
-                    entry   = sel ? sel.data("entry") : null;
-                
-                if (entry && entry.isDirectory) {
-                    // Make sure it didn't turn into a leaf node. This happens if
-                    // the only file in the directory was deleted
-                    if (sel.hasClass("jstree-leaf")) {
-                        sel.removeClass("jstree-leaf jstree-open");
-                        sel.addClass("jstree-closed");
-                    }
-                }
-                deferred.resolve();
-            });
-            
-            var oldSuppressToggleOpen = suppressToggleOpen;
-            suppressToggleOpen = true;
-            _projectTree.jstree("delete_node", $node);
-            suppressToggleOpen = oldSuppressToggleOpen;
-        }).fail(function () {
-            deferred.resolve();
-        }).always(function () {
-            _redraw(true);
         });
         
-        if (DocumentManager.getCurrentDocument()) {
-            DocumentManager.notifyPathDeleted(entry.fullPath);
-        } else {
-            EditorManager.notifyPathDeleted(entry.fullPath);
-        }
+        suppressToggleOpen = oldSuppressToggleOpen;
+        
+        // When a node is deleted, the previous node is automatically selected.
+        // This works fine as long as the previous node is a file, but doesn't 
+        // work so well if the node is a folder
+        var sel             = _projectTree.jstree("get_selected"),
+            selectedEntry   = sel ? sel.data("entry") : null;
 
-        return deferred.promise();
+        if (selectedEntry && selectedEntry.isDirectory) {
+            // Make sure it didn't turn into a leaf node. This happens if
+            // the only file in the directory was deleted
+            if (sel.hasClass("jstree-leaf")) {
+                sel.removeClass("jstree-leaf jstree-open");
+                sel.addClass("jstree-closed");
+            }
+        }
+        
+        if (!skipRedraw) {
+            _redraw(true);
+        }
+        
+        // Trigger notifications after tree updates are complete
+        arr.forEach(function (entry) {
+            if (DocumentManager.getCurrentDocument()) {
+                DocumentManager.notifyPathDeleted(entry.fullPath);
+            } else {
+                EditorManager.notifyPathDeleted(entry.fullPath);
+            }
+        });
     }
 
     /**
@@ -1760,7 +1807,8 @@ define(function (require, exports, module) {
 
         entry.moveToTrash(function (err) {
             if (!err) {
-                _deleteTreeNode(entry).then(result.resolve, result.reject);
+                _deleteTreeNode(entry);
+                result.resolve();
             } else {
                 // Show an error alert
                 Dialogs.showModalDialog(
@@ -1903,83 +1951,53 @@ define(function (require, exports, module) {
 
         // A whole-sale change event; refresh the entire file tree
         if (!entry) {
-            _fileTreeChangeQueue.removeAll();
-            _fileTreeChangeQueue.add(function () {
-                return refreshFileTree();
-            });
+            refreshFileTree();
             return;
         }
         
-        // A change event for a different directory; ignore
-        if (!isWithinProject(entry.fullPath)) {
+        var $directoryNode = _getTreeNode(entry),
+            doRedraw = false;
+        
+        // Ignore change event when: the entry is not a directory, the directory
+        // was not yet rendered or the directory is outside the current project
+        if (!entry.isDirectory || !$directoryNode || !isWithinProject(entry.fullPath)) {
             return;
         }
+            
+        // If there is a change event with unknown added and removed sets
+        // just refresh the tree.
+        // 
+        // TODO: in the former case we really should just refresh the affected
+        // directory instead of refreshing the entire tree.
+        if (!added || !removed) {
+            refreshFileTree();
+            return;
+        }
+
+        // Directory contents removed
+        if (removed.length > 0) {
+            // Synchronously remove all tree nodes
+            _deleteTreeNode(removed, true);
+            doRedraw = true;
+        }
+
+        // Before creating new nodes, make sure it doesn't already exist
+        var addedJSON = added.filter(function (addedEntry) {
+            return !_getTreeNode(addedEntry);
+        });
+
+        // Convert entries to JSON objects for jstree
+        addedJSON = addedJSON.map(_entryToJSON);
+
+        // Directory contents added
+        if (addedJSON.length > 0) {
+            // create all new nodes in a batch
+            _createNode($directoryNode, null, addedJSON, true, true);
+            doRedraw = true;
+        }
         
-        if (entry.isDirectory) {
-            // If there is a change event with unknown added and removed sets,
-            // or if there are too many pending file tree fixups to deal with
-            // in a timely manner, just clear the queue and refresh the tree.
-            // 
-            // TODO: in the former case we really should just refresh the affected
-            // directory instead of refreshing the entire tree.
-            if (!added || !removed || _fileTreeChangeQueue.length > 100) {
-                _fileTreeChangeQueue.removeAll();
-                return _fileTreeChangeQueue.add(function () {
-                    return _findTreeNode(entry, true).then(function ($directoryNode) {
-                        if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
-                            return refreshFileTree();
-                        }
-                    });
-                });
-            }
-
-            // Directory contents removed
-            if (removed.length > 0) {
-                _fileTreeChangeQueue.add(function () {
-                    return Async.doSequentially(removed, function (removedEntry) {
-                        return _deleteTreeNode(removedEntry);
-                    }, false);
-                });
-            }
-
-            // Directory contents added
-            if (added.length > 0) {
-                _fileTreeChangeQueue.add(function () {
-                    // Find parent node to add to. Use shallowSearch=true to
-                    // skip adding a child if it's parent is not visible
-                    return _findTreeNode(entry, true).then(function ($directoryNode) {
-                        if ($directoryNode && !$directoryNode.hasClass("jstree-closed")) {
-                            return Async.doSequentially(added, function (addedEntry) {
-                                var json = _entryToJSON(addedEntry);
-                                
-                                // _entryToJSON returns null if the added file is filtered from view
-                                if (json) {
-                                    
-                                    // Before creating a new node, make sure it doesn't already exist.
-                                    // TODO: Improve the efficiency of this search!
-                                    return _findTreeNode(addedEntry).then(function ($childNode) {
-                                        if ($childNode) {
-                                            // the node already exists; do nothing;
-                                            return new $.Deferred().resolve();
-                                        } else {
-                                            // The node wasn't found; create it.
-                                            // Position is irrelevant due to sorting
-                                            return _createNode($directoryNode, null, json, true);
-                                        }
-                                    }, function () {
-                                        // The node doesn't exist; create it.
-                                        return _createNode($directoryNode, null, json, true);
-                                    });
-                                } else {
-                                    return new $.Deferred().resolve();
-                                }
-                            }, false);
-                        } else {
-                            return new $.Deferred().resolve();
-                        }
-                    });
-                });
-            }
+        if (doRedraw) {
+            _redraw(true);
         }
     };
 
