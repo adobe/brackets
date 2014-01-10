@@ -245,22 +245,22 @@ define(function (require, exports, module) {
     }
     
     // Private API for unit testing and use elsewhere in Brackets core
-    exports._manager = preferencesManager;
+    exports._manager               = preferencesManager;
     exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
     
     // Public API
     
-    exports.get = preferencesManager.get.bind(preferencesManager);
-    exports.set = preferencesManager.set.bind(preferencesManager);
-    exports.save = preferencesManager.save.bind(preferencesManager);
-    exports.on = preferencesManager.on.bind(preferencesManager);
-    exports.off = preferencesManager.off.bind(preferencesManager);
-    exports.getPreference = preferencesManager.getPreference.bind(preferencesManager);
-    exports.setValueAndSave = setValueAndSave;
-    exports.addScope = preferencesManager.addScope.bind(preferencesManager);
-    exports.stateManager = stateManager;
-    exports.FileStorage = PreferencesBase.FileStorage;
-    exports.SETTINGS_FILENAME = SETTINGS_FILENAME;
-    exports.definePreference = preferencesManager.definePreference.bind(preferencesManager);
-    exports.fileChanged = preferencesManager.fileChanged.bind(preferencesManager);
+    exports.get                 = preferencesManager.get.bind(preferencesManager);
+    exports.set                 = preferencesManager.set.bind(preferencesManager);
+    exports.save                = preferencesManager.save.bind(preferencesManager);
+    exports.on                  = preferencesManager.on.bind(preferencesManager);
+    exports.off                 = preferencesManager.off.bind(preferencesManager);
+    exports.getPreference       = preferencesManager.getPreference.bind(preferencesManager);
+    exports.setValueAndSave     = setValueAndSave;
+    exports.addScope            = preferencesManager.addScope.bind(preferencesManager);
+    exports.stateManager        = stateManager;
+    exports.FileStorage         = PreferencesBase.FileStorage;
+    exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
+    exports.definePreference    = preferencesManager.definePreference.bind(preferencesManager);
+    exports.fileChanged         = preferencesManager.fileChanged.bind(preferencesManager);
 });

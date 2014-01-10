@@ -27,13 +27,13 @@
 /**
  * Infrastructure for the preferences system.
  *
- * At the top, the level at which most people will interact, is the `PreferencesManager` object.
+ * At the top, the level at which most people will interact, is the `PreferencesSystem` object.
  * The most common operation is `get(id)`, which simply retrieves the value of a given preference.
  * 
- * The PreferencesManager has a collection of Scopes, which it traverses in a specified order. 
+ * The PreferencesSystem has a collection of Scopes, which it traverses in a specified order. 
  * Each Scope holds one level of settings. 
  * 
- * PreferencesManager.js sets up a singleton PreferencesManager that has the following Scopes:
+ * PreferencesManager.js sets up a singleton PreferencesSystem that has the following Scopes:
  *
  * * default (the default values for any settings that are explicitly registered)
  * *  user (the user's customized settings – the equivalent of Brackets' old 
@@ -283,9 +283,8 @@ define(function (require, exports, module) {
         save: function () {
             var self = this;
             if (this._dirty) {
-                return this.storage.save(this.data).done(function () {
-                    self._dirty = false;
-                });
+                self._dirty = false;
+                return this.storage.save(this.data);
             } else {
                 return $.Deferred().resolve().promise();
             }
@@ -543,7 +542,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Helper object to add a new path-based Scope to the PreferencesManager. When a path-based
+     * Helper object to add a new path-based Scope to the PreferencesSystem. When a path-based
      * Scope will be added, its existence is first checked and *then* this PathScopeAdder will be
      * used.
      * 
@@ -562,9 +561,9 @@ define(function (require, exports, module) {
     
     PathScopeAdder.prototype = {
         /**
-         * Adds the new Scope to the given PreferencesManager.
+         * Adds the new Scope to the given PreferencesSystem.
          * 
-         * @param {PreferencesManager} pm PreferencesManager to which the Scope will be added
+         * @param {PreferencesSystem} pm PreferencesSystem to which the Scope will be added
          * @param {string} before Name of the Scope before which the new Scope should be added
          * @return {Promise} Promise resolved once the Scope is loaded
          */
@@ -613,7 +612,7 @@ define(function (require, exports, module) {
     });
     
     /**
-     * PreferencesManager ties everything together to provide a simple interface for
+     * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
      * 
      * It keeps track of multiple Scope levels and also manages path-based Scopes.
@@ -621,7 +620,7 @@ define(function (require, exports, module) {
      * It also provides the ability to register preferences, which gives a fine-grained
      * means for listening for changes and will ultimately allow for automatic UI generation.
      */
-    function PreferencesManager() {
+    function PreferencesSystem() {
         this._knownPrefs = {};
         this._scopes = {
             "default": new Scope(new MemoryStorage())
@@ -654,7 +653,7 @@ define(function (require, exports, module) {
         }.bind(this));
     }
     
-    _.extend(PreferencesManager.prototype, {
+    _.extend(PreferencesSystem.prototype, {
         
         /**
          * Defines a new preference.
@@ -777,7 +776,7 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Removes a Scope from this PreferencesManager. Returns without doing anything
+         * Removes a Scope from this PreferencesSystem. Returns without doing anything
          * if the Scope does not exist. Notifies listeners of preferences that may have
          * changed.
          * 
@@ -1052,7 +1051,7 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Tells the PreferencesManager that the given file has been changed so that any
+         * Tells the PreferencesSystem that the given file has been changed so that any
          * related Scopes can be reloaded.
          * 
          * @param {string} filename Name of the file that has changed
@@ -1065,9 +1064,9 @@ define(function (require, exports, module) {
     });
     
     // Public interface
-    exports.PreferencesManager = PreferencesManager;
-    exports.Scope = Scope;
-    exports.MemoryStorage = MemoryStorage;
-    exports.PathLayer = PathLayer;
-    exports.FileStorage = FileStorage;
+    exports.PreferencesSystem  = PreferencesSystem;
+    exports.Scope              = Scope;
+    exports.MemoryStorage      = MemoryStorage;
+    exports.PathLayer          = PathLayer;
+    exports.FileStorage        = FileStorage;
 });
