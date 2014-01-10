@@ -484,8 +484,9 @@ define(function (require, exports, module) {
      * @return {string}
      */
     var _getComparableName = _.memoize(function (a) {
-        var entry   = $(a).data("entry"),
-            a1      = entry.name;
+        var $a      = $(a),
+            entry   = $a.data("entry"),
+            a1      = (entry && entry.name) || ($a.text().trim());
         
         if (brackets.platform !== "mac") {
             a1 = (entry.isFile ? "1" : "0") + a1;
@@ -1434,8 +1435,7 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        var $node               = null,
-            selection           = _projectTree.jstree("get_selected"),
+        var $selection          = _projectTree.jstree("get_selected"),
             selectionEntry      = null,
             position            = "inside",
             escapeKeyPressed    = false,
@@ -1443,8 +1443,8 @@ define(function (require, exports, module) {
             wasNodeOpen         = true;
 
         // get the File or Directory
-        if (selection) {
-            selectionEntry = selection.data("entry");
+        if ($selection) {
+            selectionEntry = $selection.data("entry");
         }
 
         // move selection to parent Directory
@@ -1452,7 +1452,7 @@ define(function (require, exports, module) {
             if (selectionEntry.isFile) {
                 position = "after";
                 
-                var parent = $.jstree._reference(_projectTree)._get_parent(selection);
+                var parent = $.jstree._reference(_projectTree)._get_parent($selection);
                 
                 if (typeof (parent.data) === "function") {
                     // get Entry from tree node
@@ -1463,7 +1463,7 @@ define(function (require, exports, module) {
                     selectionEntry = null;
                 }
             } else if (selectionEntry.isDirectory) {
-                wasNodeOpen = selection.hasClass("jstree-open");
+                wasNodeOpen = $selection.hasClass("jstree-open");
             }
         }
 
@@ -1505,29 +1505,17 @@ define(function (require, exports, module) {
                 }
 
                 var successCallback = function (entry) {
-                    data.rslt.obj.data("entry", entry);
-                    if (isFolder) {
-                        // If the new item is a folder, remove the leaf and folder related
-                        // classes and add "jstree-closed". Selecting the item will open
-                        // the folder.
-                        data.rslt.obj.removeClass("jstree-leaf jstree-closed jstree-open")
-                            .addClass("jstree-closed");
-                    }
-                    
-                    // If the new item is a folder, force a re-sort here. Windows sorts folders
-                    // and files separately.
-                    if (isFolder) {
-                        _projectTree.jstree("sort", data.rslt.obj.parent());
-                    }
-                    
-                    _projectTree.jstree("select_node", data.rslt.obj, true);
-                    
-                    //If the new item is a file, generate the file display entry.
-                    if (!isFolder) {
-                        _projectTree.jstree("set_text", data.rslt.obj, ViewUtils.getFileEntryDisplay(entry));
-                    }
-                    
-                    result.resolve(entry);
+                    // Remove the temporary leaf node used for the name input
+                    _projectTree.jstree("remove", data.rslt.obj);
+
+                    _projectTree.one("create.jstree", function (event, data) {
+                        // Select the new node and resolve
+                        _projectTree.jstree("select_node", data.rslt.obj, true);
+                        result.resolve(entry);
+                    })
+
+                    // Create a new node
+                    _createNode($selection, null, _entryToJSON(entry), true, true);
                 };
                 
                 var errorCallback = function (error, entry) {
@@ -1594,17 +1582,12 @@ define(function (require, exports, module) {
                 errorCleanup();
             }
         });
-        
-        // TODO (issue #115): Need API to get tree node for baseDir.
-        // In the meantime, pass null for node so new item is placed
-        // relative to the selection
-        $node = selection;
 
         // There is a race condition in jstree if "open_node" and "create" are called in rapid
         // succession and the node was not yet loaded. To avoid it, first open the node and wait
         // for the open_node event before trying to create the new one. See #2085 for more details.
         if (wasNodeOpen) {
-            _createNode($node, position, { data: initialName }, skipRename);
+            _createNode($selection, position, { data: initialName }, skipRename);
 
             if (!skipRename) {
                 var $renameInput = _projectTree.find(".jstree-rename-input");
@@ -1621,11 +1604,11 @@ define(function (require, exports, module) {
             }
         } else {
             _projectTree.one("open_node.jstree", function () {
-                _createNode($node, position, { data: initialName }, skipRename);
+                _createNode($selection, position, { data: initialName }, skipRename);
             });
     
             // Open the node before creating the new child
-            _projectTree.jstree("open_node", $node);
+            _projectTree.jstree("open_node", $selection);
         }
         
         return result.promise();
