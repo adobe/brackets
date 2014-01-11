@@ -26,7 +26,7 @@ How to install and run Brackets
 
 #### Brackets is getting close to 1.0
 
-Together with your contributions, we're getting close to our first release condidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
+Together with your contributions, we're getting close to our first release candidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
 
 #### Download
 
