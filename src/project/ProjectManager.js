@@ -484,18 +484,20 @@ define(function (require, exports, module) {
     }
 
     /**
-     * A comparator of DOM nodes for use with jsTree
+     * A memoized comparator of DOM nodes for use with jsTree
      * @private
      * @param {Node} First DOM node
      * @param {Node} Second DOM node
      * @return {number} Comparator value
      */
-    function _projectTreeSortComparator(a, b) {
+    var _projectTreeSortComparator = _.memoize(function (a, b) {
         var a1 = $(a).data("compareString"),
             b1 = $(b).data("compareString");
         
         return FileUtils.compareFilenames(a1, b1, false);
-    }
+    }, function (a, b) {
+        return $(a).data("compareString") + ":" + $(b).data("compareString");
+    });
 
     /**
      * @private
@@ -1454,7 +1456,7 @@ define(function (require, exports, module) {
         
         // Inject jstree data for sorting
         newItemData.data = initialName;
-        newItemData.compareString = _toCompareString(initialName, isFolder);
+        newItemData.metadata = { compareString: _toCompareString(initialName, isFolder) };
 
         _projectTree.on("create.jstree", function (event, data) {
             $(event.target).off("create.jstree");
