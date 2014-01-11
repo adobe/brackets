@@ -419,6 +419,7 @@ define({
     "REMOVE_AND_QUIT"                      : "Erweiterungen entfernen und beenden",
     "CHANGE_AND_QUIT"                      : "Erweiterungen ändern und beenden",
     "UPDATE_AND_QUIT"                      : "Erweiterungen updaten und beenden",
+    "PROCESSING_EXTENSIONS"                : "Erweiterungs-Änderungen werden verarbeitet\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie oben auf den Tab \"Verfügbar\", um zu beginnen.",
     "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
