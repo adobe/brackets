@@ -108,8 +108,8 @@ define(function (require, exports, module) {
     /**
      * Retreive the preferences data for the given clientID.
      * @param {string|{id: string, uri: string}} clientID - A unique identifier or a requireJS module object
-     * @param {string} defaults - Default preferences stored as JSON
-     * @param {boolean} _doNotCreate Do not create the storage if it does not already exist. Used for conversion.
+     * @param {string=} defaults - Default preferences stored as JSON
+     * @param {boolean=} _doNotCreate Do not create the storage if it does not already exist. Used for conversion.
      * @return {PreferenceStorage}
      */
     function getPreferenceStorage(clientID, defaults, _doNotCreate) {

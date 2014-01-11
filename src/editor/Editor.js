@@ -1686,7 +1686,7 @@ define(function (require, exports, module) {
      * 
      * Manage the conversion from old-style localStorage prefs to the new file-based ones.
      */
-    function convertPreferences() {
+    function _convertPreferences() {
         var rules = {};
         editorSettings.forEach(function (setting) {
             rules[setting] = "user";
@@ -1694,7 +1694,7 @@ define(function (require, exports, module) {
         PreferencesManager.convertPreferences(module, rules);
     }
     
-    convertPreferences();
+    _convertPreferences();
     
     // Define public API
     exports.Editor                  = Editor;
