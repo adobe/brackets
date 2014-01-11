@@ -150,6 +150,11 @@ define(function (require, exports, module) {
            
             // Disable the cache to make reloads work
             disableCache().always(function () {
+                // Remove all menus to assure every part of Brackets is reloaded
+                _.forEach(Menus.getAllMenus(), function (value, key) {
+                    Menus.removeMenu(key);
+                });
+                
                 window.location.href = href;
             });
         });
@@ -174,32 +179,32 @@ define(function (require, exports, module) {
             href += "?" + params.toString();
         }
         
-        browserReload(href);
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
     }
     
     function handleReloadWithoutUserExts() {
         var href    = window.location.href,
             params  = new UrlParams();
         
-        // Give Mac native menus extra time to update shortcut highlighting prior
-        // to removing menus, or else the highlights get messed up after the reload.
+        params.parse();
+        
+        if (!params.get("reloadWithoutUserExts")) {
+            params.put("reloadWithoutUserExts", true);
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        href += "?" + params.toString();
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
         window.setTimeout(function () {
-            // Remove all menus to assure extension menus and menu items are removed
-            _.forEach(Menus.getAllMenus(), function (value, key) {
-                Menus.removeMenu(key);
-            });
-            
-            params.parse();
-            
-            if (!params.get("reloadWithoutUserExts")) {
-                params.put("reloadWithoutUserExts", true);
-            }
-            
-            if (href.indexOf("?") !== -1) {
-                href = href.substring(0, href.indexOf("?"));
-            }
-            
-            href += "?" + params.toString();
             browserReload(href);
         }, 100);
     }
