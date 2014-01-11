@@ -75,7 +75,6 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager");
     
-    
     /**
      * @private
      * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
@@ -83,6 +82,13 @@ define(function (require, exports, module) {
     var _fileSystemChange,
         _fileSystemRename;
 
+    /**
+     * @private
+     * File tree sorting for mac-specific sorting behavior
+     */
+    var _isMac          = brackets.platform === "mac",
+        _sortPrefixDir  = _isMac ? "" : "0",
+        _sortPrefixFile = _isMac ? "" : "1";
     
     /**
      * @private
@@ -476,42 +482,20 @@ define(function (require, exports, module) {
             });
         }
     }
-    
-    /**
-     * A memoized function that returns a sortable name for a given DOM node.
-     * @private
-     * @param {Node} A DOM node with a nodeN id
-     * @return {string}
-     */
-    var _getComparableName = _.memoize(function (a) {
-        var $a      = $(a),
-            entry   = $a.data("entry"),
-            a1      = (entry && entry.name) || ($a.text().trim());
-        
-        if (brackets.platform !== "mac") {
-            a1 = (entry.isFile ? "1" : "0") + a1;
-        }
-        
-        return a1;
-    }, function (a) {
-        return a.id;
-    });
 
     /**
-     * A memoized comparator of DOM nodes for use with jsTree
+     * A comparator of DOM nodes for use with jsTree
      * @private
      * @param {Node} First DOM node
      * @param {Node} Second DOM node
      * @return {number} Comparator value
      */
-    var _projectTreeSortComparator = _.memoize(function (a, b) {
-        var a1 = _getComparableName(a),
-            b1 = _getComparableName(b);
+    function _projectTreeSortComparator(a, b) {
+        var a1 = $(a).data("compareString"),
+            b1 = $(b).data("compareString");
         
         return FileUtils.compareFilenames(a1, b1, false);
-    }, function (a, b) {
-        return a.id + ":" + b.id;
-    });
+    }
 
     /**
      * @private
@@ -705,6 +689,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Generate a string suitable for sorting
+     * @param {string} name
+     * @param {boolean} isFolder
+     * @return {string}
+     */
+    function _toCompareString(name, isFolder) {
+        return ((isFolder) ? _sortPrefixDir : _sortPrefixFile) + name;
+    }
+    
+    /**
+     * @private
      * Create JSON object for a jstree node. Insert mapping from full path to
      * jstree node ID.
      * 
@@ -718,9 +713,12 @@ define(function (require, exports, module) {
         }
         
         var jsonEntry = {
-            data: entry.name,
-            attr: { id: "node" + _projectInitialLoad.id++ },
-            metadata: { entry: entry }
+            data                : entry.name,
+            attr                : { id: "node" + _projectInitialLoad.id++ },
+            metadata: {
+                entry           : entry,
+                compareString   : _toCompareString(entry.name, entry.isDirectory)
+            }
         };
 
         if (entry.isDirectory) {
@@ -1411,7 +1409,10 @@ define(function (require, exports, module) {
         arr.forEach(function (node) {
             // Convert strings to objects
             if (typeof node === "string") {
-                node = { data: node };
+                node = {
+                    data: node,
+                    metadata: { compareString: _sortPrefixFile + node }
+                };
             }
             
             if (node) {
@@ -1443,12 +1444,17 @@ define(function (require, exports, module) {
             escapeKeyPressed    = false,
             result              = new $.Deferred(),
             isRoot              = $baseDirNode === $projectTreeList,
-            wasNodeOpen         = isRoot || ($baseDirNode && $baseDirNode.hasClass("jstree-open")) || false;
+            wasNodeOpen         = isRoot || ($baseDirNode && $baseDirNode.hasClass("jstree-open")) || false,
+            newItemData         = {};
         
         // Silently fail if baseDir assumption fails
         if (!$baseDirNode) {
             return result.reject().promise();
         }
+        
+        // Inject jstree data for sorting
+        newItemData.data = initialName;
+        newItemData.compareString = _toCompareString(initialName, isFolder);
 
         _projectTree.on("create.jstree", function (event, data) {
             $(event.target).off("create.jstree");
@@ -1565,7 +1571,7 @@ define(function (require, exports, module) {
         // succession and the node was not yet loaded. To avoid it, first open the node and wait
         // for the open_node event before trying to create the new one. See #2085 for more details.
         if (wasNodeOpen) {
-            _createNode($baseDirNode, position, { data: initialName }, skipRename);
+            _createNode($baseDirNode, position, newItemData, skipRename);
 
             if (!skipRename) {
                 var $renameInput = _projectTree.find(".jstree-rename-input");
@@ -1582,7 +1588,7 @@ define(function (require, exports, module) {
             }
         } else {
             _projectTree.one("open_node.jstree", function () {
-                _createNode($baseDirNode, position, { data: initialName }, skipRename);
+                _createNode($baseDirNode, position, newItemData, skipRename);
             });
     
             // Open the node before creating the new child
@@ -1650,21 +1656,20 @@ define(function (require, exports, module) {
     function renameItemInline(entry) {
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
         showInTree(entry)
-            .done(function (selected) {
+            .done(function ($selected) {
                 // Don't try to rename again if we are already renaming
-                if (_isInRename(selected)) {
+                if (_isInRename($selected)) {
                     return;
                 }
                 
-                var isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
+                var isFolder = $selected.hasClass("jstree-open") || $selected.hasClass("jstree-closed");
         
                 _projectTree.one("rename.jstree", function (event, data) {
                     // Make sure the file was actually renamed
                     var changed = (data.rslt.old_name !== data.rslt.new_name);
                     
                     var _resetOldFilename = function () {
-                        _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
-                        _projectTree.jstree("sort", selected.parent());
+                        _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                     };
                     
                     if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
@@ -1673,7 +1678,7 @@ define(function (require, exports, module) {
                         return;
                     }
                     
-                    var oldName = selected.data("entry").fullPath;
+                    var oldName = $selected.data("entry").fullPath;
                     // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
                     
                     var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
@@ -1682,7 +1687,10 @@ define(function (require, exports, module) {
                     
                     renameItem(oldName, newName, isFolder)
                         .done(function () {
-                            _projectTree.jstree("set_text", selected, ViewUtils.getFileEntryDisplay(entry));
+                            _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
+                            
+                            // Update compareString for sorting
+                            $selected.data("compareString", _toCompareString(entry.name, isFolder));
                             
                             // If a folder was renamed, re-select it here, since openAndSelectDocument()
                             // changed the selection.
@@ -1691,18 +1699,22 @@ define(function (require, exports, module) {
                                 
                                 // Supress the open/close toggle
                                 suppressToggleOpen = true;
-                                _projectTree.jstree("select_node", selected, true);
+                                _projectTree.jstree("select_node", $selected, true);
                                 suppressToggleOpen = oldSuppressToggleOpen;
                             }
                         })
                         .fail(function (err) {
                             // Error during rename. Reset to the old name and alert the user.
                             _resetOldFilename();
+                        })
+                        .always(function () {
+                            _projectTree.jstree("sort", $selected.parent());
+                            _redraw(true);
                         });
                 });
                 
                 // since html_titles are enabled, we have to reset the text without markup
-                _projectTree.jstree("set_text", selected, entry.name);
+                _projectTree.jstree("set_text", $selected, entry.name);
                 _projectTree.jstree("rename");
             });
         // No fail handler: silently no-op if file doesn't exist in tree
