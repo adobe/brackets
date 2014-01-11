@@ -194,11 +194,13 @@ define(function (require, exports, module) {
 
     // Use localStorage by default
     _initStorage(localStorage);
-
+    
+    
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
     exports.getClientID             = getClientID;
+
 
     // Unit test use only
     exports._reset                  = _reset;
@@ -211,10 +213,19 @@ define(function (require, exports, module) {
     var SETTINGS_FILENAME = "brackets.json",
         STATE_FILENAME    = "state.json";
     
-    var preferencesManager = new PreferencesBase.PreferencesSystem();
-    
     // User-level preferences
     var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    
+    /**
+     * Get the full path to the user-level preferences file.
+     * 
+     * @return {string} Path to the preferences file
+     */
+    function getUserPrefFile() {
+        return userPrefFile;
+    }
+    
+    var preferencesManager = new PreferencesBase.PreferencesSystem();
     
     var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
@@ -290,6 +301,7 @@ define(function (require, exports, module) {
     
     // Public API
     
+    exports.getUserPrefFile     = getUserPrefFile;
     exports.get                 = preferencesManager.get.bind(preferencesManager);
     exports.set                 = preferencesManager.set.bind(preferencesManager);
     exports.save                = preferencesManager.save.bind(preferencesManager);

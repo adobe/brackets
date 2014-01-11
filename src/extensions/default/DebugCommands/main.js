@@ -46,6 +46,7 @@ define(function (require, exports, module) {
         AppInit                = brackets.getModule("utils/AppInit"),
         UrlParams              = brackets.getModule("utils/UrlParams").UrlParams,
         StatusBar              = brackets.getModule("widgets/StatusBar"),
+        PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
         LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
@@ -66,7 +67,8 @@ define(function (require, exports, module) {
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
-        DEBUG_RESTART_NODE              = "debug.restartNode";
+        DEBUG_RESTART_NODE              = "debug.restartNode",
+        DEBUG_OPEN_PREFERENCES          = "debug.openPreferences";
     
     
     
@@ -334,6 +336,23 @@ define(function (require, exports, module) {
         });
     }
     
+    
+    function handleOpenPreferences() {
+        var fullPath = PreferencesManager.getUserPrefFile(),
+            file = FileSystem.getFileForPath(fullPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    });
+            }
+        });
+        
+    }
+    
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -354,6 +373,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
+    CommandManager.register(Strings.CMD_OPEN_PREFERENCES,     DEBUG_OPEN_PREFERENCES,       handleOpenPreferences);
     
     enableRunTestsMenuItem();
     
@@ -375,7 +395,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
-    
+    menu.addMenuItem(DEBUG_OPEN_PREFERENCES);
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;
