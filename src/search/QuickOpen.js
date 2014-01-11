@@ -751,10 +751,10 @@ define(function (require, exports, module) {
             // Update the dialog label based on the current prefix.
             switch (prefix) {
             case ":":
-                dialogLabel = Strings.CMD_GOTO_LINE;
+                dialogLabel = Strings.CMD_GOTO_LINE_FIELD_PLACEHOLDER;
                 break;
             case "@":
-                dialogLabel = Strings.CMD_GOTO_DEFINITION;
+                dialogLabel = Strings.CMD_GOTO_DEFINITION_FIELD_PLACEHOLDER;
                 break;
             default:
                 dialogLabel = "";
@@ -814,7 +814,7 @@ define(function (require, exports, module) {
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "' style='width: 30em'><span class='find-dialog-label'></span></div>";
+        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN_FIELD_PLACEHOLDER + "' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
@@ -917,9 +917,9 @@ define(function (require, exports, module) {
     });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
-    CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
-    CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
-    CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
+    CommandManager.register(Strings.CMD_QUICK_OPEN_FIELD_PLACEHOLDER,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
+    CommandManager.register(Strings.CMD_GOTO_DEFINITION_FIELD_PLACEHOLDER,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
+    CommandManager.register(Strings.CMD_GOTO_LINE_FIELD_PLACEHOLDER,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
     exports.beginSearch             = beginSearch;
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
