@@ -191,13 +191,6 @@ define(function (require, exports, module) {
     // Use localStorage by default
     _initStorage(localStorage);
     
-    var SETTINGS_FILENAME = "brackets.json",
-        STATE_FILENAME    = "state.json";
-    
-    // User-level preferences
-    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
-    // The SETTINGS_FILENAME is used with a preceding "." within user projects
-  
     
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
@@ -212,15 +205,23 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
+    // The SETTINGS_FILENAME is used with a preceding "." within user projects
+    var SETTINGS_FILENAME = "brackets.json",
+        STATE_FILENAME    = "state.json";
+    
+    // User-level preferences
+    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    
+    /**
+     * Get the full path to the user-level preferences file.
+     * 
+     * @return {string} Path to the preferences file
+     */
     function getUserPrefFile() {
         return userPrefFile;
     }
     
-    exports.getUserPrefFile         = getUserPrefFile;
-    
     var preferencesManager = new PreferencesBase.PreferencesSystem();
-    
-
     
     preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
@@ -260,6 +261,7 @@ define(function (require, exports, module) {
     
     // Public API
     
+    exports.getUserPrefFile     = getUserPrefFile;
     exports.get                 = preferencesManager.get.bind(preferencesManager);
     exports.set                 = preferencesManager.set.bind(preferencesManager);
     exports.save                = preferencesManager.save.bind(preferencesManager);
