@@ -199,12 +199,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions utilisateur désactivées",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "Erreurs {0}",
-	"ERRORS_PANEL_TITLE_SINGLE": "Problèmes {0}",
-	"ERRORS_PANEL_TITLE_MULTI": "Problèmes Lint",
-	"SINGLE_ERROR": "1 erreur {0}",
-	"MULTIPLE_ERRORS": "{1} erreurs {0}",
-	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
+	"ERRORS_PANEL_TITLE_MULTIPLE": "[7399701] !é={0} Problems=!",
+	"SINGLE_ERROR": "[7150681] !é=1 {0} Problem=!",
+	"MULTIPLE_ERRORS": "[7150677] !é={1} {0} Problems=!",
+	"NO_ERRORS": "[7150679] !é=No {0} problems found - good job!=!",
+	"NO_ERRORS_MULTIPLE_PROVIDER": "[7399702] !é=No problems found - good job!=!",
 	"LINT_DISABLED": "L’analyse lint est désactivée",
 	"NO_LINT_AVAILABLE": "Aucun programme lint disponible pour {0}",
 	"NOTHING_TO_LINT": "Rien à analyser",

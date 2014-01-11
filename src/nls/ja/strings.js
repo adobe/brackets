@@ -199,12 +199,11 @@ define({
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "ユーザー拡張機能無効",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "{0} のエラー",
-	"ERRORS_PANEL_TITLE_SINGLE": "{0} 件のエラー",
-	"ERRORS_PANEL_TITLE_MULTI": "Lint エラー",
-	"SINGLE_ERROR": "1 個の {0} エラー",
-	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
-	"NO_ERRORS": "{0} エラーはありません - Good job!",
+	"ERRORS_PANEL_TITLE_MULTIPLE": "!能=[7399701] {0} Problems_=!",
+	"SINGLE_ERROR": "!能=[7150681] 1 {0} Problem_=!",
+	"MULTIPLE_ERRORS": "!能=[7150677] {1} {0} Problems_=!",
+	"NO_ERRORS": "!能=[7150679] No {0} problems found - good job!_=!",
+	"NO_ERRORS_MULTIPLE_PROVIDER": "!能=[7399702] No problems found - good job!_=!",
 	"LINT_DISABLED": "Lint チェックは使用できません",
 	"NO_LINT_AVAILABLE": "{0} に使用できる Lint チェッカーがありません",
 	"NOTHING_TO_LINT": "Lint チェックするファイルがありません",
