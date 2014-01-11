@@ -199,12 +199,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
     
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0}-virheet",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} ongelmaa",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Tarkistuksen ongelmat",
-    "SINGLE_ERROR"                          : "1 {0}-virhe",
-    "MULTIPLE_ERRORS"                       : "{1} {0}-virhettä",
-    "NO_ERRORS"                             : "Ei {0}-virheitä – hyvää työtä!",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
+    "SINGLE_ERROR"                          : "1 {0}-ongelma",
+    "MULTIPLE_ERRORS"                       : "{1} {0}-ongelmaa",
+    "NO_ERRORS"                             : "{0}-ongelmia ei löytynyt – hyvää työtä!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Ongelmia ei löytynyt – hyvää työtä!",
     "LINT_DISABLED"                         : "Tarkistus on pois käytöstä",
     "NO_LINT_AVAILABLE"                     : "Tarkistinta ei saatavilla kohteelle {0}",
     "NOTHING_TO_LINT"                       : "Ei mitään tarkistettavaa",
@@ -468,7 +467,6 @@ define({
     "LOCALE_FR"                                 : "ranska",
     "LOCALE_IT"                                 : "italia",
     "LOCALE_JA"                                 : "japani",
-    "LOCALE_KO"                                 : "korea",
     "LOCALE_NB"                                 : "norja",
     "LOCALE_NL"                                 : "hollanti",
     "LOCALE_FA_IR"                              : "persia-farsi",
@@ -483,6 +481,7 @@ define({
     "LOCALE_TR"                                 : "turkki",
     "LOCALE_ZH_CN"                              : "kiina, yksinkertaistettu",
     "LOCALE_HU"                                 : "unkari",
+    "LOCALE_KO"                                 : "korea",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
