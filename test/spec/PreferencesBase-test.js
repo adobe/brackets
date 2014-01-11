@@ -88,7 +88,7 @@ define(function (require, exports, module) {
                     }
                 };
                 
-                var layer = new PreferencesBase.PathLayer("/.brackets.prefs");
+                var layer = new PreferencesBase.PathLayer("/.brackets.json");
                 
                 expect(layer.get(data, "spaceUnits", {
                     filename: "/public/index.html"
@@ -492,7 +492,7 @@ define(function (require, exports, module) {
                     return new $.Deferred().resolve(exists).promise();
                 }
                 
-                testScopes["/.brackets.prefs"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
+                testScopes["/.brackets.json"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 1,
                     first: 1,
                     path: {
@@ -511,7 +511,7 @@ define(function (require, exports, module) {
                     }
                 }));
                 
-                testScopes["/projects/brackets/.brackets.prefs"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
+                testScopes["/projects/brackets/.brackets.json"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 5,
                     fifth: 5,
                     path: {
@@ -521,11 +521,11 @@ define(function (require, exports, module) {
                         }
                     }
                 }));
-                testScopes["/projects/brackets/thirdparty/codemirror/.brackets.prefs"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
+                testScopes["/projects/brackets/thirdparty/codemirror/.brackets.json"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 7,
                     seventh: 7
                 }));
-                pm.addPathScopes(".brackets.prefs", {
+                pm.addPathScopes(".brackets.json", {
                     getScopeForFile: getScopeForFile,
                     checkExists: checkExists,
                     before: "user"
@@ -541,9 +541,9 @@ define(function (require, exports, module) {
                 // this should resolve synchronously
                 pm.setPathScopeContext("/README.txt").done(function () {
                     didComplete = true;
-                    expect(requestedFiles).toEqual(["/.brackets.prefs"]);
+                    expect(requestedFiles).toEqual(["/.brackets.json"]);
                     expect(pm.get("spaceUnits")).toBe(1);
-                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
                     expect(events.length).toEqual(1);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second", "third", "fourth"].sort());
                 });
@@ -575,10 +575,10 @@ define(function (require, exports, module) {
                 
                 events = [];
                 pm.setPathScopeContext("/projects/brackets/README.md").done(function () {
-                    expect(requestedFiles).toEqual(["/projects/brackets/.brackets.prefs"]);
+                    expect(requestedFiles).toEqual(["/projects/brackets/.brackets.json"]);
                     expect(pm._defaultContext.scopeOrder).toEqual(
-                        ["session", "path:/projects/brackets/.brackets.prefs",
-                            "path:/.brackets.prefs", "user", "default"]
+                        ["session", "path:/projects/brackets/.brackets.json",
+                            "path:/.brackets.json", "user", "default"]
                     );
                     expect(pm.get("spaceUnits")).toBe(5);
                     expect(events.length).toBe(2);
@@ -600,7 +600,7 @@ define(function (require, exports, module) {
                 pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js")
                     .done(function () {
                         expect(requestedFiles)
-                            .toEqual(["/projects/brackets/thirdparty/codemirror/.brackets.prefs"]);
+                            .toEqual(["/projects/brackets/thirdparty/codemirror/.brackets.json"]);
                         expect(pm.get("spaceUnits")).toBe(7);
                         expect(events.length).toBe(2);
                         expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth", "fifth", "sixth"].sort());
@@ -612,7 +612,7 @@ define(function (require, exports, module) {
                 pm.setPathScopeContext("/README.md").done(function () {
                     expect(requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(1);
-                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.prefs", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
                     expect(events.length).toBe(3);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "fifth", "sixth"].sort());
                     expect(events[1].ids.sort()).toEqual(["spaceUnits", "seventh"].sort());
@@ -636,7 +636,7 @@ define(function (require, exports, module) {
         });
         
         describe("File Storage", function () {
-            var settingsFile = FileSystem.getFileForPath(testPath + "/.brackets.prefs"),
+            var settingsFile = FileSystem.getFileForPath(testPath + "/.brackets.json"),
                 newSettingsFile = FileSystem.getFileForPath(testPath + "/new.prefs"),
                 filestorage,
                 originalText;

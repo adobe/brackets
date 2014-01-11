@@ -86,6 +86,8 @@ define(function (require, exports, module) {
     
     var editorSettings = ["useTabChar", "tabSize", "spaceUnits", "closeBrackets",
                           "showLineNumbers", "styleActiveLine", "wordWrap"];
+
+    /** Editor preferences */
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = PreferencesManager.get("useTabChar");
@@ -1678,6 +1680,21 @@ define(function (require, exports, module) {
             }
         });
     });
+    
+    /**
+     * @private
+     * 
+     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
+     */
+    function _convertPreferences() {
+        var rules = {};
+        editorSettings.forEach(function (setting) {
+            rules[setting] = "user";
+        });
+        PreferencesManager.convertPreferences(module, rules);
+    }
+    
+    _convertPreferences();
     
     // Define public API
     exports.Editor                  = Editor;
