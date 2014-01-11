@@ -293,9 +293,9 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Siirry",
-    "CMD_QUICK_OPEN"                      : "Pika-avaus\u2026",
-    "CMD_GOTO_LINE"                       : "Siirry riville\u2026",
-    "CMD_GOTO_DEFINITION"                 : "Etsi määrittely nopeasti\u2026",
+    "CMD_QUICK_OPEN"                      : "Pika-avaus",
+    "CMD_GOTO_LINE"                       : "Siirry riville",
+    "CMD_GOTO_DEFINITION"                 : "Etsi määrittely nopeasti",
     "CMD_GOTO_FIRST_PROBLEM"              : "Siirry ensimmäiseen virheeseen/varoitukseen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Pikamuokkaus",
     "CMD_TOGGLE_QUICK_DOCS"               : "Pikadokumentaatio",
@@ -420,6 +420,7 @@ define({
     "REMOVE_AND_QUIT"                      : "Poista laajennukset ja poistu",
     "CHANGE_AND_QUIT"                      : "Muuta laajennuksia ja poistu",
     "UPDATE_AND_QUIT"                      : "Päivitä laajennukset ja poistu",
+    "PROCESSING_EXTENSIONS"                : "Käsitellään laajennusten muutoksia\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Ei voida poistaa laajennusta {0}, koska sitä ei ole asennettu.",
     "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta Saatavilla-välilehteä yläpuolelta aloittaaksesi.",
     "NO_EXTENSION_MATCHES"                 : "Ei hakuasi vastaavia laajennuksia.",
@@ -441,8 +442,8 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Kehitys",
     "CMD_SHOW_DEV_TOOLS"                        : "Näytä kehitystyökalut",
-    "CMD_REFRESH_WINDOW"                        : "Päivitä {APP_NAME}",
-    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Päivitä ilman laajennuksia",
+    "CMD_REFRESH_WINDOW"                        : "Lataa uudelleen laajennuksineen",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Lataa uudelleen laajennuksitta",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Uusi {APP_NAME}-ikkuna",
     "CMD_SWITCH_LANGUAGE"                       : "Vaihda kieltä",
     "CMD_RUN_UNIT_TESTS"                        : "Suorita testejä",
