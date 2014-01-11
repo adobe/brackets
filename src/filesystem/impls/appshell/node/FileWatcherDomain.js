@@ -101,7 +101,16 @@ function watchPath(path) {
             watcher.on("change", function (filename, info) {
                 var parent = filename && (fspath.dirname(filename) + "/"),
                     name = filename && fspath.basename(filename),
-                    type = info.event === "modified" ? "change" : "rename";
+                    type;
+                
+                switch (info.event) {
+                case "modified":    // triggered by file content changes
+                case "unknown":     // triggered by metatdata-only changes
+                    type = "change";
+                    break;
+                default:
+                    type = "rename";
+                }
                 
                 _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
             });
