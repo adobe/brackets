@@ -181,23 +181,27 @@ define(function (require, exports, module) {
         var href    = window.location.href,
             params  = new UrlParams();
         
-        // Remove all menus to assure extension menus and menu items are removed
-        _.forEach(Menus.getAllMenus(), function (value, key) {
-            Menus.removeMenu(key);
-        });
-        
-        params.parse();
-        
-        if (!params.get("reloadWithoutUserExts")) {
-            params.put("reloadWithoutUserExts", true);
-        }
-        
-        if (href.indexOf("?") !== -1) {
-            href = href.substring(0, href.indexOf("?"));
-        }
-        
-        href += "?" + params.toString();
-        browserReload(href);
+        // Give Mac native menus extra time to update shortcut highlighting prior
+        // to removing menus, or else the highlights get messed up after the reload.
+        window.setTimeout(function () {
+            // Remove all menus to assure extension menus and menu items are removed
+            _.forEach(Menus.getAllMenus(), function (value, key) {
+                Menus.removeMenu(key);
+            });
+            
+            params.parse();
+            
+            if (!params.get("reloadWithoutUserExts")) {
+                params.put("reloadWithoutUserExts", true);
+            }
+            
+            if (href.indexOf("?") !== -1) {
+                href = href.substring(0, href.indexOf("?"));
+            }
+            
+            href += "?" + params.toString();
+            browserReload(href);
+        }, 100);
     }
         
     function handleNewBracketsWindow() {
@@ -364,7 +368,7 @@ define(function (require, exports, module) {
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
     menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
-    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS);
+    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
@@ -394,7 +398,7 @@ define(function (require, exports, module) {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
             $icon.css({display: "none"});
             StatusBar.addIndicator(USER_EXT_STATUS_ID, $indicator, true);
-            console.log("Brackets reloaded with user extensions disabled");
+            console.log("Brackets reloaded with extensions disabled");
         } else {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(true);
             // Toolbar and status bar reload back to default states, no need to set

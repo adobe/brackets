@@ -196,7 +196,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "User Extensions Disabled",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -440,8 +440,8 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
-    "CMD_REFRESH_WINDOW"                        : "Reload {APP_NAME}",
-    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without User Extensions",
+    "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
