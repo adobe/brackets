@@ -39,8 +39,7 @@ define(function (require, exports, module) {
         Async                       = require("utils/Async"),
         ExtensionManager            = require("extensibility/ExtensionManager"),
         ExtensionManagerView        = require("extensibility/ExtensionManagerView").ExtensionManagerView,
-        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel"),
-        KeyEvent                    = require("utils/KeyEvent");
+        ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
     
