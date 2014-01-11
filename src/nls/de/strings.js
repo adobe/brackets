@@ -292,9 +292,9 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
-    "CMD_QUICK_OPEN"                      : "Schnell öffnen\u2026",
-    "CMD_GOTO_LINE"                       : "Gehe zur Zeile\u2026",
-    "CMD_GOTO_DEFINITION"                 : "Definition schnell finden\u2026",
+    "CMD_QUICK_OPEN"                      : "Schnell öffnen",
+    "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
+    "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
     "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Fehler/zur ersten Warnung gehen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
