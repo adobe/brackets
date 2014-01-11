@@ -56,6 +56,9 @@
         background: @activeline-number-bgcolor;
         color: @bc-black;
     }
+    .inline-widget .CodeMirror-gutter-elt {
+        color: @accent-comment;    
+    }
 }
 
 
@@ -200,7 +203,7 @@
     }
     .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: transparent;
-        color: @accent-comment
+        color: @accent-comment;
     }
 
     .CodeMirror-focused .CodeMirror-activeline-background {
@@ -210,7 +213,7 @@
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
             background: @tc-gray-panel-top-bar;
-            color: @bc-black
+            color: @bc-black;
         }
     }
 
