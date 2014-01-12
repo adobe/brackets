@@ -105,7 +105,7 @@ define(function (require, exports, module) {
                         ExtensionManager.updateExtensions()
                             .done(function () {
                                 dlg.close();
-                                CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                                CommandManager.execute(Commands.APP_RELOAD);
                             })
                             .fail(function (errorArray) {
                                 dlg.close();
@@ -129,7 +129,7 @@ define(function (require, exports, module) {
                                     StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
                                 ).done(function () {
                                     // We still have to reload even if some of the removals failed.
-                                    CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                                    CommandManager.execute(Commands.APP_RELOAD);
                                 });
                             });
                     })
@@ -147,7 +147,7 @@ define(function (require, exports, module) {
                             StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
                         ).done(function () {
                             // We still have to reload even if some of the removals failed.
-                            CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                            CommandManager.execute(Commands.APP_RELOAD);
                         });
                     });
             } else {
