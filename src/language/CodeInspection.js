@@ -394,7 +394,7 @@ define(function (require, exports, module) {
      * registered providers.
      *
      * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}} provider
+     * @param {{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
