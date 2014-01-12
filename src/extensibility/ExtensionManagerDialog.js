@@ -43,6 +43,8 @@ define(function (require, exports, module) {
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
     
+    var DEBUG_REFRESH_WINDOW = "debug.refreshWindow";
+    
     // bootstrap tabs component
     require("widgets/bootstrap-tab");
     
@@ -103,7 +105,7 @@ define(function (require, exports, module) {
                         ExtensionManager.updateExtensions()
                             .done(function () {
                                 dlg.close();
-                                CommandManager.execute(Commands.FILE_QUIT);
+                                CommandManager.execute(DEBUG_REFRESH_WINDOW);
                             })
                             .fail(function (errorArray) {
                                 dlg.close();
@@ -126,8 +128,8 @@ define(function (require, exports, module) {
                                     Strings.EXTENSION_MANAGER_UPDATE,
                                     StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
                                 ).done(function () {
-                                    // We still have to quit even if some of the removals failed.
-                                    CommandManager.execute(Commands.FILE_QUIT);
+                                    // We still have to reload even if some of the removals failed.
+                                    CommandManager.execute(DEBUG_REFRESH_WINDOW);
                                 });
                             });
                     })
@@ -144,8 +146,8 @@ define(function (require, exports, module) {
                             Strings.EXTENSION_MANAGER_REMOVE,
                             StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
                         ).done(function () {
-                            // We still have to quit even if some of the removals failed.
-                            CommandManager.execute(Commands.FILE_QUIT);
+                            // We still have to reload even if some of the removals failed.
+                            CommandManager.execute(DEBUG_REFRESH_WINDOW);
                         });
                     });
             } else {
