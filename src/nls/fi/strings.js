@@ -76,7 +76,7 @@ define({
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistäessä selainta",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome -selainta ei löydy. Varmista, että se on asennettu.",
-    "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe avattaessa selainta. (virhe {0})",
+    "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe käynnistäessä selainta. (virhe {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Yhdistetään selaimeen",
@@ -367,7 +367,7 @@ define({
     "INSTALL_CANCELED"                     : "Asennus peruutettu.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
-    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (virhe {0}).",
+    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (virhe: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Tiedostolle package.json ei ole määritelty paketin nimeä.",
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
     "MISSING_PACKAGE_VERSION"              : "Tiedostolle package.json ei ole määritelty paketin versiota.",
