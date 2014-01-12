@@ -176,29 +176,48 @@ define(function (require, exports, module) {
             response.resolve(null);
             return response.promise();
         }
-
+        
         DocumentManager.getDocumentText(file)
             .done(function (fileText) {
-                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath);
+                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
+                    masterPromise;
 
-                providerList.forEach(function (provider) {
-                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
-
-                    try {
-                        var scanResult = provider.scanFile(fileText, file.fullPath);
-                        results.push({provider: provider, result: scanResult});
-                    } catch (err) {
-                        console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
-                        response.reject(err);
-                        return;
+                masterPromise = Async.doInParallel(providerList, function (provider) {
+                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
+                        runPromise = new $.Deferred();
+                    
+                    if (provider.scanFileAsync) {
+                        provider.scanFileAsync(fileText, file.fullPath)
+                            .then(function (scanResult) {
+                                results.push({provider: provider, result: scanResult});
+                                PerfUtils.addMeasurement(perfTimerProvider);
+                                runPromise.resolve();
+                            })
+                            .fail(function (err) {
+                                console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
+                                runPromise.reject(err);
+                            });
+                    } else {
+                        try {
+                            var scanResult = provider.scanFile(fileText, file.fullPath);
+                            results.push({provider: provider, result: scanResult});
+                            PerfUtils.addMeasurement(perfTimerProvider);
+                            runPromise.resolve();
+                        } catch (err) {
+                            console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
+                            runPromise.reject(err);
+                            return;
+                        }
                     }
+                    return runPromise.promise();
 
-                    PerfUtils.addMeasurement(perfTimerProvider);
+                }, false);
+                
+                masterPromise.then(function () {
+                    PerfUtils.addMeasurement(perfTimerInspector);
+                    response.resolve(results);
                 });
 
-                PerfUtils.addMeasurement(perfTimerInspector);
-
-                response.resolve(results);
             })
             .fail(function (err) {
                 console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
@@ -384,7 +403,7 @@ define(function (require, exports, module) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
         }
-
+        
         if (languageId === "javascript") {
             // This is a special case to enable extension provider to replace the JSLint provider
             // in favor of their own implementation
@@ -392,7 +411,7 @@ define(function (require, exports, module) {
                 return registeredProvider.name === "JSLint";
             });
         }
-
+        
         _providers[languageId].push(provider);
         
         run();  // in case a file of this type is open currently
