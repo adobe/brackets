@@ -367,7 +367,7 @@ define({
     "INSTALL_CANCELED"                     : "Asennus peruutettu.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
-    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (virhe oli: {0}).",
+    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (virhe {0}).",
     "MISSING_PACKAGE_NAME"                 : "Tiedostolle package.json ei ole määritelty paketin nimeä.",
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
     "MISSING_PACKAGE_VERSION"              : "Tiedostolle package.json ei ole määritelty paketin versiota.",
