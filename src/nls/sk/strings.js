@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -379,11 +379,11 @@ define({
     "UNDO_REMOVE"                          : "Späť",
     "MARKED_FOR_UPDATE"                    : "Označené pre aktualizáciu",
     "UNDO_UPDATE"                          : "Späť",
-    "CHANGE_AND_QUIT_TITLE"                : "Zmeniť doplnky",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Pre aktualizáciu alebo odstránenie označených doplnkov musíte ukončiť a reštartovať {APP_NAME}. Budete vyzvaný k uloženiu zmien.",
-    "REMOVE_AND_QUIT"                      : "Odstrániť doplnky a skončiť",
-    "CHANGE_AND_QUIT"                      : "Zmeniť doplnky a skončiť",
-    "UPDATE_AND_QUIT"                      : "Aktualizovať doplnky a skončiť",
+    "CHANGE_AND_RELOAD_TITLE"              : "Zmeniť doplnky",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Pre aktualizáciu alebo odstránenie označených doplnkov musíte ukončiť a reštartovať {APP_NAME}. Budete vyzvaný k uloženiu zmien.",
+    "REMOVE_AND_RELOAD"                    : "Odstrániť doplnky a skončiť",
+    "CHANGE_AND_RELOAD"                    : "Zmeniť doplnky a skončiť",
+    "UPDATE_AND_RELOAD"                    : "Aktualizovať doplnky a skončiť",
     "EXTENSION_NOT_INSTALLED"              : "Nie je možné odstrániť doplnok {0}, pretože nebol nainštalovaný",
     "NO_EXTENSIONS"                        : "Nie sú nainštalované žiadne doplnky.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "Nenašiel sa žiadny doplnok.",

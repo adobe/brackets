@@ -43,8 +43,6 @@ define(function (require, exports, module) {
     
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
     
-    var DEBUG_REFRESH_WINDOW = "debug.refreshWindow";
-    
     // bootstrap tabs component
     require("widgets/bootstrap-tab");
     
@@ -62,17 +60,17 @@ define(function (require, exports, module) {
             return;
         }
         
-        var buttonLabel = Strings.CHANGE_AND_QUIT;
+        var buttonLabel = Strings.CHANGE_AND_RELOAD;
         if (hasRemovedExtensions && !hasUpdatedExtensions) {
-            buttonLabel = Strings.REMOVE_AND_QUIT;
+            buttonLabel = Strings.REMOVE_AND_RELOAD;
         } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
-            buttonLabel = Strings.UPDATE_AND_QUIT;
+            buttonLabel = Strings.UPDATE_AND_RELOAD;
         }
         
         var dlg = Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_CHANGE_EXTENSIONS,
-            Strings.CHANGE_AND_QUIT_TITLE,
-            Strings.CHANGE_AND_QUIT_MESSAGE,
+            Strings.CHANGE_AND_RELOAD_TITLE,
+            Strings.CHANGE_AND_RELOAD_MESSAGE,
             [
                 {
                     className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
