@@ -1736,21 +1736,41 @@ define(function (require, exports, module) {
         suppressToggleOpen = true;
         
         arr.forEach(function (entry) {
-            var $treeNode = _getTreeNode(entry);
+            var $treeNode = _getTreeNode(entry),
+                parentEntry,
+                parentNode,
+                siblings,
+                parentWasOpen = false,
+                parentWasClosed = false;
+
+            // Save parent node open/closed state
+            if (entry.parentPath) {
+                parentEntry = FileSystem.getDirectoryForPath(entry.parentPath);
+                parentNode  = _getTreeNode(parentEntry);
+
+                if (parentNode) {
+                    parentWasOpen = parentNode.hasClass("jstree-open");
+                    parentWasClosed = !parentWasOpen && parentNode.hasClass("jstree-closed");
+                }
+            }
             
             if ($treeNode) {
                 _projectTree.jstree("delete_node", $treeNode);
                 
-                if (entry.parentPath) {
-                    var parentEntry = FileSystem.getDirectoryForPath(entry.parentPath),
-                        parentNode  = _getTreeNode(parentEntry),
-                        siblings    = treeAPI._get_children(parentNode);
+                if (parentNode) {
+                    siblings    = treeAPI._get_children(parentNode);
                     
                     // Make sure it didn't turn into a leaf node. This happens if
                     // the only file in the directory was deleted
                     if (siblings.length === 0 && parentNode.hasClass("jstree-leaf")) {
-                        parentNode.removeClass("jstree-leaf jstree-open");
-                        parentNode.addClass("jstree-closed");
+                        parentNode.removeClass("jstree-leaf jstree-open jstree-closed");
+
+                        // Only apply style if parent is a tree node (i.e. not project root)
+                        if (parentWasOpen) {
+                            parentNode.addClass("jstree-open");
+                        } else if (parentWasClosed) {
+                            parentNode.addClass("jstree-closed");
+                        }
                     }
                 }
             }
