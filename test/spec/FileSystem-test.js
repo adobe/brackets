@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
                     cb = errorCallback();
                 
                 runs(function () {
-                    $(fileSystem).one("rename", spy)
+                    $(fileSystem).one("rename", spy);
                     file.rename("/file1-renamed.txt", cb);
                 });
                 waitsFor(function () { return cb.wasCalled && spy.wasCalled; });
