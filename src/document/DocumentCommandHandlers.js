@@ -721,22 +721,17 @@ define(function (require, exports, module) {
             // ignoring warnings about the contents being modified outside of
             // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                // Add new file to project tree
-                ProjectManager.refreshFileTree().done(function () {
-                    // If there were unsaved changes before Save As, they don't stay with the old
-                    // file anymore - so must revert the old doc to match disk content.
-                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                    // not in the working set has the side effect of adding it to the working set.
-                    if (doc.isDirty && !(doc.isUntitled())) {
-                        // if the file is dirty it must be in the working set
-                        // doRevert is side effect free in this case
-                        doRevert(doc).always(openNewFile);
-                    } else {
-                        openNewFile();
-                    }
-                }).fail(function (error) {
-                    result.reject(error);
-                });
+                // If there were unsaved changes before Save As, they don't stay with the old
+                // file anymore - so must revert the old doc to match disk content.
+                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                // not in the working set has the side effect of adding it to the working set.
+                if (doc.isDirty && !(doc.isUntitled())) {
+                    // if the file is dirty it must be in the working set
+                    // doRevert is side effect free in this case
+                    doRevert(doc).always(openNewFile);
+                } else {
+                    openNewFile();
+                }
             }).fail(function (error) {
                 _showSaveFileError(error, path)
                     .done(function () {
