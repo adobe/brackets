@@ -43,6 +43,9 @@ define(function (require, exports, module) {
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
+        AppInit                = brackets.getModule("utils/AppInit"),
+        UrlParams              = brackets.getModule("utils/UrlParams").UrlParams,
+        StatusBar              = brackets.getModule("widgets/StatusBar"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
         LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
@@ -54,19 +57,20 @@ define(function (require, exports, module) {
     var DEBUG_MENU = "debug-menu";
     
      /** @const {string} Debug commands IDs */
-    var DEBUG_REFRESH_WINDOW        = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
-        DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools",
-        DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests",
-        DEBUG_SHOW_PERF_DATA        = "debug.showPerfData",
-        DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow",
-        DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage",
-        DEBUG_ENABLE_NODE_DEBUGGER  = "debug.enableNodeDebugger",
-        DEBUG_LOG_NODE_STATE        = "debug.logNodeState",
-        DEBUG_RESTART_NODE          = "debug.restartNode";
+    var DEBUG_REFRESH_WINDOW            = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
+        DEBUG_SHOW_DEVELOPER_TOOLS      = "debug.showDeveloperTools",
+        DEBUG_RUN_UNIT_TESTS            = "debug.runUnitTests",
+        DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
+        DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
+        DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
+        DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
+        DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
+        DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
+        DEBUG_RESTART_NODE              = "debug.restartNode";
     
     
     
-    function handleShowDeveloperTools(commandData) {
+    function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
     }
     
@@ -92,7 +96,124 @@ define(function (require, exports, module) {
         }
     }
     
-    function _handleShowPerfData() {
+    /**
+     * Disables Brackets' cache via the remote debugging protocol.
+     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     */
+    function disableCache() {
+        var result = new $.Deferred();
+        
+        if (brackets.inBrowser) {
+            result.resolve();
+        } else {
+            var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
+            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
+            Inspector.getDebuggableWindows("127.0.0.1", port)
+                .fail(result.reject)
+                .done(function (response) {
+                    var page = response[0];
+                    if (!page || !page.webSocketDebuggerUrl) {
+                        result.reject();
+                        return;
+                    }
+                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                    // Disable the cache
+                    _socket.onopen = function _onConnect() {
+                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                    };
+                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                    _socket.onmessage = function _onMessage(e) {
+                        _socket.close();
+                        result.resolve();
+                    };
+                    // In case of an error
+                    _socket.onerror = result.reject;
+                });
+        }
+         
+        return result.promise();
+    }
+        
+    /**
+    * Does a full reload of the browser window
+    * @param {string} href The url to reload into the window
+    */
+    function browserReload(href) {
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
+            }
+           
+            // Disable the cache to make reloads work
+            disableCache().always(function () {
+                // Remove all menus to assure every part of Brackets is reloaded
+                _.forEach(Menus.getAllMenus(), function (value, key) {
+                    Menus.removeMenu(key);
+                });
+                
+                window.location.href = href;
+            });
+        });
+    }
+    
+    function handleReload() {
+        var href    = window.location.href,
+            params  = new UrlParams();
+        
+        // Make sure the Reload Without User Extensions parameter is removed
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts")) {
+            params.remove("reloadWithoutUserExts");
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        if (!params.isEmpty()) {
+            href += "?" + params.toString();
+        }
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
+    }
+    
+    function handleReloadWithoutUserExts() {
+        var href    = window.location.href,
+            params  = new UrlParams();
+        
+        params.parse();
+        
+        if (!params.get("reloadWithoutUserExts")) {
+            params.put("reloadWithoutUserExts", true);
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        href += "?" + params.toString();
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
+    }
+        
+    function handleNewBracketsWindow() {
+        window.open(window.location.href);
+    }
+    
+    function handleShowPerfData() {
         var templateVars = {
             delimitedPerfData: PerfUtils.getDelimitedPerfData(),
             perfData: []
@@ -135,11 +256,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function _handleNewBracketsWindow() {
-        window.open(window.location.href);
-    }
-    
-    function _handleSwitchLanguage() {
+    function handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
         FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
@@ -206,7 +323,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function _enableRunTestsMenuItem() {
+    function enableRunTestsMenuItem() {
         if (brackets.inBrowser) {
             return;
         }
@@ -225,86 +342,29 @@ define(function (require, exports, module) {
             }
         });
     }
-	
-	
-    /**
-     * Disables Brackets' cache via the remote debugging protocol.
-     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
-     */
-    function _disableCache() {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.resolve();
-        } else {
-            var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
-            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-            Inspector.getDebuggableWindows("127.0.0.1", port)
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
-                    }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
-        }
-            
-        return result.promise();
-    }
-	
-    /** Does a full reload of the browser window */
-    function handleFileReload(commandData) {
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
-            // Give everyone a chance to save their state - but don't let any problems block
-            // us from quitting
-            try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
-            } catch (ex) {
-                console.error(ex);
-            }
-            
-            // Disable the cache to make reloads work
-            _disableCache().always(function () {
-                window.location.reload(true);
-            });
-        });
-    }
-    
     
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,       DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,             DEBUG_SHOW_DEVELOPER_TOOLS,     handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,       DEBUG_REFRESH_WINDOW,         handleFileReload);
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,  DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,             DEBUG_REFRESH_WINDOW,           handleReload);
+    CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        handleSwitchLanguage);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
-    _enableRunTestsMenuItem();
+    enableRunTestsMenuItem();
     
     
     /*
@@ -313,6 +373,7 @@ define(function (require, exports, module) {
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
     menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
+    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
@@ -327,4 +388,25 @@ define(function (require, exports, module) {
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;
+    
+    AppInit.htmlReady(function () {
+        // If in Reload Without User Extensions mode, update UI and log console message
+        var USER_EXT_STATUS_ID = "status-user-exts";
+        
+        var params      = new UrlParams(),
+            $icon       = $("#toolbar-extension-manager"),
+            $indicator  = $("<div>" + Strings.STATUSBAR_USER_EXTENSIONS_DISABLED + "</div>");
+        
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts") === "true") {
+            CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
+            $icon.css({display: "none"});
+            StatusBar.addIndicator(USER_EXT_STATUS_ID, $indicator, true);
+            console.log("Brackets reloaded with extensions disabled");
+        } else {
+            CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(true);
+            // Toolbar and status bar reload back to default states, no need to set
+        }
+    });
 });

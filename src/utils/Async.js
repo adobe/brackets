@@ -280,8 +280,7 @@ define(function (require, exports, module) {
         
         return masterDeferred.promise();
     }
-    
-    
+        
     /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
     var ERROR_TIMEOUT = {};
     
@@ -385,6 +384,16 @@ define(function (require, exports, module) {
     PromiseQueue.prototype._curPromise = null;
     
     /**
+     * @type {number} The number of queued promises.
+     */
+    Object.defineProperties(PromiseQueue.prototype, {
+        "length": {
+            get: function () { return this._queue.length; },
+            set: function () { throw new Error("Cannot set length"); }
+        }
+    });
+    
+    /**
      * Adds an operation to the queue. If nothing is currently executing, it will execute immediately (and
      * the next operation added to the queue will wait for it to complete). Otherwise, it will wait until
      * the last operation in the queue (or the currently executing operation if nothing is in the queue) is
@@ -402,6 +411,13 @@ define(function (require, exports, module) {
         if (!this._curPromise) {
             this._doNext();
         }
+    };
+    
+    /**
+     * Removes all pending promises from the queue.
+     */
+    PromiseQueue.prototype.removeAll = function () {
+        this._queue = [];
     };
     
     /**

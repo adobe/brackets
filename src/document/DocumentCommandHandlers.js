@@ -80,14 +80,20 @@ define(function (require, exports, module) {
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
+            currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
-            if (currentDoc) {
+            if (currentlyViewedPath) {
                 _$title.text(_currentTitlePath);
-                _$title.attr("title", currentDoc.file.fullPath);
-                // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-                _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                _$title.attr("title", currentlyViewedPath);
+                if (currentDoc) {
+                    // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                    _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                } else {
+                    // hide dirty dot if there is no document
+                    _$dirtydot.css("visibility", "hidden");
+                }
             } else {
                 _$title.text("");
                 _$title.attr("title", "");
@@ -111,9 +117,15 @@ define(function (require, exports, module) {
         }
 
         // build shell/browser window title, e.g. "• file.html — Brackets"
-        if (currentDoc) {
+        if (currentlyViewedPath) {
             windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+        }
+        
+        if (currentDoc) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
+        } else {
+            // hide dirty dot if there is no document
+            _$dirtydot.css("visibility", "hidden");
         }
 
         // update shell/browser window title
@@ -150,7 +162,12 @@ define(function (require, exports, module) {
         if (newDocument) {
             _currentTitlePath = _shortTitleForDocument(newDocument);
         } else {
-            _currentTitlePath = null;
+            var currentlyViewedFilePath = EditorManager.getCurrentlyViewedPath();
+            if (currentlyViewedFilePath) {
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFilePath);
+            } else {
+                _currentTitlePath = null;
+            }
         }
         
         // Update title text & "dirty dot" display
@@ -399,7 +416,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
-     * @param {string} dir  The directory to use
+     * @param {Directory} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
@@ -413,7 +430,7 @@ define(function (require, exports, module) {
             //we've tried this enough            
             deferred.reject();
         } else {
-            var path = dir + "/" + suggestedName,
+            var path = dir.fullPath + suggestedName,
                 entry = isFolder ? FileSystem.getDirectoryForPath(path)
                                  : FileSystem.getFileForPath(path);
             
@@ -455,25 +472,26 @@ define(function (require, exports, module) {
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
-        var baseDir,
+        var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
         
-        baseDir = selected.fullPath;
         if (selected.isFile) {
-            baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
+            baseDirEntry = FileSystem.getDirectoryForPath(selected.parentPath);
         }
+        
+        baseDirEntry = baseDirEntry || selected;
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
-            return ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
+            return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
         }
         
-        return _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder)
+        return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
             .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 
@@ -522,13 +540,16 @@ define(function (require, exports, module) {
         );
     }
     
+    
+    
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
+     * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem
      * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
-    function doSave(docToSave) {
+    function doSave(docToSave, force) {
         var result = new $.Deferred(),
             file = docToSave.file;
         
@@ -538,18 +559,61 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
         }
+        
+        function handleContentsModified() {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.EXT_MODIFIED_TITLE,
+                StringUtils.format(
+                    Strings.EXT_MODIFIED_WARNING,
+                    StringUtils.breakableUrl(docToSave.file.fullPath)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_SAVE_AS,
+                        text      : Strings.SAVE_AS
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE_AND_OVERWRITE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Re-do the save, ignoring any CONTENTS_MODIFIED errors
+                        doSave(docToSave, true).then(result.resolve, result.reject);
+                    } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
+                        // Let the user choose a different path at which to write the file
+                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                    }
+                });
+        }
             
         if (docToSave.isDirty) {
             var writeError = false;
             
             // We don't want normalized line endings, so it's important to pass true to getText()
-            FileUtils.writeText(file, docToSave.getText(true))
+            FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
                 })
                 .fail(function (err) {
-                    handleError(err);
+                    if (err === FileSystemError.CONTENTS_MODIFIED) {
+                        handleContentsModified();
+                    } else {
+                        handleError(err);
+                    }
                 });
         } else {
             result.resolve(file);
@@ -651,7 +715,12 @@ define(function (require, exports, module) {
             
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
-            FileUtils.writeText(newFile, doc.getText()).done(function () {
+            
+            // Save as warns you when you're about to overwrite a file, so we
+            // explictly allow "blind" writes to the filesystem in this case,
+            // ignoring warnings about the contents being modified outside of
+            // the editor.
+            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old
@@ -1352,7 +1421,8 @@ define(function (require, exports, module) {
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
+    $(DocumentManager).on("fileNameChange", updateDocumentTitle);
+    $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });

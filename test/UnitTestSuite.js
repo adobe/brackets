@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     require("spec/Async-test");
     require("spec/CodeHint-test");
     require("spec/CodeHintUtils-test");
+    require("spec/CodeInspection-test");
     require("spec/CommandManager-test");
     require("spec/CSSUtils-test");
     require("spec/JSUtils-test");
@@ -68,6 +69,7 @@ define(function (require, exports, module) {
     require("spec/StringUtils-test");
     require("spec/TextRange-test");
     require("spec/UpdateNotification-test");
+    require("spec/UrlParams-test");
     require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");

@@ -36,6 +36,7 @@ define({
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
+	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
@@ -107,25 +108,34 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
+	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
+    // Generic dialog/button labels
+	"OK": "OK",
+	"CANCEL": "Annuler",
+	"DONT_SAVE": "Ne pas enregistrer",
+	"SAVE": "Enregistrer",
+	"SAVE_AS": "Enregistrer sous\u2026",
+	"SAVE_AND_OVERWRITE": "Remplacer",
+	"DELETE": "Supprimer",
+	"BUTTON_YES": "Oui",
+	"BUTTON_NO": "Non",
+        
     // Find, Replace, Find in Files
-	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
 	"FIND_NO_RESULTS": "Aucun résultat",
-	"WITH": "Avec",
-	"BUTTON_YES": "Oui",
-	"BUTTON_NO": "Non",
+	"REPLACE_PLACEHOLDER": "Remplacer par\u2026",
 	"BUTTON_REPLACE_ALL": "Tout\u2026",
-	"BUTTON_STOP": "Arrêter",
 	"BUTTON_REPLACE": "Remplacer",
-            
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "Résultat suivant",
 	"BUTTON_PREV_HINT": "Résultat précédent",
+	"BUTTON_CASESENSITIVE_HINT": "Respecter la casse",
+	"BUTTON_REGEXP_HINT": "Expression régulière",
 
 	"OPEN_FILE": "Ouvrir le fichier",
 	"SAVE_FILE_AS": "Enregistrer le fichier",
@@ -135,10 +145,12 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour !",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
 
+    // Replace All (in single file)
 	"FIND_REPLACE_TITLE_PART1": "Remplacer « ",
 	"FIND_REPLACE_TITLE_PART2": " » par « ",
 	"FIND_REPLACE_TITLE_PART3": " » &mdash; {2} {0} {1}",
 
+    // Find in Files
 	"FIND_IN_FILES_TITLE_PART1": "« ",
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
@@ -184,14 +196,14 @@ define({
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "[7394783] !é=Extensions Disabled=!",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "Erreurs {0}",
-	"ERRORS_PANEL_TITLE_SINGLE": "Problèmes {0}",
-	"ERRORS_PANEL_TITLE_MULTI": "Problèmes Lint",
-	"SINGLE_ERROR": "1 erreur {0}",
-	"MULTIPLE_ERRORS": "{1} erreurs {0}",
-	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
+	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
+	"SINGLE_ERROR": "1 problème {0}",
+	"MULTIPLE_ERRORS": "{1} problèmes {0}",
+	"NO_ERRORS": "Aucun problème {0} détecté, félicitations !",
+	"NO_ERRORS_MULTIPLE_PROVIDER": "Aucun problème détecté, félicitations !",
 	"LINT_DISABLED": "L’analyse lint est désactivée",
 	"NO_LINT_AVAILABLE": "Aucun programme lint disponible pour {0}",
 	"NOTHING_TO_LINT": "Rien à analyser",
@@ -240,6 +252,7 @@ define({
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
 	"CMD_FIND": "Rechercher",
+	"CMD_FIND_FIELD_PLACEHOLDER": "[7400638] !é=Find\u2026=!",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
@@ -307,11 +320,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
 	"DEVELOPMENT_BUILD": "version de développement",
-	"OK": "OK",
-	"DONT_SAVE": "Ne pas enregistrer",
-	"SAVE": "Enregistrer",
-	"CANCEL": "Annuler",
-	"DELETE": "Supprimer",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
@@ -411,6 +419,7 @@ define({
 	"REMOVE_AND_QUIT": "Supprimer les extensions et quitter",
 	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
 	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
+	"PROCESSING_EXTENSIONS": "[7400639] !é=Processing extension changes\u2026=!",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
 	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur l’onglet Disponibles ci-dessus pour vous lancer.",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
@@ -432,7 +441,8 @@ define({
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
-	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
+	"CMD_REFRESH_WINDOW": "[6307113] !é=Reload With Extensions=!",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "[7394782] !é=Reload Without Extensions=!",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
@@ -450,6 +460,7 @@ define({
     // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "Tchèque",
 	"LOCALE_DE": "Allemand",
+	"LOCALE_EL": "Grec",
 	"LOCALE_EN": "Anglais",
 	"LOCALE_ES": "Espagnol",
 	"LOCALE_FI": "Finnois",
@@ -470,10 +481,13 @@ define({
 	"LOCALE_TR": "Turc",
 	"LOCALE_ZH_CN": "Chinois (simplifié)",
 	"LOCALE_HU": "Hongrois",
+	"LOCALE_KO": "Coréen",
     
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Décaler</kbd> Déplacer de dix unités",
+	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
