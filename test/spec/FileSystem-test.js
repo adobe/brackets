@@ -354,13 +354,17 @@ define(function (require, exports, module) {
         describe("Rename", function () {
             it("should rename a File", function () {
                 var file = fileSystem.getFileForPath("/file1.txt"),
+                    oldPath = file.fullPath,
+                    spy = jasmine.createSpy(),
                     cb = errorCallback();
                 
                 runs(function () {
+                    $(fileSystem).one("rename", spy)
                     file.rename("/file1-renamed.txt", cb);
                 });
-                waitsFor(function () { return cb.wasCalled; });
+                waitsFor(function () { return cb.wasCalled && spy.wasCalled; });
                 runs(function () {
+                    expect(spy.mostRecentCall.args[1]).toBe(oldPath);
                     expect(cb.error).toBeFalsy();
                     expect(file.fullPath).toBe("/file1-renamed.txt");
                     expect(fileSystem.getFileForPath("/file1-renamed.txt")).toBe(file);
