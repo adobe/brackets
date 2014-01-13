@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                     _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
                 } else {
                     // hide dirty dot if there is no document
-                    _$dirtydot.css("visibility", "hidden");                    
+                    _$dirtydot.css("visibility", "hidden");
                 }
             } else {
                 _$title.text("");
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         } else {
             // hide dirty dot if there is no document
-            _$dirtydot.css("visibility", "hidden");                    
+            _$dirtydot.css("visibility", "hidden");
         }
 
         // update shell/browser window title
@@ -418,7 +418,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
-     * @param {string} dir  The directory to use
+     * @param {Directory} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
@@ -432,7 +432,7 @@ define(function (require, exports, module) {
             //we've tried this enough            
             deferred.reject();
         } else {
-            var path = dir + "/" + suggestedName,
+            var path = dir.fullPath + suggestedName,
                 entry = isFolder ? FileSystem.getDirectoryForPath(path)
                                  : FileSystem.getFileForPath(path);
             
@@ -474,25 +474,26 @@ define(function (require, exports, module) {
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
-        var baseDir,
+        var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
         
-        baseDir = selected.fullPath;
         if (selected.isFile) {
-            baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
+            baseDirEntry = FileSystem.getDirectoryForPath(selected.parentPath);
         }
+        
+        baseDirEntry = baseDirEntry || selected;
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
-            return ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
+            return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
         }
         
-        return _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder)
+        return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
             .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 

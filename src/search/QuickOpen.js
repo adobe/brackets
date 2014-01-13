@@ -751,10 +751,10 @@ define(function (require, exports, module) {
             // Update the dialog label based on the current prefix.
             switch (prefix) {
             case ":":
-                dialogLabel = Strings.CMD_GOTO_LINE;
+                dialogLabel = Strings.CMD_GOTO_LINE + "\u2026";
                 break;
             case "@":
-                dialogLabel = Strings.CMD_GOTO_DEFINITION;
+                dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
                 break;
             default:
                 dialogLabel = "";
@@ -814,7 +814,7 @@ define(function (require, exports, module) {
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "' style='width: 30em'><span class='find-dialog-label'></span></div>";
+        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 

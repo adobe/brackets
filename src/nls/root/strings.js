@@ -196,7 +196,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab Size:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "User Extensions Disabled",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -292,9 +292,9 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",
-    "CMD_QUICK_OPEN"                      : "Quick open\u2026",
-    "CMD_GOTO_LINE"                       : "Go to line\u2026",
-    "CMD_GOTO_DEFINITION"                 : "Quick find definition\u2026",
+    "CMD_QUICK_OPEN"                      : "Quick Open",
+    "CMD_GOTO_LINE"                       : "Go to Line",
+    "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
     "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
@@ -420,6 +420,7 @@ define({
     "REMOVE_AND_QUIT"                      : "Remove Extensions and Quit",
     "CHANGE_AND_QUIT"                      : "Change Extensions and Quit",
     "UPDATE_AND_QUIT"                      : "Update Extensions and Quit",
+    "PROCESSING_EXTENSIONS"                : "Processing extension changes\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Couldn't remove extension {0} because it wasn't installed.",
     "NO_EXTENSIONS"                        : "No extensions installed yet.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "No extensions match your search.",
@@ -441,8 +442,8 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
-    "CMD_REFRESH_WINDOW"                        : "Reload {APP_NAME}",
-    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without User Extensions",
+    "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
