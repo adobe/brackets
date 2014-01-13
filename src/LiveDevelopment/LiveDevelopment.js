@@ -81,6 +81,7 @@ define(function LiveDevelopment(require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
+        FileSystem           = require("filesystem/FileSystem"),
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
@@ -1270,34 +1271,32 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
-     * Triggered by a documentSaved event from DocumentManager.
+     * Triggered by a changed event from FileSystem.
      * @param {$.Event} event
      * @param {Document} doc
      */
-    function _onDocumentSaved(event, doc) {
+    function _onFileSystemChange(event, entry, added, removed) {
         if (!Inspector.connected() || !_server) {
             return;
         }
         
-        var absolutePath            = doc.file.fullPath,
-            liveDocument            = absolutePath && _server.get(absolutePath),
-            liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
+        var fullPath                = entry && entry.isFile && entry.fullPath,
+            url                     = fullPath && _server.pathToUrl(fullPath),
+            liveDocument            = fullPath && _server.get(fullPath),
+            liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled(),
+            wasRequested            = agents.network.wasURLRequested(url);
         
-        // Skip reload if the saved document has live editing enabled
-        if (liveEditingEnabled) {
+        // Skip reload if the saved document has live editing enabled or if
+        // the changed file was never requested
+        if (liveEditingEnabled || !wasRequested) {
             return;
         }
         
-        var documentUrl     = _server.pathToUrl(absolutePath),
-            wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
-        
-        if (wasRequested) {
-            // Unload and reload agents before reloading the page
-            reconnect();
+        // Unload and reload agents before reloading the page
+        reconnect();
 
-            // Reload HTML page
-            Inspector.Page.reload();
-        }
+        // Reload HTML page
+        Inspector.Page.reload();
     }
 
     /** Triggered by a change in dirty flag from the DocumentManager */
@@ -1330,8 +1329,8 @@ define(function LiveDevelopment(require, exports, module) {
         exports.config = theConfig;
         $(Inspector).on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
+        FileSystem.on("change", _onFileSystemChange);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
-            .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
         $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
 
