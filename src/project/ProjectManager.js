@@ -1210,8 +1210,6 @@ define(function (require, exports, module) {
 
         if (_lastSelected) {
             selectedEntry = _lastSelected.data("entry");
-        } else {
-            selectedEntry = getSelectedItem();
         }
         _lastSelected = null;
         
