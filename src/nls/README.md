@@ -52,23 +52,25 @@ The following languages have been contributed by the Brackets community:
 
 * Czech (cs)
 * German (de)
+* Greek (el)
 * Spanish (es)
 * Persian-Farsi (fa-ir)
 * Finnish (fi)
 * Hungarian (hu)
 * Italian (it)
+* Korean (ko)
 * Norwegian (nb)
 * Dutch (nl)
 * Polish (pl)
 * Brazilian Portuguese (pt-br)
 * Portuguese (pt-pt)
+* Romanian (ro)
 * Russian (ru)
 * Slovak (sk)
 * Serbian (sr)
 * Swedish (sv)
 * Turkish (tr)
 * Simplified Chinese (zh-cn)
-* Korean (ko)
 
 These translations _can be directly modified_ through our normal pull request
 process.
