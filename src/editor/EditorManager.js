@@ -641,7 +641,7 @@ define(function (require, exports, module) {
      * Closes the customViewer currently displayed, shows the NoEditor view
      * and notifies the ProjectManager to update the file selection
      */
-    function closeCustomViewer() {
+    function _closeCustomViewer() {
         _removeCustomViewer();
         _setCurrentlyViewedPath();
         _showNoEditor();
@@ -652,7 +652,7 @@ define(function (require, exports, module) {
      * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
-    function showCustomViewer(provider, fullPath) {
+    function _showCustomViewer(provider, fullPath) {
         // Don't show the same custom view again if file path
         // and view provider are still the same.
         if (_currentlyViewedPath === fullPath &&
@@ -1037,10 +1037,10 @@ define(function (require, exports, module) {
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
-    exports.showCustomViewer              = showCustomViewer;
+    exports._showCustomViewer              = _showCustomViewer;
     exports.registerCustomViewer          = registerCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
-    exports.closeCustomViewer             = closeCustomViewer;
+    exports._closeCustomViewer             = _closeCustomViewer;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
 });
