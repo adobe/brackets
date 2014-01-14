@@ -1492,8 +1492,6 @@ define(function (require, exports, module) {
     
     AppInit.htmlReady(function () {
         // If in Reload Without User Extensions mode, update UI and log console message
-        var USER_EXT_STATUS_ID = "status-user-exts";
-        
         var params      = new UrlParams(),
             $icon       = $("#toolbar-extension-manager"),
             $indicator  = $("<div>" + Strings.STATUSBAR_USER_EXTENSIONS_DISABLED + "</div>");
@@ -1503,7 +1501,7 @@ define(function (require, exports, module) {
         if (params.get("reloadWithoutUserExts") === "true") {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
             $icon.css({display: "none"});
-            StatusBar.addIndicator(USER_EXT_STATUS_ID, $indicator, true);
+            StatusBar.addIndicator("status-user-exts", $indicator, true);
             console.log("Brackets reloaded with extensions disabled");
         }
         
