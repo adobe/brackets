@@ -668,7 +668,12 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved with the saved document's File. Rejected in
      *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
      */
+    var stillSaving = false; //This prevents two new files from saving at the same time. Issue #6121
     function _doSaveAs(doc, settings) {
+        if (stillSaving) {
+            return;
+        }
+        stillSaving = true; 
         var origPath,
             saveAsDefaultPath,
             defaultName,
@@ -718,7 +723,7 @@ define(function (require, exports, module) {
                 doSave(doc).then(result.resolve, result.reject);
                 return;
             }
-            
+
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
             
@@ -729,6 +734,7 @@ define(function (require, exports, module) {
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
+                    stillSaving = false; //the file is done saving, so open it up so others can now save
                     // If there were unsaved changes before Save As, they don't stay with the old
                     // file anymore - so must revert the old doc to match disk content.
                     // Only do this if the doc was dirty: doRevert on a file that is not dirty and
