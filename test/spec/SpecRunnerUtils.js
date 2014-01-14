@@ -531,10 +531,14 @@ define(function (require, exports, module) {
         );
 
         runs(function () {
+            // Reconfigure the preferences manager so that the "user" scoped
+            // preferences are empty and the tests will not reconfigure
+            // the preferences of the user running the tests.
             var pm = _testWindow.brackets.test.PreferencesManager._manager;
             pm.removeScope("user");
             pm._defaultContext.scopeOrder = ["default"];
             pm.addScope("user", new PreferencesBase.MemoryStorage());
+            
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
         });
