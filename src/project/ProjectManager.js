@@ -567,7 +567,6 @@ define(function (require, exports, module) {
                             } else {
                                 redraw();
                             }
-                           
                         } else {
                             FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
                             // show selection marker on folders
