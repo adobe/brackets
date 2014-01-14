@@ -38,6 +38,8 @@ define(function (require, exports, module) {
             $,
             brackets,
             CodeInspection,
+            CommandManager,
+            Commands  = require("command/Commands"),
             EditorManager;
 
         var toggleJSLintResults = function (visible) {
@@ -81,6 +83,7 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
+                    CommandManager = brackets.test.CommandManager;
                     EditorManager = brackets.test.EditorManager;
                     CodeInspection = brackets.test.CodeInspection;
                     CodeInspection.toggleEnabled(true);
@@ -100,6 +103,7 @@ define(function (require, exports, module) {
             testWindow    = null;
             $             = null;
             brackets      = null;
+            CommandManager = null;
             EditorManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
@@ -339,7 +343,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should run two linter and display two expanded collapsible sections in the errors panel", function () {
+            it("should run two linters and display two expanded collapsible sections in the errors panel", function () {
                 var codeInspector1 = createCodeInspector("javascript linter 1", failLintResult());
                 var codeInspector2 = createCodeInspector("javascript linter 2", failLintResult());
                 CodeInspection.register("javascript", codeInspector1);
@@ -486,6 +490,52 @@ define(function (require, exports, module) {
                     expect(tooltip).toBe("No JavaScript Linter1 problems found - good job!");
                 });
             });
+            
+            it("should Go to First Error with errors from only one provider", function () {
+                var codeInspector = createCodeInspector("javascript linter", failLintResult());
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
+                    
+                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+            });
+
+            it("should Go to First Error with errors from two providers", function () {
+                var codeInspector1 = createCodeInspector("javascript linter 1", {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                var codeInspector2 = createCodeInspector("javascript linter 2", {
+                    errors: [
+                        {
+                            pos: { line: 0, ch: 2 },
+                            message: "Different error",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
+                    
+                    // 'first' error is in order of linter registration, not in line number order
+                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+            });
+
         });
         
         describe("Code Inspector Registration", function () {
