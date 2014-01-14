@@ -40,7 +40,7 @@ define(function (require, exports, module) {
     
     var prefs = PreferencesManager.getExtensionPrefs("jslint");
     
-    PreferencesManager.definePreference("options", "object")
+    prefs.definePreference("options", "object")
         .on("change", function (e, data) {
             CodeInspection.requestRun(Strings.JSLINT_NAME);
         });
