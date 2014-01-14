@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         
         var watchedRoot = this._watchedRoot;
         if (watchedRoot) {
-            if (watchedRoot.entry.fullPath.indexOf(newPath) === 0) {
+            if (newPath.indexOf(watchedRoot.entry.fullPath) === 0) {
                 // Update watchedRootFilterResult
                 this._watchedRootFilterResult = watchedRoot.filter(this._name, this._parentPath);
             } else {
@@ -336,6 +336,8 @@ define(function (require, exports, module) {
         this._fileSystem._beginChange();
         
         this._impl.rename(this._path, newFullPath, function (err) {
+            var oldFullPath = this._path;
+            
             try {
                 if (err) {
                     this._clearCachedData();
@@ -351,7 +353,7 @@ define(function (require, exports, module) {
                     callback(null);
                 } finally {
                     // Notify rename listeners
-                    this._fileSystem._fireRenameEvent(this._path, newFullPath);
+                    this._fileSystem._fireRenameEvent(oldFullPath, newFullPath);
                 }
             } finally {
                 // Unblock external change events

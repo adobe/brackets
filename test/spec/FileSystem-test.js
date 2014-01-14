@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -353,18 +353,24 @@ define(function (require, exports, module) {
         
         describe("Rename", function () {
             it("should rename a File", function () {
-                var file = fileSystem.getFileForPath("/file1.txt"),
+                var oldPath = "/file1.txt",
+                    file = fileSystem.getFileForPath(oldPath),
+                    newPath = "/file1-renamed.txt",
+                    spy = jasmine.createSpy(),
                     cb = errorCallback();
                 
                 runs(function () {
-                    file.rename("/file1-renamed.txt", cb);
+                    $(fileSystem).one("rename", spy);
+                    file.rename(newPath, cb);
                 });
-                waitsFor(function () { return cb.wasCalled; });
+                waitsFor(function () { return cb.wasCalled && spy.wasCalled; });
                 runs(function () {
+                    expect(spy.mostRecentCall.args[1]).toBe(oldPath);
+                    expect(spy.mostRecentCall.args[2]).toBe(newPath);
                     expect(cb.error).toBeFalsy();
-                    expect(file.fullPath).toBe("/file1-renamed.txt");
-                    expect(fileSystem.getFileForPath("/file1-renamed.txt")).toBe(file);
-                    expect(fileSystem.getFileForPath("/file1.txt")).not.toBe(file);
+                    expect(file.fullPath).toBe(newPath);
+                    expect(fileSystem.getFileForPath(newPath)).toBe(file);
+                    expect(fileSystem.getFileForPath(oldPath)).not.toBe(file);
                 });
             });
             
