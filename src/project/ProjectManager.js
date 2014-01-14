@@ -702,6 +702,25 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Insert a path in the fullPath-to-DOM ID cache
+     * @param {!(FileSystemEntry|string)} entry Entry or full path to add to cache
+     */
+    function _insertTreeNodeCache(entry, id) {
+        _projectInitialLoad.fullPathToIdMap[entry.fullPath] = id;
+    }
+    
+    /**
+     * @private
+     * Delete a path from the fullPath-to-DOM ID cache
+     * @param {!(FileSystemEntry|string)} entry Entry or full path to remove from cache
+     */
+    function _deleteTreeNodeCache(entry) {
+        var fullPath = entry.fullPath || entry;
+        delete _projectInitialLoad.fullPathToIdMap[fullPath];
+    }
+    
+    /**
+     * @private
      * Create JSON object for a jstree node. Insert mapping from full path to
      * jstree node ID.
      * 
@@ -731,7 +750,7 @@ define(function (require, exports, module) {
         }
 
         // Map path to ID to initialize loaded and opened states
-        _projectInitialLoad.fullPathToIdMap[entry.fullPath] = jsonEntry.attr.id;
+        _insertTreeNodeCache(entry, jsonEntry.attr.id);
         
         return jsonEntry;
     }
@@ -1680,19 +1699,21 @@ define(function (require, exports, module) {
                         return;
                     }
                     
-                    var oldName = $selected.data("entry").fullPath;
+                    var oldFullPath = $selected.data("entry").fullPath;
                     // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
                     
                     var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
                     var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + oldNameEndPattern);
-                    var newName = oldName.replace(oldNameRegex, data.rslt.new_name);
+                    var newName = oldFullPath.replace(oldNameRegex, data.rslt.new_name);
                     
-                    renameItem(oldName, newName, isFolder)
+                    renameItem(oldFullPath, newName, isFolder)
                         .done(function () {
                             _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                             
-                            // Update compareString for sorting
+                            // Update caches: compareString and fullPathToIdMap
                             $selected.data("compareString", _toCompareString(entry.name, isFolder));
+                            _deleteTreeNodeCache(oldFullPath);
+                            _insertTreeNodeCache(entry, $selected.attr("id"));
                             
                             // If a folder was renamed, re-select it here, since openAndSelectDocument()
                             // changed the selection.
@@ -1740,9 +1761,7 @@ define(function (require, exports, module) {
             
             if ($treeNode) {
                 _projectTree.jstree("delete_node", $treeNode);
-            
-                // Clear fullPath to node ID cache
-                delete _projectInitialLoad.fullPathToIdMap[entry.fullPath];
+                _deleteTreeNodeCache(entry);
                 
                 if (entry.parentPath) {
                     var parentEntry = FileSystem.getDirectoryForPath(entry.parentPath),
