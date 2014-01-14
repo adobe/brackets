@@ -1747,6 +1747,9 @@ define(function (require, exports, module) {
             
             if ($treeNode) {
                 _projectTree.jstree("delete_node", $treeNode);
+            
+                // Clear fullPath to node ID cache
+                delete _projectInitialLoad.fullPathToIdMap[entry.fullPath];
                 
                 if (entry.parentPath) {
                     var parentEntry = FileSystem.getDirectoryForPath(entry.parentPath),

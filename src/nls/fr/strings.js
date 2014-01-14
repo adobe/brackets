@@ -196,7 +196,7 @@ define({
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
-	"STATUSBAR_USER_EXTENSIONS_DISABLED": "[7394783] !é=Extensions Disabled=!",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
@@ -252,7 +252,7 @@ define({
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
 	"CMD_FIND": "Rechercher",
-	"CMD_FIND_FIELD_PLACEHOLDER": "[7400638] !é=Find\u2026=!",
+	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
@@ -419,7 +419,7 @@ define({
 	"REMOVE_AND_QUIT": "Supprimer les extensions et quitter",
 	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
 	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
-	"PROCESSING_EXTENSIONS": "[7400639] !é=Processing extension changes\u2026=!",
+	"PROCESSING_EXTENSIONS": "Traitement des changements d’extension\u2026",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
 	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur l’onglet Disponibles ci-dessus pour vous lancer.",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
@@ -441,8 +441,8 @@ define({
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
-	"CMD_REFRESH_WINDOW": "[6307113] !é=Reload With Extensions=!",
-	"CMD_RELOAD_WITHOUT_USER_EXTS": "[7394782] !é=Reload Without Extensions=!",
+	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
