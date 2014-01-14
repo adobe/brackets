@@ -196,7 +196,7 @@ define({
 	"STATUSBAR_TAB_SIZE": "タブ幅 :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
-	"STATUSBAR_USER_EXTENSIONS_DISABLED": "!能=[7394783] Extensions Disabled_=!",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -252,7 +252,7 @@ define({
 	"CMD_SELECT_ALL": "すべて選択",
 	"CMD_SELECT_LINE": "行の選択",
 	"CMD_FIND": "検索",
-	"CMD_FIND_FIELD_PLACEHOLDER": "!能=[7400638] Find\u2026_=!",
+	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
 	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_FIND_NEXT": "次を検索",
@@ -419,7 +419,7 @@ define({
 	"REMOVE_AND_QUIT": "拡張機能を削除して終了",
 	"CHANGE_AND_QUIT": "拡張機能を変更して終了",
 	"UPDATE_AND_QUIT": "拡張機能を更新して終了",
-	"PROCESSING_EXTENSIONS": "!能=[7400639] Processing extension changes\u2026_=!",
+	"PROCESSING_EXTENSIONS": "拡張機能の変更を処理中\u2026",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
 	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
@@ -441,8 +441,8 @@ define({
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
-	"CMD_REFRESH_WINDOW": "!能=[6307113] Reload With Extensions_=!",
-	"CMD_RELOAD_WITHOUT_USER_EXTS": "!能=[7394782] Reload Without Extensions_=!",
+	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
