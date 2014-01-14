@@ -420,7 +420,7 @@ define({
     "CHANGE_AND_RELOAD"                    : "Muuta laajennuksia ja lataa uudelleen",
     "UPDATE_AND_RELOAD"                    : "Päivitä laajennukset ja lataa uudelleen",
     "PROCESSING_EXTENSIONS"                : "Käsitellään laajennusten muutoksia\u2026",
-    "EXTENSION_NOT_INSTALLED"              : "Laajennusta {0} ei voida poistaa , koska sitä ei ole asennettu.",
+    "EXTENSION_NOT_INSTALLED"              : "Laajennusta {0} ei voida poistaa, koska sitä ei ole asennettu.",
     "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Napsauta Saatavilla-välilehteä yläpuolelta aloittaaksesi.",
     "NO_EXTENSION_MATCHES"                 : "Ei hakuasi vastaavia laajennuksia.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Ole varovainen asentaessasi laajennuksia tuntemattomasta lähteestä.",
