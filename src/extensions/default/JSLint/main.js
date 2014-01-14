@@ -38,8 +38,9 @@ define(function (require, exports, module) {
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings");
     
+    var prefs = PreferencesManager.getExtensionPrefs("jslint");
     
-    PreferencesManager.definePreference("jslint.options", "object")
+    PreferencesManager.definePreference("options", "object")
         .on("change", function (e, data) {
             CodeInspection.requestRun(Strings.JSLINT_NAME);
         });
@@ -61,7 +62,7 @@ define(function (require, exports, module) {
         }
         text = arr.join("\n");
         
-        var options = PreferencesManager.get("jslint.options");
+        var options = prefs.get("options");
         var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {

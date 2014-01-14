@@ -612,6 +612,158 @@ define(function (require, exports, module) {
     });
     
     /**
+     * Provides a subset of the PreferencesSystem functionality with preference
+     * access always occurring with the given prefix.
+     * 
+     * @param {PreferencesSystem} baseSystem The real PreferencesSystem that is backing this one
+     * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
+     */
+    function PrefixedPreferencesSystem(base, prefix) {
+        this.base = base;
+        this.prefix = prefix;
+        this._listenerInstalled = false;
+    }
+    
+    PrefixedPreferencesSystem.prototype = {
+        /**
+         * Defines a new (prefixed) preference.
+         * 
+         * @param {string} id unprefixed identifier of the preference. Generally a dotted name.
+         * @param {string} type Data type for the preference (generally, string, boolean, number)
+         * @param {Object} initial Default value for the preference
+         * @param {?Object} options Additional options for the pref. Can include name and description
+         *                          that will ultimately be used in UI.
+         * @return {Object} The preference object.
+         */
+        definePreference: function (id, type, initial, options) {
+            return this.base.definePreference(this.prefix + id, type, initial, options);
+        },
+        
+        /**
+         * Get the prefixed preference object
+         * 
+         * @param {string} id ID of the pref to retrieve.
+         */
+        getPreference: function (id) {
+            return this.base.getPreference(this.prefix + id);
+        },
+        
+        /**
+         * Gets the prefixed preference
+         * 
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         */
+        get: function (id, context) {
+            return this.base.get(this.prefix + id, context);
+        },
+        
+        /**
+         * Sets the prefixed preference
+         * 
+         * @param {string} scopeName Scope to set the preference in
+         * @param {string} id Identifier of the preference to set
+         * @param {Object} value New value for the preference
+         */
+        set: function (scopeName, id, value) {
+            return this.base.set(scopeName, this.prefix + id, value);
+        },
+        
+        /**
+         * @private
+         * 
+         * Listens for events on the base PreferencesSystem to filter down to the
+         * events that consumers of this PreferencesSystem would be interested in.
+         */
+        _installListener: function () {
+            if (this._listenerInstalled) {
+                return;
+            }
+            var $this = $(this),
+                prefix = this.prefix;
+            
+            var onlyWithPrefix = function (id) {
+                if (id.substr(0, prefix.length) === prefix) {
+                    return true;
+                }
+                return false;
+            };
+            
+            var withoutPrefix = function (id) {
+                return id.substr(prefix.length);
+            };
+            
+            $(this.base).on(PREFERENCE_CHANGE, function (e, data) {
+                var prefixedIds = data.ids.filter(onlyWithPrefix);
+                
+                if (prefixedIds.length > 0) {
+                    $this.trigger(PREFERENCE_CHANGE, {
+                        ids: prefixedIds.map(withoutPrefix)
+                    });
+                }
+            });
+            
+            this._listenerInstalled = true;
+        },
+        
+        /**
+         * Sets up a listener for events for this PrefixedPreferencesSystem. Only prefixed events
+         * will notify. Optionally, you can set up a listener for a
+         * specific preference.
+         * 
+         * @param {string} event Name of the event to listen for
+         * @param {string|Function} preferenceID Name of a specific preference or the handler function
+         * @param {?Function} handler Handler for the event
+         */
+        on: function (event, preferenceID, handler) {
+            if (typeof preferenceID === "function") {
+                handler = preferenceID;
+                preferenceID = null;
+            }
+            
+            if (preferenceID) {
+                var pref = this.getPreference(preferenceID);
+                pref.on(event, handler);
+            } else {
+                this._installListener();
+                $(this).on(event, handler);
+            }
+        },
+        
+        /**
+         * Turns off the event handlers for a given event, optionally for a specific preference
+         * or a specific handler function.
+         * 
+         * @param {string} event Name of the event for which to turn off listening
+         * @param {string|Function} preferenceID Name of a specific preference or the handler function
+         * @param {?Function} handler Specific handler which should stop being notified
+         */
+        off: function (event, preferenceID, handler) {
+            if (typeof preferenceID === "function") {
+                handler = preferenceID;
+                preferenceID = null;
+            }
+            
+            if (preferenceID) {
+                var pref = this.getPreference(preferenceID);
+                pref.off(event, handler);
+            } else {
+                $(this).off(event, handler);
+            }
+        },
+        
+        /**
+         * Saves the preferences. If a save is already in progress, a Promise is returned for
+         * that save operation.
+         * 
+         * @return {Promise} Resolved when the preferences are done saving.
+         */
+        save: function () {
+            return this.base.save();
+        }
+    };
+    
+    /**
      * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
      * 
@@ -1060,6 +1212,18 @@ define(function (require, exports, module) {
             _.forEach(this._scopes, function (scope) {
                 scope.fileChanged(filename);
             });
+        },
+        
+        /**
+         * Retrieves a PreferencesSystem in which all preference access is prefixed.
+         * This helps provide namespacing so that different preferences consumers do
+         * not interfere with one another.
+         * 
+         * The prefix provided has a `.` character appended when preference lookups are
+         * done.
+         */
+        getPrefixedSystem: function (prefix) {
+            return new PrefixedPreferencesSystem(this, prefix + ".");
         }
     });
     

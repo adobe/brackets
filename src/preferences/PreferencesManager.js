@@ -246,6 +246,18 @@ define(function (require, exports, module) {
     });
     
     /**
+     * Creates an extension-specific preferences manager using the prefix given.
+     * A `.` character will be appended to the prefix. So, a preference named `foo`
+     * with a prefix of `myExtension` will be stored as `myExtension.foo` in the
+     * preferences files.
+     * 
+     * @param {string} prefix Prefix to be applied
+     */
+    function getExtensionPrefs(prefix) {
+        return preferencesManager.getPrefixedSystem(prefix);
+    }
+    
+    /**
      * Converts from the old localStorage-based preferences to the new-style
      * preferences according to the "rules" given.
      * 
@@ -308,6 +320,7 @@ define(function (require, exports, module) {
     exports.on                  = preferencesManager.on.bind(preferencesManager);
     exports.off                 = preferencesManager.off.bind(preferencesManager);
     exports.getPreference       = preferencesManager.getPreference.bind(preferencesManager);
+    exports.getExtensionPrefs   = getExtensionPrefs;
     exports.setValueAndSave     = setValueAndSave;
     exports.addScope            = preferencesManager.addScope.bind(preferencesManager);
     exports.stateManager        = stateManager;
