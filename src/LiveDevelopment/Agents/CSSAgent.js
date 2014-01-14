@@ -35,7 +35,8 @@ define(function CSSAgent(require, exports, module) {
 
     require("thirdparty/path-utils/path-utils.min");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        SourceMapConsumer   = require("thirdparty/source-map/lib/source-map/source-map-consumer");
 
     var _load; // {$.Deferred} load promise
     var _urlToStyle; // {url -> loaded} style definition
