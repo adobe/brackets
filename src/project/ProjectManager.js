@@ -706,7 +706,8 @@ define(function (require, exports, module) {
      * @param {!(FileSystemEntry|string)} entry Entry or full path to add to cache
      */
     function _insertTreeNodeCache(entry, id) {
-        _projectInitialLoad.fullPathToIdMap[entry.fullPath] = id;
+        var fullPath = entry.fullPath || entry;
+        _projectInitialLoad.fullPathToIdMap[fullPath] = id;
     }
     
     /**
