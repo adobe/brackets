@@ -75,8 +75,10 @@ define(function (require, exports, module) {
     /**
      * Constants for the preferences defined in this file.
      */
-    var PREF_ENABLED = "linting.enabled",
-        PREF_COLLAPSED = "linting.collapsed";
+    var PREF_ENABLED = "enabled",
+        PREF_COLLAPSED = "collapsed";
+    
+    var prefs = PreferencesManager.getExtensionPrefs("linting");
     
     PreferencesManager.convertPreferences(module, {
         "enabled": "user linting.enabled",
@@ -436,7 +438,8 @@ define(function (require, exports, module) {
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
         if (!doNotSave) {
-            PreferencesManager.setValueAndSave("user", PREF_ENABLED, _enabled);
+            prefs.set("user", PREF_ENABLED, _enabled);
+            prefs.save();
         }
     
         // run immediately
@@ -458,7 +461,8 @@ define(function (require, exports, module) {
 
         _collapsed = collapsed;
         if (!doNotSave) {
-            PreferencesManager.setValueAndSave("user", PREF_COLLAPSED, _collapsed);
+            prefs.set("user", PREF_COLLAPSED, _collapsed);
+            prefs.save();
         }
         
         if (_collapsed) {
@@ -483,14 +487,14 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
     // Register preferences
-    PreferencesManager.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
+    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
         .on("change", function (e, data) {
-            toggleEnabled(PreferencesManager.get(PREF_ENABLED), true);
+            toggleEnabled(prefs.get(PREF_ENABLED), true);
         });
     
-    PreferencesManager.definePreference(PREF_COLLAPSED, "boolean", false)
+    prefs.definePreference(PREF_COLLAPSED, "boolean", false)
         .on("change", function (e, data) {
-            toggleCollapsed(PreferencesManager.get(PREF_COLLAPSED), true);
+            toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
 
@@ -551,8 +555,8 @@ define(function (require, exports, module) {
         });
 
         // Set initial UI state
-        toggleEnabled(PreferencesManager.get(PREF_ENABLED), true);
-        toggleCollapsed(PreferencesManager.get(PREF_COLLAPSED), true);
+        toggleEnabled(prefs.get(PREF_ENABLED), true);
+        toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
     });
 
     // Testing

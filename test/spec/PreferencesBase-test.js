@@ -238,7 +238,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Preferences Manager", function () {
+        describe("PreferencesSystem", function () {
             it("should yield an error if a preference is redefined", function () {
                 var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("foo.bar", "string");
@@ -632,6 +632,56 @@ define(function (require, exports, module) {
                 });
                 
                 expect(didComplete).toBe(true);
+            });
+            
+            it("can provide an automatically prefixed version of itself", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                pm.addScope("user", new PreferencesBase.MemoryStorage());
+                pm.set("user", "spaceUnits", 10);
+                pm.set("user", "linting.enabled", true);
+                
+                var prefixedPM = pm.getPrefixedSystem("linting");
+                prefixedPM.definePreference("collapsed", "boolean", true);
+                var events = [];
+                
+                prefixedPM.on("change", function (e, data) {
+                    events.push(data);
+                });
+                
+                expect(prefixedPM.get("spaceUnits")).toBeUndefined();
+                expect(prefixedPM.get("enabled")).toBe(true);
+                
+                prefixedPM.set("user", "collapsed", false);
+                
+                expect(events).toEqual([{
+                    ids: ["collapsed"]
+                }]);
+                
+                expect(prefixedPM.get("collapsed")).toBe(false);
+                expect(pm.get("collapsed")).toBeUndefined();
+                expect(pm.get("linting.collapsed")).toBe(false);
+                
+                var pref = prefixedPM.getPreference("collapsed");
+                expect(pref).toBeDefined();
+                expect(pm.getPreference("linting.collapsed")).toBeDefined();
+                
+                var prefEvents = 0;
+                pref.on("change", function (e, data) {
+                    prefEvents += 1;
+                });
+                
+                events = [];
+                prefixedPM.set("user", "collapsed", true);
+                
+                expect(prefEvents).toBe(1);
+                expect(events.length).toBe(1);
+                
+                var saveDone = false;
+                prefixedPM.save().done(function () {
+                    saveDone = true;
+                });
+                
+                expect(saveDone).toBe(true);
             });
         });
         
