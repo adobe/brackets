@@ -197,15 +197,6 @@ define(function (require, exports, module) {
     function doOpen(fullPath, silent) {
         var result = new $.Deferred();
         
-        // workaround for https://github.com/adobe/brackets/issues/6001
-        // TODO should be removed once bug is closed.
-        // if we are already displaying a file do nothing but resolve immediately.
-        // this fixes timing issues in test cases.
-        if (EditorManager.getCurrentlyViewedPath() === fullPath) {
-            result.resolve(DocumentManager.getCurrentDocument());
-            return result.promise();
-        }
-        
         function _cleanup(fullFilePath) {
             if (!fullFilePath || EditorManager.showingCustomViewerForPath(fullFilePath)) {
                 // We get here only after the user renames a file that makes it no longer belong to a
