@@ -1291,7 +1291,7 @@ define(function (require, exports, module) {
             
             
             describe("ExtensionManagerDialog", function () {
-                var dialogClassShown, didQuit, didClose, $mockDlg;
+                var dialogClassShown, didReload, didClose, $mockDlg;
                 
                 describe("_performChanges", function () {
                 
@@ -1309,11 +1309,11 @@ define(function (require, exports, module) {
                             };
                         });
                         
-                        // Mock quitting the app so we don't actually quit :)
-                        didQuit = false;
+                        // Mock reloading the app so we don't actually reload :)
+                        didReload = false;
                         spyOn(CommandManager, "execute").andCallFake(function (id) {
-                            if (id === Commands.FILE_QUIT) {
-                                didQuit = true;
+                            if (id === Commands.APP_RELOAD) {
+                                didReload = true;
                             } else {
                                 CommandManager.execute.apply(this, arguments);
                             }
@@ -1372,12 +1372,12 @@ define(function (require, exports, module) {
                             ExtensionManagerDialog._performChanges();
                             $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
                         });
-                        waitsFor(function () { return didQuit; }, "mock quit");
+                        waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
                             var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                             expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
                             expect(didClose).toBe(true);
-                            expect(didQuit).toBe(true);
+                            expect(didReload).toBe(true);
                         });
                     });
                     
@@ -1395,7 +1395,7 @@ define(function (require, exports, module) {
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(false);
                             expect(didClose).toBe(true);
-                            expect(didQuit).toBe(false);
+                            expect(didReload).toBe(false);
                         });
                     });
                     
@@ -1419,11 +1419,11 @@ define(function (require, exports, module) {
                                 installationStatus: "INSTALLED"
                             });
                         });
-                        waitsFor(function () { return didQuit; }, "mock quit");
+                        waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
                             expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                             expect(didClose).toBe(true);
-                            expect(didQuit).toBe(true);
+                            expect(didReload).toBe(true);
                         });
                     });
                     
@@ -1447,7 +1447,7 @@ define(function (require, exports, module) {
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
                             expect(didClose).toBe(true);
-                            expect(didQuit).toBe(false);
+                            expect(didReload).toBe(false);
                             expect(file.unlink).toHaveBeenCalled();
                         });
                     });
