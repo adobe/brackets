@@ -117,7 +117,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {Object.<languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):Object}>>}
+     * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):Object}>}}
      */
     var _providers = {};
 
