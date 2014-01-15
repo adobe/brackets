@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,15 +32,50 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
         Strings                 = require("strings");
     
+    /**
+     * @private
+     * 
+     * Maps from preference names to the parameters needed to update the checked status.
+     */
+    var _optionMapping = {
+        showLineNumbers:    [Commands.TOGGLE_LINE_NUMBERS, "getShowLineNumbers"],
+        styleActiveLine:    [Commands.TOGGLE_ACTIVE_LINE, "getShowActiveLine"],
+        wordWrap:           [Commands.TOGGLE_WORD_WRAP, "getWordWrap"],
+        closeBrackets:      [Commands.TOGGLE_CLOSE_BRACKETS, "getCloseBrackets"]
+    };
+    
+    /**
+     * @private
+     * 
+     * Updates the command checked status based on the preference name given.
+     * 
+     * @param {string} name Name of preference that has changed
+     */
+    function _updateCheckedState(name) {
+        var mapping = _optionMapping[name];
+        if (!mapping) {
+            return;
+        }
+        CommandManager.get(mapping[0]).setChecked(Editor[mapping[1]]());
+    }
+    
+    // Listen to preference changes for the preferences we care about
+    Object.keys(_optionMapping).forEach(function (preference) {
+        PreferencesManager.on("change", preference, function () {
+            _updateCheckedState(preference);
+        });
+    });
+        
     /**
      * @private
      * Activates/Deactivates showing line numbers option
      */
     function _toggleLineNumbers() {
         Editor.setShowLineNumbers(!Editor.getShowLineNumbers());
-        CommandManager.get(Commands.TOGGLE_LINE_NUMBERS).setChecked(Editor.getShowLineNumbers());
+        _updateCheckedState("showLineNumbers");
     }
     
 
@@ -50,7 +85,7 @@ define(function (require, exports, module) {
      */
     function _toggleActiveLine() {
         Editor.setShowActiveLine(!Editor.getShowActiveLine());
-        CommandManager.get(Commands.TOGGLE_ACTIVE_LINE).setChecked(Editor.getShowActiveLine());
+        _updateCheckedState("styleActiveLine");
     }
     
 
@@ -60,7 +95,7 @@ define(function (require, exports, module) {
      */
     function _toggleWordWrap() {
         Editor.setWordWrap(!Editor.getWordWrap());
-        CommandManager.get(Commands.TOGGLE_WORD_WRAP).setChecked(Editor.getWordWrap());
+        _updateCheckedState("wordWrap");
     }
     
     /**
@@ -69,7 +104,7 @@ define(function (require, exports, module) {
      */
     function _toggleCloseBrackets() {
         Editor.setCloseBrackets(!Editor.getCloseBrackets());
-        CommandManager.get(Commands.TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
+        _updateCheckedState("closeBrackets");
     }
     
     function _init() {

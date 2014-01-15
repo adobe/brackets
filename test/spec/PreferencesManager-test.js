@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -22,13 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, beforeFirst, afterLast, spyOn */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast, spyOn, waitsForDone */
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
     var PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+        testPath                = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files"),
         PreferencesManager,
         testWindow;
 
@@ -102,12 +103,15 @@ define(function (require, exports, module) {
     });
 
     describe("PreferencesManager", function () {
+        this.category = "integration";
+
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
                 PreferencesManager = testWindow.brackets.test.PreferencesManager;
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
 
@@ -123,6 +127,30 @@ define(function (require, exports, module) {
             PreferencesManager._reset();
         });
 
+        it("should find preferences in the project", function () {
+            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files");
+            waitsForDone(SpecRunnerUtils.openProjectFiles(".brackets.json"));
+            function projectPrefsAreSet() {
+                // The test project file, the Brackets repo file, 
+                // user and defaults should be the scopes
+                return Object.keys(PreferencesManager._manager._scopes).length > 3;
+            }
+            waitsFor(projectPrefsAreSet, "prefs appear to be loaded");
+            runs(function () {
+                expect(PreferencesManager.get("spaceUnits")).toBe(92);
+                // Changing projects will force a change in the project scope.
+                SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
+            });
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.openProjectFiles("file_one.js"));
+            });
+            runs(function () {
+                expect(PreferencesManager.get("spaceUnits")).not.toBe(92);
+            });
+        });
+        
+        
+        // Old tests follow
         it("should use default preferences", function () {
             var store = PreferencesManager.getPreferenceStorage(CLIENT_ID, {foo: "default"});
             expect(store.getValue("foo")).toEqual("default");
@@ -157,5 +185,6 @@ define(function (require, exports, module) {
                 expect(clientID).toBe("com.adobe.brackets.main");
             });
         });
+        
     });
 });

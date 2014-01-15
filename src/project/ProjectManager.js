@@ -105,6 +105,13 @@ define(function (require, exports, module) {
      * @type {RegExp}
      */
     var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
+    
+    /**
+     * @private
+     * Filename to use for project settings files.
+     * @type {string}
+     */
+    var SETTINGS_FILENAME = "." + PreferencesManager.SETTINGS_FILENAME;
 
     /**
      * @private
@@ -2030,7 +2037,7 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
-
+    
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
