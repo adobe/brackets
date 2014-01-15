@@ -36,6 +36,7 @@ define({
 	"NOT_READABLE_ERR": "ファイルを読み取れません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
+	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
@@ -107,25 +108,34 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
+	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> はディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか。",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
     
+    // Generic dialog/button labels
+	"OK": "OK",
+	"CANCEL": "キャンセル",
+	"DONT_SAVE": "保存しない",
+	"SAVE": "保存",
+	"SAVE_AS": "名前を付けて保存\u2026",
+	"SAVE_AND_OVERWRITE": "上書き",
+	"DELETE": "削除",
+	"BUTTON_YES": "はい",
+	"BUTTON_NO": "いいえ",
+        
     // Find, Replace, Find in Files
-	"SEARCH_REGEXP_INFO": "正規表現による検索には /re/ シンタックスを使用してください",
 	"FIND_RESULT_COUNT": "{0} 件",
 	"FIND_RESULT_COUNT_SINGLE": "1 件",
 	"FIND_NO_RESULTS": "該当なし",
-	"WITH": "置換後の文字列",
-	"BUTTON_YES": "はい",
-	"BUTTON_NO": "いいえ",
+	"REPLACE_PLACEHOLDER": "\u2026 に置換",
 	"BUTTON_REPLACE_ALL": "すべて\u2026",
-	"BUTTON_STOP": "終了",
 	"BUTTON_REPLACE": "置換",
-            
 	"BUTTON_NEXT": "\u25B6",
 	"BUTTON_PREV": "\u25C0",
 	"BUTTON_NEXT_HINT": "次の候補に移動",
 	"BUTTON_PREV_HINT": "前の候補に移動",
+	"BUTTON_CASESENSITIVE_HINT": "大文字と小文字を区別",
+	"BUTTON_REGEXP_HINT": "正規表現",
 
 	"OPEN_FILE": "ファイルを開く",
 	"SAVE_FILE_AS": "ファイルを保存",
@@ -135,10 +145,12 @@ define({
 	"NO_UPDATE_TITLE": "最新バージョンです",
 	"NO_UPDATE_MESSAGE": "{APP_NAME} の最新バージョンを実行中です。",
 
+    // Replace All (in single file)
 	"FIND_REPLACE_TITLE_PART1": "「",
 	"FIND_REPLACE_TITLE_PART2": "」を「",
 	"FIND_REPLACE_TITLE_PART3": "」に置き換え &mdash; {2} {0} {1}",
 
+    // Find in Files
 	"FIND_IN_FILES_TITLE_PART1": "「",
 	"FIND_IN_FILES_TITLE_PART2": "」の検索結果",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {3}個の{4}内で {1}件{0}{2}",
@@ -184,14 +196,14 @@ define({
 	"STATUSBAR_TAB_SIZE": "タブ幅 :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "{0} のエラー",
-	"ERRORS_PANEL_TITLE_SINGLE": "{0} 件のエラー",
-	"ERRORS_PANEL_TITLE_MULTI": "Lint エラー",
-	"SINGLE_ERROR": "1 個の {0} エラー",
-	"MULTIPLE_ERRORS": "{1} 個の {0} エラー",
-	"NO_ERRORS": "{0} エラーはありません - Good job!",
+	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
+	"SINGLE_ERROR": "1 {0} 個の問題",
+	"MULTIPLE_ERRORS": "{1} {0} の問題",
+	"NO_ERRORS": "{0} 問題は検出されませんでした - Good job!",
+	"NO_ERRORS_MULTIPLE_PROVIDER": "問題は検出されませんでした - Good job!",
 	"LINT_DISABLED": "Lint チェックは使用できません",
 	"NO_LINT_AVAILABLE": "{0} に使用できる Lint チェッカーがありません",
 	"NOTHING_TO_LINT": "Lint チェックするファイルがありません",
@@ -240,6 +252,7 @@ define({
 	"CMD_SELECT_ALL": "すべて選択",
 	"CMD_SELECT_LINE": "行の選択",
 	"CMD_FIND": "検索",
+	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
 	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_FIND_NEXT": "次を検索",
@@ -307,11 +320,6 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
-	"OK": "OK",
-	"DONT_SAVE": "保存しない",
-	"SAVE": "保存",
-	"CANCEL": "キャンセル",
-	"DELETE": "削除",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
 	"CLOSE_DONT_SAVE": "保存せずに閉じる",
@@ -411,6 +419,7 @@ define({
 	"REMOVE_AND_QUIT": "拡張機能を削除して終了",
 	"CHANGE_AND_QUIT": "拡張機能を変更して終了",
 	"UPDATE_AND_QUIT": "拡張機能を更新して終了",
+	"PROCESSING_EXTENSIONS": "拡張機能の変更を処理中\u2026",
 	"EXTENSION_NOT_INSTALLED": "インストールされていなかったため、拡張機能 {0} を削除できませんでした。",
 	"NO_EXTENSIONS": "インストールされている拡張機能はまだありません。<br>上の「入手可能」タブをクリックしてインストールしてください。",
 	"NO_EXTENSION_MATCHES": "検索条件に一致する拡張機能がありません。",
@@ -432,7 +441,8 @@ define({
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
-	"CMD_REFRESH_WINDOW": "{APP_NAME} をリロード",
+	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
@@ -450,6 +460,7 @@ define({
     // Locales (used by Debug > Switch Language)
 	"LOCALE_CS": "チェコ語",
 	"LOCALE_DE": "ドイツ語",
+	"LOCALE_EL": "ギリシャ語",
 	"LOCALE_EN": "英語",
 	"LOCALE_ES": "スペイン語",
 	"LOCALE_FI": "フィンランド語",
@@ -470,10 +481,13 @@ define({
 	"LOCALE_TR": "トルコ語",
 	"LOCALE_ZH_CN": "中国語 (簡体字)",
 	"LOCALE_HU": "ハンガリー語",
+	"LOCALE_KO": "韓国語",
     
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 選択したポイントを移動<br><kbd class='text'>Shift</kbd> 10 単位ずつ移動",
+	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> 手順を増減<br><kbd>←</kbd><kbd>→</kbd> 「開始」または「終了」",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",

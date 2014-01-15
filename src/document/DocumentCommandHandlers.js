@@ -23,10 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, WebSocket */
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
@@ -50,7 +52,11 @@ define(function (require, exports, module) {
         DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        Menus               = require("command/Menus"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        StatusBar           = require("widgets/StatusBar");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -80,14 +86,20 @@ define(function (require, exports, module) {
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
+            currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
-            if (currentDoc) {
+            if (currentlyViewedPath) {
                 _$title.text(_currentTitlePath);
-                _$title.attr("title", currentDoc.file.fullPath);
-                // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
-                _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                _$title.attr("title", currentlyViewedPath);
+                if (currentDoc) {
+                    // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+                    _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
+                } else {
+                    // hide dirty dot if there is no document
+                    _$dirtydot.css("visibility", "hidden");
+                }
             } else {
                 _$title.text("");
                 _$title.attr("title", "");
@@ -111,9 +123,15 @@ define(function (require, exports, module) {
         }
 
         // build shell/browser window title, e.g. "• file.html — Brackets"
-        if (currentDoc) {
+        if (currentlyViewedPath) {
             windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+        }
+        
+        if (currentDoc) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
+        } else {
+            // hide dirty dot if there is no document
+            _$dirtydot.css("visibility", "hidden");
         }
 
         // update shell/browser window title
@@ -150,7 +168,12 @@ define(function (require, exports, module) {
         if (newDocument) {
             _currentTitlePath = _shortTitleForDocument(newDocument);
         } else {
-            _currentTitlePath = null;
+            var currentlyViewedFilePath = EditorManager.getCurrentlyViewedPath();
+            if (currentlyViewedFilePath) {
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFilePath);
+            } else {
+                _currentTitlePath = null;
+            }
         }
         
         // Update title text & "dirty dot" display
@@ -399,7 +422,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
-     * @param {string} dir  The directory to use
+     * @param {Directory} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
@@ -413,7 +436,7 @@ define(function (require, exports, module) {
             //we've tried this enough            
             deferred.reject();
         } else {
-            var path = dir + "/" + suggestedName,
+            var path = dir.fullPath + suggestedName,
                 entry = isFolder ? FileSystem.getDirectoryForPath(path)
                                  : FileSystem.getFileForPath(path);
             
@@ -455,25 +478,26 @@ define(function (require, exports, module) {
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
-        var baseDir,
+        var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
         
-        baseDir = selected.fullPath;
         if (selected.isFile) {
-            baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
+            baseDirEntry = FileSystem.getDirectoryForPath(selected.parentPath);
         }
+        
+        baseDirEntry = baseDirEntry || selected;
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
-            return ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
+            return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
         }
         
-        return _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder)
+        return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
             .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 
@@ -522,13 +546,16 @@ define(function (require, exports, module) {
         );
     }
     
+    
+    
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
+     * @param {boolean=} force Ignore CONTENTS_MODIFIED errors from the FileSystem
      * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
      *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
      */
-    function doSave(docToSave) {
+    function doSave(docToSave, force) {
         var result = new $.Deferred(),
             file = docToSave.file;
         
@@ -538,18 +565,61 @@ define(function (require, exports, module) {
                     result.reject(error);
                 });
         }
+        
+        function handleContentsModified() {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.EXT_MODIFIED_TITLE,
+                StringUtils.format(
+                    Strings.EXT_MODIFIED_WARNING,
+                    StringUtils.breakableUrl(docToSave.file.fullPath)
+                ),
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_LEFT,
+                        id        : Dialogs.DIALOG_BTN_SAVE_AS,
+                        text      : Strings.SAVE_AS
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.SAVE_AND_OVERWRITE
+                    }
+                ]
+            )
+                .done(function (id) {
+                    if (id === Dialogs.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    } else if (id === Dialogs.DIALOG_BTN_OK) {
+                        // Re-do the save, ignoring any CONTENTS_MODIFIED errors
+                        doSave(docToSave, true).then(result.resolve, result.reject);
+                    } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
+                        // Let the user choose a different path at which to write the file
+                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                    }
+                });
+        }
             
         if (docToSave.isDirty) {
             var writeError = false;
             
             // We don't want normalized line endings, so it's important to pass true to getText()
-            FileUtils.writeText(file, docToSave.getText(true))
+            FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
                     docToSave.notifySaved();
                     result.resolve(file);
                 })
                 .fail(function (err) {
-                    handleError(err);
+                    if (err === FileSystemError.CONTENTS_MODIFIED) {
+                        handleContentsModified();
+                    } else {
+                        handleError(err);
+                    }
                 });
         } else {
             result.resolve(file);
@@ -651,7 +721,12 @@ define(function (require, exports, module) {
             
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
-            FileUtils.writeText(newFile, doc.getText()).done(function () {
+            
+            // Save as warns you when you're about to overwrite a file, so we
+            // explictly allow "blind" writes to the filesystem in this case,
+            // ignoring warnings about the contents being modified outside of
+            // the editor.
+            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
                 // Add new file to project tree
                 ProjectManager.refreshFileTree().done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old
@@ -1152,7 +1227,7 @@ define(function (require, exports, module) {
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
      */
-    function _handleAbortQuit() {
+    function handleAbortQuit() {
         _windowGoingAway = false;
     }
     
@@ -1160,7 +1235,7 @@ define(function (require, exports, module) {
      * @private
      * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
      */
-    function _handleBeforeMenuPopup() {
+    function handleBeforeMenuPopup() {
         $(PopUpManager).triggerHandler("beforeMenuPopup");
     }
     
@@ -1303,13 +1378,138 @@ define(function (require, exports, module) {
         }
     }
     
-    // Init DOM elements
+    /**
+     * Disables Brackets' cache via the remote debugging protocol.
+     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     */
+    function _disableCache() {
+        var result = new $.Deferred();
+        
+        if (brackets.inBrowser) {
+            result.resolve();
+        } else {
+            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
+            Inspector.getDebuggableWindows("127.0.0.1", port)
+                .fail(result.reject)
+                .done(function (response) {
+                    var page = response[0];
+                    if (!page || !page.webSocketDebuggerUrl) {
+                        result.reject();
+                        return;
+                    }
+                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                    // Disable the cache
+                    _socket.onopen = function _onConnect() {
+                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                    };
+                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                    _socket.onmessage = function _onMessage(e) {
+                        _socket.close();
+                        result.resolve();
+                    };
+                    // In case of an error
+                    _socket.onerror = result.reject;
+                });
+        }
+         
+        return result.promise();
+    }
+        
+    /**
+    * Does a full reload of the browser window
+    * @param {string} href The url to reload into the window
+    */
+    function browserReload(href) {
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
+            }
+           
+            // Disable the cache to make reloads work
+            _disableCache().always(function () {
+                // Remove all menus to assure every part of Brackets is reloaded
+                _.forEach(Menus.getAllMenus(), function (value, key) {
+                    Menus.removeMenu(key);
+                });
+                
+                window.location.href = href;
+            });
+        });
+    }
+    
+    function handleReload() {
+        var href    = window.location.href,
+            params  = new UrlParams();
+        
+        // Make sure the Reload Without User Extensions parameter is removed
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts")) {
+            params.remove("reloadWithoutUserExts");
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        if (!params.isEmpty()) {
+            href += "?" + params.toString();
+        }
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
+    }
+    
+    function handleReloadWithoutExts() {
+        var href    = window.location.href,
+            params  = new UrlParams();
+        
+        params.parse();
+        
+        if (!params.get("reloadWithoutUserExts")) {
+            params.put("reloadWithoutUserExts", true);
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        href += "?" + params.toString();
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
+    }
+    
     AppInit.htmlReady(function () {
+        // If in Reload Without User Extensions mode, update UI and log console message
+        var params      = new UrlParams(),
+            $icon       = $("#toolbar-extension-manager"),
+            $indicator  = $("<div>" + Strings.STATUSBAR_USER_EXTENSIONS_DISABLED + "</div>");
+        
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts") === "true") {
+            CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
+            $icon.css({display: "none"});
+            StatusBar.addIndicator("status-user-exts", $indicator, true);
+            console.log("Brackets reloaded with extensions disabled");
+        }
+        
+        // Init DOM elements
         _$titleContainerToolbar = $("#titlebar");
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
-        
     });
 
     // Exported for unit testing only
@@ -1345,14 +1545,17 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
     
-    // Those commands have no UI representation, and are only used internally 
-    CommandManager.registerInternal(Commands.APP_ABORT_QUIT,        _handleAbortQuit);
-    CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,  _handleBeforeMenuPopup);
-    CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,     handleFileCloseWindow);
+    // These commands have no UI representation and are only used internally
+    CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);
+    CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,      handleBeforeMenuPopup);
+    CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);
+    CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload);
+    CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
+    $(DocumentManager).on("fileNameChange", updateDocumentTitle);
+    $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });

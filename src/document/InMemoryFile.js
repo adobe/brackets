@@ -51,7 +51,6 @@ define(function (require, exports, module) {
     InMemoryFile.prototype.constructor = InMemoryFile;
     InMemoryFile.prototype.parentClass = File.prototype;
     
-    
     // Stub out invalid calls inherited from File
     
     /**

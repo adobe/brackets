@@ -110,22 +110,28 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiter verwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Abbrechen",
+    "DONT_SAVE"                         : "Nicht speichern",
+    "SAVE"                              : "Speichern",
+    "DELETE"                            : "Löschen",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nein",
+
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
     "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "FIND_RESULT_COUNT_SINGLE"          : "1 Ergebnis",
     "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
-    "WITH"                              : "Mit",
-    "BUTTON_YES"                        : "Ja",
-    "BUTTON_NO"                         : "Nein",
+    "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
-    "BUTTON_STOP"                       : "Stopp",
     "BUTTON_REPLACE"                    : "Ersetzen",
-
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Nächster Treffer",
     "BUTTON_PREV_HINT"                  : "Vorheriger Treffer",
+    "BUTTON_CASESENSITIVE_HINT"         : "Groß-/Kleinschreibung beachten",
+    "BUTTON_REGEXP_HINT"                : "Regulärer Ausdruck",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
@@ -135,10 +141,12 @@ define({
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "\"",
     "FIND_REPLACE_TITLE_PART2"          : "\" durch \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" ersetzen &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
@@ -151,7 +159,6 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
 
@@ -185,6 +192,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
@@ -196,6 +204,7 @@ define({
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
+
 
     /**
      * Command Name Constants
@@ -307,11 +316,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Nicht speichern",
-    "SAVE"                                 : "Speichern",
-    "CANCEL"                               : "Abbrechen",
-    "DELETE"                               : "Löschen",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
@@ -434,6 +438,7 @@ define({
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
     "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
@@ -451,6 +456,7 @@ define({
     // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_DE"                                 : "Deutsch",
+    "LOCALE_EL"                                 : "Griechisch",
     "LOCALE_EN"                                 : "Englisch",
     "LOCALE_ES"                                 : "Spanisch",
     "LOCALE_FA_IR"                              : "Persisch (Farsi)",
@@ -471,10 +477,13 @@ define({
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     "LOCALE_HU"                                 : "Ungarisch",
+    "LOCALE_KO"                                 : "Koreanisch",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Verlauf",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Ausgewählten Punkt bewegen<br><kbd class='text'>Umschalt</kbd> Um 10 Einheiten bewegen",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Stufenzahl vergrößern oder verkleinern<br><kbd>←</kbd><kbd>→</kbd> 'Start' oder 'Ende'",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
