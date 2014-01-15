@@ -316,6 +316,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Einstellungsdatei öffnen",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
