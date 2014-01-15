@@ -193,26 +193,29 @@ define(function (require, exports, module) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
                         runPromise = new $.Deferred();
                     
+                    runPromise.then(function(scanResult) {
+                        results.push({provider: provider, result: scanResult});
+                    });
+                    setTimeout(function () { runPromise.resolve(); }, 500);
+                    
                     if (provider.scanFileAsync) {
                         provider.scanFileAsync(fileText, file.fullPath)
                             .then(function (scanResult) {
-                                results.push({provider: provider, result: scanResult});
                                 PerfUtils.addMeasurement(perfTimerProvider);
-                                runPromise.resolve();
+                                runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
                                 console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
-                                runPromise.reject(err);
+                                runPromise.resolve(null);
                             });
                     } else {
                         try {
                             var scanResult = provider.scanFile(fileText, file.fullPath);
-                            results.push({provider: provider, result: scanResult});
                             PerfUtils.addMeasurement(perfTimerProvider);
-                            runPromise.resolve();
+                            runPromise.resolve(scanResult);
                         } catch (err) {
                             console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
-                            runPromise.reject(err);
+                            runPromise.resolve(null);
                             return;
                         }
                     }
