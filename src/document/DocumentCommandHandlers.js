@@ -83,6 +83,9 @@ define(function (require, exports, module) {
     
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
+    
+    /** @type {function} JSLint workaround for circular dependency */
+    var handleFileSaveAs;
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -546,8 +549,6 @@ define(function (require, exports, module) {
         );
     }
     
-    
-    
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
@@ -600,7 +601,7 @@ define(function (require, exports, module) {
                         doSave(docToSave, true).then(result.resolve, result.reject);
                     } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
                         // Let the user choose a different path at which to write the file
-                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                        handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
                     }
                 });
         }
@@ -874,7 +875,7 @@ define(function (require, exports, module) {
      * Prompts user with save as dialog and saves document.
      * @return {$.Promise} a promise that is resolved once the save has been completed
      */
-    function handleFileSaveAs(commandData) {
+    handleFileSaveAs = function (commandData) {
         // Default to current document if doc is null
         var doc = null,
             settings;
@@ -895,7 +896,7 @@ define(function (require, exports, module) {
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
         // doc.
         return _doSaveAs(doc, settings);
-    }
+    };
 
     /**
      * Saves all unsaved documents.
