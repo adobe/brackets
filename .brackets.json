@@ -1,0 +1,18 @@
+{
+    "jslint.options": {
+        "vars": true,
+        "plusplus": true,
+        "devel": true,
+        "nomen": true,
+        "indent": 4,
+        "maxerr": 50
+    },
+    "defaultExtension": "js",
+    "path": {
+        "src/thirdparty/CodeMirror2/**/*.js": {
+            "spaceUnits": 2,
+            "linting.enabled": false
+        }
+    },
+    "spaceUnits": 4
+}
