@@ -177,5 +177,53 @@ define(function (require, exports, module) {
         _commit();
     };
     
+    /**
+     * Converts preferences to the new-style file-based preferences according to the
+     * rules. (See PreferencesManager.ConvertSettings for information about the rules).
+     * 
+     * @param {Object} rules Conversion rules.
+     * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
+     *                      `complete` flag that denotes whether everything from this object 
+     *                      was converted (making it safe to delete entirely).
+     */
+    PreferenceStorage.prototype.convert = function (rules) {
+        var prefs = this._json,
+            self,
+            dirty = false,
+            complete = true,
+            deferred = new $.Deferred();
+        
+        Object.keys(prefs).forEach(function (key) {
+            var rule = rules[key];
+            if (!rule) {
+                console.warn("Preferences conversion for ", self._clientID, " has no rule for", key);
+                complete = false;
+            } else if (_.isString(rule)) {
+                var parts = rule.split(" ");
+                if (parts[0] === "user") {
+                    var newKey = parts.length > 1 ? parts[1] : key;
+                    PreferencesManager.set("user", newKey, prefs[key]);
+                    delete prefs[key];
+                    dirty = true;
+                }
+            } else {
+                complete = false;
+            }
+        });
+        
+        if (dirty) {
+            PreferencesManager.save().done(function () {
+                _commit();
+                deferred.resolve(complete);
+            }).fail(function (error) {
+                deferred.reject(error);
+            });
+        } else {
+            deferred.resolve(complete);
+        }
+        
+        return deferred.promise();
+    };
+    
     exports.PreferenceStorage = PreferenceStorage;
 });

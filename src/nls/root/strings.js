@@ -316,6 +316,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
@@ -355,6 +356,7 @@ define({
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Extensions in the \"dev\" folder can't be updated automatically.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "UPDATE_EXTENSION_TITLE"               : "Update Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",

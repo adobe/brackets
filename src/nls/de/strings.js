@@ -355,6 +355,7 @@ define({
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "CANT_UPDATE"                          : "Das Update ist nicht kompatibel mit dieser Version von {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Erweiterungen im \"dev\"-Ordner können nicht automatisch aktualisiert werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
     "UPDATE_EXTENSION_TITLE"               : "Erweiterung updaten",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
