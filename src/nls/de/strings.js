@@ -118,7 +118,7 @@ define({
     "DONT_SAVE"                         : "Nicht speichern",
     "SAVE"                              : "Speichern",
     "SAVE_AS"                           : "Speichern unter\u2026",
-    "SAVE_AND_OVERWRITE"                : "Überschreiben",
+    "SAVE_AND_OVERWRITE"                : "Ersetzen",
     "DELETE"                            : "Löschen",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nein",
