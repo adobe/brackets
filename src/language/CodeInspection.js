@@ -162,7 +162,7 @@ define(function (require, exports, module) {
      * with null in case the results cannot be retrieved for whatever reason.
      * 
      * A code inspection provider's scanFileAsync must return a {$.Promise} object which must be resolved with
-     * be resolved with ?{errors:!Array, aborted:boolean}}.
+     * ?{errors:!Array, aborted:boolean}}.
      * 
      * The Promise yields an array of provider-result pair objects (the result is the return value of the
      * provider's scanFile() - see register() for details). The result object may be null if there were no
