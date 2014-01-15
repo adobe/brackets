@@ -355,7 +355,7 @@ define({
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
-    "CANT_UPDATE_DEV"                      : "Extensions in the \"dev\" can't be updated automatically.",
+    "CANT_UPDATE_DEV"                      : "Extensions in the \"dev\" folder can't be updated automatically.",
     "INSTALL_EXTENSION_TITLE"              : "Install Extension",
     "UPDATE_EXTENSION_TITLE"               : "Update Extension",
     "INSTALL_EXTENSION_LABEL"              : "Extension URL",
