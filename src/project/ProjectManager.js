@@ -1399,7 +1399,7 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if no illegal characters are found
      */
     function _checkForValidFilename(filename, isFolder) {
-        var invalidChars = "/?*:;<>\\|\"";  // invalid characters on Windows
+        var invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
         
         if (brackets.platform === "mac") {
             invalidChars = "?*|:";

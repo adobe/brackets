@@ -152,11 +152,18 @@ define(function (require, exports, module) {
             });
 
             it("should fail when file name contains special characters", function () {
-                var chars = "/?*:;{}<>\\";
+                var chars = "/?*:<>\\|\"";  // invalid characters on Windows
                 var i = 0;
-                var len = chars.length;
+                var len = 0;
                 var charAt, didCreate, gotError;
 
+                if (brackets.platform === "mac") {
+                    chars = "?*|:";
+                } else if (brackets.platform === "linux") {
+                    chars = "?*|/";
+                }
+                len = chars.length;
+                
                 function createFile() {
                     // skip rename
                     ProjectManager.createNewItem(tempDir, "file" + charAt + ".js", true)
