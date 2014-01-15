@@ -536,6 +536,32 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should handle missing or negative line numbers gracefully (https://github.com/adobe/brackets/issues/6441)", function () {
+                var codeInspector1 = createCodeInspector("NoLineNumberLinter", {
+                    errors: [
+                        {
+                            pos: { line: -1, ch: 0 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                CodeInspection.register("javascript", codeInspector1);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $problemPanelTitle = $("#problems-panel .title").text();
+                    expect($problemPanelTitle).toBe("1 NoLineNumberLinter Problem");
+
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    // tooltip will contain + in the title if the inspection was aborted
+                    expect(tooltip).toBe("1 NoLineNumberLinter Problem");
+                });
+            });
         });
         
         describe("Code Inspector Registration", function () {
