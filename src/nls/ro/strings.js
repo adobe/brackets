@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Eroare la ștergerea fișierului",
     "ERROR_DELETING_FILE"               : "S-a produs o eroare la încercarea de a șterge fișierul <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Numele {0} e invalid",
-    "INVALID_FILENAME_MESSAGE"          : "Numele fișierului nu poate conține următoarele caractere: /?*:;{}<>\\| sau să fie un cuvânt rezervat de sistemul de operare.",
+    "INVALID_FILENAME_MESSAGE"          : "Numele fișierului nu poate conține următoarele caractere: {0} sau să fie un cuvânt rezervat de sistemul de operare.",
     "FILE_ALREADY_EXISTS"               : "Fișierul {0} <span class='dialog-filename'>{1}</span> există deja.",
     "ERROR_CREATING_FILE_TITLE"         : "Eroare la crearea fișierului {0}",
     "ERROR_CREATING_FILE"               : "S-a produs o eroare la încercarea de a crea fișierul {0} <span class='dialog-filename'>{1}</span>. {2}",

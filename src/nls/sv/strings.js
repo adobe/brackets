@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Filen kunde inte raderas",
     "ERROR_DELETING_FILE"               : "Ett fel uppstod när filen <span class='dialog-filename'>{0}</span> skulle tas bort. {1}",
     "INVALID_FILENAME_TITLE"            : "Ogiltigt filnamn",
-    "INVALID_FILENAME_MESSAGE"          : "Filnamn får inte innehålla följande tecken: /?*:;{}<>\\| eller innehålla ord som reserverats av systemet.",
+    "INVALID_FILENAME_MESSAGE"          : "Filnamn får inte innehålla följande tecken: {0} eller innehålla ord som reserverats av systemet.",
     "FILE_ALREADY_EXISTS"               : "En fil med namnet <span class='dialog-filename'>{0}</span> existerar redan.",
     "ERROR_CREATING_FILE_TITLE"         : "Filen {0} kunde inte skapas",
     "ERROR_CREATING_FILE"               : "Ett fel uppstod när {0} <span class='dialog-filename'>{1}</span> skulle skapas. {2}",

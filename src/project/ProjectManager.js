@@ -1391,19 +1391,31 @@ define(function (require, exports, module) {
      * @private
      * Check a filename for illegal characters. If any are found, show an error
      * dialog and return false. If no illegal characters are found, return true.
+     * Although Mac and Linux allow ?*| characters, we still cannot allow them
+     * since these have special meaning for all file systems.
+     *
      * @param {string} filename
      * @param {boolean} isFolder
      * @return {boolean} Returns true if no illegal characters are found
      */
     function _checkForValidFilename(filename, isFolder) {
+        var invalidChars = "/?*:;<>\\|\"";  // invalid characters on Windows
+        
+        if (brackets.platform === "mac") {
+            invalidChars = "?*|:";
+        } else if (brackets.platform === "linux") {
+            invalidChars = "?*|/";
+        }
+        
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
+        if ((filename.search(new RegExp("[" + invalidChars + "]+")) !== -1) ||
+                filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                Strings.INVALID_FILENAME_MESSAGE
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, invalidChars)
             );
             return false;
         }
@@ -1688,14 +1700,16 @@ define(function (require, exports, module) {
                 var isFolder = $selected.hasClass("jstree-open") || $selected.hasClass("jstree-closed");
         
                 _projectTree.one("rename.jstree", function (event, data) {
-                    // Make sure the file was actually renamed
-                    var changed = (data.rslt.old_name !== data.rslt.new_name);
+                    var unescapedOldName = _.unescape(data.rslt.old_name),
+                        unescapedNewName = _.unescape(data.rslt.new_name),
+                        // Make sure the file was actually renamed
+                        changed = (unescapedOldName !== unescapedNewName);
                     
                     var _resetOldFilename = function () {
                         _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                     };
                     
-                    if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
+                    if (!changed || !_checkForValidFilename(unescapedNewName, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
@@ -1705,8 +1719,8 @@ define(function (require, exports, module) {
                     // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
                     
                     var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
-                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + oldNameEndPattern);
-                    var newName = oldFullPath.replace(oldNameRegex, data.rslt.new_name);
+                    var oldNameRegex = new RegExp(StringUtils.regexEscape(unescapedOldName) + oldNameEndPattern);
+                    var newName = oldFullPath.replace(oldNameRegex, unescapedNewName);
                     
                     renameItem(oldFullPath, newName, isFolder)
                         .done(function () {

@@ -60,7 +60,7 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}名",
-	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : /?*:;{}<>\\| またはシステムのすべての予約語",
+	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : {0} またはシステムのすべての予約語",
 	"FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span> は既に存在しています。",
 	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",

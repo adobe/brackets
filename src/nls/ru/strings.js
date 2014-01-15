@@ -53,7 +53,7 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Ошибка переименования файла",
     "ERROR_RENAMING_FILE"               : "Произошла ошибка при попытке переименовать файл <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Неверное имя файла",
-    "INVALID_FILENAME_MESSAGE"          : "Имена файлов не могут содержать следующие символы: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Имена файлов не могут содержать следующие символы: {0}",
     "FILE_ALREADY_EXISTS"               : "Файл <span class='dialog-filename'>{0}</span> уже существует.",
     "ERROR_CREATING_FILE_TITLE"         : "Ошибка создания файла",
     "ERROR_CREATING_FILE"               : "Произошла ошибка при попытке создать файл <span class='dialog-filename'>{0}</span>. {1}",
