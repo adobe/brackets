@@ -1740,17 +1740,15 @@ define(function (require, exports, module) {
                 parentEntry,
                 parentNode,
                 siblings,
-                parentWasOpen = false,
-                parentWasClosed = false;
+                parentWasOpen = false;
 
-            // Save parent node open/closed state
+            // Save parent node open/closed state for non-root nodes
             if (entry.parentPath) {
                 parentEntry = FileSystem.getDirectoryForPath(entry.parentPath);
-                parentNode  = _getTreeNode(parentEntry);
+                parentNode  = (parentEntry !== getProjectRoot()) && _getTreeNode(parentEntry);
 
                 if (parentNode) {
                     parentWasOpen = parentNode.hasClass("jstree-open");
-                    parentWasClosed = !parentWasOpen && parentNode.hasClass("jstree-closed");
                 }
             }
             
@@ -1768,7 +1766,7 @@ define(function (require, exports, module) {
                         // Only apply style if parent is a tree node (i.e. not project root)
                         if (parentWasOpen) {
                             parentNode.addClass("jstree-open");
-                        } else if (parentWasClosed) {
+                        } else {
                             parentNode.addClass("jstree-closed");
                         }
                     }
