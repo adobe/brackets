@@ -316,6 +316,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennusten kansio",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
     "CMD_ABOUT"                           : "Tietoja {APP_TITLE}-sovelluksesta",
+    "CMD_OPEN_PREFERENCES"                : "Avaa asetustiedosto",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
@@ -355,6 +356,7 @@ define({
     "OVERWRITE"                            : "Ylikirjoita",
     "CANT_REMOVE_DEV"                      : "Laajennukset ”dev”-kansiossa on poistettava käsin.",
     "CANT_UPDATE"                          : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa.",
+    "CANT_UPDATE_DEV"                      : "Laajennuksia ”dev”-kansiossa ei voida päivittää automaattisesti.",
     "INSTALL_EXTENSION_TITLE"              : "Asenna laajennus",
     "UPDATE_EXTENSION_TITLE"               : "Päivitä laajennus",
     "INSTALL_EXTENSION_LABEL"              : "Laajennuksen URL-osoite",
