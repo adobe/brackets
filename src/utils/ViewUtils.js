@@ -398,6 +398,8 @@ define(function (require, exports, module) {
         if (i >= 0) {
             // Escape all HTML-sensitive characters in filename.
             name = _.escape(name.substring(0, i)) + "<span class='extension'>" + _.escape(name.substring(i)) + "</span>";
+        } else {
+            name = _.escape(name);
         }
         
         return name;
