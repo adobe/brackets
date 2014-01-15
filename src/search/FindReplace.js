@@ -313,7 +313,8 @@ define(function (require, exports, module) {
                     toggleHighlighting(editor, true);
                     
                     resultSet.forEach(function (result) {
-                        state.marked.push(cm.markText(result.from, result.to, { className: "CodeMirror-searching" }));
+                        state.marked.push(cm.markText(result.from, result.to,
+                             { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
                     });
                     var scrollTrackPositions = resultSet.map(function (result) {
                         return result.from;

@@ -1159,9 +1159,16 @@ a, img {
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
-    border-radius: @tc-inline-border-radius;
     box-shadow: @tc-small-shadow-bottom;
     color: @match-text !important;
+    &.searching-first {
+        border-top-left-radius: @tc-inline-border-radius;
+        border-bottom-left-radius: @tc-inline-border-radius;
+    }
+    &.searching-last {
+        border-top-right-radius: @tc-inline-border-radius;
+        border-bottom-right-radius: @tc-inline-border-radius;
+    }
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
 .CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
@@ -1182,14 +1189,13 @@ a, img {
     bottom: 0;
     top: 0;
     right: 0;
-    width: 16px;
+    width: 12px;
     z-index: @z-index-cm-max;
     pointer-events: none;
     
     .tickmark {
         position: absolute;
-        width: 16px;
-        body.platform-mac & { width: 15px; }
+        width: 12px;
         
         height: 1px;
         background-color: #eddd23;
