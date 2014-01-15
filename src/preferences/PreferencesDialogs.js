@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         ProjectManager         = require("project/ProjectManager"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
+        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html"),
+        EditorManager          = require("editor/EditorManager");
 
     /**
      * Validate that text string is a valid base url which should map to a server folder
@@ -112,6 +113,7 @@ define(function (require, exports, module) {
                     showProjectPreferencesDialog(baseUrlValue, result);
                 }
             }
+            EditorManager.focusEditor();
         });
 
         // Give focus to first control
