@@ -170,6 +170,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * A string containing all invalid characters for a specific platform.
+     * This will be used to construct a regular expression for checking invalid filenames.
+     * When a filename with one of these invalid characters are detected, then it is 
+     * also used to substitute the place holder of the error message.
+     */
+    var _invalidChars;
+
+    /**
+     * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
@@ -1399,23 +1408,15 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if no illegal characters are found
      */
     function _checkForValidFilename(filename, isFolder) {
-        var invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
-        
-        if (brackets.platform === "mac") {
-            invalidChars = "?*|:";
-        } else if (brackets.platform === "linux") {
-            invalidChars = "?*|/";
-        }
-        
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(new RegExp("[" + invalidChars + "]+")) !== -1) ||
+        if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
                 filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, invalidChars)
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
             );
             return false;
         }
@@ -2059,6 +2060,15 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
     
+    // Init invalid characters string 
+    if (brackets.platform === "mac") {
+        _invalidChars = "?*|:";
+    } else if (brackets.platform === "linux") {
+        _invalidChars = "?*|/";
+    } else {
+        _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
+    }
+
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;
