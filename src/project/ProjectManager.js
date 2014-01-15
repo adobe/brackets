@@ -1976,6 +1976,7 @@ define(function (require, exports, module) {
         }
         
         var $directoryNode = _getTreeNode(entry),
+            wasOpen = $directoryNode.hasClass("jstree-open"),
             doRedraw = false;
         
         // Ignore change event when: the entry is not a directory, the directory
@@ -2011,9 +2012,27 @@ define(function (require, exports, module) {
 
         // Directory contents added
         if (addedJSON.length > 0) {
-            // create all new nodes in a batch
-            _createNode($directoryNode, null, addedJSON, true, true);
-            doRedraw = true;
+            var isClosed = $directoryNode.hasClass("jstree-closed");
+
+            // Manually force the directory to open in case it was auto-closed
+            // when deleting the files in the removed file set for this event.
+            // This starts an async call to load_node/Directory.getContents().
+            // We do this to avoid a race condition in jstree create_node where
+            // jstree attempts to load empty nodes during the create workflow,
+            // resulting in duplicate nodes for the same entry, see
+            // https://github.com/adobe/brackets/issues/6474.
+            if (wasOpen && isClosed) {
+                _projectTree.one("open_node.jstree", function () {
+                    _redraw(true);
+                });
+        
+                // Open the node before creating the new child
+                _projectTree.jstree("open_node", $directoryNode);
+            } else {
+                // Create all new nodes in a batch
+                _createNode($directoryNode, null, addedJSON, true, true);
+                doRedraw = true;
+            }
         }
         
         if (doRedraw) {
