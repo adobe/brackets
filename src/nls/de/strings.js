@@ -108,7 +108,7 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert.<br /><br />Wollen Sie die Datei speichern und diese Änderungen überschreiben?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiterverwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
