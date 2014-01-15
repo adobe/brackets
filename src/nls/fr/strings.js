@@ -316,6 +316,7 @@ define({
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
+	"CMD_OPEN_PREFERENCES": "[7401189] !é=Open Preferences File=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",

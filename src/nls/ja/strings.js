@@ -316,6 +316,7 @@ define({
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
+	"CMD_OPEN_PREFERENCES": "!能=[7401189] Open Preferences File_=!",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
