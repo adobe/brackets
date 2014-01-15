@@ -546,20 +546,31 @@ define(function (require, exports, module) {
                         }
                     ]
                 });
+
+                var codeInspector2 = createCodeInspector("NoLineNumberLinter2", {
+                    errors: [
+                        {
+                            pos: { line: "all", ch: 0 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
                 CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("1 NoLineNumberLinter Problem");
+                    expect($problemPanelTitle).toBe("2 Problems");
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
                     // tooltip will contain + in the title if the inspection was aborted
-                    expect(tooltip).toBe("1 NoLineNumberLinter Problem");
+                    expect(tooltip).toBe("2 Problems");
                 });
             });
         });
