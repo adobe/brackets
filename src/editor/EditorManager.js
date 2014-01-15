@@ -1018,6 +1018,10 @@ define(function (require, exports, module) {
     exports._resetViewStates              = _resetViewStates;
     exports._doShow                       = _doShow;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
+    exports._showCustomViewer             = _showCustomViewer;
+    exports._closeCustomViewer            = _closeCustomViewer;
+    
+    
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP  = REFRESH_SKIP;
@@ -1037,10 +1041,8 @@ define(function (require, exports, module) {
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
-    exports._showCustomViewer              = _showCustomViewer;
     exports.registerCustomViewer          = registerCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
-    exports._closeCustomViewer             = _closeCustomViewer;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
 });
