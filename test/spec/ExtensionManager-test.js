@@ -980,6 +980,7 @@ define(function (require, exports, module) {
                         expect($(".alert.warning", view.$el).length).toBe(0);
                     });
                 });
+                
                 it("should show disabled update button for items whose available update requires older API version", function () {   // isLatestVersion: false, requiresNewer: false
                     mockRegistry = { "mock-extension": makeMockExtension([">0.1", "<0.2"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
@@ -995,7 +996,25 @@ define(function (require, exports, module) {
                         expect($(".alert.warning", view.$el).length).toBe(0);
                     });
                 });
-    
+                
+                it("should show disabled update button for items that are in dev folder and have a compatible update available", function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInfo = makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0");
+                    mockInfo.locationType = ExtensionManager.LOCATION_DEV;
+                    ExtensionManager._setExtensions({
+                        "mock-extension": {
+                            installInfo: mockInfo
+                        }
+                    });
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                    });
+                });
+                
                 // Info links action
                 it("should open links in the native browser instead of in Brackets", function () {
                     runs(function () {

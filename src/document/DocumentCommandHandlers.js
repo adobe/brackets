@@ -85,6 +85,9 @@ define(function (require, exports, module) {
     var USER_CANCELED = { userCanceled: true };
     
     PreferencesManager.definePreference("defaultExtension", "string", "");
+    
+    /** @type {function} JSLint workaround for circular dependency */
+    var handleFileSaveAs;
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -553,8 +556,6 @@ define(function (require, exports, module) {
         );
     }
     
-    
-    
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
@@ -607,7 +608,7 @@ define(function (require, exports, module) {
                         doSave(docToSave, true).then(result.resolve, result.reject);
                     } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
                         // Let the user choose a different path at which to write the file
-                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                        handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
                     }
                 });
         }
@@ -734,22 +735,17 @@ define(function (require, exports, module) {
             // ignoring warnings about the contents being modified outside of
             // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                // Add new file to project tree
-                ProjectManager.refreshFileTree().done(function () {
-                    // If there were unsaved changes before Save As, they don't stay with the old
-                    // file anymore - so must revert the old doc to match disk content.
-                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                    // not in the working set has the side effect of adding it to the working set.
-                    if (doc.isDirty && !(doc.isUntitled())) {
-                        // if the file is dirty it must be in the working set
-                        // doRevert is side effect free in this case
-                        doRevert(doc).always(openNewFile);
-                    } else {
-                        openNewFile();
-                    }
-                }).fail(function (error) {
-                    result.reject(error);
-                });
+                // If there were unsaved changes before Save As, they don't stay with the old
+                // file anymore - so must revert the old doc to match disk content.
+                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                // not in the working set has the side effect of adding it to the working set.
+                if (doc.isDirty && !(doc.isUntitled())) {
+                    // if the file is dirty it must be in the working set
+                    // doRevert is side effect free in this case
+                    doRevert(doc).always(openNewFile);
+                } else {
+                    openNewFile();
+                }
             }).fail(function (error) {
                 _showSaveFileError(error, path)
                     .done(function () {
@@ -886,7 +882,7 @@ define(function (require, exports, module) {
      * Prompts user with save as dialog and saves document.
      * @return {$.Promise} a promise that is resolved once the save has been completed
      */
-    function handleFileSaveAs(commandData) {
+    handleFileSaveAs = function (commandData) {
         // Default to current document if doc is null
         var doc = null,
             settings;
@@ -907,7 +903,7 @@ define(function (require, exports, module) {
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
         // doc.
         return _doSaveAs(doc, settings);
-    }
+    };
 
     /**
      * Saves all unsaved documents.

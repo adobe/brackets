@@ -478,7 +478,7 @@ define(function (require, exports, module) {
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
-            $problemsPanel.find("tr:first-child").trigger("click");
+            $problemsPanel.find("tr:not(.inspector-section)").first().trigger("click");
         }
     }
 
