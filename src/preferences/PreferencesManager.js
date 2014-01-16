@@ -281,13 +281,13 @@ define(function (require, exports, module) {
             }
             
             var prefsID = getClientID(clientID);
-            var convertedKeys = prefStorage.convertedKeys;
-            if (convertedKeys === undefined) {
-                convertedKeys = prefStorage.convertedKeys = {};
+            if (prefStorage.convertedKeysMap === undefined) {
+                prefStorage.convertedKeysMap = {};
             }
+            var convertedKeysMap = prefStorage.convertedKeysMap;
             
-            prefs.convert(rules, convertedKeys[prefsID]).done(function (complete, convertedKeys) {
-                prefStorage.convertedKeys[prefsID] = convertedKeys;
+            prefs.convert(rules, convertedKeysMap[prefsID]).done(function (complete, convertedKeys) {
+                prefStorage.convertedKeysMap[prefsID] = convertedKeys;
                 savePreferences();
             });
         }).fail(function (error) {
