@@ -1975,16 +1975,14 @@ define(function (require, exports, module) {
             return;
         }
         
-        var $directoryNode = _getTreeNode(entry),
-            wasOpen = $directoryNode.hasClass("jstree-open"),
-            doRedraw = false;
+        var $directoryNode = _getTreeNode(entry);
         
         // Ignore change event when: the entry is not a directory, the directory
         // was not yet rendered or the directory is outside the current project
         if (!entry.isDirectory || !$directoryNode || !isWithinProject(entry.fullPath)) {
             return;
         }
-            
+        
         // If there is a change event with unknown added and removed sets
         // just refresh the tree.
         // 
@@ -1995,6 +1993,9 @@ define(function (require, exports, module) {
             return;
         }
 
+        var wasOpen = $directoryNode.hasClass("jstree-open"),
+            doRedraw = false;
+        
         // Directory contents removed
         if (removed.length > 0) {
             // Synchronously remove all tree nodes
