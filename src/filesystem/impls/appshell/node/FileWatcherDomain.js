@@ -102,7 +102,6 @@ function unwatchPathsWithPrefix(path) {
  */
 function watchPath(path) {
     if (_watcherMap.hasOwnProperty(path)) {
-        console.log("FileWatcher.watchPath already watched " + path);
         return;
     }
         
@@ -128,7 +127,6 @@ function watchPath(path) {
                 _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
             });
         } else {
-            console.log("FileWatcherDomain.watchPath: " + path);
             watcher = fs.watch(path, {persistent: false}, function (event, filename) {
                 // File/directory changes are emitted as "change" events on the fileWatcher domain.
                 _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
@@ -195,7 +193,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "fileWatcher",
         "unwatchPathsWithPrefix",
-        unwatchPath,
+        unwatchPathsWithPrefix,
         false,
         "Stop watching a directory and it's descendants",
         [{

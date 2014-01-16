@@ -276,8 +276,10 @@ define(function (require, exports, module) {
                     if (err) {
                         // Unwatching a file/folder that doesn't exist will 
                         // trigger an expected error
-                        if (!shouldWatch && (err === FileSystemError.NOT_FOUND)) {
-                            visitor(entry);
+                        if (!shouldWatch && (err === FileSystemError.NOT_FOUND) &&
+                                (entriesToWatchOrUnwatch.length === 0)) {
+                            impl.unwatchPathsWithPrefix(entry.fullPath, requestCb);
+                            return;
                         } else {
                             // Unexpected error
                             requestCb(err);
