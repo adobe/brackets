@@ -338,7 +338,7 @@ define(function (require, exports, module) {
     /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
-     * @param {string|FileSystemEntry} absPath
+     * @param {string|FileSystemEntry} absPathOrEntry
      * @return {boolean}
      */
     function isWithinProject(absPathOrEntry) {
