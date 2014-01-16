@@ -1058,6 +1058,7 @@ define(function (require, exports, module) {
             var rootEntry = FileSystem.getDirectoryForPath(rootPath);
             rootEntry.exists(function (err, exists) {
                 if (exists) {
+                    PreferencesManager._setCurrentEditingFile(rootPath);
                     var projectRootChanged = (!_projectRoot || !rootEntry) ||
                         _projectRoot.fullPath !== rootEntry.fullPath;
                     var i;
