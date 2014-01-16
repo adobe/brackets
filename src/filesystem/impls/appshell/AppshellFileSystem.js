@@ -521,10 +521,11 @@ define(function (require, exports, module) {
      * asynchronously with a possibly null FileSystemError string when the \
      * operation is complete.
      *
+     * @param {string} path
      * @param {function(?string)=} callback
      */
-    function unwatchPathsWithPrefix(callback) {
-        _nodeDomain.exec("unwatchPathsWithPrefix")
+    function unwatchPathsWithPrefix(path, callback) {
+        _nodeDomain.exec("unwatchPathsWithPrefix", path)
             .then(callback, callback);
     }
     

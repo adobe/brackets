@@ -90,7 +90,7 @@ function unwatchPath(path) {
  */
 function unwatchPathsWithPrefix(path) {
     Object.keys(_watcherMap).forEach(function (keyPath) {
-        if (keyPath.indexOf(keyPath) === 0) {
+        if (keyPath.indexOf(path) === 0) {
             unwatchPath(keyPath);
         }
     });
