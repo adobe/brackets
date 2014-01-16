@@ -722,7 +722,10 @@ define(function (require, exports, module) {
             }
             
             var watchOrUnwatchCallback = function (err) {
-                console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
+                if (err) {
+                    console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
+                }
+                
                 if (--counter === 0) {
                     callback(addedEntries, removedEntries);
                 }
