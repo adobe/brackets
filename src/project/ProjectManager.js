@@ -1464,19 +1464,21 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        // We assume the parent directory exists
+        // We assume the parent directory exists. If not, then baseDir is from a file outside 
+        // of the current project. Then we have to use the project root node as $baseDirNode
+        // to create the new item in the root directory.
         var baseDirEntry        = (typeof baseDir === "string") ? FileSystem.getDirectoryForPath(baseDir) : baseDir,
-            $baseDirNode        = (baseDir && _getTreeNode(baseDirEntry)) || null,
+            $baseDirNode        = (baseDir && _getTreeNode(baseDirEntry)) || $projectTreeList,
             position            = "inside",
             escapeKeyPressed    = false,
             result              = new $.Deferred(),
             isRoot              = $baseDirNode === $projectTreeList,
             wasNodeOpen         = isRoot || ($baseDirNode && $baseDirNode.hasClass("jstree-open")) || false,
             newItemData         = {};
-        
-        // Silently fail if baseDir assumption fails
-        if (!$baseDirNode) {
-            return result.reject().promise();
+
+        // Update baseDirEntry if we use $projectTreeList as $baseDirNode above.
+        if (isRoot) {
+            baseDirEntry = getProjectRoot();
         }
         
         // Inject jstree data for sorting
