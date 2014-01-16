@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets */
+/*global define, $, Mustache, brackets, setTimeout */
 
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
@@ -193,12 +193,12 @@ define(function (require, exports, module) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
                         runPromise = new $.Deferred();
                     
-                    runPromise.then(function(scanResult) {
+                    runPromise.then(function (scanResult) {
                         results.push({provider: provider, result: scanResult});
                     });
-                    setTimeout(function () { runPromise.resolve(); }, 500);
                     
                     if (provider.scanFileAsync) {
+                        setTimeout(function () { runPromise.resolve(null); }, 500);
                         provider.scanFileAsync(fileText, file.fullPath)
                             .then(function (scanResult) {
                                 PerfUtils.addMeasurement(perfTimerProvider);
@@ -216,7 +216,6 @@ define(function (require, exports, module) {
                         } catch (err) {
                             console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
                             runPromise.resolve(null);
-                            return;
                         }
                     }
                     return runPromise.promise();
