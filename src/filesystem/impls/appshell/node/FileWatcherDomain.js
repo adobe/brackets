@@ -85,11 +85,24 @@ function unwatchPath(path) {
 }
 
 /**
+ * Un-watch a directory and all paths below it.
+ * @param {string} path Directory to unwatch.
+ */
+function unwatchPathsWithPrefix(path) {
+    Object.keys(_watcherMap).forEach(function (keyPath) {
+        if (keyPath.indexOf(keyPath) === 0) {
+            unwatchPath(keyPath);
+        }
+    });
+}
+
+/**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
  */
 function watchPath(path) {
     if (_watcherMap.hasOwnProperty(path)) {
+        console.log("FileWatcher.watchPath already watched " + path);
         return;
     }
         
@@ -115,6 +128,7 @@ function watchPath(path) {
                 _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
             });
         } else {
+            console.log("FileWatcherDomain.watchPath: " + path);
             watcher = fs.watch(path, {persistent: false}, function (event, filename) {
                 // File/directory changes are emitted as "change" events on the fileWatcher domain.
                 _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
@@ -176,6 +190,18 @@ function init(domainManager) {
             name: "path",
             type: "string",
             description: "absolute filesystem path of the file or directory to unwatch"
+        }]
+    );
+    domainManager.registerCommand(
+        "fileWatcher",
+        "unwatchPathsWithPrefix",
+        unwatchPath,
+        false,
+        "Stop watching a directory and it's descendants",
+        [{
+            name: "path",
+            type: "string",
+            description: "absolute filesystem path of the directory to unwatch"
         }]
     );
     domainManager.registerCommand(
