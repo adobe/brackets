@@ -74,6 +74,7 @@ define(function (require, exports, module) {
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
+        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
@@ -273,8 +274,15 @@ define(function (require, exports, module) {
                 
                 entry.visit(visitor, function (err) {
                     if (err) {
-                        requestCb(err);
-                        return;
+                        // Unwatching a file/folder that doesn't exist will 
+                        // trigger an expected error
+                        if (!shouldWatch && (err === FileSystemError.NOT_FOUND)) {
+                            visitor(entry);
+                        } else {
+                            // Unexpected error
+                            requestCb(err);
+                            return;
+                        }
                     }
                     
                     // Then watch or unwatched all these entries
