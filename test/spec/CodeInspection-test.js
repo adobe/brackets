@@ -57,6 +57,29 @@ define(function (require, exports, module) {
 
             return provider;
         }
+        
+        function createAsyncCodeInspector(name, result, scanTime, syncImpl) {
+            var provider = {
+                name: name,
+                scanFileAsync: function () {
+                    var deferred = new $.Deferred();
+                    setTimeout(function () {
+                        deferred.resolve(result);
+                    }, scanTime);
+                    return deferred.promise();
+                }
+            };
+            spyOn(provider, "scanFileAsync").andCallThrough();
+            
+            if (syncImpl === true) {
+                provider.scanFile = function () {
+                    return result;
+                };
+                spyOn(provider, "scanFile").andCallThrough();
+            }
+            
+            return provider;
+        }
 
         function successfulLintResult() {
             return {errors: []};
@@ -243,6 +266,131 @@ define(function (require, exports, module) {
                     expect(expectedResult).toBeNull();
                 });
             });
+            
+            it("should run asynchoronous implementation when both available in the provider", function () {
+                var provider = createAsyncCodeInspector("javascript async linter with sync impl", failLintResult(), 200, true);
+                CodeInspection.register("javascript", provider);
+                
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                                        
+                    waitsForDone(promise, "file linting", 5000);
+                });
+                
+                runs(function () {
+                    expect(provider.scanFileAsync).toHaveBeenCalled();
+                    expect(provider.scanFile).not.toHaveBeenCalled();
+                });
+                
+            });
+            
+            it("should timeout on a provider that takes too long", function () {
+                var provider = createAsyncCodeInspector("javascript async linter with sync impl", failLintResult(), 1000, true),
+                    result;
+                CodeInspection.register("javascript", provider);
+                
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    promise.done(function (r) {
+                        result = r;
+                    });
+                    
+                    waitsForDone(promise, "file linting", 550);
+                });
+                
+                runs(function () {
+                    expect(provider.scanFileAsync).toHaveBeenCalled();
+                    expect(result).toBeDefined();
+                    expect(result[0].provider).toEqual(provider);
+                    expect(result[0].errors).toBeFalsy();
+                });
+                
+            });
+            
+            it("should run two asynchronous providers and a synchronous one", function () {
+                var asyncProvider1 = createAsyncCodeInspector("javascript async linter 1", failLintResult(), 200, true),
+                    asyncProvider2 = createAsyncCodeInspector("javascript async linter 2", successfulLintResult(), 300, false),
+                    syncProvider3 = createCodeInspector("javascript sync linter 3", failLintResult()),
+                    result;
+                CodeInspection.register("javascript", asyncProvider1);
+                CodeInspection.register("javascript", asyncProvider2);
+                CodeInspection.register("javascript", syncProvider3);
+                
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    promise.done(function (r) {
+                        result = r;
+                    });
+                    
+                    waitsForDone(promise, "file linting", 5000);
+                });
+                
+                runs(function () {
+                    var i;
+                    expect(result.length).toEqual(3);
+                    
+                    for (i = 0; i < result.length; i++) {
+                        switch (result[i].provider.name) {
+                        case asyncProvider1.name:
+                            expect(asyncProvider1.scanFile).not.toHaveBeenCalled();
+                            expect(asyncProvider2.scanFileAsync).toHaveBeenCalled();
+                            break;
+                        case asyncProvider2.name:
+                            expect(asyncProvider2.scanFileAsync).toHaveBeenCalled();
+                            break;
+                        case syncProvider3.name:
+                            expect(syncProvider3.scanFile).toHaveBeenCalled();
+                            break;
+                        default:
+                            expect(true).toBe(false);
+                            break;
+                        }
+                    }
+                });
+                
+            });
+            
+            it("should return results for 3 providers when 2 completes and 1 times out", function () {
+                var asyncProvider1 = createAsyncCodeInspector("javascript async linter 1", failLintResult(), 200, true),
+                    asyncProvider2 = createAsyncCodeInspector("javascript async linter 2", failLintResult(), 1000, false),
+                    syncProvider3 = createCodeInspector("javascript sync linter 3", failLintResult()),
+                    result;
+                CodeInspection.register("javascript", asyncProvider1);
+                CodeInspection.register("javascript", asyncProvider2);
+                CodeInspection.register("javascript", syncProvider3);
+
+                runs(function () {
+                    var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
+                    promise.done(function (r) {
+                        result = r;
+                    });
+                    
+                    waitsForDone(promise, "file linting", 5000);
+                });
+                
+                runs(function () {
+                    var i;
+                    expect(result.length).toEqual(3);
+                    
+                    for (i = 0; i < result.length; i++) {
+                        switch (result[i].provider.name) {
+                        case asyncProvider1.name:
+                        case syncProvider3.name:
+                            expect(result[i].result).toBeDefined();
+                            expect(result[i].result).not.toBeNull();
+                            break;
+                        case asyncProvider2.name:
+                            expect(result[i].result).toBeDefined();
+                            expect(result[i].result).toBeNull();
+                            break;
+                        default:
+                            expect(true).toBe(false);
+                            break;
+                        }
+                    }
+                });
+            });
+
         });
 
         describe("Code Inspection UI", function () {
