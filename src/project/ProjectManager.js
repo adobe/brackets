@@ -338,8 +338,11 @@ define(function (require, exports, module) {
     /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
+     * @param {string|FileSystemEntry} absPathOrEntry
+     * @return {boolean}
      */
-    function isWithinProject(absPath) {
+    function isWithinProject(absPathOrEntry) {
+        var absPath = absPathOrEntry.fullPath || absPathOrEntry;
         return (_projectRoot && absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
@@ -1453,9 +1456,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a new item in the project tree.
+     * Create a new item in the current project.
      *
-     * @param baseDir {string|Directory} Full path of the directory where the item should go
+     * @param baseDir {string|Directory} Full path of the directory where the item should go.
+     *   Defaults to the project root if the entry is not valid or not within the project.
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
      * @param isFolder {boolean} If true, create a folder instead of a file
@@ -1465,7 +1469,8 @@ define(function (require, exports, module) {
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
         // We assume the parent directory exists
-        var baseDirEntry        = (typeof baseDir === "string") ? FileSystem.getDirectoryForPath(baseDir) : baseDir,
+        var entry               = (typeof baseDir === "string") ? FileSystem.getDirectoryForPath(baseDir) : baseDir,
+            baseDirEntry        = isWithinProject(entry) ? entry : getProjectRoot(),
             $baseDirNode        = (baseDir && _getTreeNode(baseDirEntry)) || null,
             position            = "inside",
             escapeKeyPressed    = false,
