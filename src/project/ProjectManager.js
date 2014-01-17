@@ -2053,7 +2053,9 @@ define(function (require, exports, module) {
                     // already open. If the directory is currently closed,
                     // jstree will call load_node when the user opens the node
                     // interactively
-                    _projectTree.jstree("load_node", $directoryNode);
+                    _projectTree.jstree("load_node", $directoryNode, function () {}, function () {
+                        console.error("Error loading project tree for changed path: " + entry.fullPath);
+                    });
                 }
                 
                 doRedraw = true;
