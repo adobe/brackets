@@ -746,8 +746,7 @@ define(function (require, exports, module) {
             attr                : { id: "node" + _projectInitialLoad.id++ },
             metadata: {
                 entry           : entry,
-                compareString   : _toCompareString(entry.name, entry.isDirectory),
-                is_loaded       : false
+                compareString   : _toCompareString(entry.name, entry.isDirectory)
             }
         };
 
@@ -847,13 +846,6 @@ define(function (require, exports, module) {
         
         // Fetch dirEntry's contents
         dirEntry.getContents(function (err, contents, stats, statsErrs) {
-            // Flag load attempt so we can do incremental updates later
-            if (isProjectRoot) {
-                $projectTreeList.data("is_loaded", true);
-            } else {
-                $treeNode.data("is_loaded", true);
-            }
-            
             if (err) {
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_ERROR,
@@ -2037,10 +2029,33 @@ define(function (require, exports, module) {
         
                 // Open the node before creating the new child
                 _projectTree.jstree("open_node", $directoryNode);
-            } else if ($directoryNode.data("is_loaded")) {
-                // The directory was already loaded, so we can incrementally
-                // create all new nodes in a batch
-                _createNode($directoryNode, null, addedJSON, true, true);
+            } else {
+                // We can only incrementally create new child nodes when the 
+                // DOM node for the directory is not currently empty. The reason
+                // is due to the fact that jstree treats empty DOM folders as
+                // not-loaded. When jstree sees this, it calls the JSON data
+                // provider to populate the DOM, always. Creating a node in this
+                // state leads to duplicate nodes. Avoid this by calling load_node
+                // instead of create_node.
+                var treeAPI = $.jstree._reference(_projectTree),
+                    directoryNodeOrRoot = (entry === getProjectRoot()) ? -1 : $directoryNode,
+                    hasDOMChildren = treeAPI._get_children(directoryNodeOrRoot).length > 0;
+                
+                if (hasDOMChildren) {
+                    // The directory was already loaded and currently has
+                    // children, so we can incrementally create all new nodes
+                    // in a batch
+                    _createNode($directoryNode, null, addedJSON, true, true);
+                } else if (!isClosed) {
+                    // Call load_node for the directory to add the new entries
+                    // for this change event. We only call load_node immediately
+                    // in the case where the empty directory DOM node was
+                    // already open. If the directory is currently closed,
+                    // jstree will call load_node when the user opens the node
+                    // interactively
+                    _projectTree.jstree("load_node", $directoryNode);
+                }
+                
                 doRedraw = true;
             }
         }
