@@ -517,20 +517,6 @@ define(function (require, exports, module) {
     
     /**
      * Stop providing change notifications for all previously watched files and
-     * directories that start with a path prefix, optionally calling back
-     * asynchronously with a possibly null FileSystemError string when the \
-     * operation is complete.
-     *
-     * @param {string} path
-     * @param {function(?string)=} callback
-     */
-    function unwatchPathsWithPrefix(path, callback) {
-        _nodeDomain.exec("unwatchPathsWithPrefix", path)
-            .then(callback, callback);
-    }
-    
-    /**
-     * Stop providing change notifications for all previously watched files and
      * directories, optionally calling back asynchronously with a possibly null
      * FileSystemError string when the operation is complete.
      *
@@ -542,22 +528,21 @@ define(function (require, exports, module) {
     }
     
     // Export public API
-    exports.showOpenDialog          = showOpenDialog;
-    exports.showSaveDialog          = showSaveDialog;
-    exports.exists                  = exists;
-    exports.readdir                 = readdir;
-    exports.mkdir                   = mkdir;
-    exports.rename                  = rename;
-    exports.stat                    = stat;
-    exports.readFile                = readFile;
-    exports.writeFile               = writeFile;
-    exports.unlink                  = unlink;
-    exports.moveToTrash             = moveToTrash;
-    exports.initWatchers            = initWatchers;
-    exports.watchPath               = watchPath;
-    exports.unwatchPath             = unwatchPath;
-    exports.unwatchPathsWithPrefix  = unwatchPathsWithPrefix;
-    exports.unwatchAll              = unwatchAll;
+    exports.showOpenDialog  = showOpenDialog;
+    exports.showSaveDialog  = showSaveDialog;
+    exports.exists          = exists;
+    exports.readdir         = readdir;
+    exports.mkdir           = mkdir;
+    exports.rename          = rename;
+    exports.stat            = stat;
+    exports.readFile        = readFile;
+    exports.writeFile       = writeFile;
+    exports.unlink          = unlink;
+    exports.moveToTrash     = moveToTrash;
+    exports.initWatchers    = initWatchers;
+    exports.watchPath       = watchPath;
+    exports.unwatchPath     = unwatchPath;
+    exports.unwatchAll      = unwatchAll;
     
     /**
      * Indicates whether or not recursive watching notifications are supported

@@ -63,10 +63,11 @@ var _domainManager,
     _watcherMap = {};
 
 /**
+ * @private
  * Un-watch a file or directory.
  * @param {string} path File or directory to unwatch.
  */
-function unwatchPath(path) {
+function _unwatchPath(path) {
     var watcher = _watcherMap[path];
         
     if (watcher) {
@@ -85,13 +86,13 @@ function unwatchPath(path) {
 }
 
 /**
- * Un-watch a directory and all paths below it.
- * @param {string} path Directory to unwatch.
+ * Un-watch a file or directory. For directories, unwatch all descendants.
+ * @param {string} path File or directory to unwatch.
  */
-function unwatchPathsWithPrefix(path) {
+function unwatchPath(path) {
     Object.keys(_watcherMap).forEach(function (keyPath) {
         if (keyPath.indexOf(path) === 0) {
-            unwatchPath(keyPath);
+            _unwatchPath(keyPath);
         }
     });
 }
@@ -183,23 +184,11 @@ function init(domainManager) {
         "unwatchPath",
         unwatchPath,
         false,
-        "Stop watching a file or directory",
+        "Stop watching a single file or a directory and it's descendants",
         [{
             name: "path",
             type: "string",
             description: "absolute filesystem path of the file or directory to unwatch"
-        }]
-    );
-    domainManager.registerCommand(
-        "fileWatcher",
-        "unwatchPathsWithPrefix",
-        unwatchPathsWithPrefix,
-        false,
-        "Stop watching a directory and it's descendants",
-        [{
-            name: "path",
-            type: "string",
-            description: "absolute filesystem path of the directory to unwatch"
         }]
     );
     domainManager.registerCommand(

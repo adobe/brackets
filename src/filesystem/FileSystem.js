@@ -74,7 +74,6 @@ define(function (require, exports, module) {
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
-        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
@@ -296,13 +295,7 @@ define(function (require, exports, module) {
                     });
                 });
             }, callback);
-        } else if (entry.isDirectory) {
-            // Unwatch a directory and all it's descendants
-            this._enqueueWatchRequest(function (requestCb) {
-                impl.unwatchPathsWithPrefix(entry.fullPath, requestCb);
-            }, callback);
         } else {
-            // Unwatch a single file
             this._enqueueWatchRequest(function (requestCb) {
                 impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
