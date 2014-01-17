@@ -785,6 +785,7 @@ define(function (require, exports, module) {
         };
         
         this._pendingScopes = {};
+        this._pendingEvents = {};
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
@@ -860,10 +861,12 @@ define(function (require, exports, module) {
             
             if (!addBefore) {
                 defaultScopeOrder.unshift(id);
+                this._processPendingEvents(id);
             } else {
                 var addIndex = defaultScopeOrder.indexOf(addBefore);
                 if (addIndex > -1) {
                     defaultScopeOrder.splice(addIndex, 0, id);
+                    this._processPendingEvents(id);
                 } else {
                     var queue = this._pendingScopes[addBefore];
                     if (!queue) {
@@ -881,6 +884,36 @@ define(function (require, exports, module) {
                 }.bind(this));
             }
         },
+        
+        /**
+         * @private
+         * 
+         * When a Scope is loading and hasn't yet been added to the `scopeOrder`,
+         * we accumulate any change notifications that it sends and re-send them
+         * once the Scope has been added to `scopeOrder`. If the notifications were
+         * sent out before the Scope has been added, then listeners who request the
+         * changed values will actually get the old values.
+         * 
+         * @param {string} id Name of the Scope that has been added.
+         */
+        _processPendingEvents: function (id) {
+            // Remove the preload listener and add the final listener
+            var $scope = $(this._scopes[id]);
+            $scope.off(".preload");
+            $scope.on(PREFERENCE_CHANGE, function (e, data) {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }.bind(this));
+            
+            // Resend preference IDs from the preload events
+            if (this._pendingEvents[id]) {
+                var ids = _.union.apply(null, this._pendingEvents[id]);
+                delete this._pendingEvents[id];
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: ids
+                });
+            }
+        },
+        
         /**
          * Adds a new Scope. New Scopes are added at the highest precedence, unless the "before" option
          * is given. The new Scope is automatically loaded.
@@ -904,8 +937,11 @@ define(function (require, exports, module) {
             }
             
             // Change events from the Scope should propagate to listeners
-            $(scope).on(PREFERENCE_CHANGE, function (e, data) {
-                $(this).trigger(PREFERENCE_CHANGE, data);
+            $(scope).on(PREFERENCE_CHANGE + ".preload", function (e, data) {
+                if (!this._pendingEvents[id]) {
+                    this._pendingEvents[id] = [];
+                }
+                this._pendingEvents[id].push(data.ids);
             }.bind(this));
             
             var deferred = $.Deferred();

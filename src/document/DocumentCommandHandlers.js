@@ -511,10 +511,11 @@ define(function (require, exports, module) {
      * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
-        var defaultExtension = PreferencesManager.get("defaultExtension");
-        if (defaultExtension) {
-            defaultExtension = "." + defaultExtension;
-        }
+        //var defaultExtension = PreferencesManager.get("defaultExtension");
+        //if (defaultExtension) {
+        //    defaultExtension = "." + defaultExtension;
+        //}
+        var defaultExtension = "";  // disable preference setting for now 
         
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
         DocumentManager.setCurrentDocument(doc);

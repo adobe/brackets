@@ -267,7 +267,7 @@ define(function (require, exports, module) {
      * * `user`: convert to a user-level preference
      * * `user newkey`: convert to a user-level preference, changing the key to newkey
      * 
-     * Once conversion is done, the old data is deleted from localStorage.
+     * Once a key has been converted, it will not be converted again.
      * 
      * @param {string|Object} clientID ClientID used in the old preferences
      * @param {Object} rules Rules for conversion (as defined above)
@@ -276,15 +276,18 @@ define(function (require, exports, module) {
         userScope.done(function () {
             var prefs = getPreferenceStorage(clientID, null, true);
             
-            // If this has already been converted, then the prefs will be gone
             if (!prefs) {
                 return;
             }
             
-            prefs.convert(rules).done(function (complete) {
-                if (complete) {
-                    delete prefStorage[getClientID(clientID)];
-                }
+            var prefsID = getClientID(clientID);
+            if (prefStorage.convertedKeysMap === undefined) {
+                prefStorage.convertedKeysMap = {};
+            }
+            var convertedKeysMap = prefStorage.convertedKeysMap;
+            
+            prefs.convert(rules, convertedKeysMap[prefsID]).done(function (complete, convertedKeys) {
+                prefStorage.convertedKeysMap[prefsID] = convertedKeys;
                 savePreferences();
             });
         }).fail(function (error) {
