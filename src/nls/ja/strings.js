@@ -200,9 +200,9 @@ define({
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
-	"SINGLE_ERROR": "1 {0} 個の問題",
-	"MULTIPLE_ERRORS": "{1} {0} の問題",
-	"NO_ERRORS": "{0} 問題は検出されませんでした - Good job!",
+	"SINGLE_ERROR": "1 個の {0} の問題",
+	"MULTIPLE_ERRORS": "{1} 個の {0} の問題",
+	"NO_ERRORS": "{0} の問題は検出されませんでした - Good job!",
 	"NO_ERRORS_MULTIPLE_PROVIDER": "問題は検出されませんでした - Good job!",
 	"LINT_DISABLED": "Lint チェックは使用できません",
 	"NO_LINT_AVAILABLE": "{0} に使用できる Lint チェッカーがありません",
