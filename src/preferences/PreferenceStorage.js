@@ -182,18 +182,27 @@ define(function (require, exports, module) {
      * rules. (See PreferencesManager.ConvertSettings for information about the rules).
      * 
      * @param {Object} rules Conversion rules.
+     * @param {Array.<string>} convertedKeys List of keys that were previously converted 
+     *                                      (will not be reconverted)
      * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
      *                      `complete` flag that denotes whether everything from this object 
      *                      was converted (making it safe to delete entirely).
      */
-    PreferenceStorage.prototype.convert = function (rules) {
+    PreferenceStorage.prototype.convert = function (rules, convertedKeys) {
         var prefs = this._json,
             self,
-            dirty = false,
             complete = true,
             deferred = new $.Deferred();
         
+        if (!convertedKeys) {
+            convertedKeys = [];
+        }
+        
         Object.keys(prefs).forEach(function (key) {
+            if (convertedKeys.indexOf(key) > -1) {
+                return;
+            }
+            
             var rule = rules[key];
             if (!rule) {
                 console.warn("Preferences conversion for ", self._clientID, " has no rule for", key);
@@ -203,23 +212,22 @@ define(function (require, exports, module) {
                 if (parts[0] === "user") {
                     var newKey = parts.length > 1 ? parts[1] : key;
                     PreferencesManager.set("user", newKey, prefs[key]);
-                    delete prefs[key];
-                    dirty = true;
+                    convertedKeys.push(key);
                 }
             } else {
                 complete = false;
             }
         });
         
-        if (dirty) {
+        if (convertedKeys.length > 0) {
             PreferencesManager.save().done(function () {
                 _commit();
-                deferred.resolve(complete);
+                deferred.resolve(complete, convertedKeys);
             }).fail(function (error) {
                 deferred.reject(error);
             });
         } else {
-            deferred.resolve(complete);
+            deferred.resolve(complete, convertedKeys);
         }
         
         return deferred.promise();
