@@ -416,7 +416,7 @@ define({
     "UNDO_REMOVE"                          : "Rückgängig",
     "MARKED_FOR_UPDATE"                    : "Zum Update markiert",
     "UNDO_UPDATE"                          : "Rückgängig",
-    "CHANGE_AND_RELOAD_TITLE"             : "Erweiterungen ändern",
+    "CHANGE_AND_RELOAD_TITLE"              : "Erweiterungen ändern",
     "CHANGE_AND_RELOAD_MESSAGE"            : "Um die markierten Erweiterungen zu updaten oder zu entfernen, muss {APP_NAME} neu geladen werden. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
     "REMOVE_AND_RELOAD"                    : "Erweiterungen entfernen und neu laden",
     "CHANGE_AND_RELOAD"                    : "Erweiterungen ändern und neu laden",
