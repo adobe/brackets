@@ -55,6 +55,14 @@
     color: {{75}}rgba(50, {{76}}100, 200, 0.3);
 }
 
+.functional-notation-simple {
+    shape-inside: polygon(0{{107}} 0);
+}
+
+.functional-notation-modifier {
+    shape-inside: polygon(n{{108}}onzero, 0 0);
+}
+
 .single-quotes {
     font-family: {{50}}'{{51}}Helvetica {{52}}Neue{{53}}'{{54}}, Arial;
 }
