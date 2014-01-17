@@ -556,7 +556,7 @@ define(function (require, exports, module) {
     exports.initWatchers            = initWatchers;
     exports.watchPath               = watchPath;
     exports.unwatchPath             = unwatchPath;
-    exports.unwatchPathsWithPrefix  = unwatchPathsWithPrefix
+    exports.unwatchPathsWithPrefix  = unwatchPathsWithPrefix;
     exports.unwatchAll              = unwatchAll;
     
     /**

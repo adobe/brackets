@@ -254,18 +254,17 @@ define(function (require, exports, module) {
                     impl[commandName].call(impl, entry.fullPath, requestCb);
                 }.bind(this), callback);
             }
-        } else {
+        } else if (shouldWatch) {
             // The impl can't handle recursive watch requests, so it's up to the
-            // filesystem to recursively watch or unwatch all subdirectories.
+            // filesystem to recursively watch all subdirectories.
             this._enqueueWatchRequest(function (requestCb) {
                 // First construct a list of entries to watch or unwatch
-                var entriesToWatchOrUnwatch = [],
-                    watchOrUnwatch = impl[commandName].bind(impl);
+                var entriesToWatch = [];
                 
                 var visitor = function (child) {
                     if (watchedRoot.filter(child.name, child.parentPath)) {
                         if (child.isDirectory || child === watchedRoot.entry) {
-                            entriesToWatchOrUnwatch.push(child);
+                            entriesToWatch.push(child);
                         }
                         return true;
                     }
@@ -274,36 +273,38 @@ define(function (require, exports, module) {
                 
                 entry.visit(visitor, function (err) {
                     if (err) {
-                        // Unwatching a file/folder that doesn't exist will 
-                        // trigger an expected error
-                        if (!shouldWatch && (err === FileSystemError.NOT_FOUND) &&
-                                (entriesToWatchOrUnwatch.length === 0)) {
-                            impl.unwatchPathsWithPrefix(entry.fullPath, requestCb);
-                            return;
-                        } else {
-                            // Unexpected error
-                            requestCb(err);
-                            return;
-                        }
+                        // Unexpected error
+                        requestCb(err);
+                        return;
                     }
                     
                     // Then watch or unwatched all these entries
-                    var count = entriesToWatchOrUnwatch.length;
+                    var count = entriesToWatch.length;
                     if (count === 0) {
                         requestCb(null);
                         return;
                     }
                     
-                    var watchOrUnwatchCallback = function () {
+                    var watchCallback = function () {
                         if (--count === 0) {
                             requestCb(null);
                         }
                     };
                     
-                    entriesToWatchOrUnwatch.forEach(function (entry) {
-                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
+                    entriesToWatch.forEach(function (entry) {
+                        impl.watchPath(entry.fullPath, watchCallback);
                     });
                 });
+            }, callback);
+        } else if (entry.isDirectory) {
+            // Unwatch a directory and all it's descendants
+            this._enqueueWatchRequest(function (requestCb) {
+                impl.unwatchPathsWithPrefix(entry.fullPath, requestCb);
+            }, callback);
+        } else {
+            // Unwatch a single file
+            this._enqueueWatchRequest(function (requestCb) {
+                impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
         }
     };
