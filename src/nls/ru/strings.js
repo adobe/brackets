@@ -155,6 +155,7 @@ define({
     // File menu commands
     "FILE_MENU"                           : "Файл",
     "CMD_FILE_NEW"                        : "Новый файл",
+    "CMD_FILE_NEW_UNTITLED"               : "Новый",
     "CMD_FILE_NEW_FOLDER"                 : "Новая папка",
     "CMD_FILE_OPEN"                       : "Открыть\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Добавить в рабочий набор",
@@ -162,11 +163,13 @@ define({
     "CMD_FILE_CLOSE"                      : "Закрыть",
     "CMD_FILE_CLOSE_ALL"                  : "Закрыть все",
     "CMD_FILE_SAVE"                       : "Сохранить",
+    "CMD_FILE_SAVE_AS"                    : "Сохранить как",
     "CMD_FILE_SAVE_ALL"                   : "Сохранить все",
     "CMD_LIVE_FILE_PREVIEW"               : "Интерактивный Предпросмотр",
     "CMD_LIVE_HIGHLIGHT"                  : "Интерактивная Подсветка",
     "CMD_PROJECT_SETTINGS"                : "Настройки проекта\u2026",
     "CMD_FILE_RENAME"                     : "Переименовать",
+    "CMD_EXTENSION_MANAGER"               : "Менеджер расширений\u2026",
     "CMD_QUIT"                            : "Выход",
 
     // Edit menu commands
