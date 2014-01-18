@@ -1050,8 +1050,13 @@ a, img {
         }
     }
     
-    #find-what, #replace-with {
-        width: 295px;
+    #find-what {
+        // 100% of the space minus the padding, margin and border of the input minus the buttons widths
+        width: calc(~"100% - 19px - 143px");
+    }
+    #replace-with {
+        // 100% of the space minus the padding, margin and border of the input minus the buttons widths
+        width: calc(~"100% - 19px - 127px");
     }
 
     .search-input-container {
@@ -1074,7 +1079,8 @@ a, img {
         
         #find-what {
             padding-right: 62px;  // room for #find-counter overlay
-            width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
+            // maintain width, accounting for differing padding
+            width: calc(~"100% - 62px - 13px - 143px");
         }
         #find-counter {
             position: absolute;
@@ -1088,6 +1094,7 @@ a, img {
     #find-group, #replace-group {
         display: inline-block;
         white-space: nowrap;
+        width: 50%;
     }
     
     .message, .no-results-message {
