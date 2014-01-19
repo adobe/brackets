@@ -53,8 +53,9 @@ define(function (require, exports, module) {
         StringMatch         = require("utils/StringMatch"),
         ViewUtils           = require("utils/ViewUtils");
     
-
-    var cursorPosRegExp = new RegExp(":([^,]+)?(,(.+)?)?");
+    
+    /** @const {RegExp} The regular expression to check the cursor position */
+    var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
@@ -253,30 +254,28 @@ define(function (require, exports, module) {
      * is followed by a colon. Callers should explicitly test result with isNaN()
      * 
      * @param {string} query string to extract line number from
-     * @returns {{query: string, local: boolean, line: number, ch: number}} A cursorPos object with
-     *      the extracted line and column numbers, and two additional fields; query with the original position 
-     *      string and local indicating if the cursor position should be applied to the current file
+     * @return {{query: string, local: boolean, line: number, ch: number}} An object with
+     *      the extracted line and column numbers, and two additional fields: query with the original position 
+     *      string and local indicating if the cursor position should be applied to the current file.
+     *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
-        var regInfo     = query.match(cursorPosRegExp),
+        var regInfo = query.match(CURSOR_POS_EXP),
             result;
         
-        if (query.length <= 1 ||
-                !regInfo ||
+        if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||
                 (regInfo[3] && isNaN(regInfo[3]))) {
             
             return null;
         }
             
-        result = {
+        return {
             query:  regInfo[0],
             local:  query.indexOf(":") === 0,
             line:   regInfo[1] - 1 || 0,
             ch:     regInfo[3] - 1 || 0
         };
-        
-        return result;
     }
     
     /** Returns the last return value of _filterCallback(), which Smart Autocomplete helpfully caches */
@@ -321,10 +320,10 @@ define(function (require, exports, module) {
         }
         
         var selectedItem = domItemToSearchResult(selectedDOMItem),
-            doClose = true,
-            self = this,
-            query = this.$searchField.val(),
-            cursorPos = extractCursorPos(query);
+            doClose      = true,
+            self         = this,
+            query        = this.$searchField.val(),
+            cursorPos    = extractCursorPos(query);
 
         // Delegate to current plugin
         if (currentPlugin) {
@@ -429,7 +428,7 @@ define(function (require, exports, module) {
         }
         
         var cursorPos = extractCursorPos(query),
-            editor = EditorManager.getCurrentFullEditor();
+            editor    = EditorManager.getCurrentFullEditor();
         
         // We could just use 0 and lineCount() here, but in future we might want this logic to work for inline editors as well.
         return (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine());
@@ -597,8 +596,8 @@ define(function (require, exports, module) {
         // "Go to line" mode is special-cased
         var cursorPos = extractCursorPos(query);
         if (cursorPos && cursorPos.local) {
-            var from = {line: cursorPos.line, ch: cursorPos.ch};
-            var to = {line: cursorPos.line};
+            var from = {line: cursorPos.line, ch: cursorPos.ch},
+                to   = {line: cursorPos.line};
             
             EditorManager.getCurrentFullEditor().setSelection(from, to, true);
         }
