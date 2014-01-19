@@ -1,0 +1,23 @@
+/* */
+
+.foo {
+    transition-timing-function: cubic-bezier(.42, 0, .58, 1);
+    transition-timing-function: cubic-bezier(0, -0.2, 1, 1.3);
+    transition-timing-function: linear;
+    transition-timing-function: ease;
+    transition-timing-function: ease-in;
+    transition-timing-function: ease-out;
+    transition-timing-function: ease-in-out;
+}
+
+.bar {
+    transition: width 1s cubic-bezier(.86, .11, .18, .86) 0s, height 500ms cubic-bezier(.27, .75, .78, .14) 100ms;
+}
+
+.baz {
+    transition-timing-function: steps(4, end);
+    transition-timing-function: steps(12, start);
+    transition-timing-function: steps(24);
+    transition-timing-function: step-start;
+    transition-timing-function: step-end;
+}

@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     var DIALOG_BTN_CANCEL           = "cancel",
         DIALOG_BTN_OK               = "ok",
         DIALOG_BTN_DONTSAVE         = "dontsave",
+        DIALOG_BTN_SAVE_AS          = "save_as",
         DIALOG_CANCELED             = "_canceled",
         DIALOG_BTN_DOWNLOAD         = "download";
     
@@ -69,7 +70,22 @@ define(function (require, exports, module) {
     function _dismissDialog($dlg, buttonId) {
         $dlg.data("buttonId", buttonId);
         $dlg.modal("hide");
-        $(".modal-wrapper:last").remove();
+    }
+    
+    /**
+     * @private
+     * If autoDismiss is true, then dismisses the dialog. Otherwise just raises an event that the
+     * given button was clicked.
+     * @param {$.Element} $dlg The dialog element to be dismissed.
+     * @param {string} buttonId The ID of the button that was clicked.
+     * @param {boolean} autoDismiss Whether to autodismiss the dialog on a button click.
+     */
+    function _processButton($dlg, buttonId, autoDismiss) {
+        if (autoDismiss) {
+            _dismissDialog($dlg, buttonId);
+        } else {
+            $dlg.triggerHandler("buttonClick", buttonId);
+        }
     }
 
     /**
@@ -120,9 +136,10 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     var _keydownHook = function (e, autoDismiss) {
-        var $primaryBtn = this.find(".primary"),
-            buttonId    = null,
-            which       = String.fromCharCode(e.which);
+        var $primaryBtn     = this.find(".primary"),
+            buttonId        = null,
+            which           = String.fromCharCode(e.which),
+            $focusedElement = this.find(".dialog-button:focus, a:focus");
         
         // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
         var inTextArea    = (e.target.tagName === "TEXTAREA"),
@@ -133,11 +150,11 @@ define(function (require, exports, module) {
         } else if (e.which === KeyEvent.DOM_VK_ESCAPE) {
             buttonId = DIALOG_BTN_CANCEL;
         } else if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
-            // Click primary button
+            // Click primary
             $primaryBtn.click();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button or link
-            this.find(".dialog-button:focus, a:focus").click();
+            $focusedElement.click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
             if (e.metaKey && (which === "D")) {
@@ -157,8 +174,8 @@ define(function (require, exports, module) {
             }
         }
         
-        if (autoDismiss && buttonId) {
-            _dismissDialog(this, buttonId);
+        if (buttonId) {
+            _processButton(this, buttonId, autoDismiss);
         }
         
         // Stop any other global hooks from processing the event (but
@@ -216,7 +233,7 @@ define(function (require, exports, module) {
      * @param {string} template A string template or jQuery object to use as the dialog HTML.
      * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
      *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
-     *      key, and dismiss the dialog yourself when ready with `cancelModalDialogIfOpen()`.
+     *      key, and dismiss the dialog yourself when ready by calling `close()` on the returned dialog.
      * @return {Dialog}
      */
     function showModalDialogUsingTemplate(template, autoDismiss) {
@@ -259,6 +276,9 @@ define(function (require, exports, module) {
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
+            
+            //Remove wrapper
+            $(".modal-wrapper:last").remove();
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = $dlg.find(".primary");
@@ -272,11 +292,9 @@ define(function (require, exports, module) {
         });
         
         // Click handler for buttons
-        if (autoDismiss) {
-            $dlg.one("click", ".dialog-button", function (e) {
-                _dismissDialog($dlg, $(this).attr("data-button-id"));
-            });
-        }
+        $dlg.one("click", ".dialog-button", function (e) {
+            _processButton($dlg, $(this).attr("data-button-id"), autoDismiss);
+        });
         
         $(".last-backdrop").removeClass("last-backdrop");
         
@@ -310,9 +328,12 @@ define(function (require, exports, module) {
      * @param {Array.<{className: string, id: string, text: string}>=} buttons An array of buttons where each button
      *      has a class, id and text property. The id is used in "data-button-id". Defaults to a single Ok button.
      *      Typically className is one of DIALOG_BTN_CLASS_*, id is one of DIALOG_BTN_*
+     * @param {boolean=} autoDismiss Whether to automatically dismiss the dialog when one of the buttons
+     *      is clicked. Default true. If false, you'll need to manually handle button clicks and the Esc
+     *      key, and dismiss the dialog yourself when ready by calling `close()` on the returned dialog.
      * @return {Dialog}
      */
-    function showModalDialog(dlgClass, title, message, buttons) {
+    function showModalDialog(dlgClass, title, message, buttons, autoDismiss) {
         var templateVars = {
             dlgClass: dlgClass,
             title:    title   || "",
@@ -321,7 +342,7 @@ define(function (require, exports, module) {
         };
         var template = Mustache.render(DialogTemplate, templateVars);
         
-        return showModalDialogUsingTemplate(template);
+        return showModalDialogUsingTemplate(template, autoDismiss);
     }
     
     /**
@@ -342,6 +363,7 @@ define(function (require, exports, module) {
     exports.DIALOG_BTN_CANCEL            = DIALOG_BTN_CANCEL;
     exports.DIALOG_BTN_OK                = DIALOG_BTN_OK;
     exports.DIALOG_BTN_DONTSAVE          = DIALOG_BTN_DONTSAVE;
+    exports.DIALOG_BTN_SAVE_AS           = DIALOG_BTN_SAVE_AS;
     exports.DIALOG_CANCELED              = DIALOG_CANCELED;
     exports.DIALOG_BTN_DOWNLOAD          = DIALOG_BTN_DOWNLOAD;
     

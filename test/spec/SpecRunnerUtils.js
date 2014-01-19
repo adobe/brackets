@@ -27,17 +27,19 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        FileSystem          = require("filesystem/FileSystem"),
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesBase     = require("preferences/PreferencesBase");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
@@ -45,13 +47,16 @@ define(function (require, exports, module) {
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /\{\{(\d+)\}\}/g,
+        absPathPrefix           = (brackets.platform === "win" ? "c:/" : "/"),
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
-        nfs,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
     
+    function _getFileSystem() {
+        return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
+    }
     
     /**
      * Delete a path
@@ -61,17 +66,29 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        
-        brackets.fs.unlink(fullPath, function (err) {
-            // ignore ERR_NOT_FOUND errors
-            if (!err || (err === brackets.fs.ERR_NOT_FOUND && silent)) {
-                result.resolve();
+        _getFileSystem().resolve(fullPath, function (err, item) {
+            if (!err) {
+                item.unlink(function (err) {
+                    if (!err) {
+                        result.resolve();
+                    } else {
+                        if (err === FileSystemError.NOT_FOUND && silent) {
+                            result.resolve();
+                        } else {
+                            console.error("Unable to remove " + fullPath, err);
+                            result.reject(err);
+                        }
+                    }
+                });
             } else {
-                console.error("unable to remove " + fullPath + " Error code " + err);
-                result.reject(err);
+                if (err === FileSystemError.NOT_FOUND && silent) {
+                    result.resolve();
+                } else {
+                    console.error("Unable to remove " + fullPath, err);
+                    result.reject(err);
+                }
             }
         });
-
         return result.promise();
     }
     
@@ -84,7 +101,7 @@ define(function (require, exports, module) {
      */
     function chmod(path, mode) {
         var deferred = new $.Deferred();
-
+        
         brackets.fs.chmod(path, parseInt(mode, 8), function (err) {
             if (err) {
                 deferred.reject(err);
@@ -96,6 +113,10 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    function testDomain() {
+        return brackets.testing.nodeConnection.domains.testing;
+    }
+    
     /**
      * Remove a directory (recursively) or file
      *
@@ -103,49 +124,38 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
      */
     function remove(path) {
-        var d = new $.Deferred();
-        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred
-            .done(function (connection) {
-                if (connection.connected()) {
-                    connection.domains.testing.remove(path)
-                        .done(function () {
-                            d.resolve();
-                        })
-                        .fail(function () {
-                            d.reject();
-                        });
-                } else {
-                    d.reject();
-                }
-            })
-            .fail(function () {
-                d.reject();
-            });
-        return d.promise();
+        return testDomain().remove(path);
     }
-        
     
     /**
-     * Resolves a path string to a FileEntry or DirectoryEntry
+     * Copy a directory (recursively) or file
+     *
+     * @param {!string}     src     Path to copy
+     * @param {!string}     dest    Destination directory
+     * @return {$.Promise} Resolved when the path is copied, rejected if there was a problem
+     */
+    function copy(src, dest) {
+        return testDomain().copy(src, dest);
+    }
+    
+    /**
+     * Resolves a path string to a File or Directory
      * @param {!string} path Path to a file or directory
      * @return {$.Promise} A promise resolved when the file/directory is found or
      *     rejected when any error occurs.
      */
     function resolveNativeFileSystemPath(path) {
-        var deferred = new $.Deferred();
+        var result = new $.Deferred();
         
-        NativeFileSystem.resolveNativeFileSystemPath(
-            path,
-            function success(entry) {
-                deferred.resolve(entry);
-            },
-            function error(domError) {
-                deferred.reject();
+        _getFileSystem().resolve(path, function (err, item) {
+            if (!err) {
+                result.resolve(item);
+            } else {
+                result.reject(err);
             }
-        );
+        });
         
-        return deferred.promise();
+        return result.promise();
     }
     
     
@@ -159,9 +169,12 @@ define(function (require, exports, module) {
     window.waitsForDone = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
+        promise.fail(function (err) {
+            expect("[" + operationName + "] promise rejected with: " + err).toBe(null);
+        });
         waitsFor(function () {
             return promise.state() === "resolved";
-        }, "success " + operationName, timeout);
+        }, "success [" + operationName + "]", timeout);
     };
 
     /**
@@ -185,10 +198,6 @@ define(function (require, exports, module) {
      */
     function getRoot() {
         var deferred = new $.Deferred();
-        
-        if (nfs) {
-            deferred.resolve(nfs.root);
-        }
         
         resolveNativeFileSystemPath("/").then(deferred.resolve, deferred.reject);
         
@@ -222,8 +231,8 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            brackets.fs.makedir(getTempDirectory(), 0, function (err) {
-                if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+            var dir = _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
+                if (err && err !== FileSystemError.ALREADY_EXISTS) {
                     deferred.reject(err);
                 } else {
                     deferred.resolve();
@@ -232,23 +241,6 @@ define(function (require, exports, module) {
         });
 
         waitsForDone(deferred, "Create temp directory", 500);
-    }
-    
-    /**
-     * @private
-     */
-    function _stat(pathname) {
-        var promise = new $.Deferred();
-        
-        brackets.fs.stat(pathname, function (err, _stat) {
-            if (err === brackets.fs.NO_ERROR) {
-                promise.resolve(_stat);
-            } else {
-                promise.reject(err);
-            }
-        });
-        
-        return promise;
     }
     
     function _resetPermissionsOnSpecialTempFolders() {
@@ -263,19 +255,19 @@ define(function (require, exports, module) {
         promise = Async.doSequentially(folders, function (folder) {
             var deferred = new $.Deferred();
             
-            _stat(folder)
-                .done(function () {
+            _getFileSystem().resolve(folder, function (err, entry) {
+                if (!err) {
                     // Change permissions if the directory exists
-                    chmod(folder, 777).then(deferred.resolve, deferred.reject);
-                })
-                .fail(function (err) {
-                    if (err === brackets.fs.ERR_NOT_FOUND) {
+                    chmod(folder, "777").then(deferred.resolve, deferred.reject);
+                } else {
+                    if (err === FileSystemError.NOT_FOUND) {
                         // Resolve the promise since the folder to reset doesn't exist
                         deferred.resolve();
                     } else {
                         deferred.reject();
                     }
-                });
+                }
+            });
             
             return deferred.promise();
         }, true);
@@ -325,11 +317,11 @@ define(function (require, exports, module) {
      */
     function createMockActiveDocument(options) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
-            filename    = options.filename || "_unitTestDummyFile_" + Date.now() + "." + language._fileExtensions[0],
+            filename    = options.filename || (absPathPrefix + "_unitTestDummyPath_/_dummyFile_" + Date.now() + "." + language._fileExtensions[0]),
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = new NativeFileSystem.FileEntry(filename);
+        var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
@@ -539,6 +531,14 @@ define(function (require, exports, module) {
         );
 
         runs(function () {
+            // Reconfigure the preferences manager so that the "user" scoped
+            // preferences are empty and the tests will not reconfigure
+            // the preferences of the user running the tests.
+            var pm = _testWindow.brackets.test.PreferencesManager._manager;
+            pm.removeScope("user");
+            pm._defaultContext.scopeOrder = ["default"];
+            pm.addScope("user", new PreferencesBase.MemoryStorage());
+            
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
         });
@@ -572,7 +572,7 @@ define(function (require, exports, module) {
             var result = _testWindow.brackets.test.ProjectManager.openProject(path);
             
             // wait for file system to finish loading
-            waitsForDone(result, "ProjectManager.openProject()");
+            waitsForDone(result, "ProjectManager.openProject()", 10000);
         });
     }
     
@@ -686,7 +686,7 @@ define(function (require, exports, module) {
     
     /**
      * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!FileEntry} entry File to open
+     * @param {!File} entry File to open
      * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
      *  the file text without offset markup, the original file content, and the corresponding
      *  file entry.
@@ -746,23 +746,23 @@ define(function (require, exports, module) {
      * Create or overwrite a text file
      * @param {!string} path Path for a file to be created/overwritten
      * @param {!string} text Text content for the new file
+     * @param {!FileSystem} fileSystem FileSystem instance to use. Normally, use the instance from
+     *      testWindow so the test copy of Brackets is aware of the newly-created file.
      * @return {$.Promise} A promise resolved when the file is written or rejected when an error occurs.
      */
-    function createTextFile(path, text) {
-        var deferred = new $.Deferred();
-
-        getRoot().done(function (nfs) {
-            // create the new FileEntry
-            nfs.getFile(path, { create: true }, function success(entry) {
-                // write text this new FileEntry 
-                FileUtils.writeText(entry, text).done(function () {
-                    deferred.resolve(entry);
-                }).fail(function () {
-                    deferred.reject();
-                });
-            }, function error(err) {
+    function createTextFile(path, text, fileSystem) {
+        var deferred = new $.Deferred(),
+            file = fileSystem.getFileForPath(path),
+            options = {
+                blind: true // overwriting previous files is OK
+            };
+        
+        file.write(text, options, function (err) {
+            if (!err) {
+                deferred.resolve(file);
+            } else {
                 deferred.reject(err);
-            });
+            }
         });
 
         return deferred.promise();
@@ -770,7 +770,7 @@ define(function (require, exports, module) {
     
     /**
      * Copy a file source path to a destination
-     * @param {!FileEntry} source Entry for the source file to copy
+     * @param {!File} source Entry for the source file to copy
      * @param {!string} destination Destination path to copy the source file
      * @param {?{parseOffsets:boolean}} options parseOffsets allows optional
      *     offset markup parsing. File is written to the destination path
@@ -796,8 +796,8 @@ define(function (require, exports, module) {
                     offsets = parseInfo.offsets;
                 }
                 
-                // create the new FileEntry
-                createTextFile(destination, text).done(function (entry) {
+                // create the new File
+                createTextFile(destination, text, _getFileSystem()).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
                 }).fail(function (err) {
                     deferred.reject(err);
@@ -812,8 +812,8 @@ define(function (require, exports, module) {
     
     /**
      * Copy a directory source to a destination
-     * @param {!DirectoryEntry} source Entry for the source directory to copy
-     * @param {!string} destination Destination path to copy the source directory
+     * @param {!Directory} source Directory to copy
+     * @param {!string} destination Destination path to copy the source directory to
      * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
      *     parseOffsets - allows optional offset markup parsing. File is written to the
      *       destination path without offsets. Offset data is passed to the
@@ -833,54 +833,53 @@ define(function (require, exports, module) {
         
         var parseOffsets    = options.parseOffsets || false,
             removePrefix    = options.removePrefix || true,
-            deferred        = new $.Deferred();
+            deferred        = new $.Deferred(),
+            destDir         = _getFileSystem().getDirectoryForPath(destination);
         
         // create the destination folder
-        brackets.fs.makedir(destination, parseInt("644", 8), function callback(err) {
-            if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+        destDir.create(function (err) {
+            if (err && err !== FileSystemError.ALREADY_EXISTS) {
                 deferred.reject();
                 return;
             }
             
-            source.createReader().readEntries(function handleEntries(entries) {
-                if (entries.length === 0) {
-                    deferred.resolve();
-                    return;
-                }
-
-                // copy all children of this directory
-                var copyChildrenPromise = Async.doInParallel(
-                    entries,
-                    function copyChild(child) {
-                        var childDestination = destination + "/" + child.name,
-                            promise;
-                        
-                        if (child.isDirectory) {
-                            promise = copyDirectoryEntry(child, childDestination, options);
-                        } else {
-                            promise = copyFileEntry(child, childDestination, options);
+            source.getContents(function (err, contents) {
+                if (!err) {
+                    // copy all children of this directory
+                    var copyChildrenPromise = Async.doInParallel(
+                        contents,
+                        function copyChild(child) {
+                            var childDestination = destination + "/" + child.name,
+                                promise;
                             
-                            if (parseOffsets) {
-                                // save offset data for each file path
-                                promise.done(function (destinationEntry, offsets, text) {
-                                    options.infos[childDestination] = {
-                                        offsets     : offsets,
-                                        fileEntry   : destinationEntry,
-                                        text        : text
-                                    };
-                                });
+                            if (child.isDirectory) {
+                                promise = copyDirectoryEntry(child, childDestination, options);
+                            } else {
+                                promise = copyFileEntry(child, childDestination, options);
+                                
+                                if (parseOffsets) {
+                                    // save offset data for each file path
+                                    promise.done(function (destinationEntry, offsets, text) {
+                                        options.infos[childDestination] = {
+                                            offsets     : offsets,
+                                            fileEntry   : destinationEntry,
+                                            text        : text
+                                        };
+                                    });
+                                }
                             }
+                            
+                            return promise;
                         }
-                        
-                        return promise;
-                    },
-                    true
-                );
-                
-                copyChildrenPromise.then(deferred.resolve, deferred.reject);
+                    );
+                    
+                    copyChildrenPromise.then(deferred.resolve, deferred.reject);
+                } else {
+                    deferred.reject(err);
+                }
             });
         });
-
+        
         deferred.always(function () {
             // remove destination path prefix
             if (removePrefix && options.infos) {
@@ -1027,8 +1026,7 @@ define(function (require, exports, module) {
         }
         return message;
     }
-
-   
+    
     /**
      * Searches the DOM tree for text containing the given content. Useful for verifying
      * that data you expect to show up in the UI somewhere is actually there.
@@ -1259,6 +1257,7 @@ define(function (require, exports, module) {
 
     exports.chmod                           = chmod;
     exports.remove                          = remove;
+    exports.copy                            = copy;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;

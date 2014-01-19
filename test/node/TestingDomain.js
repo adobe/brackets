@@ -49,6 +49,25 @@ function init(domainManager) {
             description: "path to the directory to remove"
         }]
     );
+    domainManager.registerCommand(
+        "testing",
+        "copy",
+        fs.copy,
+        true,
+        "Copy a file or directory. The directory can have contents. Like cp -r.",
+        [
+            {
+                name: "src",
+                type: "string",
+                description: "directory source to copy"
+            },
+            {
+                name: "dest",
+                type: "string",
+                description: "destination directory"
+            }
+        ]
+    );
 }
 
 exports.init = init;

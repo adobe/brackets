@@ -60,7 +60,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _dirtyFlagChangeHandler(event, doc) {
-        var $dirtyIndicators = $(".inline-editor-holder .dirty-indicator"),
+        var $dirtyIndicators = $(".inline-text-editor .dirty-indicator"),
             $indicator;
         
         $dirtyIndicators.each(function (index, indicator) {
@@ -289,9 +289,7 @@ define(function (require, exports, module) {
         this._endLine = editor.getLastVisibleLine();
         this._lineCount = this._endLine - this._startLine;
 
-        if (oldStartLine !== this._startLine) {
-            this.$lineNumber.text(this._startLine + 1);
-        }
+        this.$lineNumber.text(this._startLine + 1);
     };
 
     /**
@@ -302,7 +300,7 @@ define(function (require, exports, module) {
 
         // We don't create the actual editor here--that will happen the first time
         // setInlineContent() is called.
-        this.$wrapper = $("<div/>").appendTo(this.$htmlContent);
+        this.$wrapper = $("<div/>").addClass("inline-text-editor").appendTo(this.$htmlContent);
         this.$header = $("<div/>").addClass("inline-editor-header").appendTo(this.$wrapper);
         this.$filename = $("<a/>").addClass("filename").appendTo(this.$header);
         this.$editorHolder = $("<div/>").addClass("inline-editor-holder").appendTo(this.$wrapper);

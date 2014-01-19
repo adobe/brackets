@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -34,17 +34,21 @@ define(function (require, exports, module) {
         DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,         // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
+        FileSystem,              // loaded from brackets.test
         FileViewController,      // loaded from brackets.test
+        EditorManager,           // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
-        NativeFileSystem         = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils                = require("file/FileUtils"),
-        StringUtils              = require("utils/StringUtils");
+        StringUtils              = require("utils/StringUtils"),
+        Editor                   = require("editor/Editor");
+                    
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow,
+            _$,
             promise;
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
@@ -54,6 +58,7 @@ define(function (require, exports, module) {
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
+                _$ = testWindow.$;
 
                 // Load module instances from brackets.test
                 CommandManager          = testWindow.brackets.test.CommandManager;
@@ -61,7 +66,9 @@ define(function (require, exports, module) {
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
+                FileSystem              = testWindow.brackets.test.FileSystem;
                 FileViewController      = testWindow.brackets.test.FileViewController;
+                EditorManager           = testWindow.brackets.test.EditorManager;
             });
         });
         
@@ -103,10 +110,9 @@ define(function (require, exports, module) {
             });
             runs(function () {
                 var promise = SpecRunnerUtils.deletePath(fullPath);
-                waitsForDone(promise, "Remove testfile " + fullPath);
+                waitsForDone(promise, "Remove testfile " + fullPath, 5000);
             });
         }
-        
         
         describe("New Untitled File", function () {
             var filePath,
@@ -179,12 +185,12 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
                     promise = CommandManager.execute(Commands.FILE_SAVE);
-                    waitsForDone(promise, "Provide new filename");
+                    waitsForDone(promise, "Provide new filename", 5000);
                 });
 
                 runs(function () {
@@ -216,7 +222,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -257,7 +263,7 @@ define(function (require, exports, module) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -320,7 +326,7 @@ define(function (require, exports, module) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, "");  // "" means cancel
                     });
 
@@ -423,13 +429,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
 
                     var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                    waitsForDone(promise, "FILE_SAVE_ALL");
+                    waitsForDone(promise, "FILE_SAVE_ALL", 5000);
                 });
 
                 runs(function () {
@@ -463,13 +469,13 @@ define(function (require, exports, module) {
                     });
                     
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
 
                     var promise = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-                    waitsForDone(promise, "FILE_CLOSE_ALL");
+                    waitsForDone(promise, "FILE_CLOSE_ALL", 5000);
                 });
 
                 runs(function () {
@@ -491,7 +497,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -546,7 +552,7 @@ define(function (require, exports, module) {
                     });
                     
                     var fileI = 0;
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -658,7 +664,7 @@ define(function (require, exports, module) {
                 // confirm file contents
                 var actualContent = null, error = -1;
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(filePath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(filePath))
                         .done(function (actualText) {
                             expect(actualText).toBe(TEST_JS_NEW_CONTENT);
                         });
@@ -667,7 +673,7 @@ define(function (require, exports, module) {
 
                 // reset file contents
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(filePath), TEST_JS_CONTENT);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(filePath), TEST_JS_CONTENT);
                     waitsForDone(promise, "Revert test file");
                 });
             });
@@ -682,11 +688,11 @@ define(function (require, exports, module) {
                 
                 // create test files (Git rewrites line endings, so these can't be kept in src control)
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(crlfPath), crlfText);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(crlfPath), crlfText);
                     waitsForDone(promise, "Create CRLF test file");
                 });
                 runs(function () {
-                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(lfPath), lfText);
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(lfPath), lfText);
                     waitsForDone(promise, "Create LF test file");
                 });
                 
@@ -716,7 +722,7 @@ define(function (require, exports, module) {
                 
                 // verify file contents
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(crlfPath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
                         });
@@ -724,7 +730,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(lfPath))
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(lfPath))
                         .done(function (actualText) {
                             expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
                         });
@@ -767,7 +773,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -805,7 +811,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -841,7 +847,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback("Error", undefined);
                     });
 
@@ -886,7 +892,7 @@ define(function (require, exports, module) {
                     // save the file opened above to a different filename
                     DocumentManager.setCurrentDocument(targetDoc);
                     
-                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -1059,5 +1065,151 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
             });
         });
+
+        describe("Opens image file and validates EditorManager APIs", function () {
+            it("should return null after opening an image", function () {
+                var path = testPath + "/couz.png",
+                    promise;
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+
+                runs(function () {
+                    expect(EditorManager.getActiveEditor()).toEqual(null);
+                    expect(EditorManager.getCurrentFullEditor()).toEqual(null);
+                    expect(EditorManager.getFocusedEditor()).toEqual(null);
+                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                    var d = DocumentManager.getCurrentDocument();
+                    expect(d).toEqual(null);
+                });
+            });
+        });
+        
+        describe("Open image file while a text file is open", function () {
+            it("should fire currentDocumentChange and activeEditorChange events", function () {
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(activeEditorChangeListener.callCount).toBe(1);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(2);
+                    expect(activeEditorChangeListener.callCount).toBe(2);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+            });
+        });
+        
+        describe("Open image file while neither text editor nor image file is open", function () {
+            it("should NOT fire currentDocumentChange and activeEditorChange events", function () {
+
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                    expect(activeEditorChangeListener.callCount).toBe(0);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz2.png" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(0);
+                    expect(activeEditorChangeListener.callCount).toBe(0);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+    
+            });
+        });
+        
+        describe("Open a text file while a text file is open", function () {
+            it("should fire currentDocumentChange and activeEditorChange events", function () {
+
+                var promise,
+                    docChangeListener = jasmine.createSpy(),
+                    activeEditorChangeListener = jasmine.createSpy();
+
+
+                runs(function () {
+                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    
+                    
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(1);
+                    expect(activeEditorChangeListener.callCount).toBe(1);
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test2.js" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(docChangeListener.callCount).toBe(2);
+                    expect(activeEditorChangeListener.callCount).toBe(2);
+                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
+                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                });
+            });
+        });
+        
+        describe("Opens text file and validates EditorManager APIs", function () {
+            it("should return an editor after opening a text file", function () {
+                var path = testPath + "/test.js",
+                    promise;
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                
+                runs(function () {
+                    var e = EditorManager.getActiveEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+                    
+                    e = EditorManager.getCurrentFullEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+     
+                    e = EditorManager.getFocusedEditor();
+                    expect(e.document.file.fullPath).toBe(path);
+                    
+                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                });
+            });
+        });
+                
+
     });
 });

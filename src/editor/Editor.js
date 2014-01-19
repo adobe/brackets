@@ -64,9 +64,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands           = require("command/Commands"),
-        CommandManager     = require("command/CommandManager"),
-        Menus              = require("command/Menus"),
+    var Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
@@ -74,34 +72,43 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         Async              = require("utils/Async"),
-        AnimationUtils     = require("utils/AnimationUtils");
-    
-    var defaultPrefs = { useTabChar: false, tabSize: 4, spaceUnits: 4, closeBrackets: false,
-                         showLineNumbers: true, styleActiveLine: false, wordWrap: true };
+        AnimationUtils     = require("utils/AnimationUtils"),
+        _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    PreferencesManager.definePreference("useTabChar", "boolean", false);
+    PreferencesManager.definePreference("tabSize", "number", 4);
+    PreferencesManager.definePreference("spaceUnits", "number", 4);
+    PreferencesManager.definePreference("closeBrackets", "boolean", false);
+    PreferencesManager.definePreference("showLineNumbers", "boolean", true);
+    PreferencesManager.definePreference("styleActiveLine", "boolean", false);
+    PreferencesManager.definePreference("wordWrap", "boolean", true);
+    
+    var editorSettings = ["useTabChar", "tabSize", "spaceUnits", "closeBrackets",
+                          "showLineNumbers", "styleActiveLine", "wordWrap"];
+
+    /** Editor preferences */
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = _prefs.getValue("useTabChar");
+    var _useTabChar = PreferencesManager.get("useTabChar");
     
     /** @type {number}  Global setting: Tab size */
-    var _tabSize = _prefs.getValue("tabSize");
+    var _tabSize = PreferencesManager.get("tabSize");
     
     /** @type {number}  Global setting: Space units (i.e. number of spaces when indenting) */
-    var _spaceUnits = _prefs.getValue("spaceUnits");
+    var _spaceUnits = PreferencesManager.get("spaceUnits");
     
     /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
-    var _closeBrackets = _prefs.getValue("closeBrackets");
+    var _closeBrackets = PreferencesManager.get("closeBrackets");
     
     /** @type {boolean}  Global setting: Show line numbers in the gutter */
-    var _showLineNumbers = _prefs.getValue("showLineNumbers");
+    var _showLineNumbers = PreferencesManager.get("showLineNumbers");
 
     /** @type {boolean}  Global setting: Highlight the background of the line that has the cursor */
-    var _styleActiveLine = _prefs.getValue("styleActiveLine");
+    var _styleActiveLine = PreferencesManager.get("styleActiveLine");
 
     /** @type {boolean}  Global setting: Auto wrap lines */
-    var _wordWrap = _prefs.getValue("wordWrap");
+    var _wordWrap = PreferencesManager.get("wordWrap");
 
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
@@ -140,10 +147,18 @@ define(function (require, exports, module) {
         if (indentAuto) {
             var currentLength = line.length;
             CodeMirror.commands.indentAuto(instance);
-            // If the amount of whitespace didn't change, insert another tab
+            
+            // If the amount of whitespace and the cursor position didn't change, we must have
+            // already been at the correct indentation level as far as CM is concerned, so insert 
+            // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                insertTab = true;
-                to.ch = 0;
+                var newFrom = instance.getCursor(true),
+                    newTo = instance.getCursor(false);
+                if (newFrom.line === from.line && newFrom.ch === from.ch &&
+                        newTo.line === to.line && newTo.ch === to.ch) {
+                    insertTab = true;
+                    to.ch = 0;
+                }
             }
         } else if (instance.somethingSelected() && from.line !== to.line) {
             CodeMirror.commands.indentMore(instance);
@@ -410,18 +425,7 @@ define(function (require, exports, module) {
         this._duringSync = false;
         
         if (range) {
-            // Hide all lines other than those we want to show. We do this rather than trimming the
-            // text itself so that the editor still shows accurate line numbers.
-            this._codeMirror.operation(function () {
-                if (range.startLine > 0) {
-                    self._hideLines(0, range.startLine);
-                }
-                
-                var end = range.endLine + 1;
-                if (end < self.lineCount()) {
-                    self._hideLines(end, self.lineCount());
-                }
-            });
+            this._updateHiddenLines();
             this.setCursorPos(range.startLine, 0);
         }
 
@@ -515,10 +519,14 @@ define(function (require, exports, module) {
             var cm = this._codeMirror,
                 self = this;
             cm.operation(function () {
-                // TODO: could make this more efficient by only iterating across the min-max line
-                // range of the union of all changes
-                self._hideLines(0, self._visibleRange.startLine);
-                self._hideLines(self._visibleRange.endLine + 1, self.lineCount());
+                self._hideMarks.forEach(function (mark) {
+                    if (mark) {
+                        mark.clear();
+                    }
+                });
+                self._hideMarks = [];
+                self._hideMarks.push(self._hideLines(0, self._visibleRange.startLine));
+                self._hideMarks.push(self._hideLines(self._visibleRange.endLine + 1, self.lineCount()));
             });
         }
     };
@@ -978,16 +986,21 @@ define(function (require, exports, module) {
     /* Hides the specified line number in the editor
      * @param {!from} line to start hiding from (inclusive)
      * @param {!to} line to end hiding at (exclusive)
+     * @return {TextMarker} The CodeMirror mark object that's hiding the lines
      */
     Editor.prototype._hideLines = function (from, to) {
         if (to <= from) {
             return;
         }
         
+        // We set clearWhenEmpty: false so that if there's a blank line at the beginning or end of
+        // the document, and that's the only hidden line, we can still actually hide it. Doing so
+        // requires us to create a 0-length marked span, which would ordinarily be cleaned up by CM
+        // if clearWithEmpty is true. See https://groups.google.com/forum/#!topic/codemirror/RB8VNF8ow2w
         var value = this._codeMirror.markText(
             {line: from, ch: 0},
             {line: to - 1, ch: this._codeMirror.getLine(to - 1).length},
-            {collapsed: true, inclusiveLeft: true, inclusiveRight: true}
+            {collapsed: true, inclusiveLeft: true, inclusiveRight: true, clearWhenEmpty: false}
         );
         
         return value;
@@ -1135,6 +1148,12 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             self = this;
 
+        function finishRemoving() {
+            self._codeMirror.removeLineWidget(inlineWidget.info);
+            self._removeInlineWidgetInternal(inlineWidget);
+            deferred.resolve();
+        }
+            
         if (!inlineWidget.closePromise) {
             var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
             
@@ -1144,13 +1163,17 @@ define(function (require, exports, module) {
             // the other stuff in _removeInlineWidgetInternal to wait until then).
             self._removeInlineWidgetFromList(inlineWidget);
             
-            AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                .done(function () {
-                    self._codeMirror.removeLineWidget(inlineWidget.info);
-                    self._removeInlineWidgetInternal(inlineWidget);
-                    deferred.resolve();
-                });
-            inlineWidget.$htmlContent.height(0);
+            // If we're not visible (in which case the widget will have 0 client height),
+            // don't try to do the animation, because nothing will happen and we won't get
+            // called back right away. (The animation would happen later when we switch
+            // back to the editor.)
+            if (self.isFullyVisible()) {
+                AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
+                    .done(finishRemoving);
+                inlineWidget.$htmlContent.height(0);
+            } else {
+                finishRemoving();
+            }
             inlineWidget.closePromise = deferred.promise();
         }
         return inlineWidget.closePromise;
@@ -1487,6 +1510,13 @@ define(function (require, exports, module) {
      */
     Editor.prototype._inlineWidgetQueues = {};
     
+    /**
+     * @private
+     * @type {Array}
+     * A list of objects corresponding to the markers that are hiding lines in the current editor.
+     */
+    Editor.prototype._hideMarks = [];
+    
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
 
@@ -1517,19 +1547,23 @@ define(function (require, exports, module) {
      * @param {boolean | number} value
      * @param {string} cmOption - CodeMirror option string
      * @param {string} prefName - preference name string
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    function _setEditorOptionAndPref(value, cmOption, prefName) {
+    function _setEditorOptionAndPref(value, cmOption, prefName, _editorOnly) {
         _setEditorOption(value, cmOption);
-        _prefs.setValue(prefName, value);
+        if (!_editorOnly) {
+            PreferencesManager.setValueAndSave("user", prefName, value);
+        }
     }
     
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setUseTabChar = function (value) {
+    Editor.setUseTabChar = function (value, _editorOnly) {
         _useTabChar = value;
-        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar");
+        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar", _editorOnly);
         _setEditorOption(_useTabChar ? _tabSize : _spaceUnits, "indentUnit");
     };
     
@@ -1541,10 +1575,11 @@ define(function (require, exports, module) {
     /**
      * Sets tab character width. Affects all Editors.
      * @param {number} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setTabSize = function (value) {
+    Editor.setTabSize = function (value, _editorOnly) {
         _tabSize = value;
-        _setEditorOptionAndPref(value, "tabSize", "tabSize");
+        _setEditorOptionAndPref(value, "tabSize", "tabSize", _editorOnly);
         _setEditorOption(value, "indentUnit");
     };
     
@@ -1556,10 +1591,11 @@ define(function (require, exports, module) {
     /**
      * Sets indentation width. Affects all Editors.
      * @param {number} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setSpaceUnits = function (value) {
+    Editor.setSpaceUnits = function (value, _editorOnly) {
         _spaceUnits = value;
-        _setEditorOptionAndPref(value, "indentUnit", "spaceUnits");
+        _setEditorOptionAndPref(value, "indentUnit", "spaceUnits", _editorOnly);
     };
     
     /** @type {number} Get indentation width */
@@ -1570,10 +1606,11 @@ define(function (require, exports, module) {
     /**
      * Sets the auto close brackets. Affects all Editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setCloseBrackets = function (value) {
+    Editor.setCloseBrackets = function (value, _editorOnly) {
         _closeBrackets = value;
-        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets");
+        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets", _editorOnly);
     };
     
     /** @type {boolean} Gets whether all Editors use auto close brackets */
@@ -1584,10 +1621,11 @@ define(function (require, exports, module) {
     /**
      * Sets show line numbers option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setShowLineNumbers = function (value) {
+    Editor.setShowLineNumbers = function (value, _editorOnly) {
         _showLineNumbers = value;
-        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers");
+        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers", _editorOnly);
     };
     
     /** @type {boolean} Returns true if show line numbers is enabled for all editors */
@@ -1598,11 +1636,18 @@ define(function (require, exports, module) {
     /**
      * Sets show active line option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setShowActiveLine = function (value) {
+    Editor.setShowActiveLine = function (value, _editorOnly) {
         _styleActiveLine = value;
-        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine");
+        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine", _editorOnly);
     };
+    
+    /**
+     * Synonym for setShowActiveLine. This is needed because the preference name
+     * is styleActiveLine and editorSettings automatically calls this setter.
+     */
+    Editor.setStyleActiveLine = Editor.setShowActiveLine;
     
     /** @type {boolean} Returns true if show active line is enabled for all editors */
     Editor.getShowActiveLine = function () {
@@ -1612,16 +1657,44 @@ define(function (require, exports, module) {
     /**
      * Sets word wrap option and reapply it to all open editors.
      * @param {boolean} value
+     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setWordWrap = function (value) {
+    Editor.setWordWrap = function (value, _editorOnly) {
         _wordWrap = value;
-        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap");
+        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap", _editorOnly);
     };
     
     /** @type {boolean} Returns true if word wrap is enabled for all editors */
     Editor.getWordWrap = function () {
         return _wordWrap;
     };
+    
+    // Set up listeners for preference changes
+    editorSettings.forEach(function (setting) {
+        var setterName = "set" + setting[0].toUpperCase() + setting.substr(1);
+        PreferencesManager.on("change", setting, function () {
+            if (Editor[setterName]) {
+                Editor[setterName](PreferencesManager.get(setting), true);
+            } else {
+                console.error("No Editor setter for ", setting);
+            }
+        });
+    });
+    
+    /**
+     * @private
+     * 
+     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
+     */
+    function _convertPreferences() {
+        var rules = {};
+        editorSettings.forEach(function (setting) {
+            rules[setting] = "user";
+        });
+        PreferencesManager.convertPreferences(module, rules);
+    }
+    
+    _convertPreferences();
     
     // Define public API
     exports.Editor                  = Editor;

@@ -1,11 +1,16 @@
 <table class="bottom-panel-table table table-striped table-condensed row-highlight">
     <tbody>
         {{#reportList}}
+        <tr class="inspector-section">
+            <td colspan="3"><span class="disclosure-triangle expanded"></span>{{providerName}} ({{results.length}})</td>
+        </tr>
+        {{#results}}
         <tr>
             <td class="line-number" data-character="{{pos.ch}}">{{friendlyLine}}</td>
-            <td>{{message}}</td>
-            <td>{{codeSnippet}}</td>
+            <td class="line-text">{{message}}</td>
+            <td class="line-snippet">{{codeSnippet}}</td>
         </tr>
+        {{/results}}
         {{/reportList}}
     </tbody>
 </table>

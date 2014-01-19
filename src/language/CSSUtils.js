@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
-        FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = require("project/ProjectManager"),
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants
@@ -68,11 +67,11 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 1) {
+        if (!state.context) {
             return false;
         }
         
-        lastToken = state.stack[state.stack.length - 1];
+        lastToken = state.context.type;
         return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
     
@@ -91,21 +90,21 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 2) {
+        if (!state.context || !state.context.prev) {
             return false;
         }
-        return ((state.stack[state.stack.length - 1] === "propertyValue" &&
-                    (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block")) ||
-                    (state.stack[state.stack.length - 1] === "(" && (state.stack[state.stack.length - 2] === "propertyValue")));
+        return ((state.context.type === "prop" &&
+                    (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
+                    (state.context.type === "parens" && state.context.prev.type === "prop"));
     }
     
     /**
      * @private
-     * Checks if the current cursor position is inside an @import rule
+     * Checks if the current cursor position is inside an at-rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {boolean} true if the context is in property value
      */
-    function _isInImportRule(ctx) {
+    function _isInAtRule(ctx) {
         var state;
         if (!ctx || !ctx.token || !ctx.token.state) {
             return false;
@@ -113,10 +112,10 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 1) {
+        if (!state.context) {
             return false;
         }
-        return (state.stack[0] === "@import");
+        return (state.context.type === "at");
     }
 
     /**
@@ -452,7 +451,7 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
-        if (mode !== "css" && mode !== "text/x-scss" && mode !== "less") {
+        if (mode !== "css" && mode !== "text/x-scss" && mode !== "text/x-less") {
             return createInfo();
         }
 
@@ -482,7 +481,7 @@ define(function (require, exports, module) {
             return _getRuleInfoStartingFromPropValue(ctx, editor);
         }
 
-        if (_isInImportRule(ctx)) {
+        if (_isInAtRule(ctx)) {
             return _getImportUrlInfo(ctx, editor);
         }
         
@@ -632,7 +631,7 @@ define(function (require, exports, module) {
             while (token !== "," && token !== "{") {
                 currentSelector += token;
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    return false; // eof
                 }
             }
             
@@ -672,25 +671,34 @@ define(function (require, exports, module) {
                 currentSelector = "";
             }
             selectorStartChar = -1;
+
+            return true;
         }
         
         function _parseSelectorList() {
             selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
             selectorGroupStartChar = stream.start;
 
-            _parseSelector(stream.start);
+            if (!_parseSelector(stream.start)) {
+                return false;
+            }
+
             while (token === ",") {
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    return false; // eof
                 }
-                _parseSelector(stream.start);
+                if (!_parseSelector(stream.start)) {
+                    return false;
+                }
             }
+
+            return true;
         }
 
         function _parseDeclarationList() {
 
             var j;
-            declListStartLine = line;
+            declListStartLine = Math.min(line, lineCount - 1);
             declListStartChar = stream.start;
             
             // Extract the entire selector group we just saw.
@@ -774,10 +782,14 @@ define(function (require, exports, module) {
                 // Skip everything until the opening '{'
                 while (token !== "{") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
-                _nextTokenSkippingWhitespace();    // skip past '{', to next non-ws token
+
+                // skip past '{', to next non-ws token
+                if (!_nextTokenSkippingWhitespace()) {
+                    return; // eof
+                }
 
                 // Parse rules until we see '}'
                 _parseRuleList("}");
@@ -789,7 +801,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next ';'
                 while (token !== ";") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
                 
@@ -800,7 +812,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next '}'
                 while (token !== "}") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
             }
@@ -808,7 +820,10 @@ define(function (require, exports, module) {
 
         // parse a style rule
         function _parseRule() {
-            _parseSelectorList();
+            if (!_parseSelectorList()) {
+                return false;
+            }
+
             _parseDeclarationList();
         }
         
@@ -947,8 +962,7 @@ define(function (require, exports, module) {
     
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
     function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
-        var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+        var result          = new $.Deferred();
         
         // Load one CSS file and search its contents
         function _loadFileAndScan(fullPath, selector) {
@@ -970,13 +984,14 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
         
-        // Load index of all CSS files; then process each CSS file in turn (see above)
-        cssFilesResult.done(function (fileInfos) {
-            Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _loadFileAndScan(fileInfo.fullPath, selector);
-            })
-                .then(result.resolve, result.reject);
-        });
+        ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"))
+            .done(function (cssFiles) {
+                // Load index of all CSS files; then process each CSS file in turn (see above)
+                Async.doInParallel(cssFiles, function (fileInfo, number) {
+                    return _loadFileAndScan(fileInfo.fullPath, selector);
+                })
+                    .then(result.resolve, result.reject);
+            });
         
         return result.promise();
     }
@@ -1249,18 +1264,20 @@ define(function (require, exports, module) {
      * 
      * In the given rule array (as returned by `findMatchingRules()`), if multiple rules in a row 
      * refer to the same rule (because there were multiple matching selectors), eliminate the redundant 
-     * rules and use the selectorGroup as the name instead of the original selector.
+     * rules. Also, always use the selector group if available instead of the original matching selector.
      */
     function consolidateRules(rules) {
         var newRules = [], lastRule;
         rules.forEach(function (rule) {
-            if (lastRule &&
-                    rule.document === lastRule.document &&
-                    rule.lineStart === lastRule.lineStart &&
-                    rule.lineEnd === lastRule.lineEnd &&
-                    rule.selectorGroup === lastRule.selectorGroup) {
-                lastRule.name = lastRule.selectorGroup;
-            } else {
+            if (rule.selectorGroup) {
+                rule.name = rule.selectorGroup;
+            }
+            // Push the entry unless it refers to the same rule as the previous entry.
+            if (!(lastRule &&
+                     rule.document === lastRule.document &&
+                     rule.lineStart === lastRule.lineStart &&
+                     rule.lineEnd === lastRule.lineEnd &&
+                     rule.selectorGroup === lastRule.selectorGroup)) {
                 newRules.push(rule);
             }
             lastRule = rule;

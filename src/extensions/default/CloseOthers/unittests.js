@@ -28,12 +28,13 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-		FileUtils		= brackets.getModule("file/FileUtils"),
-		CommandManager,
-		Commands,
-		Dialogs,
-		EditorManager,
-		DocumentManager;
+        FileUtils		= brackets.getModule("file/FileUtils"),
+        CommandManager,
+        Commands,
+        Dialogs,
+        EditorManager,
+        DocumentManager,
+        FileSystem;
 
     describe("CloseOthers", function () {
 		var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
@@ -69,7 +70,7 @@ define(function (require, exports, module) {
             });
             runs(function () {
                 var promise = SpecRunnerUtils.deletePath(fullPath);
-                waitsForDone(promise, "Remove testfile " + fullPath);
+                waitsForDone(promise, "Remove testfile " + fullPath, 5000);
             });
         }
 
@@ -89,6 +90,7 @@ define(function (require, exports, module) {
                     EditorManager   = testWindow.brackets.test.EditorManager;
                     Dialogs			= testWindow.brackets.test.Dialogs;
 					Commands        = testWindow.brackets.test.Commands;
+                    FileSystem      = testWindow.brackets.test.FileSystem;
                 });
             });
             
@@ -100,13 +102,13 @@ define(function (require, exports, module) {
 
             runs(function () {
                 var fileI = 0;
-                spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                     callback(undefined, getFilename(fileI));
                     fileI++;
                 });
 
                 var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                waitsForDone(promise, "FILE_SAVE_ALL");
+                waitsForDone(promise, "FILE_SAVE_ALL", 60000);
             });
         });
         

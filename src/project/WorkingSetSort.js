@@ -174,7 +174,7 @@ define(function (require, exports, module) {
      * @private
      *
      * @param {string} commandID A valid command identifier.
-     * @param {function(FileEntry, FileEntry): number} compareFn A valid sort
+     * @param {function(File, File): number} compareFn A valid sort
      *      function (see register for a longer explanation).
      * @param {string} events Space-separated DocumentManager possible events
      *      ending with ".sort".
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
         return this._commandID;
     };
     
-    /** @return {function(FileEntry, FileEntry): number} The compare function */
+    /** @return {function(File, File): number} The compare function */
     Sort.prototype.getCompareFn = function () {
         return this._compareFn;
     };
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
     /**
      * Registers a working set sort method.
      * @param {(string|Command)} command A command ID or a command object
-     * @param {function(FileEntry, FileEntry): number} compareFn The function that
+     * @param {function(File, File): number} compareFn The function that
      *      will be used inside JavaScript's sort function. The return a value
      *      should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index

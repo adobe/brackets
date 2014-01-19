@@ -68,7 +68,7 @@ define({
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
 
-    // FileIndexManager error string
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
     "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Dateien wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt ausgeführt.",
 
@@ -110,22 +110,28 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiter verwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Abbrechen",
+    "DONT_SAVE"                         : "Nicht speichern",
+    "SAVE"                              : "Speichern",
+    "DELETE"                            : "Löschen",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nein",
+
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
     "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
     "FIND_RESULT_COUNT_SINGLE"          : "1 Ergebnis",
     "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
-    "WITH"                              : "Mit",
-    "BUTTON_YES"                        : "Ja",
-    "BUTTON_NO"                         : "Nein",
+    "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
-    "BUTTON_STOP"                       : "Stopp",
     "BUTTON_REPLACE"                    : "Ersetzen",
-
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Nächster Treffer",
     "BUTTON_PREV_HINT"                  : "Vorheriger Treffer",
+    "BUTTON_CASESENSITIVE_HINT"         : "Groß-/Kleinschreibung beachten",
+    "BUTTON_REGEXP_HINT"                : "Regulärer Ausdruck",
 
     "OPEN_FILE"                         : "Datei öffnen",
     "SAVE_FILE_AS"                      : "Datei speichern",
@@ -135,10 +141,12 @@ define({
     "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
     "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "\"",
     "FIND_REPLACE_TITLE_PART2"          : "\" durch \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" ersetzen &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" gefunden",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
@@ -151,7 +159,6 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
 
@@ -185,15 +192,19 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab-Schrittweite:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} Fehler",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Probleme",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Linting-Probleme",
     "SINGLE_ERROR"                          : "1 {0} Fehler",
     "MULTIPLE_ERRORS"                       : "{1} {0} Fehler",
     "NO_ERRORS"                             : "Keine {0} Fehler - gute Arbeit!",
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
+
 
     /**
      * Command Name Constants
@@ -206,6 +217,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
+    "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
@@ -284,6 +296,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Neue Regel",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
@@ -303,11 +316,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Nicht speichern",
-    "SAVE"                                 : "Speichern",
-    "CANCEL"                               : "Abbrechen",
-    "DELETE"                               : "Löschen",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
@@ -322,7 +330,7 @@ define({
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform-Dokumente und das grafische Logo von Web Platform sind unter einer Creative-Commons-Namensnennungs-Lizenz lizenziert, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
-    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
+    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier sind einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
@@ -343,6 +351,7 @@ define({
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "CANT_UPDATE"                          : "Das Update ist nicht kompatibel mit dieser Version von {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Erweiterungen im \"dev\"-Ordner können nicht automatisch aktualisiert werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
     "UPDATE_EXTENSION_TITLE"               : "Erweiterung updaten",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
@@ -377,12 +386,14 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf die Registrierung für Erweiterungen. Bitte später erneut versuchen.",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf das Verzeichnis der Erweiterungen. Bitte später erneut versuchen.",
     "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Diese Erweiterung funktioniert momentan nur mit älteren Versionen von {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Die Version {0} dieser Erweiterung benötigt eine neuere Version von {APP_NAME}. Sie können jedoch die ältere Version {1} installieren.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Die Version {0} dieser Erweiterung funktioniert nur mit älteren Versionen von {APP_NAME}. Sie können jedoch die ältere Version {1} installieren.",
     "EXTENSION_NO_DESCRIPTION"             : "Keine Beschreibung",
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
@@ -427,6 +438,7 @@ define({
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "{APP_NAME} neu laden",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
     "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
@@ -442,28 +454,36 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
     // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tschechisch",
+    "LOCALE_CS"                                 : "Tschechisch",
     "LOCALE_DE"                                 : "Deutsch",
+    "LOCALE_EL"                                 : "Griechisch",
     "LOCALE_EN"                                 : "Englisch",
     "LOCALE_ES"                                 : "Spanisch",
+    "LOCALE_FA_IR"                              : "Persisch (Farsi)",
     "LOCALE_FI"                                 : "Finnisch",
     "LOCALE_FR"                                 : "Französisch",
     "LOCALE_IT"                                 : "Italienisch",
     "LOCALE_JA"                                 : "Japanisch",
     "LOCALE_NB"                                 : "Norwegisch",
+    "LOCALE_NL"                                 : "Niederländisch",
     "LOCALE_PL"                                 : "Polnisch",
     "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
     "LOCALE_PT_PT"                              : "Portugiesisch",
+    "LOCALE_RO"                                 : "Rumänisch",
     "LOCALE_RU"                                 : "Russisch",
     "LOCALE_SK"                                 : "Slowakisch",
+    "LOCALE_SR"                                 : "Serbisch",
     "LOCALE_SV"                                 : "Schwedisch",
     "LOCALE_TR"                                 : "Türkisch",
     "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
     "LOCALE_HU"                                 : "Ungarisch",
+    "LOCALE_KO"                                 : "Koreanisch",
 
-    // extensions/default/InlineBezierCurveEditor
-    "INLINE_BEZIER_EDITOR_TIME"                 : "Zeit",
-    "INLINE_BEZIER_EDITOR_PROGRESSION"          : "Verlauf",
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Verlauf",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Ausgewählten Punkt bewegen<br><kbd class='text'>Umschalt</kbd> Um 10 Einheiten bewegen",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Stufenzahl vergrößern oder verkleinern<br><kbd>←</kbd><kbd>→</kbd> 'Start' oder 'Ende'",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
@@ -483,7 +503,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnellansicht bei Hover",
+    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",

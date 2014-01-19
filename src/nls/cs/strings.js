@@ -111,21 +111,21 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
     // Najít, Nahradit, Nahradit v souborech
-    "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
-    "WITH"                              : "S",
+    "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
-    "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradit",
 
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Další shoda",
     "BUTTON_PREV_HINT"                  : "Předchozí shoda",
+    "BUTTON_CASESENSITIVE_HINT"         : "Rozlišovat velká a malá písmena",
+    "BUTTON_REGEXP_HINT"                : "Regulární výraz",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -186,7 +186,9 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
 
     // CodeInspection: chyby/varování
-    "ERRORS_PANEL_TITLE"                    : "{0} chyb",
+    "ERRORS_PANEL_TITLE"                    : "{0} chyby",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} chyby",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Lint problémy",
     "SINGLE_ERROR"                          : "1 {0} chyba",
     "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
     "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
@@ -206,9 +208,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Přidat k pracovní sadě",
+    "CMD_OPEN_DROPPED_FILES"              : "Otevřít opuštěné soubory",
     "CMD_OPEN_FOLDER"                     : "Otevřít složku\u2026",
     "CMD_FILE_CLOSE"                      : "Zavřít",
     "CMD_FILE_CLOSE_ALL"                  : "Zavřít vše",
+    "CMD_FILE_CLOSE_LIST"                 : "Zavřít seznam",
+    "CMD_FILE_CLOSE_OTHERS"               : "Zavřít ostatní",
+    "CMD_FILE_CLOSE_ABOVE"                : "Zavřít ostatní výše",
+    "CMD_FILE_CLOSE_BELOW"                : "Zavřít ostatní níže",
     "CMD_FILE_SAVE"                       : "Uložit",
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
@@ -280,6 +287,7 @@ define({
     "CMD_TOGGLE_QUICK_DOCS"               : "Rychlá dokumentace",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Předchozí shoda",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Další shoda",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nové pravidlo",
     "CMD_NEXT_DOC"                        : "Další dokument",
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
@@ -329,6 +337,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být %-enkódovány.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
 
+      // CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "Nové pravidlo",
+
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
     "UPDATE"                               : "Aktualizovat",
@@ -376,6 +387,8 @@ define({
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Tento doplněk požaduje novější verzi {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Tento doplněk funguje pouze ve starší verzi {APP_NAME}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Verze {0} tohoto doplňku vyžaduje novější verzi {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Verze {0} tohoto doplňku funguje pouze se starší verzí {APP_NAME}. Můžete si ale nainstalovat dřívější verzi {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Bez popisu",
     "EXTENSION_MORE_INFO"                  : "Více informací...",
     "EXTENSION_ERROR"                      : "Chyba doplňku",
@@ -405,6 +418,10 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Nainstalované",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
+
+    "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
 
     /**
      * Jména jednotek
@@ -441,16 +458,24 @@ define({
     "LOCALE_IT"                                 : "Italsky",
     "LOCALE_JA"                                 : "Japonsky",
     "LOCALE_NB"                                 : "Norsky",
+    "LOCALE_NL"                                 : "Holandsky",
+    "LOCALE_FA_IR"                              : "Persky-perština",
     "LOCALE_PL"                                 : "Polsky",
     "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
     "LOCALE_PT_PT"                              : "Portugalsky",
+    "LOCALE_RO"                                 : "Rumunsky",
     "LOCALE_RU"                                 : "Rusky",
     "LOCALE_SK"                                 : "Slovensky",
+	"LOCALE_SR"									: "Srbština",
     "LOCALE_SV"                                 : "Švédsky",
     "LOCALE_TR"                                 : "Turecky",
     "LOCALE_FI"                                 : "Finsky",
     "LOCALE_ZH_CN"                              : "Čínsky",
     "LOCALE_HU"                                 : "Maďarsky",
+
+    // extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",

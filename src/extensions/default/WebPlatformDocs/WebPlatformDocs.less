@@ -41,13 +41,16 @@
     a {
         color: @link-color;
     }
+    
     code {
         font-family: SourceCodePro;
         font-size: 12px;
         color: @emphasized-text-color;
         background: none;   // revert Bootstrap's styling
         padding: 0;
+        white-space: normal;
     }
+    
     b {
         font-weight: @font-weight-semibold;
     }
@@ -59,6 +62,9 @@
     float: left;
     padding-left: 20px;
     width: 35%;
+    word-wrap: break-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
     
     p {
         line-height: 18px;

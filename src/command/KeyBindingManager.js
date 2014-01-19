@@ -387,7 +387,7 @@ define(function (require, exports, module) {
         
         // skip if the key binding is invalid 
         if (!normalized) {
-            console.log("Failed to normalize " + key);
+            console.error("Unable to parse key binding " + key + ". Permitted modifiers: Ctrl, Cmd, Alt, Opt, Shift; separated by '-' (not '+').");
             return null;
         }
         

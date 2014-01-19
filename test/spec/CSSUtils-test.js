@@ -27,8 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var NativeFileSystem           = require("file/NativeFileSystem").NativeFileSystem,
-        Async                      = require("utils/Async"),
+    var Async                      = require("utils/Async"),
+        FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
@@ -36,14 +36,15 @@ define(function (require, exports, module) {
         TextRange                  = require("document/TextRange").TextRange;
     
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry         = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
-        universalCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry            = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
-        offsetsCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
-        bootstrapCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css"),
-        escapesCssFileEntry        = new NativeFileSystem.FileEntry(testPath + "/escaped-identifiers.css"),
-        embeddedHtmlFileEntry      = new NativeFileSystem.FileEntry(testPath + "/embedded.html"),
-        cssRegionsFileEntry        = new NativeFileSystem.FileEntry(testPath + "/regions.css");
+        simpleCssFileEntry         = FileSystem.getFileForPath(testPath + "/simple.css"),
+        universalCssFileEntry      = FileSystem.getFileForPath(testPath + "/universal.css"),
+        groupsFileEntry            = FileSystem.getFileForPath(testPath + "/groups.css"),
+        offsetsCssFileEntry        = FileSystem.getFileForPath(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = FileSystem.getFileForPath(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = FileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
+        embeddedHtmlFileEntry      = FileSystem.getFileForPath(testPath + "/embedded.html"),
+        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css");
+        
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
@@ -203,7 +204,7 @@ define(function (require, exports, module) {
         describe("with sprint 4 exemptions", function () {
         
             beforeEach(function () {
-                var sprint4exemptions = new NativeFileSystem.FileEntry(testPath + "/sprint4.css");
+                var sprint4exemptions = FileSystem.getFileForPath(testPath + "/sprint4.css");
                 init(this, sprint4exemptions);
             });
             
@@ -1540,7 +1541,12 @@ define(function (require, exports, module) {
             var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
                 doc = mock.doc,
                 result = CSSUtils.addRuleToDocument(doc, options.selector, options.useTab, options.indentUnit);
-            expect(doc.getText()).toEqual(options.resultText);
+
+            // Normalize line endings so tests pass on all Operating Systems
+            var normalizedDocText = FileUtils.translateLineEndings(doc.getText(), FileUtils.LINE_ENDINGS_LF),
+                normalizedResText = FileUtils.translateLineEndings(options.resultText, FileUtils.LINE_ENDINGS_LF);
+
+            expect(normalizedDocText).toEqual(normalizedResText);
             expect(result).toEqual(options.result);
             SpecRunnerUtils.destroyMockEditor(doc);
         }
@@ -1595,7 +1601,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should consolidate consecutive rules that refer to the same item", function () {
+        it("should consolidate consecutive rules that refer to the same item and replace names with selector groups", function () {
             var doc1 = SpecRunnerUtils.createMockDocument(""),
                 doc2 = SpecRunnerUtils.createMockDocument(""),
                 rules = [
@@ -1609,7 +1615,8 @@ define(function (require, exports, module) {
                         name: ".eek",
                         doc: doc1,
                         lineStart: 10,
-                        lineEnd: 12
+                        lineEnd: 12,
+                        selectorGroup: "#blah, .eek, .glah"
                     },
                     {
                         name: ".bar",
@@ -1642,7 +1649,13 @@ define(function (require, exports, module) {
             
             expect(result).toEqual([
                 rules[0],
-                rules[1],
+                {
+                    name: "#blah, .eek, .glah",
+                    doc: doc1,
+                    lineStart: 10,
+                    lineEnd: 12,
+                    selectorGroup: "#blah, .eek, .glah"
+                },
                 rules[2],
                 {
                     name: "#baz, h2",
