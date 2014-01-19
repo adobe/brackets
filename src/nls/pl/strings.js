@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -70,7 +70,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Nie można otworzyć przeglądarki",
     "ERROR_CANT_FIND_CHROME"            : "Nie znaleziono przeglądarki Chrome. Upewnij się, że jest zainstalowana.",
     "ERROR_LAUNCHING_BROWSER"           : "Wystąpił błąd przy próbie otwarcia przeglądarki. (błąd {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Błąd",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Łączenie z przeglądarką",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "W celu włączenia błyskawicznego podglądu, Chrome musi zostać zrestartowany z włączonym zdalnym debugowaniem.<br /><br />Czy chcesz włączyć zdalne debugowanie i zrestartować Chrome?",
@@ -81,20 +81,20 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Witaj w podglądzie błyskawicznym!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Podgląd błyskawiczny podłączył {APP_NAME} do twojej przeglądarki. Pokazuje on twoją stronę HTML bezpośrednio w&nbsp;przeglądarce, oraz aktualizuje ją natychmiast po wprowadzeniu zmian w&nbsp;kodzie.<br /><br />W aktualnej wersji {APP_NAME}, podgląd błyskawiczny działa wyłącznie z&nbsp;<strong>Google Chrome</strong> i&nbsp;aktualizuje w czasie rzeczywistym <strong>pliki CSS</strong>. Zmiany w plikach HTML lub JavaScript są ładowane automatycznie po zapisaniu pliku.<br /><br />(Ta wiadomość wyświetla się tylko raz)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Więcej informacji znajdziesz w tym dokumencie <a href='{0}' title='{0}'>Rozwiązywanie problemów z podglądem błyskawicznym</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Podgląd błyskawiczny",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Podgląd błyskawiczny: łączenie\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Podgląd błyskawiczny: uruchamianie\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Rozłącz podgląd błyskawiczny",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Podgląd błyskawiczny: Kliknij aby rozłączyć (Zapisz plik by zaktualizować)",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Zapisz zmiany",
     "SAVE_CLOSE_MESSAGE"                : "Czy chcesz zapisać zmiany w dokumencie <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Czy chcesz zapisać zmiany w następujących plikach?",
     "EXT_MODIFIED_TITLE"                : "Zmiany zewnętrzne",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> został zmodyfikowany na dysku, jednak zawiera też niezapisane zmiany w {APP_NAME}.<br /><br />Którą wersję chcesz zachować?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> został usunięty z dysku, jednak zawiera niezapisane zmiany w {APP_NAME}.<br /><br />Czy chcesz zachować zmiany?",
-    
+
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Użyj składni /re/ dla wyszukiwania wyrażeniem regularnym",
     "FIND_RESULT_COUNT"                 : "{0} wyników",
@@ -109,7 +109,7 @@ define({
     "RELEASE_NOTES"                     : "Informacje o wydaniu",
     "NO_UPDATE_TITLE"                   : "{APP_NAME} jest aktualny!",
     "NO_UPDATE_MESSAGE"                 : "Aktualnie używasz najnowszej wersji {APP_NAME}.",
-    
+
     "FIND_IN_FILES_TITLE"               : "dla \"{4}\" {5} - {0} {1} w {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "w <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "w projekcie",
@@ -124,7 +124,7 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Błąd pobierania wersji.",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Wystąpił problem podczas pobierania informacji o najnowszej wersji aplikacji. Upewnij się, że jesteś podłączony do Internetu i spróbuj ponownie.",
-    
+
     /**
      * ProjectManager
      */
@@ -138,7 +138,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Spacja",
-    
+
     /**
      * StatusBar strings
      */
@@ -199,7 +199,7 @@ define({
     "CMD_LINE_UP"                         : "Przejdź linię wyżej",
     "CMD_LINE_DOWN"                       : "Przejdź linię niżej",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Automatycznie zamykaj nawiasy",
-     
+
     // View menu commands
     "VIEW_MENU"                           : "Widok",
     "CMD_HIDE_SIDEBAR"                    : "Ukryj pasek boczny",
@@ -228,7 +228,7 @@ define({
     "CMD_NEXT_DOC"                        : "Następny dokument",
     "CMD_PREV_DOC"                        : "Poprzedni dokument",
     "CMD_SHOW_IN_TREE"                    : "Pokaż w drzewie katalogów",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Pomoc",
     "CMD_CHECK_FOR_UPDATE"                : "Sprawdź aktualizacje",
@@ -277,7 +277,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie jak '{0}' muszą zostać %-zakodowane.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nieznany błąd podczas parsowania adresu URL.",
-    
+
     // Extension Management strings
     "INSTALL_EXTENSION_TITLE"              : "Zainstaluj rozszerzenie",
     "INSTALL_EXTENSION_LABEL"              : "Adres URL rozszerzenia",
@@ -307,8 +307,8 @@ define({
     "UNSUPPORTED_PROTOCOL"                 : "Adres URL musi zaczynać się od http lub https.",
     "UNKNOWN_ERROR"                        : "Nieznany błąd wewnętrzny.",
     // For NOT_FOUND_ERR, see generic strings above
-    
-    
+
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debuguj",
     "CMD_SHOW_DEV_TOOLS"                        : "Pokaż narzędzia dewelopera",
@@ -320,12 +320,12 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Włącz debugger Node",
     "CMD_LOG_NODE_STATE"                        : "Zapisz stan Node do Konsoli",
     "CMD_RESTART_NODE"                          : "Zrestartuj Node",
-    
+
     "LANGUAGE_TITLE"                            : "Zmień język",
     "LANGUAGE_MESSAGE"                          : "Wybierz język z poniższej listy:",
     "LANGUAGE_SUBMIT"                           : "Zrestartuj {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Anuluj",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Obecny kolor",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Kolor oryginalny",
@@ -334,7 +334,7 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Format HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Użyto {1} raz)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Użyto {1} razy)",
-    
+
     // extensions/default/JSLint
     "CMD_JSLINT"                                : "Włącz JSLint",
     "CMD_JSLINT_FIRST_ERROR"                    : "Skocz do pierwszego błędu JSLint",
@@ -344,7 +344,7 @@ define({
     "JSLINT_NO_ERRORS"                          : "Dobra robota! Brak błędów JSLint",
     "JSLINT_DISABLED"                           : "JSLint wyłączony lub nie działa dla aktualnego pliku",
 
-        "FILE"                              : "plik",
+    "FILE"                              : "plik",
     "DIRECTORY"                         : "folder",
     "ERROR_OPENING_FILES"               : "Podczas otwierania plików wystąpił błąd:",
     "ERROR_DELETING_FILE_TITLE"         : "Błąd przy usuwaniu pliku",
@@ -463,7 +463,7 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostępne",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizacja",
     "INLINE_EDITOR_NO_MATCHES"             : "Brak wyników.",
-    
+
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Brak reguł.<br> Kliknij „New Rule”, aby utworzyć regułę.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Nie ma w tym projekcie arkuszy stylów.",
     "UNIT_PIXELS"                          : "pikseli",
@@ -490,7 +490,7 @@ define({
     "LOCALE_TR"                                 : "turecki",
     "LOCALE_ZH_CN"                              : "chiński uproszczony",
     "LOCALE_HU"                                 : "węgierski",
-    
+
     "INLINE_TIMING_EDITOR_TIME"                 : "Czas",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postęp",
     "CMD_JUMPTO_DEFINITION"                     : "Idź do definicji",
