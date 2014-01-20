@@ -229,6 +229,7 @@ define({
     "CMD_FILE_CLOSE_ABOVE"                : "Закрыть остальные сверху",
     "CMD_FILE_CLOSE_BELOW"                : "Закрыть остальные снизу",
     "CMD_FILE_SAVE"                       : "Сохранить",
+    "CMD_FILE_SAVE_AS"                    : "Сохранить как\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Сохранить все",
     "CMD_FILE_SAVE_AS"                    : "Сохранить как\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
@@ -238,9 +239,9 @@ define({
     "CMD_INSTALL_EXTENSION"               : "Установить расширение\u2026",
     "CMD_EXTENSION_MANAGER"               : "Менеджер расширений\u2026",
     "CMD_FILE_REFRESH"                    : "Обновить дерево проекта",
-    "CMD_QUIT"                            : "Выйти",
+    "CMD_QUIT"                            : "Выход",
     // Used in native File menu on Windows
-    "CMD_EXIT"                            : "Выйти",
+    "CMD_EXIT"                            : "Выход",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Правка",

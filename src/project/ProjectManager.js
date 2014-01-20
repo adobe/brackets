@@ -797,10 +797,10 @@ define(function (require, exports, module) {
      * jsTree back asynchronously with the node's immediate children data once the subfolder is done
      * being fetched.
      *
-     * @param {jQueryObject} treeNode  jQ object for the DOM node being expanded
+     * @param {jQueryObject} $treeNode  jQ object for the DOM node being expanded
      * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
      */
-    function _treeDataProvider(treeNode, jsTreeCallback) {
+    function _treeDataProvider($treeNode, jsTreeCallback) {
         var dirEntry, isProjectRoot = false, deferred = new $.Deferred();
         
         function processEntries(entries) {
@@ -810,7 +810,7 @@ define(function (require, exports, module) {
             
             if (emptyDirectory) {
                 if (!isProjectRoot) {
-                    wasNodeOpen = treeNode.hasClass("jstree-open");
+                    wasNodeOpen = $treeNode.hasClass("jstree-open");
                 } else {
                     // project root is a special case, add a placeholder
                     subtreeJSON.push({});
@@ -824,27 +824,27 @@ define(function (require, exports, module) {
                 // This is a workaround for issue #149 where jstree would show this node as a leaf.
                 var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
                 
-                treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
+                $treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                     .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
                 // depends on the open_node.jstree event being triggered, which doesn't happen on
                 // empty folders
                 if (!wasNodeOpen) {
-                    treeNode.trigger("open_node.jstree");
+                    $treeNode.trigger("open_node.jstree");
                 }
             }
             
             deferred.resolve();
         }
 
-        if (treeNode === -1) {
+        if ($treeNode === -1) {
             // Special case: root of tree
             dirEntry = _projectRoot;
             isProjectRoot = true;
         } else {
             // All other nodes: the Directory is saved as jQ data in the tree (by _convertEntriesToJSON())
-            dirEntry = treeNode.data("entry");
+            dirEntry = $treeNode.data("entry");
         }
         
         // Fetch dirEntry's contents
@@ -986,21 +986,31 @@ define(function (require, exports, module) {
     /**
      * @private
      * Close the file system and remove listeners.
+     * @return {$.Promise} A promise that's resolved when the root is unwatched. Rejected if
+     *     there is no project root or if the unwatch fails.
      */
     function _unwatchProjectRoot() {
-        if (_projectRoot) {
+        var result = new $.Deferred();
+        if (!_projectRoot) {
+            result.reject();
+        } else {
             FileSystem.off("change", _fileSystemChange);
             FileSystem.off("rename", _fileSystemRename);
 
             FileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
                     console.error("Error unwatching project root: ", _projectRoot.fullPath, err);
+                    result.reject();
+                } else {
+                    result.resolve();
                 }
             });
             
             // Reset allFiles cache
             _allFilesCachePromise = null;
         }
+        
+        return result.promise();
     }
     
     /**
@@ -1016,12 +1026,19 @@ define(function (require, exports, module) {
      *  fails to load.
      */
     function _loadProject(rootPath, isUpdating) {
+        var result = new $.Deferred(),
+            startLoad = new $.Deferred(),
+            resultRenderTree;
+
         forceFinishRename();    // in case we're in the middle of renaming a file in the project
         
         // Some legacy code calls this API with a non-canonical path
         rootPath = _ensureTrailingSlash(rootPath);
         
-        if (!isUpdating) {
+        if (isUpdating) {
+            // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
+            startLoad.resolve();
+        } else {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
@@ -1033,96 +1050,99 @@ define(function (require, exports, module) {
             // close all the old files
             DocumentManager.closeAll();
     
-            _unwatchProjectRoot();
-        }
-        
-        // Clear project path map
-        _projectInitialLoad = {
-            previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
-            id              : 0,    /* incrementing id */
-            fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
-        };
-        
-        var result = new $.Deferred(),
-            resultRenderTree;
-
-        // restore project tree state from last time this project was open
-        _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
-
-        // Populate file tree as long as we aren't running in the browser
-        if (!brackets.inBrowser) {
-            if (!isUpdating) {
-                _watchProjectRoot(rootPath);
-            }
-            // Point at a real folder structure on local disk
-            var rootEntry = FileSystem.getDirectoryForPath(rootPath);
-            rootEntry.exists(function (err, exists) {
-                if (exists) {
-                    PreferencesManager._setCurrentEditingFile(rootPath);
-                    var projectRootChanged = (!_projectRoot || !rootEntry) ||
-                        _projectRoot.fullPath !== rootEntry.fullPath;
-                    var i;
-
-                    // Success!
-                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
-
-                    _projectRoot = rootEntry;
-                    _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
-
-                    // If this is the most current welcome project, record it. In future launches, we want
-                    // to substitute the latest welcome project from the current build instead of using an
-                    // outdated one (when loading recent projects or the last opened project).
-                    if (rootPath === _getWelcomeProjectPath()) {
-                        addWelcomeProjectPath(rootPath);
-                    }
-
-                    // The tree will invoke our "data provider" function to populate the top-level items, then
-                    // go idle until a node is expanded - at which time it'll call us again to fetch the node's
-                    // immediate children, and so on.
-                    resultRenderTree = _renderTree(_treeDataProvider);
-
-                    resultRenderTree.always(function () {
-                        if (projectRootChanged) {
-                            // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                            var promises = [];
-                            $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
-                            $.when.apply($, promises).then(result.resolve, result.reject);
-                        } else {
-                            $(exports).triggerHandler("projectRefresh", _projectRoot);
-                            result.resolve();
-                        }
-                    });
-                    resultRenderTree.fail(function () {
-                        PerfUtils.finalizeMeasurement(perfTimerName);
-                        result.reject();
-                    });
-                    resultRenderTree.always(function () {
-                        PerfUtils.addMeasurement(perfTimerName);
-                    });
-                } else {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_ERROR,
-                        Strings.ERROR_LOADING_PROJECT,
-                        StringUtils.format(
-                            Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                            StringUtils.breakableUrl(rootPath),
-                            err || FileSystemError.NOT_FOUND
-                        )
-                    ).done(function () {
-                        // The project folder stored in preference doesn't exist, so load the default
-                        // project directory.
-                        // TODO (issue #267): When Brackets supports having no project directory
-                        // defined this code will need to change
-                        _loadProject(_getWelcomeProjectPath()).always(function () {
-                            // Make sure not to reject the original deferred until the fallback
-                            // project is loaded, so we don't violate expectations that there is always
-                            // a current project before continuing after _loadProject().
-                            result.reject();
-                        });
-                    });
-                }
+            _unwatchProjectRoot().always(function () {
+                startLoad.resolve();
             });
         }
+        
+        startLoad.done(function () {
+
+            // Clear project path map
+            _projectInitialLoad = {
+                previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
+                id              : 0,    /* incrementing id */
+                fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
+            };
+
+            // restore project tree state from last time this project was open
+            _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
+
+            // Populate file tree as long as we aren't running in the browser
+            if (!brackets.inBrowser) {
+                if (!isUpdating) {
+                    _watchProjectRoot(rootPath);
+                }
+                // Point at a real folder structure on local disk
+                var rootEntry = FileSystem.getDirectoryForPath(rootPath);
+                rootEntry.exists(function (err, exists) {
+                    if (exists) {
+                        PreferencesManager._setCurrentEditingFile(rootPath);
+                        var projectRootChanged = (!_projectRoot || !rootEntry) ||
+                            _projectRoot.fullPath !== rootEntry.fullPath;
+                        var i;
+
+                        // Success!
+                        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
+
+                        _projectRoot = rootEntry;
+                        _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+
+                        // If this is the most current welcome project, record it. In future launches, we want
+                        // to substitute the latest welcome project from the current build instead of using an
+                        // outdated one (when loading recent projects or the last opened project).
+                        if (rootPath === _getWelcomeProjectPath()) {
+                            addWelcomeProjectPath(rootPath);
+                        }
+
+                        // The tree will invoke our "data provider" function to populate the top-level items, then
+                        // go idle until a node is expanded - at which time it'll call us again to fetch the node's
+                        // immediate children, and so on.
+                        resultRenderTree = _renderTree(_treeDataProvider);
+
+                        resultRenderTree.always(function () {
+                            if (projectRootChanged) {
+                                // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
+                                var promises = [];
+                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
+                                $.when.apply($, promises).then(result.resolve, result.reject);
+                            } else {
+                                $(exports).triggerHandler("projectRefresh", _projectRoot);
+                                result.resolve();
+                            }
+                        });
+                        resultRenderTree.fail(function () {
+                            PerfUtils.finalizeMeasurement(perfTimerName);
+                            result.reject();
+                        });
+                        resultRenderTree.always(function () {
+                            PerfUtils.addMeasurement(perfTimerName);
+                        });
+                    } else {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_LOADING_PROJECT,
+                            StringUtils.format(
+                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
+                                StringUtils.breakableUrl(rootPath),
+                                err || FileSystemError.NOT_FOUND
+                            )
+                        ).done(function () {
+                            // The project folder stored in preference doesn't exist, so load the default
+                            // project directory.
+                            // TODO (issue #267): When Brackets supports having no project directory
+                            // defined this code will need to change
+                            _loadProject(_getWelcomeProjectPath()).always(function () {
+                                // Make sure not to reject the original deferred until the fallback
+                                // project is loaded, so we don't violate expectations that there is always
+                                // a current project before continuing after _loadProject().
+                                result.reject();
+                            });
+                        });
+                    }
+                });
+            }
+        });
+        
         return result.promise();
     }
     
@@ -2036,8 +2056,34 @@ define(function (require, exports, module) {
                 // Open the node before creating the new child
                 _projectTree.jstree("open_node", $directoryNode);
             } else {
-                // Create all new nodes in a batch
-                _createNode($directoryNode, null, addedJSON, true, true);
+                // We can only incrementally create new child nodes when the 
+                // DOM node for the directory is not currently empty. The reason
+                // is due to the fact that jstree treats empty DOM folders as
+                // not-loaded. When jstree sees this, it calls the JSON data
+                // provider to populate the DOM, always. Creating a node in this
+                // state leads to duplicate nodes. Avoid this by calling load_node
+                // instead of create_node.
+                var treeAPI = $.jstree._reference(_projectTree),
+                    directoryNodeOrRoot = (entry === getProjectRoot()) ? -1 : $directoryNode,
+                    hasDOMChildren = treeAPI._get_children(directoryNodeOrRoot).length > 0;
+                
+                if (hasDOMChildren) {
+                    // The directory was already loaded and currently has
+                    // children, so we can incrementally create all new nodes
+                    // in a batch
+                    _createNode($directoryNode, null, addedJSON, true, true);
+                } else if (!isClosed) {
+                    // Call load_node for the directory to add the new entries
+                    // for this change event. We only call load_node immediately
+                    // in the case where the empty directory DOM node was
+                    // already open. If the directory is currently closed,
+                    // jstree will call load_node when the user opens the node
+                    // interactively
+                    _projectTree.jstree("load_node", $directoryNode, function () {}, function () {
+                        console.error("Error loading project tree for changed path: " + entry.fullPath);
+                    });
+                }
+                
                 doRedraw = true;
             }
         }
