@@ -68,18 +68,18 @@
 #function-hint-container {
     display: none;
 
-    background: #e0e1e3;
+    background: #fff;
     position: absolute;
     z-index: 15;
     left: 200px;
     top: 40px;
     pointer-events: none;
 
-    padding: 1px 3px;
+    padding: 1px 6px;
     text-align: center;
 
-    border-radius: 2px;
-    border: 1px solid #a6a8a8;
+    border-radius: 3px;
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.24);
 }
 
 #function-hint-container .function-hint-content {

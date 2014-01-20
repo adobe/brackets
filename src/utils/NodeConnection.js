@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, browser: true */
-/*global $, define, brackets, WebSocket */
+/*global $, define, brackets, WebSocket, ArrayBuffer, Uint32Array */
 
 define(function (require, exports, module) {
     "use strict";
@@ -46,6 +46,9 @@ define(function (require, exports, module) {
     /** @define{number} Milliseconds to wait before retrying connecting */
     var RETRY_DELAY         = 500;   // 1/2 second
 
+    /** @define {number} Maximum value of the command ID counter */
+    var MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
+    
     /**
      * @private
      * Helper function to auto-reject a deferred after a given amount of time.
@@ -73,6 +76,10 @@ define(function (require, exports, module) {
             if (!err && nodePort && deferred.state() !== "rejected") {
                 port = nodePort;
                 ws = new WebSocket("ws://localhost:" + port);
+                
+                // Expect ArrayBuffer objects from Node when receiving binary
+                // data instead of DOM Blobs, which are the default.
+                ws.binaryType = "arraybuffer";
                 
                 // If the server port isn't open, we get a close event
                 // at some point in the future (and will not get an onopen 
@@ -173,6 +180,23 @@ define(function (require, exports, module) {
      * resolved/rejected with the response of commands.
      */
     NodeConnection.prototype._pendingCommandDeferreds = null;
+    
+    /**
+     * @private
+     * @return {number} The next command ID to use. Always representable as an
+     * unsigned 32-bit integer.
+     */
+    NodeConnection.prototype._getNextCommandID = function () {
+        var nextID;
+        
+        if (this._commandCount > MAX_COUNTER_VALUE) {
+            nextID = this._commandCount = 0;
+        } else {
+            nextID = this._commandCount++;
+        }
+        
+        return nextID;
+    };
     
     /**
      * @private
@@ -402,12 +426,36 @@ define(function (require, exports, module) {
      */
     NodeConnection.prototype._receive = function (message) {
         var responseDeferred = null;
+        var data = message.data;
         var m;
-        try {
-            m = JSON.parse(message.data);
-        } catch (e) {
-            console.error("[NodeConnection] received malformed message", message, e.message);
-            return;
+        
+        if (message.data instanceof ArrayBuffer) {
+            // The first four bytes encode the command ID as an unsigned 32-bit integer
+            if (data.byteLength < 4) {
+                console.error("[NodeConnection] received malformed binary message");
+                return;
+            }
+            
+            var header = data.slice(0, 4),
+                body = data.slice(4),
+                headerView = new Uint32Array(header),
+                id = headerView[0];
+            
+            // Unpack the binary message into a commandResponse
+            m = {
+                type: "commandResponse",
+                message: {
+                    id: id,
+                    response: body
+                }
+            };
+        } else {
+            try {
+                m = JSON.parse(data);
+            } catch (e) {
+                console.error("[NodeConnection] received malformed message", message, e.message);
+                return;
+            }
         }
         
         switch (m.type) {
@@ -467,7 +515,7 @@ define(function (require, exports, module) {
                 return function () {
                     var deferred = $.Deferred();
                     var parameters = Array.prototype.slice.call(arguments, 0);
-                    var id = self._commandCount++;
+                    var id = self._getNextCommandID();
                     self._pendingCommandDeferreds[id] = deferred;
                     self._send({id: id,
                                domain: domainName,
@@ -480,11 +528,17 @@ define(function (require, exports, module) {
             
             // TODO: Don't replace the domain object every time. Instead, merge.
             self.domains = {};
+            self.domainEvents = {};
             spec.forEach(function (domainSpec) {
                 self.domains[domainSpec.domain] = {};
                 domainSpec.commands.forEach(function (commandSpec) {
                     self.domains[domainSpec.domain][commandSpec.name] =
                         makeCommandFunction(domainSpec.domain, commandSpec);
+                });
+                self.domainEvents[domainSpec.domain] = {};
+                domainSpec.events.forEach(function (eventSpec) {
+                    var parameters = eventSpec.parameters;
+                    self.domainEvents[domainSpec.domain][eventSpec.name] = parameters;
                 });
             });
             deferred.resolve();

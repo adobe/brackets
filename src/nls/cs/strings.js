@@ -111,21 +111,21 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
     // Najít, Nahradit, Nahradit v souborech
-    "SEARCH_REGEXP_INFO"                : "Použijte /re/ syntax pro regexp hledání",
     "FIND_RESULT_COUNT"                 : "{0} výsledků",
     "FIND_RESULT_COUNT_SINGLE"          : "1 výsledek",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
-    "WITH"                              : "S",
+    "REPLACE_PLACEHOLDER"               : "Nahradit s\u2026",
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
     "BUTTON_REPLACE_ALL"                : "Vše\u2026",
-    "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradit",
 
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Další shoda",
     "BUTTON_PREV_HINT"                  : "Předchozí shoda",
+    "BUTTON_CASESENSITIVE_HINT"         : "Rozlišovat velká a malá písmena",
+    "BUTTON_REGEXP_HINT"                : "Regulární výraz",
 
     "OPEN_FILE"                         : "Otevřít soubor",
     "SAVE_FILE_AS"                      : "Uložit soubor",
@@ -187,6 +187,8 @@ define({
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE"                    : "{0} chyby",
+    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} chyby",
+    "ERRORS_PANEL_TITLE_MULTI"              : "Lint problémy",
     "SINGLE_ERROR"                          : "1 {0} chyba",
     "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
     "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
@@ -337,7 +339,7 @@ define({
 
       // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nové pravidlo",
-  
+
     // Řetězce pro správce doplňků
     "INSTALL"                              : "Instalovat",
     "UPDATE"                               : "Aktualizovat",
@@ -420,7 +422,7 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
-  
+
     /**
      * Jména jednotek
      */
@@ -456,9 +458,12 @@ define({
     "LOCALE_IT"                                 : "Italsky",
     "LOCALE_JA"                                 : "Japonsky",
     "LOCALE_NB"                                 : "Norsky",
+    "LOCALE_NL"                                 : "Holandsky",
+    "LOCALE_FA_IR"                              : "Persky-perština",
     "LOCALE_PL"                                 : "Polsky",
     "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
     "LOCALE_PT_PT"                              : "Portugalsky",
+    "LOCALE_RO"                                 : "Rumunsky",
     "LOCALE_RU"                                 : "Rusky",
     "LOCALE_SK"                                 : "Slovensky",
 	"LOCALE_SR"									: "Srbština",
@@ -471,7 +476,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
-  
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Původní barva",

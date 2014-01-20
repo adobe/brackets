@@ -497,7 +497,7 @@ define(function (require, exports, module) {
         _currentDocument = doc;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
-
+        
         PerfUtils.addMeasurement(perfTimerName);
     }
 
@@ -652,13 +652,15 @@ define(function (require, exports, module) {
      * if you are going to display its contents in a piece of UI - then you must addRef() the Document
      * and listen for changes on it. (Note: opening the Document in an Editor automatically manages
      * refs and listeners for that Editor UI).
+     * 
+     * If all you need is the Document's getText() value, use the faster getDocumentText() instead.
      *
      * @param {!string} fullPath
      * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileSystemError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var doc             = getOpenDocumentForPath(fullPath);
+        var doc = getOpenDocumentForPath(fullPath);
 
         if (doc) {
             // use existing document
@@ -765,7 +767,7 @@ define(function (require, exports, module) {
      * looks like /some-random-string/Untitled-counter.fileExt.
      *
      * @param {number} counter - used in the name of the new Document's File
-     * @param {string} fileExt - file extension of the new Document's File
+     * @param {string} fileExt - file extension of the new Document's File, including "."
      * @return {Document} - a new untitled Document
      */
     function createUntitledDocument(counter, fileExt) {
@@ -989,6 +991,11 @@ define(function (require, exports, module) {
         .on("_documentSaved", function (event, doc) {
             $(exports).triggerHandler("documentSaved", doc);
         });
+    
+    // Handle file saves that may affect preferences
+    $(exports).on("documentSaved", function (e, doc) {
+        PreferencesManager.fileChanged(doc.file.fullPath);
+    });
     
     // For unit tests and internal use only
     exports._clearCurrentDocument       = _clearCurrentDocument;

@@ -9,7 +9,7 @@
     "noarg"         : true,
     "noempty"       : true,
     "nonew"         : true,
-    "plusplus"      : true,
+    "plusplus"      : false,
     "regexp"        : true,
     "undef"         : true,
     "strict"        : true,

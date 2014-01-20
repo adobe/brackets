@@ -241,6 +241,10 @@
         {
             "key": "Ctrl-Tab",
             "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-]",
+            "platform": "mac"
         }
     ],
     "navigate.prevDoc":  [
@@ -249,6 +253,10 @@
         },
         {
             "key": "Ctrl-Shift-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-[",
             "platform": "mac"
         }
     ],

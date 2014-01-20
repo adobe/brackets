@@ -177,5 +177,61 @@ define(function (require, exports, module) {
         _commit();
     };
     
+    /**
+     * Converts preferences to the new-style file-based preferences according to the
+     * rules. (See PreferencesManager.ConvertSettings for information about the rules).
+     * 
+     * @param {Object} rules Conversion rules.
+     * @param {Array.<string>} convertedKeys List of keys that were previously converted 
+     *                                      (will not be reconverted)
+     * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
+     *                      `complete` flag that denotes whether everything from this object 
+     *                      was converted (making it safe to delete entirely).
+     */
+    PreferenceStorage.prototype.convert = function (rules, convertedKeys) {
+        var prefs = this._json,
+            self,
+            complete = true,
+            deferred = new $.Deferred();
+        
+        if (!convertedKeys) {
+            convertedKeys = [];
+        }
+        
+        Object.keys(prefs).forEach(function (key) {
+            if (convertedKeys.indexOf(key) > -1) {
+                return;
+            }
+            
+            var rule = rules[key];
+            if (!rule) {
+                console.warn("Preferences conversion for ", self._clientID, " has no rule for", key);
+                complete = false;
+            } else if (_.isString(rule)) {
+                var parts = rule.split(" ");
+                if (parts[0] === "user") {
+                    var newKey = parts.length > 1 ? parts[1] : key;
+                    PreferencesManager.set("user", newKey, prefs[key]);
+                    convertedKeys.push(key);
+                }
+            } else {
+                complete = false;
+            }
+        });
+        
+        if (convertedKeys.length > 0) {
+            PreferencesManager.save().done(function () {
+                _commit();
+                deferred.resolve(complete, convertedKeys);
+            }).fail(function (error) {
+                deferred.reject(error);
+            });
+        } else {
+            deferred.resolve(complete, convertedKeys);
+        }
+        
+        return deferred.promise();
+    };
+    
     exports.PreferenceStorage = PreferenceStorage;
 });

@@ -19,8 +19,8 @@
         
         <p>
             Välkommen till en tidig version av Brackets, en ny open-source editor för nästa generation av webben.
-            Vi är hängivna anhängare av webbstandards och vill bygga bättre verktyg för JavaScript, HTML och CSS 
-            samt relaterade öppna webbteknologier. Detta är vårt ödmjuka första steg.
+            Vi är hängivna anhängare av webbstandarder och vill bygga bättre verktyg för JavaScript, HTML och CSS 
+            samt relaterade öppna webbteknologier. Detta är vårt första ödmjuka steg.
         </p>
         
         <!--
@@ -28,7 +28,7 @@
         -->
         <p>
             <em>Brackets är en annan typ av editor.</em>
-            En anmärkningsvärd skillnad är att denna editor är skriven med JavaScript, HTML och CSS.
+            En anmärkningsvärd skillnad är att denna editor är skriven i JavaScript, HTML och CSS.
             Detta innebär att de flesta som använder Brackets har kunskapen som krävs för att förändra och förbättra editorn.
             Faktum är att vi använder Brackets varje dag, för att bygga Brackets. Det har också ett antal unika funktioner som Quick Edit,
             Live Preview och och ytterligare några som du inte hittar i andra editorer.
@@ -51,20 +51,22 @@
         </p>
         
         <samp>
-            Vill du se hur det fungerar? Placera markören <!-- <samp> -->-elementet och tryck <kbd>Cmd/Ctrl + E</kbd>.
+            Vill du se hur det fungerar? Placera markören på <!-- <samp> -->-elementet ovan och tryck <kbd>Cmd/Ctrl + E</kbd>.
             Då visas CSS quick editorn ovan. Till höger kan du se en lista över alla CSS-regler som är relaterade
-            till detta element. Skrolla igenom reglerna med kortkommandot <kbd>Alt + Upp/Ner</kbd> för att hitta en
-            du vill redigera.
+            till detta element. Det fungerar även på klass och ID-attribut.
+            
+            Du kan skapa nya regler på samma sätt. Klicka på en av <!-- <p> -->-taggarna ovan och tryck <kbd>Cmd/Ctrl + E</kbd>.
+            Just nu finns det inga regler men genom att klicka på knappen Ny regel skapar du en ny stilregel för <!-- <p> -->-taggar.
         </samp>
         
         <a href="screenshots/quick-edit.png">
-            <img alt="En skärmavbild som visas CSS Quick Edit" src="screenshots/quick-edit.png" />
+            <img alt="En skärmdump som visas CSS Quick Edit" src="screenshots/quick-edit.png" />
         </a>
         
         <p>
-            Du kan använda samma kortkommando för JavaScript-kod för att visa definitionen av en funktion när
-            markören placeras på funktionens namn där du anropar den. Tills vidare kan inline-editorer inte
-            nästlas så du kan bara använda Quick Edit från den "fullstora" editorn.
+            Samma kortkommande kan användas även på andra saker, till exempel funktioner i JavaScript för att<br>
+            färger, tidsfunktioner för animering och nya saker läggs till hela tiden!
+            Just nu kan inte inline-editorer nästlas så du kan bara använda Quick Edit från den "fullstora" editorn.
         </p>
         
         <!--
@@ -72,12 +74,12 @@
         -->
         <h3>Förhandsvisa CSS-ändringar direkt i webbläsaren</h3>
         <p>
-            Du vet den där "spara och ladda om-proceduren" vi använt oss av i flera år? Den där du gör
+            Du vet den där "spara och ladda om"-proceduren vi använt oss av i flera år? Den där du gör
             en ändring i din editor, sparar, går till webbläsaren och laddar om för att se resultatet?
             Med Brackets behöver du inte göra det.
         </p>
         <p>
-            Brackets öppnar en <em>direktlänk</em> till din lokala webbläsare och skjuter ut dina CSS-ändringar
+            Brackets öppnar en <em>direktlänk</em> till din lokala webbläsare och skjuter ut dina HTML- och CSS-ändringar
             medan du skriver! Du kanske redan använder något liknande webbläsarverktyg men med Brackets
             behöver du inte kopiera och klistra in koden fram och tillbaka mellan webbläsare och editor. Din kod
             körs i webbläsaren men skrivs i din editor!
@@ -93,28 +95,28 @@
         <samp>
             Om du har Google Chrome installerat kan du prova denna funktion själv. Klicka på blixtikonen 
             i det övre högra hörnet i ditt Brackets-fönster eller använd kortkommandot <kbd>Cmd/Ctrl + Alt + P</kbd>.
-            När Live Preview är aktiverat i ett HTML-dokument kommer alla länkade CSS-dokument att kunna editeras
+            När Live Preview är aktiverat i ett HTML-dokument kommer alla länkade CSS-dokument att kunna redigeras
             i realtid. Ikonens färg kommer att byta färg från grå till guld när Brackets lyckats skapa en länk
             till din webbläsare.
             
-            Om du sedan plaerar markören på <!-- <img> -->-taggen ovan se du hur en blå markeringen visas runt
+            Om du sedan placerar markören på <!-- <img> -->-taggen ovan ser du hur en blå markeringen visas runt
             bilden i Chrome. Du kan sedan använda <kbd>Cmd/Ctrl + E</kbd> för att visa de relaterade CSS-reglerna.
-            Prova att ändra tjockleken på border-egenskapen från 1px till 10px eller att ändra backgrundsfärgen
-            från "dimgray" till "hotpink". Om Brackets och din webbläsare körs sida vid sida kommer du att se
+            Prova att ändra tjockleken på border-egenskapen från 10px till 20px eller att ändra backgrundsfärgen
+            från "transparent" till "hotpink". Om Brackets och din webbläsare körs sida vid sida kommer du att se
             dina ändringar genomföras direkt i webbläsaren. Coolt va?
         </samp>
                 
         <p class="note">
-            För tillfället stöder Brackets bara Live Preview för CSS. Dock laddas webbläsaren automatiskt när du 
+            För tillfället stöder Brackets bara Live Preview för HTML och CSS. Dock laddas webbläsaren automatiskt när du 
             sparar HTML- eller JavaScript-dokument. Vi jobbar för fullt med att utveckla stöd för Live Preview
-            även för HTML och JavaScript. Live previews fungerar just nu bara i Google Chrome men med tiden hoppas
-            vi kunna erbjuda denna funktionalitet i alla större webbläsare.
+            även för JavaScript. Live preview fungerar just nu bara i Google Chrome men med tiden hoppas
+            vi kunna erbjuda denna funktionalitet i alla vanligt förekommande webbläsare.
         </p>
                 
         <h3>Quick View</h3>
         <p>
             För de av oss som fortfarande inte memorerat färgkoderna för HEX eller RGB gör Brackets det snabbt och
-            enkelt att se vilken färg som används. När du pekar över ett färgvärde eller gradient, i antingen
+            enkelt att se vilken färg som används. När du pekar på ett färgvärde eller gradient, i antingen
             HTML eller CSS, visas en förhandsgranskning av färgen/gradienten automatiskt. Detsamma gäller bilder:
             peka på bildens sökväg i Brackets så visas en tumnagelversion av bilden.
         </p>
@@ -124,23 +126,33 @@
             dokument och trycka <kbd>Cmd/Ctrl + E</kbd> för att öppna snabbeditorn för CSS. När du pekar över ett
             färgvärde i CSS-koden visas motsvarande färg. Du kan utnyttja samma funktion med gradients i snabbeditorn -
             placera markören på <!-- <html> -->-taggen och peka på dess background-image-egenskap. Du kan också prova
-            förhandvisningen av bilder genom att placera markören vid skärmavbildningen tidigare i detta dokument.
+            förhandvisningen av bilder genom att placera markören vid skärmdumpen tidigare i detta dokument.
         </samp>
+        
+        <h3>Behöver du någonting annat? Prova ett tillägg!</h3>
+        <p>
+            Utöver alla bra funktioner som är inbyggda i Brackets har vårt stora, och växande, community av 
+            tilläggsutvecklare tagit fram mer än hundra tillägg som ger mer användar funktionalitet. Om du saknar
+            någonting i Brackets är det stor chans att att någon redan byggt ett tillägg för att lösa det.
+            För att bläddra eller söka i listan över tillgängliga tillägg går du till <strong>Arkiv &gt; Tilläggshanteraren</strong>
+            och klickar på fliken "Tillgängliga". När du hittat ett tillägg du vill ha klickar du bara på knappen "Installera"
+            intill det.
+        </p>
         
         <!--
             BERÄTTA FÖR OSS VAD DU TYCKER
         -->
         <h2>ENGAGERA DIG</h2>
         <p>
-            Brackets är ett open-source-projekt. Webbutvecklarefrån hela världen bidrar för att göra Brackets till 
+            Brackets är ett open-source-projekt. Webbutvecklare från hela världen bidrar för att göra Brackets till 
             en bättre kodeditor. Många andra bygger tillägg som ökar Brackets funktionalitet.
-            Bidra med dina åsiker, idéer eller bidra med kod direkt till projektet.
+            Berätta för oss vad du tycker, dina åsiker och idéer eller bidra med kod direkt till projektet.
         </p>
         <ul>
             <li><a href="http://brackets.io">Brackets.io</a></li>
             <li><a href="http://blog.brackets.io">Brackets utvecklingsblogg</a></li>
             <li><a href="http://github.com/adobe/brackets">Brackets på GitHub</a></li>
-            <li><a href="https://github.com/adobe/brackets/wiki/Brackets-Extensions">Brackets-tillägg</a></li>
+            <li><a href="https://brackets-registry.aboutweb.com">Register över Brackets-tillägg</a></li>
             <li><a href="http://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
             <li><a href="http://groups.google.com/group/brackets-dev">Brackets Developer Mailing List</a></li>
             <li><a href="https://twitter.com/#!/brackets">@Brackets på Twitter</a></li>

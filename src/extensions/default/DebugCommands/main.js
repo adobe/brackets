@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, WebSocket, Mustache */
+/*global define, $, brackets, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,41 +32,37 @@ define(function (require, exports, module) {
     
     var Commands               = brackets.getModule("command/Commands"),
         CommandManager         = brackets.getModule("command/CommandManager"),
-        KeyBindingManager      = brackets.getModule("command/KeyBindingManager"),
         Menus                  = brackets.getModule("command/Menus"),
-        Editor                 = brackets.getModule("editor/Editor").Editor,
         FileSystem             = brackets.getModule("filesystem/FileSystem"),
         FileUtils              = brackets.getModule("file/FileUtils"),
-        ProjectManager         = brackets.getModule("project/ProjectManager"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
-        NativeApp              = brackets.getModule("utils/NativeApp"),
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
+        PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
         LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
-	
-	
+    
     /** @const {string} Brackets Application Menu Constant */
     var DEBUG_MENU = "debug-menu";
     
      /** @const {string} Debug commands IDs */
-    var DEBUG_REFRESH_WINDOW        = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
-        DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools",
-        DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests",
-        DEBUG_SHOW_PERF_DATA        = "debug.showPerfData",
-        DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow",
-        DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage",
-        DEBUG_ENABLE_NODE_DEBUGGER  = "debug.enableNodeDebugger",
-        DEBUG_LOG_NODE_STATE        = "debug.logNodeState",
-        DEBUG_RESTART_NODE          = "debug.restartNode";
+    var DEBUG_REFRESH_WINDOW            = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
+        DEBUG_SHOW_DEVELOPER_TOOLS      = "debug.showDeveloperTools",
+        DEBUG_RUN_UNIT_TESTS            = "debug.runUnitTests",
+        DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
+        DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
+        DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
+        DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
+        DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
+        DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
+        DEBUG_RESTART_NODE              = "debug.restartNode",
+        DEBUG_OPEN_PREFERENCES          = "debug.openPreferences";
     
-    
-    
-    function handleShowDeveloperTools(commandData) {
+    function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
     }
     
@@ -85,14 +81,26 @@ define(function (require, exports, module) {
                 _testWindow = null;  // the window was probably closed
             }
         }
-
+        
         if (!_testWindow) {
             _testWindow = window.open("../test/SpecRunner.html" + queryString, "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
             _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
         }
     }
     
-    function _handleShowPerfData() {
+    function handleReload() {
+        CommandManager.execute(Commands.APP_RELOAD);
+    }
+    
+    function handleReloadWithoutUserExts() {
+        CommandManager.execute(Commands.APP_RELOAD_WITHOUT_EXTS);
+    }
+        
+    function handleNewBracketsWindow() {
+        window.open(window.location.href);
+    }
+    
+    function handleShowPerfData() {
         var templateVars = {
             delimitedPerfData: PerfUtils.getDelimitedPerfData(),
             perfData: []
@@ -135,11 +143,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function _handleNewBracketsWindow() {
-        window.open(window.location.href);
-    }
-    
-    function _handleSwitchLanguage() {
+    function handleSwitchLanguage() {
         var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         
         FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
@@ -193,7 +197,7 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_OK && locale !== curLocale) {
                         brackets.setLocale(locale);
-                        CommandManager.execute(DEBUG_REFRESH_WINDOW);
+                        CommandManager.execute(Commands.APP_RELOAD);
                     }
                 });
                 
@@ -206,7 +210,7 @@ define(function (require, exports, module) {
         });
     }
     
-    function _enableRunTestsMenuItem() {
+    function enableRunTestsMenuItem() {
         if (brackets.inBrowser) {
             return;
         }
@@ -216,8 +220,8 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
-        file.exists(function (exists) {
-            if (exists) {
+        file.exists(function (err, exists) {
+            if (!err && exists) {
                 // If the SpecRunner.html file exists, enable the menu item.
                 // (menu item is already disabled, so no need to disable if the
                 // file doesn't exist).
@@ -225,87 +229,47 @@ define(function (require, exports, module) {
             }
         });
     }
-	
-	
-    /**
-     * Disables Brackets' cache via the remote debugging protocol.
-     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
-     */
-    function _disableCache() {
-        var result = new $.Deferred();
-        
-        if (brackets.inBrowser) {
-            result.resolve();
-        } else {
-            var Inspector = brackets.getModule("LiveDevelopment/Inspector/Inspector");
-            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
-            Inspector.getDebuggableWindows("127.0.0.1", port)
-                .fail(result.reject)
-                .done(function (response) {
-                    var page = response[0];
-                    if (!page || !page.webSocketDebuggerUrl) {
-                        result.reject();
-                        return;
-                    }
-                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
-                    // Disable the cache
-                    _socket.onopen = function _onConnect() {
-                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
-                    };
-                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                    _socket.onmessage = function _onMessage(e) {
-                        _socket.close();
-                        result.resolve();
-                    };
-                    // In case of an error
-                    _socket.onerror = result.reject;
-                });
-        }
-            
-        return result.promise();
-    }
-	
-    /** Does a full reload of the browser window */
-    function handleFileReload(commandData) {
-        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
-            // Give everyone a chance to save their state - but don't let any problems block
-            // us from quitting
-            try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
-            } catch (ex) {
-                console.error(ex);
-            }
-            
-            // Disable the cache to make reloads work
-            _disableCache().always(function () {
-                window.location.reload(true);
-            });
-        });
-    }
     
+    
+    function handleOpenPreferences() {
+        var fullPath = PreferencesManager.getUserPrefFile(),
+            file = FileSystem.getFileForPath(fullPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    });
+            }
+        });
+        
+    }
     
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,       DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,             DEBUG_SHOW_DEVELOPER_TOOLS,     handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
-    CommandManager.register(Strings.CMD_REFRESH_WINDOW,       DEBUG_REFRESH_WINDOW,         handleFileReload);
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,  DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_REFRESH_WINDOW,             DEBUG_REFRESH_WINDOW,           handleReload);
+    CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        handleSwitchLanguage);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
+    CommandManager.register(Strings.CMD_OPEN_PREFERENCES,     DEBUG_OPEN_PREFERENCES,       handleOpenPreferences);
     
-    _enableRunTestsMenuItem();
-    
+    enableRunTestsMenuItem();
     
     /*
      * Debug menu
@@ -313,6 +277,7 @@ define(function (require, exports, module) {
     var menu = Menus.addMenu(Strings.DEBUG_MENU, DEBUG_MENU, Menus.BEFORE, Menus.AppMenuBar.HELP_MENU);
     menu.addMenuItem(DEBUG_SHOW_DEVELOPER_TOOLS, KeyboardPrefs.showDeveloperTools);
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
+    menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
@@ -323,7 +288,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
-    
+    menu.addMenuItem(DEBUG_OPEN_PREFERENCES);
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;

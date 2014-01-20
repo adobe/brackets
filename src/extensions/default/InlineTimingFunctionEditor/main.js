@@ -53,7 +53,7 @@ define(function (require, exports, module) {
 
         InlineTimingFunctionEditor = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor,
         TimingFunctionUtils        = require("TimingFunctionUtils"),
-        Localized               = require("text!Localized.css");
+        Localized                  = require("text!Localized.css");
 
     
     // Functions
@@ -80,11 +80,11 @@ define(function (require, exports, module) {
         
         // code runs several matches complicated patterns, multiple times, so
         // first do a quick, simple check to see make sure we may have a match
-        if (!cursorLine.match(/cubic-bezier|linear|ease/)) {
+        if (!cursorLine.match(/cubic-bezier|linear|ease|step/)) {
             return null;
         }
 
-        currentMatch = TimingFunctionUtils.bezierCurveMatch(cursorLine, false);
+        currentMatch = TimingFunctionUtils.timingFunctionMatch(cursorLine, false);
         if (!currentMatch) {
             return null;
         }
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         var lineOffset = 0;
         while (pos.ch > (currentMatch.index + currentMatch[0].length + lineOffset)) {
             var restOfLine = cursorLine.substring(currentMatch.index + currentMatch[0].length + lineOffset),
-                newMatch = TimingFunctionUtils.bezierCurveMatch(restOfLine, false);
+                newMatch = TimingFunctionUtils.timingFunctionMatch(restOfLine, false);
 
             if (newMatch) {
                 lineOffset += (currentMatch.index + currentMatch[0].length);
