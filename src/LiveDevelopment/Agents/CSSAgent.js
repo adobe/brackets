@@ -56,26 +56,33 @@ define(function CSSAgent(require, exports, module) {
         // Process source maps
         var server = LiveDevelopment._getServer(),
             sourceMapPath,
-            sourceMapPaths = [];
-
-        // Convert source map URLs to local paths
-        _sourceMapURLs.forEach(function (sourceMapURL) {
-            sourceMapPath = server.urlToPath(sourceMapURL);
-
-            if (sourceMapPath) {
-                sourceMapPaths.push(sourceMapPath);
-            }
-        });
+            sourceMapPaths = [],
+            sourceMapDeferred,
+            file,
+            parseURL,
+            sourceURL;
 
         // Read source map content from disk
-        var readSourceMapsPromise = Async.doInParallel(sourceMapPaths, function (path) {
-            var sourceMapDeferred = new $.Deferred(),
-                file = FileSystem.getFileForPath(path);
+        var readSourceMapsPromise = Async.doInParallel(_sourceMapURLs, function (sourceMapURL) {
+            sourceMapDeferred = new $.Deferred();
+            sourceMapPath = server.urlToPath(sourceMapURL);
+
+            if (!sourceMapPath) {
+                return sourceMapDeferred.resolve().promise();
+            }
+            
+            file = FileSystem.getFileForPath(sourceMapPath);
+            parseURL = PathUtils.parseUrl(sourceMapURL);
 
             // TODO setup change events
             FileUtils.readAsText(file).done(function (contents) {
                 var sourceMap = new SourceMapConsumer(contents);
-                console.log(sourceMap);
+                
+                sourceMap.sources.forEach(function (source) {
+                    // Add the source file (e.g. SCSS or LESS) as a style sheet URL
+                    sourceURL = sourceMapURL.replace(new RegExp(parseURL.filename + "$"), source);
+                    _urlToStyle[sourceURL] = sourceMap;
+                });
 
                 sourceMapDeferred.resolve();
             }).fail(sourceMapDeferred.reject);
@@ -104,7 +111,7 @@ define(function CSSAgent(require, exports, module) {
 
                 for (i in res.headers) {
                     header = res.headers[i];
-                    parseURL = PathUtils.parseUrl(header.sourceURL)
+                    parseURL = PathUtils.parseUrl(header.sourceURL);
                     sourceURL = parseURL.hrefNoSearch;
                     
                     _urlToStyle[sourceURL] = header;

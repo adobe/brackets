@@ -96,9 +96,10 @@ define(function LiveDevelopment(require, exports, module) {
     var Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
     // Documents
-    var CSSDocument     = require("LiveDevelopment/Documents/CSSDocument"),
-        HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
-        JSDocument      = require("LiveDevelopment/Documents/JSDocument");
+    var CSSDocument             = require("LiveDevelopment/Documents/CSSDocument"),
+        CSSSourceMappedDocument = require("LiveDevelopment/Documents/CSSSourceMappedDocument"),
+        HTMLDocument            = require("LiveDevelopment/Documents/HTMLDocument"),
+        JSDocument              = require("LiveDevelopment/Documents/JSDocument");
     
     // Document errors
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
@@ -180,6 +181,8 @@ define(function LiveDevelopment(require, exports, module) {
         switch (doc.getLanguage().getId()) {
         case "css":
             return CSSDocument;
+        case "scss":
+            return CSSSourceMappedDocument;
         case "javascript":
             return exports.config.experimental ? JSDocument : null;
         }
@@ -377,7 +380,6 @@ define(function LiveDevelopment(require, exports, module) {
     function _getRelatedDocuments() {
         function createLiveStylesheet(url) {
             var stylesheetDeferred  = $.Deferred(),
-                promise             = stylesheetDeferred.promise(),
                 path                = _server && _server.urlToPath(url);
 
             // path may be null if loading an external stylesheet
@@ -391,7 +393,7 @@ define(function LiveDevelopment(require, exports, module) {
                         // CSSAgent includes containing HTMLDocument in list returned
                         // from getStyleSheetURLS() (which could be useful for collecting
                         // embedded style sheets) but we need to filter doc out here.
-                        if ((_classForDocument(doc) === CSSDocument) &&
+                        if ((_classForDocument(doc) !== HTMLDocument) &&
                                 (!_liveDocument || (doc !== _liveDocument.doc))) {
                             var liveDoc = _createDocument(doc);
                             if (liveDoc) {
@@ -407,7 +409,7 @@ define(function LiveDevelopment(require, exports, module) {
                 stylesheetDeferred.resolve();
             }
 
-            return promise;
+            return stylesheetDeferred.promise();
         }
 
         // Gather related CSS documents.
