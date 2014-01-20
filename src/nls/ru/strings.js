@@ -36,6 +36,8 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Целевая директория не может быть изменена.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Разрешения не позволяют делать изменения.",
     "FILE_EXISTS_ERR"                   : "Файл уже существует.",
+    "FILE"                              : "файл",
+    "DIRECTORY"                         : "директория",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Ошибка при загрузке проекта",
@@ -46,6 +48,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Ошибка открытия файла",
     "ERROR_OPENING_FILE"                : "Произошла ошибка при попытке открыть файл <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILES"               : "Произошла ошибка при попытке открыть следующие файлы:",
     "ERROR_RELOADING_FILE_TITLE"        : "Ошибка перезагрузки изменений с диска",
     "ERROR_RELOADING_FILE"              : "Произошла ошибка при попытке перезагрузить файл <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Ошибка сохранения файла",
@@ -54,6 +57,10 @@ define({
     "ERROR_RENAMING_FILE"               : "Произошла ошибка при попытке переименовать файл <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Неверное имя файла",
     "INVALID_FILENAME_MESSAGE"          : "Имена файлов не могут содержать следующие символы: /?*:;{}<>\\|",
+    "ERROR_DELETING_FILE_TITLE"         : "Ошибка удаления файла",
+    "ERROR_DELETING_FILE"               : "Произошла ошибка при попытке удалить файл <span class='dialog-filename'>{0}</span>. {1}",
+    "INVALID_FILENAME_TITLE"            : "Неправильное {0} имя файла",
+    "INVALID_FILENAME_MESSAGE"          : "Имя файла не может содержать следующие символы: /?*:;{}<>\\| или использовать зарезервированные системой слова.",
     "FILE_ALREADY_EXISTS"               : "Файл <span class='dialog-filename'>{0}</span> уже существует.",
     "ERROR_CREATING_FILE_TITLE"         : "Ошибка создания файла",
     "ERROR_CREATING_FILE"               : "Произошла ошибка при попытке создать файл <span class='dialog-filename'>{0}</span>. {1}",
