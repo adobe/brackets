@@ -1,17 +1,21 @@
 <div id="find-group"><!--
-    --><div class="search-input-container"><input type="text" id="find-what" placeholder="{{CMD_FIND_FIELD_PLACEHOLDER}}" /><div class="error"></div><span id="find-counter"></span></div><!--
-    --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
-    --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
-    --><div class="navigator"><!--
-        --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{BUTTON_PREV_HINT}}">{{BUTTON_PREV}}</button><!--
-        --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{BUTTON_NEXT_HINT}}">{{BUTTON_NEXT}}</button><!--
+    --><div class="search-input"><div class="search-input-container"><input type="text" id="find-what" placeholder="{{CMD_FIND_FIELD_PLACEHOLDER}}" /><div class="error"></div><span id="find-counter"></span></div></div><!--
+    --><div class="search-buttons"><!--
+        --><button id="find-case-sensitive" class="btn no-focus" tabindex="-1" title="{{BUTTON_CASESENSITIVE_HINT}}"><div class="button-icon"></div></button><!--
+        --><button id="find-regexp" class="btn no-focus" tabindex="-1" title="{{BUTTON_REGEXP_HINT}}"><div class="button-icon"></div></button><!--
+        --><div class="navigator"><!--
+            --><button id="find-prev" class="btn no-focus" tabindex="-1" title="{{BUTTON_PREV_HINT}}">{{BUTTON_PREV}}</button><!--
+            --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{BUTTON_NEXT_HINT}}">{{BUTTON_NEXT}}</button><!--
+        --></div><!--
     --></div><!--
 --></div><!--
 
 {{#replace}}
 --><div id="replace-group"><!--
-    --><input type="text" id="replace-with" placeholder="{{REPLACE_PLACEHOLDER}}"/><!--
-    --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{BUTTON_REPLACE}}</button><!--
-    --><button id="replace-all" class="btn no-focus" tabindex="-1">{{BUTTON_REPLACE_ALL}}</button><!--
+    --><div class="search-input"><input type="text" id="replace-with" placeholder="{{REPLACE_PLACEHOLDER}}"/></div><!--
+    --><div class="search-buttons"><!--
+        --><button id="replace-yes" class="btn no-focus" tabindex="-1">{{BUTTON_REPLACE}}</button><!--
+        --><button id="replace-all" class="btn no-focus" tabindex="-1">{{BUTTON_REPLACE_ALL}}</button><!--
+    --></div><!--
 --></div>
 {{/replace}}
