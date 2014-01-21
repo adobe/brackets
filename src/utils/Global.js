@@ -108,7 +108,7 @@ define(function (require, exports, module) {
     
     // Create empty app namespace if running in-browser
     if (!global.brackets.app) {
-        global.brackets.app = {};
+        global.brackets.app = require("appShellImpl");
     }
     
     // Loading extensions requires creating new require.js contexts, which
