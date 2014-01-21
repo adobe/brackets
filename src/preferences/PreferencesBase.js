@@ -143,6 +143,7 @@ define(function (require, exports, module) {
     function FileStorage(path, createIfNew) {
         this.path = path;
         this.createIfNew = createIfNew;
+        this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
     FileStorage.prototype = {
@@ -157,6 +158,7 @@ define(function (require, exports, module) {
             var result = $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
+            var self = this;
             
             if (path) {
                 var prefFile = FileSystem.getFileForPath(path);
@@ -169,6 +171,9 @@ define(function (require, exports, module) {
                         }
                         return;
                     }
+                    
+                    self._lineEndings = FileUtils.sniffLineEndings(text);
+                    
                     try {
                         result.resolve(JSON.parse(text));
                     } catch (e) {
@@ -195,7 +200,11 @@ define(function (require, exports, module) {
             
             if (path) {
                 try {
-                    prefFile.write(JSON.stringify(newData, null, 4), {}, function (err) {
+                    var text = JSON.stringify(newData, null, 4);
+                    
+                    // maintain the original line endings
+                    text = FileUtils.translateLineEndings(text, this._lineEndings);
+                    prefFile.write(text, {}, function (err) {
                         if (err) {
                             result.reject("Unable to save prefs at " + path + " " + err);
                         } else {
