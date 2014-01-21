@@ -58,7 +58,7 @@ define(function CSSAgent(require, exports, module) {
             sourceMapPath,
             sourceMapPaths = [],
             sourceMapDeferred,
-            file,
+            sourceMapFile,
             parseURL,
             sourceURL;
 
@@ -71,18 +71,35 @@ define(function CSSAgent(require, exports, module) {
                 return sourceMapDeferred.resolve().promise();
             }
             
-            file = FileSystem.getFileForPath(sourceMapPath);
+            sourceMapFile = FileSystem.getFileForPath(sourceMapPath);
             parseURL = PathUtils.parseUrl(sourceMapURL);
 
             // TODO setup change events
-            FileUtils.readAsText(file).done(function (contents) {
-                var sourceMap = new SourceMapConsumer(contents);
+            FileUtils.readAsText(sourceMapFile).done(function (contents) {
+                var sourceMap = new SourceMapConsumer(contents),
+                    localSources = [];
                 
                 sourceMap.sources.forEach(function (source) {
                     // Add the source file (e.g. SCSS or LESS) as a style sheet URL
                     sourceURL = sourceMapURL.replace(new RegExp(parseURL.filename + "$"), source);
-                    _urlToStyle[sourceURL] = sourceMap;
+
+                    if (!Array.isArray(_urlToStyle[sourceURL])) {
+                        _urlToStyle[sourceURL] = [];
+                    }
+                    _urlToStyle[sourceURL].push(sourceMap);
+                    
+                    localSources.push(FileSystem.getFileForPath(sourceMapFile.parentPath + source));
                 });
+
+                // Swap generated file relative paths with local absolute paths
+                sourceMap.localSources = localSources;
+
+                // If the generated file name is missing, assume the source-map file name and drop the .map extension
+                if (!sourceMap.file) {
+                    sourceMap.file = sourceMapFile.name.slice(0, -4);
+                }
+
+                sourceMap.file = FileSystem.getFileForPath(sourceMapFile.parentPath + sourceMap.file);
 
                 sourceMapDeferred.resolve();
             }).fail(sourceMapDeferred.reject);

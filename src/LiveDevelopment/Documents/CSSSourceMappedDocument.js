@@ -82,48 +82,56 @@ define(function (require, exports, module) {
     };
 
     CSSSourceMappedDocument.prototype.updateHighlight = function () {
-        if (!Inspector.config.highlight || !this.editor) {
-            return;
-        }
-        
-        var sourceMap = CSSAgent.styleForURL(this.doc.url);
+        var self = this;
 
-        if (!sourceMap) {
+        if (!Inspector.config.highlight || !self.editor) {
             return;
         }
         
-        // FIXME mapping this.doc.file to sourcePos.source
-        // The source map uses paths relative to the generated document's parent
-        // I've hacked this to assume they're in the same parent folder
-        var cursorPos = this.editor.getCursorPos(),
-            sourcePos = { source: this.doc.file.name, line: cursorPos.line + 1, column: cursorPos.ch },
-            generatedFile = FileSystem.getFileForPath(this.doc.file.parentPath + sourceMap.file),
-            generatedPosition = sourceMap.generatedPositionFor(sourcePos),
+        // One preprocessed CSS file may be shared in multiple generated files
+        var sourceMaps = CSSAgent.styleForURL(self.doc.url);
+
+        if (!sourceMaps) {
+            return;
+        }
+
+        var cursorPos = self.editor.getCursorPos(),
             selector,
             codeMirror,
             cmPos;
         
-        if (!generatedPosition || generatedPosition.line === null || generatedPosition.column === null) {
-            return;
-        }
-        
-        // FIXME open the generated file in the working set?
-        // Create a temporary CM instance
-        codeMirror = new CodeMirror(window.document.createElement());
-        
-        // Convert 1-based line to 0-based
-        cmPos = { line: generatedPosition.line - 1, ch: generatedPosition.column};
-
-        // Read the generated file
-        FileUtils.readAsText(generatedFile).done(function (text) {
-            codeMirror.setValue(text);
-            selector = CSSUtils.findSelectorAtDocumentPos(codeMirror, cmPos);
-
-            if (selector) {
-                HighlightAgent.rule(selector);
-            } else {
-                HighlightAgent.hide();
+        // FIXME async iterate over source maps until we find a selector
+        sourceMaps.some(function (sourceMap) {
+            var generatedFile = sourceMap.file,
+                relativePathToSource = self.doc.file.fullPath.slice(generatedFile.parentPath.length),
+                sourcePos = { source: relativePathToSource, line: cursorPos.line + 1, column: cursorPos.ch },
+                generatedPosition = sourceMap.generatedPositionFor(sourcePos);
+            
+            if (!generatedPosition || generatedPosition.line === null || generatedPosition.column === null) {
+                return false;
             }
+            
+            // FIXME open the generated file in the working set?
+            // Create a temporary CM instance
+            codeMirror = new CodeMirror(window.document.createElement());
+            
+            // Convert 1-based line to 0-based
+            cmPos = { line: generatedPosition.line - 1, ch: generatedPosition.column};
+
+            // Read the generated file
+            FileUtils.readAsText(generatedFile).done(function (text) {
+                codeMirror.setValue(text);
+                selector = CSSUtils.findSelectorAtDocumentPos(codeMirror, cmPos);
+
+                if (selector) {
+                    HighlightAgent.rule(selector);
+                } else {
+                    HighlightAgent.hide();
+                }
+            });
+
+            // FIXME async iterate over source maps
+            return true;
         });
     };
     

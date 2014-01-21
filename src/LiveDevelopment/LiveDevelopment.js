@@ -182,6 +182,7 @@ define(function LiveDevelopment(require, exports, module) {
         case "css":
             return CSSDocument;
         case "scss":
+        case "less":
             return CSSSourceMappedDocument;
         case "javascript":
             return exports.config.experimental ? JSDocument : null;
