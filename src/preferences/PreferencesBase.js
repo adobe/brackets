@@ -387,9 +387,10 @@ define(function (require, exports, module) {
          * 
          * @param {string} id Name of the preference for which the value should be retrieved
          * @param {Object=} context Optional context object to change the preference lookup
-         * @return {?{layer: ?string, layerID: ?object}} Object describing where the preferences came from. 
+         * @return {{layer: ?string, layerID: ?object}|undefined} Object describing where the preferences came from. 
          *                                              An empty object means that it was defined in the Scope's
-         *                                              base data.
+         *                                              base data. Undefined means the pref is not
+         *                                              defined in this Scope.
          */
         getPreferenceLocation: function (id, context) {
             var layerCounter,
