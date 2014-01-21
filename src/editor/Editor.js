@@ -1552,7 +1552,7 @@ define(function (require, exports, module) {
     function _setEditorOptionAndPref(value, cmOption, prefName, _editorOnly) {
         _setEditorOption(value, cmOption);
         if (!_editorOnly) {
-            PreferencesManager.setValueAndSave("user", prefName, value);
+            PreferencesManager.setValueAndSave(prefName, value);
         }
     }
     

@@ -14,5 +14,6 @@
             "linting.enabled": false
         }
     },
-    "spaceUnits": 4
+    "spaceUnits": 4,
+    "useTabChar": false
 }
