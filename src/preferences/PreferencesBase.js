@@ -307,7 +307,7 @@ define(function (require, exports, module) {
          * 
          * @param {string} id Key to set
          * @param {*} value Value for this key
-         * @param {Object} context Optional additional information about the request (typically used for layers)
+         * @param {Object=} context Optional additional information about the request (typically used for layers)
          * @param {{layer: ?string, layerID: ?Object}=} location Optional location in which to set the value.
          *                                                      If the object is empty, the value will be
          *                                                      set at the Scope's base level.
@@ -317,18 +317,14 @@ define(function (require, exports, module) {
             if (!location) {
                 location = this.getPreferenceLocation(id, context);
             }
-            if (location) {
-                if (location.layer) {
-                    var layer = this._layerMap[location.layer];
-                    if (layer) {
-                        var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
-                        this._dirty = this._dirty || wasSet;
-                        return wasSet;
-                    } else {
-                        return false;
-                    }
+            if (location && location.layer) {
+                var layer = this._layerMap[location.layer];
+                if (layer) {
+                    var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
+                    this._dirty = this._dirty || wasSet;
+                    return wasSet;
                 } else {
-                    return this._performSet(id, value);
+                    return false;
                 }
             } else {
                 return this._performSet(id, value);
@@ -416,8 +412,14 @@ define(function (require, exports, module) {
             }
             
             if (this._exclusions.indexOf(id) === -1 && data[id] !== undefined) {
+                // The value is defined in this Scope, which means we need to return an
+                // empty object as a signal to the PreferencesSystem that this pref
+                // is defined in this Scope (in the base data)
                 return {};
             }
+            
+            // return undefined when this Scope does not have the requested pref
+            return undefined;
         },
         
         /**
