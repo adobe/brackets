@@ -536,8 +536,9 @@ define(function (require, exports, module) {
             // the preferences of the user running the tests.
             var pm = _testWindow.brackets.test.PreferencesManager._manager;
             pm.removeScope("user");
-            pm._defaultContext.scopeOrder = ["default"];
-            pm.addScope("user", new PreferencesBase.MemoryStorage());
+            pm.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            });
             
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
