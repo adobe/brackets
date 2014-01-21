@@ -143,6 +143,7 @@ define(function (require, exports, module) {
     function FileStorage(path, createIfNew) {
         this.path = path;
         this.createIfNew = createIfNew;
+        this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
     FileStorage.prototype = {
@@ -157,6 +158,7 @@ define(function (require, exports, module) {
             var result = $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
+            var self = this;
             
             if (path) {
                 var prefFile = FileSystem.getFileForPath(path);
@@ -169,6 +171,9 @@ define(function (require, exports, module) {
                         }
                         return;
                     }
+                    
+                    self._lineEndings = FileUtils.sniffLineEndings(text);
+                    
                     try {
                         result.resolve(JSON.parse(text));
                     } catch (e) {
@@ -195,7 +200,11 @@ define(function (require, exports, module) {
             
             if (path) {
                 try {
-                    prefFile.write(JSON.stringify(newData, null, 4), {}, function (err) {
+                    var text = JSON.stringify(newData, null, 4);
+                    
+                    // maintain the original line endings
+                    text = FileUtils.translateLineEndings(text, this._lineEndings);
+                    prefFile.write(text, {}, function (err) {
                         if (err) {
                             result.reject("Unable to save prefs at " + path + " " + err);
                         } else {
@@ -249,6 +258,7 @@ define(function (require, exports, module) {
         this.data = {};
         this._dirty = false;
         this._layers = [];
+        this._layerMap = {};
         this._exclusions = [];
     }
     
@@ -291,17 +301,54 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets the value for `id`.
+         * Sets the value for `id`. The value is set at the location given, or at the current
+         * location for the preference if no location is specified. If an invalid location is
+         * given, nothing will be set and no exception is thrown.
          * 
          * @param {string} id Key to set
          * @param {*} value Value for this key
+         * @param {Object=} context Optional additional information about the request (typically used for layers)
+         * @param {{layer: ?string, layerID: ?Object}=} location Optional location in which to set the value.
+         *                                                      If the object is empty, the value will be
+         *                                                      set at the Scope's base level.
+         * @return {boolean} true if the value was set
          */
-        set: function (id, value) {
-            // Scopes do not support changing settings on layers at this
-            // time. Ultimately, the need to do so will be based on
-            // UI.
+        set: function (id, value, context, location) {
+            if (!location) {
+                location = this.getPreferenceLocation(id, context);
+            }
+            if (location && location.layer) {
+                var layer = this._layerMap[location.layer];
+                if (layer) {
+                    var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
+                    this._dirty = this._dirty || wasSet;
+                    return wasSet;
+                } else {
+                    return false;
+                }
+            } else {
+                return this._performSet(id, value);
+            }
+        },
+        
+        /**
+         * @private
+         * 
+         * Performs the set operation on this Scope's data, deleting the given ID if
+         * the new value is undefined. The dirty flag will be set as well.
+         * 
+         * @param {string} id key to set or delete
+         * @param {*} value value for this key (undefined to delete)
+         * @return {boolean} always returns true
+         */
+        _performSet: function (id, value) {
             this._dirty = true;
-            this.data[id] = value;
+            if (value === undefined) {
+                delete this.data[id];
+            } else {
+                this.data[id] = value;
+            }
+            return true;
         },
         
         /**
@@ -331,8 +378,49 @@ define(function (require, exports, module) {
             }
             
             if (this._exclusions.indexOf(id) === -1) {
-                return this.data[id];
+                return data[id];
             }
+        },
+        
+        /**
+         * Get the location in this Scope (if any) where the given preference is set.
+         * 
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         * @return {{layer: ?string, layerID: ?object}|undefined} Object describing where the preferences came from. 
+         *                                              An empty object means that it was defined in the Scope's
+         *                                              base data. Undefined means the pref is not
+         *                                              defined in this Scope.
+         */
+        getPreferenceLocation: function (id, context) {
+            var layerCounter,
+                layers = this._layers,
+                layer,
+                data = this.data,
+                result;
+            
+            context = context || {};
+            
+            for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
+                layer = layers[layerCounter];
+                result = layer.getPreferenceLocation(data[layer.key], id, context);
+                if (result !== undefined) {
+                    return {
+                        layer: layer.key,
+                        layerID: result
+                    };
+                }
+            }
+            
+            if (this._exclusions.indexOf(id) === -1 && data[id] !== undefined) {
+                // The value is defined in this Scope, which means we need to return an
+                // empty object as a signal to the PreferencesSystem that this pref
+                // is defined in this Scope (in the base data)
+                return {};
+            }
+            
+            // return undefined when this Scope does not have the requested pref
+            return undefined;
         },
         
         /**
@@ -373,6 +461,7 @@ define(function (require, exports, module) {
          */
         addLayer: function (layer) {
             this._layers.push(layer);
+            this._layerMap[layer.key] = layer;
             this._exclusions.push(layer.key);
             $(this).trigger(PREFERENCE_CHANGE, {
                 ids: layer.getKeys(this.data[layer.key], {})
@@ -494,23 +583,70 @@ define(function (require, exports, module) {
          * @param {Object} context Object with filename that will be compared to the globs
          */
         get: function (data, id, context) {
-            if (!data) {
-                return;
-            }
-            
-            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
-            
-            if (!relativeFilename) {
-                return;
-            }
-            
-            var glob = _findMatchingGlob(data, relativeFilename);
+            var glob = this.getPreferenceLocation(data, id, context);
             
             if (!glob) {
                 return;
             }
             
             return data[glob][id];
+        },
+        
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this path layer for the current path.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} context Object with filename that will be compared to the globs
+         * @return {string} the Layer ID, in this case the glob that matched
+         */
+        getPreferenceLocation: function (data, id, context) {
+            if (!data) {
+                return;
+            }
+            
+            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
+            if (!relativeFilename) {
+                return;
+            }
+            
+            return _findMatchingGlob(data, relativeFilename);
+        },
+        
+        /**
+         * Sets the preference value in the given data structure for the layerID provided. If no
+         * layerID is provided, then the current layer is used. If a layerID is provided and it
+         * does not exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} value new value to assign to the preference
+         * @param {Object} context Object with filename that will be compared to the globs
+         * @param {string=} layerID Optional: glob pattern for a specific section to set the value in
+         * @return {boolean} true if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id, context);
+            }
+            
+            if (!layerID) {
+                return false;
+            }
+            
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (value === undefined) {
+                delete section[id];
+            } else {
+                section[id] = value;
+            }
+            return true;
         },
         
         /**
@@ -659,14 +795,26 @@ define(function (require, exports, module) {
         },
         
         /**
+         * Gets the location in which the value of a prefixed preference has been set.
+         * 
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         * @return {{scope: string, layer: ?string, layerID: ?object}} Object describing where the preferences came from
+         */
+        getPreferenceLocation: function (id, context) {
+            return this.base.getPreferenceLocation(this.prefix + id, context);
+        },
+        
+        /**
          * Sets the prefixed preference
          * 
-         * @param {string} scopeName Scope to set the preference in
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
+         * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
+         * @return {boolean} true if a value was set
          */
-        set: function (scopeName, id, value) {
-            return this.base.set(scopeName, this.prefix + id, value);
+        set: function (id, value, options) {
+            return this.base.set(this.prefix + id, value, options);
         },
         
         /**
@@ -829,7 +977,11 @@ define(function (require, exports, module) {
                 name: options.name,
                 description: options.description
             });
-            this.set("default", id, initial);
+            this.set(id, initial, {
+                location: {
+                    scope: "default"
+                }
+            });
             return pref;
         },
         
@@ -1008,23 +1160,76 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets a preference in the chosen Scope and notifies listeners that there may
-         * have been a change.
+         * Gets the location in which the value of a preference has been set.
          * 
-         * @param {string} scopeName Scope to set the preference in
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         * @return {{scope: string, layer: ?string, layerID: ?object}} Object describing where the preferences came from
+         */
+        getPreferenceLocation: function (id, context) {
+            var scopeCounter,
+                scopeName;
+            
+            context = context || this._defaultContext;
+            
+            var scopeOrder = context.scopeOrder || this._defaultContext.scopeOrder;
+            
+            for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
+                scopeName = scopeOrder[scopeCounter];
+                var scope = this._scopes[scopeName];
+                var result = scope.getPreferenceLocation(id, context);
+                if (result !== undefined) {
+                    result.scope = scopeName;
+                    return result;
+                }
+            }
+        },
+        
+        /**
+         * Sets a preference and notifies listeners that there may
+         * have been a change. By default, the preference is set in the same location in which
+         * it was defined except for the "default" scope. If the current value of the preference
+         * comes from the "default" scope, the new value will be set at the level just above
+         * default.
+         * 
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
+         * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
+         * @return {boolean} true if a value was set
          */
-        set: function (scopeName, id, value) {
-            var scope = this._scopes[scopeName];
+        set: function (id, value, options) {
+            options = options || {};
+            var context = options.context || this._defaultContext,
+                
+                // The case where the "default" scope was chosen specifically is special.
+                // Usually "default" would come up only when a preference did not have any
+                // user-set value, in which case we'd want to set the value in a different scope.
+                forceDefault = options.location && options.location.scope === "default" ? true : false,
+                location = options.location || this.getPreferenceLocation(id, context);
+            
+            if (!location || (location.scope === "default" && !forceDefault)) {
+                // The default scope for setting a preference is the lowest priority
+                // scope after "default".
+                if (context.scopeOrder.length > 1) {
+                    location = {
+                        scope: context.scopeOrder[context.scopeOrder.length - 2]
+                    };
+                } else {
+                    return false;
+                }
+            }
+            var scope = this._scopes[location.scope];
             if (!scope) {
-                throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
+                return false;
             }
             
-            scope.set(id, value);
-            $(this).trigger(PREFERENCE_CHANGE, {
-                ids: [id]
-            });
+            var wasSet = scope.set(id, value, context, location);
+            if (wasSet) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: [id]
+                });
+            }
+            return wasSet;
         },
         
         /**
@@ -1192,6 +1397,21 @@ define(function (require, exports, module) {
             });
             
             return result.promise();
+        },
+        
+        /**
+         * Augments the context object passed in with information from the default context.
+         * For example, if you want to create a context for a specific file while maintaining
+         * the default scopeOrder, you can pass in an object with just the filename and the
+         * scopeOrder will be added.
+         * 
+         * *This method changes the object passed in.*
+         * 
+         * @param {Object} context context object to augment
+         * @return {Object} the same context object that was passed in.
+         */
+        buildContext: function (context) {
+            return _.defaults(context, this._defaultContext);
         },
         
         /**
