@@ -107,8 +107,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} hostEditor
      * @param {!string} functionName
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if js other than function is detected at pos, or
+     *         null if we're not going to provide anything.
      */
     function _createInlineEditor(hostEditor, functionName) {
         // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.

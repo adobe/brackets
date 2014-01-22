@@ -168,8 +168,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr, or
+     *         null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
