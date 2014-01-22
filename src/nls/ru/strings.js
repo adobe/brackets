@@ -229,7 +229,6 @@ define({
     "CMD_FILE_CLOSE_ABOVE"                : "Закрыть остальные сверху",
     "CMD_FILE_CLOSE_BELOW"                : "Закрыть остальные снизу",
     "CMD_FILE_SAVE"                       : "Сохранить",
-    "CMD_FILE_SAVE_AS"                    : "Сохранить как\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Сохранить все",
     "CMD_FILE_SAVE_AS"                    : "Сохранить как\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
