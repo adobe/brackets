@@ -190,7 +190,7 @@ define(function (require, exports, module) {
      */
     PreferenceStorage.prototype.convert = function (rules, convertedKeys) {
         var prefs = this._json,
-            self,
+            self = this,
             complete = true,
             deferred = new $.Deferred();
         
