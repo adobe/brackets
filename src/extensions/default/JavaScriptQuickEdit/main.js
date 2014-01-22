@@ -34,14 +34,15 @@ define(function (require, exports, module) {
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
-        ProjectManager          = brackets.getModule("project/ProjectManager");
+        ProjectManager          = brackets.getModule("project/ProjectManager"),
+        Strings                 = brackets.getModule("strings");
     
     /**
      * Return the token string that is at the specified position.
      *
      * @param hostEditor {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {String} token string at the specified position
+     * @return {functionName: {string}, reason: {string}}
      */
     function _getFunctionName(hostEditor, pos) {
         var token = hostEditor._codeMirror.getTokenAt(pos, true);
@@ -56,10 +57,16 @@ define(function (require, exports, module) {
         if (!((token.type === "variable") ||
               (token.type === "variable-2") ||
               (token.type === "property"))) {
-            return null;
+            return {
+                functionName: null,
+                reason: Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND
+            };
         }
         
-        return token.string;
+        return {
+            functionName: token.string,
+            reason: null
+        };
     }
     
     /**
@@ -196,12 +203,12 @@ define(function (require, exports, module) {
 
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
-        var functionName = _getFunctionName(hostEditor, sel.start);
-        if (!functionName) {
-            return null;
+        var functionResult = _getFunctionName(hostEditor, sel.start);
+        if (!functionResult.functionName) {
+            return functionResult.reason || null;
         }
 
-        return _createInlineEditor(hostEditor, functionName);
+        return _createInlineEditor(hostEditor, functionResult.functionName);
     }
 
     // init

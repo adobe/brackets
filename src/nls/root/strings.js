@@ -172,6 +172,7 @@ define({
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: place cursor in id name",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag name, class name, or id name",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: invalid syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: place cursor in function name",
 
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs provider found for current cursor position",
