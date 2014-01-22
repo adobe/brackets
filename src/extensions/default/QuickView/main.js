@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                     params[i] = args.join(" ");
                 }
 
-                // put it back together.                
+                // put it back together.
                 expression = expression.substring(0, paramStart) + params.join(", ") + expression.substring(paramEnd);
             }
             return expression;
@@ -516,6 +516,42 @@ define(function (require, exports, module) {
         return null;
     }
     
+    function getHoveredEditor(event) {
+        // Figure out which editor we are over
+        var fullEditor = EditorManager.getCurrentFullEditor();
+        
+        if (!fullEditor) {
+            return;
+        }
+        
+        // Check for inline Editor instances first
+        var inlines = fullEditor.getInlineWidgets(),
+            i,
+            editor;
+        
+        for (i = 0; i < inlines.length; i++) {
+            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()),  // see MultiRangeInlineEditor
+                $otherDiv = inlines[i].$htmlContent;
+            
+            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, event)) {
+                editor = inlines[i].editor;
+                break;
+            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
+                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
+                return;
+            }
+        }
+        
+        // Check main editor
+        if (!editor) {
+            if (divContainsMouse($(fullEditor.getRootElement()), event)) {
+                editor = fullEditor;
+            }
+        }
+        
+        return editor;
+    }
+    
     /**
      * Changes the current hidden popoverState to visible, showing it in the UI and highlighting
      * its matching text in the editor.
@@ -563,39 +599,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Figure out which editor we are over
-        var fullEditor = EditorManager.getCurrentFullEditor();
-        
-        if (!fullEditor) {
-            hidePreview();
-            return;
-        }
-        
-        // Check for inline Editor instances first
-        var inlines = fullEditor.getInlineWidgets(),
-            i,
-            editor;
-        
-        for (i = 0; i < inlines.length; i++) {
-            var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()),  // see MultiRangeInlineEditor
-                $otherDiv = inlines[i].$htmlContent;
-            
-            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, event)) {
-                editor = inlines[i].editor;
-                break;
-            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
-                // Mouse inside unsupported inline editor like Quick Docs or Color Editor
-                hidePreview();
-                return;
-            }
-        }
-        
-        // Check main editor
-        if (!editor) {
-            if (divContainsMouse($(fullEditor.getRootElement()), event)) {
-                editor = fullEditor;
-            }
-        }
+        var editor = getHoveredEditor(event);
         
         if (editor && editor._codeMirror) {
             // Find char mouse is over
@@ -622,7 +626,7 @@ define(function (require, exports, module) {
                     // That one's still relevant - nothing more to do
                     return;
                 } else {
-                    // That one doesn't cover this pos - hide it and start anew
+                    // That one doesn't cover this pos - hide it and start a new
                     showImmediately = popoverState.visible;
                     hidePreview();
                 }
@@ -640,7 +644,7 @@ define(function (require, exports, module) {
             }, showImmediately ? 0 : HOVER_DELAY);
                 
         } else {
-            // Mouse not over any Editor - immediately hide popover
+            // Mouse not over any supported Editor - immediately hide popover
             hidePreview();
         }
     }
