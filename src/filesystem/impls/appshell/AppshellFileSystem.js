@@ -550,7 +550,7 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = appshell.platform === "mac";
+    exports.recursiveWatch = appshell.platform === "win" || appshell.platform === "mac";
     
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC
