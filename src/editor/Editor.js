@@ -1289,7 +1289,7 @@ define(function (require, exports, module) {
         if (!arrowBelow) {
             $("<div/>").addClass("arrowAbove").appendTo(this._$messagePopover);
         }
-        $("<div/>").addClass("text").appendTo(this._$messagePopover).text(errorMsg);
+        $("<div/>").addClass("text").appendTo(this._$messagePopover).html(errorMsg);
         if (arrowBelow) {
             $("<div/>").addClass("arrowBelow").appendTo(this._$messagePopover);
         }
