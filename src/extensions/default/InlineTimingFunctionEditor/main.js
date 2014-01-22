@@ -128,8 +128,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} hostEditor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
-     *      no timing function at pos.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if timing function with invalid syntax is detected at pos, or
+     *         null if there's no timing function at pos.
      */
     function inlineTimingFunctionEditorProvider(hostEditor, pos) {
         var context = prepareEditorForProvider(hostEditor, pos),
