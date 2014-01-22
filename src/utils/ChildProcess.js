@@ -41,17 +41,16 @@ define(function (require, exports, module) {
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("childProcess", _domainPath);
     
-    var _processes      = {},
-        _commandString  = "{0} {1}",
-        _launchString   = (brackets.platform === "mac") ? "open -a \"{0}\" --new --wait-apps --args {1}" : null;
+    var _processes = {};
     
     // TODO If the connection closes, notify all?
     $(_nodeDomain.connection).on("close", function (event, promise) {
         console.log(event);
     });
     
-    function ChildProcess(command, options) {
+    function ChildProcess(command, args, options) {
         this._command = command;
+        this._args = args;
         this._options = options;
     }
     
@@ -64,6 +63,10 @@ define(function (require, exports, module) {
         "command": {
             get: function () { return this._command; },
             set: function () { throw new Error("Cannot set command"); }
+        },
+        "args": {
+            get: function () { return this._args; },
+            set: function () { throw new Error("Cannot args command"); }
         },
         "options": {
             get: function () { return this._options; },
@@ -78,44 +81,44 @@ define(function (require, exports, module) {
     ChildProcess.prototype._pid = null;
     ChildProcess.prototype._connected = false;
     
-    ChildProcess.prototype.exec = function () {
-        var self = this;
-        
-        _nodeDomain.exec("exec", this.command, this.options).done(function (pid) {
-            self._pid = pid;
-            self._connected = true;
-
-            // map PID to ChildProcess
-            _processes[pid] = self;
-        });
-    };
-    
     ChildProcess.prototype.kill = function (signal) {
         _nodeDomain.exec("kill", this.pid, signal);
     };
 
     function _getCommandString(template, command, args) {
         template = template || _commandString;
-        args = Array.isArray(args) ? args.join(" ") : args;
 
         return StringUtils.format(template, command, args || "");
     }
 
-    function _exec(commandString, options) {
-        var cp = new ChildProcess(commandString, options);
-        cp.exec();
-        
+    function _initChildProcess(cp) {
+        return function (pid) {
+            cp._pid = pid;
+            cp._connected = true;
+
+            // map PID to ChildProcess
+            _processes[pid] = self;
+        };
+    }
+    
+    function execFile(command, args, options) {
+        var cp = new ChildProcess(command, args, options);
+
+        _nodeDomain.exec("execFile", cp.command, cp.args, cp.options)
+            .done(_initChildProcess(cp));
+
         return cp;
     }
     
     function exec(command, args, options) {
-        var commandString = _getCommandString(_commandString, command, args);
-        return _exec(commandString, options);
-    }
-    
-    function launch(command, args, options) {
-        var commandString = _getCommandString(_launchString, command, args);
-        return _exec(commandString, options);
+        var argsString      = Array.isArray(args) ? args.join(" ") : args,
+            commandString   = command + " " + argsString,
+            cp              = new ChildProcess(command, args, options);
+
+        _nodeDomain.exec("exec", commandString, cp.options)
+            .done(_initChildProcess(cp));
+
+        return cp;
     }
     
     function _childProcessExitHandler(event, pid, code, signal) {
@@ -134,7 +137,6 @@ define(function (require, exports, module) {
     // Setup the exit handler. This only needs to happen once.
     $(_nodeDomain).on("exit", _childProcessExitHandler);
 
+    exports.execFile = execFile;
     exports.exec = exec;
-    exports.launch = launch;
-    exports.ChildProcess = ChildProcess;
 });

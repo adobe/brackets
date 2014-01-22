@@ -27,17 +27,50 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async           = require("utils/Async"),
-        ChildProcess    = require("utils/ChildProcess"),
-        FileSystemError = require("filesystem/FileSystemError"),
-        StringUtils     = require("utils/StringUtils");
+    var Async               = require("utils/Async"),
+        ChildProcess        = require("utils/ChildProcess"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        StringUtils         = require("utils/StringUtils");
 
     var liveDevProfilePath = brackets.app.getApplicationSupportDirectory() + "/live-dev-profile",
         remoteDebuggingPort = 9222,
         browserProcess;
 
+    var GOOGLE_CHROME           = "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome",
+        GOOGLE_CHROME_CANARY    = "/Applications/Google\\ Chrome\\ Canary.app/Contents/MacOS/Google\\ Chrome\\ Canary",
+        FIREFOX_AURORA          = "/Applications/FirefoxAurora.app/Contents/MacOS/firefox",
+        GOOGLE_CHROME_ARGS      = [
+            "--no-first-run",
+            "--no-default-browser-check",
+            StringUtils.format("--remote-debugging-port={0}", remoteDebuggingPort),
+            StringUtils.format("--user-data-dir=\"{1}\"", remoteDebuggingPort, liveDevProfilePath)
+        ];
+
+    // TODO native search for path to chrome
+    // WIN: REG QUERY "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe" /ve
+    // MAC: mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome'"
+    //      mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome.canary'"
+    //      ... then to get the exectuable
+    //      codesign --display /Applications/Google\ Chrome.app
+    // LINUX: Assume it's in the $PATH???
+    var chromeDefaultPref = {
+        "Google Chrome": { path: GOOGLE_CHROME }
+    };
+
+    PreferencesManager.definePreference("browsers", "object", chromeDefaultPref);
+    PreferencesManager.setValueAndSave("user", "browsers", chromeDefaultPref);
+
     function getChromeArgs(url) {
-        return StringUtils.format("--no-first-run --no-default-browser-check --remote-debugging-port={0} --user-data-dir=\"{1}\" {2}", remoteDebuggingPort, liveDevProfilePath, url);
+        var args = [];
+
+        // add default args
+        Array.prototype.push.apply(args, GOOGLE_CHROME_ARGS);
+
+        // URL is the last arg
+        args.push(url);
+
+        return args;
     }
 
     /**
@@ -76,7 +109,7 @@ define(function (require, exports, module) {
         //     }
         // });
 
-        browserProcess = ChildProcess.launch("/Applications/Google Chrome.app", getChromeArgs(url));
+        browserProcess = ChildProcess.exec(GOOGLE_CHROME_CANARY, getChromeArgs(url));
         result.resolve(browserProcess);
         
         return result.promise();

@@ -31,16 +31,7 @@ var child_process = require("child_process");
 var _domainManager,
     _processes = {};
 
-/**
- * 
- */
-function exec(command, options) {
-    var cp = child_process.exec(command, options, function (error, stdout, stderr) {
-        if (error) {
-            console.log("child_process exec error for \"" + command + "\": " + error);
-        }
-    });
-
+function _initChildProcess(cp) {
     _processes[cp.pid] = cp;
     
     cp.on("error", function (err) {
@@ -55,6 +46,32 @@ function exec(command, options) {
     });
     
     return cp.pid;
+}
+
+/**
+ * 
+ */
+function exec(command, options) {
+    var cp = child_process.exec(command, options, function (error, stdout, stderr) {
+        if (error) {
+            console.log("child_process exec error for \"" + command + "\": " + error);
+        }
+    });
+
+    return _initChildProcess(cp);
+}
+
+/**
+ * 
+ */
+function execFile(command, args, options) {
+    var cp = child_process.execFile(command, args, options, function (error, stdout, stderr) {
+        if (error) {
+            console.log("child_process execFile error for \"" + command + "\": " + error);
+        }
+    });
+
+    return _initChildProcess(cp);
 }
 
 /**
@@ -87,6 +104,30 @@ function init(domainManager) {
             {
                 name: "command",
                 type: "string",
+                description: "The command to run, with space-separated arguments"
+            },
+            {
+                name: "options",
+                type: "object",
+                description: ""
+            }
+        ]
+    );
+    domainManager.registerCommand(
+        "childProcess",
+        "execFile",
+        exec,
+        false,
+        "Runs a command in a shell and buffers the output.",
+        [
+            {
+                name: "command",
+                type: "string",
+                description: "The command to run, with space-separated arguments"
+            },
+            {
+                name: "args",
+                type: "array",
                 description: "The command to run, with space-separated arguments"
             },
             {
