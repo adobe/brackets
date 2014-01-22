@@ -1415,9 +1415,10 @@ label input {
         border-style: solid;
     }
     &.animating {
+        opacity: 0.0;
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        transition: 1s 3s opacity ease-out;
+        transition: 500ms 3s opacity ease-in;
     }
 }

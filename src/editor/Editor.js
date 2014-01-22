@@ -348,6 +348,7 @@ define(function (require, exports, module) {
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
         this._inlineWidgets = [];
+        this._$messagePopover = null;
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -1257,19 +1258,22 @@ define(function (require, exports, module) {
      * @param {string} errorMsg Error message to display
      */
     Editor.prototype.displayErrorMessageAtCursor = function (errorMsg) {
-        var $messagePopover, arrowBelow, cursorPos, cursorCoord, popoverRect,
+        var arrowBelow, cursorPos, cursorCoord, popoverRect,
             top, left, clip, arrowLeft,
+            self = this,
             $editorHolder = $("#editor-holder"),
             POPOVER_MARGIN = 10,
             POPOVER_ARROW_HALF_WIDTH = 10;
         
         function _clearMessagePopover() {
-            $messagePopover.remove();
-            $messagePopover = null;
+            if (self._$messagePopover) {
+                self._$messagePopover.remove();
+                self._$messagePopover = null;
+            }
         }
         
-        if ($messagePopover) {
-            window.clearTimeout(_clearMessagePopover);
+        // Only 1 message at a time
+        if (this._$messagePopover) {
             _clearMessagePopover();
         }
         
@@ -1281,26 +1285,26 @@ define(function (require, exports, module) {
         arrowBelow = (cursorCoord.top > 100);
         
         // Text is dynamic, so build popover first so we can measure final width
-        $messagePopover = $("<div/>").addClass("popover-message").appendTo($("body"));
+        this._$messagePopover = $("<div/>").addClass("popover-message").appendTo($("body"));
         if (!arrowBelow) {
-            $("<div/>").addClass("arrowAbove").appendTo($messagePopover);
+            $("<div/>").addClass("arrowAbove").appendTo(this._$messagePopover);
         }
-        $("<div/>").addClass("text").appendTo($messagePopover).text(errorMsg);
+        $("<div/>").addClass("text").appendTo(this._$messagePopover).text(errorMsg);
         if (arrowBelow) {
-            $("<div/>").addClass("arrowBelow").appendTo($messagePopover);
+            $("<div/>").addClass("arrowBelow").appendTo(this._$messagePopover);
         }
         
         // Estimate where to position popover.
         top = (arrowBelow)
-                    ? cursorCoord.top - $messagePopover.height() - POPOVER_MARGIN
+                    ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
                     : cursorCoord.bottom + POPOVER_MARGIN;
-        left = cursorCoord.left - ($messagePopover.width() / 2);
+        left = cursorCoord.left - (this._$messagePopover.width() / 2);
         
         popoverRect = {
             top:    top,
             left:   left,
-            height: $messagePopover.height(),
-            width:  $messagePopover.width()
+            height: this._$messagePopover.height(),
+            width:  this._$messagePopover.width()
         };
         
         // See if popover is clipped on any side
@@ -1314,27 +1318,23 @@ define(function (require, exports, module) {
         }
         
         // Popover text and arrow are positioned individually
-        $messagePopover.css({"visibility": "visible", "top": top, "left": left});
+        this._$messagePopover.css({"visibility": "visible", "top": top, "left": left});
         
         // Position popover arrow exactly centered over/under cursor
         arrowLeft = cursorCoord.left - left - POPOVER_ARROW_HALF_WIDTH;
         if (arrowBelow) {
-            $messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
+            this._$messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
         } else {
-            $messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
+            this._$messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
         }
         
-//        AnimationUtils.animateUsingClass($messagePopover[0], "animating")
-//            .done(_clearMessagePopover);
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animating")
+            .done(_clearMessagePopover);
         
         // TODO:
         // - add shadow to "arrow"
-        // - css to fade out after 3-4 sec
         // - clear message on scroll?, change editors?, click in page?, typing?
         // - test conflicts with other popovers, menus, dropdowns
-
-        // Destroy after 4 sec
-        window.setTimeout(_clearMessagePopover, 4000);
     };
     
     /**
