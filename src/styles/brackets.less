@@ -1382,3 +1382,42 @@ label input {
 .install-extension-dialog .spinner {
     margin-left: 10px;
 }
+
+/* Quick Edit, Quick Docs */
+.popover-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;    // TODO: put in @var
+    visibility: hidden;
+    opacity: 1.0;
+    
+    .text {
+        padding: 5px 10px;
+        background-color: #f74687;  // TODO: put in @var
+        border-radius: 3px;
+        color: @bc-white;
+        box-shadow: @tc-dropdown-shadow;
+        white-space: nowrap;
+    }
+    .arrowAbove {
+        height: 0;
+        width: 0;
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent #f74687 transparent;  // TODO: put in @var
+        border-style: solid;
+    }
+    .arrowBelow {
+        height: 0;
+        width: 0;
+        border-width: 10px 10px 0 10px;
+        border-color: #f74687 transparent transparent transparent;  // TODO: put in @var
+        border-style: solid;
+    }
+    &.animating {
+        // Make the animation use the GPU--especially important for retina.
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        transition: 1s 3s opacity ease-out;
+    }
+}

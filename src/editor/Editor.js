@@ -1251,6 +1251,93 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Display temporary popover message at current cursor position. Display message above
+     * cursor if space allows, otherwise below.
+     *
+     * @param {string} errorMsg Error message to display
+     */
+    Editor.prototype.displayErrorMessageAtCursor = function (errorMsg) {
+        var $messagePopover, arrowBelow, cursorPos, cursorCoord, popoverRect,
+            top, left, clip, arrowLeft,
+            $editorHolder = $("#editor-holder"),
+            POPOVER_MARGIN = 10,
+            POPOVER_ARROW_HALF_WIDTH = 10;
+        
+        function _clearMessagePopover() {
+            $messagePopover.remove();
+            $messagePopover = null;
+        }
+        
+        if ($messagePopover) {
+            window.clearTimeout(_clearMessagePopover);
+            _clearMessagePopover();
+        }
+        
+        // Determine if arrow is above or below
+        cursorPos   = this.getCursorPos();
+        cursorCoord = this._codeMirror.charCoords(cursorPos);
+        
+        // Assume popover height is max of 2 lines
+        arrowBelow = (cursorCoord.top > 100);
+        
+        // Text is dynamic, so build popover first so we can measure final width
+        $messagePopover = $("<div/>").addClass("popover-message").appendTo($("body"));
+        if (!arrowBelow) {
+            $("<div/>").addClass("arrowAbove").appendTo($messagePopover);
+        }
+        $("<div/>").addClass("text").appendTo($messagePopover).text(errorMsg);
+        if (arrowBelow) {
+            $("<div/>").addClass("arrowBelow").appendTo($messagePopover);
+        }
+        
+        // Estimate where to position popover.
+        top = (arrowBelow)
+                    ? cursorCoord.top - $messagePopover.height() - POPOVER_MARGIN
+                    : cursorCoord.bottom + POPOVER_MARGIN;
+        left = cursorCoord.left - ($messagePopover.width() / 2);
+        
+        popoverRect = {
+            top:    top,
+            left:   left,
+            height: $messagePopover.height(),
+            width:  $messagePopover.width()
+        };
+        
+        // See if popover is clipped on any side
+        clip = ViewUtils.getElementClipSize($editorHolder, popoverRect);
+
+        // Prevent horizontal clipping
+        if (clip.left > 0) {
+            left += clip.left;
+        } else if (clip.right > 0) {
+            left -= clip.right;
+        }
+        
+        // Popover text and arrow are positioned individually
+        $messagePopover.css({"visibility": "visible", "top": top, "left": left});
+        
+        // Position popover arrow exactly centered over/under cursor
+        arrowLeft = cursorCoord.left - left - POPOVER_ARROW_HALF_WIDTH;
+        if (arrowBelow) {
+            $messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
+        } else {
+            $messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
+        }
+        
+//        AnimationUtils.animateUsingClass($messagePopover[0], "animating")
+//            .done(_clearMessagePopover);
+        
+        // TODO:
+        // - add shadow to "arrow"
+        // - css to fade out after 3-4 sec
+        // - clear message on scroll?, change editors?, click in page?, typing?
+        // - test conflicts with other popovers, menus, dropdowns
+
+        // Destroy after 4 sec
+        window.setTimeout(_clearMessagePopover, 4000);
+    };
+    
+    /**
      * Returns the offset of the top of the virtual scroll area relative to the browser window (not the editor
      * itself). Mainly useful for calculations related to scrollIntoView(), where you're starting with the
      * offset() of a child widget (relative to the browser window) and need to figure out how far down it is from
