@@ -1,0 +1,140 @@
+/*
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets */
+
+/**
+ *
+ */
+define(function (require, exports, module) {
+    "use strict";
+    
+    var FileUtils   = require("file/FileUtils"),
+        NodeDomain  = require("utils/NodeDomain"),
+        StringUtils = require("utils/StringUtils");
+    
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath       = "node/ChildProcessDomain",
+        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
+        _nodeDomain     = new NodeDomain("childProcess", _domainPath);
+    
+    var _processes      = {},
+        _commandString  = "{0} {1}",
+        _launchString   = (brackets.platform === "mac") ? "open -a \"{0}\" --new --wait-apps --args {1}" : null;
+    
+    // TODO If the connection closes, notify all?
+    $(_nodeDomain.connection).on("close", function (event, promise) {
+        console.log(event);
+    });
+    
+    function ChildProcess(command, options) {
+        this._command = command;
+        this._options = options;
+    }
+    
+    // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
+    Object.defineProperties(ChildProcess.prototype, {
+        "connected": {
+            get: function () { return this._connected; },
+            set: function () { throw new Error("Cannot set connected"); }
+        },
+        "command": {
+            get: function () { return this._command; },
+            set: function () { throw new Error("Cannot set command"); }
+        },
+        "options": {
+            get: function () { return this._options; },
+            set: function () { throw new Error("Cannot set options"); }
+        },
+        "pid": {
+            get: function () { return this._pid; },
+            set: function () { throw new Error("Cannot set pid"); }
+        }
+    });
+    
+    ChildProcess.prototype._pid = null;
+    ChildProcess.prototype._connected = false;
+    
+    ChildProcess.prototype.exec = function () {
+        var self = this;
+        
+        _nodeDomain.exec("exec", this.command, this.options).done(function (pid) {
+            self._pid = pid;
+            self._connected = true;
+
+            // map PID to ChildProcess
+            _processes[pid] = self;
+        });
+    };
+    
+    ChildProcess.prototype.kill = function (signal) {
+        _nodeDomain.exec("kill", this.pid, signal);
+    };
+
+    function _getCommandString(template, command, args) {
+        template = template || _commandString;
+        args = Array.isArray(args) ? args.join(" ") : args;
+
+        return StringUtils.format(template, command, args || "");
+    }
+
+    function _exec(commandString, options) {
+        var cp = new ChildProcess(commandString, options);
+        cp.exec();
+        
+        return cp;
+    }
+    
+    function exec(command, args, options) {
+        var commandString = _getCommandString(_commandString, command, args);
+        return _exec(commandString, options);
+    }
+    
+    function launch(command, args, options) {
+        var commandString = _getCommandString(_launchString, command, args);
+        return _exec(commandString, options);
+    }
+    
+    function _childProcessExitHandler(event, pid, code, signal) {
+        var cp = _processes[pid];
+        
+        if (!cp) {
+            return;
+        }
+        
+        delete _processes[pid];
+        
+        cp._connected = false;
+        $(cp).triggerHandler("exit", [code, signal]);
+    }
+
+    // Setup the exit handler. This only needs to happen once.
+    $(_nodeDomain).on("exit", _childProcessExitHandler);
+
+    exports.exec = exec;
+    exports.launch = launch;
+    exports.ChildProcess = ChildProcess;
+});

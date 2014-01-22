@@ -28,7 +28,17 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async           = require("utils/Async"),
-        FileSystemError = require("filesystem/FileSystemError");
+        ChildProcess    = require("utils/ChildProcess"),
+        FileSystemError = require("filesystem/FileSystemError"),
+        StringUtils     = require("utils/StringUtils");
+
+    var liveDevProfilePath = brackets.app.getApplicationSupportDirectory() + "/live-dev-profile",
+        remoteDebuggingPort = 9222,
+        browserProcess;
+
+    function getChromeArgs(url) {
+        return StringUtils.format("--no-first-run --no-default-browser-check --remote-debugging-port={0} --user-data-dir=\"{1}\" {2}", remoteDebuggingPort, liveDevProfilePath, url);
+    }
 
     /**
      * @private
@@ -54,17 +64,20 @@ define(function (require, exports, module) {
     function openLiveBrowser(url, enableRemoteDebugging) {
         var result = new $.Deferred();
         
-        brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
-            if (!err) {
-                // Undefined ids never get removed from list, so don't push them on
-                if (pid !== undefined) {
-                    liveBrowserOpenedPIDs.push(pid);
-                }
-                result.resolve(pid);
-            } else {
-                result.reject(_browserErrToFileError(err));
-            }
-        });
+        // brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
+        //     if (!err) {
+        //         // Undefined ids never get removed from list, so don't push them on
+        //         if (pid !== undefined) {
+        //             liveBrowserOpenedPIDs.push(pid);
+        //         }
+        //         result.resolve(pid);
+        //     } else {
+        //         result.reject(_browserErrToFileError(err));
+        //     }
+        // });
+
+        browserProcess = ChildProcess.launch("/Applications/Google Chrome.app", getChromeArgs(url));
+        result.resolve(browserProcess);
         
         return result.promise();
     }
@@ -76,21 +89,36 @@ define(function (require, exports, module) {
     function closeLiveBrowser(pid) {
         var result = new $.Deferred();
         
-        if (isNaN(pid)) {
-            pid = 0;
-        }
-        brackets.app.closeLiveBrowser(function (err) {
-            if (!err) {
-                var i = liveBrowserOpenedPIDs.indexOf(pid);
-                if (i !== -1) {
-                    liveBrowserOpenedPIDs.splice(i, 1);
-                }
+        // if (isNaN(pid)) {
+        //     pid = 0;
+        // }
+        // brackets.app.closeLiveBrowser(function (err) {
+        //     if (!err) {
+        //         var i = liveBrowserOpenedPIDs.indexOf(pid);
+        //         if (i !== -1) {
+        //             liveBrowserOpenedPIDs.splice(i, 1);
+        //         }
+        //         result.resolve();
+        //     } else {
+        //         result.reject(_browserErrToFileError(err));
+        //     }
+        // }, pid);
+
+        if (browserProcess) {
+            var timeout = window.setTimeout(function () {
+                browserProcess = null;
+                result.reject();
+            }, 5000);
+
+            $(browserProcess).one("exit", function (code, signal) {
+                browserProcess = null;
+                window.clearTimeout(timeout);
                 result.resolve();
-            } else {
-                result.reject(_browserErrToFileError(err));
-            }
-        }, pid);
-        
+            });
+
+            browserProcess.kill();
+        }
+
         return result.promise();
     }
     
@@ -109,7 +137,8 @@ define(function (require, exports, module) {
      * Opens a URL in the system default browser
      */
     function openURLInDefaultBrowser(url) {
-        brackets.app.openURLInDefaultBrowser(url);
+        //brackets.app.openURLInDefaultBrowser(url);
+        ChildProcess.exec("open " + url);
     }
     
 
