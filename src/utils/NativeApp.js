@@ -36,17 +36,7 @@ define(function (require, exports, module) {
 
     var browserProcess;
 
-    // TODO native search for path to chrome
-    // WIN: REG QUERY "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe" /ve
-    // MAC: mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome'"
-    //      mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome.canary'"
-    //      ... then to get the exectuable
-    //      codesign --display /Applications/Google\ Chrome.app
-    // LINUX: Assume it's in the $PATH???
-    var GOOGLE_CHROME               = "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome",
-        GOOGLE_CHROME_CANARY        = "/Applications/Google\\ Chrome\\ Canary.app/Contents/MacOS/Google\\ Chrome\\ Canary",
-        FIREFOX_AURORA              = "/Applications/FirefoxAurora.app/Contents/MacOS/firefox",
-        GOOGLE_CHROME_DEFAULT_ARGS  = [
+    var GOOGLE_CHROME_DEFAULT_ARGS  = [
             "--no-first-run",
             "--no-default-browser-check"
         ],
@@ -58,48 +48,73 @@ define(function (require, exports, module) {
             "{URL}"
         ];
 
-    var _browsers = [
-        {
-            name: "Google Chrome",
-            path: GOOGLE_CHROME,
-            defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
-            debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
-            urlArgs: GOOGLE_CHROME_URL_ARGS,
-            port: 9222,
-            isDefault: false
-        },
-        {
-            name: "Google Chrome Canary",
-            path: GOOGLE_CHROME_CANARY,
-            defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
-            debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
-            urlArgs: GOOGLE_CHROME_URL_ARGS,
-            port: 9222,
-            isDefault: false
-        },
-        // can use npm start, we don't package NPM
-        // PRESTART node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js
-        {
-            name: "Firefox Aurora",
-            path: FIREFOX_AURORA,
-            debugArgs: [
-                "-no-remote",
-                "-profile \"{USER_DATA_DIR}\""
-            ],  // Fake for demo
-            urlArgs: ["-url {URL}"],
-            port: 9222,
-            prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js",
-            isDefault: true
-        }
-    ];
+    var _appKeys = {},
+        _browsers = {};
+
+    _browsers.chrome = {
+        name: "Google Chrome",
+        defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
+        debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
+        urlArgs: GOOGLE_CHROME_URL_ARGS,
+        port: 9222,
+        isDefault: false
+    };
+    _browsers.chrome_canary = {
+        name: "Google Chrome Canary",
+        defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
+        debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
+        urlArgs: GOOGLE_CHROME_URL_ARGS,
+        port: 9222,
+        isDefault: false
+    };
+    _browsers.firefox = {
+        name: "Firefox Aurora",
+        debugArgs: [
+            "-no-remote",
+            "-profile \"{USER_DATA_DIR}\""
+        ],  // Fake for demo
+        urlArgs: ["-url {URL}"],
+        port: 9222,
+        prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js",
+        isDefault: true
+    };
+
+    if (brackets.platform === "mac") {
+        _appKeys.chrome = "com.google.Chrome";
+        _appKeys.chrome_canary = "com.google.Chrome.canary";
+        _appKeys.firefox = "org.mozilla.firefox";
+    } else if (brackets.platform === "win") {
+        _appKeys.chrome = "chrome.exe";
+        _appKeys.firefox = "firefox.exe";
+    } else {
+        _appKeys.chrome = "google-chrome";
+        _appKeys.chrome_canary = "chromium";
+        _appKeys.firefox = "firefox";
+    }
+
+    // why doesn't NodeConnection queue requests correctly?
+    window.setTimeout(function () {
+        var findAppsPromise = Async.doInParallel(Object.keys(_appKeys), function (browser) {
+            var deferred = new $.Deferred();
+
+            ChildProcess.findAppByKey(_appKeys[browser]).then(function (path) {
+                _browsers[browser].path = path;
+            }, function (err) {
+                console.log("findAppByKey err: " + err);
+                deferred.reject(err);
+            });
+
+            return deferred.promise();
+        }, false);
+    }, 5000);
 
     // Initialize default preferences
-    PreferencesManager.definePreference("browsers", "array", _browsers);
+    // PreferencesManager.definePreference("browsers", "array", _browsers);
 
     // TODO do *NOT* clobber user prefs if already set
     // Initialize user prefs to give end users a template for changing the path to chrome
-    PreferencesManager.set("browsers", _browsers, { location: { scope: "user" } });
-    PreferencesManager.save();
+    // PreferencesManager.set("browsers", _browsers, { location: { scope: "user" } });
+    // PreferencesManager.save();
 
     function _keyToRegExp(key) {
         return new RegExp("{" + key + "}", "g");

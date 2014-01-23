@@ -99,7 +99,7 @@ var WIN_REG_QUERY = "REG QUERY \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVers
 function _findAppByKeyWindows(key, callback) {
     var winRegQuery = util.format(WIN_REG_QUERY, key);
     child_process.exec(winRegQuery, null, function (error, stdout, stderr) {
-        var exec = stdout && WIN_RE_VALUE.exec(stdout.toString()),
+        var exec = stdout && WIN_RE_VALUE.exec(stdout),
             path = exec && exec[1];
 
         if (!path) {
@@ -110,8 +110,37 @@ function _findAppByKeyWindows(key, callback) {
     });
 }
 
+var MAC_MDFIND_QUERY    = "mdfind \"kMDItemCFBundleIdentifier == '%s'\"",
+    MAC_CODESIGN_QUERY  = "codesign --display \"%s\"",
+    MAC_RE_VALUE        = /Executable=(.*)/;
+
 function _findAppByKeyMac(key, callback) {
-    callback(-1);
+    var macMdfindQuery = util.format(MAC_MDFIND_QUERY, key);
+
+    child_process.exec(macMdfindQuery, null, function (error, stdout, stderr) {
+        if (!stdout) {
+            callback(util.format("Could not find application with bundle ID %s", key));
+            return;
+        } else if (error) {
+            callback(error);
+            return;
+        }
+
+        var pathToBundle = stdout.trim(),
+            macCodesignQuery = util.format(MAC_CODESIGN_QUERY, pathToBundle);
+
+        child_process.exec(macCodesignQuery, null, function (error, stdout, stderr) {
+            var pathToBinary = stderr && stderr.trim(),   // codesign writes to stderr
+                exec = pathToBinary && MAC_RE_VALUE.exec(pathToBinary),
+                path = exec && exec[1];
+
+            if (!path) {
+                error = util.format("Could not find binary in application bundle %s", pathToBundle);
+            }
+
+            callback(error, path);
+        });
+    });
 }
 
 function _findAppByKeyLinux(key, callback) {
@@ -129,7 +158,7 @@ function findAppByKey() {
 
     return function (key, callback) {
         platformFind(key, callback);
-    }
+    };
 }
 
 /**

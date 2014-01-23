@@ -139,6 +139,10 @@ define(function (require, exports, module) {
         $(cp).triggerHandler("error", [error]);
     }
 
+    function findAppByKey(key) {
+        return _nodeDomain.exec("findAppByKey", key);
+    }
+
     // Setup the exit handler. This only needs to happen once.
     $(_nodeDomain).on("exit", _childProcessExitHandler);
     $(_nodeDomain).on("close", _childProcessExitHandler);
@@ -146,4 +150,5 @@ define(function (require, exports, module) {
 
     exports.execFile = execFile;
     exports.exec = exec;
+    exports.findAppByKey = findAppByKey;
 });
