@@ -417,7 +417,8 @@ define(function (require, exports, module) {
             // Insert the search results
             $searchContent
                 .empty()
-                .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
+                .append(Mustache.render(searchResultsTemplate, {searchList: searchList, 
+                                                                triangleTitle: Strings.FIND_IN_FILES_EXPAND_COLLAPSE}))
                 .scrollTop(0)        // Otherwise scroll pos from previous contents is remembered
                 .off(".searchList")  // Remove the old events
             
@@ -436,32 +437,33 @@ define(function (require, exports, module) {
                             fullPath   = searchItem.fullPath;
                         
                         // This is a file title row, expand/collapse on click
-                        if ($row.hasClass("file-section")) {
+                        if ($row.hasClass("file-section")) {                            
+                            var $titleRows, 
+                                collapsed = !searchResults[fullPath].collapsed;
                             
                             if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
-                                var $titleRows = $(e.target).closest("table").find(".file-section"),
-                                    collapsed  = !searchResults[fullPath].collapsed;
-                                
-                                $titleRows.each(function () {
-                                    searchItem = searchList[$(this).data("file")];
-                                    fullPath   = searchItem.fullPath;
-                                    
-                                    if (searchResults[fullPath].collapsed !== collapsed) {
-                                        $(this).nextUntil(".file-section").toggle();
-                                        $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
-                                    }
-                                });
-                                
+                                $titleRows = $(e.target).closest("table").find(".file-section");                               
+                            } else {
+                                // Clicking the file section header collapses/expands result rows for that file
+                                $titleRows = $row;
+                            }
+                            
+                            $titleRows.each(function () {
+                                fullPath   = searchList[$(this).data("file")].fullPath;
+                                searchItem = searchResults[fullPath]
+
+                                if (searchItem.collapsed !== collapsed) {
+                                    searchItem.collapsed = collapsed;
+                                    $(this).nextUntil(".file-section").toggle();
+                                    $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                }
+                            });
+                            
+                            if (e.metaKey || e.ctrlKey) {
                                 _.forEach(searchResults, function (item) {
                                     item.collapsed = collapsed;
                                 });
-                            } else {
-                                // Clicking the file section header collapses/expands result rows for that file
-                                $row.nextUntil(".file-section").toggle();
-                                $row.find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
-                                searchResults[fullPath].collapsed = !searchResults[fullPath].collapsed;
                             }
-                        
                         // This is a file row, show the result on click
                         } else {
                             // Grab the required item data
@@ -488,9 +490,7 @@ define(function (require, exports, module) {
                         searchResults[fullPath].collapsed = false;
                         $(this).trigger("click");
                     }
-                });
-            
-            $searchContent.find(".disclosure-triangle").attr("title", Strings.FIND_IN_FILES_EXPAND_COLLAPSE);
+                });            
             
             if ($selectedRow) {
                 $selectedRow.removeClass("selected");
