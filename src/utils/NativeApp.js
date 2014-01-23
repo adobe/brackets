@@ -34,8 +34,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         StringUtils         = require("utils/StringUtils");
 
-    var liveDevProfilePath = brackets.app.getApplicationSupportDirectory() + "/live-dev-profile",
-        browserProcess;
+    var browserProcess;
 
     // TODO native search for path to chrome
     // WIN: REG QUERY "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe" /ve
@@ -76,24 +75,23 @@ define(function (require, exports, module) {
             debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
             urlArgs: GOOGLE_CHROME_URL_ARGS,
             port: 9222,
-            isDefault: true
+            isDefault: false
         },
         // can use npm start, we don't package NPM
         // PRESTART node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js
         {
             name: "Firefox Aurora",
             path: FIREFOX_AURORA,
-            debugArgs: ["-profile \"{USER_DATA_DIR}\""],  // Fake for demo
+            debugArgs: [
+                "-no-remote",
+                "-profile \"{USER_DATA_DIR}\""
+            ],  // Fake for demo
             urlArgs: ["-url {URL}"],
             port: 9222,
             prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js",
-            isDefault: false
+            isDefault: true
         }
     ];
-
-    var INJECT_VARS = {
-        USER_DATA_DIR: liveDevProfilePath
-    };
 
     // Initialize default preferences
     PreferencesManager.definePreference("browsers", "array", _browsers);
