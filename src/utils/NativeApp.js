@@ -27,25 +27,15 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async               = require("utils/Async"),
+    var _                   = require("thirdparty/lodash"),
+        Async               = require("utils/Async"),
         ChildProcess        = require("utils/ChildProcess"),
         FileSystemError     = require("filesystem/FileSystemError"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         StringUtils         = require("utils/StringUtils");
 
     var liveDevProfilePath = brackets.app.getApplicationSupportDirectory() + "/live-dev-profile",
-        remoteDebuggingPort = 9222,
         browserProcess;
-
-    var GOOGLE_CHROME           = "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome",
-        GOOGLE_CHROME_CANARY    = "/Applications/Google\\ Chrome\\ Canary.app/Contents/MacOS/Google\\ Chrome\\ Canary",
-        FIREFOX_AURORA          = "/Applications/FirefoxAurora.app/Contents/MacOS/firefox",
-        GOOGLE_CHROME_ARGS      = [
-            "--no-first-run",
-            "--no-default-browser-check",
-            StringUtils.format("--remote-debugging-port={0}", remoteDebuggingPort),
-            StringUtils.format("--user-data-dir=\"{1}\"", remoteDebuggingPort, liveDevProfilePath)
-        ];
 
     // TODO native search for path to chrome
     // WIN: REG QUERY "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe" /ve
@@ -54,23 +44,99 @@ define(function (require, exports, module) {
     //      ... then to get the exectuable
     //      codesign --display /Applications/Google\ Chrome.app
     // LINUX: Assume it's in the $PATH???
-    var chromeDefaultPref = {
-        "Google Chrome": { path: GOOGLE_CHROME }
+    var GOOGLE_CHROME               = "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome",
+        GOOGLE_CHROME_CANARY        = "/Applications/Google\\ Chrome\\ Canary.app/Contents/MacOS/Google\\ Chrome\\ Canary",
+        FIREFOX_AURORA              = "/Applications/FirefoxAurora.app/Contents/MacOS/firefox",
+        GOOGLE_CHROME_DEFAULT_ARGS  = [
+            "--no-first-run",
+            "--no-default-browser-check"
+        ],
+        GOOGLE_CHROME_DEBUG_ARGS    = [
+            "--remote-debugging-port={PORT}",
+            "--user-data-dir=\"{USER_DATA_DIR}\""
+        ],
+        GOOGLE_CHROME_URL_ARGS      = [
+            "{URL}"
+        ];
+
+    var _browsers = [
+        {
+            name: "Google Chrome",
+            path: GOOGLE_CHROME,
+            defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
+            debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
+            urlArgs: GOOGLE_CHROME_URL_ARGS,
+            port: 9222
+        },
+        {
+            name: "Google Chrome Canary",
+            path: GOOGLE_CHROME_CANARY,
+            defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
+            debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
+            urlArgs: GOOGLE_CHROME_URL_ARGS,
+            port: 9222,
+            isDefault: true
+        },
+        // can use npm start, we don't package NPM
+        // PRESTART node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js
+        {
+            name: "Firefox Aurora",
+            path: FIREFOX_AURORA,
+            urlArgs: ["{URL}"],
+            port: 9222,
+            prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js"
+        }
+    ];
+
+    var INJECT_VARS = {
+        USER_DATA_DIR: liveDevProfilePath
     };
 
-    PreferencesManager.definePreference("browsers", "object", chromeDefaultPref);
-    PreferencesManager.setValueAndSave("user", "browsers", chromeDefaultPref);
+    // Initialize default preferences
+    PreferencesManager.definePreference("browsers", "array", _browsers);
 
-    function getChromeArgs(url) {
-        var args = [];
+    // TODO do *NOT* clobber user prefs if already set
+    // Initialize user prefs to give end users a template for changing the path to chrome
+    PreferencesManager.set("browsers", _browsers, { location: { scope: "user" } });
+    PreferencesManager.save();
 
-        // add default args
-        Array.prototype.push.apply(args, GOOGLE_CHROME_ARGS);
+    function _keyToRegExp(key) {
+        return new RegExp("{" + key + "}", "g");
+    }
 
-        // URL is the last arg
-        args.push(url);
+    function _evalArgs(argResultArray, argPatternArray, vars) {
+        if (!Array.isArray(argPatternArray)) {
+            return;
+        }
 
-        return args;
+        var arg;
+
+        _.forEach(argPatternArray, function (originalArg) {
+            arg = originalArg;
+
+            _.forEach(vars, function (value, key) {
+                arg = arg.replace(_keyToRegExp(key), value);
+            });
+
+            argResultArray.push(arg);
+        });
+    }
+
+    function _getArgs(browserDefinition, url) {
+        var argResultArray = [],
+            vars = {};
+
+        vars["URL"] = url;
+        vars["PORT"] = browserDefinition.port;
+        // Maybe USER_DATA_DIR shouldn't be a var?
+        vars["USER_DATA_DIR"] = liveDevProfilePath;
+
+        // Inject variables in each arg
+        _evalArgs(argResultArray, browserDefinition.defaultArgs, vars);
+        _evalArgs(argResultArray, browserDefinition.debugArgs, vars);
+        _evalArgs(argResultArray, browserDefinition.urlArgs, vars);
+
+        return argResultArray;
     }
 
     /**
@@ -88,6 +154,22 @@ define(function (require, exports, module) {
     
     var liveBrowserOpenedPIDs = [];
 
+    function _getDebugBrowserDefinition() {
+        var browsers = PreferencesManager.get("browsers"),
+            debugBrowser = null;
+
+        var defaultDebugBrowser = _.find(browsers, function (browser) {
+            if (!debugBrowser && browser.debugArgs) {
+                debugBrowser = browser;
+            }
+
+            return !!browser.isDefault;
+        });
+
+        // return the default debug browser or the first debug browser
+        return defaultDebugBrowser || debugBrowser;
+    }
+
     /** openLiveBrowser
      * Open the given URL in the user's system browser, optionally enabling debugging.
      * @param {string} url The URL to open.
@@ -95,7 +177,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} 
      */
     function openLiveBrowser(url, enableRemoteDebugging) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            browserDef = _getDebugBrowserDefinition();
         
         // brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
         //     if (!err) {
@@ -109,7 +192,7 @@ define(function (require, exports, module) {
         //     }
         // });
 
-        browserProcess = ChildProcess.exec(GOOGLE_CHROME_CANARY, getChromeArgs(url));
+        browserProcess = ChildProcess.exec(browserDef.path, _getArgs(browserDef, url));
         result.resolve(browserProcess);
         
         return result.promise();

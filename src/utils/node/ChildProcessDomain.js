@@ -36,12 +36,17 @@ function _initChildProcess(cp) {
     
     cp.on("error", function (err) {
         console.log("child_process error event for \"" + command + "\": " + err);
-        _domainManager.emitEvent("childProcess", "exit", [cp.pid, code, signal]);
+        _domainManager.emitEvent("childProcess", "error", [cp.pid, error]);
         delete _processes[cp.pid];
     });
     
     cp.on("exit", function (code, signal) {
         _domainManager.emitEvent("childProcess", "exit", [cp.pid, code, signal]);
+        delete _processes[cp.pid];
+    });
+    
+    cp.on("close", function (code, signal) {
+        _domainManager.emitEvent("childProcess", "close", [cp.pid, code, signal]);
         delete _processes[cp.pid];
     });
     
@@ -163,6 +168,14 @@ function init(domainManager) {
             {name: "pid", type: "number"},
             {name: "code", type: "number"},
             {name: "signal", type: "string"}
+        ]
+    );
+    domainManager.registerEvent(
+        "childProcess",
+        "error",
+        [
+            {name: "pid", type: "number"},
+            {name: "error", type: "string"}
         ]
     );
     
