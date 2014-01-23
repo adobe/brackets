@@ -31,12 +31,12 @@ var child_process = require("child_process");
 var _domainManager,
     _processes = {};
 
-function _initChildProcess(cp) {
+function _initChildProcess(cp, command) {
     _processes[cp.pid] = cp;
     
     cp.on("error", function (err) {
         console.log("child_process error event for \"" + command + "\": " + err);
-        _domainManager.emitEvent("childProcess", "error", [cp.pid, error]);
+        _domainManager.emitEvent("childProcess", "error", [cp.pid, err]);
         delete _processes[cp.pid];
     });
     
@@ -63,20 +63,22 @@ function exec(command, options) {
         }
     });
 
-    return _initChildProcess(cp);
+    return _initChildProcess(cp, command);
 }
 
 /**
  * 
  */
 function execFile(command, args, options) {
+    console.log(command, args);
+
     var cp = child_process.execFile(command, args, options, function (error, stdout, stderr) {
         if (error) {
             console.log("child_process execFile error for \"" + command + "\": " + error);
         }
     });
 
-    return _initChildProcess(cp);
+    return _initChildProcess(cp, command);
 }
 
 /**
@@ -121,7 +123,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "childProcess",
         "execFile",
-        exec,
+        execFile,
         false,
         "Runs a command in a shell and buffers the output.",
         [
@@ -176,6 +178,15 @@ function init(domainManager) {
         [
             {name: "pid", type: "number"},
             {name: "error", type: "string"}
+        ]
+    );
+    domainManager.registerEvent(
+        "childProcess",
+        "close",
+        [
+            {name: "pid", type: "number"},
+            {name: "code", type: "number"},
+            {name: "signal", type: "string"}
         ]
     );
     

@@ -85,19 +85,14 @@ define(function (require, exports, module) {
         _nodeDomain.exec("kill", this.pid, signal);
     };
 
-    function _getCommandString(template, command, args) {
-        template = template || _commandString;
-
-        return StringUtils.format(template, command, args || "");
-    }
-
     function _initChildProcess(cp) {
+        // Create callback for fileWatcher.execFile
         return function (pid) {
             cp._pid = pid;
             cp._connected = true;
 
             // map PID to ChildProcess
-            _processes[pid] = self;
+            _processes[pid] = cp;
         };
     }
     
@@ -131,11 +126,23 @@ define(function (require, exports, module) {
         delete _processes[pid];
         
         cp._connected = false;
-        $(cp).triggerHandler("exit", [code, signal]);
+        $(cp).triggerHandler(event.type, [code, signal]);
+    }
+    
+    function _childProcessErrorHandler(event, pid, error) {
+        var cp = _processes[pid];
+        
+        if (!cp) {
+            return;
+        }
+
+        $(cp).triggerHandler("error", [error]);
     }
 
     // Setup the exit handler. This only needs to happen once.
     $(_nodeDomain).on("exit", _childProcessExitHandler);
+    $(_nodeDomain).on("close", _childProcessExitHandler);
+    $(_nodeDomain).on("error", _childProcessErrorHandler);
 
     exports.execFile = execFile;
     exports.exec = exec;

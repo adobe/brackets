@@ -66,7 +66,8 @@ define(function (require, exports, module) {
             defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
             debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
             urlArgs: GOOGLE_CHROME_URL_ARGS,
-            port: 9222
+            port: 9222,
+            isDefault: false
         },
         {
             name: "Google Chrome Canary",
@@ -82,9 +83,11 @@ define(function (require, exports, module) {
         {
             name: "Firefox Aurora",
             path: FIREFOX_AURORA,
-            urlArgs: ["{URL}"],
+            debugArgs: ["-profile \"{USER_DATA_DIR}\""],  // Fake for demo
+            urlArgs: ["-url {URL}"],
             port: 9222,
-            prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js"
+            prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js",
+            isDefault: false
         }
     ];
 
@@ -126,10 +129,10 @@ define(function (require, exports, module) {
         var argResultArray = [],
             vars = {};
 
-        vars["URL"] = url;
-        vars["PORT"] = browserDefinition.port;
+        vars.URL = url;
+        vars.PORT = browserDefinition.port;
         // Maybe USER_DATA_DIR shouldn't be a var?
-        vars["USER_DATA_DIR"] = liveDevProfilePath;
+        vars.USER_DATA_DIR = brackets.app.getApplicationSupportDirectory() + "/" + browserDefinition.name;
 
         // Inject variables in each arg
         _evalArgs(argResultArray, browserDefinition.defaultArgs, vars);
