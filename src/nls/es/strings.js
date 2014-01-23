@@ -36,7 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "No se pudo leer el archivo.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
-    "CONTENTS_MODIFIED_ERR"             : "El archivo fue modificado afuera de {APP_NAME}.",
+    "CONTENTS_MODIFIED_ERR"             : "El archivo fue modificado fuera de {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "El archivo ya existe.",
     "FILE"                              : "archivo",
     "DIRECTORY"                         : "directorio",
