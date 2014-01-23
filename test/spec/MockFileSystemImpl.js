@@ -229,7 +229,8 @@ define(function (require, exports, module) {
 
         $(_model).on("change", function (event, path) {
             if (_changeCallback) {
-                _changeCallback(path, _model.stat(path));
+                var cb = _getCallback("change", path, _changeCallback);
+                cb(path, _model.stat(path));
             }
         });
         
@@ -252,7 +253,8 @@ define(function (require, exports, module) {
      * Add callback hooks to be used when specific methods are called with a
      * specific path.
      *
-     * @param {string} method The name of the method
+     * @param {string} method The name of the method. The special name "change"
+     *          may be used to hook the "change" event handler as well.
      * @param {string} path The path that must be matched
      * @param {function} getCallback A function that has one parameter and
      *           must return a callback function.
