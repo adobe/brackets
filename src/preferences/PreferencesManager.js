@@ -303,10 +303,15 @@ define(function (require, exports, module) {
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
-    // Convenience function that sets a preference and then saves the file, mimicking the
-    // old behavior a bit more closely.
-    function setValueAndSave(scopeName, id, value) {
-        preferencesManager.set(scopeName, id, value);
+    /**
+     * Convenience function that sets a preference and then saves the file, mimicking the
+     * old behavior a bit more closely.
+     * 
+     * @param {string} id preference to set
+     * @param {*} value new value for the preference
+     */
+    function setValueAndSave(id, value) {
+        preferencesManager.set(id, value);
         preferencesManager.save();
     }
     
