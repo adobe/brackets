@@ -26,7 +26,8 @@
 
 "use strict";
 
-var child_process = require("child_process");
+var child_process  = require("child_process"),
+    util           = require("util");
 
 var _domainManager,
     _processes = {};
@@ -92,6 +93,45 @@ function kill(pid, signal) {
     }
 }
 
+var WIN_REG_QUERY = "REG QUERY \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\%s\" /ve",
+    WIN_RE_VALUE  = /REG_SZ\s+(.*)/;
+
+function _findAppByKeyWindows(key, callback) {
+    var winRegQuery = util.format(WIN_REG_QUERY, key);
+    child_process.exec(winRegQuery, null, function (error, stdout, stderr) {
+        var exec = stdout && WIN_RE_VALUE.exec(stdout.toString()),
+            path = exec && exec[1];
+
+        if (!path) {
+            error = util.format("Could not find %s in Windows registry", key);
+        }
+
+        callback(error, path);
+    });
+}
+
+function _findAppByKeyMac(key, callback) {
+    callback(-1);
+}
+
+function _findAppByKeyLinux(key, callback) {
+    callback(-1);
+}
+
+function findAppByKey() {
+    var platformFind = _findAppByKeyLinux;
+
+    if (process.platform === "win32") {
+        platformFind = _findAppByKeyWindows;
+    } else if (process.platform === "darwin") {
+        platformFind = _findAppByKeyMac;
+    }
+
+    return function (key, callback) {
+        platformFind(key, callback);
+    }
+}
+
 /**
  * Initialize the "childProcess" domain.
  * The fileWatcher domain handles watching and un-watching directories.
@@ -101,6 +141,20 @@ function init(domainManager) {
         domainManager.registerDomain("childProcess", {major: 0, minor: 1});
     }
     
+    domainManager.registerCommand(
+        "childProcess",
+        "findAppByKey",
+        findAppByKey(),
+        true,
+        "Returns the path to an application",
+        [
+            {
+                name: "key",
+                type: "string",
+                description: ""
+            }
+        ]
+    );
     domainManager.registerCommand(
         "childProcess",
         "exec",
