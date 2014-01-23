@@ -245,6 +245,9 @@ define(function (require, exports, module) {
         }
     });
     
+    // Session Scope is for storing prefs in memory only but with the highest precedence.
+    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
+    
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`
