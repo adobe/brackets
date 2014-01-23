@@ -46,6 +46,11 @@
  *          *  a File - the contents of the file have changed, and should be reloaded.
  *          *  a Directory - an immediate child of the directory has been added, removed,
  *             or renamed/moved. Not triggered for "grandchildren".
+ *               - If the added & removed arguments are null, we don't know what was added/removed:
+ *                 clients should assume the whole subtree may have changed.
+ *               - If the added & removed arguments are 0-length, there's no net change in the set
+ *                 of files but a file may have been replaced: clients should assume the contents
+ *                 of any immediate child file may have changed.
  *          *  null - a 'wholesale' change happened, and you should assume everything may
  *             have changed.
  *          For changes made externally, there may be a significant delay before a "change" event
@@ -777,9 +782,11 @@ define(function (require, exports, module) {
             } else {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
-                    if (!(added && added.length === 0 && removed && removed.length === 0)) {
-                        this._fireChangeEvent(entry, added, removed);
-                    }
+                    
+                    // We send a change even if added & removed are both length zero-length. Something may still have changed,
+                    // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
+                    // listing.
+                    this._fireChangeEvent(entry, added, removed);
                 }.bind(this));
             }
         }
