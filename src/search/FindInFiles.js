@@ -492,8 +492,6 @@ define(function (require, exports, module) {
                     }
                 });
             
-            $searchContent.find(".disclosure-triangle").attr("title", Strings.FIND_IN_FILES_EXPAND_COLLAPSE);
-            
             if ($selectedRow) {
                 $selectedRow.removeClass("selected");
                 $selectedRow = null;
