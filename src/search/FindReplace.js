@@ -582,6 +582,7 @@ define(function (require, exports, module) {
         });
 
         replaceAllPanel.show();
+        $replaceAllTable.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     }
 
     /** Shows the Find-Replace search bar at top */
