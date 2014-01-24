@@ -177,6 +177,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * A string containing all invalid characters for a specific platform.
+     * This will be used to construct a regular expression for checking invalid filenames.
+     * When a filename with one of these invalid characters are detected, then it is 
+     * also used to substitute the place holder of the error message.
+     */
+    var _invalidChars;
+
+    /**
+     * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
@@ -756,6 +765,7 @@ define(function (require, exports, module) {
         if (entry.isDirectory) {
             jsonEntry.children = [];
             jsonEntry.state = "closed";
+            jsonEntry.data = _.escape(jsonEntry.data);
         } else {
             jsonEntry.data = ViewUtils.getFileEntryDisplay(entry);
         }
@@ -797,10 +807,10 @@ define(function (require, exports, module) {
      * jsTree back asynchronously with the node's immediate children data once the subfolder is done
      * being fetched.
      *
-     * @param {jQueryObject} treeNode  jQ object for the DOM node being expanded
+     * @param {jQueryObject} $treeNode  jQ object for the DOM node being expanded
      * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
      */
-    function _treeDataProvider(treeNode, jsTreeCallback) {
+    function _treeDataProvider($treeNode, jsTreeCallback) {
         var dirEntry, isProjectRoot = false, deferred = new $.Deferred();
         
         function processEntries(entries) {
@@ -810,7 +820,7 @@ define(function (require, exports, module) {
             
             if (emptyDirectory) {
                 if (!isProjectRoot) {
-                    wasNodeOpen = treeNode.hasClass("jstree-open");
+                    wasNodeOpen = $treeNode.hasClass("jstree-open");
                 } else {
                     // project root is a special case, add a placeholder
                     subtreeJSON.push({});
@@ -824,27 +834,27 @@ define(function (require, exports, module) {
                 // This is a workaround for issue #149 where jstree would show this node as a leaf.
                 var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
                 
-                treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
+                $treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                     .addClass(classToAdd);
                 
                 // This is a workaround for a part of issue #2085, where the file creation process
                 // depends on the open_node.jstree event being triggered, which doesn't happen on
                 // empty folders
                 if (!wasNodeOpen) {
-                    treeNode.trigger("open_node.jstree");
+                    $treeNode.trigger("open_node.jstree");
                 }
             }
             
             deferred.resolve();
         }
 
-        if (treeNode === -1) {
+        if ($treeNode === -1) {
             // Special case: root of tree
             dirEntry = _projectRoot;
             isProjectRoot = true;
         } else {
             // All other nodes: the Directory is saved as jQ data in the tree (by _convertEntriesToJSON())
-            dirEntry = treeNode.data("entry");
+            dirEntry = $treeNode.data("entry");
         }
         
         // Fetch dirEntry's contents
@@ -1419,6 +1429,9 @@ define(function (require, exports, module) {
      * @private
      * Check a filename for illegal characters. If any are found, show an error
      * dialog and return false. If no illegal characters are found, return true.
+     * Although Mac and Linux allow ?*| characters, we still cannot allow them
+     * since these have special meaning for all file systems.
+     *
      * @param {string} filename
      * @param {boolean} isFolder
      * @return {boolean} Returns true if no illegal characters are found
@@ -1427,11 +1440,12 @@ define(function (require, exports, module) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) || filename.match(_illegalFilenamesRegEx)) {
+        if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
+                filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                Strings.INVALID_FILENAME_MESSAGE
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
             );
             return false;
         }
@@ -1718,14 +1732,16 @@ define(function (require, exports, module) {
                 var isFolder = $selected.hasClass("jstree-open") || $selected.hasClass("jstree-closed");
         
                 _projectTree.one("rename.jstree", function (event, data) {
-                    // Make sure the file was actually renamed
-                    var changed = (data.rslt.old_name !== data.rslt.new_name);
+                    var unescapedOldName = _.unescape(data.rslt.old_name),
+                        unescapedNewName = _.unescape(data.rslt.new_name),
+                        // Make sure the file was actually renamed
+                        changed = (unescapedOldName !== unescapedNewName);
                     
                     var _resetOldFilename = function () {
                         _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                     };
                     
-                    if (!changed || !_checkForValidFilename(data.rslt.new_name, isFolder)) {
+                    if (!changed || !_checkForValidFilename(unescapedNewName, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
@@ -1735,8 +1751,8 @@ define(function (require, exports, module) {
                     // Folder paths have to end with a slash. Use look-head (?=...) to only replace the folder's name, not the slash as well
                     
                     var oldNameEndPattern = isFolder ? "(?=\/$)" : "$";
-                    var oldNameRegex = new RegExp(StringUtils.regexEscape(data.rslt.old_name) + oldNameEndPattern);
-                    var newName = oldFullPath.replace(oldNameRegex, data.rslt.new_name);
+                    var oldNameRegex = new RegExp(StringUtils.regexEscape(unescapedOldName) + oldNameEndPattern);
+                    var newName = oldFullPath.replace(oldNameRegex, unescapedNewName);
                     
                     renameItem(oldFullPath, newName, isFolder)
                         .done(function () {
@@ -1768,8 +1784,9 @@ define(function (require, exports, module) {
                         });
                 });
                 
-                // since html_titles are enabled, we have to reset the text without markup
-                _projectTree.jstree("set_text", $selected, entry.name);
+                // Since html_titles are enabled, we have to reset the text without markup.
+                // And we also need to explicitly escape all html-sensitive characters.
+                _projectTree.jstree("set_text", $selected, _.escape(entry.name));
                 _projectTree.jstree("rename");
             });
         // No fail handler: silently no-op if file doesn't exist in tree
@@ -2056,8 +2073,34 @@ define(function (require, exports, module) {
                 // Open the node before creating the new child
                 _projectTree.jstree("open_node", $directoryNode);
             } else {
-                // Create all new nodes in a batch
-                _createNode($directoryNode, null, addedJSON, true, true);
+                // We can only incrementally create new child nodes when the 
+                // DOM node for the directory is not currently empty. The reason
+                // is due to the fact that jstree treats empty DOM folders as
+                // not-loaded. When jstree sees this, it calls the JSON data
+                // provider to populate the DOM, always. Creating a node in this
+                // state leads to duplicate nodes. Avoid this by calling load_node
+                // instead of create_node.
+                var treeAPI = $.jstree._reference(_projectTree),
+                    directoryNodeOrRoot = (entry === getProjectRoot()) ? -1 : $directoryNode,
+                    hasDOMChildren = treeAPI._get_children(directoryNodeOrRoot).length > 0;
+                
+                if (hasDOMChildren) {
+                    // The directory was already loaded and currently has
+                    // children, so we can incrementally create all new nodes
+                    // in a batch
+                    _createNode($directoryNode, null, addedJSON, true, true);
+                } else if (!isClosed) {
+                    // Call load_node for the directory to add the new entries
+                    // for this change event. We only call load_node immediately
+                    // in the case where the empty directory DOM node was
+                    // already open. If the directory is currently closed,
+                    // jstree will call load_node when the user opens the node
+                    // interactively
+                    _projectTree.jstree("load_node", $directoryNode, function () {}, function () {
+                        console.error("Error loading project tree for changed path: " + entry.fullPath);
+                    });
+                }
+                
                 doRedraw = true;
             }
         }
@@ -2112,6 +2155,15 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
     
+    // Init invalid characters string 
+    if (brackets.platform === "mac") {
+        _invalidChars = "?*|:";
+    } else if (brackets.platform === "linux") {
+        _invalidChars = "?*|/";
+    } else {
+        _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
+    }
+
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;

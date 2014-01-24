@@ -46,6 +46,11 @@
  *          *  a File - the contents of the file have changed, and should be reloaded.
  *          *  a Directory - an immediate child of the directory has been added, removed,
  *             or renamed/moved. Not triggered for "grandchildren".
+ *               - If the added & removed arguments are null, we don't know what was added/removed:
+ *                 clients should assume the whole subtree may have changed.
+ *               - If the added & removed arguments are 0-length, there's no net change in the set
+ *                 of files but a file may have been replaced: clients should assume the contents
+ *                 of any immediate child file may have changed.
  *          *  null - a 'wholesale' change happened, and you should assume everything may
  *             have changed.
  *          For changes made externally, there may be a significant delay before a "change" event
@@ -253,18 +258,17 @@ define(function (require, exports, module) {
                     impl[commandName].call(impl, entry.fullPath, requestCb);
                 }.bind(this), callback);
             }
-        } else {
+        } else if (shouldWatch) {
             // The impl can't handle recursive watch requests, so it's up to the
-            // filesystem to recursively watch or unwatch all subdirectories.
+            // filesystem to recursively watch all subdirectories.
             this._enqueueWatchRequest(function (requestCb) {
                 // First construct a list of entries to watch or unwatch
-                var entriesToWatchOrUnwatch = [],
-                    watchOrUnwatch = impl[commandName].bind(impl);
+                var entriesToWatch = [];
                 
                 var visitor = function (child) {
                     if (watchedRoot.filter(child.name, child.parentPath)) {
                         if (child.isDirectory || child === watchedRoot.entry) {
-                            entriesToWatchOrUnwatch.push(child);
+                            entriesToWatch.push(child);
                         }
                         return true;
                     }
@@ -273,27 +277,32 @@ define(function (require, exports, module) {
                 
                 entry.visit(visitor, function (err) {
                     if (err) {
+                        // Unexpected error
                         requestCb(err);
                         return;
                     }
                     
                     // Then watch or unwatched all these entries
-                    var count = entriesToWatchOrUnwatch.length;
+                    var count = entriesToWatch.length;
                     if (count === 0) {
                         requestCb(null);
                         return;
                     }
                     
-                    var watchOrUnwatchCallback = function () {
+                    var watchCallback = function () {
                         if (--count === 0) {
                             requestCb(null);
                         }
                     };
                     
-                    entriesToWatchOrUnwatch.forEach(function (entry) {
-                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
+                    entriesToWatch.forEach(function (entry) {
+                        impl.watchPath(entry.fullPath, watchCallback);
                     });
                 });
+            }, callback);
+        } else {
+            this._enqueueWatchRequest(function (requestCb) {
+                impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
         }
     };
@@ -714,6 +723,10 @@ define(function (require, exports, module) {
             }
             
             var watchOrUnwatchCallback = function (err) {
+                if (err) {
+                    console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
+                }
+                
                 if (--counter === 0) {
                     callback(addedEntries, removedEntries);
                 }
@@ -769,9 +782,11 @@ define(function (require, exports, module) {
             } else {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
-                    if (!(added && added.length === 0 && removed && removed.length === 0)) {
-                        this._fireChangeEvent(entry, added, removed);
-                    }
+                    
+                    // We send a change even if added & removed are both zero-length. Something may still have changed,
+                    // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
+                    // listing.
+                    this._fireChangeEvent(entry, added, removed);
                 }.bind(this));
             }
         }

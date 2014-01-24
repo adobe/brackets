@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "删除文件失败",
     "ERROR_DELETING_FILE"               : "试图删除该文件时出现错误, 文件: <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "无效文件名: {0}",
-    "INVALID_FILENAME_MESSAGE"          : "文件名不得包含: /?*:;{}<>\\| 或使用操作系统保留文件名",
+    "INVALID_FILENAME_MESSAGE"          : "文件名不得包含: {0} 或使用操作系统保留文件名",
     "FILE_ALREADY_EXISTS"               : "该文件 {0} <span class='dialog-filename'>{1}</span> 已经存在.",
     "ERROR_CREATING_FILE_TITLE"         : "创建文件 {0} 错误",
     "ERROR_CREATING_FILE"               : "试图创建 {0} <span class='dialog-filename'>{1}</span> 时出现错误. {2}",

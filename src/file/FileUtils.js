@@ -45,8 +45,8 @@ define(function (require, exports, module) {
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
      * @return {$.Promise} a jQuery promise that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileSystemError if
-     *  the file can not be read.
+     *  file's text content plus its timestamp, or rejected with a FileSystemError string
+     *  constant if the file can not be read.
      */
     function readAsText(file) {
         var result = new $.Deferred();
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      *      errors---which can be triggered if the actual file contents differ from 
      *      the FileSystem's last-known contents---should be ignored.
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a FileSystemError.
+     * file writing completes, or rejected with a FileSystemError string constant.
      */
     function writeText(file, text, allowBlindWrite) {
         var result = new $.Deferred(),
