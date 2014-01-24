@@ -45,8 +45,8 @@ define(function (require, exports, module) {
      * Asynchronously reads a file as UTF-8 encoded text.
      * @param {!File} file File to read
      * @return {$.Promise} a jQuery promise that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileSystemError if
-     *  the file can not be read.
+     *  file's text content plus its timestamp, or rejected with a FileSystemError string
+     *  constant if the file can not be read.
      */
     function readAsText(file) {
         var result = new $.Deferred();
@@ -73,13 +73,21 @@ define(function (require, exports, module) {
      * Asynchronously writes a file as UTF-8 encoded text.
      * @param {!File} file File to write
      * @param {!string} text
+     * @param {boolean=} allowBlindWrite Indicates whether or not CONTENTS_MODIFIED
+     *      errors---which can be triggered if the actual file contents differ from 
+     *      the FileSystem's last-known contents---should be ignored.
      * @return {$.Promise} a jQuery promise that will be resolved when
-     * file writing completes, or rejected with a FileSystemError.
+     * file writing completes, or rejected with a FileSystemError string constant.
      */
-    function writeText(file, text) {
-        var result = new $.Deferred();
+    function writeText(file, text, allowBlindWrite) {
+        var result = new $.Deferred(),
+            options = {};
         
-        file.write(text, function (err) {
+        if (allowBlindWrite) {
+            options.blind = true;
+        }
+        
+        file.write(text, options, function (err) {
             if (!err) {
                 result.resolve();
             } else {
@@ -149,6 +157,8 @@ define(function (require, exports, module) {
             result = Strings.NOT_READABLE_ERR;
         } else if (name === FileSystemError.NOT_WRITABLE) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
+        } else if (name === FileSystemError.CONTENTS_MODIFIED) {
+            result = Strings.CONTENTS_MODIFIED_ERR;
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }

@@ -178,7 +178,8 @@ define(function (require, exports, module) {
      */
     function _setLanguageForMode(mode, language) {
         if (_modeToLanguageMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + ", won't register for " + language._name);
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + " - cannot fully register language " + language._name +
+                         " using the same mode. Some features will treat all content with this mode as language " + _modeToLanguageMap[mode]._name);
             return;
         }
 
@@ -324,6 +325,9 @@ define(function (require, exports, module) {
     
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
+    
+    /** @type {boolean} Whether or not the language is binary */
+    Language.prototype._isBinary = false;
     
     /**
      * Returns the identifier for this language.
@@ -648,6 +652,22 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Indicates whether or not the language is binary (e.g., image or audio).
+     * @return {boolean}
+     */
+    Language.prototype.isBinary = function () {
+        return this._isBinary;
+    };
+    
+    /**
+     * Sets whether or not the language is binary
+     * @param {!boolean} isBinary
+     */
+    Language.prototype._setBinary = function (isBinary) {
+        this._isBinary = isBinary;
+    };
+    
+    /**
      * Defines a language.
      *
      * @param {!string}               id                        Unique identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
@@ -695,6 +715,9 @@ define(function (require, exports, module) {
                     language.addFileName(fileNames[i]);
                 }
             }
+            
+            language._setBinary(!!definition.isBinary);
+            
             // store language to language map
             _languages[language.getId()] = language;
         }

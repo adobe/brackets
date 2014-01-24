@@ -93,6 +93,7 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
+        NodeDomain              = require("utils/NodeDomain"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
@@ -112,16 +113,16 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
+    require("editor/ImageViewer");
     
+    // Deprecated modules loaded just so extensions can still use them for now
+    require("utils/CollectionUtils");
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
     require("file/NativeFileError");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
-
-    // Initialize the file system
-    FileSystem.init(require("fileSystemImpl"));
     
     // Local variables
     var params = new UrlParams();
@@ -398,6 +399,5 @@ define(function (require, exports, module) {
     // Dispatch htmlReady event
     _beforeHTMLReady();
     AppInit._dispatchReady(AppInit.HTML_READY);
-
     $(window.document).ready(_onReady);
 });

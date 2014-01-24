@@ -147,6 +147,9 @@ a:focus {
     .box-flex(1);
     text-align: center;
 
+    // Ensure that it stays on top
+    z-index: @z-index-brackets-main-toolbar;
+
     .buttons,
     .bottom-buttons {
         text-align: center;
@@ -517,6 +520,20 @@ a:focus {
     background-color: @tc-gray-panel;
 }
 
+.modal-body.no-padding {
+    padding: 0;
+}
+
+.modal-body.no-padding td:first-child,
+.modal-body.no-padding th:first-child {
+    padding-left: 15px;
+}
+
+.modal-body.no-padding td:last-child,
+.modal-body.no-padding th:last-child {
+    padding-right: 15px;
+}
+
 .modal-body, .modal-header, .modal-footer {
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
@@ -536,7 +553,7 @@ a:focus {
 .modal-footer .btn {
     float: none;
 }
-.modal-footer .btn.left {
+.modal-footer .left {
     float: left;
 
     /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
@@ -1036,8 +1053,8 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active,
-    &:active {
+    &.active:not([disabled]),
+    &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
         box-shadow: @tc-button-down-shadow;
@@ -1061,6 +1078,7 @@ input[type="color"],
             background-image: none;
             background-color: @tc-call-to-action-down;
             box-shadow: @tc-call-to-action-down-shadow;
+            color: @tc-call-to-action-text;
         }
 
         &:focus {
@@ -1104,6 +1122,9 @@ input[type="color"],
     tbody th {
         border-top: 1px solid transparent);
     }
+    .right {
+        text-align: right;
+    }
 }
 
 .table-striped tbody {
@@ -1138,6 +1159,10 @@ code {
 
 label {
     font-size: @label-font-size;
+}
+
+label.inline {
+    display: inline;
 }
 
 /* Overriding Bootstrap's bold properties */

@@ -980,6 +980,7 @@ define(function (require, exports, module) {
                         expect($(".alert.warning", view.$el).length).toBe(0);
                     });
                 });
+                
                 it("should show disabled update button for items whose available update requires older API version", function () {   // isLatestVersion: false, requiresNewer: false
                     mockRegistry = { "mock-extension": makeMockExtension([">0.1", "<0.2"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
@@ -995,7 +996,25 @@ define(function (require, exports, module) {
                         expect($(".alert.warning", view.$el).length).toBe(0);
                     });
                 });
-    
+                
+                it("should show disabled update button for items that are in dev folder and have a compatible update available", function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInfo = makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0");
+                    mockInfo.locationType = ExtensionManager.LOCATION_DEV;
+                    ExtensionManager._setExtensions({
+                        "mock-extension": {
+                            installInfo: mockInfo
+                        }
+                    });
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                    });
+                });
+                
                 // Info links action
                 it("should open links in the native browser instead of in Brackets", function () {
                     runs(function () {
@@ -1291,25 +1310,29 @@ define(function (require, exports, module) {
             
             
             describe("ExtensionManagerDialog", function () {
-                var dialogClassShown, dialogDeferred, didQuit;
+                var dialogClassShown, didReload, didClose, $mockDlg;
                 
                 describe("_performChanges", function () {
                 
                     beforeEach(function () {
                         // Mock popping up dialogs
                         dialogClassShown = null;
-                        dialogDeferred = new $.Deferred();
+                        didClose = false;
                         spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message) {
                             dialogClassShown = dlgClass;
+                            $mockDlg = $("<div/>").addClass(dlgClass);
                             // The test will resolve the promise.
-                            return dialogDeferred.promise();
+                            return {
+                                getElement: function () { return $mockDlg; },
+                                close: function () { didClose = true; }
+                            };
                         });
                         
-                        // Mock quitting the app so we don't actually quit :)
-                        didQuit = false;
+                        // Mock reloading the app so we don't actually reload :)
+                        didReload = false;
                         spyOn(CommandManager, "execute").andCallFake(function (id) {
-                            if (id === Commands.FILE_QUIT) {
-                                didQuit = true;
+                            if (id === Commands.APP_RELOAD) {
+                                didReload = true;
                             } else {
                                 CommandManager.execute.apply(this, arguments);
                             }
@@ -1352,7 +1375,7 @@ define(function (require, exports, module) {
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
                             expect(dialogClassShown).toBe("change-marked-extensions");
-                            dialogDeferred.resolve("cancel");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                         });
                     });
                     
@@ -1366,13 +1389,14 @@ define(function (require, exports, module) {
                         runs(function () {
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("ok");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
                         });
-                        waitsFor(function () { return didQuit; }, "mock quit");
+                        waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
                             var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                             expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
-                            expect(didQuit).toBe(true);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(true);
                         });
                     });
                     
@@ -1386,10 +1410,11 @@ define(function (require, exports, module) {
                         runs(function () {
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("cancel");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(false);
-                            expect(didQuit).toBe(false);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(false);
                         });
                     });
                     
@@ -1408,15 +1433,16 @@ define(function (require, exports, module) {
                             });
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("ok");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
                             installDeferred.resolve({
                                 installationStatus: "INSTALLED"
                             });
                         });
-                        waitsFor(function () { return didQuit; }, "mock quit");
+                        waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
                             expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
-                            expect(didQuit).toBe(true);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(true);
                         });
                     });
                     
@@ -1436,10 +1462,11 @@ define(function (require, exports, module) {
                             spyOn(file, "unlink");
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("cancel");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
-                            expect(didQuit).toBe(false);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(false);
                             expect(file.unlink).toHaveBeenCalled();
                         });
                     });

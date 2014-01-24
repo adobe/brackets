@@ -24,13 +24,9 @@ How to install and run Brackets
 -------------------------------
 
 
-#### Brackets isn't ready for general use yet.
+#### Brackets is getting close to 1.0
 
-Some of the features you would expect in a code editor are missing, and some existing features might be
-incomplete or not as useful as you'd want.  That said, what's there is reasonably stable&mdash;the
-Brackets team uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know
-what's missing!
-
+Together with your contributions, we're getting close to our first release candidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
 
 #### Download
 

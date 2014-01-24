@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
+        PanelManager            = require("view/PanelManager"),
         ProjectManager          = require("project/ProjectManager"),
         HTMLUtils               = require("language/HTMLUtils"),
         Menus                   = require("command/Menus"),
@@ -197,11 +198,14 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * When editor scrolls, close dropdown
+         * Handle click
          */
-        function _onScroll() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
+        function _onClickOutside(event) {
+            var $container = $(event.target).closest(".stylesheet-dropdown");
+
+            // If click is outside dropdown list, then close dropdown list
+            if ($container.length === 0 || $container[0] !== $dropdown[0]) {
+                _closeDropdown();
             }
         }
         
@@ -211,8 +215,9 @@ define(function (require, exports, module) {
          * PopUpManager when the dropdown is closed.
          */
         function _cleanupDropdown() {
-            $("html").off("click", _closeDropdown);
-            $(hostEditor).off("scroll", _onScroll);
+            window.document.body.removeEventListener("click", _onClickOutside, true);
+            $(hostEditor).off("scroll", _closeDropdown);
+            $(PanelManager).off("editorAreaResize", _closeDropdown);
             dropdownEventHandler = null;
             $dropdown = null;
     
@@ -243,20 +248,24 @@ define(function (require, exports, module) {
                 .appendTo($("body"));
             
             var toggleOffset   = $newRuleButton.offset(),
-                $window        = $(window),
                 posLeft        = toggleOffset.left,
                 posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
-                bottomOverhang = posTop  + $dropdown.height() - $window.height(),
-                rightOverhang  = posLeft + $dropdown.width()  - $window.width();
+                elementRect = {
+                    top:    posTop,
+                    left:   posLeft,
+                    height: $dropdown.height(),
+                    width:  $dropdown.width()
+                },
+                clip = ViewUtils.getElementClipSize($(window), elementRect);
             
-            if (bottomOverhang > 0) {
+            if (clip.bottom > 0) {
                 // Bottom is clipped, so move entire menu above button
                 posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
             }
             
-            if (rightOverhang > 0) {
+            if (clip.right > 0) {
                 // Right is clipped, so adjust left to fit menu in editor
-                posLeft = Math.max(0, posLeft - rightOverhang);
+                posLeft = Math.max(0, posLeft - clip.right);
             }
             
             $dropdown.css({
@@ -264,14 +273,14 @@ define(function (require, exports, module) {
                 top: posTop
             });
             
-            $("html").on("click", _closeDropdown);
-            
             dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
             dropdownEventHandler.open();
             
             $dropdown.focus();
             
-            $(hostEditor).on("scroll", _onScroll);
+            window.document.body.addEventListener("click", _onClickOutside, true);
+            $(hostEditor).on("scroll", _closeDropdown);
+            $(PanelManager).on("editorAreaResize", _closeDropdown);
         }
         
         /**
@@ -390,6 +399,9 @@ define(function (require, exports, module) {
                     .on("focusout", _updateCommands);
                 $(cssInlineEditor).on("add", function () {
                     inlineEditorDeferred.resolve();
+                });
+                $(cssInlineEditor).on("close", function () {
+                    _closeDropdown();
                 });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);

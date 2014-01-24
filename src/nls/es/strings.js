@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
     "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nombre de {0} inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\| o usar palabras reservadas del sistema",
+    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: {0} o usar palabras reservadas del sistema",
     "FILE_ALREADY_EXISTS"               : "El {0} <span class='dialog-filename'>{0}</span> ya existe.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
@@ -85,7 +85,7 @@ define({
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Desarrollo en Vivo con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
@@ -110,22 +110,28 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
     
+    // Generic dialog/button labels
+    "OK"                                : "Aceptar",
+    "CANCEL"                            : "Cancelar",
+    "DONT_SAVE"                         : "No guardar",
+    "SAVE"                              : "Guardar",
+    "DELETE"                            : "Eliminar",
+    "BUTTON_YES"                        : "Sí",
+    "BUTTON_NO"                         : "No",
+    
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Utiliza /re/ para búsquedas con expresiones regulares",
     "FIND_RESULT_COUNT"                 : "{0} resultados",
     "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
     "FIND_NO_RESULTS"                   : "No hay resultados",
-    "WITH"                              : "Con",
-    "BUTTON_YES"                        : "Sí",
-    "BUTTON_NO"                         : "No",
+    "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
     "BUTTON_REPLACE_ALL"                : "Todo\u2026",
-    "BUTTON_STOP"                       : "Parar",
     "BUTTON_REPLACE"                    : "Reemplazar",
-    
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Siguiente coincidencia",
     "BUTTON_PREV_HINT"                  : "Anterior coincidencia",
+    "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
+    "BUTTON_REGEXP_HINT"                : "Expresión regular",
     
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
@@ -135,10 +141,12 @@ define({
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
     
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Reemplazar \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" con \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
     
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" encontrado",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} en {3} {4}",
@@ -307,11 +315,6 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
-    "OK"                                   : "Aceptar",
-    "DONT_SAVE"                            : "No guardar",
-    "SAVE"                                 : "Guardar",
-    "CANCEL"                               : "Cancelar",
-    "DELETE"                               : "Eliminar",
     "RELOAD_FROM_DISK"                     : "Volver a cargar desde disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar los cambios del editor",
     "CLOSE_DONT_SAVE"                      : "Cerrar (No guardar)",
@@ -428,7 +431,6 @@ define({
      */
 
     "UNIT_PIXELS"                          : "píxeles",
-
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Desarrollo",
