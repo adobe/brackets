@@ -36,6 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Filen kunde inte läsas.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Målmappen kunde inte ändras.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Du har inte behörighet att modifiera filen.",
+    "CONTENTS_MODIFIED_ERR"             : "Filen har ändrats utanför {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Filen eller mappen existerar redan.",
     "FILE"                              : "fil",
     "DIRECTORY"                         : "mapp",
@@ -107,6 +108,7 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekräfta borttagning",
     "CONFIRM_FOLDER_DELETE"             : "Är du säker att du vill radera mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Filen raderades",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har ändrats.<br /><br />Vill du spara filen och skriva över dessa ändringar?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> har ändrats men har också osparade ändringar i {APP_NAME}.<br /><br />Vilken version vill du behålla?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> har raderats man har också osparade ändringar i {APP_NAME}.<br /><br />Vill du behålla dina ändringar?",
     
@@ -115,6 +117,8 @@ define({
     "CANCEL"                            : "Avbryt",
     "DONT_SAVE"                         : "Spara inte",
     "SAVE"                              : "Spara",
+    "SAVE_AS"                           : "Spara som\u2026",
+    "SAVE_AND_OVERWRITE"                : "Skriv över",
     "DELETE"                            : "Radera",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nej",
@@ -192,11 +196,11 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tabbstorlek:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rad",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} rader",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Tillägg har avaktiverats",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE"                    : "{0} fel",
     "ERRORS_PANEL_TITLE_SINGLE"             : "{0} problem",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Lint-problem",
     "SINGLE_ERROR"                          : "1 {0} fel",
     "MULTIPLE_ERRORS"                       : "{1} {0} fel",
     "NO_ERRORS"                             : "Inga {0} fel - bra jobbat!",
@@ -248,10 +252,11 @@ define({
     "CMD_SELECT_ALL"                      : "Markera alla",
     "CMD_SELECT_LINE"                     : "Markera rad",
     "CMD_FIND"                            : "Hitta",
-    "CMD_FIND_IN_FILES"                   : "Hitta i filer",
-    "CMD_FIND_IN_SUBTREE"                 : "Hitta i\u2026",
-    "CMD_FIND_NEXT"                       : "Hitta nästa",
-    "CMD_FIND_PREVIOUS"                   : "Hitta föregående",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Sök\u2026",
+    "CMD_FIND_IN_FILES"                   : "Sök i filer",
+    "CMD_FIND_IN_SUBTREE"                 : "Sök i\u2026",
+    "CMD_FIND_NEXT"                       : "Sök nästa",
+    "CMD_FIND_PREVIOUS"                   : "Sök föregående",
     "CMD_REPLACE"                         : "Ersätt",
     "CMD_INDENT"                          : "Öka indrag",
     "CMD_UNINDENT"                        : "Minska indrag",
@@ -311,6 +316,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa tilläggsmapp",
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Öppna inställningsfil",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
@@ -350,6 +356,7 @@ define({
     "OVERWRITE"                            : "Skriv över",
     "CANT_REMOVE_DEV"                      : "Tillägg i mappen \"dev\" måste raderas manuellt.",
     "CANT_UPDATE"                          : "Uppdateringen är inte kompatibel med denna version av {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Tilläggen i mappen \"dev\" kan inte uppdateras automatiskt.",
     "INSTALL_EXTENSION_TITLE"              : "Installera tillägg",
     "UPDATE_EXTENSION_TITLE"               : "Uppdatera tillägg",
     "INSTALL_EXTENSION_LABEL"              : "Tilläggets URL",
@@ -411,6 +418,7 @@ define({
     "UNDO_UPDATE"                          : "Ångra",
     "CHANGE_AND_QUIT_TITLE"                : "Ändra tillägg",
     "CHANGE_AND_QUIT_MESSAGE"              : "Du måste avsluta och starta om {APP_NAME} för att uppdatera eller ta bort markerade tillägg. Du kommer att få en fråga om eventuella osparade ändringar.",
+    "REMOVE_AND_RELOAD"                    : "Ta bort tillägg och starta om",
     "REMOVE_AND_QUIT"                      : "Ta bort tillägg och avsluta",
     "CHANGE_AND_QUIT"                      : "Ändra tillägg och avsluta",
     "UPDATE_AND_QUIT"                      : "Uppdatera tillägg och avsluta",
@@ -436,6 +444,7 @@ define({
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Visa utvecklarverktyg",
     "CMD_REFRESH_WINDOW"                        : "Ladda om {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Starta om utan tillägg",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nytt {APP_NAME}-fönster",
     "CMD_SWITCH_LANGUAGE"                       : "Byt språk",
     "CMD_RUN_UNIT_TESTS"                        : "Kör tester",
@@ -453,6 +462,7 @@ define({
     // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Tjeckiska",
     "LOCALE_DE"                                 : "Tyska",
+    "LOCALE_EL"                                 : "Grekiska",
     "LOCALE_EN"                                 : "Engelska",
     "LOCALE_ES"                                 : "Spanska",
     "LOCALE_FI"                                 : "Finska",
@@ -473,10 +483,13 @@ define({
     "LOCALE_TR"                                 : "Turkiska",
     "LOCALE_ZH_CN"                              : "Kinesiska, förenklad",
     "LOCALE_HU"                                 : "Ungerska",
+    "LOCALE_KO"                                 : "Koreanska",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Flytta markerad punkt<br><kbd class='text'>Shift</kbd> Flytta tio enheter",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Öka eller minska antal steg<br><kbd>←</kbd><kbd>→</kbd> 'Start' eller 'Slut'",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nuvarande färg",
