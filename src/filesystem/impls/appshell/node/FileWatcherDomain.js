@@ -58,7 +58,7 @@ var fspath = require("path"),
 if (process.platform === "darwin") {
     fsevents = require("fsevents");
 } else if (process.platform === "win32") {
-    fsevents = require("winfsevents");
+//    fsevents = require("winfsevents/build/Release/winfsevents");
 }
 
 var _domainManager,
@@ -107,6 +107,11 @@ function watchPath(path) {
     if (_watcherMap.hasOwnProperty(path)) {
         return;
     }
+    
+    var assert = require('assert');
+    var binding = require("hello-world/build/Release/binding");
+    //assert.equal('world', binding.hello());
+    //console.log('binding.hello() =', binding.hello());
         
     try {
         var watcher;
