@@ -504,6 +504,7 @@ define(function (require, exports, module) {
                 $(".P1").focus();
             }
             e.preventDefault();
+            return true;
         }
 
         return false;
