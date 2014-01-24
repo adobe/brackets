@@ -115,7 +115,7 @@ define(function (require, exports, module) {
         _.each(Object.keys(_browsers), function (browserKey) {
             var browserDef = _browsers[browserKey];
             if (!browserDef.path) {
-                delete _browsers[browser];
+                delete _browsers[browserKey];
             }
         });
     });
