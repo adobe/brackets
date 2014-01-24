@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE": "파일 삭제 에러",
     "ERROR_DELETING_FILE": "파일을 삭제할 때 에러가 발생했습니다 <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE": "잘못된 {0}이름",
-    "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: /?*:;{}<>\\| 또는 시스템의 모든 예약어",
+    "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: {0} 또는 시스템의 모든 예약어",
     "FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span>은 이미 존재 합니다.",
     "ERROR_CREATING_FILE_TITLE": "{0}를 만들 때 에러가 발생했습니다",
     "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>를 만들 때 에러가 발생했습니다.{2}",

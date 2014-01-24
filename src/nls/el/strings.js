@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Σφάλμα διαγραφής αρχείου",
     "ERROR_DELETING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία διαγραφής του αρχείου <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Μη έγκυρο {0} όνομα",
-    "INVALID_FILENAME_MESSAGE"          : "Τα όνομα αρχείων δεν μπορούν να περιέχουν τους ακόλουθους χαρακτήρες: /?*:;{}<>\\| ή οποιεσδήποτε system reserved λέξεις.",
+    "INVALID_FILENAME_MESSAGE"          : "Τα όνομα αρχείων δεν μπορούν να περιέχουν τους ακόλουθους χαρακτήρες: {0} ή οποιεσδήποτε system reserved λέξεις.",
     "FILE_ALREADY_EXISTS"               : "Το {0} <span class='dialog-filename'>{1}</span> υπάρχει ήδη.",
     "ERROR_CREATING_FILE_TITLE"         : "Σφάλμα δημιουργίας {0}",
     "ERROR_CREATING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία δημιουργίας του {0} <span class='dialog-filename'>{1}</span>. {2}",

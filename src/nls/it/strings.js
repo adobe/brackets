@@ -53,7 +53,7 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Errore durante il tentativo di rinominare il file",
     "ERROR_RENAMING_FILE"               : "Errore durante il tentativo di rinominare il file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Il nome del file non è valido",
-    "INVALID_FILENAME_MESSAGE"          : "Il nome del file non può contenere i seguenti caratteri: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Il nome del file non può contenere i seguenti caratteri: {0}",
     "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
