@@ -118,7 +118,7 @@ define({
     "DONT_SAVE"                         : "Spara inte",
     "SAVE"                              : "Spara",
     "SAVE_AS"                           : "Spara som\u2026",
-    "SAVE_AND_OVERWRITE"                : "Skriv över",
+    "SAVE_AND_OVERWRITE"                : "Spara och skriv över",
     "DELETE"                            : "Radera",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nej",
