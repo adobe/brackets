@@ -145,7 +145,8 @@ function _findAppByKeyMac(key, callback) {
 }
 
 function _findAppByKeyLinux(key, callback) {
-    callback(-1);
+    // We assume they key is in $PATH
+    callback(null, key);
 }
 
 function findAppByKey() {
