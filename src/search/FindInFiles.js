@@ -417,8 +417,7 @@ define(function (require, exports, module) {
             // Insert the search results
             $searchContent
                 .empty()
-                .append(Mustache.render(searchResultsTemplate, {searchList: searchList,
-                                                                triangleTitle: Strings.FIND_IN_FILES_EXPAND_COLLAPSE}))
+                .append(Mustache.render(searchResultsTemplate, {searchList: searchList, Strings: Strings}))
                 .scrollTop(0)        // Otherwise scroll pos from previous contents is remembered
                 .off(".searchList")  // Remove the old events
             
