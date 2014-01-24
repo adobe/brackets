@@ -138,7 +138,8 @@ function _findAppByKeyMac(key, callback) {
                 error = util.format("Could not find binary in application bundle %s", pathToBundle);
             }
 
-            callback(error, path);
+            // Surround path with quotes
+            callback(error, util.format("\"%s\"", path));
         });
     });
 }

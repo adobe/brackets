@@ -51,13 +51,14 @@ define(function (require, exports, module) {
     var _appKeys = {},
         _browsers = {};
 
+    // Initialize browser definitions
     _browsers.chrome = {
         name: "Google Chrome",
         defaultArgs: GOOGLE_CHROME_DEFAULT_ARGS,
         debugArgs: GOOGLE_CHROME_DEBUG_ARGS,
         urlArgs: GOOGLE_CHROME_URL_ARGS,
         port: 9222,
-        isDefault: false
+        isDefault: true
     };
     _browsers.chrome_canary = {
         name: "Google Chrome Canary",
@@ -67,7 +68,7 @@ define(function (require, exports, module) {
         port: 9222,
         isDefault: false
     };
-    _browsers.firefox = {
+    _browsers.firefox_aurora = {
         name: "Firefox Aurora",
         debugArgs: [
             "-no-remote",
@@ -76,40 +77,51 @@ define(function (require, exports, module) {
         urlArgs: ["-url {URL}"],
         port: 9222,
         prestart: "node --debug node/node_modules/remotedebug-firefox-bridge/bin/remotedebug-firefox-bridge.js",
-        isDefault: true
+        isDefault: false
     };
 
+    // Initialize platform specific browser lookup
     if (brackets.platform === "mac") {
-        _appKeys.chrome = "com.google.Chrome";
-        _appKeys.chrome_canary = "com.google.Chrome.canary";
-        _appKeys.firefox = "org.mozilla.firefox";
+        _browsers.chrome.platformKey = "com.google.Chrome";
+        _browsers.chrome_canary.platformKey = "com.google.Chrome.canary";
+        _browsers.firefox_aurora.platformKey = "org.mozilla.aurora";
     } else if (brackets.platform === "win") {
-        _appKeys.chrome = "chrome.exe";
-        _appKeys.firefox = "firefox.exe";
+        _browsers.chrome.platformKey = "chrome.exe";
+        _browsers.firefox_aurora.platformKey = "firefox.exe";
     } else {
-        _appKeys.chrome = "google-chrome";
-        _appKeys.chrome_canary = "chromium";
-        _appKeys.firefox = "firefox";
+        _browsers.chrome.platformKey = "google-chrome";
+        _browsers.chrome_canary.platformKey = "chromium";
+        _browsers.firefox_aurora.platformKey = "firefox";
     }
 
-    // why doesn't NodeConnection queue requests correctly?
-    window.setTimeout(function () {
-        var findAppsPromise = Async.doInParallel(Object.keys(_appKeys), function (browser) {
-            var deferred = new $.Deferred();
+    // Use ChildProcess.findAppByKey to find the absolute path to each browser executable
+    var findAppsPromise = Async.doInParallel(Object.keys(_browsers), function (browserKey) {
+        var deferred = new $.Deferred(),
+            browserDef = _browsers[browserKey],
+            platformKey = browserDef.platformKey;
 
-            ChildProcess.findAppByKey(_appKeys[browser]).then(function (path) {
-                _browsers[browser].path = path;
-            }, function (err) {
-                console.log("findAppByKey err: " + err);
-                deferred.reject(err);
-            });
+        ChildProcess.findAppByKey(platformKey).done(function (path) {
+            browserDef.path = path;
+        }).always(function () {
+            // always resolve, we clean up missing browsers later
+            deferred.resolve();
+        });
 
-            return deferred.promise();
-        }, false);
-    }, 5000);
+        return deferred.promise();
+    }, false);
+
+    // Delete any browsers that could not be found
+    findAppsPromise.done(function () {
+        _.each(Object.keys(_browsers), function (browserKey) {
+            var browserDef = _browsers[browserKey];
+            if (!browserDef.path) {
+                delete _browsers[browser];
+            }
+        });
+    });
 
     // Initialize default preferences
-    // PreferencesManager.definePreference("browsers", "array", _browsers);
+    PreferencesManager.definePreference("browsers", "object", _browsers);
 
     // TODO do *NOT* clobber user prefs if already set
     // Initialize user prefs to give end users a template for changing the path to chrome
@@ -170,20 +182,28 @@ define(function (require, exports, module) {
     
     var liveBrowserOpenedPIDs = [];
 
+    /** 
+     * @private
+     * Find the default debuggable browser. Return the first debuggable browser
+     * if node default was set.
+     * @return {Object} Broweser definition
+     */
     function _getDebugBrowserDefinition() {
         var browsers = PreferencesManager.get("browsers"),
-            debugBrowser = null;
+            debugBrowserKey = null;
 
-        var defaultDebugBrowser = _.find(browsers, function (browser) {
-            if (!debugBrowser && browser.debugArgs) {
-                debugBrowser = browser;
+        var defaultDebugBrowser = _.find(Object.keys(browsers), function (browserKey) {
+            var browserDef = browsers[browserKey];
+
+            if (!debugBrowserKey && browserDef.debugArgs) {
+                debugBrowserKey = browserKey;
             }
 
-            return !!browser.isDefault;
+            return !!browserDef.isDefault;
         });
 
         // return the default debug browser or the first debug browser
-        return defaultDebugBrowser || debugBrowser;
+        return browsers[defaultDebugBrowser || debugBrowser];
     }
 
     /** openLiveBrowser
