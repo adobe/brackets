@@ -203,7 +203,7 @@ define(function (require, exports, module) {
         });
 
         // return the default debug browser or the first debug browser
-        return browsers[defaultDebugBrowser || debugBrowser];
+        return browsers[defaultDebugBrowser || debugBrowserKey];
     }
 
     /** openLiveBrowser
