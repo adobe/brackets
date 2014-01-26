@@ -83,8 +83,7 @@ define(function (require, exports, module) {
      */
     function _isInPropValue(ctx) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment" ||
-                ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
         }
 
@@ -161,10 +160,9 @@ define(function (require, exports, module) {
     function _getPropNameStartingFromPropValue(ctx) {
         var ctxClone = $.extend({}, ctx);
         do {
-            // If we get a property name or "{" or ";" before getting a colon, then we don't 
+            // If we're no longer in the property value before seeing a colon, then we don't
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.type === "property" || ctxClone.token.type === "property error" ||
-                    ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+            if (ctxClone.token.string !== ":" && !_isInPropValue(ctxClone)) {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
@@ -189,9 +187,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
-                    ctx.token.string === ":" || ctx.token.string === "{" ||
-                    ctx.token.string === ";") {
+            if (ctx.token.string === ":" || !_isInPropValue(ctx)) {
                 break;
             }
 
@@ -237,14 +233,10 @@ define(function (require, exports, module) {
             propValues = [];
         
         while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
-            if (ctx.token.string === ";" || ctx.token.string === "}") {
-                break;
-            }
-            // If we're already in the next rule, then we don't want to add the last value
-            // since it is the property name of the next rule.
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
-                    ctx.token.string === ":") {
-                lastValue = "";
+            if (!_isInPropValue(ctx)) {
+                if (ctx.token.string !== ";" && ctx.token.string !== "}") {
+                    lastValue = "";
+                }
                 break;
             }
             
