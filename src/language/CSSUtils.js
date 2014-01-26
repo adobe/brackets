@@ -233,10 +233,11 @@ define(function (require, exports, module) {
             propValues = [];
         
         while (ctx.token.string !== ";" && ctx.token.string !== "}" && TokenUtils.moveNextToken(ctx)) {
+            if (ctx.token.string === ";" || ctx.token.string === "}") {
+                break;
+            }
             if (!_isInPropValue(ctx)) {
-                if (ctx.token.string !== ";" && ctx.token.string !== "}") {
-                    lastValue = "";
-                }
+                lastValue = "";
                 break;
             }
             
