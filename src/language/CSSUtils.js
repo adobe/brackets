@@ -232,7 +232,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         
-        while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
+        while (ctx.token.string !== ";" && ctx.token.string !== "}" && TokenUtils.moveNextToken(ctx)) {
             if (!_isInPropValue(ctx)) {
                 if (ctx.token.string !== ";" && ctx.token.string !== "}") {
                     lastValue = "";
