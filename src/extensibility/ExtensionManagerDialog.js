@@ -208,9 +208,7 @@ define(function (require, exports, module) {
         $dlg.find(".nav-tabs a")
             .on("click", function (event) {
                 models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
-                
                 $(this).tab("show");
-                
                 $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
             });
         
