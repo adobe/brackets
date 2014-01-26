@@ -84,7 +84,7 @@
     "empty-cells":                 {"values": ["hide", "show", "inherit"]},
     "filter":                      {"values": ["blur()", "brightness()", "contrast()", "custom()", "drop-shadow()", "grayscale()", "hue-rotate()", "invert()", "none", "opacity()", "sepia()", "saturate()", "url()"]},
     "flex":                        {"values": ["auto", "initial", "none"]},
-    "flex-basis":                  {"values": ["auto", "initial"]},
+    "flex-basis":                  {"values": ["auto"]},
     "flex-direction":              {"values": ["column", "column-reverse", "row", "row-reverse"]},
     "flex-flow":                   {"values": ["column", "column-reverse", "nowrap", "row", "row-reverse", "wrap", "wrap-reverse"]},
     "flex-grow":                   {"values": []},
