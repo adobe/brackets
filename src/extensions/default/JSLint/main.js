@@ -36,7 +36,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
-        Strings            = brackets.getModule("strings");
+        Strings            = brackets.getModule("strings"),
+        _                  = brackets.getModule("thirdparty/lodash");
     
     var prefs = PreferencesManager.getExtensionPrefs("jslint");
     
@@ -63,6 +64,17 @@ define(function (require, exports, module) {
         text = arr.join("\n");
         
         var options = prefs.get("options");
+        if (!options) {
+            options = {};
+        } else {
+            options = _.clone(options);
+        }
+        
+        if (!options.indent) {
+            // default to using the same indentation value that the editor is using
+            options.indent = PreferencesManager.get("spaceUnits");
+        }
+        
         var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {
