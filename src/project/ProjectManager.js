@@ -165,12 +165,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = null;
-
-    /**
-     * @private
      * Used to initialize jstree state
      */
     var _projectInitialLoad = null;
@@ -341,7 +335,7 @@ define(function (require, exports, module) {
             _projectBaseUrl += "/";
         }
 
-        _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
+        PreferencesManager.setViewState(_getBaseUrlKey(), _projectBaseUrl);
     }
     
     /**
@@ -390,7 +384,7 @@ define(function (require, exports, module) {
     function _savePreferences() {
         
         // save the current project
-        _prefs.setValue("projectPath", _projectRoot.fullPath);
+        PreferencesManager.setViewState("projectPath", _projectRoot.fullPath);
 
         // save jstree state
         var openNodes = [],
@@ -425,7 +419,7 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        _prefs.setValue(_getTreeStateKey(_projectRoot.fullPath), openNodes);
+        PreferencesManager.setViewState(_getTreeStateKey(_projectRoot.fullPath), openNodes);
     }
     
     /**
@@ -928,7 +922,7 @@ define(function (require, exports, module) {
             return true;
         }
         var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
-        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
     
@@ -938,10 +932,10 @@ define(function (require, exports, module) {
     function addWelcomeProjectPath(path) {
         var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         
-        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
         if (welcomeProjects.indexOf(pathNoSlash) === -1) {
             welcomeProjects.push(pathNoSlash);
-            _prefs.setValue("welcomeProjects", welcomeProjects);
+            PreferencesManager.setViewState("welcomeProjects", welcomeProjects);
         }
     }
     
@@ -961,7 +955,7 @@ define(function (require, exports, module) {
      * first launch.
      */
     function getInitialProjectPath() {
-        return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
+        return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
     
     /**
@@ -1075,7 +1069,7 @@ define(function (require, exports, module) {
             };
 
             // restore project tree state from last time this project was open
-            _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
+            _projectInitialLoad.previous = PreferencesManager.getViewState(_getTreeStateKey(rootPath)) || [];
 
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
@@ -1095,7 +1089,7 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
-                        _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+                        _projectBaseUrl = PreferencesManager.getViewState(_getBaseUrlKey()) || "";
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -2139,11 +2133,8 @@ define(function (require, exports, module) {
         });
     });
 
-    // Init PreferenceStorage
-    var defaults = {
-        projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
-    };
-    _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
+    // Init default project path to welcome project
+    PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

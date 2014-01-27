@@ -52,7 +52,6 @@ define(function main(require, exports, module) {
         ExtensionUtils      = require("utils/ExtensionUtils"),
         StringUtils         = require("utils/StringUtils");
 
-    var prefs;
     var params = new UrlParams();
     var config = {
         experimental: false, // enable experimental features
@@ -125,8 +124,8 @@ define(function main(require, exports, module) {
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
         } else {
-            if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
-                prefs.setValue("afterFirstLaunch", "true");
+            if (!params.get("skipLiveDevelopmentInfo") && !PreferencesManager.get("afterFirstLaunch")) {
+                PreferencesManager.setValueAndSave("afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
@@ -213,7 +212,7 @@ define(function main(require, exports, module) {
         } else {
             LiveDevelopment.hideHighlight();
         }
-        prefs.setValue("highlight", config.highlight);
+        PreferencesManager.setValueAndSave("highlight", config.highlight);
     }
     
     /** Setup window references to useful LiveDevelopment modules */
@@ -256,9 +255,20 @@ define(function main(require, exports, module) {
     });
     
     // init prefs
-    prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
+    PreferencesManager.definePreference("highlight", "boolean", true);
     
-    config.highlight = prefs.getValue("highlight");
+    /**
+     * @private
+     * 
+     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
+     */
+    function _convertPreferences() {
+        PreferencesManager.convertPreferences(module, {"highlight": "user"});
+    }
+    
+    _convertPreferences();
+    
+    config.highlight = PreferencesManager.get("highlight");
    
     // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);

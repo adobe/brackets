@@ -62,12 +62,6 @@ define(function (require, exports, module) {
     var AppInit                 = require("utils/AppInit"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
-    /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = null;
-	
     var $mainView;
     
     /**
@@ -155,7 +149,7 @@ define(function (require, exports, module) {
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
             elementID           = $element.attr("id"),
-            elementPrefs        = _prefs.getValue(elementID) || {},
+            elementPrefs        = PreferencesManager.getViewState(elementID) || {},
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
@@ -220,7 +214,7 @@ define(function (require, exports, module) {
             adjustSibling(elementSize);
             
             $element.trigger("panelExpanded", [elementSize]);
-            _prefs.setValue(elementID, elementPrefs);
+            PreferencesManager.setViewState(elementID, elementPrefs);
         });
                       
         $element.data("hide", function () {
@@ -242,7 +236,7 @@ define(function (require, exports, module) {
             adjustSibling(0);
             
             $element.trigger("panelCollapsed", [elementSize]);
-            _prefs.setValue(elementID, elementPrefs);
+            PreferencesManager.setViewState(elementID, elementPrefs);
         });
         
         // If the resizer is positioned right or bottom of the panel, we need to listen to
@@ -361,7 +355,7 @@ define(function (require, exports, module) {
                         if ($resizableElement.length) {
                             elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
                         }
-                        _prefs.setValue(elementID, elementPrefs);
+                        PreferencesManager.setViewState(elementID, elementPrefs);
                         repositionResizer(elementSize);
                     }
 
@@ -407,9 +401,6 @@ define(function (require, exports, module) {
         }
     }
 	
-    // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module);
-    
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;

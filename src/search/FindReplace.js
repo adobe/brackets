@@ -65,11 +65,6 @@ define(function (require, exports, module) {
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
     var REPLACE_ALL_MAX     = 300;
     
-    var _prefs = PreferencesManager.getPreferenceStorage(module, {
-        caseSensitive: false,
-        regexp: false
-    });
-
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
 
@@ -89,6 +84,8 @@ define(function (require, exports, module) {
     /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
     var closeFindInFilesBar;
     
+    PreferencesManager.definePreference("caseSensitive", "boolean", false);
+    PreferencesManager.definePreference("regexp", "boolean", false);
 
     function SearchState() {
         this.searchStartPos = null;
@@ -110,12 +107,12 @@ define(function (require, exports, module) {
     }
     
     function _updateSearchBarFromPrefs() {
-        $("#find-case-sensitive").toggleClass("active", _prefs.getValue("caseSensitive"));
-        $("#find-regexp").toggleClass("active",         _prefs.getValue("regexp"));
+        $("#find-case-sensitive").toggleClass("active", PreferencesManager.get("caseSensitive"));
+        $("#find-regexp").toggleClass("active",         PreferencesManager.get("regexp"));
     }
     function _updatePrefsFromSearchBar() {
-        _prefs.setValue("caseSensitive", $("#find-case-sensitive").is(".active"));
-        _prefs.setValue("regexp",        $("#find-regexp").is(".active"));
+        PreferencesManager.setValueAndSave("caseSensitive", $("#find-case-sensitive").is(".active"));
+        PreferencesManager.setValueAndSave("regexp",        $("#find-regexp").is(".active"));
     }
     
     function parseQuery(query) {
@@ -668,6 +665,17 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * @private
+     * 
+     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
+     */
+    function _convertPreferences() {
+        PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"});
+    }
+    
+    _convertPreferences();
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);

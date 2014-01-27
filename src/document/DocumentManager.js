@@ -112,12 +112,6 @@ define(function (require, exports, module) {
     var _currentDocument = null;
     
     /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = {};
-    
-    /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
      * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
@@ -844,7 +838,7 @@ define(function (require, exports, module) {
         });
 
         // append file root to make file list unique for each project
-        _prefs.setValue("files_" + projectRoot.fullPath, files);
+        PreferencesManager.setViewState("files_" + projectRoot.fullPath, files);
     }
 
     /**
@@ -854,7 +848,7 @@ define(function (require, exports, module) {
     function _projectOpen(e) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = _prefs.getValue("files_" + projectRoot.fullPath);
+            files = PreferencesManager.getViewState("files_" + projectRoot.fullPath);
         
         console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
@@ -1028,9 +1022,6 @@ define(function (require, exports, module) {
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
 
-    // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(module);
-    
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 

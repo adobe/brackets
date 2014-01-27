@@ -322,6 +322,15 @@ define(function (require, exports, module) {
         preferencesManager.save();
     }
     
+    function getViewState(id) {
+        return stateManager.get(id);
+    }
+    
+    function setViewState(id, value) {
+        stateManager.set(id, value);
+        stateManager.save();
+    }
+    
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager               = preferencesManager;
     exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
@@ -337,6 +346,8 @@ define(function (require, exports, module) {
     exports.getPreference       = preferencesManager.getPreference.bind(preferencesManager);
     exports.getExtensionPrefs   = getExtensionPrefs;
     exports.setValueAndSave     = setValueAndSave;
+    exports.getViewState        = getViewState;
+    exports.setViewState        = setViewState;
     exports.addScope            = preferencesManager.addScope.bind(preferencesManager);
     exports.stateManager        = stateManager;
     exports.FileStorage         = PreferencesBase.FileStorage;
