@@ -252,7 +252,11 @@ define(function (require, exports, module) {
                     lastValue += ctx.token.string;
                 } else if (lastValue && lastValue.match(/,$/)) {
                     propValues.push(lastValue);
-                    lastValue = "";
+                    if (ctx.token.string.length > 0) {
+                        lastValue = ctx.token.string;
+                    } else {
+                        lastValue = "";
+                    }
                 } else {
                     // e.g. "rgba(50" gets broken into 2 tokens
                     lastValue += ctx.token.string;

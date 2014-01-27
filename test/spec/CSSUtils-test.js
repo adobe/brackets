@@ -2037,6 +2037,18 @@ define(function (require, exports, module) {
                 }
             });
             
+            it("should return a separate token for each param in a functional value notation", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[109]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "background",
+                    offset: 1,
+                    index: 1,
+                    values: ["linear-gradient(to ", "right, ", "rgba(255,", "255,", "0), ", "#fff)"],
+                    isNewItem: false
+                });
+            });
+            
             it("should return PROP_VALUE when inside functional value notation - simple", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[107]);
                 expect(result).toEqual({
