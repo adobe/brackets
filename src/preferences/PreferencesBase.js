@@ -1109,7 +1109,10 @@ define(function (require, exports, module) {
                     // It is not valid to have an unparseable file.
                     if (err instanceof ParsingError) {
                         console.error(err);
+                        deferred.reject(err);
+                        return;
                     }
+                    deferred.resolve(id, scope);
                 });
             
             return deferred.promise();

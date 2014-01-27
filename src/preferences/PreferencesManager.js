@@ -231,7 +231,7 @@ define(function (require, exports, module) {
     
     // Set up the .brackets.json file handling
     userScope
-        .done(function () {
+        .always(function () {
             preferencesManager.addPathScopes(".brackets.json", {
                 before: "user",
                 checkExists: function (filename) {
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
                     return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
                 }
             })
-                .done(function () {
+                .always(function () {
                     // Session Scope is for storing prefs in memory only but with the highest precedence.
                     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
                 });
