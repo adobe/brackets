@@ -7,6 +7,7 @@
         "indent": 4,
         "maxerr": 50
     },
+    "linting.overrideJSLint": false,
     "defaultExtension": "js",
     "path": {
         "src/thirdparty/CodeMirror2/**/*.js": {

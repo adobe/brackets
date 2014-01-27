@@ -76,7 +76,13 @@ define(function (require, exports, module) {
      * Constants for the preferences defined in this file.
      */
     var PREF_ENABLED = "enabled",
-        PREF_COLLAPSED = "collapsed";
+        PREF_COLLAPSED = "collapsed",
+        PREF_OVERRIDE_JSLINT = "overrideJSLint";
+    
+    /*
+     * Store the reference to JSLint provider to be able to restore it later.
+     */
+    var jsLintProvider = null;
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -371,7 +377,7 @@ define(function (require, exports, module) {
             setGotoEnabled(false);
         }
     }
-
+    
     /**
      * The provider is passed the text of the file and its fullPath. Providers should not assume
      * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
@@ -391,15 +397,7 @@ define(function (require, exports, module) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
         }
-
-        if (languageId === "javascript") {
-            // This is a special case to enable extension provider to replace the JSLint provider
-            // in favor of their own implementation
-            _.remove(_providers[languageId], function (registeredProvider) {
-                return registeredProvider.name === "JSLint";
-            });
-        }
-
+        
         _providers[languageId].push(provider);
         
         run();  // in case a file of this type is open currently
@@ -474,7 +472,34 @@ define(function (require, exports, module) {
             }
         }
     }
-
+    
+    /**
+     * Registers and unregisters JSLint provider for javascript if it is present.
+     * 
+     * @param {boolean} enabled Whether enable or disable JSLint provider.
+     */
+    function _toggleJSLint(enabled) {
+        if (!jsLintProvider) {
+            jsLintProvider =  _.find(_providers.javascript, function (registeredProvider) {
+                return registeredProvider.name === "JSLint";
+            });
+            if (!jsLintProvider) {
+                return;
+            }
+        }
+        if (enabled) {
+            if (_.indexOf(_providers, jsLintProvider) < 0) {
+                register("javascript", jsLintProvider);
+            }
+            // no need to run since either register will do it or it has been run already
+        } else {
+            _.remove(_providers.javascript, function (registeredProvider) {
+                return registeredProvider === jsLintProvider;
+            });
+            run();
+        }
+    }
+    
     /** Command to go to the first Error/Warning */
     function handleGotoFirstProblem() {
         run();
@@ -498,7 +523,10 @@ define(function (require, exports, module) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-
+    prefs.definePreference(PREF_OVERRIDE_JSLINT, "boolean", true)
+        .on("change", function (e, data) {
+            _toggleJSLint(!prefs.get(PREF_OVERRIDE_JSLINT));
+        });
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -558,6 +586,10 @@ define(function (require, exports, module) {
         // Set initial UI state
         toggleEnabled(prefs.get(PREF_ENABLED), true);
         toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
+    });
+    
+    AppInit.appReady(function () {
+        _toggleJSLint(prefs.get(PREF_OVERRIDE_JSLINT));
     });
 
     // Testing
