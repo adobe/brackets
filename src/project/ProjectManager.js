@@ -1137,8 +1137,9 @@ define(function (require, exports, module) {
                                 err || FileSystemError.NOT_FOUND
                             )
                         ).done(function () {
-                            // Reset _projectRoot to null so that the following _loadProject call for 
-                            // loading welcome project won't close all working set files again.
+                            // Reset _projectRoot to null so that the following _loadProject call won't 
+                            // run the 'beforeProjectClose' event a second time on the original project, 
+                            // which is now partially torn down (see #6574).
                             _projectRoot = null;
                             
                             // The project folder stored in preference doesn't exist, so load the default
