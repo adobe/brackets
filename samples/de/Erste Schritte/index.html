@@ -28,10 +28,14 @@
             WAS IST BRACKETS?
         -->
         <p>
-            <em>Sie sehen sich eine frühe Version von Brackets an.</em>
-            Auf vielerlei Weise ist Brackets eine andere Art Editor. Ein namhafter Unterschied ist, dass
-            dieser Editor in JavaScript geschrieben ist. Während Brackets also noch nicht ganz bereit für
-            den tagtäglichen Einsatz sein mag, verwenden wir es jeden Tag, um Brackets zu bauen.
+            <em>Brackets ist eine andere Art Editor.</em>
+            Ein entscheidender Unterschied ist, dass dieser Editor in JavaScript, HTML und CSS geschrieben ist.
+            Das heißt, dass die meisten von euch Brackets-Nutzern die nötigen Fähigkeiten haben, Brackets selbst
+            zu verändern und erweitern.
+            Tatsächlich benutzen wir Brackets täglich, um Brackets zu verbessern.
+            Es hat außerdem einige einzigartige Funktionen wie Schnelles Bearbeiten, die Live-Vorschau und andere,
+            die sie wahrscheinlich nicht in anderen Editoren finden werden.
+            Lesen Sie weiter, um zu erfahren, wie sie diese Funktionen nutzen können.
         </p>
 
 
@@ -42,31 +46,34 @@
         -->
         <h3>Schnelles Bearbeiten für CSS und JavaScript</h3>
         <p>
-            Beim Bearbeiten von HTML verwenden Sie das Tastenkürzel <kbd>Cmd/Strg + E</kbd>, um einen schnellen
-            Inline-Editor zu öffnen, der alles relevante CSS anzeigt. Ändern Sie eine Kleinigkeit in Ihrem CSS,
-            drücken Sie <kbd>ESC</kbd> und Sie sind zurück im HTML-Editor. Oder lassen Sie die CSS-Regeln offen
-            und sie werden Teil Ihres HTML-Editors. Falls Sie <kbd>ESC</kbd> außerhalb eines Schnell-Editors
-            drücken, schließen sich alle. Kein Umschalten mehr zwischen Dokumenten – so verlieren Sie nie den
-            Überblick.
+            Kein Wechsel zwischen Dokumenten mehr - so verlieren Sie nie den Überblick. Wenn Sie HTML editieren,
+            können Sie die Tastenkombination <kbd>Cmd/Strg + E</kbd> verwenden, um einen Inline-Editor anzuzeigen,
+            der Ihnen alle relevanten CSS-Regeln zum Schnellen Bearbeiten anzeigt.
+            Ändern Sie etwas in dem CSS, drücken Sie <kbd>ESC</kbd> und schon sind Sie zurück im HTML-Code. Oder
+            lassen Sie die CSS-Regeln einfach offen und sie werden Teil ihres HTML-Editors. Sobald Sie <kbd>ESC</kbd>
+            außerhalb eines solchen Editors drücken, schließen sich all diese.
         </p>
 
         <samp>
-            Sie wollen es in Aktion sehen? Setzen Sie Ihren Cursor auf den <!-- <samp> -->-Tag oben und drücken
-            Sie <kbd>Cmd/Strg + E</kbd>. Sie sollten oben einen CSS-Schnell-Editor erscheinen sehen. Rechts sehen
-            Sie eine Liste der CSS-Regeln, die sich auf diesen Tag beziehen. Scrollen Sie einfach mit
-            <kbd>Alt + Oben/Unten</kbd> durch die Regeln, um die zu finden, die Sie bearbeiten wollen.
+            Sie wollen das in Aktion sehen? Setzen Sie Ihren Cursor auf den <!-- <samp> -->-Tag oben und drücken
+            Sie <kbd>Cmd/Strg + E</kbd>. Sie sollten einen Editor zum Schnellen Bearbeiten von CSS erscheinen sehen,
+            der die geltenden CSS-Regeln anzeigt. Das Schnelle Bearbeiten funktioniert genauso in Klassen- und 
+            ID-Attributen.
+            
+            Sie können auf die selbe Weise neue Regeln erstellen. Klicken Sie in einen der <!-- <p> -->-Tags weiter
+            oben und drücken Sie <kbd>Cmd/Strg + E</kbd>. Es gibt noch keine Regeln dafür, aber Sie können den
+            "Neue Regel"-Button nutzen, um eine neue Regel für <!-- <p> --> hinzuzufügen.
         </samp>
 
         <a href="screenshots/quick-edit.png">
-            <img alt="Ein Screenshot, der schnelles Bearbeiten von CSS zeigt" src="screenshots/quick-edit.png" />
+            <img alt="Ein Screenshot, der Schnelles Bearbeiten von CSS zeigt" src="screenshots/quick-edit.png" />
         </a>
 
         <p>
-            Sie können das gleiche Tastenkürzel in JavaScript-Code verwenden, um den Rumpf einer Funktion
-            anzuzeigen, die Sie aufrufen, indem Sie den Cursor auf den Funktionsnamen setzen. Oder öffnen Sie
-            einen grafischen Farbwähler, indem Sie den Cursor auf irgendeine Farbe im Hex-, RGB- oder HSL-Format
-            setzen. Im Augenblick können Inline-Editoren nicht verschachtelt werden. Sie können das
-            Schnelle Bearbeiten also nur nutzen, solange der Cursor sich in einem „Vollgröße“-Editor befindet.
+            Sie können die selbe Tastenkombination nutzen, um andere Dinge auf die selbe Weise zu bearbeiten - wie
+            JavaScript-Funktionen, Farben und Animations-Timing-Funktionen - und wir fügen ständig mehr hinzu.
+            Im Augenblick können solche Editoren allerdings nicht verschachtelt werden. Sie können das
+            Schnelle Bearbeiten also nur nutzen, während der Cursor sich im Haupteditor befindet.
         </p>
 
         <!--
@@ -74,7 +81,7 @@
         -->
         <h3>Vorschau auf HTML- und CSS-Änderungen live im Browser anzeigen</h3>
         <p>
-            Sie kennen den „Speichern/Neu laden“-Tanz, den wir seit Jahren aufführen? Der, in dem Sie
+            Sie kennen den "Speichern/Neu laden-Tanz", den wir seit Jahren aufführen? Der, in dem Sie
             Änderungen in Ihrem Editor machen, Speichern drücken, zum Browser schalten und dann neu laden,
             um schließlich das Ergebnis zu sehen? Mit Brackets müssen Sie diesen Tanz nicht aufführen.
         </p>
@@ -85,26 +92,65 @@
             Ihr Code läuft im Browser, aber lebt in Ihrem Editor!
         </p>
 
+        <h3>Hervorheben von HTML-Elementen und CSS-Regeln - live!</h3>
+        <p>
+            Brackets macht es Ihnen leicht, zu sehen, welche Auswirkungen Ihre Änderungen in HTML und CSS auf die
+            Seite haben werden. Wenn Ihr Cursor auf einer CSS-Regel platziert ist, hebt Brackets alle zugehörigen
+            Elemente im Browser hervor. Genauso wird Brackets beim Editieren einer HTML-Datei die entsprechenden
+            HTML-Elemente im Browser markieren.
+        </p>
+
         <samp>
             Falls Sie Google Chrome installiert haben, können Sie das selbst ausprobieren. Klicken Sie auf
             das Blitz-Symbol oben rechts oder drücken Sie <kbd>Cmd/Strg + Alt + P</kbd>. Wenn die Live-Vorschau
-            für ein HTML-Dokument eingeschaltet ist, können alle verknüpften CSS-Dokumente in Echtzeit bearbeitet
-            werden. Das Symbol ändert sich von grau nach golden, wenn Brackets eine Verbindung zu Ihrem Browser
-            herstellt.
+            für ein HTML-Dokument aktiviert ist, können alle verknüpften CSS-Dokumente in Echtzeit bearbeitet
+            werden. Das Symbol ändert die Farbe von grau nach gold, sobald Brackets eine Verbindung zu Ihrem
+            Browser hergestellt hat.
 
-            Platzieren Sie Ihren Cursor jetzt auf den <!-- <img> -->-Tag oben und verwenden Sie
-            <kbd>Cmd/Strg + E</kbd>, um die definierten CSS-Regeln zu öffnen. Versuchen Sie die Stärke des
-            Rahmens von 1px auf 10px zu ändern, oder die Hintergrundfarbe von "dimgray" auf "hotpink".
-            Falls Sie Brackets und Ihren Browser nebeneinander laufen haben, sehen Sie die Änderungen sofort
-            in Ihrem Browser umgesetzt. Cool, was?
+            Platzieren Sie Ihren Cursor jetzt auf dem <!-- <img> -->-Tag oben. Sie sehen in Chrome eine blaue
+            Markierung, die um das Bild herum erscheint. Nutzen Sie nun <kbd>Cmd/Strg + E</kbd>, um die
+            definierten CSS-Regeln anzuzeigen.
+            Probieren Sie, die Stärke des Rahmens von 10px auf 20px zu ändern, oder ändern Sie die
+            Hintergrundfarbe von "transparent" zu "hotpink". Falls Sie Brackets und Ihren Browser nebeneinander
+            laufen haben, können Sie die Änderungen sofort in Ihrem Browser erkennen. Cool, was?
         </samp>
 
         <p class="note">
-            Derzeit unterstützt Brackets die Live-Vorschau nur für HTML und CSS.
-            In der aktuellen Version werden Änderungen an JavaScript-Dateien automatisch neu geladen,
-            wenn Sie speichern. Wir arbeiten momentan an der Unterstützung der Live-Vorschau für JavaScript.
-            Live-Vorschauen sind außerdem nur mit Google Chrome möglich, doch wir hoffen, diese Funktionalität
+            Derzeit unterstützt Brackets die Live-Vorschau nur für HTML und CSS. Allerdings werden in der aktuellen
+            Version Änderungen an JavaScript-Dateien automatisch neu geladen, wenn Sie diese speichern. Wir arbeiten
+            momentan an der Unterstützung der Live-Vorschau für JavaScript.
+            Die Live-Vorschau ist außerdem nur mit Google Chrome möglich, doch wir hoffen, diese Funktionalität
             zukünftig zu allen wichtigen Browsern hinzuzufügen.
+        </p>
+
+        <h3>Schnelle Farbansicht</h3>
+        <p>
+            Für die unter uns, die immer noch nicht die Farb-Äquivalente von HEX- und RGB-Werten kennen, macht es
+            Brackets einfach und schnell, exakt zu sehen, welche Farbe genutzt wird. Fahren Sie in HTML oder CSS
+            einfach über einen Farbwert oder -verlauf und Brackets wird Ihnen automatisch eine Vorschau davon
+            anzeigen. Das selbe gilt für Bilder: Platzieren Sie den Cursor im Brackets-Editor über einem Link zu
+            einem Bild und er wird ein Miniaturansicht von diesem Bild zeigen.
+        </p>
+
+        <samp>
+            Um die Schnelle Farbansicht selbst auszuprobieren, können Sie Ihren Cursor auf dem
+            <!-- <body> -->-Tag am Anfang dieses Dokuments platzieren und <kbd>Cmd/Strg + E</kbd> drücken, um einen
+            CSS-Schnell-Editor zu öffnen. Fahren Sie nun einfach mit dem Cursor über einen der Farbwerte im
+            CSS-Code. Sie können das auch mit Farbverläufen sehen, wenn Sie einen Schnell-Editor für den
+            <!-- <html> -->-Tag anzeigen lassen und über irgendeinen der "background-image"-Farbwerte fahren. Um
+            die Bildvorschau auszuprobieren, können Sie Ihren Cursor auf dem Screenshot-Link platzieren, den Sie
+            weiter oben in diesem Dokument finden.
+        </samp>
+
+        <h3>Sie benötigen etwas anderes? Probieren Sie es mit einer Erweiterung!</h3>
+        <p>
+            Zusätzlich zu all dem, was in Brackets eingebaut ist, hat unsere große und wachsende Community der
+            Erweiterungs-Entwickler über hundert Erweiterungen erstellt, die nützliche Funktionen bringen. Wenn
+            Sie etwas brauchen, was es nicht in Brackets gibt, ist es sehr wahrscheinlich, dass bereits jemand
+            eine Erweiterung dafür geschrieben hat. Um die Liste der verfügbaren Erweiterungen zu durchstöbern
+            oder zu durchsuchen nutzen Sie <strong>Datei &gt; Erweiterungs-Verwaltung</strong> und klicken auf
+            den Tab "Verfügbar". Wenn Sie eine Erweiterung finden, die Sie nutzen wollen, klicken Sie einfach
+            auf den "Installieren"-Button daneben.
         </p>
 
         <!--
@@ -113,16 +159,18 @@
         <h2>Machen Sie mit</h2>
         <p>
             Brackets ist ein Open-Source-Projekt. Web-Entwickler rund um die Welt helfen mit, einen besseren
-            Code-Editor zu bauen. Lassen Sie uns wissen, was Sie denken, teilen Sie Ihre Ideen oder tragen
+            Code-Editor zu bauen. Noch mehr erstellen Erweiterungen, die die Möglichkeiten von Brackets erweitern.
+            Lassen Sie uns wissen, was Sie denken, teilen Sie Ihre Ideen oder tragen
             Sie direkt zu dem Projekt bei.
         </p>
         <ul>
             <li><a href="http://brackets.io">Brackets.io</a></li>
             <li><a href="http://blog.brackets.io">Brackets Team-Blog</a></li>
             <li><a href="http://github.com/adobe/brackets">Brackets auf GitHub</a></li>
+            <li><a href="https://brackets-registry.aboutweb.com">Brackets Erweiterungs-Verzeichnis</a></li>
             <li><a href="http://github.com/adobe/brackets/wiki">Brackets Wiki</a></li>
             <li><a href="http://groups.google.com/group/brackets-dev">Brackets Developer-Mailingliste</a></li>
-            <li><a href="https://twitter.com/#!/brackets">@Brackets auf Twitter</a></li>
+            <li><a href="https://twitter.com/#!/brackets">@brackets auf Twitter</a></li>
             <li>Mit Brackets-Entwicklern per IRC in #brackets auf Freenode chatten</li>
         </ul>
 

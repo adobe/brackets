@@ -33,6 +33,8 @@ define(function (require, exports, module) {
     
     require("thirdparty/jquery.mockjax.js");
     
+    var _ = require("thirdparty/lodash");
+    
     var ExtensionManager          = require("extensibility/ExtensionManager"),
         ExtensionManagerView      = require("extensibility/ExtensionManagerView").ExtensionManagerView,
         ExtensionManagerViewModel = require("extensibility/ExtensionManagerViewModel"),
@@ -40,14 +42,14 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         Package                   = require("extensibility/Package"),
         ExtensionLoader           = require("utils/ExtensionLoader"),
-        NativeFileError           = require("file/NativeFileError"),
         SpecRunnerUtils           = require("spec/SpecRunnerUtils"),
-        CollectionUtils           = require("utils/CollectionUtils"),
         NativeApp                 = require("utils/NativeApp"),
         Dialogs                   = require("widgets/Dialogs"),
         CommandManager            = require("command/CommandManager"),
         Commands                  = require("command/Commands"),
+        FileSystem                = require("filesystem/FileSystem"),
         Strings                   = require("strings"),
+        StringUtils               = require("utils/StringUtils"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockExtensionList         = require("text!spec/ExtensionManager-test-files/mockExtensionList.json"),
@@ -119,6 +121,39 @@ define(function (require, exports, module) {
             runs(function () {
                 $(ExtensionManager).off(".mock-load");
             });
+        }
+        
+        function makeMockInstalledVersion(mockRegistryExtension, installedVersion) {
+            var ref = _.find(mockRegistryExtension.versions, { version: installedVersion });
+            return {
+                locationType: ExtensionManager.LOCATION_USER,
+                metadata: {
+                    name: mockRegistryExtension.metadata.name,
+                    title: mockRegistryExtension.metadata.title,
+                    version: ref.version,
+                    engines: { brackets: ref.brackets }
+                },
+                owner: mockRegistryExtension.owner
+            };
+        }
+        
+        function makeMockExtension(versionRequirements) {
+            var FAKE_DATE = "2013-04-10T18:28:20.530Z",
+                versions = [];
+            versionRequirements.forEach(function (verReq, i) {
+                versions.push({ version: (i + 1) + ".0.0", brackets: verReq, published: FAKE_DATE });
+            });
+            var latestVer = versions[versions.length - 1];
+            return {
+                metadata: {
+                    name: "mock-extension",
+                    title: "Mock Extension",
+                    version: latestVer.version,
+                    engines: { brackets: latestVer.brackets }
+                },
+                owner: "github:someuser",
+                versions: versions
+            };
         }
         
         describe("ExtensionManager", function () {
@@ -292,35 +327,73 @@ define(function (require, exports, module) {
                 waitsFor(function () { return finished; }, "finish removal");
             });
             
-            it("should calculate compatibility info correctly", function () {
+            it("should calculate compatibility info for installed extensions", function () {
                 function fakeEntry(version) {
                     return { metadata: { engines: { brackets: version } } };
                 }
                 
+                // Missing version requirement data
+                expect(ExtensionManager.getCompatibilityInfo({ metadata: {} }, "1.0.0"))
+                    .toEqual({isCompatible: true, isLatestVersion: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry(null), "1.0.0"))
-                    .toEqual({isCompatible: true});
+                    .toEqual({isCompatible: true, isLatestVersion: true});
+                
+                // With version requirement data
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry(">0.5.0"), "0.6.0"))
-                    .toEqual({isCompatible: true});
+                    .toEqual({isCompatible: true, isLatestVersion: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry(">0.6.0"), "0.6.0"))
                     .toEqual({isCompatible: false, requiresNewer: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry(">0.7.0"), "0.6.0"))
                     .toEqual({isCompatible: false, requiresNewer: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("<0.5.0"), "0.4.0"))
-                    .toEqual({isCompatible: true});
+                    .toEqual({isCompatible: true, isLatestVersion: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("<0.4.0"), "0.4.0"))
                     .toEqual({isCompatible: false, requiresNewer: false});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("<0.3.0"), "0.4.0"))
                     .toEqual({isCompatible: false, requiresNewer: false});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.2.0"))
-                    .toEqual({isCompatible: true});
+                    .toEqual({isCompatible: true, isLatestVersion: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.2.1"))
-                    .toEqual({isCompatible: true});
+                    .toEqual({isCompatible: true, isLatestVersion: true});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.3.0"))
                     .toEqual({isCompatible: false, requiresNewer: false});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.3.1"))
                     .toEqual({isCompatible: false, requiresNewer: false});
                 expect(ExtensionManager.getCompatibilityInfo(fakeEntry("~1.2"), "1.1.0"))
                     .toEqual({isCompatible: false, requiresNewer: true});
+            });
+            
+            it("should calculate compatibility info for registry extensions", function () {
+                // Use the fakeEntry name for consistency with the tests above
+                var fakeEntry = makeMockExtension;
+                
+                var curVer = "0.33.0";
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.24"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "1.0.0", isLatestVersion: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.24", ">=0.33"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "2.0.0", isLatestVersion: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(["<=0.24", "<=0.29", ">=0.30"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "3.0.0", isLatestVersion: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.40", ">=0.50", ">=0.30"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "3.0.0", isLatestVersion: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(["<=0.29", "<=0.29"]), curVer))
+                    .toEqual({isCompatible: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.40", ">=0.50"]), curVer))
+                    .toEqual({isCompatible: false, requiresNewer: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.15", ">=0.17", "<=0.20"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "2.0.0", isLatestVersion: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.24", ">=0.29", ">=0.50"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "2.0.0", isLatestVersion: false, requiresNewer: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry(["<=0.20", ">=0.30", ">=0.50"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "2.0.0", isLatestVersion: false, requiresNewer: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.50", ">=0.30", "<=0.20"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "2.0.0", isLatestVersion: false, requiresNewer: false});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.25", "<=0.40", ">=0.40", "<=0.40", ">=0.42"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "4.0.0", isLatestVersion: false, requiresNewer: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.25", "<=0.30", ">=0.30", "<=0.40", ">=0.32"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "5.0.0", isLatestVersion: true});
+                expect(ExtensionManager.getCompatibilityInfo(fakeEntry([">=0.25", ">=0.26", ">=0.30", ">=0.32", ">=0.40", ">=0.50"]), curVer))
+                    .toEqual({isCompatible: true, compatibleVersion: "4.0.0", isLatestVersion: false, requiresNewer: true});
             });
             
             it("should return the correct download URL for an extension", function () {
@@ -375,6 +448,17 @@ define(function (require, exports, module) {
                     expect(model.filterSet).toEqual(["item-5", "find-uniq1-in-name"]); // sorted in reverse publish date order
                 });
                 
+                it("should 'AND' space-separated search terms", function () {
+                    model.filter("UNIQ2 in author name");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 name");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 name author");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("UNIQ2 uniq3");
+                    expect(model.filterSet).toEqual([]);
+                });
+                
                 it("should return correct results when subsequent queries are longer versions of previous queries", function () {
                     model.filter("uniqin1and5");
                     model.filter("uniqin1and5-2");
@@ -385,6 +469,19 @@ define(function (require, exports, module) {
                     model.filter("uniq1");
                     model.filter("");
                     expect(model.filterSet).toEqual(["item-5", "item-6", "item-2", "find-uniq1-in-name", "item-4", "item-3"]);
+                });
+                
+                it("longer versions of previous queries, and not, should also work with spaces", function () {
+                    model.filter("name");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name uniq");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name uniq2");
+                    expect(model.filterSet).toEqual(["item-2"]);
+                    model.filter("name uniq");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
+                    model.filter("name");
+                    expect(model.filterSet).toEqual(["item-2", "find-uniq1-in-name"]);
                 });
                 
                 it("should trigger filter event when filter changes", function () {
@@ -535,6 +632,7 @@ define(function (require, exports, module) {
                 it("should unmark an extension for update, deleting the package and raising an event", function () {
                     var id = "registered-extension",
                         filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath(filename),
                         calledId;
                     runs(function () {
                         $(model).on("change", function (e, id) {
@@ -546,10 +644,10 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE"
                         });
                         calledId = null;
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         ExtensionManager.removeUpdate(id);
                         expect(calledId).toBe(id);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
                     });
                 });
@@ -578,7 +676,8 @@ define(function (require, exports, module) {
                 
                 it("should update extensions marked for update", function () {
                     var id = "registered-extension",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath("/path/to/downloaded/file.zip");
                     runs(function () {
                         ExtensionManager.updateFromDownload({
                             localPath: filename,
@@ -586,14 +685,14 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE"
                         });
                         expect(ExtensionManager.isMarkedForUpdate()).toBe(false);
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         var d = $.Deferred();
                         spyOn(Package, "installUpdate").andReturn(d.promise());
                         d.resolve();
                         waitsForDone(ExtensionManager.updateExtensions());
                     });
                     runs(function () {
-                        expect(brackets.fs.unlink).not.toHaveBeenCalled();
+                        expect(file.unlink).not.toHaveBeenCalled();
                         expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                     });
                 });
@@ -663,7 +762,7 @@ define(function (require, exports, module) {
                 it("should populate itself with registry entries and display their fields when created", function () {
                     setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     runs(function () {
-                        CollectionUtils.forEach(mockRegistry, function (item) {
+                        _.forEach(mockRegistry, function (item) {
                             // Should show the title if specified, otherwise the bare name.
                             if (item.metadata.title) {
                                 expect(view).toHaveText(item.metadata.title);
@@ -701,7 +800,7 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         console.log(view);
-                        CollectionUtils.forEach(JSON.parse(mockExtensionList), function (item) {
+                        _.forEach(JSON.parse(mockExtensionList), function (item) {
                             if (item.installInfo && item.registryInfo) {
                                 // Owner--should show only the owner name, not the authenticator
                                 expect(view).toHaveText(item.registryInfo.owner.split(":")[1]);
@@ -713,18 +812,19 @@ define(function (require, exports, module) {
                 it("should show an install button for each item", function () {
                     setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     runs(function () {
-                        CollectionUtils.forEach(mockRegistry, function (item) {
+                        _.forEach(mockRegistry, function (item) {
                             var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
                             expect($button.length).toBe(1);
                         });
                     });
                 });
                 
+                // 'Install' button state
                 it("should show disabled install buttons for items that are already installed", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4"]);
                     setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     runs(function () {
-                        CollectionUtils.forEach(mockRegistry, function (item) {
+                        _.forEach(mockRegistry, function (item) {
                             var $button = $("button.install[data-extension-id=" + item.metadata.name + "]", view.$el);
                             if (item.metadata.name === "mock-extension-3" || item.metadata.name === "mock-extension-4") {
                                 expect($button.prop("disabled")).toBeTruthy();
@@ -735,47 +835,75 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should show an update button for items that have an update available", function () {
-                    var id = "registered-extension";
-                    ExtensionManager._setExtensions(JSON.parse(mockExtensionList));
-                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                it("should show disabled install button if requires newer API version", function () {   // isCompatible: false, requiresNewer: true
                     runs(function () {
-                        var $button = $("button.update[data-extension-id=" + id + "]", view.$el);
-                        expect($button.length).toBe(1);
-                        expect($button.prop("disabled")).toBeFalsy();
-                    });
-                });
-    
-                it("should show disabled install buttons for items that have incompatible versions", function () {
-                    runs(function () {
-                        mockRegistry = {
-                            "incompatible-extension": {
-                                "metadata": {
-                                    "name": "incompatible-extension",
-                                    "title": "Incompatible Extension",
-                                    "version": "1.0.0",
-                                    "engines": {
-                                        "brackets": "<0.1"
-                                    }
-                                },
-                                "owner": "github:someuser",
-                                "versions": [
-                                    {
-                                        "version": "1.0.0",
-                                        "published": "2013-04-10T18:28:20.530Z",
-                                        "brackets": "<0.1"
-                                    }
-                                ]
-                            }
-                        };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.100"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
-                        var $button = $("button.install[data-extension-id=incompatible-extension]", view.$el);
+                        var $button = $("button.install[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
                         expect($button.prop("disabled")).toBeTruthy();
+                        expect($("button.update[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        
+                        var $warning = $(".alert.warning", view.$el);
+                        expect($warning.length).toBe(1);
+                        expect($warning.text().trim()).toBe(Strings.EXTENSION_INCOMPATIBLE_NEWER);
                     });
                 });
                 
+                it("should show disabled install button if requires older API version", function () {   // isCompatible: false, requiresNewer: false
+                    runs(function () {
+                        mockRegistry = { "mock-extension": makeMockExtension(["<0.1"]) };
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.install[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                        expect($("button.update[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+
+                        var $warning = $(".alert.warning", view.$el);
+                        expect($warning.length).toBe(1);
+                        expect($warning.text().trim()).toBe(Strings.EXTENSION_INCOMPATIBLE_OLDER);
+                    });
+                });
+                
+                it("should show enabled install button if latest requires newer API version", function () { // isCompatible: true, isLatestVersion: false, requiresNewer: true
+                    runs(function () {
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.install[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeFalsy();
+                        expect($("button.update[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+
+                        var $warning = $(".alert.warning", view.$el);
+                        expect($warning.length).toBe(1);
+                        expect($warning.text().trim()).toBe(StringUtils.format(Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER, "2.0.0", "1.0.0"));
+                    });
+                });
+                
+                it("should show enabled install button if latest requires older API version", function () { // isCompatible: true, isLatestVersion: false, requiresNewer: false
+                    runs(function () {
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", "<0.2"]) };
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.install[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeFalsy();
+                        expect($("button.update[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        
+                        var $warning = $(".alert.warning", view.$el);
+                        expect($warning.length).toBe(1);
+                        expect($warning.text().trim()).toBe(StringUtils.format(Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER, "2.0.0", "1.0.0"));
+                    });
+                });
+                
+                // 'Install' button action
                 it("should bring up the install dialog and install an item when install button is clicked", function () {
                     runs(function () {
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
@@ -786,6 +914,20 @@ define(function (require, exports, module) {
                         $button.click();
                         expect(InstallExtensionDialog.installUsingDialog)
                             .toHaveBeenCalledWith("http://fake-repository.com/mock-extension-3/mock-extension-3-1.0.0.zip");
+                    });
+                });
+                
+                it("should install latest compatible version", function () {
+                    runs(function () {
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">0.100"]) };
+                        setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.install[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        $button.click();
+                        expect(InstallExtensionDialog.installUsingDialog)
+                            .toHaveBeenCalledWith("http://fake-repository.com/mock-extension/mock-extension-2.0.0.zip");
                     });
                 });
                 
@@ -806,6 +948,74 @@ define(function (require, exports, module) {
                    
                 });
                 
+                // 'Update' button state (see also similar tests for InstalledViewModel below)
+                it("should show enabled update button for items that have a compatible update available", function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeFalsy();
+                        
+                        expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        expect($(".alert.warning", view.$el).length).toBe(0);
+                    });
+                });
+                
+                it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                        
+                        expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        expect($(".alert.warning", view.$el).length).toBe(0);
+                    });
+                });
+                
+                it("should show disabled update button for items whose available update requires older API version", function () {   // isLatestVersion: false, requiresNewer: false
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", "<0.2"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                        
+                        expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        expect($(".alert.warning", view.$el).length).toBe(0);
+                    });
+                });
+                
+                it("should show disabled update button for items that are in dev folder and have a compatible update available", function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInfo = makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0");
+                    mockInfo.locationType = ExtensionManager.LOCATION_DEV;
+                    ExtensionManager._setExtensions({
+                        "mock-extension": {
+                            installInfo: mockInfo
+                        }
+                    });
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                    });
+                });
+                
+                // Info links action
                 it("should open links in the native browser instead of in Brackets", function () {
                     runs(function () {
                         mockRegistry = {
@@ -840,6 +1050,7 @@ define(function (require, exports, module) {
             });
             
             describe("when showing installed extensions", function () {
+                
                 it("should show the 'no extensions' message when there are no extensions installed", function () {
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
@@ -849,7 +1060,7 @@ define(function (require, exports, module) {
                     });
                 });
                            
-                it("should show the 'no extensions' message when there are extensions installed but none match the search query", function () {
+                it("should show the 'no extensions match' message when there are extensions installed but none match the search query", function () {
                     mockLoadExtensions(["user/mock-extension-3", "user/mock-extension-4", "user/mock-legacy-extension"]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
@@ -866,18 +1077,25 @@ define(function (require, exports, module) {
                     runs(function () {
                         expect($(".empty-message", view.$el).css("display")).toBe("none");
                         expect($("table", view.$el).css("display")).not.toBe("none");
-                        CollectionUtils.forEach(mockRegistry, function (item) {
+                        _.forEach(mockRegistry, function (item) {
                             var $button = $("button.remove[data-extension-id=" + item.metadata.name + "]", view.$el);
                             if (item.metadata.name === "mock-extension-3" ||
                                     item.metadata.name === "mock-extension-4" ||
                                     item.metadata.name === "mock-legacy-extension") {
                                 expect(view).toHaveText(item.metadata.name);
                                 expect($button.length).toBe(1);
+                                
+                                // But no update button
+                                var $updateButton = $("button.update[data-extension-id=" + item.metadata.name + "]", view.$el);
+                                expect($updateButton.length).toBe(0);
                             } else {
                                 expect(view).not.toHaveText(item.metadata.name);
                                 expect($button.length).toBe(0);
                             }
                         });
+                        
+                        // And no overall update icon overlay
+                        expect(model.notifyCount).toBe(0);
                     });
                 });
                 
@@ -900,6 +1118,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                // 'Remove' button state
                 it("should show extensions that failed to load with a 'remove' link", function () {
                     mockLoadExtensions(["user/mock-extension-3"], true);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
@@ -938,6 +1157,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                // 'Remove' button action
                 it("should mark the given extension for removal, hide the remove button, and show an undo link", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
@@ -990,8 +1210,63 @@ define(function (require, exports, module) {
                     });
                 });
                 
-
+                // 'Update' button state (see also similar tests for RegistryViewModel above)
+                it("should show enabled update button for items that have a compatible update available", function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    waitsForDone(ExtensionManager.downloadRegistry()); // ensure mockRegistry integrated in
+                    runs(function () {
+                        setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeFalsy();
+                        expect(model.notifyCount).toBe(1);
+                        
+                        expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                    });
+                });
                 
+                it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    waitsForDone(ExtensionManager.downloadRegistry()); // ensure mockRegistry integrated in
+                    runs(function () {
+                        setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                        expect(model.notifyCount).toBe(1);
+                        
+                        expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        expect($(".alert.warning", view.$el).length).toBe(0);
+                    });
+                });
+                it("should show disabled update button for items whose available update requires older API version", function () {   // isLatestVersion: false, requiresNewer: false
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", "<0.2"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    waitsForDone(ExtensionManager.downloadRegistry()); // ensure mockRegistry integrated in
+                    runs(function () {
+                        setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    });
+                    runs(function () {
+                        var $button = $("button.update[data-extension-id=mock-extension]", view.$el);
+                        expect($button.length).toBe(1);
+                        expect($button.prop("disabled")).toBeTruthy();
+                        expect(model.notifyCount).toBe(1);
+                        
+                        expect($("button.install[data-extension-id=mock-extension]", view.$el).length).toBe(0);
+                        expect($(".alert.warning", view.$el).length).toBe(0);
+                    });
+                });
+                
+                // 'Update' button action
                 it("should mark the given extension for update, hide the remove button, and show an undo link", function () {
                     var id = "mock-extension-3";
                     mockLoadExtensions(["user/" + id]);
@@ -1011,7 +1286,8 @@ define(function (require, exports, module) {
                 
                 it("should undo marking an extension for update", function () {
                     var id = "mock-extension-3",
-                        filename = "/path/to/downloaded/file.zip";
+                        filename = "/path/to/downloaded/file.zip",
+                        file = FileSystem.getFileForPath(filename);
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
@@ -1020,37 +1296,43 @@ define(function (require, exports, module) {
                             installationStatus: "NEEDS_UPDATE",
                             localPath: filename
                         });
-                        spyOn(brackets.fs, "unlink");
+                        spyOn(file, "unlink");
                         var $undoLink = $("a.undo-update[data-extension-id=" + id + "]", view.$el);
                         $undoLink.click();
                         expect(ExtensionManager.isMarkedForUpdate(id)).toBe(false);
-                        expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                        expect(file.unlink).toHaveBeenCalled();
                         var $button = $("button.remove[data-extension-id=" + id + "]", view.$el);
                         expect($button.length).toBe(1);
                     });
                 });
+                
             });
             
+            
             describe("ExtensionManagerDialog", function () {
-                var dialogClassShown, dialogDeferred, didQuit;
+                var dialogClassShown, didReload, didClose, $mockDlg;
                 
                 describe("_performChanges", function () {
                 
                     beforeEach(function () {
                         // Mock popping up dialogs
                         dialogClassShown = null;
-                        dialogDeferred = new $.Deferred();
+                        didClose = false;
                         spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message) {
                             dialogClassShown = dlgClass;
+                            $mockDlg = $("<div/>").addClass(dlgClass);
                             // The test will resolve the promise.
-                            return dialogDeferred.promise();
+                            return {
+                                getElement: function () { return $mockDlg; },
+                                close: function () { didClose = true; }
+                            };
                         });
                         
-                        // Mock quitting the app so we don't actually quit :)
-                        didQuit = false;
+                        // Mock reloading the app so we don't actually reload :)
+                        didReload = false;
                         spyOn(CommandManager, "execute").andCallFake(function (id) {
-                            if (id === Commands.FILE_QUIT) {
-                                didQuit = true;
+                            if (id === Commands.APP_RELOAD) {
+                                didReload = true;
                             } else {
                                 CommandManager.execute.apply(this, arguments);
                             }
@@ -1093,7 +1375,7 @@ define(function (require, exports, module) {
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
                             expect(dialogClassShown).toBe("change-marked-extensions");
-                            dialogDeferred.resolve("cancel");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                         });
                     });
                     
@@ -1107,13 +1389,14 @@ define(function (require, exports, module) {
                         runs(function () {
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("ok");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
                         });
-                        waitsFor(function () { return didQuit; }, "mock quit");
+                        waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
                             var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                             expect(removedPath).toBe(mockPath + "/user/mock-extension-3");
-                            expect(didQuit).toBe(true);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(true);
                         });
                     });
                     
@@ -1127,10 +1410,11 @@ define(function (require, exports, module) {
                         runs(function () {
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("cancel");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForRemoval("mock-extension-3")).toBe(false);
-                            expect(didQuit).toBe(false);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(false);
                         });
                     });
                     
@@ -1149,21 +1433,23 @@ define(function (require, exports, module) {
                             });
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("ok");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
                             installDeferred.resolve({
                                 installationStatus: "INSTALLED"
                             });
                         });
-                        waitsFor(function () { return didQuit; }, "mock quit");
+                        waitsFor(function () { return didReload; }, "mock reload");
                         runs(function () {
                             expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
-                            expect(didQuit).toBe(true);
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(true);
                         });
                     });
                     
                     it("should not update extensions or quit if the user hits Cancel on the confirmation dialog", function () {
                         var id = "mock-extension-3",
-                            filename = "/path/to/downloaded/file.zip";
+                            filename = "/path/to/downloaded/file.zip",
+                            file = FileSystem.getFileForPath(filename);
                         mockLoadExtensions(["user/" + id]);
                         setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                         runs(function () {
@@ -1173,14 +1459,15 @@ define(function (require, exports, module) {
                                 installationStatus: Package.InstallationStatuses.NEEDS_UPDATE
                             });
                             expect(ExtensionManager.isMarkedForUpdate(id)).toBe(true);
-                            spyOn(brackets.fs, "unlink");
+                            spyOn(file, "unlink");
                             // Don't expect the model to be disposed until after the dialog is dismissed.
                             ExtensionManagerDialog._performChanges();
-                            dialogDeferred.resolve("cancel");
+                            $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                             expect(removedPath).toBeFalsy();
                             expect(ExtensionManager.isMarkedForUpdate("mock-extension-3")).toBe(false);
-                            expect(didQuit).toBe(false);
-                            expect(brackets.fs.unlink).toHaveBeenCalledWith(filename, jasmine.any(Function));
+                            expect(didClose).toBe(true);
+                            expect(didReload).toBe(false);
+                            expect(file.unlink).toHaveBeenCalled();
                         });
                     });
                     

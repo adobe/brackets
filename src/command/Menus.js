@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("thirdparty/lodash");
+    
     // Load dependent modules
     var Global              = require("utils/Global"),
         Commands            = require("command/Commands"),
@@ -459,6 +461,57 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Removes the specified menu divider from this Menu.
+     *
+     * @param {!string} menuItemID - the menu item id of the divider to remove.
+     */
+    Menu.prototype.removeMenuDivider = function (menuItemID) {
+        var menuItem,
+            $HTMLMenuItem;
+        
+        if (!menuItemID) {
+            console.error("removeMenuDivider(): missing required parameters: menuItemID");
+            return;
+        }
+        
+        menuItem = getMenuItem(menuItemID);
+        
+        if (!menuItem) {
+            console.error("removeMenuDivider(): parameter menuItemID: %s is not a valid menu item id", menuItemID);
+            return;
+        }
+        
+        if (!menuItem.isDivider) {
+            console.error("removeMenuDivider(): parameter menuItemID: %s is not a menu divider", menuItemID);
+            return;
+        }
+        
+        if (_isHTMLMenu(this.id)) {
+            // Targeting parent to get the menu divider <hr> and the <li> that contains it
+            $HTMLMenuItem = $(_getHTMLMenuItem(menuItemID)).parent();
+            if ($HTMLMenuItem) {
+                $HTMLMenuItem.remove();
+            } else {
+                console.error("removeMenuDivider(): HTML menu divider not found: %s", menuItemID);
+                return;
+            }
+        } else {
+            brackets.app.removeMenuItem(menuItem.dividerId, function (err) {
+                if (err) {
+                    console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
+                }
+            });
+        }
+        
+        if (!menuItemMap[menuItemID]) {
+            console.error("removeMenuDivider(): menu divider not found in menuItemMap: %s", menuItemID);
+            return;
+        }
+        
+        delete menuItemMap[menuItemID];
+    };
+    
+    /**
      * Adds a new menu item with the specified id and display text. The insertion position is
      * specified via the relativeID and position arguments which describe a position 
      * relative to another MenuItem or MenuGroup. It is preferred that plug-ins 
@@ -532,7 +585,7 @@ define(function (require, exports, module) {
         // create MenuItem DOM
         if (_isHTMLMenu(this.id)) {
             if (name === DIVIDER) {
-                $menuItem = $("<li><hr class='divider' /></li>");
+                $menuItem = $("<li><hr class='divider' id='" + id + "' /></li>");
             } else {
                 // Create the HTML Menu
                 $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
@@ -589,7 +642,9 @@ define(function (require, exports, module) {
         }
 
         // Initialize MenuItem state
-        if (!menuItem.isDivider) {
+        if (menuItem.isDivider) {
+            menuItem.dividerId = commandID;
+        } else {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
                 if (!Array.isArray(keyBindings)) {
@@ -808,7 +863,7 @@ define(function (require, exports, module) {
      * @return {?Menu} the newly created Menu
      */
     function addMenu(name, id, position, relativeID) {
-        name = StringUtils.htmlEscape(name);
+        name = _.escape(name);
         var $menubar = $("#titlebar .nav"),
             menu;
 
@@ -877,6 +932,9 @@ define(function (require, exports, module) {
      *      Extensions should use the following format: "author.myextension.mymenuname".
      */
     function removeMenu(id) {
+        var menu,
+            commandID = "";
+        
         if (!id) {
             console.error("removeMenu(): missing required parameter: id");
             return;
@@ -886,6 +944,20 @@ define(function (require, exports, module) {
             console.error("removeMenu(): menu id not found: %s", id);
             return;
         }
+        
+        // Remove all of the menu items in the menu
+        menu = getMenu(id);
+        
+        _.forEach(menuItemMap, function (value, key) {
+            if (key.substring(0, id.length) === id) {
+                if (value.isDivider) {
+                    menu.removeMenuDivider(key);
+                } else {
+                    commandID = value.getCommand();
+                    menu.removeMenuItem(commandID);
+                }
+            }
+        });
         
         if (_isHTMLMenu(id)) {
             $(_getHTMLMenu(id)).remove();
@@ -979,18 +1051,24 @@ define(function (require, exports, module) {
         closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
-        var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
-        if (bottomOverhang > 0) {
-            posTop = Math.max(0, posTop - bottomOverhang);
+        var elementRect = {
+                top:    posTop,
+                left:   posLeft,
+                height: $menuWindow.height() + 25,
+                width:  $menuWindow.width()
+            },
+            clip = ViewUtils.getElementClipSize($window, elementRect);
+        
+        if (clip.bottom > 0) {
+            posTop = Math.max(0, posTop - clip.bottom);
         }
         posTop -= 30;   // shift top for hidden parent element
         posLeft += 5;
         
-        var rightOverhang = posLeft + $menuWindow.width() - $window.width();
-        if (rightOverhang > 0) {
-            posLeft = Math.max(0, posLeft - rightOverhang);
+        if (clip.right > 0) {
+            posLeft = Math.max(0, posLeft - clip.right);
         }
-
+        
         // open the context menu at final location
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});

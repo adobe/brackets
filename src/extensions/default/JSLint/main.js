@@ -22,7 +22,6 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, JSLINT, brackets */
 
 /**
@@ -36,8 +35,15 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings");
     
+    var prefs = PreferencesManager.getExtensionPrefs("jslint");
+    
+    prefs.definePreference("options", "object")
+        .on("change", function (e, data) {
+            CodeInspection.requestRun(Strings.JSLINT_NAME);
+        });
     
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
@@ -56,7 +62,8 @@ define(function (require, exports, module) {
         }
         text = arr.join("\n");
         
-        var jslintResult = JSLINT(text, null);
+        var options = prefs.get("options");
+        var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {
             // Remove any trailing null placeholder (early-abort indicator)
@@ -83,7 +90,6 @@ define(function (require, exports, module) {
         }
         return null;
     }
-    
     
     // Register for JS files
     CodeInspection.register("javascript", {

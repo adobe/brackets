@@ -71,18 +71,23 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that will be resolved with an array of function offset information
      */
     function _findInProject(functionName) {
-        var result = new $.Deferred(),
-            files = ProjectManager.getFileSystem().getFileList();
+        var result = new $.Deferred();
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        JSUtils.findMatchingFunctions(functionName, files)
-            .done(function (functions) {
-                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                result.resolve(functions);
+        ProjectManager.getAllFiles()
+            .done(function (files) {
+                JSUtils.findMatchingFunctions(functionName, files)
+                    .done(function (functions) {
+                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        result.resolve(functions);
+                    })
+                    .fail(function () {
+                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        result.reject();
+                    });
             })
             .fail(function () {
-                PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                 result.reject();
             });
         

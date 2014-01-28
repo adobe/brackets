@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Strings                   = require("strings"),
+        StringUtils               = require("utils/StringUtils"),
         NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
@@ -193,19 +194,35 @@ define(function (require, exports, module) {
         context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
         context.hasVersionInfo = !!info.versions;
                 
-        var compatInfo = ExtensionManager.getCompatibilityInfo(info, brackets.metadata.apiVersion);
-        context.isCompatible = compatInfo.isCompatible;
+        if (entry.registryInfo) {
+            var latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
+            context.isCompatible = latestVerCompatInfo.isCompatible;
+            context.requiresNewer = latestVerCompatInfo.requiresNewer;
+            context.isCompatibleLatest = latestVerCompatInfo.isLatestVersion;
+            if (!context.isCompatibleLatest) {
+                var installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
+                context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion);
+            }
+        } else {
+            // We should only get here when viewing the Installed tab and some extensions don't exist in the registry
+            // (or registry is offline). These flags *should* always be ignored in that scenario, but just in case...
+            context.isCompatible = context.isCompatibleLatest = true;
+        }
+        
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
-        context.requiresNewer = compatInfo.requiresNewer;
         
         context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY) && !context.updateAvailable;
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
         context.allowInstall = context.isCompatible && !context.isInstalled;
-        context.allowRemove = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
-        context.allowUpdate = context.isCompatible && context.isInstalled &&
-            !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+
+        var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
+        context.allowRemove = isInstalledInUserFolder;
+        context.allowUpdate = context.showUpdateButton && context.isCompatible && context.isCompatibleLatest && isInstalledInUserFolder;
+        if (!context.allowUpdate) {
+            context.updateNotAllowedReason = isInstalledInUserFolder ? Strings.CANT_UPDATE : Strings.CANT_UPDATE_DEV;
+        }
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
@@ -272,9 +289,10 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype._installUsingDialog = function (id, _isUpdate) {
         var entry = this.model.extensions[id];
         if (entry && entry.registryInfo) {
-            var url = ExtensionManager.getExtensionURL(id, entry.registryInfo.metadata.version);
+            var compatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion),
+                url = ExtensionManager.getExtensionURL(id, compatInfo.compatibleVersion);
+            
             // TODO: this should set .done on the returned promise
-
             if (_isUpdate) {
                 InstallExtensionDialog.updateUsingDialog(url).done(ExtensionManager.updateFromDownload);
             } else {

@@ -43,10 +43,11 @@ define(function (require, exports, module) {
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        FileSystem       = require("filesystem/FileSystem"),
         Strings          = require("strings"),
         StringUtils      = require("utils/StringUtils");
     
-    // semver isn't a proper AMD module, so it will just load into the global namespace.
+    // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
     
     /**
@@ -105,6 +106,7 @@ define(function (require, exports, module) {
         
         entry.installInfo.owner = entry.registryInfo.owner;
         if (entry.installInfo.metadata && entry.installInfo.metadata.version && semver.lt(entry.installInfo.metadata.version, entry.registryInfo.metadata.version)) {
+            // Note: available update may still be incompatible; we check for this when rendering the Update button in ExtensionManagerView._renderItem()
             entry.registryInfo.updateAvailable = true;
             entry.installInfo.updateAvailable = true;
         } else {
@@ -177,7 +179,7 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             return new $.Deferred().reject().promise();
         }
-        var file = brackets.appFileSystem.getFileForPath(folder + "/package.json"),
+        var file = FileSystem.getFileForPath(folder + "/package.json"),
             result = new $.Deferred();
         FileUtils.readAsText(file)
             .done(function (text) {
@@ -249,18 +251,20 @@ define(function (require, exports, module) {
     }
         
     /**
-     * Returns information about whether the given entry is compatible with the given Brackets API version.
-     * @param {Object} entry The registry entry to check.
-     * @param {string} apiVersion The Brackets API version to check against.
-     * @return {{isCompatible: boolean, requiresNewer}} Result contains an
-     *      "isCompatible" member saying whether it's compatible. If not compatible, then
-     *      "requiresNewer" says whether it requires an older or newer version of Brackets.
+     * Determines if the given versions[] entry is compatible with the given Brackets API version, and if not
+     * specifies why.
+     * @param {Object} extVersion
+     * @param {string} apiVersion
+     * @return {{isCompatible: boolean, requiresNewer: ?boolean, compatibleVersion: ?string}}
      */
-    function getCompatibilityInfo(entry, apiVersion) {
-        var requiredVersion = entry.metadata.engines && entry.metadata.engines.brackets,
+    function getCompatibilityInfoForVersion(extVersion, apiVersion) {
+        var requiredVersion = (extVersion.brackets || (extVersion.engines && extVersion.engines.brackets)),
             result = {};
         result.isCompatible = !requiredVersion || semver.satisfies(apiVersion, requiredVersion);
-        if (!result.isCompatible) {
+        if (result.isCompatible) {
+            result.compatibleVersion = extVersion.version;
+        } else {
+            // Find out reason for incompatibility
             if (requiredVersion.charAt(0) === '<') {
                 result.requiresNewer = false;
             } else if (requiredVersion.charAt(0) === '>') {
@@ -278,6 +282,47 @@ define(function (require, exports, module) {
             }
         }
         return result;
+    }
+    
+    /**
+     * Finds the newest version of the entry that is compatible with the given Brackets API version, if any.
+     * @param {Object} entry The registry entry to check.
+     * @param {string} apiVersion The Brackets API version to check against.
+     * @return {{isCompatible: boolean, requiresNewer: ?boolean, compatibleVersion: ?string, isLatestVersion: boolean}}
+     *      Result contains an "isCompatible" member saying whether it's compatible. If compatible, "compatibleVersion"
+     *      specifies the newest version that is compatible and "isLatestVersion" indicates if this is the absolute
+     *      latest version of the extension or not. If !isCompatible or !isLatestVersion, "requiresNewer" says whether
+     *      the latest version is incompatible due to requiring a newer (vs. older) version of Brackets.
+     */
+    function getCompatibilityInfo(entry, apiVersion) {
+        if (!entry.versions) {
+            var fallback = getCompatibilityInfoForVersion(entry.metadata, apiVersion);
+            if (fallback.isCompatible) {
+                fallback.isLatestVersion = true;
+            }
+            return fallback;
+        }
+        
+        var i = entry.versions.length - 1,
+            latestInfo = getCompatibilityInfoForVersion(entry.versions[i], apiVersion);
+        
+        if (latestInfo.isCompatible) {
+            latestInfo.isLatestVersion = true;
+            return latestInfo;
+        } else {
+            // Look at earlier versions (skipping very latest version since we already checked it)
+            for (i--; i >= 0; i--) {
+                var compatInfo = getCompatibilityInfoForVersion(entry.versions[i], apiVersion);
+                if (compatInfo.isCompatible) {
+                    compatInfo.isLatestVersion = false;
+                    compatInfo.requiresNewer = latestInfo.requiresNewer;
+                    return compatInfo;
+                }
+            }
+            
+            // No version is compatible, so just return info for the latest version
+            return latestInfo;
+        }
     }
     
     /**
@@ -334,7 +379,7 @@ define(function (require, exports, module) {
         Object.keys(_idsToUpdate).forEach(function (id) {
             var filename = _idsToUpdate[id].localPath;
             if (filename) {
-                brackets.appFileSystem.getFileForPath(filename).unlink();
+                FileSystem.getFileForPath(filename).unlink();
             }
         });
         _idsToUpdate = {};
@@ -408,7 +453,7 @@ define(function (require, exports, module) {
             return;
         }
         if (installationResult.localPath) {
-            brackets.appFileSystem.getFileForPath(installationResult.localPath).unlink();
+            FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
         $(exports).triggerHandler("statusChange", [id]);

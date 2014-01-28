@@ -10,12 +10,22 @@
         {{/hasVersionInfo}}
     </td>
     <td class="ext-desc">
-        {{^isCompatible}}
-            <div class="alert warning">
-                {{#requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
-                {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
-            </div>
-        {{/isCompatible}}
+        {{#showInstallButton}}
+            <!-- Warnings when trying to install extension where latest/all versions not compatible -->
+            {{^isCompatible}}
+                <div class="alert warning">
+                    {{#requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_NEWER}}{{/requiresNewer}}
+                    {{^requiresNewer}}{{Strings.EXTENSION_INCOMPATIBLE_OLDER}}{{/requiresNewer}}
+                </div>
+            {{/isCompatible}}
+            {{#isCompatible}}
+                {{^isCompatibleLatest}}
+                    <div class="alert warning">
+                        {{installWarning}}
+                    </div>
+                {{/isCompatibleLatest}}
+            {{/isCompatible}}
+        {{/showInstallButton}}
         {{metadata.description}}
         {{^metadata.description}}
             <p class="muted"><em>{{Strings.EXTENSION_NO_DESCRIPTION}}</em></p>
@@ -41,7 +51,7 @@
         {{/showInstallButton}}
         {{#isInstalled}}
             {{#showUpdateButton}}
-                <button class="btn btn-mini update" data-extension-id="{{metadata.name}}" {{^allowUpdate}}disabled title="{{Strings.CANT_UPDATE}}"{{/allowUpdate}}>
+                <button class="btn btn-mini update" data-extension-id="{{metadata.name}}" {{^allowUpdate}}disabled title="{{updateNotAllowedReason}}"{{/allowUpdate}}>
                     {{Strings.UPDATE}}
                 </button>
             {{/showUpdateButton}}

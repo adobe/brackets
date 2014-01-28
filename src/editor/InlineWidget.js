@@ -41,10 +41,18 @@ define(function (require, exports, module) {
         
         // create the outer wrapper div
         this.htmlContent = window.document.createElement("div");
-        this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
+        this.$htmlContent = $(this.htmlContent).addClass("inline-widget").attr("tabindex", "-1");
         this.$htmlContent.append("<div class='shadow top' />")
-            .append("<div class='shadow bottom' />");
-        
+            .append("<div class='shadow bottom' />")
+            .append("<a href='#' class='close no-focus'>&times;</a>");
+
+        // create the close button
+        this.$closeBtn = this.$htmlContent.find(".close");
+        this.$closeBtn.click(function (e) {
+            self.close();
+            e.stopImmediatePropagation();
+        });
+
         this.$htmlContent.on("keydown", function (e) {
             if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 self.close();
@@ -83,17 +91,17 @@ define(function (require, exports, module) {
      * Called any time inline is closed, whether manually or automatically.
      */
     InlineWidget.prototype.onClosed = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("close");
     };
 
     /**
      * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
      * focus or measuring content, which require htmlContent to be in the DOM tree.
-     * IMPORTANT: onAdded() must ensure that hostEditor.setInlineWidgetHeight() is called at least once in order
-     * to set the initial height of the widget and animate it open.
+     * IMPORTANT: onAdded() MUST be overridden to call hostEditor.setInlineWidgetHeight() at least once to
+     * set the initial height (required to animate it open). The widget will never open otherwise.
      */
     InlineWidget.prototype.onAdded = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("add");
     };
 
     /**

@@ -154,6 +154,10 @@ define(function (require, exports, module) {
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
+            $(current).on("optionChange.statusbar", function () {
+                _updateIndentType();
+                _updateIndentSize();
+            });
             $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);

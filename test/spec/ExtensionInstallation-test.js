@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        FileSystem       = require("filesystem/FileSystem"),
         Package          = require("extensibility/Package"),
         NodeConnection   = require("utils/NodeConnection");
     
@@ -158,14 +159,14 @@ define(function (require, exports, module) {
                 var expectedPath = mockGetUserExtensionPath() + "/basic-valid-extension";
                 expect(lastExtensionLoad.config.baseUrl).toEqual(expectedPath);
                 expect(lastExtensionLoad.entryPoint).toEqual("main");
-                brackets.appFileSystem.pathExists(extensionsRoot + "/user/basic-valid-extension/main.js")
-                    .done(function () {
+                FileSystem.resolve(extensionsRoot + "/user/basic-valid-extension/main.js", function (err, item) {
+                    if (!err) {
                         mainCheckComplete = true;
-                    })
-                    .fail(function () {
+                    } else {
                         mainCheckComplete = true;
                         expect("basic-valid-extension directory and main.js to exist").toEqual(true);
-                    });
+                    }
+                });
             });
             
             waitsFor(function () { return mainCheckComplete; }, 1000, "checking for main.js file");
@@ -178,17 +179,17 @@ define(function (require, exports, module) {
 
             runs(function () {
                 expect(packageData.errors.length).toEqual(0);
-                expect(packageData.disabledReason).not.toBeNull();
+                expect(packageData.disabledReason).toBeTruthy();
                 expect(packageData.name).toEqual("incompatible-version");
                 expect(lastExtensionLoad).toEqual({});
-                brackets.appFileSystem.pathExists(extensionsRoot + "/disabled/incompatible-version")
-                    .done(function () {
+                FileSystem.resolve(extensionsRoot + "/disabled/incompatible-version", function (err, item) {
+                    if (!err) {
                         directoryCheckComplete = true;
-                    })
-                    .fail(function () {
+                    } else {
                         directoryCheckComplete = true;
                         expect("incompatible-version path to exist in the disabled directory").toEqual(true);
-                    });
+                    }
+                });
 
                 waitsFor(function () { return directoryCheckComplete; }, 1000, "checking for disabled extension directory");
                 
@@ -203,14 +204,14 @@ define(function (require, exports, module) {
                 handlePackage(installPath, Package.remove);
             });
             runs(function () {
-                brackets.appFileSystem.pathExists(installPath)
-                    .done(function () {
+                FileSystem.resolve(installPath, function (err, item) {
+                    if (!err) {
                         checkComplete = true;
                         expect("installation path was removed").toEqual(true);
-                    })
-                    .fail(function () {
+                    } else {
                         checkComplete = true;
-                    });
+                    }
+                });
 
                 waitsFor(function () { return checkComplete; }, 1000, "checking for extension folder removal");
             });

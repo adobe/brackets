@@ -1,0 +1,17 @@
+.bezier-curve-editor .coordinate-plane:after,
+.step-editor .coordinate-plane:after {
+    content: '{{INLINE_TIMING_EDITOR_TIME}}';
+}
+
+.bezier-curve-editor .coordinate-plane:hover:before {
+    content: '{{INLINE_TIMING_EDITOR_PROGRESSION}} (' attr(data-progression) '%)';
+}
+
+.bezier-curve-editor .coordinate-plane:before,
+.step-editor .coordinate-plane:before {
+    content: '{{INLINE_TIMING_EDITOR_PROGRESSION}}';
+}
+
+.bezier-curve-editor .coordinate-plane:hover:after {
+    content: '{{INLINE_TIMING_EDITOR_TIME}} (' attr(data-time) '%)';
+}

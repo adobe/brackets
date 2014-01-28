@@ -280,8 +280,7 @@ define(function (require, exports, module) {
         
         return masterDeferred.promise();
     }
-    
-    
+        
     /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
     var ERROR_TIMEOUT = {};
     
@@ -385,6 +384,16 @@ define(function (require, exports, module) {
     PromiseQueue.prototype._curPromise = null;
     
     /**
+     * @type {number} The number of queued promises.
+     */
+    Object.defineProperties(PromiseQueue.prototype, {
+        "length": {
+            get: function () { return this._queue.length; },
+            set: function () { throw new Error("Cannot set length"); }
+        }
+    });
+    
+    /**
      * Adds an operation to the queue. If nothing is currently executing, it will execute immediately (and
      * the next operation added to the queue will wait for it to complete). Otherwise, it will wait until
      * the last operation in the queue (or the currently executing operation if nothing is in the queue) is
@@ -405,6 +414,13 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Removes all pending promises from the queue.
+     */
+    PromiseQueue.prototype.removeAll = function () {
+        this._queue = [];
+    };
+    
+    /**
      * @private
      * Pulls the next operation off the queue and executes it.
      */
@@ -420,31 +436,6 @@ define(function (require, exports, module) {
         }
     };
     
-    
-    /**
-     * Implements "debouncing." Returns a function that can be called frequently, triggering 'callback' only when calls
-     * to this function have paused for >= 'idleDelay' ms. The callback may be called multiple times, if there are
-     * multiple idleDelay-sized gaps in the event sequence. Invoking the callback can be delayed *indefinitely* if the
-     * event sequence continues forever with no idleDelay-sized gaps at all.
-     * 
-     * @param {number} idleDelay  Minimum delay (ms) before invoking callback.
-     * @param {!function()} callback
-     * @return {!function()}
-     */
-    function whenIdle(idleDelay, callback) {
-        var timer;
-        return function () {
-            if (timer) {
-                window.clearTimeout(timer);
-            }
-            timer = window.setTimeout(function () {
-                timer = null;
-                callback();
-            }, idleDelay);
-        };
-    }
-    
-
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
@@ -454,5 +445,4 @@ define(function (require, exports, module) {
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
     exports.chain          = chain;
     exports.PromiseQueue   = PromiseQueue;
-    exports.whenIdle       = whenIdle;
 });

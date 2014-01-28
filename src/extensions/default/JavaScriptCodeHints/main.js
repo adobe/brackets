@@ -26,6 +26,8 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = brackets.getModule("thirdparty/lodash");
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
@@ -36,7 +38,6 @@ define(function (require, exports, module) {
         AppInit              = brackets.getModule("utils/AppInit"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         PerfUtils            = brackets.getModule("utils/PerfUtils"),
-        StringUtils          = brackets.getModule("utils/StringUtils"),
         StringMatch          = brackets.getModule("utils/StringMatch"),
         LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
@@ -53,6 +54,27 @@ define(function (require, exports, module) {
         cachedToken  = null,  // the token used in the current hinting session
         matcher      = null,  // string matcher for hints
         ignoreChange;         // can ignore next "change" event if true;
+
+    /**
+     * Sets the configuration, generally for testing/debugging use.
+     * Configuration keys are merged into the current configuration.
+     * The Tern worker is automatically updated to the new config as well.
+     *
+     * * debug: Set to true if you want verbose logging
+     * * noReset: Set to true if you don't want the worker to restart periodically
+     *
+     * @param {Object} configUpdate keys/values to merge into the config
+     */
+    function setConfig(configUpdate) {
+        var config = setConfig.config;
+        Object.keys(configUpdate).forEach(function (key) {
+            config[key] = configUpdate[key];
+        });
+        
+        ScopeManager._setConfig(configUpdate);
+    }
+    
+    setConfig.config = {};
 
     /**
      *  Get the value of current session.
@@ -78,6 +100,10 @@ define(function (require, exports, module) {
         var trimmedQuery,
             formattedHints;
 
+        if (setConfig.config.debug) {
+            console.debug("Hints", _.pluck(hints, "label"));
+        }
+        
         /*
          * Returns a formatted list of hints with the query substring
          * highlighted.
@@ -131,10 +157,10 @@ define(function (require, exports, module) {
                     token.stringRanges.forEach(function (item) {
                         if (item.matched) {
                             $hintObj.append($("<span>")
-                                .append(StringUtils.htmlEscape(item.text))
+                                .append(_.escape(item.text))
                                 .addClass("matched-hint"));
                         } else {
-                            $hintObj.append(StringUtils.htmlEscape(item.text));
+                            $hintObj.append(_.escape(item.text));
                         }
                     });
                 } else {
@@ -577,8 +603,10 @@ define(function (require, exports, module) {
          *      for changes
          */
         function uninstallEditorListeners(editor) {
-            $(editor)
-                .off(HintUtils.eventName("change"));
+            if (editor) {
+                $(editor)
+                    .off(HintUtils.eventName("change"));
+            }
         }
 
         /*
@@ -744,9 +772,12 @@ define(function (require, exports, module) {
 
             return response;
         }
-
+        
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;
+        
+        // Configuration function used for debugging
+        brackets._configureJSCodeHints = setConfig;
   
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         

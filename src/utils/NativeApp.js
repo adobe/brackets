@@ -27,20 +27,20 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async = require("utils/Async");
+    var Async           = require("utils/Async"),
+        FileSystemError = require("filesystem/FileSystemError");
 
     /**
      * @private
      * Map an fs error code to a FileError.
      */
     function _browserErrToFileError(err) {
-        // TODO: FileSystem error code
         if (err === brackets.fs.ERR_NOT_FOUND) {
-            return FileError.NOT_FOUND_ERR;
+            return FileSystemError.NOT_FOUND;
         }
         
-        // All other errors are mapped to the generic "security" error
-        return FileError.SECURITY_ERR;
+        // All other errors are mapped to the generic "unknown" error
+        return FileSystemError.UNKNOWN;
     }
     
     var liveBrowserOpenedPIDs = [];

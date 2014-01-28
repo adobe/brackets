@@ -25,18 +25,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, window, navigator, Mustache */
 
-require.config({
-    paths: {
-        "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
-    },
-    // Use custom brackets property until CEF sets the correct navigator.language
-    // NOTE: When we change to navigator.language here, we also should change to
-    // navigator.language in ExtensionLoader (when making require contexts for each
-    // extension).
-    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
-});
-
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
@@ -55,7 +43,7 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
-    require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
+    require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -76,7 +64,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        FileSystemManager       = require("filesystem/FileSystemManager"),
+        FileSystem              = require("filesystem/FileSystem"),
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
@@ -93,11 +81,13 @@ define(function (require, exports, module) {
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
+        NodeDomain              = require("utils/NodeDomain"),
         ExtensionUtils          = require("utils/ExtensionUtils"),
         DragAndDrop             = require("utils/DragAndDrop"),
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        _                       = require("thirdparty/lodash");
         
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -111,9 +101,17 @@ define(function (require, exports, module) {
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
+    require("editor/ImageViewer");
+    
+    // Deprecated modules loaded just so extensions can still use them for now
+    require("utils/CollectionUtils");
+    // Compatibility shims for filesystem API migration
+    require("project/FileIndexManager");
+    require("file/NativeFileSystem");
+    require("file/NativeFileError");
     
     PerfUtils.addMeasurement("brackets module dependencies resolved");
-
+    
     // Local variables
     var params = new UrlParams();
     
@@ -139,11 +137,13 @@ define(function (require, exports, module) {
             JSUtils                 : JSUtils,
             CommandManager          : CommandManager,
             FileSyncManager         : FileSyncManager,
+            FileSystem              : FileSystem,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
             Dialogs                 : Dialogs,
             DefaultDialogs          : DefaultDialogs,
+            DragAndDrop             : DragAndDrop,
             CodeInspection          : CodeInspection,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
@@ -157,6 +157,8 @@ define(function (require, exports, module) {
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
+            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            LanguageManager         : LanguageManager,
             doneLoading             : false
         };
 
@@ -200,7 +202,8 @@ define(function (require, exports, module) {
         LanguageManager.ready.always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
-            var extensionLoaderPromise = ExtensionLoader.init(params.get("extensions"));
+            var extensionPathOverride = params.get("extensions");  // used by unit tests
+            var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
@@ -220,20 +223,18 @@ define(function (require, exports, module) {
                     // an old version that might not have set the "afterFirstLaunch" pref.)
                     var prefs = PreferencesManager.getPreferenceStorage(module),
                         deferred = new $.Deferred();
-                    //TODO: Remove preferences migration code
-                    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.startup");
                     
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            brackets.appFileSystem.resolve(initialProjectPath + "/index.html")
-                                .done(function (file) {
+                            FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
+                                if (!err) {
                                     var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
-                                })
-                                .fail(function () {
+                                } else {
                                     deferred.reject();
-                                });
+                                }
+                            });
                         } else {
                             deferred.resolve();
                         }
@@ -256,9 +257,7 @@ define(function (require, exports, module) {
                         }
                     } else if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, files) {
-                            files.forEach(function (filename) {
-                                CommandManager.execute(Commands.FILE_OPEN, { fullPath: filename });
-                            });
+                            DragAndDrop.openDroppedFiles(files);
                         });
                     }
                 });
@@ -323,7 +322,9 @@ define(function (require, exports, module) {
                 if (event.originalEvent.dataTransfer.files) {
                     event.stopPropagation();
                     event.preventDefault();
-                    if (DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
+                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
+                    if ($(".modal.instance").length === 0 &&
+                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
                         dropEffect = "copy";
                     }
                     event.originalEvent.dataTransfer.dropEffect = dropEffect;
@@ -343,12 +344,9 @@ define(function (require, exports, module) {
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
-            FileSyncManager.syncOpenDocuments(); // TODO: FileSystem - remove now that we have file watchers?
-        });
-        
-        $(brackets.appFileSystem).on("change", function (item) {
-            // TODO: FileSystem - only sync when window has focus?
-            FileSyncManager.syncOpenDocuments();    // TODO: Batch multiple changes into a single sync operation
+            // This call to syncOpenDocuments() *should* be a no-op now that we have
+            // file watchers, but is still here as a safety net.
+            FileSyncManager.syncOpenDocuments();
         });
         
         // Prevent unhandled middle button clicks from triggering native behavior
@@ -401,6 +399,5 @@ define(function (require, exports, module) {
     // Dispatch htmlReady event
     _beforeHTMLReady();
     AppInit._dispatchReady(AppInit.HTML_READY);
-
     $(window.document).ready(_onReady);
 });

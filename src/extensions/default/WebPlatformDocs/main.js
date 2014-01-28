@@ -30,10 +30,10 @@ define(function (require, exports, module) {
 
     // Core modules
     var EditorManager        = brackets.getModule("editor/EditorManager"),
+        FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        CSSUtils             = brackets.getModule("language/CSSUtils"),
-        ProjectManager       = brackets.getModule("project/ProjectManager");
+        CSSUtils             = brackets.getModule("language/CSSUtils");
     
     // Extension modules
     var InlineDocsViewer = require("InlineDocsViewer");
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             var path = ExtensionUtils.getModulePath(module, "css.json"),
-                file = brackets.appFileSystem.getFileForPath(path);
+                file = FileSystem.getFileForPath(path);
             
             FileUtils.readAsText(file)
                 .done(function (text) {
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
     function inlineProvider(hostEditor, pos) {
         var langId = hostEditor.getLanguageForSelection().getId();
         // Only provide docs when cursor is in CSS content
-        if (langId !== "css" && langId !== "scss") {
+        if (langId !== "css" && langId !== "scss" && langId !== "less") {
             return null;
         }
         

@@ -30,6 +30,8 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
 
     /**
      * Format a string by replacing placeholder symbols with passed in arguments.
@@ -49,13 +51,12 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * @deprecated
+     */
     function htmlEscape(str) {
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+        console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");
+        return _.escape(str);
     }
 
     function regexEscape(str) {
@@ -158,7 +159,7 @@ define(function (require, exports, module) {
      */
     function breakableUrl(url) {
         // This is for displaying in UI, so always want it escaped
-        var escUrl = htmlEscape(url);
+        var escUrl = _.escape(url);
 
         // Inject zero-width space character (U+200B) near path separators (/) to allow line breaking there
         return escUrl.replace(
@@ -166,15 +167,47 @@ define(function (require, exports, module) {
             "/" + "&#8203;"
         );
     }
+    
+    /**
+     * Convert number of bytes into human readable format. 
+     * If param bytes is negative it returns the number without any changes.
+     *
+     * @param number bytes     Number of bytes to convert
+     * @param number precision Number of digits after the decimal separator
+     * @return string
+     */
+    function prettyPrintBytes(bytes, precision) {
+        var kilobyte = 1024,
+            megabyte = kilobyte * 1024,
+            gigabyte = megabyte * 1024,
+            terabyte = gigabyte * 1024,
+            returnVal = bytes;
+        
+        if ((bytes >= 0) && (bytes < kilobyte)) {
+            returnVal = bytes + " B";
+        } else if (bytes < megabyte) {
+            returnVal = (bytes / kilobyte).toFixed(precision) + " KB";
+        } else if (bytes < gigabyte) {
+            returnVal = (bytes / megabyte).toFixed(precision) + " MB";
+        } else if (bytes < terabyte) {
+            returnVal = (bytes / gigabyte).toFixed(precision) + " GB";
+        } else if (bytes >= terabyte) {
+            return (bytes / terabyte).toFixed(precision) + " TB";
+        }
+        
+        return returnVal;
+    }
+        
 
     // Define public API
-    exports.format          = format;
-    exports.htmlEscape      = htmlEscape;
-    exports.regexEscape     = regexEscape;
-    exports.jQueryIdEscape  = jQueryIdEscape;
-    exports.getLines        = getLines;
-    exports.offsetToLineNum = offsetToLineNum;
-    exports.urlSort         = urlSort;
-    exports.breakableUrl    = breakableUrl;
-    exports.endsWith        = endsWith;
+    exports.format              = format;
+    exports.htmlEscape          = htmlEscape;
+    exports.regexEscape         = regexEscape;
+    exports.jQueryIdEscape      = jQueryIdEscape;
+    exports.getLines            = getLines;
+    exports.offsetToLineNum     = offsetToLineNum;
+    exports.urlSort             = urlSort;
+    exports.breakableUrl        = breakableUrl;
+    exports.endsWith            = endsWith;
+    exports.prettyPrintBytes    = prettyPrintBytes;
 });

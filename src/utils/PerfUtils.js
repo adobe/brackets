@@ -30,8 +30,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global          = require("utils/Global"),
-        CollectionUtils = require("utils/CollectionUtils");
+    var _ = require("thirdparty/lodash");
+    
+    var Global = require("utils/Global");
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
@@ -300,7 +301,7 @@ define(function (require, exports, module) {
         var testName,
             index,
             result = "";
-        CollectionUtils.forEach(perfData, function (entry, testName) {
+        _.forEach(perfData, function (entry, testName) {
             result += getValue(entry) + "\t" + testName + "\n";
         });
 

@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
-        InMemoryFile        = require("filesystem/InMemoryFile"),
+        InMemoryFile        = require("document/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager");
     
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
      * deleted -- When the file for this document has been deleted. All views onto the document should
      *      be closed. The document will no longer be editable or dispatch "change" events.
      *
-     * @param {!FileEntry} file  Need not lie within the project.
+     * @param {!File} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
      * @param {!string} rawText  Text content of the file.
      */
@@ -90,9 +90,9 @@ define(function (require, exports, module) {
     Document.prototype._refCount = 0;
     
     /**
-     * The FileEntry for this document. Need not lie within the project.
-     * If Document is untitled, this is an InaccessibleFileEntry object.
-     * @type {!FileEntry}
+     * The File for this document. Need not lie within the project.
+     * If Document is untitled, this is an InMemoryFile object.
+     * @type {!File}
      */
     Document.prototype.file = null;
 
@@ -240,9 +240,14 @@ define(function (require, exports, module) {
             if (useOriginalLineEndings) {
                 return this._text;
             } else {
-                return this._text.replace(/\r\n/g, "\n");
+                return Document.normalizeText(this._text);
             }
         }
+    };
+    
+    /** Normalizes line endings the same way CodeMirror would */
+    Document.normalizeText = function (text) {
+        return text.replace(/\r\n/g, "\n");
     };
     
     /**
@@ -415,15 +420,14 @@ define(function (require, exports, module) {
         
         // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
-        this.file.stat()
-            .done(function (stat) {
+        this.file.stat(function (err, stat) {
+            if (!err) {
                 thisDoc.diskTimestamp = stat.mtime;
-                $(exports).triggerHandler("_documentSaved", thisDoc);
-            })
-            .fail(function (err) {
+            } else {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
-                $(exports).triggerHandler("_documentSaved", thisDoc);
-            });
+            }
+            $(exports).triggerHandler("_documentSaved", thisDoc);
+        });
     };
     
     /* (pretty toString(), to aid debugging) */

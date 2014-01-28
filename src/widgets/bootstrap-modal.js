@@ -57,7 +57,7 @@
           var transition = $.support.transition && that.$element.hasClass('fade')
 
           if (!that.$element.parent().length) {
-            that.$element.appendTo(document.body) //don't move modals dom position
+            that.$element.appendTo(this.options.selector) //don't move modals dom position
           }
 
           that.$element.show()
@@ -160,7 +160,7 @@
           var doAnimate = $.support.transition && animate
 
           this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
-            .appendTo(document.body)
+            .appendTo(this.options.selector)
 
           this.$backdrop.click(
             this.options.backdrop == 'static' ?
@@ -212,6 +212,7 @@
       backdrop: true
     , keyboard: true
     , show: true
+    , selector: "body"
   }
 
   $.fn.modal.Constructor = Modal

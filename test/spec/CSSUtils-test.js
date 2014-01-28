@@ -22,30 +22,33 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
+/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
     
     var Async                      = require("utils/Async"),
+        FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
-        SpecRunnerUtils            = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils            = require("spec/SpecRunnerUtils"),
+        TextRange                  = require("document/TextRange").TextRange;
     
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
-        simpleCssFileEntry         = brackets.appFileSystem.getFileForPath(testPath + "/simple.css"),
-        universalCssFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/universal.css"),
-        groupsFileEntry            = brackets.appFileSystem.getFileForPath(testPath + "/groups.css"),
-        offsetsCssFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/offsets.css"),
-        bootstrapCssFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/bootstrap.css"),
-        escapesCssFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
-        embeddedHtmlFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/embedded.html"),
-        cssRegionsFileEntry        = brackets.appFileSystem.getFileForPath(testPath + "/regions.css");
+        simpleCssFileEntry         = FileSystem.getFileForPath(testPath + "/simple.css"),
+        universalCssFileEntry      = FileSystem.getFileForPath(testPath + "/universal.css"),
+        groupsFileEntry            = FileSystem.getFileForPath(testPath + "/groups.css"),
+        offsetsCssFileEntry        = FileSystem.getFileForPath(testPath + "/offsets.css"),
+        bootstrapCssFileEntry      = FileSystem.getFileForPath(testPath + "/bootstrap.css"),
+        escapesCssFileEntry        = FileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
+        embeddedHtmlFileEntry      = FileSystem.getFileForPath(testPath + "/embedded.html"),
+        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css");
         
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
-        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css");
+        selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
+        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -201,7 +204,7 @@ define(function (require, exports, module) {
         describe("with sprint 4 exemptions", function () {
         
             beforeEach(function () {
-                var sprint4exemptions = brackets.appFileSystem.getFileForPath(testPath + "/sprint4.css");
+                var sprint4exemptions = FileSystem.getFileForPath(testPath + "/sprint4.css");
                 init(this, sprint4exemptions);
             });
             
@@ -233,10 +236,10 @@ define(function (require, exports, module) {
             
             it("should find the first instance of the h2 selector", function () {
                 var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileContent, "h2");
-                expect(selectors).not.toBe(null);
+                expect(selectors).toBeTruthy();
                 expect(selectors.length).toBeGreaterThan(0);
                 
-                expect(selectors[0]).not.toBe(null);
+                expect(selectors[0]).toBeTruthy();
                 expect(selectors[0].selectorStartLine).toBe(292);
                 expect(selectors[0].declListEndLine).toBe(301);
             });
@@ -645,6 +648,7 @@ define(function (require, exports, module) {
             it("should match a lone type selector given a type", function () {
                 var result = match("div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ tag: "span" });
                 expect(result.length).toBe(0);
@@ -659,6 +663,7 @@ define(function (require, exports, module) {
             it("should match a lone class selector given a class", function () {
                 var result = match(".foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
@@ -676,6 +681,7 @@ define(function (require, exports, module) {
             it("should match a lone id selector given an id", function () {
                 var result = match("#foo { color:red }", { id: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(0);
@@ -697,6 +703,7 @@ define(function (require, exports, module) {
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "bar" });
@@ -706,6 +713,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
                 
@@ -715,6 +723,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
             });
             
             it("should be case-sensitive for all but types", function () {
@@ -1172,6 +1181,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match("p h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
@@ -1179,6 +1189,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match(".foo h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -1187,8 +1198,10 @@ define(function (require, exports, module) {
                 
                 result = match("div div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = match(".foo .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
             });
@@ -1198,6 +1211,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBeUndefined();
                 
                 result = match(".foo > h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -1279,42 +1293,63 @@ define(function (require, exports, module) {
                 // Comma- and space- separated
                 var result = match("h4, .foo, #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 
                 // Comma only
                 result = match("h4,.foo,#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4,.foo,#bar");
                 
                 // Newline-separated
                 result = match("h4,\n.foo,\r\n#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo, #bar");
                 
                 // Space-separated with a space combinator
                 result = match("h4, .foo #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo #bar");
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
+                expect(result[0].selectorGroup).toBe("h4, .foo #bar");
                 
                 // Test items of each type in all positions (first, last, middle)
                 result = match("h4, h4, h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(3);
+                var i;
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe("h4, h4, h4");
+                }
                 result = match(".foo, .foo, .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(3);
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe(".foo, .foo, .foo");
+                }
                 result = match("#bar, #bar, #bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(3);
+                for (i = 0; i < 3; i++) {
+                    expect(result[i].selectorGroup).toBe("#bar, #bar, #bar");
+                }
             });
         }); // describe("Selector groups")        
 
@@ -1500,6 +1535,153 @@ define(function (require, exports, module) {
         });
         
     }); //describe("CSS Parsing")
+    
+    describe("CSSUtils - Other", function () {
+        function doAddRuleTest(options) {
+            var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
+                doc = mock.doc,
+                result = CSSUtils.addRuleToDocument(doc, options.selector, options.useTab, options.indentUnit);
+
+            // Normalize line endings so tests pass on all Operating Systems
+            var normalizedDocText = FileUtils.translateLineEndings(doc.getText(), FileUtils.LINE_ENDINGS_LF),
+                normalizedResText = FileUtils.translateLineEndings(options.resultText, FileUtils.LINE_ENDINGS_LF);
+
+            expect(normalizedDocText).toEqual(normalizedResText);
+            expect(result).toEqual(options.result);
+            SpecRunnerUtils.destroyMockEditor(doc);
+        }
+        
+        it("should add a new rule with the given selector to the given document using tab indent and return its range", function () {
+            doAddRuleTest({
+                initialText: simpleTestCss,
+                selector: "#myID",
+                useTab: true,
+                resultText: simpleTestCss + "\n#myID {\n\t\n}\n",
+                result: {
+                    range: {
+                        from: { line: 23, ch: 0 },
+                        to: { line: 25, ch: 1 }
+                    },
+                    pos: { line: 24, ch: 1 }
+                }
+            });
+        });
+        
+        it("should add a new rule with the given selector to the given document using space indent and return its range", function () {
+            doAddRuleTest({
+                initialText: simpleTestCss,
+                selector: "#myID",
+                useTab: false,
+                indentUnit: 4,
+                resultText: simpleTestCss + "\n#myID {\n    \n}\n",
+                result: {
+                    range: {
+                        from: { line: 23, ch: 0 },
+                        to: { line: 25, ch: 1 }
+                    },
+                    pos: { line: 24, ch: 4 }
+                }
+            });
+        });
+        
+        it("should add a new rule to an empty document", function () {
+            doAddRuleTest({
+                initialText: "",
+                selector: "#myID",
+                useTab: false,
+                indentUnit: 4,
+                resultText: "\n#myID {\n    \n}\n",
+                result: {
+                    range: {
+                        from: { line: 1, ch: 0 },
+                        to: { line: 3, ch: 1 }
+                    },
+                    pos: { line: 2, ch: 4 }
+                }
+            });
+        });
+        
+        it("should consolidate consecutive rules that refer to the same item and replace names with selector groups", function () {
+            var doc1 = SpecRunnerUtils.createMockDocument(""),
+                doc2 = SpecRunnerUtils.createMockDocument(""),
+                rules = [
+                    {
+                        name: ".foo",
+                        doc: doc1,
+                        lineStart: 5,
+                        lineEnd: 7
+                    },
+                    {
+                        name: ".eek",
+                        doc: doc1,
+                        lineStart: 10,
+                        lineEnd: 12,
+                        selectorGroup: "#blah, .eek, .glah"
+                    },
+                    {
+                        name: ".bar",
+                        doc: doc2,
+                        lineStart: 3,
+                        lineEnd: 5
+                    },
+                    {
+                        name: "#baz",
+                        doc: doc2,
+                        lineStart: 8,
+                        lineEnd: 12,
+                        selectorGroup: "#baz, h2"
+                    },
+                    {
+                        name: "h2",
+                        doc: doc2,
+                        lineStart: 8,
+                        lineEnd: 12,
+                        selectorGroup: "#baz, h2"
+                    },
+                    {
+                        name: ".argle",
+                        doc: doc2,
+                        lineStart: 15,
+                        lineEnd: 20
+                    }
+                ],
+                result = CSSUtils.consolidateRules(rules);
+            
+            expect(result).toEqual([
+                rules[0],
+                {
+                    name: "#blah, .eek, .glah",
+                    doc: doc1,
+                    lineStart: 10,
+                    lineEnd: 12,
+                    selectorGroup: "#blah, .eek, .glah"
+                },
+                rules[2],
+                {
+                    name: "#baz, h2",
+                    doc: doc2,
+                    lineStart: 8,
+                    lineEnd: 12,
+                    selectorGroup: "#baz, h2"
+                },
+                rules[5]
+            ]);
+        });
+        
+        it("should extract selectors at the beginning of a text range", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar, #baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
+        });
+        
+        it("should extract selectors spanning multiple lines at the beginning of a text range, with newlines replaced", function () {
+            var doc = SpecRunnerUtils.createMockDocument(".foo {}\n.bar,\n#baz {\n    color: #fff;\n}\nh2 {}\n"),
+                range = new TextRange(doc, 1, 3);
+            expect(CSSUtils.getRangeSelectors(range)).toBe(".bar, #baz");
+            range.dispose();
+        });
+    });
 
     // Unit Tests: "HTMLUtils (css)"
     describe("HTMLUtils InlineEditorProviders", function () {

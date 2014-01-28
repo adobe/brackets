@@ -37,21 +37,12 @@ define(function (require, exports, module) {
     var configJSON  = require("text!config.json"),
         UrlParams   = require("utils/UrlParams").UrlParams;
     
-    var params          = new UrlParams(),
-        hasNativeMenus  = "";
-    
-    // read URL params
-    params.parse();
-    
     // Define core brackets namespace if it isn't already defined
     //
     // We can't simply do 'brackets = {}' to define it in the global namespace because
     // we're in "use strict" mode. Most likely, 'window' will always point to the global
     // object when this code is running. However, in case it isn't (e.g. if we're running 
     // inside Node for CI testing) we use this trick to get the global object.
-    //
-    // Taken from:
-    //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
         global.brackets = {};
@@ -59,6 +50,10 @@ define(function (require, exports, module) {
     if (!global.appshell) {
         global.appshell = global.brackets;
     }
+    
+    // Parse URL params
+    var params = new UrlParams();
+    params.parse();
     
     // Parse src/config.json
     try {
@@ -77,6 +72,7 @@ define(function (require, exports, module) {
     // TODO: (issue #266) load conditionally
     global.brackets.shellAPI = require("utils/ShellAPI");
     
+    // Determine OS/platform
     if (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") {
         global.brackets.platform = "mac";
     } else if (global.navigator.platform.indexOf("Linux") >= 0) {
@@ -87,14 +83,15 @@ define(function (require, exports, module) {
     
     global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
     
-    hasNativeMenus = params.get("hasNativeMenus");
-    
+    // Are we in a desktop shell with a native menu bar?
+    var hasNativeMenus = params.get("hasNativeMenus");
     if (hasNativeMenus) {
         global.brackets.nativeMenus = (hasNativeMenus === "true");
     } else {
         global.brackets.nativeMenus = (!global.brackets.inBrowser && (global.brackets.platform !== "linux"));
     }
     
+    // Locale-related APIs
     global.brackets.isLocaleDefault = function () {
         return !global.localStorage.getItem("locale");
     };
@@ -119,6 +116,74 @@ define(function (require, exports, module) {
         global.brackets.app.openURLInDefaultBrowser = function (url) {
             window.open(url);
         };
+    }
+    
+    // Stub brackets.fs namespace if running in-browser
+    if (!global.appshell.fs) {
+        global.appshell.fs = {};
+        var appshell = global.appshell;
+        
+        // Copied from appshell_extensions.js -------------------------------------------------------------------------
+        /**
+         * @constant No error.
+         */
+        appshell.fs.NO_ERROR                    = 0;
+        
+        /**
+         * @constant Unknown error occurred.
+         */
+        appshell.fs.ERR_UNKNOWN                 = 1;
+        
+        /**
+         * @constant Invalid parameters passed to function.
+         */
+        appshell.fs.ERR_INVALID_PARAMS          = 2;
+        
+        /**
+         * @constant File or directory was not found.
+         */
+        appshell.fs.ERR_NOT_FOUND               = 3;
+        
+        /**
+         * @constant File or directory could not be read.
+         */
+        appshell.fs.ERR_CANT_READ               = 4;
+        
+        /**
+         * @constant An unsupported encoding value was specified.
+         */
+        appshell.fs.ERR_UNSUPPORTED_ENCODING    = 5;
+        
+        /**
+         * @constant File could not be written.
+         */
+        appshell.fs.ERR_CANT_WRITE              = 6;
+        
+        /**
+         * @constant Target directory is out of space. File could not be written.
+         */
+        appshell.fs.ERR_OUT_OF_SPACE            = 7;
+        
+        /**
+         * @constant Specified path does not point to a file.
+         */
+        appshell.fs.ERR_NOT_FILE                = 8;
+        
+        /**
+         * @constant Specified path does not point to a directory.
+         */
+        appshell.fs.ERR_NOT_DIRECTORY           = 9;
+     
+        /**
+         * @constant Specified file already exists.
+         */
+        appshell.fs.ERR_FILE_EXISTS             = 10;
+    
+        /**
+         * @constant The required browser is not installed
+         */
+        appshell.fs.ERR_BROWSER_NOT_INSTALLED   = 11;
+        // End --------------------------------------------------------------------------------------------------------
     }
     
     // Loading extensions requires creating new require.js contexts, which

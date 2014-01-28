@@ -30,12 +30,14 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var _ = require("thirdparty/lodash");
+    
     // Load brackets modules
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         ProjectManager          = require("project/ProjectManager"),
         StringUtils             = require("utils/StringUtils");
@@ -229,15 +231,15 @@ define(function (require, exports, module) {
                 result.resolve(false);
             } else {
                 // If a cache exists, check the timestamp on disk
-                var file = ProjectManager.getFileSystem().getFileForPath(fileInfo.fullPath);
+                var file = FileSystem.getFileForPath(fileInfo.fullPath);
                 
-                file.stat()
-                    .done(function (stat) {
-                        result.resolve(fileInfo.JSUtils.timestamp === stat.mtime);
-                    })
-                    .fail(function (err) {
+                file.stat(function (err, stat) {
+                    if (!err) {
+                        result.resolve(fileInfo.JSUtils.timestamp.getTime() === stat.mtime.getTime());
+                    } else {
                         result.reject(err);
-                    });
+                    }
+                });
             }
         } else {
             // Use the cache if the file did not change and the cache exists
@@ -262,10 +264,10 @@ define(function (require, exports, module) {
             rangeResults        = [];
         
         docEntries.forEach(function (docEntry) {
-            // Need to call CollectionUtils.hasProperty here since docEntry.functions could
-            // have an entry for "hasOwnProperty", which results in an error if trying to
-            // invoke docEntry.functions.hasOwnProperty().
-            if (CollectionUtils.hasProperty(docEntry.functions, functionName)) {
+            // Need to call _.has here since docEntry.functions could have an
+            // entry for "hasOwnProperty", which results in an error if trying
+            // to invoke docEntry.functions.hasOwnProperty().
+            if (_.has(docEntry.functions, functionName)) {
                 var functionsInDocument = docEntry.functions[functionName];
                 matchedDocuments.push({doc: docEntry.doc, fileInfo: docEntry.fileInfo, functions: functionsInDocument});
             }
@@ -409,7 +411,7 @@ define(function (require, exports, module) {
         var result = [];
         var lines = text.split("\n");
         
-        CollectionUtils.forEach(allFunctions, function (functions, functionName) {
+        _.forEach(allFunctions, function (functions, functionName) {
             if (functionName === searchName || searchName === "*") {
                 functions.forEach(function (funcEntry) {
                     var endOffset = _getFunctionEndOffset(text, funcEntry.offsetStart);

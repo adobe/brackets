@@ -25,33 +25,46 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define */
 
+/**
+ * FileIndex is an internal module used by FileSystem to maintain an index of all files and directories.
+ *
+ * This module is *only* used by FileSystem, and should not be called directly.
+ */
 define(function (require, exports, module) {
     "use strict";
     
     /**
-     * Constructor
+     * @constructor
      */
     function FileIndex() {
         this._index = {};
-        this._allFiles = [];
     }
     
     /**
      * Master index
+     * 
+     * @type {Object.<string, File|Directory>} Maps a fullPath to a File or Directory object
      */
-    FileIndex.prototype._index = {};
-        
-    /**
-     * Array of all files in the index
-     */
-    FileIndex.prototype._allFiles = [];
+    FileIndex.prototype._index = null;
     
     /**
      * Clear the file index cache.
      */
     FileIndex.prototype.clear = function () {
         this._index = {};
-        this._allFiles = [];
+    };
+    
+    /**
+     * Visits every entry in the entire index; no stopping condition.
+     * @param {!function(FileSystemEntry, string):void} Called with an entry and its fullPath
+     */
+    FileIndex.prototype.visitAll = function (visitor) {
+        var path;
+        for (path in this._index) {
+            if (this._index.hasOwnProperty(path)) {
+                visitor(this._index[path], path);
+            }
+        }
     };
     
     /**
@@ -61,10 +74,6 @@ define(function (require, exports, module) {
      */
     FileIndex.prototype.addEntry = function (entry) {
         this._index[entry.fullPath] = entry;
-        
-        if (entry.isFile()) {
-            this._allFiles.push(entry);
-        }
     };
     
     /**
@@ -73,12 +82,68 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry The entry to remove.
      */
     FileIndex.prototype.removeEntry = function (entry) {
-        var path = entry.fullPath;
+        var path = entry.fullPath,
+            property,
+            member;
+        
+        function replaceMember(property) {
+            var member = entry[property];
+            if (typeof member === "function") {
+                entry[property] = function () {
+                    console.warn("FileSystemEntry used after being removed from index: ", path);
+                    return member.apply(entry, arguments);
+                };
+            }
+        }
         
         delete this._index[path];
         
-        if (entry.isFile()) {
-            this._allFiles.splice(this._allFiles.indexOf(path), 1);
+        for (property in entry) {
+            if (entry.hasOwnProperty(property)) {
+                replaceMember(property);
+            }
+        }
+    };
+    
+    /**
+     * Notify the index that an entry has been renamed. This updates
+     * all affected entries in the index.
+     *
+     * @param {string} oldPath
+     * @param {string} newPath
+     * @param {boolean} isDirectory
+     */
+    FileIndex.prototype.entryRenamed = function (oldPath, newPath, isDirectory) {
+        var path,
+            splitName = oldPath.split("/"),
+            finalPart = splitName.length - 1,
+            renameMap = {};
+        
+        // Find all entries affected by the rename and put into a separate map.
+        for (path in this._index) {
+            if (this._index.hasOwnProperty(path)) {
+                // See if we have a match. For directories, see if the path
+                // starts with the old name. This is safe since paths always end
+                // with '/'. For files, see if there is an exact match between
+                // the path and the old name.
+                if (isDirectory ? path.indexOf(oldPath) === 0 : path === oldPath) {
+                    renameMap[path] = newPath + path.substr(oldPath.length);
+                }
+            }
+        }
+        
+        // Do the rename. 
+        for (path in renameMap) {
+            if (renameMap.hasOwnProperty(path)) {
+                var item = this._index[path];
+                
+                // Sanity check to make sure the item and path still match
+                console.assert(item.fullPath === path);
+                
+                delete this._index[path];
+                this._index[renameMap[path]] = item;
+                item._setPath(renameMap[path]);
+            }
         }
     };
     
@@ -92,15 +157,6 @@ define(function (require, exports, module) {
      */
     FileIndex.prototype.getEntry = function (path) {
         return this._index[path];
-    };
-    
-    /**
-     * Returns all files in the index.
-     *
-     * @return {Array.<File>} Array of files.
-     */
-    FileIndex.prototype.getAllFiles = function () {
-        return this._allFiles.slice(0);
     };
     
     // Export public API

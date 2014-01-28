@@ -26,6 +26,8 @@
 
 importScripts("thirdparty/requirejs/require.js");
 
+var config = {};
+
 (function () {
     "use strict";
     
@@ -35,7 +37,7 @@ importScripts("thirdparty/requirejs/require.js");
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment"], function (tern, infer, requirejs, docComment) {
+        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment", "tern/plugin/angular"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
             Infer = infer;
 
@@ -86,7 +88,7 @@ importScripts("thirdparty/requirejs/require.js");
                     defs: env,
                     async: true,
                     getFile: getFile,
-                    plugins: {requirejs: {}, doc_comment: true}
+                    plugins: {requirejs: {}, doc_comment: true, angular: true}
                 };
                 ternServer = new Tern.Server(ternOptions);
                 
@@ -441,7 +443,7 @@ importScripts("thirdparty/requirejs/require.js");
                             name = inferType.argNames[i],
                             type = inferType.args[i];
 
-                        if (name === undefined) {
+                        if (!name) {
                             name = "param" + (i + 1);
                         }
 
@@ -473,7 +475,6 @@ importScripts("thirdparty/requirejs/require.js");
              * the offset into the file where we want completions for
              */
             function handleFunctionType(fileInfo, offset) {
-                
                 var request = buildRequest(fileInfo, "type", offset),
                     error;
                     
@@ -481,32 +482,38 @@ importScripts("thirdparty/requirejs/require.js");
 
                 var fnType = "";
                 try {
-                    ternServer.request(request, function (error, data) {
-
-                        var file = ternServer.findFile(fileInfo.name);
-
-                        // convert query from partial to full offsets
-                        var newOffset = offset;
-                        if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
-                            newOffset = {line: offset.line + fileInfo.offsetLines, ch: offset.ch};
-                        }
-
-                        request = buildRequest(createEmptyUpdate(fileInfo.name), "type", newOffset);
-
-                        var expr = Tern.findQueryExpr(file, request.query);
-                        Infer.resetGuessing();
-                        var type = Infer.expressionType(expr);
-                        type = type.getFunctionType() || type.getType();
-                        if (type) {
-                            fnType = getParameters(type);
+                    ternServer.request(request, function (ternError, data) {
+                        
+                        if (ternError) {
+                            _log("Error for Tern request: \n" + JSON.stringify(request) + "\n" + ternError);
+                            error = ternError.toString();
                         } else {
-                            error = "No parameter type found";
-                            _log(error);
+                            var file = ternServer.findFile(fileInfo.name);
+    
+                            // convert query from partial to full offsets
+                            var newOffset = offset;
+                            if (fileInfo.type === MessageIds.TERN_FILE_INFO_TYPE_PART) {
+                                newOffset = {line: offset.line + fileInfo.offsetLines, ch: offset.ch};
+                            }
+    
+                            request = buildRequest(createEmptyUpdate(fileInfo.name), "type", newOffset);
+    
+                            var expr = Tern.findQueryExpr(file, request.query);
+                            Infer.resetGuessing();
+                            var type = Infer.expressionType(expr);
+                            type = type.getFunctionType() || type.getType();
+                            
+                            if (type) {
+                                fnType = getParameters(type);
+                            } else {
+                                ternError = "No parameter type found";
+                                _log(ternError);
+                            }
                         }
                     });
                 } catch (e) {
                     error = e.message;
-                    _log("Error thrown in tern_worker:" + error);
+                    _log("Error thrown in tern_worker:" + error + "\n" + e.stack);
                 }
 
                 // Post a message back to the main thread with the completions
@@ -565,10 +572,23 @@ importScripts("thirdparty/requirejs/require.js");
                 });
             }
             
+            /**
+             * Updates the configuration, typically for debugging purposes.
+             *
+             * @param {Object} configUpdate new configuration
+             */
+            function setConfig(configUpdate) {
+                config = configUpdate;
+            }
+            
             self.addEventListener("message", function (e) {
                 var file, text, offset,
                     request = e.data,
                     type = request.type;
+                
+                if (config.debug) {
+                    _log("Message received " + type);
+                }
                 
                 if (type === MessageIds.TERN_INIT_MSG) {
                     
@@ -597,6 +617,8 @@ importScripts("thirdparty/requirejs/require.js");
                     getTernProperties(request.fileInfo, offset, MessageIds.TERN_GET_GUESSES_MSG);
                 } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
                     handleUpdateFile(request.path, request.text);
+                } else if (type === MessageIds.SET_CONFIG) {
+                    setConfig(request.config);
                 } else {
                     _log("Unknown message: " + JSON.stringify(request));
                 }

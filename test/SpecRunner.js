@@ -28,40 +28,49 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"      : "../test",
-        "perf"      : "../test/perf",
-        "spec"      : "../test/spec",
-        "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
+        "test"              : "../test",
+        "perf"              : "../test/perf",
+        "spec"              : "../test/spec",
+        "text"              : "thirdparty/text/text",
+        "i18n"              : "thirdparty/i18n/i18n",
+        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
     }
 });
 
 define(function (require, exports, module) {
     'use strict';
     
-    // Utility dependency
+    var _ = require("thirdparty/lodash");
+    
+    // Utility dependencies
     var AppInit                 = require("utils/AppInit"),
+        CodeHintManager         = require("editor/CodeHintManager"),
         Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
+        FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        FileSystemManager       = require("filesystem/FileSystemManager"),
         Menus                   = require("command/Menus"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
+        NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
-        NativeApp               = require("utils/NativeApp"),
-        CodeHintManager         = require("editor/CodeHintManager");
-    
-    // Load modules that self-register and just need to get included in the main project
+        NativeApp               = require("utils/NativeApp");
+
+    // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");
     
     // TODO (#2155): These are used by extensions via brackets.getModule(), so tests that run those
     // extensions need these to be required up front. We need a better solution for this eventually.
     require("utils/ExtensionUtils");
+    
+    // Also load compatibility shims for now, in case legacy extensions are still using old file APIs
+    require("project/FileIndexManager");
+    require("file/NativeFileSystem");
+    require("file/NativeFileError");
     
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");
@@ -73,7 +82,6 @@ define(function (require, exports, module) {
     var selectedSuites,
         params                  = new UrlParams(),
         reporter,
-        _nodeConnectionDeferred = new $.Deferred(),
         reporterView,
         _writeResults           = new $.Deferred(),
         _writeResultsPromise    = _writeResults.promise(),
@@ -86,7 +94,7 @@ define(function (require, exports, module) {
      * for the installer in this run of Brackets.
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
-
+    
     // parse URL parameters
     params.parse();
     resultsPath = params.get("resultsPath");
@@ -148,14 +156,19 @@ define(function (require, exports, module) {
 
     function writeResults(path, text) {
         // check if the file already exists
-        brackets.appFileSystem.pathExists(path)
-            .done(function () {
+        var file = FileSystem.getFileForPath(path);
+        
+        file.exists(function (err, exists) {
+            if (err) {
+                _writeResults.reject(err);
+                return;
+            }
+            
+            if (exists) {
                 // file exists, do not overwrite
                 _writeResults.reject();
-            })
-            .fail(function () {
+            } else {
                 // file not found, write the new file with xml content
-                var file = brackets.appFileSystem.getFileForPath(path);
                 FileUtils.writeText(file, text)
                     .done(function () {
                         _writeResults.resolve();
@@ -163,7 +176,8 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         _writeResults.reject(err);
                     });
-            });
+            }
+        });
     }
     
     /**
@@ -178,11 +192,11 @@ define(function (require, exports, module) {
             writeResults(resultsPath, reporter.toJSON());
         }
 
-        _writeResults.always(function () { window.close(); });
+        _writeResults.always(function () { brackets.app.quit(); });
     }
 
     /**
-     * Patch JUnitXMLReporter to use brackets.fs and to consolidate all results
+     * Patch JUnitXMLReporter to use FileSystem and to consolidate all results
      * into a single file.
      */
     function _patchJUnitReporter() {
@@ -264,39 +278,6 @@ define(function (require, exports, module) {
     }
     
     function init() {
-        // Start up the node connection, which is held in the
-        // _nodeConnectionDeferred module variable. (Use
-        // _nodeConnectionDeferred.done() to access it.
-        
-        // This is in SpecRunner rather than SpecRunnerUtils because the hope
-        // is to hook up jasmine-node tests in this test runner.
-        
-        // TODO: duplicates code from StaticServer
-        // TODO: can this be done lazily?
-        
-        var connectionTimeout = setTimeout(function () {
-            console.error("[SpecRunner] Timed out while trying to connect to node");
-            _nodeConnectionDeferred.reject();
-        }, NODE_CONNECTION_TIMEOUT);
-        
-        var _nodeConnection = new NodeConnection();
-        _nodeConnection.connect(true).then(function () {
-            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
-            
-            _nodeConnection.loadDomains(domainPath, true)
-                .then(
-                    function () {
-                        clearTimeout(connectionTimeout);
-                        _nodeConnectionDeferred.resolve(_nodeConnection);
-                    },
-                    function () { // Failed to connect
-                        console.error("[SpecRunner] Failed to connect to node", arguments);
-                        clearTimeout(connectionTimeout);
-                        _nodeConnectionDeferred.reject();
-                    }
-                );
-        });
-
         selectedSuites = (params.get("suite") || localStorage.getItem("SpecRunner.suite") || "unit").split(",");
         
         // Create a top-level filter to show/hide performance and extensions tests
@@ -399,19 +380,29 @@ define(function (require, exports, module) {
         }, true);
     }
 
-    /**
-     * Allows access to the deferred that manages the node connection for tests.
-     *
-     * @return {jQuery.Deferred} The deferred that manages the node connection
-     */
-    function getNodeConnectionDeferred() {
-        return _nodeConnectionDeferred;
+    function connectToTestDomain() {
+        var _nodeConnectionDeferred = new $.Deferred(),
+            _nodeConnection = new NodeConnection();
+
+        _nodeConnection.connect(true).then(function () {
+            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
+            
+            _nodeConnection.loadDomains(domainPath, true)
+                .then(init, function () {
+                    // Failed to connect
+                    console.error("[SpecRunner] Failed to connect to node", arguments);
+                    
+                    var container = $('<div class="container-fluid">');
+                    container.append('<div class="alert alert-error">Failed to connect to Node</div>');
+                    
+                    $(window.document.body).append(container);
+                });
+        });
+
+        Async.withTimeout(_nodeConnectionDeferred.promise(), NODE_CONNECTION_TIMEOUT);
+        
+        brackets.testing = { nodeConnection: _nodeConnection };
     }
     
-    // this is used by SpecRunnerUtils
-    brackets.testing = {
-        getNodeConnectionDeferred: getNodeConnectionDeferred
-    };
-    
-    init();
+    connectToTestDomain();
 });

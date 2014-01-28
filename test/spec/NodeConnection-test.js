@@ -25,7 +25,7 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone */
+waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView */
 
 define(function (require, exports, module) {
     "use strict";
@@ -106,6 +106,7 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             _connectionsToAutoDisconnect.forEach(function (c) {
+                $(c).off("close");
                 c.disconnect();
             });
         });
@@ -210,6 +211,24 @@ define(function (require, exports, module) {
                 },
                 CONNECTION_TIMEOUT
             );
+        });
+        
+        it("should parse domain event specifications", function () {
+            var connection = createConnection();
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["TestCommandsOne"], false);
+            runs(function () {
+                expect(connection.domainEvents.test.eventOne.length).toBe(2);
+                expect(connection.domainEvents.test.eventOne[0].name).toBe('argOne');
+                expect(connection.domainEvents.test.eventOne[0].type).toBe('string');
+                expect(connection.domainEvents.test.eventOne[1].name).toBe('argTwo');
+                expect(connection.domainEvents.test.eventOne[1].type).toBe('string');
+                expect(connection.domainEvents.test.eventTwo.length).toBe(2);
+                expect(connection.domainEvents.test.eventTwo[0].name).toBe('argOne');
+                expect(connection.domainEvents.test.eventTwo[0].type).toBe('boolean');
+                expect(connection.domainEvents.test.eventTwo[1].name).toBe('argTwo');
+                expect(connection.domainEvents.test.eventTwo[1].type).toBe('boolean');
+            });
         });
         
         it("should receive command errors and continue to run", function () {
@@ -339,6 +358,15 @@ define(function (require, exports, module) {
                 CONNECTION_TIMEOUT,
                 "additional test commands should be defined in all connections"
             );
+            
+            var reconnectResolved = false, closeHandlerCalled = false;
+            $(connectionOne).on("close", function (e, reconnectPromise) {
+                closeHandlerCalled = true;
+                reconnectPromise.then(function () {
+                    reconnectResolved = true;
+                });
+            });
+            
             waitThenRunRestartServer(connectionOne);
             waitsFor(
                 function () {
@@ -365,9 +393,77 @@ define(function (require, exports, module) {
                 "test.reverse command should be re-registered"
             );
             runs(function () {
+                expect(closeHandlerCalled).toBe(true);
+                expect(reconnectResolved).toBe(true);
                 expect(connectionOne.domains.test.reverseAsync).toBeFalsy();
             });
 
+        });
+        
+        it("should receive synchronous binary command responses", function () {
+            var connection = createConnection();
+            var commandDeferred = null;
+            var result = null;
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["BinaryTestCommands"], false);
+            runs(function () {
+                commandDeferred = connection.domains.binaryTest.getBufferSync();
+                commandDeferred.done(function (response) {
+                    result = response;
+                });
+            });
+            waitsFor(
+                function () {
+                    return commandDeferred &&
+                        commandDeferred.state() === "resolved" &&
+                        result;
+                },
+                CONNECTION_TIMEOUT
+            );
+            runs(function () {
+                var view = new DataView(result);
+                
+                expect(result instanceof ArrayBuffer).toBe(true);
+                expect(result.byteLength).toBe(18);
+                expect(view.getUint8(0)).toBe(1);
+                expect(view.getUint32(1)).toBe(4294967295);
+                expect(view.getFloat32(5, false)).toBe(3.141592025756836);
+                expect(view.getFloat64(9, true)).toBe(1.7976931348623157e+308);
+                expect(view.getInt8(17)).toBe(-128);
+            });
+        });
+        
+        it("should receive asynchronous binary command response", function () {
+            var connection = createConnection();
+            var commandDeferred = null;
+            var result = null;
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["BinaryTestCommands"], false);
+            runs(function () {
+                commandDeferred = connection.domains.binaryTest.getBufferAsync();
+                commandDeferred.done(function (response) {
+                    result = response;
+                });
+            });
+            waitsFor(
+                function () {
+                    return commandDeferred &&
+                        commandDeferred.state() === "resolved" &&
+                        result;
+                },
+                CONNECTION_TIMEOUT
+            );
+            runs(function () {
+                var view = new DataView(result);
+                                
+                expect(result instanceof ArrayBuffer).toBe(true);
+                expect(result.byteLength).toBe(18);
+                expect(view.getUint8(0)).toBe(1);
+                expect(view.getUint32(1)).toBe(4294967295);
+                expect(view.getFloat32(5, false)).toBe(3.141592025756836);
+                expect(view.getFloat64(9, true)).toBe(1.7976931348623157e+308);
+                expect(view.getInt8(17)).toBe(-128);
+            });
         });
     });
 });

@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         ProjectManager,         // loaded from brackets.test
 
         JSUtils             = require("language/JSUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
@@ -47,13 +48,13 @@ define(function (require, exports, module) {
         return this.actual.functionName.trim() === expected;
     };
 
-    var simpleJsFileEntry   = brackets.appFileSystem.getFileForPath(testPath + "/simple.js");
-    var trickyJsFileEntry   = brackets.appFileSystem.getFileForPath(testPath + "/tricky.js");
-    var invalidJsFileEntry  = brackets.appFileSystem.getFileForPath(testPath + "/invalid.js");
-    var jQueryJsFileEntry   = brackets.appFileSystem.getFileForPath(testPath + "/jquery-1.7.js");
-    var braceEndJsFileEntry = brackets.appFileSystem.getFileForPath(testPath + "/braceEnd.js");
-    var eofJsFileEntry      = brackets.appFileSystem.getFileForPath(testPath + "/eof.js");
-    var eof2JsFileEntry     = brackets.appFileSystem.getFileForPath(testPath + "/eof2.js");
+    var simpleJsFileEntry   = FileSystem.getFileForPath(testPath + "/simple.js");
+    var trickyJsFileEntry   = FileSystem.getFileForPath(testPath + "/tricky.js");
+    var invalidJsFileEntry  = FileSystem.getFileForPath(testPath + "/invalid.js");
+    var jQueryJsFileEntry   = FileSystem.getFileForPath(testPath + "/jquery-1.7.js");
+    var braceEndJsFileEntry = FileSystem.getFileForPath(testPath + "/braceEnd.js");
+    var eofJsFileEntry      = FileSystem.getFileForPath(testPath + "/eof.js");
+    var eof2JsFileEntry     = FileSystem.getFileForPath(testPath + "/eof2.js");
 
     function init(spec, fileEntry) {
         if (fileEntry) {
@@ -410,10 +411,10 @@ define(function (require, exports, module) {
 
             it("should find the first instance of the pushStack function", function () {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
-                expect(funcNames).not.toBe(null);
+                expect(funcNames).toBeTruthy();
                 expect(funcNames.length).toBeGreaterThan(0);
                 
-                expect(funcNames[0]).not.toBe(null);
+                expect(funcNames[0]).toBeTruthy();
                 expect(funcNames[0].lineStart).toBe(243);
                 expect(funcNames[0].lineEnd).toBe(267);
             });
@@ -487,12 +488,13 @@ define(function (require, exports, module) {
          */
         function indexAndFind(invokeFind) {
             runs(function () {
-                var result = new $.Deferred(),
-                    files = ProjectManager.getFileSystem().getFileList();
+                var result = new $.Deferred();
                 
-                invokeFind(files)
-                    .done(function (functionsResult) { functions = functionsResult; })
-                    .then(result.resolve, result.reject);
+                ProjectManager.getAllFiles().done(function (files) {
+                    invokeFind(files)
+                        .done(function (functionsResult) { functions = functionsResult; })
+                        .then(result.resolve, result.reject);
+                });
                 
                 waitsForDone(result, "Index and invoke JSUtils.findMatchingFunctions()");
             });

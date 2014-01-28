@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+        FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         KeyEvent                = brackets.getModule("utils/KeyEvent"),
         FileUtils               = brackets.getModule("file/FileUtils"),
@@ -47,8 +48,6 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     var prefs = PreferencesManager.getPreferenceStorage(module);
-    //TODO: Remove preferences migration code
-    PreferencesManager.handleClientIdChange(prefs, "com.adobe.brackets.brackets-recent-projects");
     
     /** @const {string} Recent Projects commands ID */
     var TOGGLE_DROPDOWN = "recentProjects.toggle";
@@ -63,32 +62,16 @@ define(function (require, exports, module) {
         $links;
     
     /**
-     * Return the index of the item that contains path,
-     * or -1 if not found.
+     * Get the stored list of recent projects, fixing up paths as appropriate.
+     * Warning: unlike most paths in Brackets, these lack a trailing "/"
      */
-    function getIndex(projects, path) {
-        var i, len = projects.length;
-        
-        for (i = 0; i < len; i++) {
-            if (projects[i].path === path) {
-                return i;
-            }
-        }
-        
-        return -1;
-    }
-    
-    /**
-     * Get the stored list of recent projects, canonicalizing and updating paths as appropriate.
-     */
-    // TODO: FileSystem - the preferences key is changed to avoid conflict with old values. We should
-    // probably migrate old values instead (old values are an array of strings).
-    function getRecentProjects(includeFileSystem) {
-        var recentProjects = prefs.getValue("recentProjects2") || [],
+    function getRecentProjects() {
+        var recentProjects = prefs.getValue("recentProjects") || [],
             i;
         
         for (i = 0; i < recentProjects.length; i++) {
-            recentProjects[i].path = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i].path));
+            // We have to canonicalize & then de-canonicalize the path here, since our pref format uses no trailing "/"
+            recentProjects[i] = FileUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i] + "/"));
         }
         return recentProjects;
     }
@@ -97,19 +80,18 @@ define(function (require, exports, module) {
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
-            fileSystem = ProjectManager.getFileSystem().getSystemName(),
+        var root = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             recentProjects = getRecentProjects(),
-            index = getIndex(recentProjects, root);
+            index = recentProjects.indexOf(root);
         
         if (index !== -1) {
             recentProjects.splice(index, 1);
         }
-        recentProjects.unshift({path: root, fileSystem: fileSystem});
+        recentProjects.unshift(root);
         if (recentProjects.length > MAX_PROJECTS) {
             recentProjects = recentProjects.slice(0, MAX_PROJECTS);
         }
-        prefs.setValue("recentProjects2", recentProjects);
+        prefs.setValue("recentProjects", recentProjects);
     }
     
     /**
@@ -141,7 +123,7 @@ define(function (require, exports, module) {
                 
                 // Remove the project from the preferences.
                 var recentProjects = getRecentProjects(),
-                    index = getIndex(recentProjects, $(this).parent().data("path")),
+                    index = recentProjects.indexOf($(this).parent().data("path")),
                     newProjects = [],
                     i;
                 for (i = 0; i < recentProjects.length; i++) {
@@ -149,7 +131,7 @@ define(function (require, exports, module) {
                         newProjects.push(recentProjects[i]);
                     }
                 }
-                prefs.setValue("recentProjects2", newProjects);
+                prefs.setValue("recentProjects", newProjects);
                 $(this).closest("li").remove();
                 checkHovers(e.pageX, e.pageY);
                 
@@ -196,6 +178,35 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Deletes the selected item and
+     * move the focus to next item in list.
+     * 
+     * @return {boolean} TRUE if project is removed
+     */
+    function removeSelectedItem(e) {
+        var recentProjects = getRecentProjects(),
+            $cacheItem = $dropdownItem,
+            index = recentProjects.indexOf($cacheItem.data("path"));
+
+        // When focus is not on project item
+        if (index === -1) {
+            return false;
+        }
+
+        // remove project
+        recentProjects.splice(index, 1);
+        prefs.setValue("recentProjects", recentProjects);
+        checkHovers(e.pageX, e.pageY);
+
+        if (recentProjects.length === 1) {
+            $dropdown.find(".divider").remove();
+        }
+        selectNextItem(+1);
+        $cacheItem.closest("li").remove();
+        return true;
+    }
+
+    /**
      * Handles the Key Down events
      * @param {KeyboardEvent} event
      * @return {boolean} True if the key was handled
@@ -218,6 +229,13 @@ define(function (require, exports, module) {
                 $dropdownItem.trigger("click");
             }
             keyHandled = true;
+            break;
+        case KeyEvent.DOM_VK_BACK_SPACE:
+        case KeyEvent.DOM_VK_DELETE:
+            if ($dropdownItem) {
+                removeSelectedItem(event);
+                keyHandled = true;
+            }
             break;
         }
         
@@ -262,23 +280,23 @@ define(function (require, exports, module) {
      */
     function _handleListEvents() {
         $dropdown
-            .on("click", "a", function (e) {
-                var $link       = $(e.target).closest("a"),
-                    id          = $link.attr("id"),
-                    path        = $link.data("path"),
-                    fileSystem  = $link.data("file-system");
+            .on("click", "a", function () {
+                var $link = $(this),
+                    id    = $link.attr("id"),
+                    path  = $link.data("path");
                 
                 if (path) {
-                    ProjectManager.openProject(path, fileSystem)
+                    ProjectManager.openProject(path)
                         .fail(function () {
                             // Remove the project from the list only if it does not exist on disk
                             var recentProjects = getRecentProjects(),
-                                index = getIndex(recentProjects, path);
+                                index = recentProjects.indexOf(path);
                             if (index !== -1) {
-                                ProjectManager.getFileSystem().resolve(path)
-                                    .fail(function () {
+                                FileSystem.resolve(path, function (err, item) {
+                                    if (err) {
                                         recentProjects.splice(index, 1);
-                                    });
+                                    }
+                                });
                             }
                         });
                     closeDropdown();
@@ -339,17 +357,15 @@ define(function (require, exports, module) {
      */
     function renderList() {
         var recentProjects = getRecentProjects(),
-            currentProject = FileUtils.canonicalizeFolderPath(ProjectManager.getProjectRoot().fullPath),
+            currentProject = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             templateVars   = {
                 projectList : [],
                 Strings     : Strings
             };
         
         recentProjects.forEach(function (root) {
-            if (root.path !== currentProject) {
-                var params = parsePath(root.path);
-                params.fileSystem = root.fileSystem;
-                templateVars.projectList.push(params);
+            if (root !== currentProject) {
+                templateVars.projectList.push(parsePath(root));
             }
         });
         
@@ -413,7 +429,11 @@ define(function (require, exports, module) {
         // Have to do this stopProp to avoid the html click handler from firing when this returns.
         e.stopPropagation();
         
-        showDropdown();
+        if ($dropdown) {
+            closeDropdown(); //close if it's already visible
+        } else {
+            showDropdown();
+        }
     }
     
     /**

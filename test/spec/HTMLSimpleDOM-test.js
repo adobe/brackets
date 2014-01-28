@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         if (expectedErrors) {
             expect(root).toBeNull();
         } else {
-            expect(root).not.toBeNull();
+            expect(root).toBeTruthy();
         }
 
         expect(errors).toEqual(expectedErrors);
@@ -62,12 +62,12 @@ define(function (require, exports, module) {
         describe("Strict HTML parsing", function () {
             it("should parse a document with balanced, void and self-closing tags", function () {
                 var root = build("<p><b>some</b>awesome text</p><p>and <img> another <br/> para</p>", true);
-                expect(root).not.toBeNull();
+                expect(root).toBeTruthy();
             });
             
             it("should parse a document with an implied-close tag followed by a tag that forces it to close", function () {
                 var result = build("<div><p>unclosed para<h1>heading that closes para</h1></div>", true);
-                expect(result).not.toBeNull();
+                expect(result).toBeTruthy();
                 expect(result.tag).toBe("div");
                 expect(result.children[0].tag).toBe("p");
                 expect(result.children[1].tag).toBe("h1");
@@ -154,6 +154,11 @@ define(function (require, exports, module) {
             it("should handle empty attributes", function () {
                 var dom = build("<input disabled>", true);
                 expect(dom.attributes.disabled).toEqual("");
+            });
+            
+            it("should handle unknown self-closing tags", function () {
+                var dom = build("<foo><bar/></foo>", true);
+                expect(dom).toBeTruthy();
             });
             
             it("should merge text nodes around a comment", function () {

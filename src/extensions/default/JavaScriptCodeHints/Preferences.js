@@ -73,7 +73,7 @@ define(function (require, exports, module) {
      *  regular expression.
      *
      * @param {Array.<string|RegExp>} settings
-     * @param {RegExp} defaultRegExp - default regular expression to use
+     * @param {?RegExp} defaultRegExp - default regular expression to use
      * if none if provided.
      * @return {RegExp} Regular expression that captures the array of string
      * with optional wildcards.

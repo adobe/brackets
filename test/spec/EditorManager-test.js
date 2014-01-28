@@ -206,6 +206,5 @@ define(function (require, exports, module) {
                 expect(testEditor.refreshAll).toHaveBeenCalled();
             });
         });
-
     });
 });

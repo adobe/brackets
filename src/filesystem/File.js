@@ -23,15 +23,30 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry"),
+        FileSystemError = require("filesystem/FileSystemError");
     
-    function File(fullPath, impl) {
-        FileSystemEntry.call(this, fullPath, impl);
+    
+    /*
+     * @constructor
+     * Model for a File.
+     *
+     * This class should *not* be instantiated directly. Use FileSystem.getFileForPath,
+     * FileSystem.resolve, or Directory.getContents to create an instance of this class.
+     *
+     * See the FileSystem class for more details.
+     *
+     * @param {!string} fullPath The full path for this File.
+     * @param {!FileSystem} fileSystem The file system associated with this File.
+     */
+    function File(fullPath, fileSystem) {
+        this._isFile = true;
+        FileSystemEntry.call(this, fullPath, fileSystem);
     }
     
     File.prototype = Object.create(FileSystemEntry.prototype);
@@ -39,70 +54,155 @@ define(function (require, exports, module) {
     File.prototype.parentClass = FileSystemEntry.prototype;
     
     /**
-     * Contents of this file.
+     * Cached contents of this file. This value is nullable but should NOT be undefined.
+     * @private
+     * @type {?string}
      */
     File.prototype._contents = null;
     
     /**
-     * Override to return true.
-     *
-     * @return {boolean} True -- this is a file
+     * Consistency hash for this file. Reads and writes update this value, and
+     * writes confirm the hash before overwriting existing files. The type of
+     * this object is dependent on the FileSystemImpl; the only constraint is
+     * that === can be used as an equality relation on hashes.
+     * @private
+     * @type {?object}
      */
-    File.prototype.isFile = function () {
-        return true;
+    File.prototype._hash = null;
+    
+    /**
+     * Clear any cached data for this file. Note that this explicitly does NOT
+     * clear the file's hash.
+     * @private
+     */
+    File.prototype._clearCachedData = function () {
+        FileSystemEntry.prototype._clearCachedData.apply(this);
+        this._contents = null;
     };
     
     /**
-     * Read a file as text. 
+     * Read a file.
      *
-     * @param {string=} encoding Encoding for reading. Defaults to UTF-8.
-     *
-     * @return {$.Promise} Promise that is resolved with the text and stats from the file,
-     *        or rejected if an error occurred.
+     * @param {Object=} options Currently unused.
+     * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
+     *              FileSystemError string or the file's contents and its stats.
      */
-    File.prototype.readAsText = function (encoding) {
-        var result = new $.Deferred();
-        
-        if (this._contents && this._stat) {
-            result.resolve(this._contents, this._stat);
-        } else {
-            this._impl.readFile(this._path, encoding ? {encoding: encoding} : {}, function (err, data, stat) {
-                if (err) {
-                    result.reject(err);
-                } else {
-                    this._stat = stat;
-                    this._contents = data;
-                    result.resolve(data, stat);
-                }
-            }.bind(this));
+    File.prototype.read = function (options, callback) {
+        if (typeof (options) === "function") {
+            callback = options;
+            options = {};
         }
         
-        return result.promise();
+        // We don't need to check isWatched() here because contents are only saved
+        // for watched files. Note that we need to explicitly test this._contents
+        // for a default value; otherwise it could be the empty string, which is
+        // falsey.
+        if (this._contents !== null && this._stat) {
+            callback(null, this._contents, this._stat);
+            return;
+        }
+        
+        var watched = this._isWatched();
+        if (watched) {
+            options.stat = this._stat;
+        }
+        
+        this._impl.readFile(this._path, options, function (err, data, stat) {
+            if (err) {
+                this._clearCachedData();
+                callback(err);
+                return;
+            }
+            
+            // Always store the hash
+            this._hash = stat._hash;
+            
+            // Only cache data for watched files
+            if (watched) {
+                this._stat = stat;
+                this._contents = data;
+            }
+            
+            callback(err, data, stat);
+        }.bind(this));
     };
     
     /**
      * Write a file.
      *
      * @param {string} data Data to write.
-     * @param {string=} encoding Encoding for data. Defaults to UTF-8.
-     *
-     * @return {$.Promise} Promise that is resolved with the file's new stats when the 
-     *        writing is complete, or rejected if an error occurred.
+     * @param {object=} options Currently unused.
+     * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
+     *              FileSystemError string or the file's new stats.
      */
-    File.prototype.write = function (data, encoding) {
-        var result = new $.Deferred();
+    File.prototype.write = function (data, options, callback) {
+        if (typeof options === "function") {
+            callback = options;
+            options = {};
+        } else {
+            if (options === undefined) {
+                options = {};
+            }
+            
+            callback = callback || function () {};
+        }
         
-        this._impl.writeFile(this._path, data, encoding ? {encoding: encoding} : {}, function (err, stat) {
+        // Request a consistency check if the write is not blind
+        if (!options.blind) {
+            options.expectedHash = this._hash;
+        }
+        
+        // Block external change events until after the write has finished
+        this._fileSystem._beginChange();
+        
+        this._impl.writeFile(this._path, data, options, function (err, stat, created) {
             if (err) {
-                result.reject(err);
-            } else {
+                this._clearCachedData();
+                try {
+                    callback(err);
+                    return;
+                } finally {
+                    // Always unblock external change events
+                    this._fileSystem._endChange();
+                }
+            }
+            
+            // Always store the hash
+            this._hash = stat._hash;
+            
+            // Only cache data for watched files
+            if (this._isWatched()) {
                 this._stat = stat;
                 this._contents = data;
-                result.resolve(stat);
+            }
+            
+            if (created) {
+                var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+                this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                    try {
+                        // Notify the caller
+                        callback(null, stat);
+                    } finally {
+                        // If the write succeeded, fire a synthetic change event
+                        this._fileSystem._fireChangeEvent(parent, added, removed);
+                        
+                        // Always unblock external change events
+                        this._fileSystem._endChange();
+                    }
+                }.bind(this));
+            } else {
+                try {
+                    // Notify the caller
+                    callback(null, stat);
+                } finally {
+                    // existing file modified
+                    this._fileSystem._fireChangeEvent(this);
+                    
+                    // Always unblock external change events
+                    this._fileSystem._endChange();
+                }
             }
         }.bind(this));
-        
-        return result.promise();
     };
     
     // Export this class

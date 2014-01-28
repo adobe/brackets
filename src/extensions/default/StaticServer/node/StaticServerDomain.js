@@ -37,6 +37,13 @@
     var _domainManager;
 
     var FILTER_REQUEST_TIMEOUT = 5000;
+    
+    /**
+     * @private
+     * @type {number}
+     * Used to assign unique identifiers to each filter request
+     */
+    var _filterRequestCounter = 0;
 
     /**
      * @private
@@ -68,8 +75,8 @@
     
     /**
      * @private
-     * @type {Object.<string, {Object.<string, http.ServerResponse>}}
-     * A map from root paths to its request/response mapping.
+     * @type {Object.<string, {Object.<number, http.ServerResponse>}}
+     * A map from a request identifier to its request/response mapping.
      */
     var _requests = {};
     
@@ -139,6 +146,7 @@
         function rewrite(req, res, next) {
             var location = {pathname: parse(req).pathname},
                 hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
+                requestId = _filterRequestCounter++,
                 timeoutId;
             
             // ignore most HTTP methods and files that we're not watching
@@ -152,7 +160,7 @@
             function resume(doNext) {
                 // delete the callback after it's used or we hit the timeout.
                 // if this path is requested again, a new callback is generated.
-                delete _requests[pathKey][location.pathname];
+                delete _requests[pathKey][requestId];
 
                 // pass request to next middleware
                 if (doNext) {
@@ -163,12 +171,12 @@
             }
             
             // map request pathname to response callback
-            _requests[pathKey][location.pathname] = function (resData) {
+            _requests[pathKey][requestId] = function (resData) {
                 // clear timeout immediately when this callback is called
                 clearTimeout(timeoutId);
 
                 // response data is optional
-                if (resData) {
+                if (resData.body) {
                     // HTTP headers
                     var type    = mime.lookup(location.pathname),
                         charset = mime.charsets.lookup(type);
@@ -194,7 +202,8 @@
 
             var request = {
                 headers:    req.headers,
-                location:   location
+                location:   location,
+                id:         requestId
             };
             
             // dispatch request event
@@ -308,11 +317,11 @@
      *
      * @param {string} path The absolute path of the server
      * @param {string} root The relative path of the file beginning with a forward slash "/"
-     * @param {Object} resData Response data to use
+     * @param {!Object} resData Response data to use
      */
     function _cmdWriteFilteredResponse(root, path, resData) {
         var pathKey  = getPathKey(root),
-            callback = _requests[pathKey][path];
+            callback = _requests[pathKey][resData.id];
 
         if (callback) {
             callback(resData);
@@ -440,7 +449,7 @@
             "requestFilter",
             [{
                 name: "location",
-                type: "{hostname: string, pathname: string, port: number, root: string}",
+                type: "{hostname: string, pathname: string, port: number, root: string: id: number}",
                 description: "request path"
             }]
         );

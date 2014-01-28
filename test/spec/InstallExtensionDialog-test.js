@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
         NativeApp       = require("utils/NativeApp"),
-        Strings         = require("strings");
+        FileSystem,
+        Strings;
 
     describe("Install Extension Dialog", function () {
         var testWindow, dialog, fields, goodInstaller, badInstaller, closed,
@@ -43,6 +44,8 @@ define(function (require, exports, module) {
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
+                Strings = testWindow.require("strings");
+                FileSystem = testWindow.brackets.test.FileSystem;
             });
         });
         
@@ -118,7 +121,7 @@ define(function (require, exports, module) {
             }
             
             it("should open the dialog", function () {
-                expect(fields.$dlg[0]).not.toBeNull();
+                expect(fields.$dlg[0]).toBeTruthy();
             });
             
             it("should have the install button disabled when dialog is first open due to empty url field", function () {
@@ -207,10 +210,7 @@ define(function (require, exports, module) {
                 fields.$okButton.click();
                 installer.install.reset();
                 
-                var modSpy = jasmine.createSpy("modSpy");
-                fields.$dlg.on("DOMSubtreeModified", modSpy);
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", fields.$dlg[0]);
-                expect(modSpy).not.toHaveBeenCalled();
                 expect(installer.install).not.toHaveBeenCalled();
                 expect(installer.cancel).not.toHaveBeenCalled();
                 
@@ -727,14 +727,15 @@ define(function (require, exports, module) {
                     installer = makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
-                var packageFilename = "/path/to/downloaded/package.zip";
+                var packageFilename = "/path/to/downloaded/package.zip",
+                    file = FileSystem.getFileForPath(packageFilename);
                 deferred.resolve({
                     installationStatus: "ALREADY_INSTALLED",
                     localPath: packageFilename
                 });
-                spyOn(testWindow.brackets.fs, "unlink");
+                spyOn(file, "unlink");
                 fields.$cancelButton.click();
-                expect(testWindow.brackets.fs.unlink).toHaveBeenCalledWith(packageFilename, jasmine.any(Function));
+                expect(file.unlink).toHaveBeenCalled();
                 expect(fields.$dlg.is(":visible")).toBe(false);
             });
             
@@ -743,19 +744,20 @@ define(function (require, exports, module) {
                     installer = makeInstaller(null, deferred);
                 setUrl();
                 fields.$okButton.click();
-                var packageFilename = "/path/to/downloaded/package.zip";
+                var packageFilename = "/path/to/downloaded/package.zip",
+                    file = FileSystem.getFileForPath(packageFilename);
                 deferred.resolve({
                     installationStatus: "ALREADY_INSTALLED",
                     localPath: packageFilename
                 });
-                spyOn(testWindow.brackets.fs, "unlink");
+                spyOn(file, "unlink");
                 var dialogDone = false;
                 dialog._dialogDeferred.done(function (result) {
                     dialogDone = true;
                     expect(result.installationStatus).toBe("ALREADY_INSTALLED");
                 });
                 fields.$okButton.click();
-                expect(testWindow.brackets.fs.unlink).not.toHaveBeenCalled();
+                expect(file.unlink).not.toHaveBeenCalled();
                 expect(fields.$dlg.is(":visible")).toBe(false);
                 expect(dialogDone).toBe(true);
             });

@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CollectionUtils = require("utils/CollectionUtils");
+    var _ = require("thirdparty/lodash");
     
     /*
      * Performs matching that is useful for QuickOpen and similar searches.
@@ -799,7 +799,7 @@ define(function (require, exports, module) {
         } else {
             // TODO Deprecate this form of calling this function
             comparisons = [];
-            CollectionUtils.forEach(fieldSpec, function (priority, key) {
+            _.forEach(fieldSpec, function (priority, key) {
                 comparisons[priority] = key;
             });
         }
@@ -903,12 +903,12 @@ define(function (require, exports, module) {
         this._lastQuery = query;
         
         // Check for a known non-matching string.
-        if (CollectionUtils.hasProperty(this._noMatchCache, str)) {
+        if (_.has(this._noMatchCache, str)) {
             return undefined;
         }
         
         // Load up the cached specials information (or build it if this is our first time through).
-        var special = CollectionUtils.hasProperty(this._specialsCache, str) ? this._specialsCache[str] : undefined;
+        var special = _.has(this._specialsCache, str) ? this._specialsCache[str] : undefined;
         if (special === undefined) {
             special = findSpecialCharacters(str);
             this._specialsCache[str] = special;
