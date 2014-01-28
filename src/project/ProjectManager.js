@@ -1137,6 +1137,10 @@ define(function (require, exports, module) {
                                 err || FileSystemError.NOT_FOUND
                             )
                         ).done(function () {
+                            // Reset _projectRoot to null so that the following _loadProject call for 
+                            // loading welcome project won't close all working set files again.
+                            _projectRoot = null;
+                            
                             // The project folder stored in preference doesn't exist, so load the default
                             // project directory.
                             // TODO (issue #267): When Brackets supports having no project directory
