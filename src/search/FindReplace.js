@@ -140,6 +140,8 @@ define(function (require, exports, module) {
         }
     }
 
+    // NOTE: we can't just use the ordinary replace() function here because the string has been
+    // extracted from the original text and so might be missing some context that the regexp matched.
     function parseDollars(replaceWith, match) {
         replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
             var parsedIndex = parseInt(index, 10);
