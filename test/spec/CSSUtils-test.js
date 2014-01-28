@@ -569,6 +569,33 @@ define(function (require, exports, module) {
                 expect(result).toEqual(expected);
             });
         });
+        
+        describe("findSelectorAtDocumentPos in embedded <style> blocks", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, embeddedHtmlFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                });
+            });
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            // Indexes of external UI are 1-based. Internal indexes are 0-based.
+            it("should find the first selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 6, ch: 0});
+                expect(selector).toEqual("div");
+            });
+
+            it("should find the second selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual(".foo");
+            });
+        });
     }); // describe("CSSUtils")
 
     
