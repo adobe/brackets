@@ -242,12 +242,19 @@ define(function (require, exports, module) {
         }
         
         $("body").append("<div class='modal-wrapper'><div class='modal-inner-wrapper'></div></div>");
-        
-        var result  = $.Deferred(),
-            promise = result.promise(),
-            $dlg    = $(template)
+
+        var result    = $.Deferred(),
+            promise   = result.promise(),
+            maxHeight = $(".main-view > .content").height(),
+            $dlg      = $(template)
                 .addClass("instance")
                 .appendTo(".modal-inner-wrapper:last");
+
+        // Don't allow dialog to exceed viewport height
+        $(".modal-inner-wrapper:last > .instance").css({
+            "max-height": maxHeight,
+            "overflow": "auto"
+        });
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
