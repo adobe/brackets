@@ -142,8 +142,8 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
-    function _updateOverwriteLabel() {
-        if ($statusOverwrite.prop("class") === "active") {
+    function _updateOverwriteLabel(event, editor, newstate) {
+        if (!newstate) {
             $statusOverwrite.removeClass("active");
         } else {
             $statusOverwrite.addClass("active");

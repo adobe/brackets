@@ -710,8 +710,8 @@ define(function (require, exports, module) {
         this._codeMirror.on("update", function (instance) {
             $(self).triggerHandler("update", [self]);
         });
-        this._codeMirror.on("overwriteToggle", function (instance) {
-            $(self).triggerHandler("overwriteToggle", [self]);
+        this._codeMirror.on("overwriteToggle", function (instance, newstate) {
+            $(self).triggerHandler("overwriteToggle", [self, newstate]);
         });
     };
     
