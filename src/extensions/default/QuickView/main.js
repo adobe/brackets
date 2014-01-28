@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        lastPos;                             // Last line/ch pos processed by handleMouseMove
+        lastPos,                             // Last line/ch pos processed by handleMouseMove
+        lastMouseEvent;                      // Last mouse event processed by handleMouseMove
     
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
@@ -598,6 +599,11 @@ define(function (require, exports, module) {
             hidePreview();
             return;
         }
+        
+        if (lastMouseEvent && lastMouseEvent.clientX === event.clientX && lastMouseEvent.clientY === event.clientY) {
+            return;
+        }
+        lastMouseEvent = event;
         
         var editor = getHoveredEditor(event);
         
