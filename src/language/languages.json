@@ -223,7 +223,13 @@
   
     "image": {
         "name": "Image",
-        "mode": ["null", "text/plain"],
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"]
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"],
+        "isBinary": true
+    },
+    
+    "audio": {
+        "name": "Audio",
+        "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
+        "isBinary": true
     }
 }

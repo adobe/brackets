@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
         Strings         = brackets.getModule("strings");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
@@ -493,6 +492,19 @@ define(function (require, exports, module) {
 
             bezierEditor._commitTimingFunction();
             bezierEditor._updateCanvas();
+            return true;
+
+        } else if (code === KeyEvent.DOM_VK_ESCAPE) {
+            return true;
+        } else if (code === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            // Switch between the two points by tabbing
+            if ($(e.target).hasClass("P1")) {
+                $(".P2").focus();
+            } else {
+                $(".P1").focus();
+            }
+            e.preventDefault();
+            return true;
         }
 
         return false;
@@ -500,14 +512,14 @@ define(function (require, exports, module) {
 
 
     /**
-     * Constructor for TimingFunctionEditor Object. This control may be used standalone
+     * Constructor for BezierCurveEditor Object. This control may be used standalone
      * or within an InlineTimingFunctionEditor inline widget.
      *
      * @param {!jQuery} $parent  DOM node into which to append the root of the bezier curve editor UI
      * @param {!RegExpMatch} bezierCurve  RegExp match object of initially selected bezierCurve
      * @param {!function(string)} callback  Called whenever selected bezierCurve changes
      */
-    function TimingFunctionEditor($parent, bezierCurve, callback) {
+    function BezierCurveEditor($parent, bezierCurve, callback) {
         // Create the DOM structure, filling in localized strings via Mustache
         this.$element = $(Mustache.render(BezierCurveEditorTemplate, Strings));
         $parent.append(this.$element);
@@ -547,7 +559,7 @@ define(function (require, exports, module) {
     /**
      * Destructor called by InlineTimingFunctionEditor.onClosed()
      */
-    TimingFunctionEditor.prototype.destroy = function () {
+    BezierCurveEditor.prototype.destroy = function () {
 
         this.P1.bezierEditor = this.P2.bezierEditor = this.curve.bezierEditor = null;
 
@@ -567,40 +579,29 @@ define(function (require, exports, module) {
     };
 
 
-    /** Returns the root DOM node of the TimingFunctionEditor UI */
-    TimingFunctionEditor.prototype.getRootElement = function () {
+    /** Returns the root DOM node of the BezierCurveEditor UI */
+    BezierCurveEditor.prototype.getRootElement = function () {
         return this.$element;
     };
 
     /**
      * Default focus needs to go somewhere, so give it to P1
      */
-    TimingFunctionEditor.prototype.focus = function () {
+    BezierCurveEditor.prototype.focus = function () {
         this.P1.focus();
         return true;
     };
 
     /**
-     * Normalize the given bezierCurve string.
-     *
-     * @param {string} bezierCurve The bezierCurve to be corrected.
-     * @return {string} a normalized bezierCurve string.
+     * Generates cubic-bezier function based on coords, and updates the doc
      */
-    TimingFunctionEditor.prototype._normalizeTimingFunctionString = function (bezierCurve) {
-        return bezierCurve.toLowerCase();
-    };
-
-    /**
-     * Sets _bezierCurve based on a string input, and updates the doc
-     */
-    TimingFunctionEditor.prototype._commitTimingFunction = function () {
+    BezierCurveEditor.prototype._commitTimingFunction = function () {
         var bezierCurveVal = "cubic-bezier(" +
             this._cubicBezierCoords[0] + ", " +
             this._cubicBezierCoords[1] + ", " +
             this._cubicBezierCoords[2] + ", " +
             this._cubicBezierCoords[3] + ")";
         this._callback(bezierCurveVal);
-        this._bezierCurve = bezierCurveVal;
     };
 
     /**
@@ -610,7 +611,7 @@ define(function (require, exports, module) {
      * @param {RegExp.match} match Matches returned from cubicBezierMatch()
      * @return {Array.number[4]}
      */
-    TimingFunctionEditor.prototype._getCubicBezierCoords = function (match) {
+    BezierCurveEditor.prototype._getCubicBezierCoords = function (match) {
 
         if (match[0].match(/^cubic-bezier/)) {
             // cubic-bezier()
@@ -640,7 +641,7 @@ define(function (require, exports, module) {
      *
      * @return {left: number, top: number, width: number, height: number}
      */
-    TimingFunctionEditor.prototype._getCurveBoundingBox = function () {
+    BezierCurveEditor.prototype._getCurveBoundingBox = function () {
         var $canvas = this.$element.find(".curve"),
             canvasOffset = $canvas.offset();
 
@@ -655,7 +656,7 @@ define(function (require, exports, module) {
     /**
      * Update <canvas> after a change
      */
-    TimingFunctionEditor.prototype._updateCanvas = function () {
+    BezierCurveEditor.prototype._updateCanvas = function () {
         // collect data, build model
         if (this._cubicBezierCoords) {
             this.bezierCanvas.bezier = window.bezier = new CubicBezier(this._cubicBezierCoords);
@@ -680,11 +681,11 @@ define(function (require, exports, module) {
      *
      * @param {!RegExpMatch} bezierCurve  RegExp match object of updated bezierCurve
      */
-    TimingFunctionEditor.prototype.handleExternalUpdate = function (bezierCurve) {
+    BezierCurveEditor.prototype.handleExternalUpdate = function (bezierCurve) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
         this._updateCanvas();
     };
 
     
-    exports.TimingFunctionEditor = TimingFunctionEditor;
+    exports.BezierCurveEditor = BezierCurveEditor;
 });

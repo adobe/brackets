@@ -32,18 +32,22 @@
     <!-- NOTE: All scripts must be external for Chrome App support: http://developer.chrome.com/apps/app_csp.html -->
 
     <!-- Warn about failed cross origin requests in Chrome -->
-    <script type="application/javascript" src="xorigin.js">
-    </script>
+    <script type="application/javascript" src="xorigin.js"></script>
 
-    <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
-    <link rel="stylesheet/less" href="styles/brackets.less">
-    <script src="thirdparty/less-1.4.2.min.js"></script>
-    <script src="thirdparty/mustache/mustache.js"></script>
-    <!-- <link rel="stylesheet" href="brackets.min.css"> -->
-
+    <link rel="stylesheet" type="text/css" href="thirdparty/CodeMirror2/lib/codemirror.css">
+    <!--(if target dev)><!-->
+    <link rel="stylesheet" type="text/less" href="styles/brackets.less">
+    <!--<!(endif)-->
+    <!--(if target dist)>
+    <link rel="stylesheet" type="text/css" href="styles/brackets.min.css">
+    <!--<!(endif)-->
+    
     <!-- JavaScript -->
 
     <!-- Pre-load third party scripts that cannot be async loaded. -->
+    <!-- build:js thirdparty/thirdparty.min.js -->
+    <script src="thirdparty/less-1.4.2.min.js"></script>
+    <script src="thirdparty/mustache/mustache.js"></script>
     <script src="thirdparty/jquery-2.0.1.min.js"></script>
     <script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
     <script src="thirdparty/CodeMirror2/addon/fold/xml-fold.js"></script>
@@ -59,6 +63,7 @@
 
     <!-- JS for CodeMirror search support -->
     <script src="thirdparty/CodeMirror2/addon/search/searchcursor.js"></script>
+    <!-- endbuild -->
 
 </head>
 <body>
@@ -70,7 +75,9 @@
     -->
     
     <!-- All other scripts are loaded through require. -->
+    <!-- build:js main.js -->
     <script src="thirdparty/requirejs/require.js" data-main="main"></script>
+    <!-- endbuild -->
 
     <!-- Verify that all dependencies are loaded. -->
     <script src="dependencies.js"></script>

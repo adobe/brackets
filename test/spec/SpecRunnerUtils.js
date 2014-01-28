@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesBase     = require("preferences/PreferencesBase");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
@@ -50,10 +51,12 @@ define(function (require, exports, module) {
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
-        nfs,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
     
+    function _getFileSystem() {
+        return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
+    }
     
     /**
      * Delete a path
@@ -63,7 +66,7 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        FileSystem.resolve(fullPath, function (err, item) {
+        _getFileSystem().resolve(fullPath, function (err, item) {
             if (!err) {
                 item.unlink(function (err) {
                     if (!err) {
@@ -110,6 +113,10 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    function testDomain() {
+        return brackets.testing.nodeConnection.domains.testing;
+    }
+    
     /**
      * Remove a directory (recursively) or file
      *
@@ -117,28 +124,19 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved when the path is removed, rejected if there was a problem
      */
     function remove(path) {
-        var d = new $.Deferred();
-        var nodeDeferred = brackets.testing.getNodeConnectionDeferred();
-        nodeDeferred
-            .done(function (connection) {
-                if (connection.connected()) {
-                    connection.domains.testing.remove(path)
-                        .done(function () {
-                            d.resolve();
-                        })
-                        .fail(function () {
-                            d.reject();
-                        });
-                } else {
-                    d.reject();
-                }
-            })
-            .fail(function () {
-                d.reject();
-            });
-        return d.promise();
+        return testDomain().remove(path);
     }
-        
+    
+    /**
+     * Copy a directory (recursively) or file
+     *
+     * @param {!string}     src     Path to copy
+     * @param {!string}     dest    Destination directory
+     * @return {$.Promise} Resolved when the path is copied, rejected if there was a problem
+     */
+    function copy(src, dest) {
+        return testDomain().copy(src, dest);
+    }
     
     /**
      * Resolves a path string to a File or Directory
@@ -149,7 +147,7 @@ define(function (require, exports, module) {
     function resolveNativeFileSystemPath(path) {
         var result = new $.Deferred();
         
-        FileSystem.resolve(path, function (err, item) {
+        _getFileSystem().resolve(path, function (err, item) {
             if (!err) {
                 result.resolve(item);
             } else {
@@ -233,7 +231,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = FileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
+            var dir = _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
                 if (err && err !== FileSystemError.ALREADY_EXISTS) {
                     deferred.reject(err);
                 } else {
@@ -257,7 +255,7 @@ define(function (require, exports, module) {
         promise = Async.doSequentially(folders, function (folder) {
             var deferred = new $.Deferred();
             
-            FileSystem.resolve(folder, function (err, entry) {
+            _getFileSystem().resolve(folder, function (err, entry) {
                 if (!err) {
                     // Change permissions if the directory exists
                     chmod(folder, "777").then(deferred.resolve, deferred.reject);
@@ -323,7 +321,7 @@ define(function (require, exports, module) {
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = FileSystem.getFileForPath(filename);
+        var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
@@ -533,6 +531,15 @@ define(function (require, exports, module) {
         );
 
         runs(function () {
+            // Reconfigure the preferences manager so that the "user" scoped
+            // preferences are empty and the tests will not reconfigure
+            // the preferences of the user running the tests.
+            var pm = _testWindow.brackets.test.PreferencesManager._manager;
+            pm.removeScope("user");
+            pm.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            });
+            
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
         });
@@ -746,9 +753,12 @@ define(function (require, exports, module) {
      */
     function createTextFile(path, text, fileSystem) {
         var deferred = new $.Deferred(),
-            file = fileSystem.getFileForPath(path);
+            file = fileSystem.getFileForPath(path),
+            options = {
+                blind: true // overwriting previous files is OK
+            };
         
-        file.write(text, function (err) {
+        file.write(text, options, function (err) {
             if (!err) {
                 deferred.resolve(file);
             } else {
@@ -788,7 +798,7 @@ define(function (require, exports, module) {
                 }
                 
                 // create the new File
-                createTextFile(destination, text, FileSystem).done(function (entry) {
+                createTextFile(destination, text, _getFileSystem()).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
                 }).fail(function (err) {
                     deferred.reject(err);
@@ -803,8 +813,8 @@ define(function (require, exports, module) {
     
     /**
      * Copy a directory source to a destination
-     * @param {!Directory} source Directory for the source directory to copy
-     * @param {!string} destination Destination path to copy the source directory
+     * @param {!Directory} source Directory to copy
+     * @param {!string} destination Destination path to copy the source directory to
      * @param {?{parseOffsets:boolean, infos:Object, removePrefix:boolean}}} options
      *     parseOffsets - allows optional offset markup parsing. File is written to the
      *       destination path without offsets. Offset data is passed to the
@@ -825,7 +835,7 @@ define(function (require, exports, module) {
         var parseOffsets    = options.parseOffsets || false,
             removePrefix    = options.removePrefix || true,
             deferred        = new $.Deferred(),
-            destDir         = FileSystem.getDirectoryForPath(destination);
+            destDir         = _getFileSystem().getDirectoryForPath(destination);
         
         // create the destination folder
         destDir.create(function (err) {
@@ -1248,6 +1258,7 @@ define(function (require, exports, module) {
 
     exports.chmod                           = chmod;
     exports.remove                          = remove;
+    exports.copy                            = copy;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;

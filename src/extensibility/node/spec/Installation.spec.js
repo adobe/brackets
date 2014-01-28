@@ -55,7 +55,9 @@ var basicValidExtension       = path.join(testFilesDirectory, "basic-valid-exten
     invalidZip                = path.join(testFilesDirectory, "invalid-zip-file.zip"),
     missingPackageJSON        = path.join(testFilesDirectory, "missing-package-json.zip"),
     missingPackageJSONUpdate  = path.join(testFilesDirectory, "missing-package-json-update.zip"),
-    missingPackageJSONRenamed = path.join(testFilesDirectory, "added-package-json-test", "missing-package-json.zip");
+    missingPackageJSONRenamed = path.join(testFilesDirectory, "added-package-json-test", "missing-package-json.zip"),
+    withSymlink            = path.join(testFilesDirectory, "with-symlink.zip");
+
 
 describe("Package Installation", function () {
     
@@ -313,6 +315,16 @@ describe("Package Installation", function () {
                     done();
                 });
             });
+        });
+    });
+    
+    it("should strip out symlinks in the zipfile", function (done) {
+        ExtensionsDomain._cmdInstall(withSymlink, installDirectory, standardOptions, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            expect(fs.existsSync(result.installedTo)).toBe(true);
+            expect(fs.existsSync(path.join(result.installedTo, "bin", "foo"))).toBe(false);
+            done();
         });
     });
 });

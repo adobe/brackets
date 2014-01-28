@@ -99,6 +99,22 @@ maxerr: 50, node: true */
             [{name: "message", type: "string"}],
             [] // no return
         );
+        _domainManager.registerEvent(
+            "test",
+            "eventOne",
+            [
+                {name: "argOne", type: "string"},
+                {name: "argTwo", type: "string"}
+            ]
+        );
+        _domainManager.registerEvent(
+            "test",
+            "eventTwo",
+            [
+                {name: "argOne", type: "boolean"},
+                {name: "argTwo", type: "boolean"}
+            ]
+        );
     }
     
     exports.init = init;
