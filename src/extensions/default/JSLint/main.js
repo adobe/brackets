@@ -46,6 +46,9 @@ define(function (require, exports, module) {
             CodeInspection.requestRun(Strings.JSLINT_NAME);
         });
     
+    // Predefined environments understood by JSLint.
+    var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
+    
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
@@ -73,6 +76,15 @@ define(function (require, exports, module) {
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
             options.indent = PreferencesManager.get("spaceUnits");
+        }
+        
+        // If the user has not defined the environment, we use browser by default.
+        var hasEnvironment = _.some(ENVIRONMENTS, function (env) {
+            return options[env] !== undefined;
+        });
+        
+        if (!hasEnvironment) {
+            options.browser = true;
         }
         
         var jslintResult = JSLINT(text, options);
