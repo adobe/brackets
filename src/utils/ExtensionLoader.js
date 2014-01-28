@@ -39,7 +39,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var FileSystem  = require("filesystem/FileSystem"),
+    var _           = require("thirdparty/lodash"),
+        FileSystem  = require("filesystem/FileSystem"),
         FileUtils   = require("file/FileUtils"),
         Async       = require("utils/Async"),
         UrlParams   = require("utils/UrlParams").UrlParams;
@@ -106,6 +107,38 @@ define(function (require, exports, module) {
         _initExtensionTimeout = value;
     }
 
+    /**
+     * @private
+     * Loads optional requirejs-config.json file for an extension
+     * @param {Object} baseConfig
+     * @return {$.Promise}
+     */
+    function _mergeConfig(baseConfig) {
+        var deferred = new $.Deferred(),
+            extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
+
+        // Optional JSON config for require.js
+        FileUtils.readAsText(extensionConfigFile).done(function (text) {
+            try {
+                // Parse to JSON, remove baseUrl, context, locale if defined. All other
+                // requirejs.config() parameters can be overridden.
+                var extensionConfig = _.omit(JSON.parse(text), "baseUrl", "context", "locale");
+                
+                // Append paths to global paths
+                extensionConfig.paths = _.extend({}, baseConfig.paths, extensionConfig.paths);
+                
+                deferred.resolve(_.extend({}, baseConfig, extensionConfig));
+            } catch (err) {
+                // Failed to parse requirejs-config.json
+                deferred.reject("failed to parse requirejs-config.json");
+            }
+        }).fail(function () {
+            // If requirejs-config.json isn't specified, resolve with the baseConfig only
+            deferred.resolve(baseConfig);
+        });
+
+        return deferred.promise();
+    }
     
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
@@ -118,68 +151,71 @@ define(function (require, exports, module) {
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
     function loadExtension(name, config, entryPoint) {
-        var result = new $.Deferred(),
-            promise = result.promise(),
-            extensionRequire = brackets.libRequire.config({
-                context: name,
-                baseUrl: config.baseUrl,
-                /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
-                paths: globalConfig,
-                locale: brackets.getLocale()
-            });
-        contexts[name] = extensionRequire;
+        var extensionConfig = {
+            context: name,
+            baseUrl: config.baseUrl,
+            /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
+            paths: globalConfig,
+            locale: brackets.getLocale()
+        };
 
         // console.log("[Extension] starting to load " + config.baseUrl);
         
-        extensionRequire([entryPoint],
-            function (module) {
-                // console.log("[Extension] finished loading " + config.baseUrl);
-                var initPromise;
+        // Read optional requirejs-config.json
+        var promise = _mergeConfig(extensionConfig).then(function (mergedConfig) {
+            // Create new RequireJS context and load extension entry point
+            var extensionRequire = brackets.libRequire.config(mergedConfig),
+                extensionRequireDeferred = new $.Deferred();
 
-                _extensions[name] = module;
+            contexts[name] = extensionRequire;
+            extensionRequire([entryPoint], extensionRequireDeferred.resolve, extensionRequireDeferred.reject);
+            
+            return extensionRequireDeferred.promise();
+        }).then(function (module) {
+            // Extension loaded normally
+            // console.log("[Extension] finished loading " + config.baseUrl);
+            var initPromise;
 
-                if (module && module.initExtension && (typeof module.initExtension === "function")) {
-                    // optional async extension init 
-                    try {
-                        initPromise = Async.withTimeout(module.initExtension(), _getInitExtensionTimeout());
-                    } catch (err) {
-                        console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
-                        result.reject(err);
-                    }
+            _extensions[name] = module;
 
-                    if (initPromise) {
-                        // WARNING: These calls to initPromise.fail() and initPromise.then(),
-                        // could also result in a runtime error if initPromise is not a valid
-                        // promise. Currently, the promise is wrapped via Async.withTimeout(),
-                        // so the call is safe as-is.
-                        initPromise.fail(function (err) {
-                            if (err === Async.ERROR_TIMEOUT) {
-                                console.error("[Extension] Error -- timeout during initExtension for " + name);
-                            } else {
-                                console.error("[Extension] Error -- failed initExtension for " + name + (err ? ": " + err : ""));
-                            }
-                        });
-
-                        initPromise.then(result.resolve, result.reject);
-                    } else {
-                        result.resolve();
-                    }
-                } else {
-                    result.resolve();
+            // Optional sync/async initExtension
+            if (module && module.initExtension && (typeof module.initExtension === "function")) {
+                // optional async extension init 
+                try {
+                    initPromise = Async.withTimeout(module.initExtension(), _getInitExtensionTimeout());
+                } catch (err) {
+                    // Synchronous error while initializing extension
+                    console.error("[Extension] Error -- error thrown during initExtension for " + name + ": " + err);
+                    return new $.Deferred().reject(err).promise();
                 }
-            },
-            function errback(err) {
-                console.error("[Extension] failed to load " + config.baseUrl, err);
-                if (err.requireType === "define") {
-                    // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
-                    console.log(err.stack);
-                }
-                result.reject();
-            });
 
-        result.done(function () {
+                // initExtension may be synchronous and may not return a promise
+                if (initPromise) {
+                    // WARNING: These calls to initPromise.fail() and initPromise.then(),
+                    // could also result in a runtime error if initPromise is not a valid
+                    // promise. Currently, the promise is wrapped via Async.withTimeout(),
+                    // so the call is safe as-is.
+                    initPromise.fail(function (err) {
+                        if (err === Async.ERROR_TIMEOUT) {
+                            console.error("[Extension] Error -- timeout during initExtension for " + name);
+                        } else {
+                            console.error("[Extension] Error -- failed initExtension for " + name + (err ? ": " + err : ""));
+                        }
+                    });
+
+                    return initPromise;
+                }
+            }
+        }, function errback(err) {
+            // Extension failed to load during the initial require() call
+            console.error("[Extension] failed to load " + config.baseUrl + " " + err);
+            if (err.requireType === "define") {
+                // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
+                console.log(err.stack);
+            }
+        }).then(function () {
             $(exports).triggerHandler("load", config.baseUrl);
-        }).fail(function () {
+        }, function (err) {
             $(exports).triggerHandler("loadFailed", config.baseUrl);
         });
         
