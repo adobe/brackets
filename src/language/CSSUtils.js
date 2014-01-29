@@ -434,7 +434,7 @@ define(function (require, exports, module) {
     /**
      * Returns a context info object for the given cursor position
      * @param {!Editor} editor
-     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
      * @return {{context: string,
      *           offset: number,
      *           name: string,
