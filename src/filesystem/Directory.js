@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry     = require("filesystem/FileSystemEntry");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     /*
      * @constructor
@@ -73,21 +73,53 @@ define(function (require, exports, module) {
     Directory.prototype._contentsStatsErrors = null;
     
     /**
-     * Clear any cached data for this directory
+     * Clear any cached data for this directory. By default, we clear the contents
+     * of immediate children as well, because in some cases file watchers fail 
+     * provide precise change notifications. (Sometimes, like after a "git
+     * checkout", they just report that some directory has changed when in fact
+     * many of the file within the directory have changed.
+     * 
      * @private
+     * @param {boolean=} preserveImmediateChildren
      */
-    Directory.prototype._clearCachedData = function () {
-        this.parentClass._clearCachedData.apply(this);
+    Directory.prototype._clearCachedData = function (preserveImmediateChildren) {
+        FileSystemEntry.prototype._clearCachedData.apply(this);
+        
+        if (!preserveImmediateChildren && this._contents) {
+            this._contents.forEach(function (child) {
+                child._clearCachedData(true);
+            });
+        }
+        
         this._contents = undefined;
         this._contentsStats = undefined;
         this._contentsStatsErrors = undefined;
     };
     
     /**
+     * Apply each callback in a list to the provided arguments. Callbacks
+     * can throw without preventing other callbacks from being applied.
+     * 
+     * @private
+     * @param {Array.<function>} callbacks The callbacks to apply
+     * @param {Array} args The arguments to which each callback is applied
+     */
+    function _applyAllCallbacks(callbacks, args) {
+        if (callbacks.length > 0) {
+            var callback = callbacks.pop();
+            try {
+                callback.apply(undefined, args);
+            } finally {
+                _applyAllCallbacks(callbacks, args);
+            }
+        }
+    }
+    
+    /**
      * Read the contents of a Directory. 
      *
      * @param {Directory} directory Directory whose contents you want to get
-     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, object.<string: string>=)} callback
+     * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, Object.<string, string>=)} callback
      *          Callback that is passed an error code or the stat-able contents
      *          of the directory along with the stats for these entries and a
      *          fullPath-to-FileSystemError string map of unstat-able entries
@@ -101,61 +133,64 @@ define(function (require, exports, module) {
             this._contentsCallbacks.push(callback);
             return;
         }
-        
+
+        // Return cached contents if the directory is watched
         if (this._contents) {
-            // Return cached contents
-            // Watchers aren't guaranteed to fire immediately, so it's possible this will be somewhat stale. But
-            // unlike file contents, we're willing to tolerate directory contents being stale. It should at least
-            // be up-to-date with respect to changes made internally (by this filesystem).
             callback(null, this._contents, this._contentsStats, this._contentsStatsErrors);
             return;
         }
         
         this._contentsCallbacks = [callback];
         
-        this._impl.readdir(this.fullPath, function (err, contents, stats) {
+        this._impl.readdir(this.fullPath, function (err, names, stats) {
+            var contents = [],
+                contentsStats = [],
+                contentsStatsErrors;
+            
             if (err) {
                 this._clearCachedData();
             } else {
-                this._contents = [];
-                this._contentsStats = [];
-                this._contentsStatsErrors = undefined;
+                // Use the "relaxed" parameter to _isWatched because it's OK to
+                // cache data even while watchers are still starting up
+                var watched = this._isWatched(true);
                 
-                contents.forEach(function (name, index) {
-                    var entryPath = this.fullPath + name,
-                        entry;
+                names.forEach(function (name, index) {
+                    var entryPath = this.fullPath + name;
                     
                     if (this._fileSystem._indexFilter(entryPath, name)) {
-                        var entryStats = stats[index];
+                        var entryStats = stats[index],
+                            entry;
                         
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {
                             // entryStats is an error string
-                            if (this._contentsStatsErrors === undefined) {
-                                this._contentsStatsErrors = {};
+                            if (contentsStatsErrors === undefined) {
+                                contentsStatsErrors = {};
                             }
-                            this._contentsStatsErrors[entryPath] = entryStats;
+                            contentsStatsErrors[entryPath] = entryStats;
                         } else {
                             // entryStats is a FileSystemStats object
                             if (entryStats.isFile) {
                                 entry = this._fileSystem.getFileForPath(entryPath);
-                                
-                                // If file already existed, its cache may now be invalid (a change
-                                // to file content may be messaged EITHER as a watcher change 
-                                // directly on that file, OR as a watcher change to its parent dir)
-                                // TODO: move this to FileSystem._handleWatchResult()?
-                                entry._clearCachedData();
                             } else {
                                 entry = this._fileSystem.getDirectoryForPath(entryPath);
                             }
                             
-                            entry._stat = entryStats;
-                            this._contents.push(entry);
-                            this._contentsStats.push(entryStats);
+                            if (watched) {
+                                entry._stat = entryStats;
+                            }
+                            
+                            contents.push(entry);
+                            contentsStats.push(entryStats);
                         }
-                    
                     }
                 }, this);
+
+                if (watched) {
+                    this._contents = contents;
+                    this._contentsStats = contentsStats;
+                    this._contentsStatsErrors = contentsStatsErrors;
+                }
             }
             
             // Reset the callback list before we begin calling back so that
@@ -165,13 +200,8 @@ define(function (require, exports, module) {
             this._contentsCallbacks = null;
             
             // Invoke all saved callbacks
-            currentCallbacks.forEach(function (cb) {
-                try {
-                    cb(err, this._contents, this._contentsStats, this._contentsStatsErrors);
-                } catch (ex) {
-                    console.warn("Unhandled exception in callback: ", ex);
-                }
-            }, this);
+            var callbackArgs = [err, contents, contentsStats, contentsStatsErrors];
+            _applyAllCallbacks(currentCallbacks, callbackArgs);
         }.bind(this));
     };
     
@@ -183,12 +213,38 @@ define(function (require, exports, module) {
      */
     Directory.prototype.create = function (callback) {
         callback = callback || function () {};
+        
+        // Block external change events until after the write has finished
+        this._fileSystem._beginChange();
+        
         this._impl.mkdir(this._path, function (err, stat) {
-            if (!err) {
-                this._stat = stat;
+            if (err) {
+                this._clearCachedData();
+                try {
+                    callback(err);
+                    return;
+                } finally {
+                    // Unblock external change events
+                    this._fileSystem._endChange();
+                }
             }
 
-            callback(err, stat);
+            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+            
+            // Update internal filesystem state
+            if (this._isWatched()) {
+                this._stat = stat;
+            }
+            
+            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                try {
+                    callback(null, stat);
+                } finally {
+                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    // Unblock external change events
+                    this._fileSystem._endChange();
+                }
+            }.bind(this));
         }.bind(this));
     };
     

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, doReplace, Mustache */
+/*global define, $, Mustache */
 /*unittests: FindReplace*/
 
 
@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager      = require("command/CommandManager"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
         AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         DocumentManager     = require("document/DocumentManager"),
@@ -43,13 +44,16 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
+        KeyEvent            = require("utils/KeyEvent"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
         ViewUtils           = require("utils/ViewUtils");
     
-    var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
+    var searchBarTemplate            = require("text!htmlContent/findreplace-bar.html"),
+        searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
         searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
 
     /** @const Maximum file size to search within (in chars) */
@@ -60,6 +64,11 @@ define(function (require, exports, module) {
 
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
     var REPLACE_ALL_MAX     = 300;
+    
+    var _prefs = PreferencesManager.getPreferenceStorage(module, {
+        caseSensitive: false,
+        regexp: false
+    });
 
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
@@ -74,11 +83,17 @@ define(function (require, exports, module) {
         $replaceAllSummary,
         $replaceAllTable;
 
-    var modalBar,
-        isFindFirst = false;
+    /** @type {?ModalBar} Currently open Find or Find/Replace bar, if any */
+    var modalBar;
+    
+    /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
+    var closeFindInFilesBar;
+    
 
     function SearchState() {
-        this.posFrom = this.posTo = this.query = null;
+        this.searchStartPos = null;
+        this.query = null;
+        this.foundAny = false;
         this.marked = [];
     }
 
@@ -91,29 +106,37 @@ define(function (require, exports, module) {
 
     function getSearchCursor(cm, query, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return cm.getSearchCursor(query, pos, typeof query === "string" && query === query.toLowerCase());
+        return cm.getSearchCursor(query, pos, !$("#find-case-sensitive").is(".active"));
     }
     
-    function getDialogTextField() {
-        return $("input[type='text']", modalBar.getRoot());
+    function _updateSearchBarFromPrefs() {
+        $("#find-case-sensitive").toggleClass("active", _prefs.getValue("caseSensitive"));
+        $("#find-regexp").toggleClass("active",         _prefs.getValue("regexp"));
     }
-
+    function _updatePrefsFromSearchBar() {
+        _prefs.setValue("caseSensitive", $("#find-case-sensitive").is(".active"));
+        _prefs.setValue("regexp",        $("#find-regexp").is(".active"));
+    }
+    
     function parseQuery(query) {
-        var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
-        $(".modal-bar .message").css("display", "inline-block");
-        $(".modal-bar .error").css("display", "none");
-        try {
-            if (isRE && isRE[1]) {  // non-empty regexp
-                return new RegExp(isRE[1], isRE[2].indexOf("i") === -1 ? "" : "i");
-            } else {
-                return query;
+        $(".modal-bar .message").show();
+        $(".modal-bar .error").hide();
+        
+        // Is it a (non-blank) regex?
+        if (query && $("#find-regexp").is(".active")) {
+            try {
+                var caseSensitive = $("#find-case-sensitive").is(".active");
+                return new RegExp(query, caseSensitive ? "" : "i");
+            } catch (e) {
+                $(".modal-bar .message").hide();
+                $(".modal-bar .error")
+                    .show()
+                    .text(e.message);
+                return "";
             }
-        } catch (e) {
-            $(".modal-bar .message").css("display", "none");
-            $(".modal-bar .error")
-                .css("display", "inline-block")
-                .html("<div class='alert' style='margin-bottom: 0'>" + e.message + "</div>");
-            return "";
+        
+        } else {
+            return query;
         }
     }
 
@@ -130,21 +153,32 @@ define(function (require, exports, module) {
         return replaceWith;
     }
 
-    function findNext(editor, rev) {
+    /**
+     * Selects the next match (or prev match, if rev==true) starting from either the current position
+     * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
+     * need not be an existing match. If a new match is found, sets to state.lastMatch either the regex
+     * match result, or simply true for a plain-string match. If no match found, sets state.lastMatch
+     * to false.
+     * @param {!Editor} editor
+     * @param {?boolean} rev
+     * @param {?boolean} preferNoScroll
+     * @param {?Pos} pos
+     */
+    function findNext(editor, rev, preferNoScroll, pos) {
         var cm = editor._codeMirror;
-        var found = true;
         cm.operation(function () {
             var state = getSearchState(cm);
-            var cursor = getSearchCursor(cm, state.query, rev ? state.posFrom : state.posTo);
+            var cursor = getSearchCursor(cm, state.query, pos || editor.getCursor(Boolean(rev))); // null and false mean different things to getCursor()
 
-            if (!cursor.find(rev)) {
+            state.lastMatch = cursor.find(rev);
+            if (!state.lastMatch) {
                 // If no result found before hitting edge of file, try wrapping around
                 cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+                state.lastMatch = cursor.find(rev);
                 
-                // No result found, period: clear selection & bail
-                if (!cursor.find(rev)) {
+                if (!state.lastMatch) {
+                    // No result found, period: clear selection & bail
                     cm.setCursor(editor.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
-                    found = false;
                     return;
                 }
             }
@@ -152,17 +186,13 @@ define(function (require, exports, module) {
             var resultVisible = editor.isLineVisible(cursor.from().line),
                 centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
             
-            if (isFindFirst && resultVisible) {
+            if (preferNoScroll && resultVisible) {
                 // no need to scroll if the line with the match is in view
                 centerOptions = Editor.BOUNDARY_IGNORE_TOP;
             }
             cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
             editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
-            state.posFrom = cursor.from();
-            state.posTo = cursor.to();
-            state.findNextCalled = true;
         });
-        return found;
     }
 
     function clearHighlights(cm, state) {
@@ -188,33 +218,42 @@ define(function (require, exports, module) {
         });
     }
     
-    function createModalBar(template, autoClose, animate) {
+    function _closeFindBar() {
+        if (modalBar) {
+            // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
+            modalBar.close(true, false);
+        }
+    }
+    function _registerFindInFilesCloser(closer) {
+        closeFindInFilesBar = closer;
+    }
+    
+    function createModalBar(template) {
         // Normally, creating a new modal bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
         // cause the new one to think it should close, too. The old CodeMirror version
         // of this handled it by adding a timeout within which a blur wouldn't cause
         // the modal bar to close. Rather than reinstate that hack, we simply explicitly
-        // close the old modal bar before creating a new one.
-        if (modalBar) {
-            modalBar.close(true, animate);
-        }
-        modalBar = new ModalBar(template, autoClose, animate);
-        $(modalBar).on("commit close", function () {
+        // close the old modal bar (which may be a Find, Replace, *or* Find in Files bar
+        // before creating a new one. (TODO: remove once #6203 fixed)
+        _closeFindBar();
+        closeFindInFilesBar();
+        
+        modalBar = new ModalBar(template, true);  // 2nd arg = auto-close on Esc/blur
+        
+        $(modalBar).on("close", function (event) {
             modalBar = null;
         });
     }
     
-    var queryDialog = Strings.CMD_FIND +
-            ": <input type='text' style='width: 10em'/>" +
-            "<div class='navigator'>" +
-                "<button id='find-prev' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_PREV_HINT + "'>" + Strings.BUTTON_PREV + "</button>" +
-                "<button id='find-next' class='btn no-focus' tabindex='-1' title='" + Strings.BUTTON_NEXT_HINT + "'>" + Strings.BUTTON_NEXT + "</button>" +
-            "</div>" +
-            "<div class='message'>" +
-                "<span id='find-counter'></span> " +
-                "<span style='color: #888'>(" + Strings.SEARCH_REGEXP_INFO  + ")</span>" +
-            "</div>" +
-            "<div class='error'></div>";
+    function addShortcutToTooltip($elem, commandId) {
+        var replaceShortcut = KeyBindingManager.getKeyBindings(commandId)[0];
+        if (replaceShortcut) {
+            var oldTitle = $elem.attr("title");
+            oldTitle = (oldTitle ? oldTitle + " " : "");
+            $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
+        }
+    }
 
     
     function toggleHighlighting(editor, enabled) {
@@ -229,167 +268,199 @@ define(function (require, exports, module) {
     }
 
     /**
-     * If no search pending, opens the search dialog. If search is already open, moves to
-     * next/prev result (depending on 'rev')
+     * Called each time the search query changes or document is modified (via Replace). Updates
+     * the match count, match highlights and scrollbar tickmarks. Does not change the cursor pos.
      */
-    function doSearch(editor, rev, initialQuery) {
-        var cm = editor._codeMirror;
-        var state = getSearchState(cm);
-        if (state.query) {
-            findNext(editor, rev);
-            return;
+    function updateResultSet(editor) {
+        var cm = editor._codeMirror,
+            state = getSearchState(cm);
+        
+        function indicateHasMatches(numResults) {
+            // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
+            ViewUtils.toggleClass($("#find-what"), "no-results", !state.foundAny && $("#find-what").val());
+            
+            // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
+            $("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
+            $("#replace-yes, #replace-all").prop("disabled", !state.foundAny);
         }
+        
+        cm.operation(function () {
+            // Clear old highlights
+            if (state.marked) {
+                clearHighlights(cm, state);
+            }
+            
+            if (!state.query) {
+                // Search field is empty - no results
+                $("#find-counter").text("");
+                state.foundAny = false;
+                indicateHasMatches();
+                return;
+            }
+            
+            // Find *all* matches, searching from start of document
+            // (Except on huge documents, where this is too expensive)
+            var cursor = getSearchCursor(cm, state.query);
+            if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
+                // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
+                var resultSet = [];
+                while (cursor.findNext()) {
+                    resultSet.push(cursor.pos);  // pos is unique obj per search result
+                }
+                
+                // Highlight all matches if there aren't too many
+                if (resultSet.length <= FIND_HIGHLIGHT_MAX) {
+                    toggleHighlighting(editor, true);
+                    
+                    resultSet.forEach(function (result) {
+                        state.marked.push(cm.markText(result.from, result.to,
+                             { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+                    });
+                    var scrollTrackPositions = resultSet.map(function (result) {
+                        return result.from;
+                    });
+                    
+                    ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                }
+                
+                if (resultSet.length === 0) {
+                    $("#find-counter").text(Strings.FIND_NO_RESULTS);
+                } else if (resultSet.length === 1) {
+                    $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
+                } else {
+                    $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length));
+                }
+                state.foundAny = (resultSet.length > 0);
+                indicateHasMatches(resultSet.length);
+                
+            } else {
+                // On huge documents, just look for first match & then stop
+                $("#find-counter").text("");
+                state.foundAny = cursor.findNext();
+                indicateHasMatches();
+            }
+        });
+    }
+    
+    /**
+     * Called each time the search query field changes. Updates state.query (query will be falsy if the field
+     * was blank OR contained a regexp with invalid syntax). Then calls updateResultSet(), and then jumps to
+     * the first matching result, starting from the original cursor position.
+     */
+    function handleQueryChange(editor, state) {
+        state.query = parseQuery($("#find-what").val());
+        updateResultSet(editor);
+        
+        if (state.query) {
+            // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
+            // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
+            findNext(editor, false, true, state.searchStartPos);
+        } else {
+            // Blank or invalid query: just jump back to initial pos
+            editor._codeMirror.setCursor(state.searchStartPos);
+        }
+    }
+    
+    
+    /**
+     * Opens the search bar with the given HTML content (Find or Find-Replace), attaches common Find behaviors,
+     * and prepopulates the query field.
+     * @param {!Editor} editor
+     * @param {!Object} templateVars
+     */
+    function openSearchBar(editor, templateVars) {
+        var cm = editor._codeMirror,
+            state = getSearchState(cm);
         
         // Use the selection start as the searchStartPos. This way if you
         // start with a pre-populated search and enter an additional character,
         // it will extend the initial selection instead of jumping to the next
         // occurrence.
-        var searchStartPos = editor.getCursor(true);
+        state.searchStartPos = editor.getCursor(true);
         
-        //Helper method to enable next / prev navigation in Find modal bar.
-        function enableFindNavigator(show) {
-            if (show) {
-                $(".modal-bar .navigator").css("display", "inline-block");
-            } else {
-                $(".modal-bar .navigator").css("display", "none");
-            }
-        }
-        
-        // Called each time the search query changes while being typed. Jumps to the first matching
-        // result, starting from the original cursor position
-        function findFirst(query) {
-            isFindFirst = true;
-            cm.operation(function () {
-                if (state.query) {
-                    clearHighlights(cm, state);
-                }
-                state.query = parseQuery(query);
-                if (!state.query) {
-                    // Search field is empty - no results
-                    $("#find-counter").text("");
-                    enableFindNavigator(false);
-                    cm.setCursor(searchStartPos);
-                    if (modalBar) {
-                        getDialogTextField().removeClass("no-results");
-                    }
-                    return;
-                }
-                
-                //Flag that controls the navigation controls.
-                var enableNavigator = false;
-                
-                // Find all matches
-                // (Except on huge documents, where this is too expensive)
-                var resultSet = [];
-                if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
-                    // FUTURE: if last query was prefix of this one, could optimize by filtering existing result set
-                    var cursor = getSearchCursor(cm, state.query);
-                    while (cursor.findNext()) {
-                        resultSet.push(cursor.pos);  // pos is unique obj per search result
-                        
-                        // TODO: remove this section when https://github.com/marijnh/CodeMirror/issues/1155 is fixed
-                        if (cursor.pos.match && cursor.pos.match[0] === "") {
-                            if (cursor.to().line + 1 === cm.lineCount()) {
-                                break;
-                            }
-                            cursor = getSearchCursor(cm, state.query, {line: cursor.to().line + 1, ch: 0});
-                        }
-                    }
-                    
-                    // Highlight all matches if there aren't too many
-                    if (resultSet.length <= FIND_HIGHLIGHT_MAX) {
-                        toggleHighlighting(editor, true);
-                        
-                        resultSet.forEach(function (result) {
-                            state.marked.push(cm.markText(result.from, result.to, { className: "CodeMirror-searching" }));
-                        });
-                        var scrollTrackPositions = resultSet.map(function (result) {
-                            return result.from;
-                        });
-                        
-                        ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
-                    }
-                    
-                    if (resultSet.length === 0) {
-                        $("#find-counter").text(Strings.FIND_NO_RESULTS);
-                    } else if (resultSet.length === 1) {
-                        $("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
-                    } else {
-                        $("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length));
-                        enableNavigator = true;
-                    }
-
-                } else {
-                    $("#find-counter").text("");
-                    enableNavigator = true;
-                }
-                
-                //Enable Next/Prev navigator buttons if necessary
-                enableFindNavigator(enableNavigator);
-                
-                state.posFrom = state.posTo = searchStartPos;
-                var foundAny = findNext(editor, rev);
-                
-                if (modalBar) {
-                    ViewUtils.toggleClass(getDialogTextField(), "no-results", !foundAny);
-                }
-            });
-            isFindFirst = false;
-        }
-        
+        // If a previous search/replace bar was open, capture its query text for use below
+        var initialQuery;
         if (modalBar) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            initialQuery = getDialogTextField().val();
+            initialQuery = $("#find-what").val();
         }
         
-        createModalBar(queryDialog, true);
-        $(modalBar).on("commit", function (e, query) {
-            if (!state.findNextCalled) {
-                // If findNextCalled is false, this means the user has *not*
-                // entered any search text *or* pressed Cmd-G/F3 to find the
-                // next occurrence. In this case we want to start searching
-                // *after* the current selection so we find the next occurrence.
-                searchStartPos = editor.getCursor(false);
-                findFirst(query);
-            }
-        });
-        $(modalBar).on("commit close", function (e, query) {
+        // Create the search bar UI (closing any previous modalBar in the process)
+        var htmlContent = Mustache.render(searchBarTemplate, $.extend(templateVars, Strings));
+        createModalBar(htmlContent);
+        addShortcutToTooltip($("#find-next"), Commands.EDIT_FIND_NEXT);
+        addShortcutToTooltip($("#find-prev"), Commands.EDIT_FIND_PREVIOUS);
+        
+        $(modalBar).on("close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
             clearHighlights(cm, state);
             
             // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
             toggleHighlighting(editor, false);
+            
+            // Hide error popup, since it hangs down low enough to make the slide-out look awkward
+            $(".modal-bar .error").hide();
         });
         
-        modalBar.getRoot().on("click", function (e) {
-            if (e.target.id === "find-next") {
-                doSearch(editor);
-            } else if (e.target.id === "find-prev") {
-                doSearch(editor, true);
-            }
-        });
+        modalBar.getRoot()
+            .on("click", "#find-next", function (e) {
+                findNext(editor);
+            })
+            .on("click", "#find-prev", function (e) {
+                findNext(editor, true);
+            })
+            .on("click", "#find-case-sensitive, #find-regexp", function (e) {
+                $(e.currentTarget).toggleClass('active');
+                _updatePrefsFromSearchBar();
+                
+                handleQueryChange(editor, state);
+            })
+            .on("keydown", function (e) {
+                if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+                    if (!e.shiftKey) {
+                        findNext(editor);
+                    } else {
+                        findNext(editor, true);
+                    }
+                }
+            });
         
-        var $input = getDialogTextField();
-        $input.on("input", function () {
-            findFirst($input.val());
+        $("#find-what").on("input", function () {
+            handleQueryChange(editor, state);
         });
 
-        // Prepopulate the search field with the current selection, if any.
-        if (initialQuery !== undefined) {
+        // Prepopulate the search field
+        if (!initialQuery) {
+            // Prepopulate with the current selection, if any
+            initialQuery = cm.getSelection();
+            
             // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
             var newline = initialQuery.indexOf("\n");
             if (newline !== -1) {
                 initialQuery = initialQuery.substr(0, newline);
             }
-            
-            $input
-                .val(initialQuery)
-                .get(0).select();
-            findFirst(initialQuery);
-            // Clear the "findNextCalled" flag here so we have a clean start
-            state.findNextCalled = false;
         }
+        
+        // Initial UI state
+        $("#find-what")
+            .val(initialQuery)
+            .get(0).select();
+        _updateSearchBarFromPrefs();
+        
+        handleQueryChange(editor, state);
+    }
+    
+    /**
+     * If no search pending, opens the Find dialog. If search bar already open, moves to
+     * next/prev result (depending on 'rev')
+     */
+    function doSearch(editor, rev) {
+        var state = getSearchState(editor._codeMirror);
+        if (state.query) {
+            findNext(editor, rev);
+            return;
+        }
+        
+        openSearchBar(editor, {});
     }
 
     /**
@@ -412,7 +483,6 @@ define(function (require, exports, module) {
     function _handleDocumentChange() {
         if (modalBar) {
             modalBar.close();
-            modalBar = null;
         }
         _closeReplaceAllPanel();
     }
@@ -514,87 +584,66 @@ define(function (require, exports, module) {
         replaceAllPanel.show();
     }
 
-    var replaceQueryDialog = Strings.CMD_REPLACE +
-            ': <input type="text" style="width: 10em"/> <div class="message"><span style="color: #888">(' +
-            Strings.SEARCH_REGEXP_INFO  + ')</span></div><div class="error"></div>';
-    var replacementQueryDialog = Strings.WITH +
-            ': <input type="text" style="width: 10em"/>';
-    var doReplaceConfirm = Strings.CMD_REPLACE +
-            '? <button id="replace-yes" class="btn">' + Strings.BUTTON_YES +
-            '</button> <button id="replace-no" class="btn">' + Strings.BUTTON_NO +
-            '</button> <button id="replace-all" class="btn">' + Strings.BUTTON_REPLACE_ALL +
-            '</button> <button id="replace-stop" class="btn">' + Strings.BUTTON_STOP + '</button>';
-
+    /** Shows the Find-Replace search bar at top */
     function replace(editor) {
-        var cm = editor._codeMirror;
-        createModalBar(replaceQueryDialog, true);
-        $(modalBar).on("commit", function (e, query) {
-            if (!query) {
-                return;
+        // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
+        var $replaceBtn = $("#replace-yes");
+        if ($replaceBtn.length) {
+            if ($replaceBtn.is(":enabled")) {
+                $replaceBtn.click();
             }
-
-            query = parseQuery(query);
-            
-            // Don't animate since it should feel like we're just switching the content of the ModalBar.
-            // Eventually we should rip out all this code (which comes from the old CodeMirror dialog
-            // logic) and just change the content itself.
-            createModalBar(replacementQueryDialog, true, false);
-            $(modalBar).on("commit", function (e, text) {
-                text = text || "";
-                clearSearch(cm);
-                var cursor = getSearchCursor(cm, query, editor.getCursor(true));
-                var advance = function () {
-                    var start = cursor.from(),
-                        match = cursor.findNext();
-                    if (!match) {
-                        cursor = getSearchCursor(cm, query);
-                        match = cursor.findNext();
-                        if (!match ||
-                                (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
-                            // No more matches, so destroy modalBar
-                            modalBar = null;
-                            return;
-                        }
-                    }
-                    editor.setSelection(cursor.from(), cursor.to(), true, Editor.BOUNDARY_CHECK_NORMAL);
-                    createModalBar(doReplaceConfirm, true, false);
-                    modalBar.getRoot().on("click", function (e) {
-                        var animate = (e.target.id !== "replace-yes" && e.target.id !== "replace-no");
-                        modalBar.close(true, animate);
-                        if (e.target.id === "replace-yes") {
-                            doReplace(match);
-                        } else if (e.target.id === "replace-no") {
-                            advance();
-                        } else if (e.target.id === "replace-all") {
-                            _showReplaceAllPanel(editor, query, text);
-                        } else if (e.target.id === "replace-stop") {
-                            // Destroy modalBar on stop
-                            modalBar = null;
-                        }
-                    });
-                };
-                var doReplace = function (match) {
-                    cursor.replace(typeof query === "string" ? text : parseDollars(text, match));
-                    advance();
-                };
-                advance();
-            });
+            return;
+        }
+        
+        openSearchBar(editor, {replace: true});
+        addShortcutToTooltip($("#replace-yes"), Commands.EDIT_REPLACE);
+        
+        var cm = editor._codeMirror,
+            state = getSearchState(cm);
+        
+        function getReplaceWith() {
+            return $("#replace-with").val() || "";
+        }
+        
+        modalBar.getRoot().on("click", function (e) {
+            if (e.target.id === "replace-yes") {
+                var text = getReplaceWith();
+                cm.replaceSelection(typeof state.query === "string" ? text : parseDollars(text, state.lastMatch));
+                
+                updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
+                
+                findNext(editor);
+                if (!state.lastMatch) {
+                    // No more matches, so destroy modalBar
+                    modalBar.close();
+                }
+                
+            } else if (e.target.id === "replace-all") {
+                modalBar.close();
+                _showReplaceAllPanel(editor, state.query, getReplaceWith());
+            }
         });
-
-        // Prepopulate the replace field with the current selection, if any
-        getDialogTextField()
-            .val(cm.getSelection())
-            .get(0).select();
+        
+        // One-off hack to make Find/Replace fields a self-contained tab cycle - TODO: remove once https://trello.com/c/lTSJgOS2 implemented
+        modalBar.getRoot().on("keydown", function (e) {
+            if (e.keyCode === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (e.target.id === "replace-with" && !e.shiftKey) {
+                    $("#find-what").focus();
+                    e.preventDefault();
+                } else if (e.target.id === "find-what" && e.shiftKey) {
+                    $("#replace-with").focus();
+                    e.preventDefault();
+                }
+            }
+        });
     }
 
     function _launchFind() {
         var editor = EditorManager.getActiveEditor();
         if (editor) {
-            var codeMirror = editor._codeMirror;
-
             // Create a new instance of the search bar UI
-            clearSearch(codeMirror);
-            doSearch(editor, false, codeMirror.getSelection());
+            clearSearch(editor._codeMirror);
+            doSearch(editor, false);
         }
     }
 
@@ -646,4 +695,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,     _findNext);
     CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE,       _replace);
     CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    
+    // APIs shared with FindInFiles
+    exports._updatePrefsFromSearchBar  = _updatePrefsFromSearchBar;
+    exports._updateSearchBarFromPrefs  = _updateSearchBarFromPrefs;
+    exports._closeFindBar              = _closeFindBar;
+    exports._registerFindInFilesCloser = _registerFindInFilesCloser;
 });

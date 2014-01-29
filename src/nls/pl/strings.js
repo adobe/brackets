@@ -53,7 +53,7 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Nie można zmienić nazwy",
     "ERROR_RENAMING_FILE"               : "Wystąpił błąd podczas próby zmiany nazwy pliku <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Niewłaściwa nazwa pliku",
-    "INVALID_FILENAME_MESSAGE"          : "Nazwa pliku nie może zawierać następujących znaków: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Nazwa pliku nie może zawierać następujących znaków: {0}",
     "FILE_ALREADY_EXISTS"               : "Plik <span class='dialog-filename'>{0}</span> już istnieje.",
     "ERROR_CREATING_FILE_TITLE"         : "Nie można utworzyć pliku",
     "ERROR_CREATING_FILE"               : "Wystąpił błąd podczas próby utworzenia pliku <span class='dialog-filename'>{0}</span>. {1}",

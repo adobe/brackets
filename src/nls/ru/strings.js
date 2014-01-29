@@ -53,7 +53,7 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Ошибка переименования файла",
     "ERROR_RENAMING_FILE"               : "Произошла ошибка при попытке переименовать файл <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Неверное имя файла",
-    "INVALID_FILENAME_MESSAGE"          : "Имена файлов не могут содержать следующие символы: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Имена файлов не могут содержать следующие символы: {0}",
     "FILE_ALREADY_EXISTS"               : "Файл <span class='dialog-filename'>{0}</span> уже существует.",
     "ERROR_CREATING_FILE_TITLE"         : "Ошибка создания файла",
     "ERROR_CREATING_FILE"               : "Произошла ошибка при попытке создать файл <span class='dialog-filename'>{0}</span>. {1}",
@@ -154,6 +154,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Файл",
+    "CMD_FILE_NEW_UNTITLED"               : "Новый",
     "CMD_FILE_NEW"                        : "Новый файл",
     "CMD_FILE_NEW_FOLDER"                 : "Новая папка",
     "CMD_FILE_OPEN"                       : "Открыть\u2026",
@@ -162,11 +163,13 @@ define({
     "CMD_FILE_CLOSE"                      : "Закрыть",
     "CMD_FILE_CLOSE_ALL"                  : "Закрыть все",
     "CMD_FILE_SAVE"                       : "Сохранить",
+    "CMD_FILE_SAVE_AS"                    : "Сохранить как\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Сохранить все",
     "CMD_LIVE_FILE_PREVIEW"               : "Интерактивный Предпросмотр",
     "CMD_LIVE_HIGHLIGHT"                  : "Интерактивная Подсветка",
     "CMD_PROJECT_SETTINGS"                : "Настройки проекта\u2026",
     "CMD_FILE_RENAME"                     : "Переименовать",
+    "CMD_EXTENSION_MANAGER"               : "Менеджер расширений\u2026",
     "CMD_QUIT"                            : "Выход",
 
     // Edit menu commands

@@ -37,8 +37,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
-        ViewUtils           = require("utils/ViewUtils"),
-        CollectionUtils     = require("utils/CollectionUtils");
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * Brackets Application Menu Constants
@@ -497,7 +496,7 @@ define(function (require, exports, module) {
                 return;
             }
         } else {
-            brackets.app.removeMenuItem(menuItemID, function (err) {
+            brackets.app.removeMenuItem(menuItem.dividerId, function (err) {
                 if (err) {
                     console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
                 }
@@ -643,7 +642,9 @@ define(function (require, exports, module) {
         }
 
         // Initialize MenuItem state
-        if (!menuItem.isDivider) {
+        if (menuItem.isDivider) {
+            menuItem.dividerId = commandID;
+        } else {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
                 if (!Array.isArray(keyBindings)) {
@@ -947,7 +948,7 @@ define(function (require, exports, module) {
         // Remove all of the menu items in the menu
         menu = getMenu(id);
         
-        CollectionUtils.forEach(menuItemMap, function (value, key) {
+        _.forEach(menuItemMap, function (value, key) {
             if (key.substring(0, id.length) === id) {
                 if (value.isDivider) {
                     menu.removeMenuDivider(key);
@@ -1050,18 +1051,24 @@ define(function (require, exports, module) {
         closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
-        var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
-        if (bottomOverhang > 0) {
-            posTop = Math.max(0, posTop - bottomOverhang);
+        var elementRect = {
+                top:    posTop,
+                left:   posLeft,
+                height: $menuWindow.height() + 25,
+                width:  $menuWindow.width()
+            },
+            clip = ViewUtils.getElementClipSize($window, elementRect);
+        
+        if (clip.bottom > 0) {
+            posTop = Math.max(0, posTop - clip.bottom);
         }
         posTop -= 30;   // shift top for hidden parent element
         posLeft += 5;
         
-        var rightOverhang = posLeft + $menuWindow.width() - $window.width();
-        if (rightOverhang > 0) {
-            posLeft = Math.max(0, posLeft - rightOverhang);
+        if (clip.right > 0) {
+            posLeft = Math.max(0, posLeft - clip.right);
         }
-
+        
         // open the context menu at final location
         $menuAnchor.addClass("open")
                    .css({"left": posLeft, "top": posTop});

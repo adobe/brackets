@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Chyba pri zmazaní súboru",
     "ERROR_DELETING_FILE"               : "Nastala chyba pri zmazaní súboru <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Neplatný {0} názov",
-    "INVALID_FILENAME_MESSAGE"          : "Názvy súboru nesmú obsahovať nasledujúce znaky: /?*:;{}<>\\| alebo používať rezervované systémové slová.",
+    "INVALID_FILENAME_MESSAGE"          : "Názvy súboru nesmú obsahovať nasledujúce znaky: {0} alebo používať rezervované systémové slová.",
     "FILE_ALREADY_EXISTS"               : "Súbor {0} <span class='dialog-filename'>{1}</span> už existuje.",
     "ERROR_CREATING_FILE_TITLE"         : "Chyba pri vytváraní súboru {0}",
     "ERROR_CREATING_FILE"               : "Nastala chyba pri vytváraní súboru {0} <span class='dialog-filename'>{1}</span>. {2}",
