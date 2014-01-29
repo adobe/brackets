@@ -337,7 +337,7 @@ define(function (require, exports, module) {
             var keyStr = String.fromCharCode(event.which || event.keyCode);
             if (/[\]\{\}\)]/.test(keyStr)) {
                 // If all text before the cursor is whitespace, auto-indent it
-                var cursor = this.getCursor();
+                var cursor = this.getCursorPos();
                 var lineStr = instance.getLine(cursor.line);
                 var nonWS = lineStr.search(/\S/);
                 
@@ -399,8 +399,8 @@ define(function (require, exports, module) {
         //    insertion point, insert a tab character or the appropriate number
         //    of spaces to pad to the nearest tab boundary.
         var instance = this._codeMirror,
-            from = this.getCursor("from"),
-            to = this.getCursor("to"),
+            from = this.getCursorPos(false, "from"),
+            to = this.getCursorPos(false, "to"),
             line = instance.getLine(from.line),
             indentAuto = false,
             insertTab = false;
@@ -419,8 +419,8 @@ define(function (require, exports, module) {
             // already been at the correct indentation level as far as CM is concerned, so insert 
             // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                var newFrom = this.getCursor("from"),
-                    newTo = this.getCursor("to");
+                var newFrom = this.getCursorPos(false, "from"),
+                    newTo = this.getCursorPos(false, "to");
                 if (newFrom.line === from.line && newFrom.ch === from.ch &&
                         newTo.line === to.line && newTo.ch === to.ch) {
                     insertTab = true;
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
         
         if (!instance.getOption("indentWithTabs")) {
             var indentUnit = instance.getOption("indentUnit"),
-                cursor     = this.getCursor(instance),
+                cursor     = this.getCursorPos(),
                 jump       = cursor.ch % indentUnit,
                 line       = instance.getLine(cursor.line);
 
@@ -503,21 +503,6 @@ define(function (require, exports, module) {
         }
 
         return handled;
-    };
-    
-    /**
-     * Return a copy of the CodeMirror instance's cursor position
-     * 
-     * @param {?string} start Optional string indicating which end of the
-     *  selection to return. It may be "start", "end", "head" (the side of the
-     *  selection that moves when you press shift+arrow), or "anchor" (the
-     *  fixed side of the selection). Omitting the argument is the same as
-     *  passing "head". A {line, ch} object will be returned.)
-     *
-     * @return {!{line: number, ch: number}}
-     */
-    Editor.prototype.getCursor = function (start) {
-        return _copyPos(this._codeMirror.getCursor(start));
     };
     
     /**
@@ -782,14 +767,18 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Gets the current cursor position within the editor. If there is a selection, returns whichever
-     * end of the range the cursor lies at.
+     * Gets the current cursor position within the editor.
      * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
+     * @param {?string} start Optional string indicating which end of the
+     *  selection to return. It may be "start", "end", "head" (the side of the
+     *  selection that moves when you press shift+arrow), or "anchor" (the
+     *  fixed side of the selection). Omitting the argument is the same as
+     *  passing "head". A {line, ch} object will be returned.)
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function (expandTabs) {
-        var cursor = this.getCursor();
+    Editor.prototype.getCursorPos = function (expandTabs, start) {
+        var cursor = _copyPos(this._codeMirror.getCursor(start));
         
         if (expandTabs) {
             cursor.ch = this.getColOffset(cursor);
@@ -932,8 +921,8 @@ define(function (require, exports, module) {
      * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     Editor.prototype.getSelection = function () {
-        var selStart = this.getCursor("from"),
-            selEnd   = this.getCursor("to");
+        var selStart = this.getCursorPos(false, "from"),
+            selEnd   = this.getCursorPos(false, "to");
         return { start: selStart, end: selEnd };
     };
     

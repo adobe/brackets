@@ -168,7 +168,7 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         cm.operation(function () {
             var state = getSearchState(cm);
-            var cursor = getSearchCursor(cm, state.query, pos || editor.getCursor(Boolean(rev))); // null and false mean different things to getCursor()
+            var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(Boolean(rev))); // null and false mean different things to getCursorPos()
 
             state.lastMatch = cursor.find(rev);
             if (!state.lastMatch) {
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                 
                 if (!state.lastMatch) {
                     // No result found, period: clear selection & bail
-                    cm.setCursor(editor.getCursor());  // collapses selection, keeping cursor in place to avoid scrolling
+                    cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
                     return;
                 }
             }
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
         // start with a pre-populated search and enter an additional character,
         // it will extend the initial selection instead of jumping to the next
         // occurrence.
-        state.searchStartPos = editor.getCursor(true);
+        state.searchStartPos = editor.getCursorPos(true);
         
         // If a previous search/replace bar was open, capture its query text for use below
         var initialQuery;

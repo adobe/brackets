@@ -293,7 +293,7 @@ define(function (require, exports, module) {
      *      className:string    string:""open-files-disclosure-arrow""
      *      className:tag       string:"></span>"
      * @param {Editor} editor An instance of a Brackets editor
-     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
      * @return {{tagName:string,
      *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
      *           position:{tokenType:string, offset:number}
