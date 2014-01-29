@@ -2036,6 +2036,31 @@ define(function (require, exports, module) {
                     });
                 }
             });
+            
+            it("should return PROP_VALUE when inside functional value notation - simple", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[107]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "shape-inside",
+                    offset: 1,
+                    index: 1,
+                    values: ["polygon(", "0 ", "0)"],
+                    isNewItem: false
+                });
+            });
+            
+            it("should return PROP_VALUE when inside functional value notation with modifier", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[108]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "shape-inside",
+                    offset: 1,
+                    index: 1,
+                    values: ["polygon(", "nonzero, ", "0 ", "0)"],
+                    isNewItem: false
+                });
+            });
+            
         });
         
         describe("quoting", function () {
