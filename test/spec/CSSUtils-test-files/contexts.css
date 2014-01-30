@@ -63,6 +63,10 @@
     shape-inside: polygon(n{{108}}onzero, 0 0);
 }
 
+.nested-functional-notation {
+    background: linear-gradient(to r{{109}}ight, rgba(255,255,0), #fff);
+}
+
 .single-quotes {
     font-family: {{50}}'{{51}}Helvetica {{52}}Neue{{53}}'{{54}}, Arial;
 }

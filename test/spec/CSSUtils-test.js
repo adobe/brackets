@@ -569,6 +569,33 @@ define(function (require, exports, module) {
                 expect(result).toEqual(expected);
             });
         });
+        
+        describe("findSelectorAtDocumentPos in embedded <style> blocks", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, embeddedHtmlFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                });
+            });
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            // Indexes of external UI are 1-based. Internal indexes are 0-based.
+            it("should find the first selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 6, ch: 0});
+                expect(selector).toEqual("div");
+            });
+
+            it("should find the second selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual(".foo");
+            });
+        });
     }); // describe("CSSUtils")
 
     
@@ -2035,6 +2062,18 @@ define(function (require, exports, module) {
                         isNewItem: false
                     });
                 }
+            });
+            
+            it("should return a separate token for each param in a functional value notation", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[109]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "background",
+                    offset: 1,
+                    index: 1,
+                    values: ["linear-gradient(to ", "right, ", "rgba(255,", "255,", "0), ", "#fff)"],
+                    isNewItem: false
+                });
             });
             
             it("should return PROP_VALUE when inside functional value notation - simple", function () {
