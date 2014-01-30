@@ -322,13 +322,29 @@ define(function (require, exports, module) {
         preferencesManager.save();
     }
     
+    /**
+     * Convenience function that gets a view state
+     * 
+     * @param {string} id preference to get
+     */
     function getViewState(id) {
         return stateManager.get(id);
     }
     
-    function setViewState(id, value) {
+    /**
+     * Convenience function that sets a view state and then saves the file
+     * 
+     * @param {string} id preference to set
+     * @param {*} value new value for the preference
+     * @param {boolean=} dontSave If it is undefined or false, then save the 
+     *      view state immediately.
+     */
+    function setViewState(id, value, dontSave) {
         stateManager.set(id, value);
-        stateManager.save();
+        
+        if (!dontSave) {
+            stateManager.save();
+        }
     }
     
     // Private API for unit testing and use elsewhere in Brackets core
