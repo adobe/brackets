@@ -107,9 +107,15 @@ define(function (require, exports, module) {
                 doc.file.stat(function (err, stat) {
                     if (!err) {
                         // Does file's timestamp differ from last sync time on the Document?
-                        if (stat.mtime.getTime() !== doc.diskTimestamp.getTime()) {
+                        var fileTime = stat.mtime.getTime();
+                        if (fileTime !== doc.diskTimestamp.getTime()) {
                             if (doc.isDirty) {
-                                editConflicts.push(doc);
+                                // If the file has changed since the last time the user chose to
+                                // keep conflicting changes (if any), then this is a conflict. If
+                                // it hasn't changed, then we don't need to do anything.
+                                if (doc.keepChangesTime !== fileTime) {
+                                    editConflicts.push({doc: doc, fileTime: fileTime});
+                                }
                             } else {
                                 toReload.push(doc);
                             }
@@ -119,7 +125,15 @@ define(function (require, exports, module) {
                         // File has been deleted externally
                         if (err === FileSystemError.NOT_FOUND) {
                             if (doc.isDirty) {
-                                deleteConflicts.push(doc);
+                                // If the file existed the last time the user chose to keep
+                                // conflicting changes (if any), then this is a conflict. If it
+                                // didn't exist, then we don't need to do anything.
+                                // (We use -1 as the "mod time" to indicate that the file didn't
+                                // exist, since there's no actual modification time to keep track of
+                                // and -1 isn't a valid mod time for a real file.)
+                                if (doc.keepChangesTime !== -1) {
+                                    deleteConflicts.push({doc: doc, fileTime: -1});
+                                }
                             } else {
                                 toClose.push(doc);
                             }
@@ -251,8 +265,11 @@ define(function (require, exports, module) {
         
         var allConflicts = editConflicts.concat(deleteConflicts);
         
-        function presentConflict(doc, i) {
-            var result = new $.Deferred(), promise = result.promise();
+        function presentConflict(docInfo, i) {
+            var result = new $.Deferred(),
+                promise = result.promise(),
+                doc = docInfo.doc,
+                fileTime = docInfo.fileTime;
             
             // If window has been re-focused, skip all remaining conflicts so the sync can bail & restart
             if (_restartPending) {
@@ -335,10 +352,18 @@ define(function (require, exports, module) {
                         }
                         
                     } else {
-                        // Cancel - if user doesn't manually save or close, we'll prompt again next
-                        // time window is reactivated;
+                        // Cancel - if user doesn't manually save or close, remember that they
+                        // chose to keep the changes in the editor and don't prompt again unless the
+                        // file changes again
                         // OR programmatically canceled due to _resetPending - we'll skip all
                         // remaining files in the conflicts list (see above)
+
+                        // If this wasn't programmatically cancelled, remember that the user 
+                        // has accepted conflicting changes as of this file version.
+                        if (!_restartPending) {
+                            doc.keepChangesTime = fileTime;
+                        }
+                            
                         result.resolve();
                     }
                 });
