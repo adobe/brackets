@@ -45,7 +45,9 @@ define(function (require, exports, module) {
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
-        lastPos;                             // Last line/ch pos processed by handleMouseMove
+        lastPos,                             // Last line/ch pos processed by handleMouseMove
+        lastMousePos,                        // Last mouse position
+        animationRequest;                    // Request for animation frame
     
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
@@ -146,13 +148,13 @@ define(function (require, exports, module) {
             .addClass("active");
     }
     
-    function divContainsMouse($div, event) {
+    function divContainsMouse($div, mousePos) {
         var offset = $div.offset();
         
-        return (event.clientX >= offset.left &&
-                event.clientX <= offset.left + $div.width() &&
-                event.clientY >= offset.top &&
-                event.clientY <= offset.top + $div.height());
+        return (mousePos.clientX >= offset.left &&
+                mousePos.clientX <= offset.left + $div.width() &&
+                mousePos.clientY >= offset.top &&
+                mousePos.clientY <= offset.top + $div.height());
     }
     
     
@@ -552,15 +554,14 @@ define(function (require, exports, module) {
         }
     }
     
-    function handleMouseMove(event) {
-        if (!enabled) {
-            return;
-        }
+    function processMouseMove() {
+        var mousePos = lastMousePos;
+
+        animationRequest = null;
+        lastMousePos = null;
         
-        if (event.which) {
-            // Button is down - don't show popovers while dragging
-            hidePreview();
-            return;
+        if (!mousePos) {
+            return;         // should never get here, but safety first!
         }
         
         // Figure out which editor we are over
@@ -580,10 +581,10 @@ define(function (require, exports, module) {
             var $inlineEditorRoot = inlines[i].editor && $(inlines[i].editor.getRootElement()),  // see MultiRangeInlineEditor
                 $otherDiv = inlines[i].$htmlContent;
             
-            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, event)) {
+            if ($inlineEditorRoot && divContainsMouse($inlineEditorRoot, mousePos)) {
                 editor = inlines[i].editor;
                 break;
-            } else if ($otherDiv && divContainsMouse($otherDiv, event)) {
+            } else if ($otherDiv && divContainsMouse($otherDiv, mousePos)) {
                 // Mouse inside unsupported inline editor like Quick Docs or Color Editor
                 hidePreview();
                 return;
@@ -592,7 +593,7 @@ define(function (require, exports, module) {
         
         // Check main editor
         if (!editor) {
-            if (divContainsMouse($(fullEditor.getRootElement()), event)) {
+            if (divContainsMouse($(fullEditor.getRootElement()), mousePos)) {
                 editor = fullEditor;
             }
         }
@@ -600,10 +601,10 @@ define(function (require, exports, module) {
         if (editor && editor._codeMirror) {
             // Find char mouse is over
             var cm = editor._codeMirror,
-                pos = cm.coordsChar({left: event.clientX, top: event.clientY}),
+                pos = cm.coordsChar({left: mousePos.clientX, top: mousePos.clientY}),
                 showImmediately = false;
-            
-            // Bail if mouse is on same char as last event
+
+            // Bail if mouse is on same char as last mouse pos
             if (lastPos && lastPos.line === pos.line && lastPos.ch === pos.ch) {
                 return;
             }
@@ -619,6 +620,7 @@ define(function (require, exports, module) {
             if (popoverState) {
                 if (popoverState.start && popoverState.end &&
                         editor.posWithinRange(pos, popoverState.start, popoverState.end, 1)) {
+
                     // That one's still relevant - nothing more to do
                     return;
                 } else {
@@ -645,6 +647,31 @@ define(function (require, exports, module) {
         }
     }
     
+    function handleMouseMove(event) {
+        lastMousePos = null;
+
+        if (!enabled) {
+            return;
+        }
+
+        if (event.which) {
+            // Button is down - don't show popovers while dragging
+            hidePreview();
+            return;
+        }
+
+        // Keep track of last mouse position
+        lastMousePos = {
+            clientX: event.clientX,
+            clientY: event.clientY
+        };
+
+        // Prevent duplicate animation frame requests
+        if (!animationRequest) {
+            animationRequest = window.webkitRequestAnimationFrame(processMouseMove);
+        }
+    }
+
     function onActiveEditorChange(event, current, previous) {
         // Hide preview when editor changes
         hidePreview();
