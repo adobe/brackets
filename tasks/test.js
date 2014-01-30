@@ -39,11 +39,11 @@ module.exports = function (grunt) {
             spec            = grunt.option("spec") || "all",
             suite           = grunt.option("suite") || "all",
             results         = grunt.option("results") || process.cwd() + "/results.xml",
-            resultsPath     = common.resolve(results),
+            resultsPath     = common.resolve(results).replace(/\\/g, "/"),
             specRunnerPath  = common.resolve("test/SpecRunner.html"),
             args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
 
-        if (platform === "mac") {
+	if (platform === "mac") {
             cmd = "open \"" + cmd + "\" -W --args " + args;
         } else {
             cmd += args;
