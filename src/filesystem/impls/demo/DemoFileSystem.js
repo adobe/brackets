@@ -28,10 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    
-    function init(callback) {
-        callback();
-    }
+    var FileSystemError = require("filesystem/FileSystemError");
     
     
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
@@ -44,44 +41,45 @@ define(function (require, exports, module) {
         throw new Error();
     }
     
-    function _makeFakeStat() {
+    function _makeFakeStat(file) {
         return {
             isFile: function () {
-                return true;
+                return file;
             },
             isDirectory: function () {
-                return false;
+                return !file;
             },
             mtime: new Date(0)
         };
     }
     
     function stat(path, callback) {
-        // TODO: still need to check for existence
-        callback(null, _makeFakeStat());
-    }
-    
-    function isNetworkDrive(path, callback) {
-        callback(null, false);
+        if (path === "/Getting Started/index.html" || path === "/Getting Started/main.css") {
+            callback(null, _makeFakeStat(true));
+        } else if (path === "/Getting Started/") {
+            callback(null, _makeFakeStat(false));
+        } else {
+            callback(FileSystemError.NOT_FOUND);
+        }
     }
     
     function exists(path, callback) {
         stat(path, function (err) {
             if (err) {
-                callback(false);
+                callback(null, false);
             } else {
-                callback(true);
+                callback(null, true);
             }
         });
     }
     
     function readdir(path, callback) {
-        if (path === "/Getting Started") {
+        if (path === "/Getting Started/") {
             callback(null,
                      ["index.html", "main.css"],
                      [_makeFakeStat(), _makeFakeStat()]);
         } else {
-            callback("Unknown folder '" + path + "'");
+            callback(FileSystemError.NOT_FOUND);
         }
     }
     
@@ -105,16 +103,12 @@ define(function (require, exports, module) {
         } else if (path === "/Getting Started/main.css") {
             callback(null, ".hello {\n  content: 'world!';\n}", _makeFakeStat());
         } else {
-            callback("Unknown file '" + path + "'");
+            callback(FileSystemError.NOT_FOUND);
         }
     }
     
     function writeFile(path, data, options, callback) {
         callback("Cannot save to HTTP demo server");
-    }
-    
-    function chmod(path, mode, callback) {
-        callback("Cannot modify files on HTTP demo server");
     }
     
     function unlink(path, callback) {
@@ -125,24 +119,26 @@ define(function (require, exports, module) {
         callback("Cannot delete files on HTTP demo server");
     }
     
-    function initWatchers(callback) {
+    function initWatchers(changeCallback, offlineCallback) {
+        // Ignore - since this FS is immutable, we're never going to call these
     }
     
-    function watchPath(path) {
+    function watchPath(path, callback) {
         console.warn("File watching is not supported on immutable HTTP demo server");
+        callback();
     }
     
-    function unwatchPath(path) {
+    function unwatchPath(path, callback) {
+        callback();
     }
     
-    function unwatchAll() {
+    function unwatchAll(callback) {
+        callback();
     }
     
     // Export public API
-    exports.init            = init;
     exports.showOpenDialog  = showOpenDialog;
     exports.showSaveDialog  = showSaveDialog;
-    exports.isNetworkDrive  = isNetworkDrive;
     exports.exists          = exists;
     exports.readdir         = readdir;
     exports.mkdir           = mkdir;
@@ -150,11 +146,13 @@ define(function (require, exports, module) {
     exports.stat            = stat;
     exports.readFile        = readFile;
     exports.writeFile       = writeFile;
-    exports.chmod           = chmod;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
     exports.initWatchers    = initWatchers;
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
     exports.unwatchAll      = unwatchAll;
+    
+    exports.recursiveWatch    = true;
+    exports.normalizeUNCPaths = false;
 });
