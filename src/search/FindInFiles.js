@@ -417,7 +417,7 @@ define(function (require, exports, module) {
             // Insert the search results
             $searchContent
                 .empty()
-                .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
+                .append(Mustache.render(searchResultsTemplate, {searchList: searchList, Strings: Strings}))
                 .off(".searchList")  // Remove the old events
             
                 // Add the click event listener directly on the table parent
@@ -436,14 +436,33 @@ define(function (require, exports, module) {
                         
                         // This is a file title row, expand/collapse on click
                         if ($row.hasClass("file-section")) {
-                            // Clicking the file section header collapses/expands result rows for that file
-                            $row.nextUntil(".file-section").toggle();
+                            var $titleRows,
+                                collapsed = !searchResults[fullPath].collapsed;
                             
-                            var $triangle = $(".disclosure-triangle", $row);
-                            $triangle.toggleClass("expanded").toggleClass("collapsed");
+                            if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
+                                $titleRows = $(e.target).closest("table").find(".file-section");
+                            } else {
+                                // Clicking the file section header collapses/expands result rows for that file
+                                $titleRows = $row;
+                            }
                             
-                            searchResults[fullPath].collapsed = !searchResults[fullPath].collapsed;
-                        
+                            $titleRows.each(function () {
+                                fullPath   = searchList[$(this).data("file")].fullPath;
+                                searchItem = searchResults[fullPath];
+
+                                if (searchItem.collapsed !== collapsed) {
+                                    searchItem.collapsed = collapsed;
+                                    $(this).nextUntil(".file-section").toggle();
+                                    $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                }
+                            });
+                            
+                            //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
+                            if (e.metaKey || e.ctrlKey) {
+                                _.forEach(searchResults, function (item) {
+                                    item.collapsed = collapsed;
+                                });
+                            }
                         // This is a file row, show the result on click
                         } else {
                             // Grab the required item data

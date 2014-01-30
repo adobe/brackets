@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Probleem bij het verwijderen van een bestand",
     "ERROR_DELETING_FILE"               : "Er is een fout opgetreden bij het verwijderen van het bestand <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Ongeldige {0} naam",
-    "INVALID_FILENAME_MESSAGE"          : "Bestandsnamen kunnen de volgende karakters niet bevatten: /?*:;{}<>\\| of gebruik maken van woorden die door het systeem zijn gereserveerd.",
+    "INVALID_FILENAME_MESSAGE"          : "Bestandsnamen kunnen de volgende karakters niet bevatten: {0} of gebruik maken van woorden die door het systeem zijn gereserveerd.",
     "FILE_ALREADY_EXISTS"               : "Het {0} <span class='dialog-filename'>{1}</span> bestaat al.",
     "ERROR_CREATING_FILE_TITLE"         : "Probleem bij het aanmaken van een {0}",
     "ERROR_CREATING_FILE"               : "Er is een fout opgetreden bij het aanmaken van het {0} <span class='dialog-filename'>{1}</span>. {2}",

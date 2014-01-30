@@ -496,6 +496,15 @@ define(function (require, exports, module) {
 
         } else if (code === KeyEvent.DOM_VK_ESCAPE) {
             return true;
+        } else if (code === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            // Switch between the two points by tabbing
+            if ($(e.target).hasClass("P1")) {
+                $(".P2").focus();
+            } else {
+                $(".P1").focus();
+            }
+            e.preventDefault();
+            return true;
         }
 
         return false;
