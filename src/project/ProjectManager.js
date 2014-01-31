@@ -2150,6 +2150,17 @@ define(function (require, exports, module) {
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
     
+    function _reloadProjectPreferencesScope() {
+        PreferencesManager._manager.removeScope("project");
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._manager.addScope("project", "path:" + root.fullPath + SETTINGS_FILENAME);
+        }
+    }
+    
+    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
+    
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);

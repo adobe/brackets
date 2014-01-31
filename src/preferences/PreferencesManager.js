@@ -251,7 +251,11 @@ define(function (require, exports, module) {
                     preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
                 });
         });
-        
+    
+    preferencesManager.addContext("project", {
+        scopeOrder: ["session", "project", "user", "default"]
+    });
+    
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`
@@ -327,6 +331,10 @@ define(function (require, exports, module) {
     exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
     
     // Public API
+    
+    // Context names for preference lookups
+    exports.CURRENT_FILE        = "default";
+    exports.CURRENT_PROJECT     = "project";
     
     exports.getUserPrefFile     = getUserPrefFile;
     exports.get                 = preferencesManager.get.bind(preferencesManager);
