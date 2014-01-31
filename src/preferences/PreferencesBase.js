@@ -997,7 +997,16 @@ define(function (require, exports, module) {
             return this._knownPrefs[id];
         },
 
-        
+        /**
+         * @private
+         *
+         * Adds the scope before the scope specified by before argument.  This
+         * function must never be called directly. Use addScope to add scopes to
+         * PreferencesSystem, including from within its implementation.
+         * 
+         * @param {string} id Id of the scope to add
+         * @param {string} before Id of the scope to add it before
+         */
         _pushToScopeOrder: function (id, before) {
             var defaultScopeOrder = this._defaultContext.scopeOrder,
                 index = _.findIndex(defaultScopeOrder, function (id) {
@@ -1013,6 +1022,15 @@ define(function (require, exports, module) {
 
         },
 
+        /**
+         * @private
+         *
+         * Tries to add scope to the scopeOrder once it's resolved. It looks up
+         * context's _shadowScopeOrder to find an appropriate context to add it
+         * before.
+         *
+         * @param {Object} shadowEntry Shadow entry of the resolved scope
+         */
         _tryAddToScopeOrder: function (shadowEntry) {
             var defaultScopeOrder = this._defaultContext.scopeOrder,
                 shadowScopeOrder = this._defaultContext._shadowScopeOrder,
@@ -1022,14 +1040,17 @@ define(function (require, exports, module) {
                 done = false,
                 i = index + 1;
             
+            // Find an appropriate scope of lower priority to add it before
             while (i < shadowScopeOrder.length) {
-                if (shadowScopeOrder[i].promise.state() === "pending" || shadowScopeOrder[i].promise.state() === "resolved") {
+                if (shadowScopeOrder[i].promise.state() === "pending"
+                        || shadowScopeOrder[i].promise.state() === "resolved") {
                     break;
                 }
                 i++;
             }
             switch (shadowScopeOrder[i].promise.state()) {
             case "pending":
+                // cannot decide now, lookup once pending promise its resolved
                 shadowScopeOrder[i].promise.always(function () {
                     this._tryAddToScopeOrder(shadowEntry);
                 }.bind(this));
@@ -1046,15 +1067,21 @@ define(function (require, exports, module) {
         /**
          * @private
          * 
-         * Adds the new Scope to the scope order in the correct place.
-         * If the Scope before which this new Scope is being added does not
-         * yet exist, the Scope is held in a "pending scopes" list to be added
-         * once the before Scope is ready.
+         * Schedules the new Scope to be added the scope order in the correct
+         * place once the promise is resolved. Context's _shadowScopeOrder is
+         * used to keep track of the order in which the scope should appear. If
+         * the scope which should precede this scope fails to load, then
+         * _shadowScopeOrder will be searched for the next appropriate context
+         * (the first one which is pending or loaded that is before the failed
+         * scope). There's always the lowest-priority "default" scope which is
+         * loaded and added, it guarantees that a successfully loaded scope will
+         * always be added.
          * 
-         * Adding a Scope "before" another Scope means that the new Scope's preferences
-         * will take priority over the "before" Scope's preferences.
+         * Adding a Scope "before" another Scope means that the new Scope's
+         * preferences will take priority over the "before" Scope's preferences.
          * 
          * @param {string} id Name of the new Scope
+         * @param {$.Promise} promise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, promise, addBefore) {
