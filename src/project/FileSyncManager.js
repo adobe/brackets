@@ -71,9 +71,9 @@ define(function (require, exports, module) {
     var toReload;
     /** @type {Array.<Document>} */
     var toClose;
-    /** @type {Array.<Document>} */
+    /** @type {Array.<{doc: Document, fileTime: number}>} */
     var editConflicts;
-    /** @type {Array.<Document>} */
+    /** @type {Array.<{doc: Document, fileTime: number}>} */
     var deleteConflicts;
     
     
@@ -109,33 +109,39 @@ define(function (require, exports, module) {
                         // Does file's timestamp differ from last sync time on the Document?
                         var fileTime = stat.mtime.getTime();
                         if (fileTime !== doc.diskTimestamp.getTime()) {
-                            if (doc.isDirty) {
-                                // If the file has changed since the last time the user chose to
-                                // keep conflicting changes (if any), then this is a conflict. If
-                                // it hasn't changed, then we don't need to do anything.
-                                if (doc.keepChangesTime !== fileTime) {
+                            // If the user has chosen to keep changes that conflict with the
+                            // current state of the file on disk, then do nothing. This means
+                            // that even if the user later undoes back to clean, we won't
+                            // automatically reload the file on window reactivation. We could
+                            // make it do that, but it seems better to be consistent with the
+                            // deletion case below, where it seems clear that you don't want
+                            // to auto-delete the file on window reactivation just because you
+                            // undid back to clean.
+                            if (doc.keepChangesTime !== fileTime) {
+                                if (doc.isDirty) {
                                     editConflicts.push({doc: doc, fileTime: fileTime});
+                                } else {
+                                    toReload.push(doc);
                                 }
-                            } else {
-                                toReload.push(doc);
                             }
                         }
                         result.resolve();
                     } else {
                         // File has been deleted externally
                         if (err === FileSystemError.NOT_FOUND) {
-                            if (doc.isDirty) {
-                                // If the file existed the last time the user chose to keep
-                                // conflicting changes (if any), then this is a conflict. If it
-                                // didn't exist, then we don't need to do anything.
-                                // (We use -1 as the "mod time" to indicate that the file didn't
-                                // exist, since there's no actual modification time to keep track of
-                                // and -1 isn't a valid mod time for a real file.)
-                                if (doc.keepChangesTime !== -1) {
+                            // If the user has chosen to keep changes previously, and the file
+                            // has been deleted, then do nothing. Like the case above, this
+                            // means that even if the user later undoes back to clean, we won't
+                            // then automatically delete the file on window reactivation.
+                            // (We use -1 as the "mod time" to indicate that the file didn't
+                            // exist, since there's no actual modification time to keep track of
+                            // and -1 isn't a valid mod time for a real file.)
+                            if (doc.keepChangesTime !== -1) {
+                                if (doc.isDirty) {
                                     deleteConflicts.push({doc: doc, fileTime: -1});
+                                } else {
+                                    toClose.push(doc);
                                 }
-                            } else {
-                                toClose.push(doc);
                             }
                             result.resolve();
                         } else {

@@ -637,6 +637,9 @@ define(function (require, exports, module) {
                 // The user has decided to keep conflicting changes in the editor. Check to make sure
                 // the file hasn't changed since they last decided to do that.
                 docToSave.file.stat(function (err, stat) {
+                    // If the file has been deleted on disk, the stat will return an error, but that's fine since 
+                    // that means there's no file to overwrite anyway, so the save will succeed without us having
+                    // to set force = true.
                     if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
                         // OK, it's safe to overwrite the file even though we never reloaded the latest version,
                         // since the user already said s/he wanted to ignore the disk version.
