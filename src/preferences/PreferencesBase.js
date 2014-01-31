@@ -1005,7 +1005,6 @@ define(function (require, exports, module) {
                 });
             if (index > -1) {
                 defaultScopeOrder.splice(index, 0, id);
-                console.log(defaultScopeOrder);
                 this._processPendingEvents(id);
             } else {
                 // error
@@ -1173,13 +1172,18 @@ define(function (require, exports, module) {
          * @param {string} id Name of the Scope to remove
          */
         removeScope: function (id) {
-            var scope = this._scopes[id];
+            var scope = this._scopes[id],
+                shadowIndex;
             if (!scope) {
                 return;
             }
             delete this._scopes[id];
-            _.pull(this._defaultContext._shadowScopeOrder, id);
+            delete this._pendingEvents[id];
             _.pull(this._defaultContext.scopeOrder, id);
+            shadowIndex = _.findIndex(this._defaultContext._shadowScopeOrder, function (entry) {
+                return entry.id === id;
+            });
+            this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
             $(scope).off(PREFERENCE_CHANGE);
             var keys = scope.getKeys();
             $(this).trigger(PREFERENCE_CHANGE, {
