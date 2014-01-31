@@ -29,7 +29,9 @@
  * and manages File and Directory instances, dispatches events when the file system changes,
  * and provides methods for showing 'open' and 'save' dialogs.
  *
- * The FileSystem must be initialized very early during application startup. 
+ * FileSystem automatically initializes when loaded. It depends on a pluggable "impl" layer, which
+ * it loads itself but must be designated in the require.config() that loads FileSystem. For details
+ * see: https://github.com/adobe/brackets/wiki/File-System-Implementations
  *
  * There are three ways to get File or Directory instances:
  *    * Use FileSystem.resolve() to convert a path to a File/Directory object. This will only
@@ -37,7 +39,18 @@
  *    * Use FileSystem.getFileForPath()/FileSystem.getDirectoryForPath() if you know the
  *      file/directory already exists, or if you want to create a new entry.
  *    * Use Directory.getContents() to return all entries for the specified Directory.
- *
+ * 
+ * All paths passed *to* FileSystem APIs must be in the following format:
+ *    * The path separator is "/" regardless of platform
+ *    * Paths begin with "/" on Mac/Linux and "c:/" (or some other drive letter) on Windows
+ * 
+ * All paths returned *from* FileSystem APIs additionally meet the following guarantees:
+ *    * No ".." segments
+ *    * No consecutive "/"s
+ *    * Paths to a directory always end with a trailing "/"
+ * (Because FileSystem normalizes paths automatically, paths passed *to* FileSystem do not need
+ * to meet these requirements)
+ * 
  * FileSystem dispatches the following events:
  *    change - Sent whenever there is a change in the file system. The handler
  *          is passed up to three arguments: the changed entry and, if that changed entry 
@@ -436,7 +449,7 @@ define(function (require, exports, module) {
      * @return {boolean} True if the fullPath is absolute and false otherwise.
      */
     FileSystem.isAbsolutePath = function (fullPath) {
-        return (fullPath[0] === "/" || fullPath[1] === ":");
+        return (fullPath[0] === "/" || (fullPath[1] === ":" && fullPath[2] === "/"));
     };
 
     function _ensureTrailingSlash(path) {

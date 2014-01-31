@@ -21,7 +21,7 @@
 /* Brackets / CodeMirror Code Formatting */
 
 .CodeMirror pre {
-    padding: 0 @code-padding;
+    padding: 0 @code-padding 0 0;
 }
 
 .CodeMirror-scroll {
@@ -53,7 +53,11 @@
         height: 100%;
     }
     .CodeMirror-gutter-elt {
-        background: @activeline-bgcolor;
+        background: @activeline-number-bgcolor;
+        color: @bc-black;
+    }
+    .inline-widget .CodeMirror-gutter-elt {
+        color: @accent-comment;    
     }
 }
 
@@ -154,7 +158,7 @@
         color: @accent-comment;
         min-width: 2.5em;
         /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
-        padding: 0 3px 0 10px;  /* left padding for project panel selection triangle */
+        padding: 0 @code-padding 0 10px;  /* left padding for project panel selection triangle */
     }
     &.CodeMirror-focused .CodeMirror-selected {
         background: @selection-color-focused;
@@ -218,15 +222,20 @@
     }
     .CodeMirror .CodeMirror-activeline .CodeMirror-gutter-elt {
         background: transparent;
+        color: @accent-comment;
     }
-    
+
     .CodeMirror-focused .CodeMirror-activeline-background {
-        background: darken(@activeline-bgcolor, (@bc-color-step-size / 2)); 
-    }
-    .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
-        background: darken(@activeline-bgcolor, @bc-color-step-size / 2);
+        background: @activeline-bgcolor;
     }
     
+    .CodeMirror-focused .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background: @tc-gray-panel-top-bar;
+            color: @bc-black;
+        }
+    }
+
     .CodeMirror-matchingtag { background: @matching-bracket; }
 }
 
