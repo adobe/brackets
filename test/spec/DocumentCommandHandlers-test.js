@@ -883,6 +883,7 @@ define(function (require, exports, module) {
             
             it("should maintain order within Working Set after Save As", function () {
                 var index,
+                    newIndex,
                     targetDoc;
 
                 runs(function () {
@@ -918,9 +919,25 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    // New file should appear in working set at old file's index; old file shouldn't appear at all
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(index);
-                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    // New file should appear in working set at old file's index
+                    waitsFor(function () {
+                        newIndex = DocumentManager.findInWorkingSet(newFilePath);
+                        return (newIndex === index);
+                    }, "working set update", 1000);
+                });
+
+                runs(function () {
+                    expect(newIndex).toEqual(index);
+
+                    // Old file should no longer appear in  working set
+                    waitsFor(function () {
+                        newIndex = DocumentManager.findInWorkingSet(filePath);
+                        return (newIndex === -1);
+                    }, "working set update", 1000);
+                });
+
+                runs(function () {
+                    expect(newIndex).toEqual(-1);
 
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
