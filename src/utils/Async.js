@@ -315,6 +315,41 @@ define(function (require, exports, module) {
     }
     
     /**
+     * TODO: document this.
+     */
+    function waitForAll(promises, failOnReject, timeout) {
+        var masterDeferred = new $.Deferred(),
+            count = 0,
+            sawRejects = false;
+        
+        // set defaults if needed
+        failOnReject = (failOnReject === undefined) ? false : true;
+        
+        if (timeout !== undefined) {
+            withTimeout(masterDeferred, timeout);
+        }
+        
+        promises.forEach(function (promise) {
+            promise
+                .fail(function (err) {
+                    sawRejects = true;
+                })
+                .always(function () {
+                    count++;
+                    if (count === promises.length) {
+                        if (failOnReject && sawRejects) {
+                            masterDeferred.reject();
+                        } else {
+                            masterDeferred.resolve();
+                        }
+                    }
+                });
+        });
+        
+        return masterDeferred.promise();
+    }
+    
+    /**
      * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions 
      * together, using the result of each successive function as the argument(s) to the next. 
      * A promise is returned that resolves with the result of the final call if all calls 
@@ -442,6 +477,7 @@ define(function (require, exports, module) {
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
+    exports.waitForAll     = waitForAll;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
     exports.chain          = chain;
     exports.PromiseQueue   = PromiseQueue;

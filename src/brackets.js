@@ -196,8 +196,8 @@ define(function (require, exports, module) {
             $testDiv.remove();
         }
 
-        // Load default languages
-        LanguageManager.ready.always(function () {
+        // Load default languages and preferences
+        Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]).always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests

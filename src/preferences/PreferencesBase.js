@@ -929,10 +929,13 @@ define(function (require, exports, module) {
         this._scopes["default"].load();
         
         this._defaultContext = {
-            scopeOrder: ["default"]
+            scopeOrder: ["default"],
+            _shadowScopeOrder: [{
+                id: "default",
+                promise: (new $.Deferred()).resolve().promise()
+            }]
         };
         
-        this._pendingScopes = {};
         this._pendingEvents = {};
         
         this._saveInProgress = false;
@@ -993,6 +996,53 @@ define(function (require, exports, module) {
         getPreference: function (id) {
             return this._knownPrefs[id];
         },
+
+        
+        _pushToScopeOrder: function (id, before) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                index = _.findIndex(defaultScopeOrder, function (id) {
+                    return id === before;
+                });
+            if (index > -1) {
+                defaultScopeOrder.splice(index, 0, id);
+                console.log(defaultScopeOrder);
+                this._processPendingEvents(id);
+            } else {
+                // error
+                throw new Error("Internal error: scope " + before + " should be in the scope order");
+            }
+
+        },
+
+        _tryAddToScopeOrder: function (shadowEntry) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                index = _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry === shadowEntry;
+                }),
+                done = false,
+                i = index + 1;
+            
+            while (i < shadowScopeOrder.length) {
+                if (shadowScopeOrder[i].promise.state() === "pending" || shadowScopeOrder[i].promise.state() === "resolved") {
+                    break;
+                }
+                i++;
+            }
+            switch (shadowScopeOrder[i].promise.state()) {
+            case "pending":
+                shadowScopeOrder[i].promise.always(function () {
+                    this._tryAddToScopeOrder(shadowEntry);
+                }.bind(this));
+                break;
+            case "resolved":
+                this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
+                break;
+            default:
+                throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
+            }
+
+        },
         
         /**
          * @private
@@ -1008,33 +1058,32 @@ define(function (require, exports, module) {
          * @param {string} id Name of the new Scope
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
-        _addToScopeOrder: function (id, addBefore) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder;
+        _addToScopeOrder: function (id, promise, addBefore) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                shadowEntry = {
+                    id: id,
+                    promise: promise
+                };
             
             if (!addBefore) {
-                defaultScopeOrder.unshift(id);
-                this._processPendingEvents(id);
+                shadowScopeOrder.unshift(shadowEntry);
             } else {
-                var addIndex = defaultScopeOrder.indexOf(addBefore);
-                if (addIndex > -1) {
-                    defaultScopeOrder.splice(addIndex, 0, id);
-                    this._processPendingEvents(id);
+                var index = _.findIndex(shadowScopeOrder, function (entry) {
+                        return entry.id === addBefore;
+                    });
+                if (index > -1) {
+                    shadowScopeOrder.splice(index, 0, shadowEntry);
                 } else {
-                    var queue = this._pendingScopes[addBefore];
-                    if (!queue) {
-                        queue = [];
-                        this._pendingScopes[addBefore] = queue;
-                    }
-                    queue.unshift(id);
+                    // do not install faulty scopes
+                    console.error("Scope was not added -- preceding scope not found: " + addBefore);
                 }
             }
-            if (this._pendingScopes[id]) {
-                var pending = this._pendingScopes[id];
-                delete this._pendingScopes[id];
-                pending.forEach(function (scopeID) {
-                    this._addToScopeOrder(scopeID, id);
-                }.bind(this));
-            }
+
+            promise.then(function () {
+                this._tryAddToScopeOrder(shadowEntry);
+            }.bind(this));
+
         },
         
         /**
@@ -1077,6 +1126,7 @@ define(function (require, exports, module) {
          *                   with id and scope.
          */
         addScope: function (id, scope, options) {
+            var promise;
             options = options || {};
             
             if (this._scopes[id]) {
@@ -1096,13 +1146,13 @@ define(function (require, exports, module) {
                 this._pendingEvents[id].push(data.ids);
             }.bind(this));
             
-            var deferred = $.Deferred();
+            promise = scope.load();
             
-            scope.load()
+            this._addToScopeOrder(id, promise, options.before);
+
+            promise
                 .then(function () {
                     this._scopes[id] = scope;
-                    this._addToScopeOrder(id, options.before);
-                    deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {
                     // With preferences, it is valid for there to be no file.
@@ -1112,7 +1162,7 @@ define(function (require, exports, module) {
                     }
                 });
             
-            return deferred.promise();
+            return promise;
         },
         
         /**
@@ -1128,6 +1178,7 @@ define(function (require, exports, module) {
                 return;
             }
             delete this._scopes[id];
+            _.pull(this._defaultContext._shadowScopeOrder, id);
             _.pull(this._defaultContext.scopeOrder, id);
             $(scope).off(PREFERENCE_CHANGE);
             var keys = scope.getKeys();

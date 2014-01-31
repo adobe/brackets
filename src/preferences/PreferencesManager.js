@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
+        Async             = require("utils/Async"),
         FileUtils         = require("file/FileUtils"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
         PreferencesBase   = require("preferences/PreferencesBase"),
@@ -52,7 +53,6 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var CLIENT_ID_PREFIX = "com.adobe.brackets.";
-    
     
     // Private Properties
     var preferencesKey,
@@ -225,33 +225,49 @@ define(function (require, exports, module) {
         return userPrefFile;
     }
     
+    /**
+     * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
+     * @private
+     * @type {$.Deferred}
+     */
+    var _deferred = new $.Deferred();
+    
+    /**
+     * Promises to add scopes. Used at init time only. 
+     * @private
+     * @type {Array.<$.Promise>}
+     */
+    var _addScopePromises = [];
+    
     var preferencesManager = new PreferencesBase.PreferencesSystem();
+    
+    // The sequence of adding scopes to the manager defines the scope order (properties lookup order)
     
     var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
+    _addScopePromises.push(userScope);
     // Set up the .brackets.json file handling
-    userScope
-        .done(function () {
-            preferencesManager.addPathScopes(".brackets.json", {
-                before: "user",
-                checkExists: function (filename) {
-                    var result = new $.Deferred(),
-                        file = FileSystem.getFileForPath(filename);
-                    file.exists(function (err, doesExist) {
-                        result.resolve(doesExist);
-                    });
-                    return result.promise();
-                },
-                getScopeForFile: function (filename) {
-                    return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
-                }
-            })
-                .done(function () {
-                    // Session Scope is for storing prefs in memory only but with the highest precedence.
-                    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
-                });
+    _addScopePromises.push(preferencesManager.addPathScopes(".brackets.json", {
+        before: "user",
+        checkExists: function (filename) {
+            var result = new $.Deferred(),
+                file = FileSystem.getFileForPath(filename);
+            file.exists(function (err, doesExist) {
+                result.resolve(doesExist);
+            });
+            return result.promise();
+        },
+        getScopeForFile: function (filename) {
+            return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
+        }
+    }));
+    _addScopePromises.push(preferencesManager.addScope("session", new PreferencesBase.MemoryStorage()));
+    
+    Async.waitForAll(_addScopePromises)
+        .always(function () {
+            _deferred.resolve();
         });
-        
+            
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`
@@ -323,6 +339,7 @@ define(function (require, exports, module) {
     }
     
     // Private API for unit testing and use elsewhere in Brackets core
+    exports.ready                  = _deferred.promise();
     exports._manager               = preferencesManager;
     exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
     
