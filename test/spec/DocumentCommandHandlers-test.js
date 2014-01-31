@@ -698,7 +698,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Create LF test file");
                 });
                 
-                // open, modify, and save file (CRLF case)
+                // open, modify, save, and close file (CRLF case)
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
                     waitsForDone(promise, "Open CRLF test file");
@@ -711,7 +711,12 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Save modified file");
                 });
                 
-                // open, modify, and save file (LF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "Close file");
+                });
+                
+                // open, modify, save, and close file (LF case)
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
                     waitsForDone(promise, "Open LF test file");
@@ -722,6 +727,11 @@ define(function (require, exports, module) {
                     DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
                     promise = CommandManager.execute(Commands.FILE_SAVE);
                     waitsForDone(promise, "Save modified file");
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "Close file");
                 });
                 
                 // verify file contents
