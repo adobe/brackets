@@ -422,28 +422,6 @@ define({
     "LANGUAGE_CANCEL"                           : "لغو",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "زبان پیش فرض",
     
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                                 : "Czech",
-    "LOCALE_DE"                                 : "German",
-    "LOCALE_EN"                                 : "English",
-    "LOCALE_ES"                                 : "Spanish",
-    "LOCALE_FI"                                 : "Finnish",
-    "LOCALE_FR"                                 : "French",
-    "LOCALE_IT"                                 : "Italian",
-    "LOCALE_JA"                                 : "Japanese",
-    "LOCALE_NB"                                 : "Norwegian",
-    "LOCALE_FA_IR"                              : "Persian-پارسی",
-    "LOCALE_PL"                                 : "Polish",
-    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                              : "Portuguese",
-    "LOCALE_RU"                                 : "Russian",
-    "LOCALE_SV"                                 : "Swedish",
-    "LOCALE_TR"                                 : "Turkish",
-    "LOCALE_ZH_CN"                              : "Chinese, simplified",
-    "LOCALE_HU"                                 : "Hungarian",
-    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "رنگ فعلی",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "رنگ اصلی",
