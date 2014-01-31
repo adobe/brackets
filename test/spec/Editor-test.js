@@ -145,7 +145,7 @@ define(function (require, exports, module) {
                               "  <p>Hello</p>\n" +
                               "</body></html>";
             
-            it("should get mode in homogenous file", function () {
+            it("should get mode in homogeneous file", function () {
                 createTestEditor(jsContent, langNames.javascript.mode);
                 
                 // Mode at point
@@ -161,6 +161,14 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 7});
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 8});  // select all
+                expectModeAndLang(myEditor, langNames.javascript);
+                
+                // Mode for multiple cursors/selections
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
+                                        {start: {line: 0, ch: 5}, end: {line: 0, ch: 5}}]);
+                expectModeAndLang(myEditor, langNames.javascript);
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 3}},
+                                        {start: {line: 0, ch: 5}, end: {line: 0, ch: 7}}]);
                 expectModeAndLang(myEditor, langNames.javascript);
             });
             
@@ -178,7 +186,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(2, 7);    // middle of text - js
                 expectModeAndLang(myEditor, langNames.javascript);
                 
-                // Mode for range - homogenous mode
+                // Mode for range - homogeneous mode
                 myEditor.setSelection({line: 5, ch: 2}, {line: 5, ch: 14});
                 expectModeAndLang(myEditor, langNames.html);
                 myEditor.setSelection({line: 5, ch: 0}, {line: 6, ch: 0});  // whole line
@@ -188,8 +196,42 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 2, ch: 0}, {line: 3, ch: 0});  // whole line
                 expectModeAndLang(myEditor, langNames.javascript);
                 
+                // Mode for multiple cursors/selections - homogeneous mode
+                myEditor.setSelections([{start: {line: 2, ch: 0}, end: {line: 2, ch: 0}},
+                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
+                expectModeAndLang(myEditor, langNames.javascript);
+                myEditor.setSelections([{start: {line: 2, ch: 0}, end: {line: 2, ch: 2}},
+                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}}]);
+                expectModeAndLang(myEditor, langNames.javascript);
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
+                                        {start: {line: 5, ch: 7}, end: {line: 5, ch: 7}},
+                                        {start: {line: 6, ch: 14}, end: {line: 6, ch: 14}}]);
+                expectModeAndLang(myEditor, langNames.html);
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 2}},
+                                        {start: {line: 5, ch: 7}, end: {line: 5, ch: 9}},
+                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                expectModeAndLang(myEditor, langNames.html);
+                
                 // Mode for range - mix of modes
                 myEditor.setSelection({line: 2, ch: 4}, {line: 3, ch: 7});
+                expectModeAndLang(myEditor, langNames.unknown);
+                
+                // Mode for multiple cursors/selections - mix of modes
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
+                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}},
+                                        {start: {line: 6, ch: 14}, end: {line: 6, ch: 14}}]);
+                expectModeAndLang(myEditor, langNames.unknown);
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 2}},
+                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 7}},
+                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                expectModeAndLang(myEditor, langNames.unknown);
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}},
+                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 7}},
+                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                expectModeAndLang(myEditor, langNames.unknown);
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 2}},
+                                        {start: {line: 2, ch: 4}, end: {line: 5, ch: 3}},
+                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.unknown);
                 
                 // Mode for range - mix of modes where start & endpoints are same mode
@@ -249,6 +291,418 @@ define(function (require, exports, module) {
                 
                 // Restore default
                 Editor.setTabSize(4);
+            });
+        });
+        
+        describe("Selections", function () {
+            
+            beforeEach(function () {
+                createTestEditor("this is line 1\nthis is line 2\nthis is line 3\nthis is line 4\nthis is line 5", "unknown");
+            });
+                
+            describe("hasSelection", function () {
+                it("should return false for a single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    expect(myEditor.hasSelection()).toBe(false);
+                });
+                
+                it("should return true for a single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    expect(myEditor.hasSelection()).toBe(true);
+                });
+                
+                it("should return false for multiple cursors", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.hasSelection()).toBe(false);
+                });
+                
+                it("should return true for multiple selections", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    expect(myEditor.hasSelection()).toBe(true);
+                });
+                
+                it("should return true for mixed cursors and selections", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.hasSelection()).toBe(true);
+                });
+            });
+            
+            describe("getCursorPos", function () {
+                it("should return a single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 2});
+                });
+                
+                it("should return the correct ends of a single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 5});
+                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 0, ch: 1});
+                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 0, ch: 1});
+                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 0, ch: 5});
+                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 5});
+                });
+                
+                it("should return the default primary cursor in a multiple cursor selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 1});
+                });
+                
+                it("should return the specific primary cursor in a multiple cursor selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ], 1);
+                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 1});
+                });
+                
+                it("should return the correct ends of the default primary selection in a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 4});
+                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 2, ch: 4});
+                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 4});
+                });
+                
+                it("should return the correct ends of a specific primary selection in a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ], 1);
+                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 4});
+                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 1, ch: 4});
+                    expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 4});
+                });
+            });
+            
+            describe("setCursorPos", function () {
+                it("should replace an existing single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    myEditor.setCursorPos(1, 3);
+                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+
+                it("should replace an existing single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    myEditor.setCursorPos(1, 3);
+                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+                
+                it("should replace existing multiple cursors", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    myEditor.setCursorPos(1, 3);
+                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+                
+                it("should replace existing multiple selections", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    myEditor.setCursorPos(1, 3);
+                    expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+            });
+            
+            describe("getSelection", function () {
+                it("should return a single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false});
+                });
+                
+                it("should return a single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false});
+                });
+
+                it("should return a multiline selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 1, ch: 3});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: false});
+                });
+
+                it("should return a single selection in the proper order when reversed", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 0, ch: 1});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true});
+                });
+                
+                it("should return a multiline selection in the proper order when reversed", function () {
+                    myEditor._codeMirror.setSelection({line: 1, ch: 3}, {line: 0, ch: 5});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true});
+                });
+                
+                it("should return the default primary cursor in a multiple cursor selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
+                });
+                
+                it("should return the specific primary cursor in a multiple cursor selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ], 1);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false});
+                });
+                
+                it("should return the default primary selection in a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
+                });
+                
+                it("should return the default primary selection in the proper order when reversed", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
+                });
+                
+                it("should return the specific primary selection in a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ], 1);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
+                });
+                
+                it("should return the specific primary selection in the proper order when reversed", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 4}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ], 1);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: true});
+                });
+
+            });
+            
+            describe("getSelections", function () {
+                it("should return a single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false, primary: true}]);
+                });
+                
+                it("should return a single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false, primary: true}]);
+                });
+                
+                it("should properly reverse a single selection whose head is before its anchor", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 0, ch: 1});
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true, primary: true}]);
+                });
+                
+                it("should return multiple cursors", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 1}, reversed: false, primary: false},
+                                                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false, primary: false},
+                                                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
+                                                       ]);
+                });
+                
+                it("should return a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: false, primary: false},
+                                                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                                                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
+                                                       ]);
+                });
+                
+                it("should properly reverse selections whose heads are before their anchors in a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 4}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: true, primary: false},
+                                                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                                                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
+                                                       ]);
+                });
+                
+                it("should properly reverse multiline selections whose heads are before their anchors in a multiple selection", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 1, ch: 3}, head: {line: 0, ch: 5}},
+                                                        {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
+                                                       ]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true, primary: false},
+                                                        {start: {line: 3, ch: 1}, end: {line: 4, ch: 4}, reversed: true, primary: true}
+                                                       ]);
+                });
+            });
+            
+            describe("getSelectedText", function () {
+                it("should return empty string for a cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    expect(myEditor.getSelectedText()).toEqual("");
+                });
+                
+                it("should return the contents of a single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 8}, {line: 0, ch: 12});
+                    expect(myEditor.getSelectedText()).toEqual("line");
+                });
+                
+                it("should return the contents of a multiple selection, separated by newlines", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 12}},
+                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 12}},
+                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 12}}
+                                                       ]);
+                    expect(myEditor.getSelectedText()).toEqual("line\nline\nline");
+                });
+
+                it("should return the contents of a multiple selection when some selections are reversed", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 12}, head: {line: 0, ch: 8}},
+                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 12}},
+                                                        {anchor: {line: 2, ch: 12}, head: {line: 2, ch: 8}}
+                                                       ]);
+                    expect(myEditor.getSelectedText()).toEqual("line\nline\nline");
+                });
+            });
+            
+            describe("setSelection", function () {
+                it("should replace an existing single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                });
+
+                it("should replace an existing single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                });
+                
+                it("should allow implicit end", function () {
+                    myEditor.setSelection({line: 1, ch: 3});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
+                });
+                
+                it("should replace existing multiple cursors", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                });
+                
+                it("should replace existing multiple selections", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
+                });
+            });
+
+            describe("setSelections", function () {
+                it("should replace an existing single cursor", function () {
+                    myEditor._codeMirror.setCursor(0, 2);
+                    myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                });
+
+                it("should replace an existing single selection", function () {
+                    myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
+                    myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                });
+                
+                it("should replace existing multiple cursors", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                                                       ]);
+                    myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                });
+                
+                it("should replace existing multiple selections", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
+                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                                                       ]);
+                    myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
+                });
+                
+                it("should specify non-default primary selection", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, primary: true},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: true},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: false}]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false});
+                });
+                
+                it("should sort and merge overlapping selections", function () {
+                    myEditor.setSelections([{start: {line: 2, ch: 4}, end: {line: 3, ch: 0}},
+                                            {start: {line: 2, ch: 3}, end: {line: 2, ch: 6}},
+                                            {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: true},
+                                            {start: {line: 2, ch: 3}, end: {line: 3, ch: 0}, reversed: false, primary: false}]);
+                    expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
+                });
+
+                it("should properly set reversed selections", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true, primary: false},
+                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                    
+                });
             });
         });
     });

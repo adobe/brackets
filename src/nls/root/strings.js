@@ -189,6 +189,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selections",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",

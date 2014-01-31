@@ -771,7 +771,7 @@ define(function (require, exports, module) {
      * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
      * @param {?string} start Optional string indicating which end of the
-     *  selection to return. It may be "start", "end", "head" (the side of the
+     *  selection to return. It may be "from", "to", "head" (the side of the
      *  selection that moves when you press shift+arrow), or "anchor" (the
      *  fixed side of the selection). Omitting the argument is the same as
      *  passing "head". A {line, ch} object will be returned.)
@@ -844,7 +844,7 @@ define(function (require, exports, module) {
      *
      * This does not alter the horizontal scroll position.
      *
-     * @param {number} centerOptions Option value, or 0 for no options.
+     * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
     Editor.prototype.centerOnCursor = function (centerOptions) {
         var $scrollerElement = $(this.getScrollerElement());
@@ -915,15 +915,53 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
+     * @private
+     * Takes an anchor/head pair and returns a start/end pair where the start is guaranteed to be <= end, and a "reversed" flag indicating
+     * if the head is before the anchor.
+     * @param {!{line: number, ch: number}} anchorPos
+     * @param {!{line: number, ch: number}} headPos
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}, reversed:boolean} the normalized range with start <= end
+     */
+    function _normalizeRange(anchorPos, headPos) {
+        if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
+            return {start: headPos, end: anchorPos, reversed: true};
+        } else {
+            return {start: anchorPos, end: headPos, reversed: false};
+        }
+    }
+    
+    /**
+     * Gets the current selection; if there is more than one selection, returns the primary selection
+     * (generally the last one made). Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
-     * of length zero).
-     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * of length zero). If `reversed` is set, then the head of the selection (the end of the selection
+     * that would be changed if the user extended the selection) is before the anchor. 
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}, reversed:boolean}
      */
     Editor.prototype.getSelection = function () {
-        var selStart = this.getCursorPos(false, "from"),
-            selEnd   = this.getCursorPos(false, "to");
-        return { start: selStart, end: selEnd };
+        return _normalizeRange(this.getCursorPos(false, "anchor"), this.getCursorPos(false, "head"));
+    };
+    
+    /**
+     * Returns an array of current selections. Each entry is a start/end pair, with the start
+     * guaranteed to come before the end. If `reversed` is set, then the head of the selection
+     * (the end of the selection that would be changed if the user extended the selection)
+     * is before the anchor. Cursors are represented as a range whose start is equal to the end.
+     * If `primary` is set, then that selection is the primary selection.
+     * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}
+     */
+    Editor.prototype.getSelections = function () {
+        var primarySel = this.getSelection();
+        return _.map(this._codeMirror.listSelections(), function (sel) {
+            var result = _normalizeRange(sel.anchor, sel.head);
+            if (result.start.line === primarySel.start.line && result.start.ch === primarySel.start.ch &&
+                    result.end.line === primarySel.end.line && result.end.ch === primarySel.end.ch) {
+                result.primary = true;
+            } else {
+                result.primary = false;
+            }
+            return result;
+        });
     };
     
     /**
@@ -936,16 +974,39 @@ define(function (require, exports, module) {
     
     /**
      * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
-     * end of the selection range. Optionally centers the around the cursor after
+     * end of the selection range. Optionally centers around the cursor after
      * making the selection
      *
      * @param {!{line:number, ch:number}} start
-     * @param {!{line:number, ch:number}} end
+     * @param {={line:number, ch:number}} end If not specified, defaults to start.
      * @param {boolean} center true to center the viewport
-     * @param {number} centerOptions Option value, or 0 for no options.
+     * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
     Editor.prototype.setSelection = function (start, end, center, centerOptions) {
-        this._codeMirror.setSelection(start, end);
+        this.setSelections([{start: start, end: end || start}], center, centerOptions);
+    };
+    
+    /**
+     * Sets a multiple selection, with the "primary" selection (the one returned by
+     * getSelection() and getCursorPos()) defaulting to the last if not specified.
+     * Overlapping ranges will be automatically merged, and the selection will be sorted.
+     * Optionally centers around the primary selection after making the selection.
+     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean}>} selections
+     *      The selection ranges to set. If the start and end of a range are the same, treated as a cursor.
+     *      If reversed is true, set the anchor of the range to the end instead of the start.
+     *      If primary is true, this is the primary selection. Behavior is undefined if more than
+     *      one selection has primary set to true. If none has primary set to true, the last one is primary.
+     * @param {boolean} center true to center the viewport around the primary selection.
+     * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
+     */
+    Editor.prototype.setSelections = function (selections, center, centerOptions) {
+        var primIndex;
+        this._codeMirror.setSelections(_.map(selections, function (sel, index) {
+            if (sel.primary) {
+                primIndex = index;
+            }
+            return { anchor: sel.reversed ? sel.end : sel.start, head: sel.reversed ? sel.start : sel.end };
+        }), primIndex);
         if (center) {
             this.centerOnCursor(centerOptions);
         }
@@ -1465,19 +1526,35 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
-        var sel         = this.getSelection(),
+        var self        = this,
+            sels        = this.getSelections(),
+            primarySel  = this.getSelection(),
             outerMode   = this._codeMirror.getMode(),
-            startMode   = TokenUtils.getModeAt(this._codeMirror, sel.start),
+            startMode   = TokenUtils.getModeAt(this._codeMirror, primarySel.start),
             isMixed     = (outerMode.name !== startMode.name);
 
         if (isMixed) {
-            // If mixed mode, check that mode is the same at start & end of selection
-            if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-                var endMode = TokenUtils.getModeAt(this._codeMirror, sel.end);
+            // Shortcut the first check to avoid getModeAt(), which can be expensive
+            if (primarySel.start.line !== primarySel.end.line || primarySel.start.ch !== primarySel.end.ch) {
+                var endMode = TokenUtils.getModeAt(this._codeMirror, primarySel.end);
                 
                 if (startMode.name !== endMode.name) {
                     return null;
                 }
+            }
+
+            // If mixed mode, check that mode is the same at start & end of each selection
+            var hasMixedSel = _.some(sels, function (sel) {
+                if (sels === primarySel) {
+                    // We already checked this before, so we know it's not mixed.
+                    return false;
+                }
+                var selStartMode = TokenUtils.getModeAt(self._codeMirror, sel.start),
+                    selEndMode = TokenUtils.getModeAt(self._codeMirror, sel.end);
+                return (selStartMode.name !== startMode.name || selEndMode.name !== startMode.name);
+            });
+            if (hasMixedSel) {
+                return null;
             }
 
             return startMode.name;
