@@ -99,5 +99,13 @@ define(function (require, exports, module) {
             });
         });
         
+        it("should default to the editor's indent", function () {
+            waitsForDone(SpecRunnerUtils.openProjectFiles(["different-indent.js"]), "open test file");
+            
+            runs(function () {
+                toggleJSLintResults(false);
+                toggleJSLintResults(false);
+            });
+        });
     });
 });

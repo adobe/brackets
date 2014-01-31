@@ -982,7 +982,7 @@ a, img {
     }
 }
 
-#search-results .disclosure-triangle {
+#search-results .disclosure-triangle, #problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -1158,9 +1158,16 @@ a, img {
 .CodeMirror-searching {
     // Highlight color, overlaid on top of the .find-highlighting color
     background-color: @cm-match-highlight;
-    border-radius: @tc-inline-border-radius;
     box-shadow: @tc-small-shadow-bottom;
     color: @match-text !important;
+    &.searching-first {
+        border-top-left-radius: @tc-inline-border-radius;
+        border-bottom-left-radius: @tc-inline-border-radius;
+    }
+    &.searching-last {
+        border-top-right-radius: @tc-inline-border-radius;
+        border-bottom-right-radius: @tc-inline-border-radius;
+    }
 }
 .CodeMirror.find-highlighting div.CodeMirror-selected,
 .CodeMirror .CodeMirror.find-highlighting div.CodeMirror-selected {
@@ -1181,15 +1188,14 @@ a, img {
     bottom: 0;
     top: 0;
     right: 0;
-    width: 16px;
+    width: 12px;
     z-index: @z-index-cm-max;
     pointer-events: none;
 
     .tickmark {
         position: absolute;
-        width: 16px;
-        body.platform-mac & { width: 15px; }
-
+        width: 12px;
+        
         height: 1px;
         background-color: #eddd23;
         border-top: 1px solid #e0d123;
@@ -1200,6 +1206,16 @@ a, img {
 
 
 /* Quick Open search bar & dropdown */
+
+.find-dialog-label {
+    background: @bc-white;
+    color: @tc-quiet-text;
+    position: absolute;
+    right: 15px;
+    text-align: right;
+    top: 12px;
+    z-index: 9999;
+}
 
 .smart_autocomplete_container {
 
@@ -1334,8 +1350,22 @@ a, img {
     .line {
         text-align: right;  // make line number line up with editor line numbers
     }
-}
 
+    .line-text {
+        white-space: nowrap;
+        width: auto;
+    }
+
+    .line-snippet {
+        white-space: nowrap;
+        width: 100%;
+        padding-left: 10px;
+    }
+    
+    .inspector-section > td {
+        padding-left: 5px;
+    }
+}
 
 /* Line up label text and input text */
 label input {
@@ -1347,4 +1377,8 @@ label input {
 .live-preview-sync-error .CodeMirror-linenumber {
     background-color: @live-preview-sync-error-background;
     color: @live-preview-sync-error-color;
+}
+
+.install-extension-dialog .spinner {
+    margin-left: 10px;
 }
