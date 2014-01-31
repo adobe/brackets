@@ -182,6 +182,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -651,6 +652,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 // modify and save
@@ -700,6 +702,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
                     waitsForDone(promise, "Open CRLF test file");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
                 
                 runs(function () {
@@ -712,6 +715,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
                     waitsForDone(promise, "Open LF test file");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
                 
                 runs(function () {
@@ -765,6 +769,7 @@ define(function (require, exports, module) {
                     // Open the file, does not add to working set
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -803,6 +808,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -886,6 +892,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
