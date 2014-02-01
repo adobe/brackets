@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
-        TokenUtils         = require("utils/TokenUtils");
+        TokenUtils         = require("utils/TokenUtils"),
+        _                  = require("thirdparty/lodash");
     
     /**
      * List of constants
@@ -804,18 +805,24 @@ define(function (require, exports, module) {
     function selectLine(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
-            var sel  = editor.getSelection();
-            var from = {line: sel.start.line, ch: 0};
-            var to   = {line: sel.end.line + 1, ch: 0};
+            // Look at all the selections and expand each one. We don't have to worry if they overlap,
+            // because setSelections() will merge them if necessary.
+            var sels;
             
-            if (to.line === editor.getLastVisibleLine() + 1) {
-                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
-                // which due to how CM clips coords would only work some of the time
-                to.line -= 1;
-                to.ch = editor.document.getLine(to.line).length;
-            }
+            sels = _.map(editor.getSelections(), function (sel) {
+                var from = {line: sel.start.line, ch: 0};
+                var to   = {line: sel.end.line + 1, ch: 0};
+
+                if (to.line === editor.getLastVisibleLine() + 1) {
+                    // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
+                    // which due to how CM clips coords would only work some of the time
+                    to.line -= 1;
+                    to.ch = editor.document.getLine(to.line).length;
+                }
+                return {start: from, end: to, primary: sel.primary, reversed: sel.reversed};
+            });
             
-            editor.setSelection(from, to);
+            editor.setSelections(sels);
         }
     }
 

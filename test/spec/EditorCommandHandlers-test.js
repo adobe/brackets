@@ -90,7 +90,13 @@ define(function (require, exports, module) {
             expect(selection.start).toEqual(pos);
         }
         function expectSelection(sel) {
+            if (!sel.reversed) {
+                sel.reversed = false;
+            }
             expect(myEditor.getSelection()).toEqual(sel);
+        }
+        function expectSelections(sels) {
+            expect(myEditor.getSelections()).toEqual(sels);
         }
         
         
@@ -2306,6 +2312,86 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 5, ch: 0}});
             });
             
+            it("should extend multiple cursors to multiple lines", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                        {start: {line: 3, ch: 9}, end: {line: 3, ch: 9}},
+                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            });
+            
+            it("should extend multiple selections to multiple lines", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 5}},
+                                        {start: {line: 3, ch: 0}, end: {line: 3, ch: 9}},
+                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            });
+            
+            it("should extend multiple multi-line selections to whole lines, and handle end properly", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 2}, end: {line: 1, ch: 3}},
+                                        {start: {line: 3, ch: 2}, end: {line: 4, ch: 3}},
+                                        {start: {line: 6, ch: 2}, end: {line: 7, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 6, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            });
+            
+            it("should extend whole lines in multiple selection to next line, except at end", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                        {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}},
+                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            });
+            
+            it("should extend multiple lines in multiple selection to additional line, and handle end properly", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}},
+                                        {start: {line: 4, ch: 0}, end: {line: 7, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 0, ch: 0}, end: {line: 3, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 4, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            });
+            
+            it("should merge selections that collide", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
+                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 1, ch: 0}, end: {line: 3, ch: 0}, reversed: false, primary: true}]);
+            });
+            
+            it("should track a non-default primary selection", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                        {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, primary: true},
+                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelection({start: {line: 3, ch: 0}, end: {line: 5, ch: 0}});
+            });
+            
+            it("should track a reversed selection", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                        {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: true},
+                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: true, primary: false},
+                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            });
         });
         
         describe("Select Line - editor with visible range", function () {
