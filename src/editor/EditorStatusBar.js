@@ -145,8 +145,10 @@ define(function (require, exports, module) {
     function _updateOverwriteLabel(event, editor, newstate) {
         if (!newstate) {
             $statusOverwrite.removeClass("active");
+            $statusOverwrite.text("INS");
         } else {
             $statusOverwrite.addClass("active");
+            $statusOverwrite.text("OVR");
         }
     }
     
@@ -166,6 +168,7 @@ define(function (require, exports, module) {
         if (!current) {
             StatusBar.hide();  // calls resizeEditor() if needed
         } else {
+            current._codeMirror.toggleOverwrite($statusOverwrite.hasClass("active"));
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
