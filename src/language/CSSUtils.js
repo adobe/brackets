@@ -253,7 +253,11 @@ define(function (require, exports, module) {
                     lastValue += ctx.token.string;
                 } else if (lastValue && lastValue.match(/,$/)) {
                     propValues.push(lastValue);
-                    lastValue = "";
+                    if (ctx.token.string.length > 0) {
+                        lastValue = ctx.token.string;
+                    } else {
+                        lastValue = "";
+                    }
                 } else {
                     // e.g. "rgba(50" gets broken into 2 tokens
                     lastValue += ctx.token.string;
@@ -1090,6 +1094,17 @@ define(function (require, exports, module) {
                     if (/[\{\}\;]/.test(ctx.token.string)) {
                         break;
                     }
+                    
+                    // Stop once we've reached a <style ...> tag
+                    if (ctx.token.string === "<style") {
+                        // Remove everything up to end-of-tag from selector
+                        var eotIndex = selector.indexOf(">");
+                        if (eotIndex !== -1) {
+                            selector = selector.substring(eotIndex + 1);
+                        }
+                        break;
+                    }
+                    
                     selector = ctx.token.string + selector;
                 }
                 if (!TokenUtils.movePrevToken(ctx)) {

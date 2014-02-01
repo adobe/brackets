@@ -418,7 +418,6 @@ define(function (require, exports, module) {
             $searchContent
                 .empty()
                 .append(Mustache.render(searchResultsTemplate, {searchList: searchList, Strings: Strings}))
-                .scrollTop(0)        // Otherwise scroll pos from previous contents is remembered
                 .off(".searchList")  // Remove the old events
             
                 // Add the click event listener directly on the table parent
@@ -497,6 +496,7 @@ define(function (require, exports, module) {
                 $selectedRow = null;
             }
             searchResultsPanel.show();
+            $searchContent.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
 
             if (dialog) {
                 dialog._close();
