@@ -889,12 +889,18 @@ define(function (require, exports, module) {
                 runs(function () {
                     // open the target file
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
-
                     waitsForDone(promise, "FILE_OPEN");
                 });
                 
                 runs(function () {
+                    // put file in working set
+                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: filePath});
+                    waitsForDone(promise, "Open into working set");
+                });
+                
+                runs(function () {
                     index = DocumentManager.findInWorkingSet(filePath);
+                    expect(index).not.toEqual(-1);
                     targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
                 });
 
@@ -903,7 +909,6 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
-                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -955,6 +960,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
             });
 
@@ -1123,6 +1129,7 @@ define(function (require, exports, module) {
         describe("Open image file while a text file is open", function () {
             it("should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
+                    activeEditor,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
 
@@ -1130,9 +1137,10 @@ define(function (require, exports, module) {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
                     _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
                     
-                    
+                    activeEditor = EditorManager.getActiveEditor();
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor() !== activeEditor); }, "active editor change", 1000);
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(1);
@@ -1190,17 +1198,18 @@ define(function (require, exports, module) {
             it("should fire currentDocumentChange and activeEditorChange events", function () {
 
                 var promise,
+                    activeEditor,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
-
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
                     _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
                     
-                    
+                    activeEditor = EditorManager.getActiveEditor();
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor() !== activeEditor); }, "active editor change", 1000);
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(1);
@@ -1208,8 +1217,10 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
+                    activeEditor = EditorManager.getActiveEditor();
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test2.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor() !== activeEditor); }, "active editor change", 1000);
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
@@ -1227,6 +1238,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
                 
                 runs(function () {
