@@ -182,6 +182,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -651,6 +652,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 // modify and save
@@ -696,10 +698,11 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Create LF test file");
                 });
                 
-                // open, modify, and save file (CRLF case)
+                // open, modify, save, and close file (CRLF case)
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
                     waitsForDone(promise, "Open CRLF test file");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
                 
                 runs(function () {
@@ -708,16 +711,27 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Save modified file");
                 });
                 
-                // open, modify, and save file (LF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "Close file");
+                });
+                
+                // open, modify, save, and close file (LF case)
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
                     waitsForDone(promise, "Open LF test file");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
                 
                 runs(function () {
                     DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
                     promise = CommandManager.execute(Commands.FILE_SAVE);
                     waitsForDone(promise, "Save modified file");
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "Close file");
                 });
                 
                 // verify file contents
@@ -765,6 +779,7 @@ define(function (require, exports, module) {
                     // Open the file, does not add to working set
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -803,6 +818,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
 
                 runs(function () {
@@ -867,17 +883,24 @@ define(function (require, exports, module) {
             
             it("should maintain order within Working Set after Save As", function () {
                 var index,
+                    newIndex,
                     targetDoc;
 
                 runs(function () {
                     // open the target file
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
-
                     waitsForDone(promise, "FILE_OPEN");
                 });
                 
                 runs(function () {
+                    // put file in working set
+                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: filePath});
+                    waitsForDone(promise, "Open into working set");
+                });
+                
+                runs(function () {
                     index = DocumentManager.findInWorkingSet(filePath);
+                    expect(index).not.toEqual(-1);
                     targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
                 });
 
@@ -901,9 +924,25 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    // New file should appear in working set at old file's index; old file shouldn't appear at all
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(index);
-                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    // New file should appear in working set at old file's index
+                    waitsFor(function () {
+                        newIndex = DocumentManager.findInWorkingSet(newFilePath);
+                        return (newIndex === index);
+                    }, "working set update", 1000);
+                });
+
+                runs(function () {
+                    expect(newIndex).toEqual(index);
+
+                    // Old file should no longer appear in  working set
+                    waitsFor(function () {
+                        newIndex = DocumentManager.findInWorkingSet(filePath);
+                        return (newIndex === -1);
+                    }, "working set update", 1000);
+                });
+
+                runs(function () {
+                    expect(newIndex).toEqual(-1);
 
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
@@ -921,6 +960,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
                     waitsForDone(promise, "FILE_OPEN");
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
             });
 
@@ -1089,6 +1129,7 @@ define(function (require, exports, module) {
         describe("Open image file while a text file is open", function () {
             it("should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
+                    activeEditor,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
 
@@ -1096,9 +1137,10 @@ define(function (require, exports, module) {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
                     _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
                     
-                    
+                    activeEditor = EditorManager.getActiveEditor();
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor() !== activeEditor); }, "active editor change", 1000);
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(1);
@@ -1156,17 +1198,18 @@ define(function (require, exports, module) {
             it("should fire currentDocumentChange and activeEditorChange events", function () {
 
                 var promise,
+                    activeEditor,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
-
 
                 runs(function () {
                     _$(DocumentManager).on("currentDocumentChange", docChangeListener);
                     _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
                     
-                    
+                    activeEditor = EditorManager.getActiveEditor();
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor() !== activeEditor); }, "active editor change", 1000);
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(1);
@@ -1174,8 +1217,10 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
+                    activeEditor = EditorManager.getActiveEditor();
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test2.js" });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor() !== activeEditor); }, "active editor change", 1000);
                 });
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
@@ -1193,6 +1238,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: path });
                     waitsForDone(promise, Commands.FILE_OPEN);
+                    waitsFor(function () { return (EditorManager.getActiveEditor()); }, "active editor", 1000);
                 });
                 
                 runs(function () {
