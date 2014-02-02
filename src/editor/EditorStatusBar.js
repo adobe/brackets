@@ -145,10 +145,10 @@ define(function (require, exports, module) {
     function _updateOverwriteLabel(event, editor, newstate) {
         if (!newstate) {
             $statusOverwrite.addClass("active");
-            $statusOverwrite.text("INS");
+            $statusOverwrite.text(Strings.STATUSBAR_INSERT);
         } else {
             $statusOverwrite.addClass("active");
-            $statusOverwrite.text("OVR");
+            $statusOverwrite.text(Strings.STATUSBAR_OVERWRITE);
         }
         window.setTimeout(function () {
             $statusOverwrite.removeClass("active");
