@@ -142,7 +142,7 @@ define({
     "CHOOSE_FOLDER"                     : "Valitse kansio",
 
     "RELEASE_NOTES"                     : "Julkaisutiedot",
-    "NO_UPDATE_TITLE"                   : "Olet ajantasalla!",
+    "NO_UPDATE_TITLE"                   : "Olet ajan tasalla!",
     "NO_UPDATE_MESSAGE"                 : "Käytät uusinta {APP_NAME}-versiota.",
 
     // Replace All (in single file)
