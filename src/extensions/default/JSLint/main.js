@@ -36,21 +36,35 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
-        Strings            = brackets.getModule("strings");
+        Strings            = brackets.getModule("strings"),
+        _                  = brackets.getModule("thirdparty/lodash");
     
     var prefs = PreferencesManager.getExtensionPrefs("jslint");
     
+    /**
+     * @private
+     * 
+     * Used to keep track of the last options JSLint was run with to avoid running
+     * again when there were no changes.
+     */
+    var _lastRunOptions;
+    
     prefs.definePreference("options", "object")
         .on("change", function (e, data) {
-            CodeInspection.requestRun(Strings.JSLINT_NAME);
+            var options = prefs.get("options");
+            if (!_.isEqual(options, _lastRunOptions)) {
+                CodeInspection.requestRun(Strings.JSLINT_NAME);
+            }
         });
+    
+    // Predefined environments understood by JSLint.
+    var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
     
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
      */
     function lintOneFile(text, fullPath) {
-        
         // If a line contains only whitespace, remove the whitespace
         // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
         // but that doesn't work.
@@ -63,6 +77,29 @@ define(function (require, exports, module) {
         text = arr.join("\n");
         
         var options = prefs.get("options");
+
+        if (!options) {
+            options = {};
+        } else {
+            options = _.clone(options);
+        }
+        
+        if (!options.indent) {
+            // default to using the same indentation value that the editor is using
+            options.indent = PreferencesManager.get("spaceUnits");
+        }
+        
+        // If the user has not defined the environment, we use browser by default.
+        var hasEnvironment = _.some(ENVIRONMENTS, function (env) {
+            return options[env] !== undefined;
+        });
+        
+        if (!hasEnvironment) {
+            options.browser = true;
+        }
+
+        _lastRunOptions = _.clone(options);
+        
         var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {
