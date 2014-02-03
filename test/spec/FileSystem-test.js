@@ -264,6 +264,21 @@ define(function (require, exports, module) {
                     expectInvalidFile("/foo/../bar/../..");
                 });
             });
+            
+            it("should detect mistaken/invalid paths", function () {
+                // Not a full path
+                expectInvalidFile("");
+                expectInvalidFile("c:");
+                
+                // Windows-style \ path separators aren't permitted
+                expectInvalidFile("c:\\");
+                expectInvalidFile("c:\\foo");
+                expectInvalidFile("c:\\foo\\bar");
+                
+                // But proper paths ARE allowed to contain a \ (at least on Mac/Linux)
+                expectNormFile("/foo/one\\two", "/foo/one\\two");
+                expectNormDir("/foo/one\\two", "/foo/one\\two/");
+            });
         });
         
         describe("parent and name properties", function () {
@@ -283,7 +298,7 @@ define(function (require, exports, module) {
             });
             it("should not have a parentPath property if it is a root directory", function () {
                 var unixRootDir = fileSystem.getDirectoryForPath("/"),
-                    winRootDir = fileSystem.getDirectoryForPath("B:");
+                    winRootDir = fileSystem.getDirectoryForPath("B:/");
                 
                 expect(unixRootDir.parentPath).toBeNull();
                 expect(winRootDir.parentPath).toBeNull();
