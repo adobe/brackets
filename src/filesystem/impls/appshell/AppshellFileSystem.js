@@ -422,8 +422,12 @@ define(function (require, exports, module) {
             
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
-                callback(FileSystemError.CONTENTS_MODIFIED);
-                return;
+                
+                // Temporary change for release 36: allow the blind write anyway. We're getting
+                // spurious cases where file modification times are being changed without actually
+                // changing the content and without sending us a file change notification.
+                // callback(FileSystemError.CONTENTS_MODIFIED);
+                // return;
             }
             
             _finishWrite(false);
