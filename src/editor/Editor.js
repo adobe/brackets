@@ -924,6 +924,15 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Sets or toggles the editors overwrite mode.
+     *
+     * @param {!boolean} start
+     */
+    Editor.prototype.toggleOverwrite = function (state) {
+        this._codeMirror.toggleOverwrite(state);
+    };
+
+    /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
      * Adapted from selectWordAt() in CodeMirror v2.

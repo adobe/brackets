@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
+        AnimationUtils      = require("utils/AnimationUtils"),
         EditorManager       = require("editor/EditorManager"),
         Editor              = require("editor/Editor").Editor,
         KeyEvent            = require("utils/KeyEvent"),
@@ -144,21 +145,18 @@ define(function (require, exports, module) {
     
     function _updateOverwriteLabel(event, editor, newstate) {
         if (!newstate) {
-            $statusOverwrite.addClass("active");
             $statusOverwrite.text(Strings.STATUSBAR_INSERT);
         } else {
-            $statusOverwrite.addClass("active");
             $statusOverwrite.text(Strings.STATUSBAR_OVERWRITE);
         }
-        window.setTimeout(function () {
-            $statusOverwrite.removeClass("active");
-        }, 1000);
+        
+        AnimationUtils.animateUsingClass($statusOverwrite[0], "active");
     }
     
     function _updateEditorOverwriteMode() {
         var editor = EditorManager.getActiveEditor();
         
-        editor._codeMirror.toggleOverwrite(null);
+        editor.toggleOverwrite(null);
     }
     
     function _onActiveEditorChange(event, current, previous) {
@@ -171,7 +169,7 @@ define(function (require, exports, module) {
         if (!current) {
             StatusBar.hide();  // calls resizeEditor() if needed
         } else {
-            current._codeMirror.toggleOverwrite($statusOverwrite.hasClass("active"));
+            current.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
