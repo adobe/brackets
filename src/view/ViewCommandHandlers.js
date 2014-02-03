@@ -348,6 +348,7 @@ define(function (require, exports, module) {
 
     // Initialize the default font size
     PreferencesManager.stateManager.definePreference("fontSizeAdjustment", "number", 0);
+    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);

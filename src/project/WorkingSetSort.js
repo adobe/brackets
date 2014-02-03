@@ -110,7 +110,7 @@ define(function (require, exports, module) {
      */
     function setAutomatic(enable) {
         _automaticSort = enable;
-        PreferencesManager.setValueAndSave("automaticSort", _automaticSort);
+        PreferencesManager.setViewState("automaticSort", _automaticSort);
         CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
         
         if (enable) {
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
             
             CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setEnabled(!!newSort.getEvents());
             _currentSort = newSort;
-            PreferencesManager.setValueAndSave("currentSort", _currentSort.getCommandID());
+            PreferencesManager.setViewState("currentSort", _currentSort.getCommandID());
         }
     }
     
@@ -316,24 +316,15 @@ define(function (require, exports, module) {
     
     
     // Initialize default values for sorting preferences
-    PreferencesManager.definePreference("currentSort", "string", Commands.SORT_WORKINGSET_BY_ADDED);
-    PreferencesManager.definePreference("automaticSort", "boolean", false);
+    PreferencesManager.stateManager.definePreference("currentSort", "string", Commands.SORT_WORKINGSET_BY_ADDED);
+    PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
     
-    /**
-     * @private
-     * 
-     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
-     */
-    function _convertPreferences() {
-        PreferencesManager.convertPreferences(module, {"currentSort": "user", "automaticSort": "user"});
-    }
-    
-    _convertPreferences();
+    PreferencesManager.convertPreferences(module, {"currentSort": "user", "automaticSort": "user"}, true);
     
     // Initialize items dependent on extensions/workingSet
     AppInit.appReady(function () {
-        var curSort  = get(PreferencesManager.get("currentSort")),
-            autoSort = PreferencesManager.get("automaticSort");
+        var curSort  = get(PreferencesManager.getViewState("currentSort")),
+            autoSort = PreferencesManager.getViewState("automaticSort");
         
         if (curSort) {
             _setCurrentSort(curSort);

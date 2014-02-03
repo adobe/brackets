@@ -46,6 +46,12 @@ define(function (require, exports, module) {
     
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
+
+    PreferencesManager.convertPreferences(module, {
+        "lastNotifiedBuildNumber": "user",
+        "lastInfoURLFetchTime": "user",
+        "updateInfo": "user"
+    }, true);
     
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there

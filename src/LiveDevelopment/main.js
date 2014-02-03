@@ -124,8 +124,8 @@ define(function main(require, exports, module) {
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
         } else {
-            if (!params.get("skipLiveDevelopmentInfo") && !PreferencesManager.get("afterFirstLaunch")) {
-                PreferencesManager.setValueAndSave("afterFirstLaunch", "true");
+            if (!params.get("skipLiveDevelopmentInfo") && !PreferencesManager.getViewState("livedev.afterFirstLaunch")) {
+                PreferencesManager.setViewState("livedev.afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
@@ -212,7 +212,7 @@ define(function main(require, exports, module) {
         } else {
             LiveDevelopment.hideHighlight();
         }
-        PreferencesManager.setValueAndSave("highlight", config.highlight);
+        PreferencesManager.setViewState("livedev.highlight", config.highlight);
     }
     
     /** Setup window references to useful LiveDevelopment modules */
@@ -255,20 +255,18 @@ define(function main(require, exports, module) {
     });
     
     // init prefs
-    PreferencesManager.definePreference("highlight", "boolean", true);
+    PreferencesManager.stateManager.definePreference("livedev.highlight", "boolean", true)
+        .on("change", function () {
+            config.highlight = PreferencesManager.getViewState("livedev.highlight");
+            _updateHighlightCheckmark();
+        });
     
-    /**
-     * @private
-     * 
-     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
-     */
-    function _convertPreferences() {
-        PreferencesManager.convertPreferences(module, {"highlight": "user"});
-    }
+    PreferencesManager.convertPreferences(module, {
+        "highlight": "user livedev.highlight",
+        "afterFirstLaunch": "user livedev.afterFirstLaunch"
+    }, true);
     
-    _convertPreferences();
-    
-    config.highlight = PreferencesManager.get("highlight");
+    config.highlight = PreferencesManager.getViewState("livedev.highlight");
    
     // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);

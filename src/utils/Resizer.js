@@ -438,6 +438,26 @@ define(function (require, exports, module) {
         });
     });
     
+    /**
+     * @private
+     * Exemine each preference key for migration of any panel state.
+     *
+     * @param {string} key The key of the preference to be exemined
+     *      for migration of panel states.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _isPanelPreferences(key) {
+        // TODO: Need to update 'panels' array to include all Edge Code panels.
+        var panels = ["problems-panel", "search-results"];
+        if (panels.indexOf(key) > -1) {
+            return "user";
+        }
+        
+        return null;
+    }
+    
+    PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
+    
     exports.makeResizable   = makeResizable;
     exports.toggle          = toggle;
     exports.show            = show;

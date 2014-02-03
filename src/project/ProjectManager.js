@@ -2133,8 +2133,32 @@ define(function (require, exports, module) {
         });
     });
 
+    /**
+     * @private
+     * Exemine each preference key for migration of project tree states.
+     * If the key has a prefix of "projectTreeState_/", then it is a project tree states
+     * preference from old preference model.
+     *
+     * @param {string} key The key of the preference to be exemined
+     *      for migration of project tree states.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _checkPreferencePrefix(key) {
+        if (key.indexOf("projectTreeState_/") === 0) {
+            return "user";
+        }
+        
+        return null;
+    }
+    
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
+
+    PreferencesManager.convertPreferences(module, {
+        "projectPath": "user",
+        "projectTreeState_": "user",
+        "welcomeProjects": "user"
+    }, true, _checkPreferencePrefix);
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

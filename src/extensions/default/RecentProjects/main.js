@@ -458,6 +458,7 @@ define(function (require, exports, module) {
         }
     }
     
+    PreferencesManager.convertPreferences(module, {"recentProjects": "user"}, true);
     
     // Register command handlers
     CommandManager.register(Strings.CMD_TOGGLE_RECENT_PROJECTS, TOGGLE_DROPDOWN, handleKeyEvent);

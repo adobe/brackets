@@ -179,16 +179,21 @@ define(function (require, exports, module) {
     
     /**
      * Converts preferences to the new-style file-based preferences according to the
-     * rules. (See PreferencesManager.ConvertSettings for information about the rules).
+     * rules. (See PreferencesManager.ConvertPreferences for information about the rules).
      * 
      * @param {Object} rules Conversion rules.
      * @param {Array.<string>} convertedKeys List of keys that were previously converted 
      *                                      (will not be reconverted)
+     * @param {boolean=} isViewState If it is undefined or false, then the preferences
+     *      listed in 'rules' are those normal user-editable preferences. Otherwise,
+     *      they are view state settings.
+     * @param {function(string)=} prefCheckCallback Optional callback function that
+     *      exemines each preference key for migration.
      * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
      *                      `complete` flag that denotes whether everything from this object 
      *                      was converted (making it safe to delete entirely).
      */
-    PreferenceStorage.prototype.convert = function (rules, convertedKeys) {
+    PreferenceStorage.prototype.convert = function (rules, convertedKeys, isViewState, prefCheckCallback) {
         var prefs = this._json,
             self = this,
             complete = true,
@@ -204,6 +209,9 @@ define(function (require, exports, module) {
             }
             
             var rule = rules[key];
+            if (!rule && prefCheckCallback) {
+                rule = prefCheckCallback(key);
+            }
             if (!rule) {
                 console.warn("Preferences conversion for ", self._clientID, " has no rule for", key);
                 complete = false;
@@ -211,7 +219,11 @@ define(function (require, exports, module) {
                 var parts = rule.split(" ");
                 if (parts[0] === "user") {
                     var newKey = parts.length > 1 ? parts[1] : key;
-                    PreferencesManager.set(newKey, prefs[key]);
+                    if (isViewState) {
+                        PreferencesManager.stateManager.set(newKey, prefs[key]);
+                    } else {
+                        PreferencesManager.set(newKey, prefs[key]);
+                    }
                     convertedKeys.push(key);
                 }
             } else {
@@ -220,12 +232,21 @@ define(function (require, exports, module) {
         });
         
         if (convertedKeys.length > 0) {
-            PreferencesManager.save().done(function () {
-                _commit();
-                deferred.resolve(complete, convertedKeys);
-            }).fail(function (error) {
-                deferred.reject(error);
-            });
+            if (isViewState) {
+                PreferencesManager.stateManager.save().done(function () {
+                    _commit();
+                    deferred.resolve(complete, convertedKeys);
+                }).fail(function (error) {
+                    deferred.reject(error);
+                });
+            } else {
+                PreferencesManager.save().done(function () {
+                    _commit();
+                    deferred.resolve(complete, convertedKeys);
+                }).fail(function (error) {
+                    deferred.reject(error);
+                });
+            }
         } else {
             deferred.resolve(complete, convertedKeys);
         }

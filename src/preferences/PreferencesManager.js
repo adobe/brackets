@@ -224,7 +224,18 @@ define(function (require, exports, module) {
     function getUserPrefFile() {
         return userPrefFile;
     }
+
+    // TODO: In order to migrate all view states I have to move the code that creates stateManager 
+    // (and adds a user scope to it) before the code that creates preferencesManager and all its scopes.
+    // Need to figure out why ???
+    //
+    // "State" is stored like preferences but it is not generally intended to be user-editable.
+    // It's for more internal, implicit things like window size, working set, etc.
+    var stateManager = new PreferencesBase.PreferencesSystem();
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
     
+    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
+
     var preferencesManager = new PreferencesBase.PreferencesSystem();
     
     var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
@@ -278,8 +289,13 @@ define(function (require, exports, module) {
      * 
      * @param {string|Object} clientID ClientID used in the old preferences
      * @param {Object} rules Rules for conversion (as defined above)
+     * @param {boolean=} isViewState If it is undefined or false, then the preferences
+     *      listed in 'rules' are those normal user-editable preferences. Otherwise,
+     *      they are view state settings.
+     * @param {function(string)=} prefCheckCallback Optional callback function that
+     *      exemines each preference key for migration.
      */
-    function convertPreferences(clientID, rules) {
+    function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
         userScope.done(function () {
             var prefs = getPreferenceStorage(clientID, null, true);
             
@@ -293,22 +309,17 @@ define(function (require, exports, module) {
             }
             var convertedKeysMap = prefStorage.convertedKeysMap;
             
-            prefs.convert(rules, convertedKeysMap[prefsID]).done(function (complete, convertedKeys) {
-                prefStorage.convertedKeysMap[prefsID] = convertedKeys;
-                savePreferences();
-            });
+            prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback)
+                .done(function (complete, convertedKeys) {
+                    prefStorage.convertedKeysMap[prefsID] = convertedKeys;
+                    savePreferences();
+                });
         }).fail(function (error) {
             console.error("Error while converting ", getClientID(clientID));
             console.error(error);
         });
     }
 
-    // "State" is stored like preferences but it is not generally intended to be user-editable.
-    // It's for more internal, implicit things like window size, working set, etc.
-    var stateManager = new PreferencesBase.PreferencesSystem();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
-    
-    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
     /**
      * Convenience function that sets a preference and then saves the file, mimicking the

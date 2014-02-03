@@ -986,6 +986,26 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSaved", doc);
         });
     
+    /**
+     * @private
+     * Exemine each preference key for migration of the working set files.
+     * If the key has a prefix of "files_/", then it is a working set files 
+     * preference from old preference model.
+     *
+     * @param {string} key The key of the preference to be exemined
+     *      for migration of working set files.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _checkPreferencePrefix(key) {
+        if (key.indexOf("files_/") === 0) {
+            return "user";
+        }
+        
+        return null;
+    }
+    
+    PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
+
     // Handle file saves that may affect preferences
     $(exports).on("documentSaved", function (e, doc) {
         PreferencesManager.fileChanged(doc.file.fullPath);

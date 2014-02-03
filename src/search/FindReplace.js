@@ -84,9 +84,6 @@ define(function (require, exports, module) {
     /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
     var closeFindInFilesBar;
     
-    PreferencesManager.definePreference("caseSensitive", "boolean", false);
-    PreferencesManager.definePreference("regexp", "boolean", false);
-
     function SearchState() {
         this.searchStartPos = null;
         this.query = null;
@@ -107,12 +104,12 @@ define(function (require, exports, module) {
     }
     
     function _updateSearchBarFromPrefs() {
-        $("#find-case-sensitive").toggleClass("active", PreferencesManager.get("caseSensitive"));
-        $("#find-regexp").toggleClass("active",         PreferencesManager.get("regexp"));
+        $("#find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
+        $("#find-regexp").toggleClass("active",         PreferencesManager.getViewState("regexp"));
     }
     function _updatePrefsFromSearchBar() {
-        PreferencesManager.setValueAndSave("caseSensitive", $("#find-case-sensitive").is(".active"));
-        PreferencesManager.setValueAndSave("regexp",        $("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("caseSensitive", $("#find-case-sensitive").is(".active"));
+        PreferencesManager.setViewState("regexp",        $("#find-regexp").is(".active"));
     }
     
     function parseQuery(query) {
@@ -665,16 +662,9 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * @private
-     * 
-     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
-     */
-    function _convertPreferences() {
-        PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"});
-    }
-    
-    _convertPreferences();
+    PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
+    PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
+    PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
