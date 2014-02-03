@@ -924,9 +924,9 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets or toggles the editors overwrite mode.
+     * Sets the editors overwrite mode state. If null is passed, the state is toggled.
      *
-     * @param {!boolean} start
+     * @param {?boolean} start
      */
     Editor.prototype.toggleOverwrite = function (state) {
         this._codeMirror.toggleOverwrite(state);
