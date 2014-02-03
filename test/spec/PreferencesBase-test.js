@@ -799,6 +799,13 @@ define(function (require, exports, module) {
                 // no events are sent just for adding aliases
                 expect(events).toEqual([]);
                 
+                pm.removeScope("project");
+                
+                // at this point, no events are sent out for removing aliases
+                expect(events).toEqual([]);
+                
+                pm.addScope("project", "user");
+                
                 expect(pm.get("spaceUnits", {
                     scopeOrder: ["project", "default"]
                 })).toEqual(1);

@@ -1188,6 +1188,10 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
             
+            if (typeof scope === "string") {
+                return;
+            }
+            
             _.pull(this._contexts["default"].scopeOrder, id);
             $(scope).off(PREFERENCE_CHANGE);
             var keys = scope.getKeys();
