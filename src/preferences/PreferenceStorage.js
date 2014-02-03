@@ -190,7 +190,7 @@ define(function (require, exports, module) {
      */
     PreferenceStorage.prototype.convert = function (rules, convertedKeys) {
         var prefs = this._json,
-            self,
+            self = this,
             complete = true,
             deferred = new $.Deferred();
         
@@ -211,7 +211,7 @@ define(function (require, exports, module) {
                 var parts = rule.split(" ");
                 if (parts[0] === "user") {
                     var newKey = parts.length > 1 ? parts[1] : key;
-                    PreferencesManager.set("user", newKey, prefs[key]);
+                    PreferencesManager.set(newKey, prefs[key]);
                     convertedKeys.push(key);
                 }
             } else {

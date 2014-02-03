@@ -57,16 +57,19 @@ var fspath = require("path"),
  */
 if (process.platform === "darwin") {
     fsevents = require("fsevents");
+} else if (process.platform === "win32") {
+    fsevents = require("fsevents_win/fsevents_win");
 }
 
 var _domainManager,
     _watcherMap = {};
 
 /**
+ * @private
  * Un-watch a file or directory.
  * @param {string} path File or directory to unwatch.
  */
-function unwatchPath(path) {
+function _unwatchPath(path) {
     var watcher = _watcherMap[path];
         
     if (watcher) {
@@ -82,6 +85,18 @@ function unwatchPath(path) {
             delete _watcherMap[path];
         }
     }
+}
+
+/**
+ * Un-watch a file or directory. For directories, unwatch all descendants.
+ * @param {string} path File or directory to unwatch.
+ */
+function unwatchPath(path) {
+    Object.keys(_watcherMap).forEach(function (keyPath) {
+        if (keyPath.indexOf(path) === 0) {
+            _unwatchPath(keyPath);
+        }
+    });
 }
 
 /**
@@ -171,7 +186,7 @@ function init(domainManager) {
         "unwatchPath",
         unwatchPath,
         false,
-        "Stop watching a file or directory",
+        "Stop watching a single file or a directory and it's descendants",
         [{
             name: "path",
             type: "string",

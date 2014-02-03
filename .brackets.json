@@ -4,7 +4,6 @@
         "plusplus": true,
         "devel": true,
         "nomen": true,
-        "indent": 4,
         "maxerr": 50
     },
     "defaultExtension": "js",
@@ -14,5 +13,6 @@
             "linting.enabled": false
         }
     },
-    "spaceUnits": 4
+    "spaceUnits": 4,
+    "useTabChar": false
 }

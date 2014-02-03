@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * @private
      * @type {boolean}
      */
-    var _enabled = true;
+    var _enabled = false;
 
     /**
      * When collapsed, the errors panel is closed but the status bar icon is kept up to date.
@@ -317,7 +317,7 @@ define(function (require, exports, module) {
                                     (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                                 error.friendlyLine = error.pos.line + 1;
                                 error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
-                            } 
+                            }
                             
                             if (error.type !== Type.META) {
                                 numProblems++;
@@ -434,12 +434,18 @@ define(function (require, exports, module) {
         if (enabled === undefined) {
             enabled = !_enabled;
         }
+        
+        // Take no action when there is no change.
+        if (enabled === _enabled) {
+            return;
+        }
+        
         _enabled = enabled;
 
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
         if (!doNotSave) {
-            prefs.set("user", PREF_ENABLED, _enabled);
+            prefs.set(PREF_ENABLED, _enabled);
             prefs.save();
         }
     
@@ -459,10 +465,14 @@ define(function (require, exports, module) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
+        
+        if (collapsed === _collapsed) {
+            return;
+        }
 
         _collapsed = collapsed;
         if (!doNotSave) {
-            prefs.set("user", PREF_COLLAPSED, _collapsed);
+            prefs.set(PREF_COLLAPSED, _collapsed);
             prefs.save();
         }
         

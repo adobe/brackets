@@ -60,7 +60,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "خطا در حذف پرونده",
     "ERROR_DELETING_FILE"               : "بروز خطا بهنگام تلاش برای جذف پرونده <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "مقدار وارد شده {0} معتبر نمی باشد",
-    "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: /?*:;{}<>\\| or use any system reserved words.",
+    "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: {0} or use any system reserved words.",
     "FILE_ALREADY_EXISTS"               : "پرونده ای با نام {0} <span class='dialog-filename'>{1}</span> وجود دارد.",
     "ERROR_CREATING_FILE_TITLE"         : "خطا در ایجاد {0}",
     "ERROR_CREATING_FILE"               : "بروز خطا بهنگام ایجاد {0} <span class='dialog-filename'>{1}</span>. {2}",
