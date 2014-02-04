@@ -1106,9 +1106,15 @@ define(function (require, exports, module) {
                 }
             }
 
-            promise.then(function () {
-                this._tryAddToScopeOrder(shadowEntry);
-            }.bind(this));
+            promise
+                .then(function () {
+                    this._tryAddToScopeOrder(shadowEntry);
+                }.bind(this))
+                .fail(function (err) {
+                    // clean up all what's been done up to this point
+                    _.pull(shadowScopeOrder, shadowEntry);
+                    delete this._pendingEvents[id];
+                }.bind(this));
 
         },
         

@@ -34,10 +34,13 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         Async             = require("utils/Async"),
+        Commands          = require("command/Commands"),
+        CommandManager    = require("command/CommandManager"),
         FileUtils         = require("file/FileUtils"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
         PreferencesBase   = require("preferences/PreferencesBase"),
         FileSystem        = require("filesystem/FileSystem"),
+        Strings           = require("strings"),
         _                 = require("thirdparty/lodash");
     
     /**
@@ -225,6 +228,11 @@ define(function (require, exports, module) {
         return userPrefFile;
     }
     
+    /** 
+     * A boolean property indicating if the user scope configuration file is malformed.
+     */
+    var _userScopeCorrupt = false;
+    
     /**
      * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
      * @private
@@ -246,26 +254,36 @@ define(function (require, exports, module) {
     var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
     _addScopePromises.push(userScope);
-    // Set up the .brackets.json file handling
-    _addScopePromises.push(preferencesManager.addPathScopes(".brackets.json", {
-        before: "user",
-        checkExists: function (filename) {
-            var result = new $.Deferred(),
-                file = FileSystem.getFileForPath(filename);
-            file.exists(function (err, doesExist) {
-                result.resolve(doesExist);
-            });
-            return result.promise();
-        },
-        getScopeForFile: function (filename) {
-            return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
-        }
-    }));
-    _addScopePromises.push(preferencesManager.addScope("session", new PreferencesBase.MemoryStorage()));
     
-    Async.waitForAll(_addScopePromises)
+    userScope
+        .fail(function (err) {
+            _addScopePromises.push(preferencesManager.addScope("user", new PreferencesBase.MemoryStorage(), {location: {before: "default"}}));
+            if (err.name && err.name === "ParsingError") {
+                _userScopeCorrupt = true;
+            }
+        })
         .always(function () {
-            _deferred.resolve();
+            // Set up the .brackets.json file handling
+            _addScopePromises.push(preferencesManager.addPathScopes(".brackets.json", {
+                before: "user",
+                checkExists: function (filename) {
+                    var result = new $.Deferred(),
+                        file = FileSystem.getFileForPath(filename);
+                    file.exists(function (err, doesExist) {
+                        result.resolve(doesExist);
+                    });
+                    return result.promise();
+                },
+                getScopeForFile: function (filename) {
+                    return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
+                }
+            }));
+            _addScopePromises.push(preferencesManager.addScope("session", new PreferencesBase.MemoryStorage()));
+
+            Async.waitForAll(_addScopePromises)
+                .always(function () {
+                    _deferred.resolve();
+                });
         });
             
     /**
@@ -327,6 +345,27 @@ define(function (require, exports, module) {
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
     /**
+     * @private
+     */
+    function _handleOpenPreferences() {
+        var fullPath = getUserPrefFile(),
+            file = FileSystem.getFileForPath(fullPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    });
+            }
+        });
+        
+    }
+    
+    CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
+    
+    /**
      * Convenience function that sets a preference and then saves the file, mimicking the
      * old behavior a bit more closely.
      * 
@@ -340,6 +379,7 @@ define(function (require, exports, module) {
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports.ready                  = _deferred.promise();
+    exports._isUserScopeCorrupt    = function () { return _userScopeCorrupt; };
     exports._manager               = preferencesManager;
     exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
     

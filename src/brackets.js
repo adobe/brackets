@@ -240,6 +240,18 @@ define(function (require, exports, module) {
                         AppInit._dispatchReady(AppInit.APP_READY);
                         
                         PerfUtils.addMeasurement("Application Startup");
+                        
+                        if (PreferencesManager._isUserScopeCorrupt()) {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                Strings.ERROR_PREFS_CORRUPT
+                            )
+                                .done(function () {
+                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                });
+                        }
+                        
                     });
                     
                     // See if any startup files were passed to the application
