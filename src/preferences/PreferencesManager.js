@@ -252,10 +252,6 @@ define(function (require, exports, module) {
                 });
         });
     
-    preferencesManager.addContext("project", {
-        scopeOrder: ["session", "project", "user", "default"]
-    });
-    
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`

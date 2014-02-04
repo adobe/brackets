@@ -776,112 +776,6 @@ define(function (require, exports, module) {
                 ]);
             });
             
-            it("supports aliases for Scopes", function () {
-                var pm = new PreferencesBase.PreferencesSystem();
-                var events = [];
-                
-                pm.on("change", function (e, data) {
-                    events.push(data);
-                });
-                pm.addScope("user", new PreferencesBase.MemoryStorage({
-                    spaceUnits: 1
-                }));
-                
-                pm.addScope("session", new PreferencesBase.MemoryStorage({
-                    spaceUnits: 2
-                }));
-                
-                events = [];
-                
-                pm.addScope("project", "user");
-                expect(pm._contexts["default"].scopeOrder).toEqual(["session", "user", "default"]);
-                
-                // no events are sent just for adding aliases
-                expect(events).toEqual([]);
-                
-                pm.removeScope("project");
-                
-                // at this point, no events are sent out for removing aliases
-                expect(events).toEqual([]);
-                
-                pm.addScope("project", "user");
-                
-                expect(pm.get("spaceUnits", {
-                    scopeOrder: ["project", "default"]
-                })).toEqual(1);
-                
-                expect(pm.getPreferenceLocation("spaceUnits", {
-                    scopeOrder: ["project", "default"]
-                })).toEqual({
-                    scope: "project"
-                });
-                
-                pm.set("spaceUnits", 3, {
-                    location: {
-                        scope: "project"
-                    }
-                });
-                
-                expect(pm.get("spaceUnits", {
-                    scopeOrder: ["user", "default"]
-                })).toBe(3);
-                
-                // This call is here just to ensure there are no errors
-                pm.fileChanged("/foo/bar.txt");
-                
-                // Removing a Scope removes any aliases that point to it
-                pm.removeScope("user");
-                expect(Object.keys(pm._scopes).sort()).toEqual(["default", "session"]);
-            });
-            
-            it("tolerates Scope aliases for scopes that don't exist", function () {
-                var pm = new PreferencesBase.PreferencesSystem();
-                pm.definePreference("spaceUnits", "number", 0);
-                pm.addScope("project", "user");
-                expect(pm.get("spaceUnits")).toBe(0);
-                pm.addContext("project", {
-                    scopeOrder: ["project", "default"]
-                });
-                expect(pm.get("spaceUnits", "project")).toBe(0);
-                expect(pm.getPreferenceLocation("spaceUnits", "project")).toEqual({
-                    scope: "default"
-                });
-            });
-            
-            it("supports named contexts", function () {
-                var pm = new PreferencesBase.PreferencesSystem();
-                
-                pm.definePreference("spaceUnits", "number", 0);
-                
-                pm.addScope("user", new PreferencesBase.MemoryStorage({
-                    spaceUnits: 1
-                }));
-                
-                pm.addScope("session", new PreferencesBase.MemoryStorage({
-                    spaceUnits: 2
-                }));
-                
-                pm.addScope("project", "user");
-                
-                pm.addContext("project", {
-                    scopeOrder: ["project", "default"]
-                });
-                expect(pm.get("spaceUnits", "project")).toBe(1);
-                expect(pm.getPreferenceLocation("spaceUnits", "project")).toEqual({
-                    scope: "project"
-                });
-                
-                pm.addContext("session", {
-                    scopeOrder: ["session", "default"]
-                });
-                pm.set("newpref", 10, {
-                    context: "session"
-                });
-                expect(pm.getPreferenceLocation("newpref")).toEqual({
-                    scope: "session"
-                });
-            });
-            
             function TestFileEnvironment() {
                 this.requestedFiles = [];
                 var testScopes = this.testScopes = {};
@@ -936,27 +830,6 @@ define(function (require, exports, module) {
                 }
             };
             
-            it("can load project path scopes", function () {
-                var pm = new PreferencesBase.PreferencesSystem();
-                
-                pm.addScope("user", new PreferencesBase.MemoryStorage({
-                    spaceUnits: 99
-                }));
-                
-                pm.addScope("session", new PreferencesBase.MemoryStorage({}));
-                
-                var tfe = new TestFileEnvironment();
-                
-                pm.addPathScopes(".brackets.json", {
-                    getScopeForFile: tfe.getScopeForFile,
-                    checkExists: tfe.checkExists,
-                    before: "user"
-                });
-                
-                var filelist = ["a/b/foo.bar", "a/b/foo.js", "a/.brackets.json", ".brackets.json"];
-                expect(filelist.filter(pm.isPreferencesFile)).toEqual(["a/.brackets.json", ".brackets.json"]);
-            });
-            
             it("can manage preferences files in the file tree", function () {
                 var pm = new PreferencesBase.PreferencesSystem();
                 
@@ -986,7 +859,7 @@ define(function (require, exports, module) {
                     didComplete = true;
                     expect(tfe.requestedFiles).toEqual(["/.brackets.json"]);
                     expect(pm.get("spaceUnits")).toBe(1);
-                    expect(pm._contexts["default"].scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
                     expect(events.length).toEqual(1);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second", "third", "fourth"].sort());
                 });
@@ -1019,7 +892,7 @@ define(function (require, exports, module) {
                 events = [];
                 pm.setPathScopeContext("/projects/brackets/README.md").done(function () {
                     expect(tfe.requestedFiles).toEqual(["/projects/brackets/.brackets.json"]);
-                    expect(pm._contexts["default"].scopeOrder).toEqual(
+                    expect(pm._defaultContext.scopeOrder).toEqual(
                         ["session", "path:/projects/brackets/.brackets.json",
                             "path:/.brackets.json", "user", "default"]
                     );
@@ -1055,7 +928,7 @@ define(function (require, exports, module) {
                 pm.setPathScopeContext("/README.md").done(function () {
                     expect(tfe.requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(1);
-                    expect(pm._contexts["default"].scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
+                    expect(pm._defaultContext.scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
                     expect(events.length).toBe(3);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "fifth", "sixth"].sort());
                     expect(events[1].ids.sort()).toEqual(["spaceUnits", "seventh"].sort());

@@ -747,9 +747,6 @@ define(function (require, exports, module) {
         }
     });
     
-    // Constant to represent where path scopes go within scopeOrders.
-    var PATH_SCOPES = {};
-    
     /**
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
@@ -931,10 +928,8 @@ define(function (require, exports, module) {
         
         this._scopes["default"].load();
         
-        this._contexts = {
-            "default": {
-                scopeOrder: ["default"]
-            }
+        this._defaultContext = {
+            scopeOrder: ["default"]
         };
         
         this._pendingScopes = {};
@@ -950,8 +945,6 @@ define(function (require, exports, module) {
         
         // Names of the files that contain path scopes
         this._pathScopeFilenames = [];
-        
-        this.isPreferencesFile = this.isPreferencesFile.bind(this);
         
         // Keeps track of cached path scope objects.
         this._pathScopes = {};
@@ -1025,7 +1018,7 @@ define(function (require, exports, module) {
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, addBefore) {
-            var defaultScopeOrder = this._contexts["default"].scopeOrder;
+            var defaultScopeOrder = this._defaultContext.scopeOrder;
             
             if (!addBefore) {
                 defaultScopeOrder.unshift(id);
@@ -1066,7 +1059,7 @@ define(function (require, exports, module) {
          */
         _processPendingEvents: function (id) {
             // Remove the preload listener and add the final listener
-            var $scope = $(this._getScope(id));
+            var $scope = $(this._scopes[id]);
             $scope.off(".preload");
             $scope.on(PREFERENCE_CHANGE, function (e, data) {
                 $(this).trigger(PREFERENCE_CHANGE, data);
@@ -1083,42 +1076,18 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Adds a named context which makes it easier to look up preferences using
-         * different scope orders.
-         * 
-         * @param {string} id Name of the new context
-         * @param {{scopeOrder: Array.<string>, filename: ?string}} context Object defining the preference context
-         */
-        addContext: function (id, context) {
-            this._contexts[id] = context;
-        },
-        
-        /**
-         * Removes a named context.
-         * 
-         * @param {string} id Name of the context to remove
-         */
-        removeContext: function (id, context) {
-            delete this._contexts[id];
-        },
-        
-        /**
          * @private
          * 
          * Normalizes the context to be one of:
          * 
          * 1. a context object that was passed in
-         * 2. a named context (string was passed in)
-         * 3. the default context
+         * 2. the default context
          * 
-         * @param {Object|string=} context Context that was passed in
+         * @param {Object} context Context that was passed in
          * @return {{scopeOrder: string, filename: ?string}} context object
          */
         _getContext: function (context) {
-            if (typeof context === "string") {
-                context = this._contexts[context];
-            }
-            context = context || this._contexts["default"];
+            context = context || this._defaultContext;
             return context;
         },
         
@@ -1126,12 +1095,8 @@ define(function (require, exports, module) {
          * Adds a new Scope. New Scopes are added at the highest precedence, unless the "before" option
          * is given. The new Scope is automatically loaded.
          * 
-         * If a string is passed for the scope itself, then `id` will be added as an alias
-         * for the scope represented by the string. Alias scopes are not added to the default
-         * scopeOrder.
-         * 
          * @param {string} id Name of the Scope
-         * @param {Scope|Storage|string} scope the Scope object itself. Optionally, can be given a Storage directly for convenience.
+         * @param {Scope|Storage} scope the Scope object itself. Optionally, can be given a Storage directly for convenience.
          * @param {{before: string}} options optional behavior when adding (e.g. setting which scope this comes before)
          * @return {Promise} Promise that is resolved when the Scope is loaded. It is resolved
          *                   with id and scope.
@@ -1141,12 +1106,6 @@ define(function (require, exports, module) {
             
             if (this._scopes[id]) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
-            }
-            
-            // Check to see if "scope" is a string (i.e., we're adding an alias)
-            if (typeof scope === "string") {
-                this._scopes[id] = scope;
-                return;
             }
             
             // Check to see if scope is a Storage that needs to be wrapped
@@ -1195,20 +1154,7 @@ define(function (require, exports, module) {
             }
             delete this._scopes[id];
             
-            // Remove any aliases that point to the removed scope
-            _.each(this._scopes, function (value, key) {
-                if (value === id) {
-                    delete this._scopes[key];
-                }
-            }.bind(this));
-            
-            if (typeof scope === "string") {
-                return;
-            }
-            
-            _.each(this._contexts, function (context) {
-                _.pull(context.scopeOrder, id);
-            });
+            _.pull(this._defaultContext.scopeOrder, id);
             
             $(scope).off(PREFERENCE_CHANGE);
             var keys = scope.getKeys();
@@ -1220,38 +1166,15 @@ define(function (require, exports, module) {
         /**
          * @private
          * 
-         * Retrieves the Scope by ID, handling Scope aliases as needed.
-         * 
-         * @param {string} id Name of the Scope
-         * @return {Scope} the Scope object or undefined if the Scope is unknown
-         */
-        _getScope: function (id) {
-            var scope = this._scopes[id];
-            if (typeof scope === "string") {
-                scope = this._scopes[scope];
-            }
-            return scope;
-        },
-        
-        /**
-         * @private
-         * 
          * Retrieves the appropriate scopeOrder based on the given context.
          * If the context contains a scopeOrder, that will be used. If not,
-         * the default scopeOrder is used. Additionally, the PATH_SCOPES constant
-         * will be expanded into the path scopes for the filename in the context.
+         * the default scopeOrder is used.
          * 
          * @param {{scopeOrder: ?Array.<string>, filename: ?string} context 
          * @return {Array.<string>} list of scopes in the correct order for traversal
          */
         _getScopeOrder: function (context) {
-            var scopeOrder = context.scopeOrder || this._contexts["default"].scopeOrder;
-            var pathPosition = scopeOrder.indexOf(PATH_SCOPES);
-            if (pathPosition > -1) {
-                scopeOrder = _.clone(scopeOrder);
-                
-            }
-            return scopeOrder;
+            return context.scopeOrder || this._defaultContext.scopeOrder;
         },
         
         /**
@@ -1269,7 +1192,7 @@ define(function (require, exports, module) {
             var scopeOrder = this._getScopeOrder(context);
             
             for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
-                var scope = this._getScope(scopeOrder[scopeCounter]);
+                var scope = this._scopes[scopeOrder[scopeCounter]];
                 if (scope) {
                     var result = scope.get(id, context);
                     if (result !== undefined) {
@@ -1296,7 +1219,7 @@ define(function (require, exports, module) {
             
             for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
                 scopeName = scopeOrder[scopeCounter];
-                var scope = this._getScope(scopeName);
+                var scope = this._scopes[scopeName];
                 if (scope) {
                     var result = scope.getPreferenceLocation(id, context);
                     if (result !== undefined) {
@@ -1342,7 +1265,7 @@ define(function (require, exports, module) {
                     return false;
                 }
             }
-            var scope = this._getScope(location.scope);
+            var scope = this._scopes[location.scope];
             if (!scope) {
                 return false;
             }
@@ -1417,26 +1340,11 @@ define(function (require, exports, module) {
             this._pathScopeDefinitions[preferencesFilename] = scopeGenerator;
             this._pathScopeFilenames = Object.keys(this._pathScopeDefinitions);
             
-            if (this._contexts["default"].filename) {
-                return this.setPathScopeContext(this._contexts["default"].filename);
+            if (this._defaultContext.filename) {
+                return this.setPathScopeContext(this._defaultContext.filename);
             } else {
                 return new $.Deferred().resolve().promise();
             }
-        },
-        
-        /**
-         * Determines if the given file is a preferences file (for path-based
-         * preference Scopes).
-         * 
-         * This can be passed to Array.filter() and is automatically bound to
-         * the PreferencesSystem object so that the values will come out correctly.
-         * 
-         * @param {string} filename Name of file to determine if it's a preference file
-         * @return {boolean} true if the filename does match a preferences file
-         */
-        isPreferencesFile: function (filename) {
-            var basename = FileUtils.getBaseName(filename);
-            return _.contains(this._pathScopeFilenames, basename);
         },
         
         /**
@@ -1451,8 +1359,8 @@ define(function (require, exports, module) {
          * @return {Promise} resolved when the path scope context change is complete. Note that *this promise is resolved before the scopes are done loading*.
          */
         setPathScopeContext: function (contextFilename) {
-            var defaultContext = this._contexts["default"],
-                oldFilename = this._contexts["default"].filename,
+            var defaultContext = this._defaultContext,
+                oldFilename = this._defaultContext.filename,
                 oldContext = {
                     filename: oldFilename
                 },
@@ -1492,7 +1400,7 @@ define(function (require, exports, module) {
                     prefDirectory = _.first(parts, i + 1).join("/") + "/";
                     filename = prefDirectory + preferencesFilename;
                     scopeName = "path:" + filename;
-                    scope = self._getScope(scopeName);
+                    scope = self._scopes[scopeName];
                     
                     // Check to see if the scope already exists
                     if (scope) {
@@ -1551,7 +1459,7 @@ define(function (require, exports, module) {
          * @return {Object} the same context object that was passed in.
          */
         buildContext: function (context) {
-            return _.defaults(context, this._contexts["default"]);
+            return _.defaults(context, this._defaultContext);
         },
         
         /**
@@ -1631,5 +1539,4 @@ define(function (require, exports, module) {
     exports.MemoryStorage      = MemoryStorage;
     exports.PathLayer          = PathLayer;
     exports.FileStorage        = FileStorage;
-    exports.PATH_SCOPES = PATH_SCOPES;
 });
