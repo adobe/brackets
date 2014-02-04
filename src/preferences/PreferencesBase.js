@@ -1042,8 +1042,8 @@ define(function (require, exports, module) {
             
             // Find an appropriate scope of lower priority to add it before
             while (i < shadowScopeOrder.length) {
-                if (shadowScopeOrder[i].promise.state() === "pending"
-                        || shadowScopeOrder[i].promise.state() === "resolved") {
+                if (shadowScopeOrder[i].promise.state() === "pending" ||
+                        shadowScopeOrder[i].promise.state() === "resolved") {
                     break;
                 }
                 i++;
