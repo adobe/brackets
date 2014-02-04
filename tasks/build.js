@@ -190,7 +190,17 @@ module.exports = function (grunt) {
             done(false);
             return;
         }
+
+        // Check CLA exceptions first
+        var exceptions = grunt.file.readJSON("tasks/cla-exceptions.json");
+
+        if (exceptions[user]) {
+            grunt.log.writeln(user + " exempt from the standard contributor license agreement");
+            done();
+            return;
+        }
         
+        // Query dev.brackets.io for CLA status
         options.host    = "dev.brackets.io";
         options.path    = "/cla/brackets/check.cfm";
         options.method  = "POST";
