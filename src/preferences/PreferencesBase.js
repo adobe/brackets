@@ -747,6 +747,9 @@ define(function (require, exports, module) {
         }
     });
     
+    // Constant to represent where path scopes go within scopeOrders.
+    var PATH_SCOPES = {};
+    
     /**
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
@@ -940,6 +943,17 @@ define(function (require, exports, module) {
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
         
+        // The objects that define the different kinds of path-based Scope handlers.
+        // Examples could include the handler for .brackets.json files or an .editorconfig
+        // handler.
+        this._pathScopeDefinitions = {};
+        
+        // Names of the files that contain path scopes
+        this._pathScopeFilenames = [];
+        
+        this.isPreferencesFile = this.isPreferencesFile.bind(this);
+        
+        // Keeps track of cached path scope objects.
         this._pathScopes = {};
         
         var notifyPrefChange = function (id) {
@@ -1192,7 +1206,10 @@ define(function (require, exports, module) {
                 return;
             }
             
-            _.pull(this._contexts["default"].scopeOrder, id);
+            _.each(this._contexts, function (context) {
+                _.pull(context.scopeOrder, id);
+            });
+            
             $(scope).off(PREFERENCE_CHANGE);
             var keys = scope.getKeys();
             $(this).trigger(PREFERENCE_CHANGE, {
@@ -1217,6 +1234,27 @@ define(function (require, exports, module) {
         },
         
         /**
+         * @private
+         * 
+         * Retrieves the appropriate scopeOrder based on the given context.
+         * If the context contains a scopeOrder, that will be used. If not,
+         * the default scopeOrder is used. Additionally, the PATH_SCOPES constant
+         * will be expanded into the path scopes for the filename in the context.
+         * 
+         * @param {{scopeOrder: ?Array.<string>, filename: ?string} context 
+         * @return {Array.<string>} list of scopes in the correct order for traversal
+         */
+        _getScopeOrder: function (context) {
+            var scopeOrder = context.scopeOrder || this._contexts["default"].scopeOrder;
+            var pathPosition = scopeOrder.indexOf(PATH_SCOPES);
+            if (pathPosition > -1) {
+                scopeOrder = _.clone(scopeOrder);
+                
+            }
+            return scopeOrder;
+        },
+        
+        /**
          * Get the current value of a preference. The optional context provides a way to
          * change scope ordering or the reference filename for path-based scopes.
          * 
@@ -1228,7 +1266,7 @@ define(function (require, exports, module) {
             
             context = this._getContext(context);
             
-            var scopeOrder = context.scopeOrder || this._contexts["default"].scopeOrder;
+            var scopeOrder = this._getScopeOrder(context);
             
             for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
                 var scope = this._getScope(scopeOrder[scopeCounter]);
@@ -1254,7 +1292,7 @@ define(function (require, exports, module) {
             
             context = this._getContext(context);
             
-            var scopeOrder = context.scopeOrder || this._contexts["default"].scopeOrder;
+            var scopeOrder = this._getScopeOrder(context);
             
             for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
                 scopeName = scopeOrder[scopeCounter];
@@ -1292,11 +1330,13 @@ define(function (require, exports, module) {
                 location = options.location || this.getPreferenceLocation(id, context);
             
             if (!location || (location.scope === "default" && !forceDefault)) {
+                var scopeOrder = this._getScopeOrder(context);
+                
                 // The default scope for setting a preference is the lowest priority
                 // scope after "default".
-                if (context.scopeOrder.length > 1) {
+                if (scopeOrder.length > 1) {
                     location = {
-                        scope: context.scopeOrder[context.scopeOrder.length - 2]
+                        scope: scopeOrder[scopeOrder.length - 2]
                     };
                 } else {
                     return false;
@@ -1374,13 +1414,29 @@ define(function (require, exports, module) {
          * @return {Promise} promise resolved when the scopes have been added.
          */
         addPathScopes: function (preferencesFilename, scopeGenerator) {
-            this._pathScopes[preferencesFilename] = scopeGenerator;
+            this._pathScopeDefinitions[preferencesFilename] = scopeGenerator;
+            this._pathScopeFilenames = Object.keys(this._pathScopeDefinitions);
             
             if (this._contexts["default"].filename) {
                 return this.setPathScopeContext(this._contexts["default"].filename);
             } else {
                 return new $.Deferred().resolve().promise();
             }
+        },
+        
+        /**
+         * Determines if the given file is a preferences file (for path-based
+         * preference Scopes).
+         * 
+         * This can be passed to Array.filter() and is automatically bound to
+         * the PreferencesSystem object so that the values will come out correctly.
+         * 
+         * @param {string} filename Name of file to determine if it's a preference file
+         * @return {boolean} true if the filename does match a preferences file
+         */
+        isPreferencesFile: function (filename) {
+            var basename = FileUtils.getBaseName(filename);
+            return _.contains(this._pathScopeFilenames, basename);
         },
         
         /**
@@ -1412,7 +1468,7 @@ define(function (require, exports, module) {
             defaultContext.filename = contextFilename;
             
             // Loop over the path scopes
-            _.forIn(this._pathScopes, function (scopeGenerator, preferencesFilename) {
+            _.forIn(this._pathScopeDefinitions, function (scopeGenerator, preferencesFilename) {
                 var lastSeen = scopeGenerator.before,
                     counter,
                     scopeNameToRemove;
@@ -1575,4 +1631,5 @@ define(function (require, exports, module) {
     exports.MemoryStorage      = MemoryStorage;
     exports.PathLayer          = PathLayer;
     exports.FileStorage        = FileStorage;
+    exports.PATH_SCOPES = PATH_SCOPES;
 });

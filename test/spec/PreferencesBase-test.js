@@ -882,26 +882,12 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("can manage preferences files in the file tree", function () {
-                var pm = new PreferencesBase.PreferencesSystem();
+            function TestFileEnvironment() {
+                this.requestedFiles = [];
+                var testScopes = this.testScopes = {};
                 
-                pm.addScope("user", new PreferencesBase.MemoryStorage({
-                    spaceUnits: 99
-                }));
-                
-                pm.addScope("session", new PreferencesBase.MemoryStorage({}));
-                
-                var requestedFiles = [];
-                var testScopes = {};
-                function getScopeForFile(filename) {
-                    requestedFiles.push(filename);
-                    return testScopes[filename];
-                }
-                
-                function checkExists(filename) {
-                    var exists = testScopes[filename] !== undefined;
-                    return new $.Deferred().resolve(exists).promise();
-                }
+                this.getScopeForFile = this.getScopeForFile.bind(this);
+                this.checkExists = this.checkExists.bind(this);
                 
                 testScopes["/.brackets.json"] = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage({
                     spaceUnits: 1,
@@ -936,9 +922,55 @@ define(function (require, exports, module) {
                     spaceUnits: 7,
                     seventh: 7
                 }));
+            }
+            
+            TestFileEnvironment.prototype = {
+                getScopeForFile: function getScopeForFile(filename) {
+                    this.requestedFiles.push(filename);
+                    return this.testScopes[filename];
+                },
+                
+                checkExists: function checkExists(filename) {
+                    var exists = this.testScopes[filename] !== undefined;
+                    return new $.Deferred().resolve(exists).promise();
+                }
+            };
+            
+            it("can load project path scopes", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                
+                pm.addScope("user", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 99
+                }));
+                
+                pm.addScope("session", new PreferencesBase.MemoryStorage({}));
+                
+                var tfe = new TestFileEnvironment();
+                
                 pm.addPathScopes(".brackets.json", {
-                    getScopeForFile: getScopeForFile,
-                    checkExists: checkExists,
+                    getScopeForFile: tfe.getScopeForFile,
+                    checkExists: tfe.checkExists,
+                    before: "user"
+                });
+                
+                var filelist = ["a/b/foo.bar", "a/b/foo.js", "a/.brackets.json", ".brackets.json"];
+                expect(filelist.filter(pm.isPreferencesFile)).toEqual(["a/.brackets.json", ".brackets.json"]);
+            });
+            
+            it("can manage preferences files in the file tree", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                
+                pm.addScope("user", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 99
+                }));
+                
+                pm.addScope("session", new PreferencesBase.MemoryStorage({}));
+                
+                var tfe = new TestFileEnvironment();
+                
+                pm.addPathScopes(".brackets.json", {
+                    getScopeForFile: tfe.getScopeForFile,
+                    checkExists: tfe.checkExists,
                     before: "user"
                 });
                 
@@ -952,17 +984,17 @@ define(function (require, exports, module) {
                 // this should resolve synchronously
                 pm.setPathScopeContext("/README.txt").done(function () {
                     didComplete = true;
-                    expect(requestedFiles).toEqual(["/.brackets.json"]);
+                    expect(tfe.requestedFiles).toEqual(["/.brackets.json"]);
                     expect(pm.get("spaceUnits")).toBe(1);
                     expect(pm._contexts["default"].scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
                     expect(events.length).toEqual(1);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second", "third", "fourth"].sort());
                 });
                 
-                requestedFiles = [];
+                tfe.requestedFiles = [];
                 events = [];
                 pm.setPathScopeContext("/foo.js").done(function () {
-                    expect(requestedFiles).toEqual([]);
+                    expect(tfe.requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(2);
                     expect(events.length).toBe(1);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second"].sort());
@@ -970,7 +1002,7 @@ define(function (require, exports, module) {
                 
                 events = [];
                 pm.setPathScopeContext("/bar/baz.js").done(function () {
-                    expect(requestedFiles).toEqual([]);
+                    expect(tfe.requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(3);
                     expect(events.length).toBe(1);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "second", "third"].sort());
@@ -978,7 +1010,7 @@ define(function (require, exports, module) {
                 
                 events = [];
                 pm.setPathScopeContext("/projects/README.txt").done(function () {
-                    expect(requestedFiles).toEqual([]);
+                    expect(tfe.requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(4);
                     expect(events.length).toBe(1);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "third", "fourth"].sort());
@@ -986,7 +1018,7 @@ define(function (require, exports, module) {
                 
                 events = [];
                 pm.setPathScopeContext("/projects/brackets/README.md").done(function () {
-                    expect(requestedFiles).toEqual(["/projects/brackets/.brackets.json"]);
+                    expect(tfe.requestedFiles).toEqual(["/projects/brackets/.brackets.json"]);
                     expect(pm._contexts["default"].scopeOrder).toEqual(
                         ["session", "path:/projects/brackets/.brackets.json",
                             "path:/.brackets.json", "user", "default"]
@@ -997,11 +1029,11 @@ define(function (require, exports, module) {
                     expect(events[1].ids.sort()).toEqual(["spaceUnits", "fifth", "sixth"].sort());
                 });
                 
-                requestedFiles = [];
+                tfe.requestedFiles = [];
                 events = [];
                 pm.setPathScopeContext("/projects/brackets/thirdparty/requirejs/require.js")
                     .done(function () {
-                        expect(requestedFiles).toEqual([]);
+                        expect(tfe.requestedFiles).toEqual([]);
                         expect(pm.get("spaceUnits")).toBe(6);
                         expect(events.length).toBe(1);
                         expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth", "fifth", "sixth"].sort());
@@ -1010,7 +1042,7 @@ define(function (require, exports, module) {
                 events = [];
                 pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js")
                     .done(function () {
-                        expect(requestedFiles)
+                        expect(tfe.requestedFiles)
                             .toEqual(["/projects/brackets/thirdparty/codemirror/.brackets.json"]);
                         expect(pm.get("spaceUnits")).toBe(7);
                         expect(events.length).toBe(2);
@@ -1019,9 +1051,9 @@ define(function (require, exports, module) {
                     });
                 
                 events = [];
-                requestedFiles = [];
+                tfe.requestedFiles = [];
                 pm.setPathScopeContext("/README.md").done(function () {
-                    expect(requestedFiles).toEqual([]);
+                    expect(tfe.requestedFiles).toEqual([]);
                     expect(pm.get("spaceUnits")).toBe(1);
                     expect(pm._contexts["default"].scopeOrder).toEqual(["session", "path:/.brackets.json", "user", "default"]);
                     expect(events.length).toBe(3);
@@ -1031,10 +1063,10 @@ define(function (require, exports, module) {
                 });
                 
                 events = [];
-                requestedFiles = [];
+                tfe.requestedFiles = [];
                 pm.setPathScopeContext("/projects/brackets/thirdparty/codemirror/cm.js").done(function () {
                     expect(_.keys(pm._scopes).length).toBe(6);
-                    expect(requestedFiles.length).toBe(2);
+                    expect(tfe.requestedFiles.length).toBe(2);
                     expect(pm.get("spaceUnits")).toBe(7);
                     expect(events.length).toBe(3);
                     expect(events[0].ids.sort()).toEqual(["spaceUnits", "first", "fourth"].sort());
