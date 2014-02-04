@@ -120,14 +120,15 @@ define(function (require, exports, module) {
         // Optional JSON config for require.js
         FileUtils.readAsText(extensionConfigFile).done(function (text) {
             try {
-                // Parse to JSON, remove baseUrl, context, locale if defined. All other
-                // requirejs.config() parameters can be overridden.
-                var extensionConfig = _.omit(JSON.parse(text), "baseUrl", "context", "locale");
+                var extensionConfig = JSON.parse(text);
                 
-                // Append paths to global paths
-                extensionConfig.paths = _.extend({}, baseConfig.paths, extensionConfig.paths);
+                // baseConfig.paths properties will override any extension config paths
+                _.extend(extensionConfig.paths, baseConfig.paths);
+
+                // Overwrite baseUrl, context, locale (paths is already merged above)
+                _.extend(extensionConfig, _.omit(baseConfig, "paths"));
                 
-                deferred.resolve(_.extend({}, baseConfig, extensionConfig));
+                deferred.resolve(extensionConfig);
             } catch (err) {
                 // Failed to parse requirejs-config.json
                 deferred.reject("failed to parse requirejs-config.json");
@@ -158,8 +159,6 @@ define(function (require, exports, module) {
             paths: globalConfig,
             locale: brackets.getLocale()
         };
-
-        // console.log("[Extension] starting to load " + config.baseUrl);
         
         // Read optional requirejs-config.json
         var promise = _mergeConfig(extensionConfig).then(function (mergedConfig) {
@@ -173,7 +172,6 @@ define(function (require, exports, module) {
             return extensionRequireDeferred.promise();
         }).then(function (module) {
             // Extension loaded normally
-            // console.log("[Extension] finished loading " + config.baseUrl);
             var initPromise;
 
             _extensions[name] = module;
@@ -243,9 +241,7 @@ define(function (require, exports, module) {
                     paths: $.extend({}, config.paths, globalConfig)
                 });
     
-                // console.log("[Extension] loading unit test " + config.baseUrl);
                 extensionRequire([entryPoint], function () {
-                    // console.log("[Extension] loaded unit tests " + config.baseUrl);
                     result.resolve();
                 });
             } else {
