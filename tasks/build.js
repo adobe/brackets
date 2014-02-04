@@ -164,7 +164,7 @@ module.exports = function (grunt) {
                 var json = JSON.parse(body);
                 grunt.log.writeln("DEBUG api.github.com");
                 grunt.log.writeln("statusCode: " + res.statusCode);
-                grunt.log.writeln("headers: " + res.headers);
+                grunt.log.writeln("headers: " + JSON.stringify(res.headers));
                 grunt.log.writeln("data: " + body);
                 grunt.option("user", json.user.login);
                 grunt.task.run("cla-check");
