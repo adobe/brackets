@@ -119,7 +119,10 @@ define(function (require, exports, module) {
                         // File has been deleted externally
                         if (err === FileSystemError.NOT_FOUND) {
                             if (doc.isDirty) {
-                                deleteConflicts.push(doc);
+                                // Only prompt once to keep changes in editor
+                                if (!doc.keepChangesInEditor) {
+                                    deleteConflicts.push(doc);
+                                }
                             } else {
                                 toClose.push(doc);
                             }
@@ -335,10 +338,11 @@ define(function (require, exports, module) {
                         }
                         
                     } else {
-                        // Cancel - if user doesn't manually save or close, we'll prompt again next
-                        // time window is reactivated;
+                        // Cancel - if user doesn't manually save or close, set this flag so
+                        // we don't prompt again next time window is reactivated;
                         // OR programmatically canceled due to _resetPending - we'll skip all
                         // remaining files in the conflicts list (see above)
+                        doc.keepChangesInEditor = true;
                         result.resolve();
                     }
                 });

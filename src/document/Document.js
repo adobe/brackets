@@ -110,6 +110,13 @@ define(function (require, exports, module) {
     Document.prototype.isDirty = false;
     
     /**
+     * Whether this document has unsaved changes in editor or not. This gets set when underlying
+     * document is deleted from disk, but user chooses to "Keep Changes in Editor".
+     * @type {boolean}
+     */
+    Document.prototype.keepChangesInEditor = false;
+    
+    /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
      * it means the file was modified by an app other than Brackets.
      * @type {!Date}
@@ -401,6 +408,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._markClean = function () {
         this.isDirty = false;
+        this.keepChangesInEditor = false;
         if (this._masterEditor) {
             this._masterEditor._codeMirror.markClean();
         }
