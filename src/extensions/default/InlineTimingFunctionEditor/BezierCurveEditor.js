@@ -615,7 +615,12 @@ define(function (require, exports, module) {
 
         if (match[0].match(/^cubic-bezier/)) {
             // cubic-bezier()
-            return match.slice(1, 5);
+            if (match.valid) {
+                return match.slice(1, 5);
+            } else {
+                return TimingFunctionUtils.getValidBezierParams(match, [ ".42", "0", ".58", "1" ]);
+                // take ease-in-out as default value in case there are no params yet (or they are invalid)
+            }
         } else {
             // handle special cases of cubic-bezier calls
             switch (match[0]) {

@@ -34,14 +34,15 @@ define(function (require, exports, module) {
      * Regular expressions for matching timing functions
      * @const @type {RegExp}
      */
-    var BEZIER_CURVE_REGEX  = /cubic-bezier\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)/,
-        EASE_STRICT_REGEX   = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
-        EASE_LAX_REGEX      = /ease(?:-in)?(?:-out)?/,
-        LINEAR_STRICT_REGEX = /transition.*?[: ,]linear[ ,;]/,
-        LINEAR_LAX_REGEX    = /linear/,
-        STEPS_REGEX         = /steps\(\s*(\d+)\s*(?:,\s*(start|end)\s*)?\)/,
-        STEP_STRICT_REGEX   = /[: ,](?:step-start|step-end)[ ,;]/,
-        STEP_LAX_REGEX      = /step-start|step-end/;
+    var BEZIER_CURVE_EASY_REGEX         = /cubic-bezier\(.*\)/,
+        BEZIER_CURVE_COMPLEX_REGEX      = /cubic-bezier\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)/,
+        EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
+        EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
+        LINEAR_STRICT_REGEX             = /transition.*?[: ,]linear[ ,;]/,
+        LINEAR_LAX_REGEX                = /linear/,
+        STEPS_REGEX                     = /steps\(\s*(\d+)\s*(?:,\s*(start|end)\s*)?\)/,
+        STEP_STRICT_REGEX               = /[: ,](?:step-start|step-end)[ ,;]/,
+        STEP_LAX_REGEX                  = /step-start|step-end/;
 
     /**
      * Type constants
@@ -69,6 +70,44 @@ define(function (require, exports, module) {
             isNumber: isNum,
             value:    val
         };
+    }
+
+    /**
+     * Get valid params for an invalid cubic-bezier.
+     *
+     * @param {RegExp.match} match (Invalid) matches returned from cubicBezierMatch()
+     * @param {Array} def The default params to replace invalid values with
+     * @return { isNumber: boolean, value: number } 
+     */
+    function getValidBezierParams(match, def) {
+        var params = [],
+            param,
+            i;
+
+        for (i = 1; i <= 4; i++) {
+            if (match[i]) {
+                param = _convertToNumber(match[i]);
+
+                // Verify the param is a number
+                if (!param.isNumber) {
+                    param = undefined;
+
+                // Verify x params are in 0-1 range
+                } else if ((i === 1 || i === 3) && (param.value < 0 || param.value > 1)) {
+                    param = undefined;
+                }
+            } else {
+                param = undefined;
+            }
+
+            if (!param) {
+                params[i - 1] = def[i - 1];
+            } else {
+                params[i - 1] = match[i];
+            }
+        }
+
+        return params;
     }
 
     /**
@@ -150,11 +189,19 @@ define(function (require, exports, module) {
      * @return {!RegExpMatch}
      */
     function bezierCurveMatch(str, lax) {
-
-        // First look for cubic-bezier(x1,y1,x2,y2).
-        var match = str.match(BEZIER_CURVE_REGEX);
+        
+        // First look for cubic-bezier(anything).
+        var match = str.match(BEZIER_CURVE_EASY_REGEX);
         if (match) {
-            return _validateCubicBezierParams(match) ? _tagMatch(match, BEZIER) : null;
+            // Then look for the parameters cubic-bezier(x1,y1,x2,y2).
+            var match2 = str.match(BEZIER_CURVE_COMPLEX_REGEX);
+            if (match2) {
+                match = match2;
+                if (_validateCubicBezierParams(match)) {
+                    match.valid = true;
+                }
+            }
+            return _tagMatch(match, BEZIER);
         }
 
         // Next look for the ease functions (which are special cases of cubic-bezier())
@@ -252,7 +299,8 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.timingFunctionMatch = timingFunctionMatch;
-    exports.bezierCurveMatch    = bezierCurveMatch;
-    exports.stepsMatch          = stepsMatch;
+    exports.timingFunctionMatch     = timingFunctionMatch;
+    exports.bezierCurveMatch        = bezierCurveMatch;
+    exports.stepsMatch              = stepsMatch;
+    exports.getValidBezierParams    = getValidBezierParams;
 });
