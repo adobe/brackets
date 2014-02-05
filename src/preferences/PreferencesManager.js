@@ -113,6 +113,12 @@ define(function (require, exports, module) {
      * @return {PreferenceStorage}
      */
     function getPreferenceStorage(clientID, defaults, _doNotCreate) {
+        // No one should be calling this to access the old preference storage except for 
+        // migrating the old preferences to the new model. So if this is called without 
+        // having _doNotCreate set to true, then the caller is using the old preferences model.
+        if (!_doNotCreate) {
+            console.warn("PreferencesManager.getPreferenceStorage is deprecated. Use PreferencesManager.definePreference instead.");
+        }
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
             return;

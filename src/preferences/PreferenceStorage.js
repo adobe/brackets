@@ -108,6 +108,7 @@ define(function (require, exports, module) {
      * @param {object} value A valid JSON value
      */
     PreferenceStorage.prototype.setValue = function (key, value) {
+        console.warn("setValue is deprecated. Use PreferencesManager.set instead.");
         if (_validateJSONPair(key, value)) {
             this._json[key] = value;
             _commit();
@@ -120,6 +121,7 @@ define(function (require, exports, module) {
      * @return {object} Returns the value for the key or undefined.
      */
     PreferenceStorage.prototype.getValue = function (key) {
+        console.warn("getValue is deprecated. Use PreferencesManager.get instead.");
         return this._json[key];
     };
     
