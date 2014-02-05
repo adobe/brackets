@@ -1081,10 +1081,11 @@ define(function (require, exports, module) {
          * preferences will take priority over the "before" Scope's preferences.
          * 
          * @param {string} id Name of the new Scope
+         * @param {Scope} scope The scope object to add
          * @param {$.Promise} promise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
-        _addToScopeOrder: function (id, promise, addBefore) {
+        _addToScopeOrder: function (id, scope, promise, addBefore) {
             var defaultScopeOrder = this._defaultContext.scopeOrder,
                 shadowScopeOrder = this._defaultContext._shadowScopeOrder,
                 shadowEntry = {
@@ -1108,6 +1109,7 @@ define(function (require, exports, module) {
 
             promise
                 .then(function () {
+                    this._scopes[id] = scope;
                     this._tryAddToScopeOrder(shadowEntry);
                 }.bind(this))
                 .fail(function (err) {
@@ -1179,13 +1181,10 @@ define(function (require, exports, module) {
             }.bind(this));
             
             promise = scope.load();
-            
-            this._addToScopeOrder(id, promise, options.before);
 
+            this._addToScopeOrder(id, scope, promise, options.before);
+            
             promise
-                .then(function () {
-                    this._scopes[id] = scope;
-                }.bind(this))
                 .fail(function (err) {
                     // With preferences, it is valid for there to be no file.
                     // It is not valid to have an unparseable file.
