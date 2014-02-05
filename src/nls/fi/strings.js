@@ -331,7 +331,7 @@ define({
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Ilmoitukset ja ehdot liittyen kolmannen osapuolen ohjelmistoihin sijaitsevat osoitteessa <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> ja yhdistetään viitteisiin tässä.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
-    "ABOUT_TEXT_LINE5"                     : "He tekivät \u2764lla ja JavaScriptilla:",
+    "ABOUT_TEXT_LINE5"                     : "He tekivät \u2764:lla ja JavaScriptilla:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on ongelmia ladata näitä tietoja nyt).",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Sovellusalustan dokumentaatio ja sovellusalustan graafinen logo on lisensoitu Creative Commons Attribution -lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "{APP_NAME}ista on saatavilla uusi versio! Napsauta tästä saadaksesi lisätietoja.",
