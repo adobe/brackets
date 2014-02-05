@@ -1544,9 +1544,9 @@ define(function (require, exports, module) {
             }
             this._codeMirror.setOption(cmOptions[prefName], newValue);
             if (prefName === USE_TAB_CHAR) {
-                this._codeMirror.setOption("indentUnit", newValue === true
-                                           ? this._currentOptions[TAB_SIZE]
-                                           : this._currentOptions[SPACE_UNITS]
+                this._codeMirror.setOption("indentUnit", newValue === true ?
+                                           this._currentOptions[TAB_SIZE] :
+                                           this._currentOptions[SPACE_UNITS]
                                           );
             } else if (prefName === TAB_SIZE || prefName === SPACE_UNITS) {
                 this._codeMirror.setOption("indentUnit", newValue);
