@@ -569,7 +569,6 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    // tooltip will contain + in the title if the inspection was aborted
                     expect(tooltip).toBe("2 Problems");
                 });
             });
