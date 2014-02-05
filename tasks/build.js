@@ -168,7 +168,7 @@ module.exports = function (grunt) {
 
                 if (login) {
                     grunt.option("user", login);
-                    grunt.task.run(["cla-check","test"]);
+                    grunt.task.run("cla-check");
 
                     done();
                 } else {
