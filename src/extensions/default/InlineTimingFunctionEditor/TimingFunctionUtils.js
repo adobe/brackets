@@ -34,16 +34,15 @@ define(function (require, exports, module) {
      * Regular expressions for matching timing functions
      * @const @type {RegExp}
      */
-    var BEZIER_CURVE_STRICT_REGEX       = /cubic-bezier\((.*)\)/,
-        BEZIER_CURVE_LAX_REGEX          = /cubic-bezier\(.*\)/,
+    var BEZIER_CURVE_STRICT_REGEX       = /cubic-bezier\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)/,
+        BEZIER_CURVE_LAX_REGEX          = /cubic-bezier\((.*)\)/,
         EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
         LINEAR_STRICT_REGEX             = /transition.*?[: ,]linear[ ,;]/,
         LINEAR_LAX_REGEX                = /linear/,
         STEPS_REGEX                     = /steps\(\s*(\d+)\s*(?:,\s*(start|end)\s*)?\)/,
         STEP_STRICT_REGEX               = /[: ,](?:step-start|step-end)[ ,;]/,
-        STEP_LAX_REGEX                  = /step-start|step-end/,
-        PARAM_REGEX                     = /\s*([^\s,]+)\s*,?/g;
+        STEP_LAX_REGEX                  = /step-start|step-end/;
 
     /**
      * Type constants
@@ -80,45 +79,42 @@ define(function (require, exports, module) {
      * @param {Array} def The default params to replace invalid values with
      * @return { isNumber: boolean, value: number } 
      */
-    function getValidBezierParams(match, def) {
-        var params = [],
-            param,
+    function _getValidBezierParams(match, def) {
+        var param,
             i;
 
-        if (match[1]) {
-            params = match[1].split(",");
-        } else { // no params given (empty cubic-bezier() tag): just take default values
-            return def;
-        }
+        if (match) {
+            for (i = 0; i <= 3; i++) {
+                if (match[i]) {
+                    param = _convertToNumber(match[i]);
 
-        for (i = 0; i <= 3; i++) {
-            if (params[i]) {
-                param = _convertToNumber(params[i]);
+                    // Verify the param is a number
+                    // If not, replace it with the default value
+                    if (!param.isNumber) {
+                        match[i] = undefined;
 
-                // Verify the param is a number
-                // If not, replace it with the default value
-                if (!param.isNumber) {
-                    params[i] = undefined;
-
-                // Verify x params are in 0-1 range
-                // If not, set them to the closest value in range
-                } else if (i === 0 || i === 2) {
-                    if (param.value < 0) {
-                        params[i] = "0";
-                    } else if (param.value > 1) {
-                        params[i] = "1";
+                    // Verify x match are in 0-1 range
+                    // If not, set them to the closest value in range
+                    } else if (i === 0 || i === 2) {
+                        if (param.value < 0) {
+                            match[i] = "0";
+                        } else if (param.value > 1) {
+                            match[i] = "1";
+                        }
                     }
+                } else {
+                    match[i] = undefined;
                 }
-            } else {
-                params[i] = undefined;
-            }
 
-            if (!params[i]) {
-                params[i] = def[i];
+                if (!match[i]) {
+                    match[i] = def[i];
+                }
             }
+        } else {
+            match = def;
         }
 
-        return params;
+        return "cubic-bezier(" + match.join(", ") + ")";
     }
 
     /**
@@ -129,10 +125,10 @@ define(function (require, exports, module) {
      * @return {boolean} true if all parameters are valid, otherwise, false
      */
     function _validateCubicBezierParams(match) {
-        var x1 = _convertToNumber(match[2]),
-            y1 = _convertToNumber(match[3]),
-            x2 = _convertToNumber(match[4]),
-            y2 = _convertToNumber(match[5]);
+        var x1 = _convertToNumber(match[1]),
+            y1 = _convertToNumber(match[2]),
+            x2 = _convertToNumber(match[3]),
+            y2 = _convertToNumber(match[4]);
 
         // Verify all params are numbers
         if (!x1.isNumber || !y1.isNumber || !x2.isNumber || !y2.isNumber) {
@@ -212,19 +208,23 @@ define(function (require, exports, module) {
         } else {
             // For strict parsing, look for the parameters cubic-bezier(x1,y1,x2,y2) if there are any.
             match = str.match(BEZIER_CURVE_STRICT_REGEX);
-            if (match) {
-                // get all params, regardless of their number
-                var match2 = PARAM_REGEX.exec(match[1]),
-                    i = 2;
-                while (match2) {
-                    match[i] = match2[1];
-                    match2 = PARAM_REGEX.exec(match[1]);
-                    i++;
-                }
-                if (_validateCubicBezierParams(match)) {
-                    match.valid = true;
-                }
+            if (match && _validateCubicBezierParams(match)) { // cubic-bezier() with valid params
                 return _tagMatch(match, BEZIER);
+            } else {
+                match = str.match(BEZIER_CURVE_LAX_REGEX);
+                if (match) {
+                    var match2 = match[1].split(","),
+                        old_index = match.index; // we need to store the old match.index to re-set the index afterwards
+
+                    match2 = _getValidBezierParams(match2, [ ".42", "0", ".58", "1" ]);
+                    match = match2.match(BEZIER_CURVE_STRICT_REGEX);
+                    if (match && _validateCubicBezierParams(match)) {
+                        match.index = old_index; // re-set the index here to get the right context
+                        return _tagMatch(match, BEZIER);
+                    } else { // this should not happen!
+                        window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
+                    }
+                }
             }
         }
 
@@ -326,5 +326,4 @@ define(function (require, exports, module) {
     exports.timingFunctionMatch     = timingFunctionMatch;
     exports.bezierCurveMatch        = bezierCurveMatch;
     exports.stepsMatch              = stepsMatch;
-    exports.getValidBezierParams    = getValidBezierParams;
 });
