@@ -6,3 +6,7 @@ before_script:
   - npm install -g jasmine-node
 notifications:
   irc: "chat.freenode.net#brackets"
+branches:
+  only:
+    - master
+    - release
