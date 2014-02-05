@@ -131,8 +131,10 @@ module.exports = function (grunt) {
             travis  = process.env.TRAVIS === "true",
             pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
             request;
+
+        pull = Number.parseInt(pull);
         
-        if (!pull) {
+        if (Number.isNan(pull)) {
             grunt.log.writeln(JSON.stringify(process.env));
             
             if (travis) {
@@ -167,7 +169,7 @@ module.exports = function (grunt) {
                 if (login) {
                     grunt.option("user", login);
                     grunt.task.run("cla-check");
-                    
+
                     done();
                 } else {
                     grunt.log.writeln("DEBUG api.github.com");
