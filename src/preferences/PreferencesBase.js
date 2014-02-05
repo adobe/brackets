@@ -476,6 +476,31 @@ define(function (require, exports, module) {
          */
         fileChanged: function (filename) {
             this.storage.fileChanged(filename);
+        },
+        
+        /**
+         * Determines if there are likely to be any changes based on a change
+         * to the default filename used in lookups.
+         * 
+         * @param {string} filename New filename
+         * @param {string} oldFilename Old filename
+         * @return {Array.<string>} List of changed IDs
+         */
+        defaultFilenameChanged: function (filename, oldFilename) {
+            var changes = [],
+                data    = this.data;
+            
+            _.each(this._layers, function (layer) {
+                if (layer.defaultFilenameChanged && data[layer.key]) {
+                    var changesInLayer = layer.defaultFilenameChanged(data[layer.key],
+                                                                      filename,
+                                                                      oldFilename);
+                    if (changesInLayer) {
+                        changes.push(changesInLayer);
+                    }
+                }
+            });
+            return _.union.apply(null, changes);
         }
     });
     
@@ -682,8 +707,37 @@ define(function (require, exports, module) {
          */
         setPrefFilePath: function (prefFilePath) {
             this.prefFilePath = _getDirName(prefFilePath);
-        }
+        },
         
+        /**
+         * Determines if there are preference IDs that could change as a result of
+         * a change to the default filename.
+         * 
+         * @param {Object} data Data in the Scope
+         * @param {string} filename New filename
+         * @param {string} oldFilename Old filename
+         * @return {Array.<string>} list of preference IDs that could have changed
+         */
+        defaultFilenameChanged: function (data, filename, oldFilename) {
+            var relativeFilename  = _getRelativeFilename(this.prefFilePath, filename),
+                newGlob           = _findMatchingGlob(data, relativeFilename);
+            
+            relativeFilename  = _getRelativeFilename(this.prefFilePath, oldFilename);
+            var oldGlob       = _findMatchingGlob(data, relativeFilename);
+            
+            
+            if (newGlob === oldGlob) {
+                return;
+            }
+            if (newGlob === undefined) {
+                return _.keys(data[oldGlob]);
+            }
+            if (oldGlob === undefined) {
+                return _.keys(data[newGlob]);
+            }
+            
+            return _.union(_.keys(data[oldGlob]), _.keys(data[newGlob]));
+        }
     };
     
     /**
@@ -1334,7 +1388,28 @@ define(function (require, exports, module) {
          * @param {string} filename New filename used to resolve preferences
          */
         setDefaultFilename: function (filename) {
+            var oldFilename = this._defaultContext.filename;
+            if (oldFilename === filename) {
+                return;
+            }
+            
+            var changes = [];
+            
+            _.each(this._scopes, function (scope) {
+                var changedInScope = scope.defaultFilenameChanged(filename, oldFilename);
+                if (changedInScope) {
+                    changes.push(changedInScope);
+                }
+            });
+            
             this._defaultContext.filename = filename;
+            
+            changes = _.union.apply(null, changes);
+            if (changes.length > 0) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: changes
+                });
+            }
         },
         
         /**

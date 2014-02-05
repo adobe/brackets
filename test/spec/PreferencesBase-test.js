@@ -565,7 +565,7 @@ define(function (require, exports, module) {
                     spaceUnits: 4,
                     useTabChar: false,
                     path: {
-                        "foo.txt": {
+                        "*.txt": {
                             spaceUnits: 2,
                             alpha: "bravo"
                         }
@@ -588,7 +588,7 @@ define(function (require, exports, module) {
                 
                 // Extra verification that layer keys works correctly
                 var keys = scope._layers[0].getKeys(scope.data.path, {
-                    filename: "/bar.txt"
+                    filename: "/bar.md"
                 });
                 
                 expect(keys).toEqual([]);
@@ -596,6 +596,25 @@ define(function (require, exports, module) {
                     filename: "/foo.txt"
                 });
                 expect(keys.sort()).toEqual(["spaceUnits", "alpha"].sort());
+                
+                expect(pm.get("spaceUnits")).toBe(4);
+                eventData = [];
+                pm.setDefaultFilename("/foo.txt");
+                expect(pm.get("spaceUnits")).toBe(2);
+                expect(eventData).toEqual([{
+                    ids: ["spaceUnits", "alpha"]
+                }]);
+                
+                eventData = [];
+                pm.setDefaultFilename("/README.txt");
+                expect(eventData).toEqual([]);
+                
+                // Test to make sure there are no exceptions when there is no path data
+                delete data.path;
+                scope.load();
+                expect(scope.data).toEqual(data);
+                pm.setDefaultFilename("/foo.txt");
+                pm.setDefaultFilename("/bar.md");
             });
             
             it("can notify changes for single preference objects", function () {
@@ -709,9 +728,10 @@ define(function (require, exports, module) {
                 expect(Object.keys(session.data)).toEqual([]);
                 
                 pm.setDefaultFilename("/index.html");
+                expect(changes).toBe(6);
                 expect(pm.get("spaceUnits")).toBe(2);
                 expect(pm.set("spaceUnits", 10)).toBe(true);
-                expect(changes).toBe(6);
+                expect(changes).toBe(7);
                 expect(project.data.path["**.html"].spaceUnits).toBe(10);
                 
                 pm.setDefaultFilename("/foo.txt");
