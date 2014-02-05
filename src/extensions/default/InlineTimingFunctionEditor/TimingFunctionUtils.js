@@ -81,8 +81,13 @@ define(function (require, exports, module) {
      */
     function _getValidBezierParams(match, def) {
         var param,
+            old_index = match.index, // we need to store the old match.index to re-set the index afterwards
             i;
 
+        if (match) {
+            match = match[1].split(",");
+        }
+        
         if (match) {
             for (i = 0; i <= 3; i++) {
                 if (match[i]) {
@@ -113,8 +118,15 @@ define(function (require, exports, module) {
         } else {
             match = def;
         }
+        match = match.splice(0, 4); // make sure there are only 4 params
+        match = "cubic-bezier(" + match.join(", ") + ")";
+        match = match.match(BEZIER_CURVE_STRICT_REGEX);
 
-        return "cubic-bezier(" + match.join(", ") + ")";
+        if (match) {
+            match.index = old_index;
+            return match;
+        }
+        return null;
     }
 
     /**
@@ -213,13 +225,8 @@ define(function (require, exports, module) {
             } else {
                 match = str.match(BEZIER_CURVE_LAX_REGEX);
                 if (match) {
-                    var match2 = match[1].split(","),
-                        old_index = match.index; // we need to store the old match.index to re-set the index afterwards
-
-                    match2 = _getValidBezierParams(match2, [ ".42", "0", ".58", "1" ]);
-                    match = match2.match(BEZIER_CURVE_STRICT_REGEX);
+                    match = _getValidBezierParams(match, [ ".42", "0", ".58", "1" ]);
                     if (match && _validateCubicBezierParams(match)) {
-                        match.index = old_index; // re-set the index here to get the right context
                         return _tagMatch(match, BEZIER);
                     } else { // this should not happen!
                         window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
