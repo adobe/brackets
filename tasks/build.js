@@ -132,7 +132,7 @@ module.exports = function (grunt) {
             pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
             request;
 
-        pull = parseInt(pull);
+        pull = parseInt(pull, 10);
         
         if (isNaN(pull)) {
             grunt.log.writeln(JSON.stringify(process.env));
@@ -168,12 +168,11 @@ module.exports = function (grunt) {
 
                 if (login) {
                     grunt.option("user", login);
-                    grunt.task.run("cla-check");
+                    grunt.task.run(["cla-check","test"]);
 
                     done();
                 } else {
-                    grunt.log.writeln("DEBUG api.github.com");
-                    grunt.log.writeln("pull: " + pull);
+                    grunt.log.writeln("Unexpected response from api.github.com");
                     grunt.log.writeln("statusCode: " + res.statusCode);
                     grunt.log.writeln("headers: " + JSON.stringify(res.headers));
                     grunt.log.writeln("data: " + body);
