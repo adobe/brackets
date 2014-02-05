@@ -163,6 +163,7 @@ module.exports = function (grunt) {
             res.on("end", function () {
                 var json = JSON.parse(body);
                 grunt.log.writeln("DEBUG api.github.com");
+                grunt.log.writeln("url: " + res.url);
                 grunt.log.writeln("statusCode: " + res.statusCode);
                 grunt.log.writeln("headers: " + JSON.stringify(res.headers));
                 grunt.log.writeln("data: " + body);
