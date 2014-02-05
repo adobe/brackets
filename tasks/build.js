@@ -132,9 +132,9 @@ module.exports = function (grunt) {
             pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
             request;
 
-        pull = Number.parseInt(pull);
+        pull = parseInt(pull);
         
-        if (Number.isNan(pull)) {
+        if (isNaN(pull)) {
             grunt.log.writeln(JSON.stringify(process.env));
             
             if (travis) {
