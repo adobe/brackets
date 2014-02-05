@@ -673,6 +673,15 @@ define(function (require, exports, module) {
                 }
             }
             return _.union.apply(null, _.map(_.values(data), _.keys));
+        },
+        
+        /**
+         * Changes the preference file path.
+         * 
+         * @param {string} prefFilePath New path to the preferences file
+         */
+        setPrefFilePath: function (prefFilePath) {
+            this.prefFilePath = _getDirName(prefFilePath);
         }
         
     };
@@ -1298,7 +1307,7 @@ define(function (require, exports, module) {
             this._nextSaveDeferred = null;
             
             Async.doInParallel(_.values(this._scopes), function (scope) {
-                if (scope && (typeof scope !== "string")) {
+                if (scope) {
                     return scope.save();
                 } else {
                     return $.Deferred().resolve().promise();
@@ -1319,132 +1328,13 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Path Scopes provide special handling for scopes that are managed by a
-         * collection of files in the file tree. The idea is that files are
-         * searched for going up the file tree to the root.
+         * Sets the default filename used for computing preferences when there are PathLayers.
+         * This should be the filename of the file being edited.
          * 
-         * This function just sets up the path scopes. You need to call
-         * `setPathScopeContext` to activate the path scopes. If a path scope context
-         * is already set, the new path scopes will be activated automatically.
-         * 
-         * The `scopeGenerator` is an object that provides the following:
-         * * `before`: all scopes added will be before (higher precedence) this named scope
-         * * `checkExists`: takes an absolute filename and determines if there is a valid file there. Returns a promise resolving to a boolean.
-         * * `getScopeForFile`: Called after checkExists. Synchronously returns a Scope object for the given file. Only called where `checkExists` is true.
-         * 
-         * @param {string} preferencesFilename Name for the preferences files managed by this scopeGenerator (e.g. `.brackets.json`)
-         * @param {ScopeGenerator} scopeGenerator defines the behavior used to generate scopes for these files
-         * @return {Promise} promise resolved when the scopes have been added.
+         * @param {string} filename New filename used to resolve preferences
          */
-        addPathScopes: function (preferencesFilename, scopeGenerator) {
-            this._pathScopeDefinitions[preferencesFilename] = scopeGenerator;
-            this._pathScopeFilenames = Object.keys(this._pathScopeDefinitions);
-            
-            if (this._defaultContext.filename) {
-                return this.setPathScopeContext(this._defaultContext.filename);
-            } else {
-                return new $.Deferred().resolve().promise();
-            }
-        },
-        
-        /**
-         * Sets the current path scope context. This causes a reloading of paths as needed.
-         * Paths that are common between the old and new context files are not reloaded.
-         * All path scopes are updated by this function.
-         * 
-         * Notifications are sent for any preferences that may have changed value as a result
-         * of this operation.
-         * 
-         * @param {string} contextFilename New filename used to resolve preferences
-         * @return {Promise} resolved when the path scope context change is complete. Note that *this promise is resolved before the scopes are done loading*.
-         */
-        setPathScopeContext: function (contextFilename) {
-            var defaultContext = this._defaultContext,
-                oldFilename = this._defaultContext.filename,
-                oldContext = {
-                    filename: oldFilename
-                },
-                oldParts = oldFilename ? oldFilename.split("/") : [],
-                parts = _.initial(contextFilename.split("/")),
-                loadingPromises = [],
-                self = this,
-                result = new $.Deferred(),
-                scopesToCheck = [],
-                scopeAdders = [],
-                notificationKeys = [];
-            
-            defaultContext.filename = contextFilename;
-            
-            // Loop over the path scopes
-            _.forIn(this._pathScopeDefinitions, function (scopeGenerator, preferencesFilename) {
-                var lastSeen = scopeGenerator.before,
-                    counter,
-                    scopeNameToRemove;
-                
-                // First, look for how much is common with the old filename
-                for (counter = 0; counter < parts.length && counter < oldParts.length; counter++) {
-                    if (parts[counter] !== oldParts[counter]) {
-                        break;
-                    }
-                }
-                
-                // Remove all of the scopes that weren't the same in old and new
-                for (counter = counter + 1; counter < oldParts.length; counter++) {
-                    scopeNameToRemove = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
-                    self.removeScope(scopeNameToRemove);
-                }
-                
-                // Now add new scopes as required
-                _.forEach(parts, function (part, i) {
-                    var prefDirectory, filename, scope, scopeName, pathLayer, pathLayerFilename;
-                    prefDirectory = _.first(parts, i + 1).join("/") + "/";
-                    filename = prefDirectory + preferencesFilename;
-                    scopeName = "path:" + filename;
-                    scope = self._scopes[scopeName];
-                    
-                    // Check to see if the scope already exists
-                    if (scope) {
-                        lastSeen = scopeName;
-                        // The old values could have changed, as well as the new values
-                        notificationKeys.push(scope.getKeys(oldContext));
-                        notificationKeys.push(scope.getKeys(defaultContext));
-                    } else {
-                        // New scope. First check to see if the file exists.
-                        scopesToCheck.unshift(scopeGenerator.checkExists(filename));
-                        
-                        // Keep a function closure for the scope that will be added
-                        // if checkExists is true. We store these so that we can
-                        // run them in order.
-                        scopeAdders.unshift(new PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen));
-                    }
-                });
-            });
-            
-            // Notify listeners of all possible key changes for already loaded scopes
-            // New scopes will notify as soon as the data is loaded.
-            if (notificationKeys.length > 0) {
-                $(this).trigger(PREFERENCE_CHANGE, {
-                    ids: _.union.apply(null, notificationKeys)
-                });
-            }
-            
-            // When all of the scope checks are done, run through them in order
-            // and then call the adders for each file that exists.
-            $.when.apply(this, scopesToCheck).done(function () {
-                var i, before, scopeAdder;
-                for (i = 0; i < arguments.length; i++) {
-                    if (arguments[i]) {
-                        scopeAdder = scopeAdders[i];
-                        if (!before) {
-                            before = scopeAdder.before;
-                        }
-                        loadingPromises.push(scopeAdder.add(self, before));
-                    }
-                }
-                result.resolve();
-            });
-            
-            return result.promise();
+        setDefaultFilename: function (filename) {
+            this._defaultContext.filename = filename;
         },
         
         /**
@@ -1514,9 +1404,7 @@ define(function (require, exports, module) {
          */
         fileChanged: function (filename) {
             _.forEach(this._scopes, function (scope) {
-                if (typeof scope !== "string") {
-                    scope.fileChanged(filename);
-                }
+                scope.fileChanged(filename);
             });
         },
         

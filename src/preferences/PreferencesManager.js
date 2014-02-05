@@ -227,30 +227,29 @@ define(function (require, exports, module) {
     
     var preferencesManager = new PreferencesBase.PreferencesSystem();
     
-    var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
     // Set up the .brackets.json file handling
-    userScope
-        .done(function () {
-            preferencesManager.addPathScopes(".brackets.json", {
-                before: "user",
-                checkExists: function (filename) {
-                    var result = new $.Deferred(),
-                        file = FileSystem.getFileForPath(filename);
-                    file.exists(function (err, doesExist) {
-                        result.resolve(doesExist);
-                    });
-                    return result.promise();
-                },
-                getScopeForFile: function (filename) {
-                    return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
-                }
-            })
-                .done(function () {
-                    // Session Scope is for storing prefs in memory only but with the highest precedence.
-                    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
-                });
-        });
+    userScopeLoading.done(function () {
+        // Session Scope is for storing prefs in memory only but with the highest precedence.
+        preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
+    });
+    
+    // Create a Project scope
+    var projectStorage    = new PreferencesBase.FileStorage(undefined, true),
+        projectScope      = new PreferencesBase.Scope(projectStorage),
+        projectPathLayer  = new PreferencesBase.PathLayer();
+    
+    projectScope.addLayer(projectPathLayer);
+    
+    preferencesManager.addScope("project", projectScope, {
+        before: "user"
+    });
+    
+    function _setProjectSettingsFile(settingsFile) {
+        projectPathLayer.setPrefFilePath(settingsFile);
+        projectStorage.setPath(settingsFile);
+    }
     
     /**
      * Creates an extension-specific preferences manager using the prefix given.
@@ -280,7 +279,7 @@ define(function (require, exports, module) {
      * @param {Object} rules Rules for conversion (as defined above)
      */
     function convertPreferences(clientID, rules) {
-        userScope.done(function () {
+        userScopeLoading.done(function () {
             var prefs = getPreferenceStorage(clientID, null, true);
             
             if (!prefs) {
@@ -322,18 +321,55 @@ define(function (require, exports, module) {
         preferencesManager.save();
     }
     
+    // Constants for preference lookup contexts.
+    
+    /**
+     * Context to look up preferences in the current project.
+     * @type {Object}
+     */
+    var CURRENT_PROJECT = {};
+    
+    /**
+     * Context to look up preferences for the currently edited file.
+     * This is undefined because this is the default behavior of PreferencesSystem.get.
+     * 
+     * @type {Object}
+     */
+    var CURRENT_FILE;
+    
+    /**
+     * Look up a preference in the given context. The default is 
+     * CURRENT_FILE (preferences as they would be applied to the
+     * currently edited file).
+     * 
+     * @param {string} id Preference ID to retrieve the value of
+     * @param {Object|string=} context CURRENT_FILE, CURRENT_PROJECT or a filename
+     */
+    function get(id, context) {
+        if (typeof context === "string") {
+            context = preferencesManager.buildContext({
+                filename: context
+            });
+        } else if (context === CURRENT_PROJECT) {
+            context = preferencesManager.buildContext({});
+            delete context.filename;
+        }
+        return preferencesManager.get(id, context);
+    }
+    
     // Private API for unit testing and use elsewhere in Brackets core
-    exports._manager               = preferencesManager;
-    exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
+    exports._manager                = preferencesManager;
+    exports._setCurrentEditingFile  = preferencesManager.setDefaultFilename.bind(preferencesManager);
+    exports._setProjectSettingsFile = _setProjectSettingsFile;
     
     // Public API
     
     // Context names for preference lookups
-    exports.CURRENT_FILE        = "default";
-    exports.CURRENT_PROJECT     = "project";
+    exports.CURRENT_FILE        = CURRENT_FILE;
+    exports.CURRENT_PROJECT     = CURRENT_PROJECT;
     
     exports.getUserPrefFile     = getUserPrefFile;
-    exports.get                 = preferencesManager.get.bind(preferencesManager);
+    exports.get                 = get;
     exports.set                 = preferencesManager.set.bind(preferencesManager);
     exports.save                = preferencesManager.save.bind(preferencesManager);
     exports.on                  = preferencesManager.on.bind(preferencesManager);
