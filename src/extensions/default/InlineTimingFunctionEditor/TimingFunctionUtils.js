@@ -34,7 +34,7 @@ define(function (require, exports, module) {
      * Regular expressions for matching timing functions
      * @const @type {RegExp}
      */
-    var BEZIER_CURVE_STRICT_REGEX       = /cubic-bezier\((\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*)?\)/,
+    var BEZIER_CURVE_STRICT_REGEX       = /cubic-bezier\((.*)\)/,
         BEZIER_CURVE_LAX_REGEX          = /cubic-bezier\(.*\)/,
         EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
@@ -42,7 +42,8 @@ define(function (require, exports, module) {
         LINEAR_LAX_REGEX                = /linear/,
         STEPS_REGEX                     = /steps\(\s*(\d+)\s*(?:,\s*(start|end)\s*)?\)/,
         STEP_STRICT_REGEX               = /[: ,](?:step-start|step-end)[ ,;]/,
-        STEP_LAX_REGEX                  = /step-start|step-end/;
+        STEP_LAX_REGEX                  = /step-start|step-end/,
+        PARAM_REGEX                     = /\s*([^\s,]+)\s*,?/g;
 
     /**
      * Type constants
@@ -95,6 +96,7 @@ define(function (require, exports, module) {
                 param = _convertToNumber(params[i]);
 
                 // Verify the param is a number
+                // If not, replace it with the default value
                 if (!param.isNumber) {
                     params[i] = undefined;
 
@@ -211,6 +213,15 @@ define(function (require, exports, module) {
             // For strict parsing, look for the parameters cubic-bezier(x1,y1,x2,y2) if there are any.
             match = str.match(BEZIER_CURVE_STRICT_REGEX);
             if (match) {
+                // get all params, regardless of their number
+                var match2 = PARAM_REGEX.exec(match[1]),
+                    i = 2;
+                while (match2) {
+                    match[i] = match2[1];
+                    match2 = PARAM_REGEX.exec(match[1]);
+                    i++;
+                }
+                console.log(match2);
                 if (_validateCubicBezierParams(match)) {
                     match.valid = true;
                 }
