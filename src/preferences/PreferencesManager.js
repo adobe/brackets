@@ -236,9 +236,12 @@ define(function (require, exports, module) {
     });
     
     // Create a Project scope
-    var projectStorage    = new PreferencesBase.FileStorage(undefined, true),
-        projectScope      = new PreferencesBase.Scope(projectStorage),
-        projectPathLayer  = new PreferencesBase.PathLayer();
+    var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
+        projectScope            = new PreferencesBase.Scope(projectStorage),
+        projectPathLayer        = new PreferencesBase.PathLayer(),
+        projectDirectory        = null,
+        currentEditedFile       = null,
+        projectScopeIsIncluded  = true;
     
     projectScope.addLayer(projectPathLayer);
     
@@ -246,9 +249,73 @@ define(function (require, exports, module) {
         before: "user"
     });
     
+    /**
+     * @private
+     * 
+     * Determines whether the project Scope should be included based on whether
+     * the currently edited file is within the project.
+     * 
+     * @param {string=} filename Full path to edited file
+     * @return {boolean} true if the project Scope should be included.
+     */
+    function _includeProjectScope(filename) {
+        filename = filename || currentEditedFile;
+        if (!filename || !projectDirectory) {
+            return false;
+        }
+        var relativeFilename = FileUtils.getRelativeFilename(projectDirectory, filename);
+        if (!relativeFilename) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    /**
+     * @private
+     * 
+     * Adds or removes the project Scope as needed based on whether the currently
+     * edited file is within the project.
+     */
+    function _toggleProjectScope() {
+        if (_includeProjectScope() && projectScopeIsIncluded) {
+            return;
+        }
+        if (projectScopeIsIncluded) {
+            preferencesManager.removeFromScopeOrder("project");
+        } else {
+            preferencesManager.addToScopeOrder("project", "user");
+        }
+        projectScopeIsIncluded = !projectScopeIsIncluded;
+    }
+    
+    /**
+     * @private
+     * 
+     * This is used internally within Brackets for the ProjectManager to signal
+     * which file contains the project-level preferences.
+     * 
+     * @param {string} settingsFile Full path to the project's settings file
+     */
     function _setProjectSettingsFile(settingsFile) {
+        projectDirectory = FileUtils.getDirectoryPath(settingsFile);
+        _toggleProjectScope();
         projectPathLayer.setPrefFilePath(settingsFile);
         projectStorage.setPath(settingsFile);
+    }
+    
+    /**
+     * @private
+     * 
+     * This is used internally within Brackets for the DocumentManager to signal
+     * to the preferences what the currently edited file is.
+     * 
+     * @param {string} currentFile Full path to currently edited file
+     */
+    function _setCurrentEditingFile(currentFile) {
+        currentEditedFile = currentFile;
+        _toggleProjectScope();
+        preferencesManager.setDefaultFilename(currentFile);
     }
     
     /**
@@ -338,6 +405,38 @@ define(function (require, exports, module) {
     var CURRENT_FILE;
     
     /**
+     * Adjusts scopeOrder to have the project Scope if necessary.
+     * Returns a new array if changes are needed, otherwise returns
+     * the original array.
+     * 
+     * @param {Array.<string>} scopeOrder initial scopeOrder
+     * @param {boolean} includeProject Whether the project Scope should be included
+     * @return {Array.<string>} array with or without project Scope as needed.
+     */
+    function adjustScopeOrderForProject(scopeOrder, includeProject) {
+        var hasProject = scopeOrder.indexOf("project") > -1;
+        
+        if (hasProject === includeProject) {
+            return scopeOrder;
+        }
+        
+        var newScopeOrder;
+        
+        if (includeProject) {
+            var before = scopeOrder.indexOf("user");
+            if (before === -1) {
+                before = scopeOrder.length - 2;
+            }
+            newScopeOrder = _.first(scopeOrder, before);
+            newScopeOrder.push("project");
+            newScopeOrder.push.apply(scopeOrder, _.rest(scopeOrder, before));
+        } else {
+            newScopeOrder = _.without(scopeOrder, "project");
+        }
+        return newScopeOrder;
+    }
+    
+    /**
      * Look up a preference in the given context. The default is 
      * CURRENT_FILE (preferences as they would be applied to the
      * currently edited file).
@@ -350,16 +449,20 @@ define(function (require, exports, module) {
             context = preferencesManager.buildContext({
                 filename: context
             });
+            context.scopeOrder = adjustScopeOrderForProject(context.scopeOrder,
+                                                            _includeProjectScope(context.filename)
+                                                           );
         } else if (context === CURRENT_PROJECT) {
             context = preferencesManager.buildContext({});
             delete context.filename;
+            context.scopeOrder = adjustScopeOrderForProject(context.scopeOrder, true);
         }
         return preferencesManager.get(id, context);
     }
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager                = preferencesManager;
-    exports._setCurrentEditingFile  = preferencesManager.setDefaultFilename.bind(preferencesManager);
+    exports._setCurrentEditingFile  = _setCurrentEditingFile;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
     
     // Public API

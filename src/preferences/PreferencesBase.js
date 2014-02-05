@@ -509,46 +509,6 @@ define(function (require, exports, module) {
     /**
      * @private
      * 
-     * Finds the directory name of the given path. Ensures that the result always ends with a "/".
-     * 
-     * @param {string} filename Filename from which to extract the dirname
-     * @return {string} directory containing the file (ends with "/")
-     */
-    function _getDirName(filename) {
-        if (!filename) {
-            return "/";
-        }
-        
-        var rightMostSlash = filename.lastIndexOf("/");
-        return filename.substr(0, rightMostSlash + 1);
-    }
-    
-    /**
-     * @private
-     * 
-     *
-     * Computes filename as relative to the basePath. For example:
-     * basePath: /foo/bar/, filename: /foo/bar/baz.txt
-     * returns: baz.txt
-     * 
-     * The net effect is that the common prefix is returned. If basePath is not
-     * a prefix of filename, then undefined is returned.
-     * 
-     * @param {string} basePath Path against which we're computing the relative path
-     * @param {string} filename Full path to the file for which we are computing a relative path
-     * @return {string} relative path
-     */
-    function _getRelativeFilename(basePath, filename) {
-        if (!filename || filename.substr(0, basePath.length) !== basePath) {
-            return;
-        }
-        
-        return filename.substr(basePath.length);
-    }
-    
-    /**
-     * @private
-     * 
      * Look for a matching file glob among the collection of paths.
      * 
      * @param {Object} pathData The keys are globs and the values are the preferences for that glob
@@ -592,7 +552,7 @@ define(function (require, exports, module) {
      * @param {string} prefFilePath path to the preference file
      */
     function PathLayer(prefFilePath) {
-        this.prefFilePath = _getDirName(prefFilePath);
+        this.setPrefFilePath(prefFilePath);
     }
     
     PathLayer.prototype = {
@@ -631,7 +591,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
             if (!relativeFilename) {
                 return;
             }
@@ -687,7 +647,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
             
             if (relativeFilename) {
                 var glob = _findMatchingGlob(data, relativeFilename);
@@ -706,7 +666,11 @@ define(function (require, exports, module) {
          * @param {string} prefFilePath New path to the preferences file
          */
         setPrefFilePath: function (prefFilePath) {
-            this.prefFilePath = _getDirName(prefFilePath);
+            if (!prefFilePath) {
+                this.prefFilePath = "/";
+            } else {
+                this.prefFilePath = FileUtils.getDirectoryPath(prefFilePath);
+            }
         },
         
         /**
@@ -719,10 +683,10 @@ define(function (require, exports, module) {
          * @return {Array.<string>} list of preference IDs that could have changed
          */
         defaultFilenameChanged: function (data, filename, oldFilename) {
-            var relativeFilename  = _getRelativeFilename(this.prefFilePath, filename),
+            var relativeFilename  = FileUtils.getRelativeFilename(this.prefFilePath, filename),
                 newGlob           = _findMatchingGlob(data, relativeFilename);
             
-            relativeFilename  = _getRelativeFilename(this.prefFilePath, oldFilename);
+            relativeFilename  = FileUtils.getRelativeFilename(this.prefFilePath, oldFilename);
             var oldGlob       = _findMatchingGlob(data, relativeFilename);
             
             
@@ -996,7 +960,6 @@ define(function (require, exports, module) {
         };
         
         this._pendingScopes = {};
-        this._pendingEvents = {};
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
@@ -1080,17 +1043,27 @@ define(function (require, exports, module) {
          * @param {string} id Name of the new Scope
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
-        _addToScopeOrder: function (id, addBefore) {
+        addToScopeOrder: function (id, addBefore) {
             var defaultScopeOrder = this._defaultContext.scopeOrder;
             
+            var scope = this._scopes[id];
+            
+            $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }.bind(this));
+
             if (!addBefore) {
                 defaultScopeOrder.unshift(id);
-                this._processPendingEvents(id);
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: scope.getKeys()
+                });
             } else {
                 var addIndex = defaultScopeOrder.indexOf(addBefore);
                 if (addIndex > -1) {
                     defaultScopeOrder.splice(addIndex, 0, id);
-                    this._processPendingEvents(id);
+                    $(this).trigger(PREFERENCE_CHANGE, {
+                        ids: scope.getKeys()
+                    });
                 } else {
                     var queue = this._pendingScopes[addBefore];
                     if (!queue) {
@@ -1104,37 +1077,24 @@ define(function (require, exports, module) {
                 var pending = this._pendingScopes[id];
                 delete this._pendingScopes[id];
                 pending.forEach(function (scopeID) {
-                    this._addToScopeOrder(scopeID, id);
+                    this.addToScopeOrder(scopeID, id);
                 }.bind(this));
             }
         },
         
         /**
-         * @private
+         * Removes a scope from the default scope order.
          * 
-         * When a Scope is loading and hasn't yet been added to the `scopeOrder`,
-         * we accumulate any change notifications that it sends and re-send them
-         * once the Scope has been added to `scopeOrder`. If the notifications were
-         * sent out before the Scope has been added, then listeners who request the
-         * changed values will actually get the old values.
-         * 
-         * @param {string} id Name of the Scope that has been added.
+         * @param {string} id Name of the Scope to remove from the default scope order.
          */
-        _processPendingEvents: function (id) {
-            // Remove the preload listener and add the final listener
-            var $scope = $(this._scopes[id]);
-            $scope.off(".preload");
-            $scope.on(PREFERENCE_CHANGE, function (e, data) {
-                $(this).trigger(PREFERENCE_CHANGE, data);
-            }.bind(this));
-            
-            // Resend preference IDs from the preload events
-            if (this._pendingEvents[id]) {
-                var ids = _.union.apply(null, this._pendingEvents[id]);
-                delete this._pendingEvents[id];
+        removeFromScopeOrder: function (id) {
+            var scope = this._scopes[id];
+            if (scope) {
+                this._defaultContext.scopeOrder = _.without(this._defaultContext.scopeOrder, id);
                 $(this).trigger(PREFERENCE_CHANGE, {
-                    ids: ids
+                    ids: scope.getKeys()
                 });
+                $(scope).off(".prefsys");
             }
         },
         
@@ -1176,20 +1136,12 @@ define(function (require, exports, module) {
                 scope = new Scope(scope);
             }
             
-            // Change events from the Scope should propagate to listeners
-            $(scope).on(PREFERENCE_CHANGE + ".preload", function (e, data) {
-                if (!this._pendingEvents[id]) {
-                    this._pendingEvents[id] = [];
-                }
-                this._pendingEvents[id].push(data.ids);
-            }.bind(this));
-            
             var deferred = $.Deferred();
             
             scope.load()
                 .then(function () {
                     this._scopes[id] = scope;
-                    this._addToScopeOrder(id, options.before);
+                    this.addToScopeOrder(id, options.before);
                     deferred.resolve(id, scope);
                 }.bind(this))
                 .fail(function (err) {

@@ -652,6 +652,39 @@ define(function (require, exports, module) {
                 expect(changes).toEqual(1);
             });
             
+            it("can dynamically modify the default scope order", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                pm.addScope("user", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 1
+                }));
+                pm.addScope("project", new PreferencesBase.MemoryStorage({
+                    spaceUnits: 2
+                }));
+                pm.addScope("session", new PreferencesBase.MemoryStorage());
+                expect(pm.get("spaceUnits")).toBe(2);
+                
+                var eventData = [];
+                pm.on("change", function (e, data) {
+                    eventData.push(data);
+                });
+                pm.removeFromScopeOrder("project");
+                expect(eventData).toEqual([{
+                    ids: ["spaceUnits"]
+                }]);
+                
+                expect(pm.get("spaceUnits")).toBe(1);
+                expect(pm.get("spaceUnits", {
+                    scopeOrder: ["session", "project", "user", "default"]
+                })).toBe(2);
+                
+                eventData = [];
+                pm.addToScopeOrder("project", "user");
+                expect(eventData).toEqual([{
+                    ids: ["spaceUnits"]
+                }]);
+                expect(pm.get("spaceUnits")).toBe(2);
+            });
+            
             it("can set preference values at any level", function () {
                 var pm = new PreferencesBase.PreferencesSystem(),
                     pref = pm.definePreference("spaceUnits", "number", 4),
