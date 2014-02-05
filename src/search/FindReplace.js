@@ -168,7 +168,7 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         cm.operation(function () {
             var state = getSearchState(cm);
-            var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(Boolean(rev))); // null and false mean different things to getCursorPos()
+            var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(false, rev ? "start" : "end"));
 
             state.lastMatch = cursor.find(rev);
             if (!state.lastMatch) {
