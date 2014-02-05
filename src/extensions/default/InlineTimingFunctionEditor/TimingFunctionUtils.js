@@ -221,7 +221,6 @@ define(function (require, exports, module) {
                     match2 = PARAM_REGEX.exec(match[1]);
                     i++;
                 }
-                console.log(match2);
                 if (_validateCubicBezierParams(match)) {
                     match.valid = true;
                 }
