@@ -405,6 +405,8 @@ define(function (require, exports, module) {
     var CURRENT_FILE;
     
     /**
+     * @private
+     * 
      * Adjusts scopeOrder to have the project Scope if necessary.
      * Returns a new array if changes are needed, otherwise returns
      * the original array.
@@ -413,7 +415,7 @@ define(function (require, exports, module) {
      * @param {boolean} includeProject Whether the project Scope should be included
      * @return {Array.<string>} array with or without project Scope as needed.
      */
-    function adjustScopeOrderForProject(scopeOrder, includeProject) {
+    function _adjustScopeOrderForProject(scopeOrder, includeProject) {
         var hasProject = scopeOrder.indexOf("project") > -1;
         
         if (hasProject === includeProject) {
@@ -437,6 +439,31 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * 
+     * Normalizes the context object to be something that the PreferencesSystem
+     * understands. This is how we support CURRENT_FILE and CURRENT_PROJECT
+     * preferences.
+     * 
+     * @param {Object|string} context CURRENT_FILE, CURRENT_PROJECT or a filename
+     */
+    function _normalizeContext(context) {
+        if (typeof context === "string") {
+            context = preferencesManager.buildContext({
+                filename: context
+            });
+            context.scopeOrder = _adjustScopeOrderForProject(context.scopeOrder,
+                                                            _includeProjectScope(context.filename)
+                                                           );
+        } else if (context === CURRENT_PROJECT) {
+            context = preferencesManager.buildContext({});
+            delete context.filename;
+            context.scopeOrder = _adjustScopeOrderForProject(context.scopeOrder, true);
+        }
+        return context;
+    }
+    
+    /**
      * Look up a preference in the given context. The default is 
      * CURRENT_FILE (preferences as they would be applied to the
      * currently edited file).
@@ -445,20 +472,33 @@ define(function (require, exports, module) {
      * @param {Object|string=} context CURRENT_FILE, CURRENT_PROJECT or a filename
      */
     function get(id, context) {
-        if (typeof context === "string") {
-            context = preferencesManager.buildContext({
-                filename: context
-            });
-            context.scopeOrder = adjustScopeOrderForProject(context.scopeOrder,
-                                                            _includeProjectScope(context.filename)
-                                                           );
-        } else if (context === CURRENT_PROJECT) {
-            context = preferencesManager.buildContext({});
-            delete context.filename;
-            context.scopeOrder = adjustScopeOrderForProject(context.scopeOrder, true);
-        }
+        context = _normalizeContext(context);
         return preferencesManager.get(id, context);
     }
+    
+    /**
+     * Sets a preference and notifies listeners that there may
+     * have been a change. By default, the preference is set in the same location in which
+     * it was defined except for the "default" scope. If the current value of the preference
+     * comes from the "default" scope, the new value will be set at the level just above
+     * default.
+     * 
+     * As with the `get()` function, the context can be a filename,
+     * CURRENT_FILE, CURRENT_PROJECT or a full context object as supported by
+     * PreferencesSystem.
+     * 
+     * @param {string} id Identifier of the preference to set
+     * @param {Object} value New value for the preference
+     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
+     * @return {boolean} true if a value was set
+     */
+    function set(id, value, options) {
+        if (options && options.context) {
+            options.context = _normalizeContext(options.context);
+        }
+        preferencesManager.set(id, value, options);
+    }
+
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager                = preferencesManager;
@@ -473,7 +513,7 @@ define(function (require, exports, module) {
     
     exports.getUserPrefFile     = getUserPrefFile;
     exports.get                 = get;
-    exports.set                 = preferencesManager.set.bind(preferencesManager);
+    exports.set                 = set;
     exports.save                = preferencesManager.save.bind(preferencesManager);
     exports.on                  = preferencesManager.on.bind(preferencesManager);
     exports.off                 = preferencesManager.off.bind(preferencesManager);
