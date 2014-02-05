@@ -340,18 +340,18 @@ define(function (require, exports, module) {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 2});
-                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 0, ch: 2});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 0, ch: 2});
-                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 0, ch: 2});
+                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 0, ch: 2});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 2});
                 });
                 
                 it("should return the correct ends of a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 5});
-                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 0, ch: 1});
+                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 0, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 0, ch: 1});
-                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 0, ch: 5});
+                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 0, ch: 5});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 5});
                 });
                 
@@ -361,9 +361,9 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ]);
                     expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 1});
                 });
                 
@@ -373,9 +373,9 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
                                                        ], 1);
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 1, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 1, ch: 1});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 1});
                 });
                 
@@ -385,9 +385,9 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ]);
                     expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 4});
-                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 2, ch: 1});
+                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
-                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 2, ch: 4});
+                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 2, ch: 4});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 4});
                 });
                 
@@ -397,9 +397,9 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
                                                        ], 1);
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 4});
-                    expect(myEditor.getCursorPos(false, "from")).toEqual({line: 1, ch: 1});
+                    expect(myEditor.getCursorPos(false, "start")).toEqual({line: 1, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 1, ch: 1});
-                    expect(myEditor.getCursorPos(false, "to")).toEqual({line: 1, ch: 4});
+                    expect(myEditor.getCursorPos(false, "end")).toEqual({line: 1, ch: 4});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 4});
                 });
             });

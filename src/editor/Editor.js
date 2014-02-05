@@ -399,8 +399,8 @@ define(function (require, exports, module) {
         //    insertion point, insert a tab character or the appropriate number
         //    of spaces to pad to the nearest tab boundary.
         var instance = this._codeMirror,
-            from = this.getCursorPos(false, "from"),
-            to = this.getCursorPos(false, "to"),
+            from = this.getCursorPos(false, "start"),
+            to = this.getCursorPos(false, "end"),
             line = instance.getLine(from.line),
             indentAuto = false,
             insertTab = false;
@@ -419,8 +419,8 @@ define(function (require, exports, module) {
             // already been at the correct indentation level as far as CM is concerned, so insert 
             // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                var newFrom = this.getCursorPos(false, "from"),
-                    newTo = this.getCursorPos(false, "to");
+                var newFrom = this.getCursorPos(false, "start"),
+                    newTo = this.getCursorPos(false, "end");
                 if (newFrom.line === from.line && newFrom.ch === from.ch &&
                         newTo.line === to.line && newTo.ch === to.ch) {
                     insertTab = true;
@@ -770,15 +770,23 @@ define(function (require, exports, module) {
      * Gets the current cursor position within the editor.
      * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
-     * @param {?string} start Optional string indicating which end of the
-     *  selection to return. It may be "from", "to", "head" (the side of the
+     * @param {?string} which Optional string indicating which end of the
+     *  selection to return. It may be "start", "end", "head" (the side of the
      *  selection that moves when you press shift+arrow), or "anchor" (the
      *  fixed side of the selection). Omitting the argument is the same as
      *  passing "head". A {line, ch} object will be returned.)
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function (expandTabs, start) {
-        var cursor = _copyPos(this._codeMirror.getCursor(start));
+    Editor.prototype.getCursorPos = function (expandTabs, which) {
+        // Translate "start" and "end" to the official CM names (it actually
+        // supports them as-is, but that isn't documented and we don't want to
+        // rely on it).
+        if (which === "start") {
+            which = "from";
+        } else if (which === "end") {
+            which = "to";
+        }
+        var cursor = _copyPos(this._codeMirror.getCursor(which));
         
         if (expandTabs) {
             cursor.ch = this.getColOffset(cursor);
