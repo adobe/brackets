@@ -924,9 +924,9 @@ define(function (require, exports, module) {
      */
     function _normalizeRange(anchorPos, headPos) {
         if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
-            return {start: headPos, end: anchorPos, reversed: true};
+            return {start: _copyPos(headPos), end: _copyPos(anchorPos), reversed: true};
         } else {
-            return {start: anchorPos, end: headPos, reversed: false};
+            return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
         }
     }
     
@@ -943,10 +943,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns an array of current selections. Each entry is a start/end pair, with the start
-     * guaranteed to come before the end. If `reversed` is set, then the head of the selection
+     * Returns an array of current selections, nonoverlapping and sorted in document order. 
+     * Each selection is a start/end pair, with the start guaranteed to come before the end.
+     * Cursors are represented as a range whose start is equal to the end.
+     * If `reversed` is set, then the head of the selection
      * (the end of the selection that would be changed if the user extended the selection)
-     * is before the anchor. Cursors are represented as a range whose start is equal to the end.
+     * is before the anchor. 
      * If `primary` is set, then that selection is the primary selection.
      * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}
      */
@@ -991,7 +993,7 @@ define(function (require, exports, module) {
      * getSelection() and getCursorPos()) defaulting to the last if not specified.
      * Overlapping ranges will be automatically merged, and the selection will be sorted.
      * Optionally centers around the primary selection after making the selection.
-     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean}>} selections
+     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
      *      The selection ranges to set. If the start and end of a range are the same, treated as a cursor.
      *      If reversed is true, set the anchor of the range to the end instead of the start.
      *      If primary is true, this is the primary selection. Behavior is undefined if more than
@@ -1010,6 +1012,51 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor(centerOptions);
         }
+    };
+
+    /**
+     * Utility function that takes a list of selection ranges as returned by `setSelections()` and
+     * expands them to encompass whole lines, merging selections as necessary and preserving the
+     * primary selection.
+     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
+     *     A list of selections as returned by `setSelections()`. Expected to be sorted and non-overlapping.
+     * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}}
+     *     The expanded selections. Also guaranteed to be sorted and non-overlapping.
+     */
+    Editor.prototype.expandSelectionsToLines = function (selections) {
+        var self = this, result = [], last;
+        _.each(selections, function (sel) {
+            var from = {line: sel.start.line, ch: 0};
+            var to   = {line: sel.end.line + 1, ch: 0};
+
+            if (to.line === self.getLastVisibleLine() + 1) {
+                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
+                // which due to how CM clips coords would only work some of the time
+                to.line -= 1;
+                to.ch = self.document.getLine(to.line).length;
+            }
+            
+            var newSel = {start: from, end: to, primary: sel.primary, reversed: sel.reversed};
+            if (last) {
+                if (self.posWithinRange(newSel.start, last.start, last.end, true)) {
+                    if (!self.posWithinRange(newSel.end, last.start, last.end, true)) {
+                        // Extend the last selection to include this one.
+                        last.end = newSel.end;
+                    }
+                    // If this was primary, make the selection it was merged into primary.
+                    if (newSel.primary) {
+                        last.primary = true;
+                    }
+                    // We can throw away this selection now since it was merged (partially or fully) into the last one.
+                    newSel = null;
+                }
+            }
+            if (newSel) {
+                result.push(newSel);
+                last = newSel;
+            }
+        });
+        return result;
     };
 
     /**

@@ -589,27 +589,60 @@ define(function (require, exports, module) {
         if (!editor) {
             return;
         }
-
-        var from,
-            to,
-            sel = editor.getSelection(),
-            doc = editor.document;
-
-        from = {line: sel.start.line, ch: 0};
-        to = {line: sel.end.line + 1, ch: 0};
-        if (to.line === editor.getLastVisibleLine() + 1) {
-            // Instead of deleting the newline after the last line, delete the newline
-            // before the first line--unless this is the entire visible content of the editor,
-            // in which case just delete the line content.
-            if (from.line > editor.getFirstVisibleLine()) {
-                from.line -= 1;
-                from.ch = doc.getLine(from.line).length;
-            }
-            to.line -= 1;
-            to.ch = doc.getLine(to.line).length;
-        }
         
-        doc.replaceRange("", from, to);
+        // Walk the selections, deleting lines as we go, and ignoring
+        // multiple selections on the same line.
+        var doc = editor.document,
+            firstVisibleLine = editor.getFirstVisibleLine(),
+            lastVisibleLine = editor.getLastVisibleLine(),
+            from,
+            to,
+            numDeletedLines = 0,
+            lastDeletedLine,
+            selections = [];
+        doc.batchOperation(function () {
+            _.each(editor.getSelections(), function (sel) {
+                var firstSelLine = sel.start.line - numDeletedLines,
+                    lastSelLine = sel.end.line - numDeletedLines,
+                    numThisDeletion;
+                if (lastDeletedLine !== undefined && firstSelLine <= lastDeletedLine) {
+                    // This selection is on the same line as the previous selection, so skip it. 
+                    // But if this was the primary selection, make the previous selection be primary.
+                    if (sel.primary) {
+                        selections[selections.length - 1].primary = true;
+                    }
+                } else {
+                    from = {line: firstSelLine, ch: 0};
+                    to = {line: lastSelLine + 1, ch: 0};
+                    if (to.line === lastVisibleLine + 1) {
+                        // Instead of deleting the newline after the last line, delete the newline
+                        // before the beginning of the line--unless this is the entire visible content of the editor,
+                        // in which case just delete the line content.
+                        if (from.line > firstVisibleLine) {
+                            from.line -= 1;
+                            from.ch = doc.getLine(from.line).length;
+                        }
+                        to.line -= 1;
+                        to.ch = doc.getLine(to.line).length;
+                    }
+
+                    doc.replaceRange("", from, to);
+                    
+                    // Add a selection at the start of the deleted content.
+                    selections.push({start: from, end: from, primary: sel.primary});
+                    
+                    // Update our count of deleted lines, so we know how to adjust later selections.
+                    numThisDeletion = to.line - from.line;
+                    numDeletedLines += numThisDeletion;
+                    lastDeletedLine = firstSelLine;
+                    
+                    // We have to track the last visible line ourselves, since the TextRange that tracks
+                    // the visible range might not update during a batch operation.
+                    lastVisibleLine -= numThisDeletion;
+                }
+            });
+        });
+        editor.setSelections(selections);
     }
     
     /**
@@ -805,24 +838,7 @@ define(function (require, exports, module) {
     function selectLine(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
-            // Look at all the selections and expand each one. We don't have to worry if they overlap,
-            // because setSelections() will merge them if necessary.
-            var sels;
-            
-            sels = _.map(editor.getSelections(), function (sel) {
-                var from = {line: sel.start.line, ch: 0};
-                var to   = {line: sel.end.line + 1, ch: 0};
-
-                if (to.line === editor.getLastVisibleLine() + 1) {
-                    // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
-                    // which due to how CM clips coords would only work some of the time
-                    to.line -= 1;
-                    to.ch = editor.document.getLine(to.line).length;
-                }
-                return {start: from, end: to, primary: sel.primary, reversed: sel.reversed};
-            });
-            
-            editor.setSelections(sels);
+            editor.setSelections(editor.expandSelectionsToLines(editor.getSelections()));
         }
     }
 

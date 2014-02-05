@@ -33,7 +33,8 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         LanguageManager       = require("language/LanguageManager"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
+        _                     = require("thirdparty/lodash");
 
     describe("EditorCommandHandlers", function () {
         
@@ -98,7 +99,13 @@ define(function (require, exports, module) {
         function expectSelections(sels) {
             expect(myEditor.getSelections()).toEqual(sels);
         }
-        
+        function contentWithDeletedLines(lineNums) {
+            var lines = defaultContent.split("\n");
+            _.forEachRight(lineNums, function (num) {
+                lines.splice(num, 1);
+            });
+            return lines.join("\n");
+        }
         
         // Helper function for creating a test window
         function createTestWindow(spec) {
@@ -2205,6 +2212,44 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
                 expect(myDocument.getText()).toEqual("");
             });
+            
+            it("should delete lines containing any cursor in a multiple selection", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                        {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
+                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+            });
+
+            it("should handle multiple selections on the same line (only deleting the line once)", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                        {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
+                                        {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}},
+                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+            });
+            
+            it("should merge the primary selection into another selection on the same line", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                        {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
+                                        {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: true},
+                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
+                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}]);
+            });
         });
         
         describe("Delete Line - editor with visible range", function () {
@@ -2256,10 +2301,24 @@ define(function (require, exports, module) {
                 expect(myEditor._visibleRange.startLine).toNotBe(null);
                 expect(myEditor._visibleRange.endLine).toNotBe(null);
             });
+            
+            it("should properly handle multiple selection, including first and last line deletion", function () {
+                makeEditorWithRange({startLine: 1, endLine: 6});
+                myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}},
+                                        {start: {line: 3, ch: 5}, end: {line: 3, ch: 5}},
+                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([1, 3, 6]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 3, ch: 5}, end: {line: 3, ch: 5}, primary: true, reversed: false}]);
+            });
         });
         
         
         describe("Select Line", function () {
+            // Note that these indirectly test Editor.expandSelectionsToLines() as well.
             beforeEach(setupFullEditor);
             
             it("should select the first line with IP in that line", function () {
@@ -2418,6 +2477,16 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
                 
                 expectSelection({start: {line: 4, ch: 0}, end: {line: 5, ch: 0}});
+            });
+            
+            it("should properly expand multiselection at start and end", function () {
+                makeEditorWithRange({startLine: 1, endLine: 5});
+                myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}},
+                                        {start: {line: 5, ch: 0}, end: {line: 5, ch: 0}}]);
+                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+                
+                expectSelections([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                  {start: {line: 5, ch: 0}, end: {line: 5, ch: 5}, reversed: false, primary: true}]);
             });
         });
       
