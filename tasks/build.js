@@ -161,15 +161,23 @@ module.exports = function (grunt) {
             });
             
             res.on("end", function () {
-                var json = JSON.parse(body);
-                grunt.log.writeln("DEBUG api.github.com");
-                grunt.log.writeln("url: " + res.url);
-                grunt.log.writeln("statusCode: " + res.statusCode);
-                grunt.log.writeln("headers: " + JSON.stringify(res.headers));
-                grunt.log.writeln("data: " + body);
-                grunt.option("user", json.user.login);
-                grunt.task.run("cla-check");
-                done();
+                var json    = JSON.parse(body),
+                    login   = json.user && json.user.login;
+
+                if (login) {
+                    grunt.option("user", login);
+                    grunt.task.run("cla-check");
+                    
+                    done();
+                } else {
+                    grunt.log.writeln("DEBUG api.github.com");
+                    grunt.log.writeln("pull: " + pull);
+                    grunt.log.writeln("statusCode: " + res.statusCode);
+                    grunt.log.writeln("headers: " + JSON.stringify(res.headers));
+                    grunt.log.writeln("data: " + body);
+
+                    done(false);
+                }
             });
             
             res.on("error", function (err) {
