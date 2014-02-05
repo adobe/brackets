@@ -1552,7 +1552,7 @@ define(function (require, exports, module) {
                 this._codeMirror.setOption("indentUnit", newValue);
             }
                                            
-            $(this).triggerHandler("optionChange", [cmOptions[prefName], newValue]);
+            $(this).triggerHandler("optionChange", [prefName, newValue]);
         }
     };
     
@@ -1575,7 +1575,8 @@ define(function (require, exports, module) {
     // in the future)
 
     /**
-     * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
+     * Sets whether to use tab characters (vs. spaces) when inserting new text.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
     Editor.setUseTabChar = function (value) {
@@ -1588,7 +1589,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets tab character width. Affects all Editors.
+     * Sets tab character width.
+     * Affects any editors that share the same preference location.
      * @param {number} value
      */
     Editor.setTabSize = function (value) {
@@ -1601,7 +1603,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets indentation width. Affects all Editors.
+     * Sets indentation width.
+     * Affects any editors that share the same preference location.
      * @param {number} value
      */
     Editor.setSpaceUnits = function (value) {
@@ -1614,7 +1617,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the auto close brackets. Affects all Editors.
+     * Sets the auto close brackets.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
     Editor.setCloseBrackets = function (value) {
@@ -1627,7 +1631,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets show line numbers option and reapply it to all open editors.
+     * Sets show line numbers option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
     Editor.setShowLineNumbers = function (value) {
@@ -1640,7 +1645,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets show active line option and reapply it to all open editors.
+     * Sets show active line option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
     Editor.setShowActiveLine = function (value) {
@@ -1653,7 +1659,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets word wrap option and reapply it to all open editors.
+     * Sets word wrap option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
     Editor.setWordWrap = function (value) {

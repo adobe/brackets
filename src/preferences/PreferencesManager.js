@@ -376,18 +376,6 @@ define(function (require, exports, module) {
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
-    /**
-     * Convenience function that sets a preference and then saves the file, mimicking the
-     * old behavior a bit more closely.
-     * 
-     * @param {string} id preference to set
-     * @param {*} value new value for the preference
-     */
-    function setValueAndSave(id, value) {
-        preferencesManager.set(id, value);
-        preferencesManager.save();
-    }
-    
     // Constants for preference lookup contexts.
     
     /**
@@ -496,9 +484,24 @@ define(function (require, exports, module) {
         if (options && options.context) {
             options.context = _normalizeContext(options.context);
         }
-        preferencesManager.set(id, value, options);
+        return preferencesManager.set(id, value, options);
     }
 
+    /**
+     * Convenience function that sets a preference and then saves the file, mimicking the
+     * old behavior a bit more closely.
+     * 
+     * @param {string} id preference to set
+     * @param {*} value new value for the preference
+     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
+     * @return {boolean} true if a value was set
+     */
+    function setValueAndSave(id, value, options) {
+        var changed = set(id, value, options);
+        preferencesManager.save();
+        return changed;
+    }
+    
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager                = preferencesManager;
