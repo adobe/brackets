@@ -34,8 +34,8 @@ define(function (require, exports, module) {
      * Regular expressions for matching timing functions
      * @const @type {RegExp}
      */
-    var BEZIER_CURVE_EASY_REGEX         = /cubic-bezier\(.*\)/,
-        BEZIER_CURVE_COMPLEX_REGEX      = /cubic-bezier\(\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*\)/,
+    var BEZIER_CURVE_STRICT_REGEX       = /cubic-bezier\((\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+)\s*)?\)/,
+        BEZIER_CURVE_LAX_REGEX          = /cubic-bezier\(.*\)/,
         EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
         LINEAR_STRICT_REGEX             = /transition.*?[: ,]linear[ ,;]/,
@@ -84,26 +84,35 @@ define(function (require, exports, module) {
             param,
             i;
 
-        for (i = 1; i <= 4; i++) {
-            if (match[i]) {
-                param = _convertToNumber(match[i]);
+        if (match[1]) {
+            params = match[1].split(",");
+        } else { // no params given (empty cubic-bezier() tag): just take default values
+            return def;
+        }
+
+        for (i = 0; i <= 3; i++) {
+            if (params[i]) {
+                param = _convertToNumber(params[i]);
 
                 // Verify the param is a number
                 if (!param.isNumber) {
-                    param = undefined;
+                    params[i] = undefined;
 
                 // Verify x params are in 0-1 range
-                } else if ((i === 1 || i === 3) && (param.value < 0 || param.value > 1)) {
-                    param = undefined;
+                // If not, set them to the closest value in range
+                } else if (i === 0 || i === 2) {
+                    if (param.value < 0) {
+                        params[i] = "0";
+                    } else if (param.value > 1) {
+                        params[i] = "1";
+                    }
                 }
             } else {
-                param = undefined;
+                params[i] = undefined;
             }
 
-            if (!param) {
-                params[i - 1] = def[i - 1];
-            } else {
-                params[i - 1] = match[i];
+            if (!params[i]) {
+                params[i] = def[i];
             }
         }
 
@@ -118,10 +127,10 @@ define(function (require, exports, module) {
      * @return {boolean} true if all parameters are valid, otherwise, false
      */
     function _validateCubicBezierParams(match) {
-        var x1 = _convertToNumber(match[1]),
-            y1 = _convertToNumber(match[2]),
-            x2 = _convertToNumber(match[3]),
-            y2 = _convertToNumber(match[4]);
+        var x1 = _convertToNumber(match[2]),
+            y1 = _convertToNumber(match[3]),
+            x2 = _convertToNumber(match[4]),
+            y2 = _convertToNumber(match[5]);
 
         // Verify all params are numbers
         if (!x1.isNumber || !y1.isNumber || !x2.isNumber || !y2.isNumber) {
@@ -189,19 +198,24 @@ define(function (require, exports, module) {
      * @return {!RegExpMatch}
      */
     function bezierCurveMatch(str, lax) {
-        
-        // First look for cubic-bezier(anything).
-        var match = str.match(BEZIER_CURVE_EASY_REGEX);
-        if (match) {
-            // Then look for the parameters cubic-bezier(x1,y1,x2,y2).
-            var match2 = str.match(BEZIER_CURVE_COMPLEX_REGEX);
-            if (match2) {
-                match = match2;
+        var match;
+
+        // First look for any cubic-bezier().
+        if (lax) {
+            // For lax parsing, just look for the cubic-bezier()
+            match = str.match(BEZIER_CURVE_LAX_REGEX);
+            if (match) {
+                return _tagMatch(match, BEZIER);
+            }
+        } else {
+            // For strict parsing, look for the parameters cubic-bezier(x1,y1,x2,y2) if there are any.
+            match = str.match(BEZIER_CURVE_STRICT_REGEX);
+            if (match) {
                 if (_validateCubicBezierParams(match)) {
                     match.valid = true;
                 }
+                return _tagMatch(match, BEZIER);
             }
-            return _tagMatch(match, BEZIER);
         }
 
         // Next look for the ease functions (which are special cases of cubic-bezier())
