@@ -177,6 +177,12 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
+    div.CodeMirror-cursor.CodeMirror-overwrite {
+        border-left: none !important;
+        border-bottom: 1px solid black !important;
+        width: 1.2ex;
+    }
+    
     .CodeMirror {
         background: transparent;
     }
@@ -237,6 +243,13 @@
     }
 
     .CodeMirror-matchingtag { background: @matching-bracket; }
+    
+    
+    .CodeMirror div.CodeMirror-cursor.CodeMirror-overwrite {
+        border-left: none !important;
+        border-bottom: 1px solid black !important;
+        width: 1.2ex;
+    }
 }
 
 /*

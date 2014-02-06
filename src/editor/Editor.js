@@ -400,7 +400,8 @@ define(function (require, exports, module) {
                 whenOpening: true,
                 whenClosing: true,
                 indentTags: []
-            }
+            },
+            cursorScrollMargin: 3
         });
         
         // Can't get CodeMirror's focused state without searching for
