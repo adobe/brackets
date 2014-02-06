@@ -1825,6 +1825,87 @@ define(function (require, exports, module) {
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectSelection({start: {line: 7, ch: 1}, end: {line: 14, ch: 1}});
             });
+            
+            describe("with multiple selections", function () {
+                it("should duplicate multiple lines containing cursors", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
+                                            {start: {line: 3, ch: 3}, end: {line: 3, ch: 3}}]);
+                    
+                    CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
+                    
+                    var lines = defaultContent.split("\n");
+                    lines.splice(4, 0, lines[3]);
+                    lines.splice(2, 0, lines[1]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: false, reversed: false},
+                                      {start: {line: 5, ch: 3}, end: {line: 5, ch: 3}, primary: true, reversed: false}]);
+                });
+                
+                it("should not duplicate the same line multiple times", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 6}, end: {line: 1, ch: 6}},
+                                            {start: {line: 3, ch: 3}, end: {line: 3, ch: 3}}]);
+                    
+                    CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
+                    
+                    var lines = defaultContent.split("\n");
+                    lines.splice(4, 0, lines[3]);
+                    lines.splice(2, 0, lines[1]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: false, reversed: false},
+                                      {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, primary: false, reversed: false},
+                                      {start: {line: 5, ch: 3}, end: {line: 5, ch: 3}, primary: true, reversed: false}]);
+                });
+                
+                it("should duplicate multiple range selections", function () {
+                    // select "bar" on line 1, cursor on line 2, and "a()" on line 3
+                    myEditor.setSelections([{start: {line: 1, ch: 13}, end: {line: 1, ch: 16}},
+                                            {start: {line: 3, ch: 8}, end: {line: 3, ch: 11}}]);
+
+                    CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
+
+                    var lines = defaultContent.split("\n");
+                    lines[1] = "    function barbar() {";
+                    lines[3] = "        a()a();";
+                    var expectedText = lines.join("\n");
+
+                    expect(myDocument.getText()).toEqual(expectedText);
+                    expectSelections([{start: {line: 1, ch: 16}, end: {line: 1, ch: 19}, primary: false, reversed: false},
+                                      {start: {line: 3, ch: 11}, end: {line: 3, ch: 14}, primary: true, reversed: false}]);
+                });
+                
+                it("should duplicate a mix of cursors and ranges", function () {
+                    // select "bar" on line 1, cursor on line 2, and "a()" on line 3
+                    myEditor.setSelections([{start: {line: 1, ch: 13}, end: {line: 1, ch: 16}},
+                                            {start: {line: 2, ch: 3}, end: {line: 2, ch: 3}},
+                                            {start: {line: 3, ch: 8}, end: {line: 3, ch: 11}}]);
+
+                    CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
+
+                    var lines = defaultContent.split("\n");
+                    lines[1] = "    function barbar() {";
+                    lines[3] = "        a()a();";
+                    lines.splice(3, 0, lines[2]);
+                    var expectedText = lines.join("\n");
+
+                    expect(myDocument.getText()).toEqual(expectedText);
+                    expectSelections([{start: {line: 1, ch: 16}, end: {line: 1, ch: 19}, primary: false, reversed: false},
+                                      {start: {line: 3, ch: 3}, end: {line: 3, ch: 3}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 11}, end: {line: 4, ch: 14}, primary: true, reversed: false}]);
+                });
+                
+                it("should duplicate line first, then range, if both a cursor and range are on the same line", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 13}, end: {line: 1, ch: 16}}]);
+                    CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
+
+                    var lines = defaultContent.split("\n");
+                    lines.splice(2, 0, "    function barbar() {");
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: false, reversed: false},
+                                      {start: {line: 2, ch: 16}, end: {line: 2, ch: 19}, primary: true, reversed: false}]);
+                });
+            });
         });
         
         
@@ -2213,73 +2294,75 @@ define(function (require, exports, module) {
                 expect(myDocument.getText()).toEqual("");
             });
             
-            it("should delete lines containing any cursor in a multiple selection", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                        {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
-                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
-                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+            describe("with multiple selections", function () {
+                it("should delete lines containing any cursor in a multiple selection", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                            {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
+                                            {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                    CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
-                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
-            });
+                    expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                });
 
-            it("should delete lines containing any range in a multiple selection", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 5}},
-                                        {start: {line: 2, ch: 2}, end: {line: 2, ch: 5}},
-                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 1}}]);
-                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                it("should delete lines containing any range in a multiple selection", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 5}},
+                                            {start: {line: 2, ch: 2}, end: {line: 2, ch: 5}},
+                                            {start: {line: 6, ch: 0}, end: {line: 6, ch: 1}}]);
+                    CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
-                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
-            });
+                    expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                });
 
-            it("should handle multiple cursors/selections on the same line (only deleting the line once)", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                        {start: {line: 2, ch: 3}, end: {line: 2, ch: 5}},
-                                        {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}},
-                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
-                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                it("should handle multiple cursors/selections on the same line (only deleting the line once)", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                            {start: {line: 2, ch: 3}, end: {line: 2, ch: 5}},
+                                            {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}},
+                                            {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                    CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
-                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
-            });
+                    expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+                });
 
-            it("should handle multiple selections that span multiple lines", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 5}},
-                                        {start: {line: 3, ch: 4}, end: {line: 4, ch: 5}}]);
-                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                it("should handle multiple selections that span multiple lines", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 5}},
+                                            {start: {line: 3, ch: 4}, end: {line: 4, ch: 5}}]);
+                    CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
-                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 3, 4]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}]);
-            });
-            
-            it("should delete the rest of a selection that starts on a line previously deleted", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}},
-                                        {start: {line: 1, ch: 5}, end: {line: 3, ch: 5}}]);
-                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                    expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 3, 4]));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}]);
+                });
 
-                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 2, 3]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}]);
-            });
-            
-            it("should merge the primary selection into another selection on the same line", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                        {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
-                                        {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: true},
-                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
-                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                it("should delete the rest of a selection that starts on a line previously deleted", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}},
+                                            {start: {line: 1, ch: 5}, end: {line: 3, ch: 5}}]);
+                    CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
 
-                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
-                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
-                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}]);
+                    expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 2, 3]));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}]);
+                });
+
+                it("should merge the primary selection into another selection on the same line", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                            {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
+                                            {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: true},
+                                            {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
+                    CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                    expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                             {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false},
+                                                             {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: false, reversed: false}]);
+                });
             });
         });
         
@@ -2402,85 +2485,87 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 5, ch: 0}});
             });
             
-            it("should extend multiple cursors to multiple lines", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                        {start: {line: 3, ch: 9}, end: {line: 3, ch: 9}},
-                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 0}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
-            });
-            
-            it("should extend multiple selections to multiple lines", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 5}},
-                                        {start: {line: 3, ch: 0}, end: {line: 3, ch: 9}},
-                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
-            });
-            
-            it("should extend multiple multi-line selections to whole lines, and handle end properly", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 2}, end: {line: 1, ch: 3}},
-                                        {start: {line: 3, ch: 2}, end: {line: 4, ch: 3}},
-                                        {start: {line: 6, ch: 2}, end: {line: 7, ch: 0}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 6, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
-            });
-            
-            it("should extend whole lines in multiple selection to next line, except at end", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
-                                        {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}},
-                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
-            });
-            
-            it("should extend multiple lines in multiple selection to additional line, and handle end properly", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}},
-                                        {start: {line: 4, ch: 0}, end: {line: 7, ch: 0}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 0, ch: 0}, end: {line: 3, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 4, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
-            });
-            
-            it("should merge selections that collide", function () {
-                myEditor.setSelections([{start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
-                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 1, ch: 0}, end: {line: 3, ch: 0}, reversed: false, primary: true}]);
-            });
-            
-            it("should track a non-default primary selection", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
-                                        {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, primary: true},
-                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelection({start: {line: 3, ch: 0}, end: {line: 5, ch: 0}});
-            });
-            
-            it("should track a reversed selection", function () {
-                myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
-                                        {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: true},
-                                        {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
-                CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
-                
-                expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
-                                  {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: true, primary: false},
-                                  {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+            describe("with multiple selections", function () {
+                it("should extend multiple cursors to multiple lines", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                            {start: {line: 3, ch: 9}, end: {line: 3, ch: 9}},
+                                            {start: {line: 7, ch: 0}, end: {line: 7, ch: 0}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+                });
+
+                it("should extend multiple selections to multiple lines", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 5}},
+                                            {start: {line: 3, ch: 0}, end: {line: 3, ch: 9}},
+                                            {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+                });
+
+                it("should extend multiple multi-line selections to whole lines, and handle end properly", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 2}, end: {line: 1, ch: 3}},
+                                            {start: {line: 3, ch: 2}, end: {line: 4, ch: 3}},
+                                            {start: {line: 6, ch: 2}, end: {line: 7, ch: 0}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 6, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+                });
+
+                it("should extend whole lines in multiple selection to next line, except at end", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                            {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}},
+                                            {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+                });
+
+                it("should extend multiple lines in multiple selection to additional line, and handle end properly", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}},
+                                            {start: {line: 4, ch: 0}, end: {line: 7, ch: 0}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 0, ch: 0}, end: {line: 3, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 4, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+                });
+
+                it("should merge selections that collide", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 1, ch: 0}, end: {line: 3, ch: 0}, reversed: false, primary: true}]);
+                });
+
+                it("should track a non-default primary selection", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                            {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, primary: true},
+                                            {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelection({start: {line: 3, ch: 0}, end: {line: 5, ch: 0}});
+                });
+
+                it("should track a reversed selection", function () {
+                    myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                            {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: true},
+                                            {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}}]);
+                    CommandManager.execute(Commands.EDIT_SELECT_LINE, myEditor);
+
+                    expectSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 3, ch: 0}, end: {line: 5, ch: 0}, reversed: true, primary: false},
+                                      {start: {line: 7, ch: 0}, end: {line: 7, ch: 1}, reversed: false, primary: true}]);
+                });
             });
         });
         

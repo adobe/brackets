@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils"),
+        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         _                  = require("thirdparty/lodash");
     
     /**
@@ -561,23 +562,39 @@ define(function (require, exports, module) {
             return;
         }
 
-        var sel = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
-            delimiter = "";
+        var selections = editor.getSelections(),
+            delimiter = "",
+            edits = [],
+            rangeSels = [],
+            cursorSels = [],
+            doc = editor.document;
 
-        if (!hasSelection) {
-            sel.start.ch = 0;
-            sel.end = {line: sel.start.line + 1, ch: 0};
-            if (sel.end.line === editor.lineCount()) {
-                delimiter = "\n";
+        // When there are multiple selections, we want to handle all the cursors first (duplicating
+        // their lines), then all the ranges (duplicating the ranges).
+        _.each(selections, function (sel) {
+            if (CodeMirror.cmpPos(sel.start, sel.end) === 0) {
+                cursorSels.push(sel);
+            } else {
+                rangeSels.push(sel);
             }
-        }
+        });
+        
+        _.each(cursorSels, function (sel, index) {
+            // Only handle each line once.
+            if (index === 0 || sel.start.line > cursorSels[index - 1].start.line) {
+                var start = {line: sel.start.line, ch: 0},
+                    end = {line: sel.start.line + 1, ch: 0};
+                if (end.line === editor.lineCount()) {
+                    delimiter = "\n";
+                }
+                edits.push({ text: doc.getRange(start, end) + delimiter, start: start });
+            }
+        });
+        _.each(rangeSels, function (sel) {
+            edits.push({ text: doc.getRange(sel.start, sel.end), start: sel.start });
+        });
 
-        // Make the edit
-        var doc = editor.document;
-
-        var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
-        doc.replaceRange(selectedText, sel.start);
+        editor.setSelections(editor.doMultipleEdits(edits, selections));
     }
 
     /**

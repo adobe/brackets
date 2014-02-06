@@ -1118,18 +1118,21 @@ define(function (require, exports, module) {
             return CodeMirror.cmpPos(range2.start, range1.start);
         });
         
-        // Preflight the edits to make sure they don't overlap. (We don't want to do it during the
-        // actual edits, since we don't want to apply some of the edits before we find out.)
+        // Preflight the edits to specify "end" if unspecified and make sure they don't overlap. 
+        // (We don't want to do it during the actual edits, since we don't want to apply some of
+        // the edits before we find out.)
         _.each(edits, function (edit, index) {
-            // Check to make sure none of the edits overlap.
+            if (!edit.end) {
+                edit.end = edit.start;
+            }
             if (index > 0) {
                 var prevEdit = edits[index - 1];
-                // The edits are in reverse order, so we want to make sure this edit is
-                // before the previous one.
+                // The edits are in reverse order, so we want to make sure this edit ends
+                // before the previous one starts.
                 if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
                     throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
                 }
-            }            
+            }
         });
         
         // Perform the edits.
