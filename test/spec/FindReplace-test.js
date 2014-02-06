@@ -100,7 +100,7 @@ define(function (require, exports, module) {
             
             // Verify that editor UI doesn't have extra ranges left highlighted from earlier
             // (note: this only works for text that's short enough to not get virtualized)
-            var lineDiv = tw$(".CodeMirror-lines > div", myEditor.getRootElement()).children()[2];
+            var lineDiv = tw$(".CodeMirror-lines .CodeMirror-code", myEditor.getRootElement());
             var actualHighlights = tw$(".CodeMirror-searching", lineDiv);
             if (expectedDOMHighlightCount === undefined) {
                 expectedDOMHighlightCount = selections.length;

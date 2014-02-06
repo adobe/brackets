@@ -376,7 +376,7 @@ define(function (require, exports, module) {
         // start with a pre-populated search and enter an additional character,
         // it will extend the initial selection instead of jumping to the next
         // occurrence.
-        state.searchStartPos = editor.getCursorPos(true);
+        state.searchStartPos = editor.getCursorPos(false, "start");
         
         // If a previous search/replace bar was open, capture its query text for use below
         var initialQuery;
