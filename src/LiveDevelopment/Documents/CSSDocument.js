@@ -52,7 +52,8 @@ define(function CSSDocumentModule(require, exports, module) {
         CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector");
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        _               = require("thirdparty/lodash");
 
     /** Constructor
      *
@@ -154,10 +155,17 @@ define(function CSSDocumentModule(require, exports, module) {
 
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
-            var codeMirror = this.editor._codeMirror;
-            var selector = CSSUtils.findSelectorAtDocumentPos(this.editor, this.editor.getCursorPos());
-            if (selector) {
-                HighlightAgent.rule(selector);
+            var editor = this.editor,
+                codeMirror = editor._codeMirror,
+                selectors = [];
+            _.each(this.editor.getSelections(), function (sel) {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, (sel.reversed ? sel.end : sel.start));
+                if (selector) {
+                    selectors.push(selector);
+                }
+            });
+            if (selectors.length) {
+                HighlightAgent.rule(selectors.join(","));
             } else {
                 HighlightAgent.hide();
             }
