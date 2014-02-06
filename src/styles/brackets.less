@@ -1012,7 +1012,18 @@ a, img {
     -webkit-transform: translate(0, 0); // Prefix still required.
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
-
+    
+    .flex-box;
+    
+    #find-group, #replace-group {
+        .flex-box;
+        width: 50%;
+    }
+    #findinfiles-group {
+        display: inline-block;
+        white-space: nowrap;
+    }
+    
     body.in-browser &,
     body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
@@ -1050,10 +1061,13 @@ a, img {
         }
     }
     
-    #find-what, #replace-with {
-        width: 295px;
+    .search-input {
+        .flex-item(1, 1, 0%);
     }
-
+    #find-what, #replace-with {
+        width: calc(~"100% - 19px");
+    }
+    
     .search-input-container {
         position: relative;
         display: inline;
@@ -1074,7 +1088,7 @@ a, img {
         
         #find-what {
             padding-right: 62px;  // room for #find-counter overlay
-            width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
+            width: calc(~"100% - 62px - 12px");  // maintain width, accounting for differing padding
         }
         #find-counter {
             position: absolute;
@@ -1085,9 +1099,10 @@ a, img {
         }
     }
     
-    #find-group, #replace-group {
+    .search-buttons {
         display: inline-block;
         white-space: nowrap;
+        .flex-item(0, 1);
     }
     
     .message, .no-results-message {
