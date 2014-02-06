@@ -140,16 +140,21 @@ define(function (require, exports, module) {
         }
     }
 
+    // NOTE: we can't just use the ordinary replace() function here because the string has been
+    // extracted from the original text and so might be missing some context that the regexp matched.
     function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) {
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
             var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1 && parsedIndex !== 0) {
-                return dollars.substr(1) + (match[parsedIndex] || "");
-            } else {
-                return whole;
+            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
+                if (index === "&") { // handle $&
+                    return dollars.substr(1) + (match[0] || "");
+                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
+                    return dollars.substr(1) + (match[parsedIndex] || "");
+                }
             }
+            return whole;
         });
-        replaceWith = replaceWith.replace(/\$\$/g, "$");
+        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
         return replaceWith;
     }
 
@@ -582,6 +587,7 @@ define(function (require, exports, module) {
         });
 
         replaceAllPanel.show();
+        $replaceAllTable.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     }
 
     /** Shows the Find-Replace search bar at top */
