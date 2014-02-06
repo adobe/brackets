@@ -785,8 +785,8 @@ define(function (require, exports, module) {
         doc.batchOperation(function () {
             _.each(selections, function (sel, index) {
                 if (index === 0 ||
-                        (direction === DIRECTION_UP && sel.start.line >= selections[index - 1].start.line) ||
-                        (direction === DIRECTION_DOWN && sel.end.line >= selections[index - 1].end.line)) {
+                        (direction === DIRECTION_UP && sel.start.line > selections[index - 1].start.line) ||
+                        (direction === DIRECTION_DOWN && sel.end.line > selections[index - 1].end.line)) {
                     // Insert the new line
                     switch (direction) {
                     case DIRECTION_UP:

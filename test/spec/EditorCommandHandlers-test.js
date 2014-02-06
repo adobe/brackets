@@ -2832,7 +2832,42 @@ define(function (require, exports, module) {
                                       {start: {line: 3, ch: 8}, end: {line: 3, ch: 8}, primary: false, reversed: false},
                                       {start: {line: 6, ch: 8}, end: {line: 6, ch: 8}, primary: true, reversed: false}]);
                 });
-                
+
+                it("should ignore multiple selections on same line when inserting above", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}},
+                                            {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}},
+                                            {start: {line: 4, ch: 5}, end: {line: 5, ch: 8}}]);
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                    
+                    var lines = defaultContent.split("\n");
+                    lines.splice(4, 0, indentation + indentation);
+                    lines.splice(2, 0, indentation + indentation);
+                    lines.splice(1, 0, indentation);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 3, ch: 8}, end: {line: 3, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 6, ch: 8}, end: {line: 6, ch: 8}, primary: true, reversed: false}]);
+                });
+
+                it("should not ignore multiple selections that end on the same line if the second one starts on a different line when inserting above", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                            {start: {line: 2, ch: 4}, end: {line: 4, ch: 2}},
+                                            {start: {line: 4, ch: 6}, end: {line: 4, ch: 6}},
+                                            {start: {line: 5, ch: 5}, end: {line: 5, ch: 8}}]);
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_ABOVE, myEditor);
+                    
+                    var lines = defaultContent.split("\n");
+                    lines.splice(5, 0, indentation + indentation);
+                    lines.splice(4, 0, indentation + indentation);
+                    lines.splice(2, 0, indentation + indentation);
+                    lines.splice(1, 0, indentation);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 3, ch: 8}, end: {line: 3, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 6, ch: 8}, end: {line: 6, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 8, ch: 8}, end: {line: 8, ch: 8}, primary: true, reversed: false}]);
+                });
                 it("should insert new line below each selection cursor/range", function () {
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                             {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}},
@@ -2849,6 +2884,41 @@ define(function (require, exports, module) {
                                       {start: {line: 8, ch: 4}, end: {line: 8, ch: 4}, primary: true, reversed: false}]);
                 });
 
+                it("should ignore multiple selections on same line when inserting below", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}},
+                                            {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}},
+                                            {start: {line: 4, ch: 5}, end: {line: 5, ch: 8}}]);
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                    
+                    var lines = defaultContent.split("\n");
+                    lines.splice(6, 0, indentation);
+                    lines.splice(3, 0, indentation + indentation);
+                    lines.splice(2, 0, indentation + indentation);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 8}, end: {line: 4, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 8, ch: 4}, end: {line: 8, ch: 4}, primary: true, reversed: false}]);
+                });
+
+                it("should not ignore multiple selections that start on the same line if the second one ends on a different line when inserting below", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}},
+                                            {start: {line: 4, ch: 2}, end: {line: 4, ch: 2}},
+                                            {start: {line: 4, ch: 5}, end: {line: 5, ch: 8}}]);
+                    CommandManager.execute(Commands.EDIT_OPEN_LINE_BELOW, myEditor);
+                    
+                    var lines = defaultContent.split("\n");
+                    lines.splice(6, 0, indentation);
+                    lines.splice(5, 0, indentation + indentation);
+                    lines.splice(3, 0, indentation + indentation);
+                    lines.splice(2, 0, indentation + indentation);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 8}, end: {line: 4, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 7, ch: 8}, end: {line: 7, ch: 8}, primary: false, reversed: false},
+                                      {start: {line: 9, ch: 4}, end: {line: 9, ch: 4}, primary: true, reversed: false}]);
+                });
             });
         });
 
