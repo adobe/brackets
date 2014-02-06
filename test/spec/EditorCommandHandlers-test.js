@@ -2225,9 +2225,21 @@ define(function (require, exports, module) {
                                                          {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
             });
 
-            it("should handle multiple selections on the same line (only deleting the line once)", function () {
+            it("should delete lines containing any range in a multiple selection", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 5}},
+                                        {start: {line: 2, ch: 2}, end: {line: 2, ch: 5}},
+                                        {start: {line: 6, ch: 0}, end: {line: 6, ch: 1}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 2, 6]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+            });
+
+            it("should handle multiple cursors/selections on the same line (only deleting the line once)", function () {
                 myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                        {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}},
+                                        {start: {line: 2, ch: 3}, end: {line: 2, ch: 5}},
                                         {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}},
                                         {start: {line: 6, ch: 0}, end: {line: 6, ch: 0}}]);
                 CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
@@ -2236,6 +2248,25 @@ define(function (require, exports, module) {
                 expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
                                                          {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                                          {start: {line: 4, ch: 0}, end: {line: 4, ch: 0}, primary: true, reversed: false}]);
+            });
+
+            it("should handle multiple selections that span multiple lines", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 5}},
+                                        {start: {line: 3, ch: 4}, end: {line: 4, ch: 5}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 3, 4]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true, reversed: false}]);
+            });
+            
+            it("should delete the rest of a selection that starts on a line previously deleted", function () {
+                myEditor.setSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}},
+                                        {start: {line: 1, ch: 5}, end: {line: 3, ch: 5}}]);
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+
+                expect(myDocument.getText()).toEqual(contentWithDeletedLines([0, 1, 2, 3]));
+                expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: true, reversed: false}]);
             });
             
             it("should merge the primary selection into another selection on the same line", function () {

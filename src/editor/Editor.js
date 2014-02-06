@@ -1066,7 +1066,91 @@ define(function (require, exports, module) {
         });
         return result;
     };
+    
+    /**
+     * Helper function for edit operations that operate on multiple selections. Takes an "edit list"
+     * that specifies a list of replaceRanges that should occur, but where all the positions are with
+     * respect to the document state before all the edits (i.e., you don't have to figure out how to fix
+     * up the selections after each sub-edit). Edits must be non-overlapping (in original-document terms).
+     * All the edits are done in a single batch.
+     * Also takes an optional list of selection ranges to track through the edits.
+     *
+     * @param {!Array<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>} edits
+     *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`.
+     *     `text` will replace the current contents of the range between `start` and `end`. 
+     *     If `end` is unspecified, the text is inserted at `start`.
+     *     `start` and `end` should be positions relative to the document *before* all edits are performed.
+     *     If any of the edits overlap, an error will be thrown.
+     * @param {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
+     *     Optional set of selections to track through all the performed edits. Will not be modified.
+     * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
+     *     The selections array adjusted for the performed edits, or null if no selections array was specified.
+     *     Note that if an input selection was inside any edited range, it will be pushed to the end of
+     *     that range (in the post-edit document).     
+     */
+    Editor.prototype.doMultipleEdits = function (edits, selections) {
+        var result = (selections ? _.cloneDeep(selections) : null),
+            self = this;
+        
+        function adjustPosForChange(pos, textLines, start, end) {
+            // Similar to CodeMirror.adjustForChange(), but that's a private function.
+            // TODO: should see if adjustForChange() can be made public.
+            var change = { text: textLines, from: start, to: end };
+            
+            if (CodeMirror.cmpPos(pos, start) < 0) {
+                return pos;
+            }
+            if (CodeMirror.cmpPos(pos, end) <= 0) {
+                return CodeMirror.changeEnd(change);
+            }
 
+            var line = pos.line + change.text.length - (change.to.line - change.from.line) - 1,
+                ch = pos.ch;
+            if (pos.line === change.to.line) {
+                ch += CodeMirror.changeEnd(change).ch - change.to.ch;
+            }
+            return {line: line, ch: ch};
+        }
+        
+        // Sort the edits backwards, so we don't have to adjust the edit positions as we go along
+        // (though we do have to adjust the selection positions).
+        edits.sort(function (range1, range2) {
+            return CodeMirror.cmpPos(range2.start, range1.start);
+        });
+        
+        // Preflight the edits to make sure they don't overlap. (We don't want to do it during the
+        // actual edits, since we don't want to apply some of the edits before we find out.)
+        _.each(edits, function (edit, index) {
+            // Check to make sure none of the edits overlap.
+            if (index > 0) {
+                var prevEdit = edits[index - 1];
+                // The edits are in reverse order, so we want to make sure this edit is
+                // before the previous one.
+                if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
+                    throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
+                }
+            }            
+        });
+        
+        // Perform the edits.
+        this.document.batchOperation(function () {
+            _.each(edits, function (edit, index) {
+                // Perform this edit. The edit positions are guaranteed to be okay since all the previous
+                // edits we've done have been later in the document. However, we have to fix up any
+                // selections that overlap or come after the edit.
+                self._codeMirror.replaceRange(edit.text, edit.start, edit.end);
+                
+                var textLines = edit.text.split("\n");
+                _.each(result, function (sel, index) {
+                    sel.start = adjustPosForChange(sel.start, textLines, edit.start, edit.end);
+                    sel.end = adjustPosForChange(sel.end, textLines, edit.start, edit.end);
+                });
+            });
+        });
+        
+        return result;
+    };
+    
     /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.

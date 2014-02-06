@@ -590,59 +590,48 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Walk the selections, deleting lines as we go, and ignoring
-        // multiple selections on the same line.
+        // Walk the selections, calculating the deletion edits we need to do as we go;
+        // editor.doMultipleEdits() will take care of adjusting the edit locations when
+        // it actually performs the edits.
         var doc = editor.document,
-            firstVisibleLine = editor.getFirstVisibleLine(),
-            lastVisibleLine = editor.getLastVisibleLine(),
             from,
             to,
-            numDeletedLines = 0,
-            lastDeletedLine,
-            selections = [];
-        doc.batchOperation(function () {
-            _.each(editor.getSelections(), function (sel) {
-                var firstSelLine = sel.start.line - numDeletedLines,
-                    lastSelLine = sel.end.line - numDeletedLines,
-                    numThisDeletion;
-                if (lastDeletedLine !== undefined && firstSelLine <= lastDeletedLine) {
-                    // This selection is on the same line as the previous selection, so skip it. 
-                    // But if this was the primary selection, make the previous selection be primary.
-                    if (sel.primary) {
-                        selections[selections.length - 1].primary = true;
-                    }
+            selections = editor.getSelections(),
+            edits = [];
+        
+        _.each(selections, function (sel, index) {
+            // We only want to delete each line once. So, if a selection is wholly contained
+            // in the same line that the previous selection ends on, we skip it. If a selection
+            // starts on the same line but continues to future lines, we just bump its start by one.
+            // (We know that the selections from getSelections() are guaranteed to be in order
+            // and non-overlapping.)
+            var selStartLine = sel.start.line;
+            if (index > 0 && selStartLine === selections[index - 1].end.line) {
+                if (sel.end.line > selStartLine) {
+                    selStartLine++;
                 } else {
-                    from = {line: firstSelLine, ch: 0};
-                    to = {line: lastSelLine + 1, ch: 0};
-                    if (to.line === lastVisibleLine + 1) {
-                        // Instead of deleting the newline after the last line, delete the newline
-                        // before the beginning of the line--unless this is the entire visible content of the editor,
-                        // in which case just delete the line content.
-                        if (from.line > firstVisibleLine) {
-                            from.line -= 1;
-                            from.ch = doc.getLine(from.line).length;
-                        }
-                        to.line -= 1;
-                        to.ch = doc.getLine(to.line).length;
-                    }
-
-                    doc.replaceRange("", from, to);
-                    
-                    // Add a selection at the start of the deleted content.
-                    selections.push({start: from, end: from, primary: sel.primary});
-                    
-                    // Update our count of deleted lines, so we know how to adjust later selections.
-                    numThisDeletion = to.line - from.line;
-                    numDeletedLines += numThisDeletion;
-                    lastDeletedLine = firstSelLine;
-                    
-                    // We have to track the last visible line ourselves, since the TextRange that tracks
-                    // the visible range might not update during a batch operation.
-                    lastVisibleLine -= numThisDeletion;
+                    selStartLine = null;
                 }
-            });
+            }
+            if (selStartLine !== null) {
+                from = {line: selStartLine, ch: 0};
+                to = {line: sel.end.line + 1, ch: 0};
+                if (to.line === editor.getLastVisibleLine() + 1) {
+                    // Instead of deleting the newline after the last line, delete the newline
+                    // before the beginning of the line--unless this is the entire visible content 
+                    // of the editor, in which case just delete the line content.
+                    if (from.line > editor.getFirstVisibleLine()) {
+                        from.line -= 1;
+                        from.ch = doc.getLine(from.line).length;
+                    }
+                    to.line -= 1;
+                    to.ch = doc.getLine(to.line).length;
+                }
+
+                edits.push({text: "", start: from, end: to});
+            }
         });
-        editor.setSelections(selections);
+        editor.setSelections(editor.doMultipleEdits(edits, selections));
     }
     
     /**
