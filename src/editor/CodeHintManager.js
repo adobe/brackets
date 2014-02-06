@@ -517,48 +517,68 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Handles keys related to displaying, searching, and navigating the hint list.
+     * Handle keys related to displaying, searching, and navigating the hint list.
      * This gets called before handleChange.
      *
      * TODO: Ideally, we'd get a more semantic event from the editor that told us
      * what changed so that we could do all of this logic without looking at
      * key events. Then, the purposes of handleKeyEvent and handleChange could be
      * combined. Doing this well requires changing CodeMirror.
+     */
+
+    /**
+     * Handles key down event.
      *
-     * @param {Event} jqEvent
-     * @param {Editor} editor
      * @param {KeyboardEvent} event
      */
-    function _handleKeyEvent(jqEvent, editor, event) {
-        keyDownEditor = editor;
-        if (event.type === "keydown") {
-            if (!(event.ctrlKey || event.altKey || event.metaKey) &&
-                    (event.keyCode === KeyEvent.DOM_VK_ENTER ||
-                     event.keyCode === KeyEvent.DOM_VK_RETURN ||
-                     event.keyCode === KeyEvent.DOM_VK_TAB)) {
-                lastChar = String.fromCharCode(event.keyCode);
-            }
-        } else if (event.type === "keypress") {
-            // Last inserted character, used later by handleChange
-            lastChar = String.fromCharCode(event.charCode);
-            
-            // Pending Text is used in hintList._keydownHook()
-            if (hintList) {
-                hintList.addPendingText(lastChar);
-            }
-        } else if (event.type === "keyup" && _inSession(editor)) {
-            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
-                _endSession();
-            } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
-                       event.keyCode === KeyEvent.DOM_VK_RIGHT ||
-                       event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-                // Update the list after a simple navigation.
-                // We do this in "keyup" because we want the cursor position to be updated before
-                // we redraw the list.
-                _updateHintList();
-            }
+    function _handleKeyDown(event) {
+        keyDownEditor = EditorManager.getActiveEditor();
+
+        if (!(event.ctrlKey || event.altKey || event.metaKey) &&
+                (event.keyCode === KeyEvent.DOM_VK_ENTER ||
+                 event.keyCode === KeyEvent.DOM_VK_RETURN ||
+                 event.keyCode === KeyEvent.DOM_VK_TAB)) {
+            lastChar = String.fromCharCode(event.keyCode);
         }
     }
+
+    /**
+     * Handles key press event.
+     *
+     * @param {KeyboardEvent} event
+     */
+    function _handleKeyPress(event) {
+        keyDownEditor = EditorManager.getActiveEditor();
+
+        // Last inserted character, used later by handleChange
+        lastChar = String.fromCharCode(event.charCode);
+
+        // Pending Text is used in hintList._keydownHook()
+        if (hintList) {
+            hintList.addPendingText(lastChar);
+        }
+    }
+
+    /**
+     * Handles key up event.
+     *
+     * @param {KeyboardEvent} event
+     */
+    function _handleKeyUp(event) {
+        keyDownEditor = EditorManager.getActiveEditor();
+
+        if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
+            _endSession();
+        } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
+                   event.keyCode === KeyEvent.DOM_VK_RIGHT ||
+                   event.keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
+            // Update the list after a simple navigation.
+            // We do this in "keyup" because we want the cursor position to be updated before
+            // we redraw the list.
+            _updateHintList();
+        }
+    }
+
     
     /**
      * Start a new implicit hinting session, or update the existing hint list.
@@ -626,13 +646,19 @@ define(function (require, exports, module) {
     function activeEditorChangeHandler(event, current, previous) {
         if (current) {
             $(current).on("editorChange", _handleChange);
-            $(current).on("keyEvent", _handleKeyEvent);
+            $(current.getRootElement())
+                .on("keydown",  _handleKeyDown)
+                .on("keypress", _handleKeyPress)
+                .on("keyup",    _handleKeyUp);
         }
         
         if (previous) {
             //Removing all old Handlers
             $(previous).off("editorChange", _handleChange);
-            $(previous).off("keyEvent", _handleKeyEvent);
+            $(previous.getRootElement())
+                .off("keydown",  _handleKeyDown)
+                .off("keypress", _handleKeyPress)
+                .off("keyup",    _handleKeyUp);
         }
     }
     
