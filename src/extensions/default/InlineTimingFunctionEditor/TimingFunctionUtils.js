@@ -322,7 +322,7 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.timingFunctionMatch     = timingFunctionMatch;
-    exports.bezierCurveMatch        = bezierCurveMatch;
-    exports.stepsMatch              = stepsMatch;
+    exports.timingFunctionMatch = timingFunctionMatch;
+    exports.bezierCurveMatch    = bezierCurveMatch;
+    exports.stepsMatch          = stepsMatch;
 });
