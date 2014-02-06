@@ -1083,12 +1083,13 @@ define(function (require, exports, module) {
      *     If any of the edits overlap, an error will be thrown.
      * @param {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
      *     Optional set of selections to track through all the performed edits. Will not be modified.
+     * @param {?string} origin An optional edit origin that's passed through to each replaceRange().
      * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
      *     The selections array adjusted for the performed edits, or null if no selections array was specified.
      *     Note that if an input selection was inside any edited range, it will be pushed to the end of
      *     that range (in the post-edit document).     
      */
-    Editor.prototype.doMultipleEdits = function (edits, selections) {
+    Editor.prototype.doMultipleEdits = function (edits, selections, origin) {
         var result = (selections ? _.cloneDeep(selections) : null),
             self = this;
         
@@ -1141,7 +1142,7 @@ define(function (require, exports, module) {
                 // Perform this edit. The edit positions are guaranteed to be okay since all the previous
                 // edits we've done have been later in the document. However, we have to fix up any
                 // selections that overlap or come after the edit.
-                self._codeMirror.replaceRange(edit.text, edit.start, edit.end);
+                self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
                 
                 var textLines = edit.text.split("\n");
                 _.each(result, function (sel, index) {

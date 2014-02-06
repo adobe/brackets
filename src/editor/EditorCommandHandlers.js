@@ -768,35 +768,71 @@ define(function (require, exports, module) {
             return;
         }
         
-        var sel            = editor.getSelection(),
-            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+        var selections     = editor.getSelections(),
             isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
             lastLine       = editor.getLastVisibleLine(),
             cm             = editor._codeMirror,
             doc            = editor.document,
+            newSelections  = [],
+            edits          = [],
             line;
         
-        // Insert the new line
-        switch (direction) {
-        case DIRECTION_UP:
-            line = sel.start.line;
-            break;
-        case DIRECTION_DOWN:
-            line = sel.end.line;
-            if (!(hasSelection && sel.end.ch === 0)) {
-                // If not linewise selection
-                line++;
-            }
-            break;
-        }
+        // First, insert all the newlines (skipping multiple selections on the same line), 
+        // then indent them all. (We can't easily do them all at once, because doMultipleEdits()
+        // won't do the indentation for us, but we want its help tracking any selection changes
+        // as the result of the edits.)
         
-        if (line > lastLine && isInlineWidget) {
-            doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length}, null, "+input");
-        } else {
-            doc.replaceRange("\n", {line: line, ch: 0}, null, "+input");
-        }
-        cm.indentLine(line, "smart", true);
-        editor.setSelection({line: line, ch: null});
+        doc.batchOperation(function () {
+            _.each(selections, function (sel, index) {
+                if (index === 0 ||
+                        (direction === DIRECTION_UP && sel.start.line >= selections[index - 1].start.line) ||
+                        (direction === DIRECTION_DOWN && sel.end.line >= selections[index - 1].end.line)) {
+                    // Insert the new line
+                    switch (direction) {
+                    case DIRECTION_UP:
+                        line = sel.start.line;
+                        break;
+                    case DIRECTION_DOWN:
+                        line = sel.end.line;
+                        if (!(CodeMirror.cmpPos(sel.start, sel.end) !== 0 && sel.end.ch === 0)) {
+                            // If not linewise selection
+                            line++;
+                        }
+                        break;
+                    }
+
+                    var insertPos;
+                    if (line > lastLine && isInlineWidget) {
+                        insertPos = {line: line - 1, ch: doc.getLine(line - 1).length};
+                    } else {
+                        insertPos = {line: line, ch: 0};
+                    }
+                    edits.push({text: "\n", start: insertPos});
+                    newSelections.push({start: insertPos, end: insertPos, primary: sel.primary});
+                } else {
+                    // We just want to discard this selection, since we've already operated on the
+                    // same line and it would just collapse to the same location. But if this was
+                    // primary, make sure the last selection we did operate on ends up as primary.
+                    if (sel.primary) {
+                        newSelections[newSelections.length - 1].primary = true;
+                    }
+                }
+            });
+            newSelections = editor.doMultipleEdits(edits, newSelections, "+input");
+            
+            // The cursors are now actually each on the line *after* each of the newlines,
+            // since they were set to be at the insertion position and the adjustment logic
+            // pushes those positions to after the insertion. So fix up the line numbers,
+            // then just indent each added line (which doesn't mess up any line numbers, and
+            // we're going to set the character offset to the last position on each line anyway).
+            _.each(newSelections, function (sel) {
+                sel.start.line--;
+                cm.indentLine(sel.start.line, "smart", true);
+                sel.start.ch = null; // last character on line
+                sel.end = sel.start;
+            });
+        });
+        editor.setSelections(newSelections);
     }
 
     /**
