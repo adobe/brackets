@@ -683,11 +683,10 @@ define(function (require, exports, module) {
          * @return {Array.<string>} list of preference IDs that could have changed
          */
         defaultFilenameChanged: function (data, filename, oldFilename) {
-            var relativeFilename  = FileUtils.getRelativeFilename(this.prefFilePath, filename),
-                newGlob           = _findMatchingGlob(data, relativeFilename);
-            
-            relativeFilename  = FileUtils.getRelativeFilename(this.prefFilePath, oldFilename);
-            var oldGlob       = _findMatchingGlob(data, relativeFilename);
+            var newGlob           = _findMatchingGlob(data,
+                                        FileUtils.getRelativeFilename(this.prefFilePath, filename)),
+                oldGlob       = _findMatchingGlob(data,
+                                    FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
             
             
             if (newGlob === oldGlob) {

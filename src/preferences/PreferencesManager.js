@@ -307,7 +307,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * 
-     * This is used internally within Brackets for the DocumentManager to signal
+     * This is used internally within Brackets for the EditorManager to signal
      * to the preferences what the currently edited file is.
      * 
      * @param {string} currentFile Full path to currently edited file
