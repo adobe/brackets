@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
@@ -64,7 +64,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Menus              = require("command/Menus"),
+    var CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
@@ -119,170 +120,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Handle Tab key press.
-     * @param {!CodeMirror} instance CodeMirror instance.
+     * Create a copy of the given CodeMirror position
+     * @param {!CodeMirror.Pos} pos 
+     * @return {CodeMirror.Pos}
      */
-    function _handleTabKey(instance) {
-        // Tab key handling is done as follows:
-        // 1. If the selection is before any text and the indentation is to the left of
-        //    the proper indentation then indent it to the proper place. Otherwise,
-        //    add another tab. In either case, move the insertion point to the
-        //    beginning of the text.
-        // 2. If the selection is multi-line, indent all the lines.
-        // 3. If the selection is after the first non-space character, and is an
-        //    insertion point, insert a tab character or the appropriate number
-        //    of spaces to pad to the nearest tab boundary.
-        var from = instance.getCursor(true),
-            to = instance.getCursor(false),
-            line = instance.getLine(from.line),
-            indentAuto = false,
-            insertTab = false;
-        
-        if (from.line === to.line) {
-            if (line.search(/\S/) > to.ch || to.ch === 0) {
-                indentAuto = true;
-            }
-        }
-
-        if (indentAuto) {
-            var currentLength = line.length;
-            CodeMirror.commands.indentAuto(instance);
-            
-            // If the amount of whitespace and the cursor position didn't change, we must have
-            // already been at the correct indentation level as far as CM is concerned, so insert 
-            // another tab.
-            if (instance.getLine(from.line).length === currentLength) {
-                var newFrom = instance.getCursor(true),
-                    newTo = instance.getCursor(false);
-                if (newFrom.line === from.line && newFrom.ch === from.ch &&
-                        newTo.line === to.line && newTo.ch === to.ch) {
-                    insertTab = true;
-                    to.ch = 0;
-                }
-            }
-        } else if (instance.somethingSelected() && from.line !== to.line) {
-            CodeMirror.commands.indentMore(instance);
-        } else {
-            insertTab = true;
-        }
-        
-        if (insertTab) {
-            if (instance.getOption("indentWithTabs")) {
-                CodeMirror.commands.insertTab(instance);
-            } else {
-                var i, ins = "", numSpaces = instance.getOption("indentUnit");
-                numSpaces -= from.ch % numSpaces;
-                for (i = 0; i < numSpaces; i++) {
-                    ins += " ";
-                }
-                instance.replaceSelection(ins, "end");
-            }
-        }
-    }
-    
-    /**
-     * @private
-     * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
-     * @param {!CodeMirror} instance CodeMirror instance
-     * @param {number} direction Direction of movement: 1 for forward, -1 for backward
-     * @param {function} functionName name of the CodeMirror function to call
-     * @return {boolean} true if key was handled
-     */
-    function _handleSoftTabNavigation(instance, direction, functionName) {
-        var handled = false;
-        if (!instance.getOption("indentWithTabs")) {
-            var indentUnit = instance.getOption("indentUnit"),
-                cursor     = instance.getCursor(),
-                jump       = cursor.ch % indentUnit,
-                line       = instance.getLine(cursor.line);
-
-            if (direction === 1) {
-                jump = indentUnit - jump;
-
-                if (cursor.ch + jump > line.length) { // Jump would go beyond current line
-                    return false;
-                }
-
-                if (line.substr(cursor.ch, jump).search(/\S/) === -1) {
-                    instance[functionName](jump, "char");
-                    handled = true;
-                }
-            } else {
-                // Quick exit if we are at the beginning of the line
-                if (cursor.ch === 0) {
-                    return false;
-                }
-                
-                // If we are on the tab boundary, jump by the full amount,
-                // but not beyond the start of the line.
-                if (jump === 0) {
-                    jump = indentUnit;
-                }
-
-                // Search backwards to the first non-space character
-                var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
-
-                if (offset !== -1) { // Adjust to jump to first non-space character
-                    jump -= offset;
-                }
-
-                if (jump > 0) {
-                    instance[functionName](-jump, "char");
-                    handled = true;
-                }
-            }
-        }
-
-        return handled;
-    }
-    
-    /**
-     * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
-     * back-indenting it if so.
-     */
-    function _checkElectricChars(jqEvent, editor, event) {
-        var instance = editor._codeMirror;
-        if (event.type === "keypress") {
-            var keyStr = String.fromCharCode(event.which || event.keyCode);
-            if (/[\]\{\}\)]/.test(keyStr)) {
-                // If all text before the cursor is whitespace, auto-indent it
-                var cursor = instance.getCursor();
-                var lineStr = instance.getLine(cursor.line);
-                var nonWS = lineStr.search(/\S/);
-                
-                if (nonWS === -1 || nonWS >= cursor.ch) {
-                    // Need to do the auto-indent on a timeout to ensure
-                    // the keypress is handled before auto-indenting.
-                    // This is the same timeout value used by the
-                    // electricChars feature in CodeMirror.
-                    window.setTimeout(function () {
-                        instance.indentLine(cursor.line);
-                    }, 75);
-                }
-            }
-        }
-    }
-    
-    /**
-     * @private
-     * Handle any cursor movement in editor, including selecting and unselecting text.
-     * @param {jQueryObject} jqEvent jQuery event object
-     * @param {Editor} editor Current, focused editor (main or inline)
-     * @param {!Event} event
-     */
-    function _handleCursorActivity(jqEvent, editor, event) {
-        // If there is a selection in the editor, temporarily hide Active Line Highlight
-        if (editor.hasSelection()) {
-            if (editor._codeMirror.getOption("styleActiveLine")) {
-                editor._codeMirror.setOption("styleActiveLine", false);
-            }
-        } else {
-            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
-        }
-    }
-    
-    function _handleKeyEvents(jqEvent, editor, event) {
-        _checkElectricChars(jqEvent, editor, event);
+    function _copyPos(pos) {
+        return new CodeMirror.Pos(pos.line, pos.ch);
     }
 
     /**
@@ -302,7 +145,6 @@ define(function (require, exports, module) {
      * @type {Array.<Editor>}
      */
     var _instances = [];
-    
     
     /**
      * @constructor
@@ -351,30 +193,32 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab": _handleTabKey,
+            "Tab": function () { self._handleTabKey(); },
             "Shift-Tab": "indentLess",
 
             "Left": function (instance) {
-                if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
+                if (!self._handleSoftTabNavigation(-1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
                 }
             },
             "Right": function (instance) {
-                if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
+                if (!self._handleSoftTabNavigation(1, "moveH")) {
                     CodeMirror.commands.goCharRight(instance);
                 }
             },
             "Backspace": function (instance) {
-                if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
+                if (!self._handleSoftTabNavigation(-1, "deleteH")) {
                     CodeMirror.commands.delCharBefore(instance);
                 }
             },
             "Delete": function (instance) {
-                if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
+                if (!self._handleSoftTabNavigation(1, "deleteH")) {
                     CodeMirror.commands.delCharAfter(instance);
                 }
             },
             "Esc": function (instance) {
+                // FIXME (jasonsanjose): be smarter about current state
+                CodeMirror.commands.singleSelection(instance);
                 self.removeAllInlineWidgets();
             },
             "Cmd-Left": "goLineStartSmart"
@@ -410,10 +254,15 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        $(this)
-            .on("cursorActivity", _handleCursorActivity)
-            .on("keyEvent", _handleKeyEvents)
-            .on("change", this._handleEditorChange.bind(this));
+        $(this).on("cursorActivity", function (jqEvent, cmEvent) {
+            self._handleCursorActivity(cmEvent);
+        });
+        $(this).on("keyEvent", function (jqEvent, cmEvent) {
+            self._handleKeyEvents(cmEvent);
+        });
+        $(this).on("change", function (jqEvent, editor, changeList) {
+            self._handleEditorChange(changeList);
+        });
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
@@ -475,6 +324,185 @@ define(function (require, exports, module) {
         this._inlineWidgets.forEach(function (inlineWidget) {
             self._removeInlineWidgetInternal(inlineWidget);
         });
+    };
+    
+    /**
+     * @private
+     * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
+     * back-indenting it if so.
+     */
+    Editor.prototype._checkElectricChars = function (event) {
+        var instance = this._codeMirror;
+        if (event.type === "keypress") {
+            var keyStr = String.fromCharCode(event.which || event.keyCode);
+            if (/[\]\{\}\)]/.test(keyStr)) {
+                // If all text before the cursor is whitespace, auto-indent it
+                var cursor = this.getCursorPos();
+                var lineStr = instance.getLine(cursor.line);
+                var nonWS = lineStr.search(/\S/);
+                
+                if (nonWS === -1 || nonWS >= cursor.ch) {
+                    // Need to do the auto-indent on a timeout to ensure
+                    // the keypress is handled before auto-indenting.
+                    // This is the same timeout value used by the
+                    // electricChars feature in CodeMirror.
+                    window.setTimeout(function () {
+                        instance.indentLine(cursor.line);
+                    }, 75);
+                }
+            }
+        }
+    };
+    
+    /**
+     * @private
+     * Handle any cursor movement in editor, including selecting and unselecting text.
+     * @param {jQueryObject} jqEvent jQuery event object
+     * @param {Editor} editor Current, focused editor (main or inline)
+     * @param {!Event} event
+     */
+    Editor.prototype._handleCursorActivity = function (event) {
+        var instance = this._codeMirror;
+        
+        // If there is a selection in the editor, temporarily hide Active Line Highlight
+        if (this.hasSelection()) {
+            if (instance.getOption("styleActiveLine")) {
+                instance.setOption("styleActiveLine", false);
+            }
+        } else {
+            instance.setOption("styleActiveLine", _styleActiveLine);
+        }
+    };
+    
+    /**
+     * @private
+     * Handle CodeMirror key events.
+     * @param {!Event} event
+     */
+    Editor.prototype._handleKeyEvents = function (event) {
+        this._checkElectricChars(event);
+    };
+
+    /**
+     * @private
+     * Handle Tab key press.
+     * @param {!CodeMirror} instance CodeMirror instance.
+     */
+    Editor.prototype._handleTabKey = function () {
+        // Tab key handling is done as follows:
+        // 1. If the selection is before any text and the indentation is to the left of
+        //    the proper indentation then indent it to the proper place. Otherwise,
+        //    add another tab. In either case, move the insertion point to the
+        //    beginning of the text.
+        // 2. If the selection is multi-line, indent all the lines.
+        // 3. If the selection is after the first non-space character, and is an
+        //    insertion point, insert a tab character or the appropriate number
+        //    of spaces to pad to the nearest tab boundary.
+        var instance = this._codeMirror,
+            from = this.getCursorPos(false, "from"),
+            to = this.getCursorPos(false, "to"),
+            line = instance.getLine(from.line),
+            indentAuto = false,
+            insertTab = false;
+        
+        if (from.line === to.line) {
+            if (line.search(/\S/) > to.ch || to.ch === 0) {
+                indentAuto = true;
+            }
+        }
+
+        if (indentAuto) {
+            var currentLength = line.length;
+            CodeMirror.commands.indentAuto(instance);
+            
+            // If the amount of whitespace and the cursor position didn't change, we must have
+            // already been at the correct indentation level as far as CM is concerned, so insert 
+            // another tab.
+            if (instance.getLine(from.line).length === currentLength) {
+                var newFrom = this.getCursorPos(false, "from"),
+                    newTo = this.getCursorPos(false, "to");
+                if (newFrom.line === from.line && newFrom.ch === from.ch &&
+                        newTo.line === to.line && newTo.ch === to.ch) {
+                    insertTab = true;
+                    to.ch = 0;
+                }
+            }
+        } else if (instance.somethingSelected() && from.line !== to.line) {
+            CodeMirror.commands.indentMore(instance);
+        } else {
+            insertTab = true;
+        }
+        
+        if (insertTab) {
+            if (instance.getOption("indentWithTabs")) {
+                CodeMirror.commands.insertTab(instance);
+            } else {
+                var i, ins = "", numSpaces = instance.getOption("indentUnit");
+                numSpaces -= from.ch % numSpaces;
+                for (i = 0; i < numSpaces; i++) {
+                    ins += " ";
+                }
+                instance.replaceSelection(ins, "end");
+            }
+        }
+    };
+    
+    /**
+     * @private
+     * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
+     * @param {!CodeMirror} instance CodeMirror instance
+     * @param {number} direction Direction of movement: 1 for forward, -1 for backward
+     * @param {function} functionName name of the CodeMirror function to call
+     * @return {boolean} true if key was handled
+     */
+    Editor.prototype._handleSoftTabNavigation = function (direction, functionName) {
+        var handled = false,
+            instance = this._codeMirror;
+        
+        if (!instance.getOption("indentWithTabs")) {
+            var indentUnit = instance.getOption("indentUnit"),
+                cursor     = this.getCursorPos(),
+                jump       = cursor.ch % indentUnit,
+                line       = instance.getLine(cursor.line);
+
+            if (direction === 1) {
+                jump = indentUnit - jump;
+
+                if (cursor.ch + jump > line.length) { // Jump would go beyond current line
+                    return false;
+                }
+
+                if (line.substr(cursor.ch, jump).search(/\S/) === -1) {
+                    instance[functionName](jump, "char");
+                    handled = true;
+                }
+            } else {
+                // Quick exit if we are at the beginning of the line
+                if (cursor.ch === 0) {
+                    return false;
+                }
+                
+                // If we are on the tab boundary, jump by the full amount,
+                // but not beyond the start of the line.
+                if (jump === 0) {
+                    jump = indentUnit;
+                }
+
+                // Search backwards to the first non-space character
+                var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
+
+                if (offset !== -1) { // Adjust to jump to first non-space character
+                    jump -= offset;
+                }
+
+                if (jump > 0) {
+                    instance[functionName](-jump, "char");
+                    handled = true;
+                }
+            }
+        }
+
+        return handled;
     };
     
     /**
@@ -571,7 +599,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
      *    to a Document change
      */
-    Editor.prototype._handleEditorChange = function (event, editor, changeList) {
+    Editor.prototype._handleEditorChange = function (changeList) {
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
@@ -738,16 +766,19 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     };
     
-    
     /**
-     * Gets the current cursor position within the editor. If there is a selection, returns whichever
-     * end of the range the cursor lies at.
+     * Gets the current cursor position within the editor.
      * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
+     * @param {?string} start Optional string indicating which end of the
+     *  selection to return. It may be "start", "end", "head" (the side of the
+     *  selection that moves when you press shift+arrow), or "anchor" (the
+     *  fixed side of the selection). Omitting the argument is the same as
+     *  passing "head". A {line, ch} object will be returned.)
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function (expandTabs) {
-        var cursor = this._codeMirror.getCursor();
+    Editor.prototype.getCursorPos = function (expandTabs, start) {
+        var cursor = _copyPos(this._codeMirror.getCursor(start));
         
         if (expandTabs) {
             cursor.ch = this.getColOffset(cursor);
@@ -890,8 +921,8 @@ define(function (require, exports, module) {
      * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     Editor.prototype.getSelection = function () {
-        var selStart = this._codeMirror.getCursor(true),
-            selEnd   = this._codeMirror.getCursor(false);
+        var selStart = this.getCursorPos(false, "from"),
+            selEnd   = this.getCursorPos(false, "to");
         return { start: selStart, end: selEnd };
     };
     

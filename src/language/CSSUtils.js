@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, CodeMirror, _parseRuleList: true */
+/*global define, $, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
 // It was added to this list to prevent JSLint warning about being used before being defined.
@@ -34,7 +34,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async               = require("utils/Async"),
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
@@ -430,7 +431,7 @@ define(function (require, exports, module) {
     /**
      * Returns a context info object for the given cursor position
      * @param {!Editor} editor
-     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
      * @return {{context: string,
      *           offset: number,
      *           name: string,

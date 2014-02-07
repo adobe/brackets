@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 /*unittests: HTML Instrumentation*/
 
 /**
@@ -190,6 +190,10 @@ define(function (require, exports, module) {
      * the API is likely to change in the future.
      *
      * @param {Editor} editor The editor to scan. 
+     * @param {{line: number, ch: number}} pos The position to find the DOM marker for.
+     * @param {Object=} markCache An optional cache to look up positions of existing
+     *     markers. (This avoids calling the find() operation on marks multiple times, 
+     *     which is expensive.)
      * @return {number} tagID at the specified position, or -1 if there is no tag
      */
     function _getTagIDAtDocumentPos(editor, pos, markCache) {
