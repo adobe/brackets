@@ -691,15 +691,14 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
-        // onKeyEvent is an option in CodeMirror rather than an event--it's a
-        // low-level hook for all keyboard events rather than a specific event. For
-        // our purposes, though, it's convenient to treat it as an event internally,
-        // so we bridge it to jQuery events the same way we do ordinary CodeMirror
-        // events.
-        this._codeMirror.setOption("onKeyEvent", function (instance, event) {
+        // Redispatch these CodeMirror key events as jQuery events
+        function _onKeyEvent(instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
-        });
+        }
+        this._codeMirror.on("keydown",  _onKeyEvent);
+        this._codeMirror.on("keypress", _onKeyEvent);
+        this._codeMirror.on("keyup",    _onKeyEvent);
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
         // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
