@@ -60,7 +60,7 @@ define(function (require, exports, module) {
      * the dir and files likely exist.
      */
     function _createGettingStartedEntry(file, contents, callback){
-        var path = fsPath.join("/Getting Started/", file);
+        var path = fsPath.join("/Getting Started", file);
 
         if (contents){
             fs.writeFile(path, contents, function(err){
