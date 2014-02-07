@@ -60,7 +60,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error eliminando archivo",
     "ERROR_DELETING_FILE"               : "Ha ocurrido un error al intentar eliminar el archivo <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nombre de {0} inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: /?*:;{}<>\\| o usar palabras reservadas del sistema",
+    "INVALID_FILENAME_MESSAGE"          : "Los nombres de archivo no pueden contener los siguientes caracteres: {0} o usar palabras reservadas del sistema",
     "FILE_ALREADY_EXISTS"               : "El {0} <span class='dialog-filename'>{0}</span> ya existe.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",

@@ -224,7 +224,26 @@ define(function (require, exports, module) {
         this._promise.done(callback);
     };
     
-    
+
+    /**
+     * Don't allow dialog to exceed viewport size
+     */
+    function setDialogMaxSize() {
+        var maxWidth, maxHeight,
+            $dlgs = $(".modal-inner-wrapper > .instance");
+
+        // Verify 1 or more modal dialogs are showing
+        if ($dlgs.length > 0) {
+            maxWidth  = $("body").width();
+            maxHeight = $("body").height();
+
+            $dlgs.css({
+                "max-width":  maxWidth,
+                "max-height": maxHeight,
+                "overflow":   "auto"
+            });
+        }
+    }
     
     /**
      * Creates a new modal dialog from a given template.
@@ -242,12 +261,15 @@ define(function (require, exports, module) {
         }
         
         $("body").append("<div class='modal-wrapper'><div class='modal-inner-wrapper'></div></div>");
-        
-        var result  = $.Deferred(),
-            promise = result.promise(),
-            $dlg    = $(template)
+
+        var result    = $.Deferred(),
+            promise   = result.promise(),
+            $dlg      = $(template)
                 .addClass("instance")
                 .appendTo(".modal-inner-wrapper:last");
+
+        // Don't allow dialog to exceed viewport size
+        setDialogMaxSize();
         
         // Save the dialog promise for unit tests
         $dlg.data("promise", promise);
@@ -359,6 +381,7 @@ define(function (require, exports, module) {
         });
     }
     
+    window.addEventListener("resize", setDialogMaxSize);
     
     exports.DIALOG_BTN_CANCEL            = DIALOG_BTN_CANCEL;
     exports.DIALOG_BTN_OK                = DIALOG_BTN_OK;

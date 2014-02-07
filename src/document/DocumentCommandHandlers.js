@@ -614,9 +614,7 @@ define(function (require, exports, module) {
                 });
         }
             
-        if (docToSave.isDirty) {
-            var writeError = false;
-            
+        function trySave() {
             // We don't want normalized line endings, so it's important to pass true to getText()
             FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
@@ -630,6 +628,28 @@ define(function (require, exports, module) {
                         handleError(err);
                     }
                 });
+        }
+
+        if (docToSave.isDirty) {
+            var writeError = false;
+            
+            if (docToSave.keepChangesTime) {
+                // The user has decided to keep conflicting changes in the editor. Check to make sure
+                // the file hasn't changed since they last decided to do that.
+                docToSave.file.stat(function (err, stat) {
+                    // If the file has been deleted on disk, the stat will return an error, but that's fine since 
+                    // that means there's no file to overwrite anyway, so the save will succeed without us having
+                    // to set force = true.
+                    if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
+                        // OK, it's safe to overwrite the file even though we never reloaded the latest version,
+                        // since the user already said s/he wanted to ignore the disk version.
+                        force = true;
+                    }
+                    trySave();
+                });
+            } else {
+                trySave();
+            }
         } else {
             result.resolve(file);
         }

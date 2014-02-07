@@ -50,7 +50,7 @@ define({
     "ERROR_SAVING_FILE_TITLE" : "Feil ved lagring av fil",
     "ERROR_SAVING_FILE" : "Det oppstod en feil ved forsøk på å lagre filen <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE" : "Ugyldig filnavn",
-    "INVALID_FILENAME_MESSAGE" : "Filnavn kan ikke inneholde følgende tegn: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE" : "Filnavn kan ikke inneholde følgende tegn: {0}",
     "FILE_ALREADY_EXISTS" : "Filen <span class='dialog-filename'>{0}</span> eksisterer allerede.",
     "ERROR_CREATING_FILE_TITLE" : "Feil ved oppretting av fil",
     "ERROR_CREATING_FILE" : "Det oppstod en feil ved forsøk på å opprette filen <span class='dialog-filename'>{0}</span>. {1}",

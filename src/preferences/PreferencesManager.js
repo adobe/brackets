@@ -248,36 +248,38 @@ define(function (require, exports, module) {
     var _addScopePromises = [];
     
     var preferencesManager = new PreferencesBase.PreferencesSystem();
+
+    // Create a Project scope
+    var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
+        projectScope            = new PreferencesBase.Scope(projectStorage),
+        projectPathLayer        = new PreferencesBase.PathLayer(),
+        projectDirectory        = null,
+        currentEditedFile       = null,
+        projectScopeIsIncluded  = true;
     
-    // The sequence of adding scopes to the manager defines the scope order (properties lookup order)
+    projectScope.addLayer(projectPathLayer);
     
-    var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
-    _addScopePromises.push(userScope);
+    _addScopePromises.push(userScopeLoading);
     
-    userScope
+    // Set up the .brackets.json file handling
+    userScopeLoading
         .fail(function (err) {
-            _addScopePromises.push(preferencesManager.addScope("user", new PreferencesBase.MemoryStorage(), {location: {before: "default"}}));
+            _addScopePromises.push(preferencesManager.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            }));
+
             if (err.name && err.name === "ParsingError") {
                 _userScopeCorrupt = true;
             }
         })
-        .always(function () {
-            // Set up the .brackets.json file handling
-            _addScopePromises.push(preferencesManager.addPathScopes(".brackets.json", {
-                before: "user",
-                checkExists: function (filename) {
-                    var result = new $.Deferred(),
-                        file = FileSystem.getFileForPath(filename);
-                    file.exists(function (err, doesExist) {
-                        result.resolve(doesExist);
-                    });
-                    return result.promise();
-                },
-                getScopeForFile: function (filename) {
-                    return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
-                }
+        .done(function () {
+            _addScopePromises.push(preferencesManager.addScope("project", projectScope, {
+                before: "user"
             }));
+    
+            // Session Scope is for storing prefs in memory only but with the highest precedence.
             _addScopePromises.push(preferencesManager.addScope("session", new PreferencesBase.MemoryStorage()));
 
             Async.waitForAll(_addScopePromises)
@@ -285,7 +287,77 @@ define(function (require, exports, module) {
                     _deferred.resolve();
                 });
         });
-            
+    
+    
+    /**
+     * @private
+     * 
+     * Determines whether the project Scope should be included based on whether
+     * the currently edited file is within the project.
+     * 
+     * @param {string=} filename Full path to edited file
+     * @return {boolean} true if the project Scope should be included.
+     */
+    function _includeProjectScope(filename) {
+        filename = filename || currentEditedFile;
+        if (!filename || !projectDirectory) {
+            return false;
+        }
+        var relativeFilename = FileUtils.getRelativeFilename(projectDirectory, filename);
+        if (!relativeFilename) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    /**
+     * @private
+     * 
+     * Adds or removes the project Scope as needed based on whether the currently
+     * edited file is within the project.
+     */
+    function _toggleProjectScope() {
+        if (_includeProjectScope() && projectScopeIsIncluded) {
+            return;
+        }
+        if (projectScopeIsIncluded) {
+            preferencesManager.removeFromScopeOrder("project");
+        } else {
+            preferencesManager.addToScopeOrder("project", projectScope, (new $.Deferred()).resolve().promise(), "user");
+        }
+        projectScopeIsIncluded = !projectScopeIsIncluded;
+    }
+    
+    /**
+     * @private
+     * 
+     * This is used internally within Brackets for the ProjectManager to signal
+     * which file contains the project-level preferences.
+     * 
+     * @param {string} settingsFile Full path to the project's settings file
+     */
+    function _setProjectSettingsFile(settingsFile) {
+        projectDirectory = FileUtils.getDirectoryPath(settingsFile);
+        _toggleProjectScope();
+        projectPathLayer.setPrefFilePath(settingsFile);
+        projectStorage.setPath(settingsFile);
+    }
+    
+    /**
+     * @private
+     * 
+     * This is used internally within Brackets for the EditorManager to signal
+     * to the preferences what the currently edited file is.
+     * 
+     * @param {string} currentFile Full path to currently edited file
+     */
+    function _setCurrentEditingFile(currentFile) {
+        currentEditedFile = currentFile;
+        _toggleProjectScope();
+        preferencesManager.setDefaultFilename(currentFile);
+    }
+    
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`
@@ -314,7 +386,7 @@ define(function (require, exports, module) {
      * @param {Object} rules Rules for conversion (as defined above)
      */
     function convertPreferences(clientID, rules) {
-        userScope.done(function () {
+        userScopeLoading.done(function () {
             var prefs = getPreferenceStorage(clientID, null, true);
             
             if (!prefs) {
@@ -344,6 +416,117 @@ define(function (require, exports, module) {
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
+    // Constants for preference lookup contexts.
+    
+    /**
+     * Context to look up preferences in the current project.
+     * @type {Object}
+     */
+    var CURRENT_PROJECT = {};
+    
+    /**
+     * Context to look up preferences for the currently edited file.
+     * This is undefined because this is the default behavior of PreferencesSystem.get.
+     * 
+     * @type {Object}
+     */
+    var CURRENT_FILE;
+    
+    /**
+     * @private
+     * 
+     * Adjusts scopeOrder to have the project Scope if necessary.
+     * Returns a new array if changes are needed, otherwise returns
+     * the original array.
+     * 
+     * @param {Array.<string>} scopeOrder initial scopeOrder
+     * @param {boolean} includeProject Whether the project Scope should be included
+     * @return {Array.<string>} array with or without project Scope as needed.
+     */
+    function _adjustScopeOrderForProject(scopeOrder, includeProject) {
+        var hasProject = scopeOrder.indexOf("project") > -1;
+        
+        if (hasProject === includeProject) {
+            return scopeOrder;
+        }
+        
+        var newScopeOrder;
+        
+        if (includeProject) {
+            var before = scopeOrder.indexOf("user");
+            if (before === -1) {
+                before = scopeOrder.length - 2;
+            }
+            newScopeOrder = _.first(scopeOrder, before);
+            newScopeOrder.push("project");
+            newScopeOrder.push.apply(scopeOrder, _.rest(scopeOrder, before));
+        } else {
+            newScopeOrder = _.without(scopeOrder, "project");
+        }
+        return newScopeOrder;
+    }
+    
+    /**
+     * @private
+     * 
+     * Normalizes the context object to be something that the PreferencesSystem
+     * understands. This is how we support CURRENT_FILE and CURRENT_PROJECT
+     * preferences.
+     * 
+     * @param {Object|string} context CURRENT_FILE, CURRENT_PROJECT or a filename
+     */
+    function _normalizeContext(context) {
+        if (typeof context === "string") {
+            context = preferencesManager.buildContext({
+                filename: context
+            });
+            context.scopeOrder = _adjustScopeOrderForProject(context.scopeOrder,
+                                                            _includeProjectScope(context.filename)
+                                                           );
+        } else if (context === CURRENT_PROJECT) {
+            context = preferencesManager.buildContext({});
+            delete context.filename;
+            context.scopeOrder = _adjustScopeOrderForProject(context.scopeOrder, true);
+        }
+        return context;
+    }
+    
+    /**
+     * Look up a preference in the given context. The default is 
+     * CURRENT_FILE (preferences as they would be applied to the
+     * currently edited file).
+     * 
+     * @param {string} id Preference ID to retrieve the value of
+     * @param {Object|string=} context CURRENT_FILE, CURRENT_PROJECT or a filename
+     */
+    function get(id, context) {
+        context = _normalizeContext(context);
+        return preferencesManager.get(id, context);
+    }
+    
+    /**
+     * Sets a preference and notifies listeners that there may
+     * have been a change. By default, the preference is set in the same location in which
+     * it was defined except for the "default" scope. If the current value of the preference
+     * comes from the "default" scope, the new value will be set at the level just above
+     * default.
+     * 
+     * As with the `get()` function, the context can be a filename,
+     * CURRENT_FILE, CURRENT_PROJECT or a full context object as supported by
+     * PreferencesSystem.
+     * 
+     * @param {string} id Identifier of the preference to set
+     * @param {Object} value New value for the preference
+     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
+     * @return {boolean} true if a value was set
+     */
+    function set(id, value, options) {
+        if (options && options.context) {
+            options.context = _normalizeContext(options.context);
+        }
+        return preferencesManager.set(id, value, options);
+    }
+
     /**
      * @private
      */
@@ -371,23 +554,32 @@ define(function (require, exports, module) {
      * 
      * @param {string} id preference to set
      * @param {*} value new value for the preference
+     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
+     * @return {boolean} true if a value was set
      */
-    function setValueAndSave(id, value) {
-        preferencesManager.set(id, value);
+    function setValueAndSave(id, value, options) {
+        var changed = set(id, value, options);
         preferencesManager.save();
+        return changed;
     }
+    
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports.ready                  = _deferred.promise();
     exports._isUserScopeCorrupt    = function () { return _userScopeCorrupt; };
-    exports._manager               = preferencesManager;
-    exports._setCurrentEditingFile = preferencesManager.setPathScopeContext.bind(preferencesManager);
+    exports._manager                = preferencesManager;
+    exports._setCurrentEditingFile  = _setCurrentEditingFile;
+    exports._setProjectSettingsFile = _setProjectSettingsFile;
     
     // Public API
     
+    // Context names for preference lookups
+    exports.CURRENT_FILE        = CURRENT_FILE;
+    exports.CURRENT_PROJECT     = CURRENT_PROJECT;
+    
     exports.getUserPrefFile     = getUserPrefFile;
-    exports.get                 = preferencesManager.get.bind(preferencesManager);
-    exports.set                 = preferencesManager.set.bind(preferencesManager);
+    exports.get                 = get;
+    exports.set                 = set;
     exports.save                = preferencesManager.save.bind(preferencesManager);
     exports.on                  = preferencesManager.on.bind(preferencesManager);
     exports.off                 = preferencesManager.off.bind(preferencesManager);
