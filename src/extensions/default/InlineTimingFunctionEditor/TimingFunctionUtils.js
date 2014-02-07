@@ -167,7 +167,7 @@ define(function (require, exports, module) {
      */
     function _getValidStepsParams(match) {
         var param,
-            def = [ "5" ],
+            def = [ "5", "end" ],
             params = def,
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
             originalLength = match[0].length,
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                 param = param.substr(0, 1);
                 if (param === "s") {
                     params[2] = "start";
-                } else if (param === "e") {
+                } else {
                     params[2] = "end";
                 }
             }
