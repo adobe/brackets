@@ -534,9 +534,15 @@ define(function (require, exports, module) {
             // Reconfigure the preferences manager so that the "user" scoped
             // preferences are empty and the tests will not reconfigure
             // the preferences of the user running the tests.
-            var pm = _testWindow.brackets.test.PreferencesManager._manager;
+            var pm = _testWindow.brackets.test.PreferencesManager._manager,
+                sm = _testWindow.brackets.test.PreferencesManager.stateManager;
             pm.removeScope("user");
             pm.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            });
+            
+            sm.removeScope("user");
+            sm.addScope("user", new PreferencesBase.MemoryStorage(), {
                 before: "default"
             });
             

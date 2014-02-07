@@ -155,7 +155,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should rebuild the ui from the model correctly", function () {
+        xit("should rebuild the ui from the model correctly", function () {
             // force the test window to initialize to unit test preferences
             // for just this test
             runs(function () {
