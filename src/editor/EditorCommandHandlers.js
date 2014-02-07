@@ -594,7 +594,7 @@ define(function (require, exports, module) {
             edits.push({ text: doc.getRange(sel.start, sel.end), start: sel.start });
         });
 
-        editor.setSelections(editor.doMultipleEdits(edits, selections));
+        editor.doMultipleEdits(edits);
     }
 
     /**
@@ -648,7 +648,7 @@ define(function (require, exports, module) {
                 edits.push({text: "", start: from, end: to});
             }
         });
-        editor.setSelections(editor.doMultipleEdits(edits, selections));
+        editor.doMultipleEdits(edits);
     }
     
     /**
@@ -773,8 +773,8 @@ define(function (require, exports, module) {
             lastLine       = editor.getLastVisibleLine(),
             cm             = editor._codeMirror,
             doc            = editor.document,
-            newSelections  = [],
             edits          = [],
+            newSelections,
             line;
         
         // First, insert all the newlines (skipping multiple selections on the same line), 
@@ -807,26 +807,22 @@ define(function (require, exports, module) {
                     } else {
                         insertPos = {line: line, ch: 0};
                     }
-                    edits.push({text: "\n", start: insertPos});
-                    newSelections.push({start: insertPos, end: insertPos, primary: sel.primary});
+                    // We want the selection after this edit to be right before the \n we just inserted.
+                    edits.push({text: "\n", start: insertPos, selections: [{start: insertPos, end: insertPos, primary: sel.primary}]});
                 } else {
                     // We just want to discard this selection, since we've already operated on the
                     // same line and it would just collapse to the same location. But if this was
                     // primary, make sure the last selection we did operate on ends up as primary.
                     if (sel.primary) {
-                        newSelections[newSelections.length - 1].primary = true;
+                        edits[edits.length - 1].selections[0].primary = true;
                     }
                 }
             });
-            newSelections = editor.doMultipleEdits(edits, newSelections, "+input");
+            newSelections = editor.doMultipleEdits(edits, "+input");
             
-            // The cursors are now actually each on the line *after* each of the newlines,
-            // since they were set to be at the insertion position and the adjustment logic
-            // pushes those positions to after the insertion. So fix up the line numbers,
-            // then just indent each added line (which doesn't mess up any line numbers, and
+            // Now indent each added line (which doesn't mess up any line numbers, and
             // we're going to set the character offset to the last position on each line anyway).
             _.each(newSelections, function (sel) {
-                sel.start.line--;
                 cm.indentLine(sel.start.line, "smart", true);
                 sel.start.ch = null; // last character on line
                 sel.end = sel.start;
