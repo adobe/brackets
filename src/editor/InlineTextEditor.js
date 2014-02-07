@@ -24,13 +24,14 @@
 
 // FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var DocumentManager     = require("document/DocumentManager"),
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),

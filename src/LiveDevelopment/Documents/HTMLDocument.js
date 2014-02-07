@@ -144,7 +144,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (Inspector.config.highlight) {
             var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
                 this.editor,
-                codeMirror.getCursor()
+                this.editor.getCursorPos()
             );
             
             if (tagID === -1) {
