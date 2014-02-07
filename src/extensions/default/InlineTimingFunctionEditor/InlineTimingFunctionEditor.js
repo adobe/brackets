@@ -121,7 +121,7 @@ define(function (require, exports, module) {
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),
-            matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true);
+            matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true, true);
 
         // No longer have a match
         if (!matches) {

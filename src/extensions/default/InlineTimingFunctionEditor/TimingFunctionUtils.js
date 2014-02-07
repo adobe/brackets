@@ -178,13 +178,13 @@ define(function (require, exports, module) {
         }
 
         if (match) {
-            if (match[1]) {
-                param = _convertToNumber(match[1]);
+            if (match[0]) {
+                param = _convertToNumber(match[0]);
 
                 // Verify number_of_params is a number
                 // If not, replace it with the default value
                 if (!param.isNumber) {
-                    param.value = def[1];
+                    param.value = def[0];
 
                 // Round number_of_params to an integer
                 } else if (param.value) {
@@ -194,18 +194,18 @@ define(function (require, exports, module) {
                 // Verify number_of_steps is >= 1
                 // If not, set them to the default value
                 if (param.value < 1) {
-                    param.value = def[1];
+                    param.value = def[0];
                 }
-                params[1] = param.value;
+                params[0] = param.value;
             }
-            if (match[2]) {
+            if (match[1]) {
                 // little autocorrect feature: leading s gets 'start', leading e gets 'end'
-                param = match[2].replace(/[\s\"']/g); // replace possible trailing whitespace or leading quotes
+                param = match[1].replace(/[\s\"']/g, ""); // replace possible trailing whitespace or leading quotes
                 param = param.substr(0, 1);
                 if (param === "s") {
-                    params[2] = "start";
+                    params[1] = "start";
                 } else {
-                    params[2] = "end";
+                    params[1] = "end";
                 }
             }
         }
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
     function _validateStepsParams(match) {
         var count = _convertToNumber(match[1]);
 
-        if (!count.isNumber || count.value <= 0) {
+        if (!count.isNumber || count.value < 1 || Math.floor(count) === count) {
             return false;
         }
 
@@ -274,9 +274,10 @@ define(function (require, exports, module) {
      *                    This is the more strict search used for initial detection.
      *          lax=true  Input is a previously parsed value. This is the less strict search
      *                    used to convert previously parsed values to RegExp match format.
+     * @param {?boolean} forceRealMatch  force a real match instead of a valid-made
      * @return {!RegExpMatch}
      */
-    function bezierCurveMatch(str, lax) {
+    function bezierCurveMatch(str, lax, forceRealMatch) {
         var match;
 
         // First look for any cubic-bezier().
@@ -287,6 +288,10 @@ define(function (require, exports, module) {
 
         match = str.match(BEZIER_CURVE_GENERAL_REGEX);
         if (match) {
+            if (forceRealMatch) {
+                return match;
+            }
+
             match = _getValidBezierParams(match);
             if (match && _validateCubicBezierParams(match)) {
                 return _tagMatch(match, BEZIER);
@@ -343,9 +348,10 @@ define(function (require, exports, module) {
      *                    This is the more strict search used for initial detection.
      *          lax=true  Input is a previously parsed value. This is the less strict search
      *                    used to convert previously parsed values to RegExp match format.
+     * @param {?boolean} forceRealMatch  force a real match instead of a valid-made
      * @return {!RegExpMatch}
      */
-    function stepsMatch(str, lax) {
+    function stepsMatch(str, lax, forceRealMatch) {
         var match;
 
         // First look for any steps().
@@ -356,6 +362,10 @@ define(function (require, exports, module) {
 
         match = str.match(STEPS_GENERAL_REGEX);
         if (match) {
+            if (forceRealMatch) {
+                return match;
+            }
+
             match = _getValidStepsParams(match);
             if (match && _validateStepsParams(match)) {
                 return _tagMatch(match, STEP);
@@ -395,10 +405,11 @@ define(function (require, exports, module) {
      *                    This is the more strict search used for initial detection.
      *          lax=true  Input is a previously parsed value. This is the less strict search
      *                    used to convert previously parsed values to RegExp match format.
+     * @param {?boolean} forceRealMatch  force a real match instead of a valid-made
      * @return {!RegExpMatch}
      */
-    function timingFunctionMatch(str, lax) {
-        return bezierCurveMatch(str, lax) || stepsMatch(str, lax);
+    function timingFunctionMatch(str, lax, forceRealMatch) {
+        return bezierCurveMatch(str, lax, forceRealMatch) || stepsMatch(str, lax, forceRealMatch);
     }
 
     // Define public API
