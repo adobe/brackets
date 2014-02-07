@@ -81,7 +81,8 @@ define(function (require, exports, module) {
      */
     function _getValidBezierParams(match, def) {
         var param,
-            old_index = match.index, // we need to store the old match.index to re-set the index afterwards
+            oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
+            originalLength = match[0].length,
             i;
 
         if (match) {
@@ -123,7 +124,8 @@ define(function (require, exports, module) {
         match = match.match(BEZIER_CURVE_VALID_REGEX);
 
         if (match) {
-            match.index = old_index; // re-set the index here to get the right context
+            match.index = oldIndex; // re-set the index here to get the right context
+            match.originalLength = originalLength;
             return match;
         }
         return null;
@@ -214,16 +216,16 @@ define(function (require, exports, module) {
         match = str.match(BEZIER_CURVE_VALID_REGEX);
         if (match && _validateCubicBezierParams(match)) { // cubic-bezier() with valid params
             return _tagMatch(match, BEZIER);
-        } else {
-            match = str.match(BEZIER_CURVE_GENERAL_REGEX);
-            if (match) {
-                // take ease-in-out as default value in case there are no params yet (or they are invalid)
-                match = _getValidBezierParams(match, [ ".42", "0", ".58", "1" ]);
-                if (match && _validateCubicBezierParams(match)) {
-                    return _tagMatch(match, BEZIER);
-                } else { // this should not happen!
-                    window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
-                }
+        }
+
+        match = str.match(BEZIER_CURVE_GENERAL_REGEX);
+        if (match) {
+            // take ease-in-out as default value in case there are no params yet (or they are invalid)
+            match = _getValidBezierParams(match, [ ".42", "0", ".58", "1" ]);
+            if (match && _validateCubicBezierParams(match)) {
+                return _tagMatch(match, BEZIER);
+            } else { // this should not happen!
+                window.console.log("brackets-cubic-bezier: TimingFunctionUtils._getValidBezierParams created invalid code");
             }
         }
 
