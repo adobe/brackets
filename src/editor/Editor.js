@@ -254,10 +254,10 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        $(this).on("cursorActivity", function (jqEvent, cmEvent) {
-            self._handleCursorActivity(cmEvent);
+        $(this).on("cursorActivity", function (jqEvent, editor) {
+            self._handleCursorActivity(jqEvent);
         });
-        $(this).on("keyEvent", function (jqEvent, cmEvent) {
+        $(this).on("keyEvent", function (jqEvent, editor, cmEvent) {
             self._handleKeyEvents(cmEvent);
         });
         $(this).on("change", function (jqEvent, editor, changeList) {
