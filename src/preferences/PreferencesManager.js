@@ -393,6 +393,16 @@ define(function (require, exports, module) {
     var CURRENT_FILE;
     
     /**
+     * Cached copy of the scopeOrder with the project Scope
+     */
+    var scopeOrderWithProject = null;
+    
+    /**
+     * Cached copy of the scopeOrder without the project Scope
+     */
+    var scopeOrderWithoutProject = null;
+    
+    /**
      * @private
      * 
      * Adjusts scopeOrder to have the project Scope if necessary.
@@ -437,19 +447,32 @@ define(function (require, exports, module) {
      */
     function _normalizeContext(context) {
         if (typeof context === "string") {
-            context = preferencesManager.buildContext({
+            context = {
                 filename: context
-            });
-            context.scopeOrder = _adjustScopeOrderForProject(context.scopeOrder,
-                                                            _includeProjectScope(context.filename)
-                                                           );
-        } else if (context === CURRENT_PROJECT) {
-            context = preferencesManager.buildContext({});
-            delete context.filename;
-            context.scopeOrder = _adjustScopeOrderForProject(context.scopeOrder, true);
+            };
+            context.scopeOrder = _includeProjectScope(context.filename) ?
+                                    scopeOrderWithProject :
+                                    scopeOrderWithoutProject;
         }
         return context;
     }
+    
+    /**
+     * @private
+     * 
+     * Updates the CURRENT_PROJECT context to have the correct scopes.
+     */
+    function _updateCurrentProjectContext() {
+        var context = preferencesManager.buildContext({});
+        delete context.filename;
+        scopeOrderWithProject = _adjustScopeOrderForProject(context.scopeOrder, true);
+        scopeOrderWithoutProject = _adjustScopeOrderForProject(context.scopeOrder, false);
+        CURRENT_PROJECT.scopeOrder = scopeOrderWithProject;
+    }
+    
+    _updateCurrentProjectContext();
+    
+    preferencesManager.on("scopeOrderChange", _updateCurrentProjectContext);
     
     /**
      * Look up a preference in the given context. The default is 

@@ -533,13 +533,19 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("can notify of preference changes via scope changes", function () {
+            it("can notify of preference changes via scope changes and scope changes", function () {
                 var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("spaceUnits", "number", 4);
                 
-                var eventData = [];
+                var eventData = [],
+                    scopeEvents = [];
+                
                 pm.on("change", function (e, data) {
                     eventData.push(data);
+                });
+                
+                pm.on("scopeOrderChange", function (e, data) {
+                    scopeEvents.push(data);
                 });
                 
                 pm.addScope("user", new PreferencesBase.MemoryStorage({
@@ -547,14 +553,28 @@ define(function (require, exports, module) {
                     elephants: "charging"
                 }));
                 
+                expect(pm._defaultContext.scopeOrder).toEqual(["user", "default"]);
+                
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "elephants"]
                 }]);
                 
+                expect(scopeEvents).toEqual([{
+                    id: "user",
+                    action: "added"
+                }]);
+                
+                scopeEvents = [];
                 eventData = [];
                 pm.removeScope("user");
+                expect(pm._defaultContext.scopeOrder).toEqual(["default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits", "elephants"]
+                }]);
+                
+                expect(scopeEvents).toEqual([{
+                    id: "user",
+                    action: "removed"
                 }]);
             });
             
@@ -662,12 +682,14 @@ define(function (require, exports, module) {
                 }));
                 pm.addScope("session", new PreferencesBase.MemoryStorage());
                 expect(pm.get("spaceUnits")).toBe(2);
+                expect(pm._defaultContext.scopeOrder).toEqual(["session", "project", "user", "default"]);
                 
                 var eventData = [];
                 pm.on("change", function (e, data) {
                     eventData.push(data);
                 });
                 pm.removeFromScopeOrder("project");
+                expect(pm._defaultContext.scopeOrder).toEqual(["session", "user", "default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits"]
                 }]);
@@ -679,6 +701,7 @@ define(function (require, exports, module) {
                 
                 eventData = [];
                 pm.addToScopeOrder("project", "user");
+                expect(pm._defaultContext.scopeOrder).toEqual(["session", "project", "user", "default"]);
                 expect(eventData).toEqual([{
                     ids: ["spaceUnits"]
                 }]);

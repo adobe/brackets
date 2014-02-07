@@ -67,7 +67,8 @@ define(function (require, exports, module) {
         globmatch         = require("thirdparty/globmatch");
     
     // CONSTANTS
-    var PREFERENCE_CHANGE = "change";
+    var PREFERENCE_CHANGE = "change",
+        SCOPEORDER_CHANGE = "scopeOrderChange";
     
     /*
      * Storages manage the loading and saving of preference data. 
@@ -1045,22 +1046,31 @@ define(function (require, exports, module) {
         addToScopeOrder: function (id, addBefore) {
             var defaultScopeOrder = this._defaultContext.scopeOrder;
             
-            var scope = this._scopes[id];
+            var scope = this._scopes[id],
+                $this = $(this);
             
             $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
-                $(this).trigger(PREFERENCE_CHANGE, data);
-            }.bind(this));
+                $this.trigger(PREFERENCE_CHANGE, data);
+            });
 
             if (!addBefore) {
                 defaultScopeOrder.unshift(id);
-                $(this).trigger(PREFERENCE_CHANGE, {
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: id,
+                    action: "added"
+                });
+                $this.trigger(PREFERENCE_CHANGE, {
                     ids: scope.getKeys()
                 });
             } else {
                 var addIndex = defaultScopeOrder.indexOf(addBefore);
                 if (addIndex > -1) {
                     defaultScopeOrder.splice(addIndex, 0, id);
-                    $(this).trigger(PREFERENCE_CHANGE, {
+                    $this.trigger(SCOPEORDER_CHANGE, {
+                        id: id,
+                        action: "added"
+                    });
+                    $this.trigger(PREFERENCE_CHANGE, {
                         ids: scope.getKeys()
                     });
                 } else {
@@ -1089,8 +1099,13 @@ define(function (require, exports, module) {
         removeFromScopeOrder: function (id) {
             var scope = this._scopes[id];
             if (scope) {
-                this._defaultContext.scopeOrder = _.without(this._defaultContext.scopeOrder, id);
-                $(this).trigger(PREFERENCE_CHANGE, {
+                _.pull(this._defaultContext.scopeOrder, id);
+                var $this = $(this);
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: id,
+                    action: "removed"
+                });
+                $this.trigger(PREFERENCE_CHANGE, {
                     ids: scope.getKeys()
                 });
                 $(scope).off(".prefsys");
@@ -1166,15 +1181,12 @@ define(function (require, exports, module) {
             if (!scope) {
                 return;
             }
+            
+            this.removeFromScopeOrder(id);
+            
             delete this._scopes[id];
             
-            _.pull(this._defaultContext.scopeOrder, id);
-            
             $(scope).off(PREFERENCE_CHANGE);
-            var keys = scope.getKeys();
-            $(this).trigger(PREFERENCE_CHANGE, {
-                ids: keys
-            });
         },
         
         /**
