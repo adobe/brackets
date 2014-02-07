@@ -64,5 +64,9 @@
             "type": "MIT",
             "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
         }
-    ]
+    ],
+    "description": "Brackets is an open source code editor for web designers and front-end developers.",
+    "bugs": {
+        "url": "https://github.com/adobe/brackets/issues"
+    }
 }
