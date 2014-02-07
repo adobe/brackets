@@ -25,9 +25,6 @@
 [submodule "src/extensions/default/JSLint/thirdparty/jslint"]
 	path = src/extensions/default/JSLint/thirdparty/jslint
 	url = https://github.com/douglascrockford/JSLint.git
-[submodule "filer"]
-	path = filer
-	url = https://github.com/js-platform/filer.git
 [submodule "src/thirdparty/filer"]
 	path = src/thirdparty/filer
-	url = https://github.com/js-platform/filer.git
+	url = https://github.com/simonwex/filer.git
