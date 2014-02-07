@@ -37,6 +37,13 @@ require.config({
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
         "fileSystemImpl"    : "filesystem/impls/browser/BrowserFileSystem"
+    },
+    shim: {
+        // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
+        // and we use a fake one for reduced size, since we only care about utf8.
+        "fileSystemImpl": {
+            deps: ["thirdparty/filer/lib/encoding-indexes-shim"]
+        }
     }
 });
 
