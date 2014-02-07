@@ -36,8 +36,8 @@ define(function (require, exports, module) {
         fs              = new Filer.FileSystem(),
         fsPath          = Filer.Path;
 
-    // window.Filer = Filer;
-    // window.fs = fs;
+    window.Filer = Filer;
+    window.fs = fs;
 
 
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         throw new Error();
     }
 
-    function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
+    function showSaveDialog(title, initialPath, x, callback) {
         // FIXME
         throw new Error();
     }
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
     }
 
     function rename(oldPath, newPath, callback) {
-        fs.rename(oldPath, proposedNewFilename, _wrap(callback));
+        fs.rename(oldPath, newPath, _wrap(callback));
     }
 
     function readFile(path, options, callback) {
@@ -226,17 +226,19 @@ define(function (require, exports, module) {
             callback = options;
         }
 
-        async.parallel([
-            function(callback){
-                fs.readFile(path, encoding, callback);
-            },
-            function(callback){
-                if (options.stat){
-                    callback(null, options.stat);
-                } else {
-                    stat(path, callback);
+        async.parallel(
+            [
+                function(callback){
+                    fs.readFile(path, encoding, callback);
+                },
+                function(callback){
+                    if (options.stat){
+                        callback(null, options.stat);
+                    } else {
+                        stat(path, callback);
+                    }
                 }
-            }],
+            ],
             function(err, results){
                 if (err){
                     callback(_mapError(err));
@@ -252,7 +254,7 @@ define(function (require, exports, module) {
         var encoding = options.encoding || "utf8";
 
         if (encoding !== "utf8"){
-            // throw "Error, not a utf8 file";
+            throw "Error, not a utf8 file";
         }
 
         if (typeof options === "function"){
