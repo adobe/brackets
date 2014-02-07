@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
         LINEAR_STRICT_REGEX             = /transition.*?[: ,]linear[ ,;]/,
         LINEAR_LAX_REGEX                = /linear/,
-        STEPS_REGEX                     = /steps\(\s*(\d+)\s*(?:,\s*(start|end)\s*)?\)/,
+        STEPS_VALID_REGEX               = /steps\(\s*(\d+)\s*(?:,\s*(\w+)\s*)?\)/,
+        STEPS_GENERAL_REGEX             = /steps\((.*)\)/,
         STEP_STRICT_REGEX               = /[: ,](?:step-start|step-end)[ ,;]/,
         STEP_LAX_REGEX                  = /step-start|step-end/;
 
@@ -76,11 +77,12 @@ define(function (require, exports, module) {
      * Get valid params for an invalid cubic-bezier.
      *
      * @param {RegExp.match} match (Invalid) matches from cubicBezierMatch()
-     * @param {Array} def The default params to replace invalid values with
      * @return {?RegExp.match} Valid match or null if the output is not valid
      */
-    function _getValidBezierParams(match, def) {
+    function _getValidBezierParams(match) {
         var param,
+            // take ease-in-out as default value in case there are no params yet (or they are invalid)
+            def = [ ".42", "0", ".58", "1" ],
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
             originalLength = match[0].length,
             i;
@@ -158,6 +160,67 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Get valid params for an invalid steps function.
+     *
+     * @param {RegExp.match} match (Invalid) matches from stepsMatch()
+     * @return {?RegExp.match} Valid match or null if the output is not valid
+     */
+    function _getValidStepsParams(match) {
+        var param,
+            def = [ "5" ],
+            params = def,
+            oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
+            originalLength = match[0].length,
+            i;
+
+        if (match) {
+            match = match[1].split(",");
+        }
+
+        if (match) {
+            if (match[1]) {
+                param = _convertToNumber(match[1]);
+
+                // Verify number_of_params is a number
+                // If not, replace it with the default value
+                if (!param.isNumber) {
+                    param.value = def[1];
+
+                // Round number_of_params to an integer
+                } else if (param.value) {
+                    param.value = Math.floor(param.value);
+                }
+
+                // Verify number_of_steps is >= 1
+                // If not, set them to the default value
+                if (param.value < 1) {
+                    param.value = def[1];
+                }
+                params[1] = param.value;
+            }
+            if (match[2]) {
+                // little autocorrect feature: leading s gets 'start', leading e gets 'end'
+                param = match[2].replace(/[\s\"']/g); // replace possible trailing whitespace or leading quotes
+                param = param.substr(0, 1);
+                if (param === "s") {
+                    params[2] = "start";
+                } else if (param === "e") {
+                    params[2] = "end";
+                }
+            }
+        }
+        params = "steps(" + params.join(", ") + ")";
+        params = params.match(STEPS_VALID_REGEX);
+
+        if (params) {
+            params.index = oldIndex; // re-set the index here to get the right context
+            params.originalLength = originalLength;
+            return params;
+        }
+        return null;
+    }
+
+    /**
      * Validate steps function parameters that are not already validated by regex:
      *
      * @param {RegExp.match} match  RegExp Match object with steps function parameters
@@ -168,6 +231,10 @@ define(function (require, exports, module) {
         var count = _convertToNumber(match[1]);
 
         if (!count.isNumber || count.value <= 0) {
+            return false;
+        }
+
+        if (match[2] && !(match[2] === "start" || match[2] === "end")) {
             return false;
         }
 
@@ -220,8 +287,7 @@ define(function (require, exports, module) {
 
         match = str.match(BEZIER_CURVE_GENERAL_REGEX);
         if (match) {
-            // take ease-in-out as default value in case there are no params yet (or they are invalid)
-            match = _getValidBezierParams(match, [ ".42", "0", ".58", "1" ]);
+            match = _getValidBezierParams(match);
             if (match && _validateCubicBezierParams(match)) {
                 return _tagMatch(match, BEZIER);
             } else { // this should not happen!
@@ -280,10 +346,22 @@ define(function (require, exports, module) {
      * @return {!RegExpMatch}
      */
     function stepsMatch(str, lax) {
-        // First look for steps(i,pos).
-        var match = str.match(STEPS_REGEX);
+        var match;
+
+        // First look for any steps().
+        match = str.match(STEPS_VALID_REGEX);
+        if (match && _validateStepsParams(match)) { // cubic-bezier() with valid params
+            return _tagMatch(match, STEP);
+        }
+
+        match = str.match(STEPS_GENERAL_REGEX);
         if (match) {
-            return _validateStepsParams(match) ? _tagMatch(match, STEP) : null;
+            match = _getValidStepsParams(match);
+            if (match && _validateStepsParams(match)) {
+                return _tagMatch(match, STEP);
+            } else { // this should not happen!
+                window.console.log("brackets-steps: TimingFunctionUtils._getValidStepsParams created invalid code");
+            }
         }
 
         // Next look for the step functions (which are special cases of steps())
