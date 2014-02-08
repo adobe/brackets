@@ -429,7 +429,7 @@ define(function (require, exports, module) {
             }
             newScopeOrder = _.first(scopeOrder, before);
             newScopeOrder.push("project");
-            newScopeOrder.push.apply(scopeOrder, _.rest(scopeOrder, before));
+            newScopeOrder.push.apply(newScopeOrder, _.rest(scopeOrder, before));
         } else {
             newScopeOrder = _.without(scopeOrder, "project");
         }
