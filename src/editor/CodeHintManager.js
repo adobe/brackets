@@ -517,7 +517,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Handle keys related to displaying, searching, and navigating the hint list.
+     * Handles keys related to displaying, searching, and navigating the hint list.
      * This gets called before handleChange.
      *
      * TODO: Ideally, we'd get a more semantic event from the editor that told us
