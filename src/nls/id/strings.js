@@ -314,7 +314,7 @@ define({
     "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Catatan Rilis",
     "CMD_REPORT_AN_ISSUE"                 : "Laporkan Isu",
-    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Tampilkan Extensi Folder",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Tampilkan Folder Ekstensi",
     "CMD_TWITTER"                         : "{TWITTER_NAME} pada Twitter",
     "CMD_ABOUT"                           : "Tentang {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Buka Tentang Berkas",
