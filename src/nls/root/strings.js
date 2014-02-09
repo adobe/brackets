@@ -485,6 +485,7 @@ define({
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
     "LOCALE_HU"                                 : "Hungarian",
     "LOCALE_KO"                                 : "Korean",
+    "LOCALE_ID"                                 : "Indonesian",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
