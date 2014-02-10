@@ -171,7 +171,7 @@ define(function (require, exports, module) {
                 this._isOwnChange = false;
                 this.hostEditor.setSelection(range.start, {
                     line: range.start.line,
-                    ch: range.start.ch + range.originalLength
+                    ch: range.start.ch + timingFunctionString.length
                 });
             }
             
