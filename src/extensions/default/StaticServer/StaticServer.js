@@ -44,11 +44,13 @@ define(function (require, exports, module) {
      *        pathResolver   - Function to covert absolute native paths to project relative paths
      *        root           - Native path to the project root (and base URL)
      *        nodeDomain     - An initialized NodeDomain
+     *        port           - Optional port number to serve from
      */
     function StaticServer(config) {
         this._nodeDomain = config.nodeDomain;
         this._onRequestFilter = this._onRequestFilter.bind(this);
-        
+        this._port = config.port;
+
         BaseServer.call(this, config);
     }
     
@@ -102,7 +104,7 @@ define(function (require, exports, module) {
      */
     StaticServer.prototype.readyToServe = function () {
         var self = this;
-        return this._nodeDomain.exec("getServer", self._root)
+        return this._nodeDomain.exec("getServer", self._root, self._port)
             .done(function (address) {
                 self._baseUrl = "http://" + address.address + ":" + address.port + "/";
             })
