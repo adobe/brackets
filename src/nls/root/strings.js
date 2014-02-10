@@ -458,6 +458,7 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
     // Locales (used by Debug > Switch Language)
+    "LOCALE_CA"                                 : "Catalan",
     "LOCALE_CS"                                 : "Czech",
     "LOCALE_DE"                                 : "German",
     "LOCALE_EL"                                 : "Greek",
