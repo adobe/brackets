@@ -162,7 +162,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "vastaavuutta",
     "FIND_IN_FILES_MORE_THAN"           : "Yli ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Paina Ctrl/Cmd laajentaaksesi/pienentääksesi kaikki",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Virhe noudettaessa päivitystietoja",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Viimeisimpien päivitystietojen noutamisessa palvelimelta oli ongelma. Varmista olevasi yhteydessä verkkoon ja yritä uudelleen.",
