@@ -240,11 +240,16 @@ define(function (require, exports, module) {
     var stateManager = new PreferencesBase.PreferencesSystem();
     var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
     
-    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
+    var userScope = stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
+    var projectLayer = new PreferencesBase.ProjectLayer();
+    
+    userScope.done(function () {
+        stateManager.addLayer("user", projectLayer);
+    });
 
     var preferencesManager = new PreferencesBase.PreferencesSystem();
     
-    var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
     // Set up the .brackets.json file handling
     userScope
@@ -353,13 +358,14 @@ define(function (require, exports, module) {
      * 
      * @param {string} id preference to set
      * @param {*} value new value for the preference
-     * @param {boolean=} dontSave If it is undefined or false, then save the 
+     * @param {boolean=} doNotSave If it is undefined or false, then save the 
      *      view state immediately.
      */
-    function setViewState(id, value, dontSave) {
-        stateManager.set(id, value);
+    function setViewState(id, value, options, doNotSave) {
         
-        if (!dontSave) {
+        stateManager.set(id, value, options);
+        
+        if (!doNotSave) {
             stateManager.save();
         }
     }
@@ -383,6 +389,7 @@ define(function (require, exports, module) {
     exports.setViewState        = setViewState;
     exports.addScope            = preferencesManager.addScope.bind(preferencesManager);
     exports.stateManager        = stateManager;
+    exports.projectLayer        = projectLayer;
     exports.FileStorage         = PreferencesBase.FileStorage;
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
     exports.definePreference    = preferencesManager.definePreference.bind(preferencesManager);

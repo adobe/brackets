@@ -810,11 +810,14 @@ define(function (require, exports, module) {
      */
     function _savePreferences() {
         // save the working set file paths
-        var files       = [],
-            isActive    = false,
-            workingSet  = getWorkingSet(),
-            currentDoc  = getCurrentDocument(),
-            projectRoot = ProjectManager.getProjectRoot();
+        var files        = [],
+            isActive     = false,
+            workingSet   = getWorkingSet(),
+            currentDoc   = getCurrentDocument(),
+            projectRoot  = ProjectManager.getProjectRoot(),
+            projectFiles = { location : { scope: "user",
+                                          layer: "project",
+                                          layerID: projectRoot.fullPath } };
 
         if (!projectRoot) {
             return;
@@ -837,8 +840,10 @@ define(function (require, exports, module) {
             }
         });
 
-        // append file root to make file list unique for each project
-        PreferencesManager.setViewState("files_" + projectRoot.fullPath, files);
+        // Update the project path in project layer before writing out working set files.
+        PreferencesManager.projectLayer.setProjectPath(projectRoot.fullPath);
+        PreferencesManager.setViewState("project.files", files, projectFiles);
+        PreferencesManager.projectLayer.setProjectPath(null);
     }
 
     /**
@@ -848,7 +853,11 @@ define(function (require, exports, module) {
     function _projectOpen(e) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = PreferencesManager.getViewState("files_" + projectRoot.fullPath);
+            files = [];
+        
+        PreferencesManager.projectLayer.setProjectPath(projectRoot.fullPath);
+        files = PreferencesManager.getViewState("project.files");
+        PreferencesManager.projectLayer.setProjectPath(null);
         
         console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
@@ -998,13 +1007,16 @@ define(function (require, exports, module) {
      */
     function _checkPreferencePrefix(key) {
         if (key.indexOf("files_/") === 0) {
-            return "user";
+            var projectPath = key.substr(6);
+            PreferencesManager.projectLayer.setProjectPath(projectPath);
+            return "user project.files " + projectPath;
         }
         
         return null;
     }
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
+    PreferencesManager.projectLayer.setProjectPath(null);
 
     // Handle file saves that may affect preferences
     $(exports).on("documentSaved", function (e, doc) {

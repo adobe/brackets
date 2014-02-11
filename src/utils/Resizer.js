@@ -214,7 +214,7 @@ define(function (require, exports, module) {
             adjustSibling(elementSize);
             
             $element.trigger("panelExpanded", [elementSize]);
-            PreferencesManager.setViewState(elementID, elementPrefs, true);
+            PreferencesManager.setViewState(elementID, elementPrefs, null, true);
         });
                       
         $element.data("hide", function () {
@@ -236,7 +236,7 @@ define(function (require, exports, module) {
             adjustSibling(0);
             
             $element.trigger("panelCollapsed", [elementSize]);
-            PreferencesManager.setViewState(elementID, elementPrefs, true);
+            PreferencesManager.setViewState(elementID, elementPrefs, null, true);
         });
         
         // If the resizer is positioned right or bottom of the panel, we need to listen to

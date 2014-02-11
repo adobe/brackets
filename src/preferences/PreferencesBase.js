@@ -320,6 +320,10 @@ define(function (require, exports, module) {
             if (location && location.layer) {
                 var layer = this._layerMap[location.layer];
                 if (layer) {
+                    if (this.data[layer.key] === undefined) {
+                        this.data[layer.key] = {};
+                    }
+                    
                     var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
                     this._dirty = this._dirty || wasSet;
                     return wasSet;
@@ -547,6 +551,70 @@ define(function (require, exports, module) {
         }
     }
 
+    function ProjectLayer() {
+        this.projectPath = null;
+    }
+
+    ProjectLayer.prototype = {
+        key: "project",
+
+        get: function (data, id, context) {
+            if (!data || !this.projectPath) {
+                return;
+            }
+
+            if (data[this.projectPath] && data[this.projectPath][id]) {
+                return data[this.projectPath][id];
+            }
+            return;
+        },
+
+        getPreferenceLocation: function (data, id, context) {
+            if (!data || !this.projectPath) {
+                return;
+            }
+
+            if (data[this.projectPath] && data[this.projectPath][id]) {
+                return this.projectPath;
+            }
+
+            return;
+        },
+
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id, context);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (value === undefined) {
+                delete section[id];
+            } else {
+                section[id] = value;
+            }
+            return true;
+        },
+
+        getKeys: function (data, context) {
+            if (!data) {
+                return;
+            }
+
+            return _.union.apply(null, _.map(_.values(data), _.keys));
+        },
+
+        setProjectPath: function (projectPath) {
+            this.projectPath = projectPath;
+        }
+    };
+    
     /**
      * Provides layered preferences based on file globs, generally following the model provided
      * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
@@ -1272,6 +1340,16 @@ define(function (require, exports, module) {
         },
         
         /**
+         * Adds a Layer to the specified scope.
+         *
+         * @param {string} scope Name of the scope where the layer object is to be added.
+         * @param {Layer} layer Layer object to add to this Scope
+         */
+        addLayer: function (scope, layer) {
+            this._scopes[scope].addLayer(layer);
+        },
+
+        /**
          * Path Scopes provide special handling for scopes that are managed by a
          * collection of files in the file tree. The idea is that files are
          * searched for going up the file tree to the root.
@@ -1488,5 +1566,6 @@ define(function (require, exports, module) {
     exports.Scope              = Scope;
     exports.MemoryStorage      = MemoryStorage;
     exports.PathLayer          = PathLayer;
+    exports.ProjectLayer       = ProjectLayer;
     exports.FileStorage        = FileStorage;
 });

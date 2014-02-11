@@ -221,8 +221,17 @@ define(function (require, exports, module) {
                 var parts = rule.split(" ");
                 if (parts[0] === "user") {
                     var newKey = parts.length > 1 ? parts[1] : key;
+                    var options = null;
+                    
+                    if (parts.length > 2 && parts[2].indexOf("/") === 0) {
+                        var projectPath = rule.substr(rule.indexOf(parts[2]));
+                        options = { location: { scope: "user",
+                                                layer: "project",
+                                                layerID: projectPath } };
+                    }
+                    
                     if (isViewState) {
-                        PreferencesManager.stateManager.set(newKey, prefs[key]);
+                        PreferencesManager.stateManager.set(newKey, prefs[key], options);
                     } else {
                         PreferencesManager.set(newKey, prefs[key]);
                     }
