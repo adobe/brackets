@@ -254,11 +254,11 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        $(this).on("cursorActivity", function (jqEvent, cmEvent) {
-            self._handleCursorActivity(cmEvent);
+        $(this).on("cursorActivity", function (jqEvent, editor) {
+            self._handleCursorActivity(jqEvent);
         });
-        $(this).on("keyEvent", function (jqEvent, cmEvent) {
-            self._handleKeyEvents(cmEvent);
+        $(this).on("keypress", function (jqEvent, editor, cmEvent) {
+            self._handleKeypressEvents(cmEvent);
         });
         $(this).on("change", function (jqEvent, editor, changeList) {
             self._handleEditorChange(changeList);
@@ -332,24 +332,23 @@ define(function (require, exports, module) {
      * back-indenting it if so.
      */
     Editor.prototype._checkElectricChars = function (event) {
-        var instance = this._codeMirror;
-        if (event.type === "keypress") {
-            var keyStr = String.fromCharCode(event.which || event.keyCode);
-            if (/[\]\{\}\)]/.test(keyStr)) {
-                // If all text before the cursor is whitespace, auto-indent it
-                var cursor = this.getCursorPos();
-                var lineStr = instance.getLine(cursor.line);
-                var nonWS = lineStr.search(/\S/);
-                
-                if (nonWS === -1 || nonWS >= cursor.ch) {
-                    // Need to do the auto-indent on a timeout to ensure
-                    // the keypress is handled before auto-indenting.
-                    // This is the same timeout value used by the
-                    // electricChars feature in CodeMirror.
-                    window.setTimeout(function () {
-                        instance.indentLine(cursor.line);
-                    }, 75);
-                }
+        var instance = this._codeMirror,
+            keyStr = String.fromCharCode(event.which || event.keyCode);
+
+        if (/[\]\{\}\)]/.test(keyStr)) {
+            // If all text before the cursor is whitespace, auto-indent it
+            var cursor = this.getCursorPos();
+            var lineStr = instance.getLine(cursor.line);
+            var nonWS = lineStr.search(/\S/);
+
+            if (nonWS === -1 || nonWS >= cursor.ch) {
+                // Need to do the auto-indent on a timeout to ensure
+                // the keypress is handled before auto-indenting.
+                // This is the same timeout value used by the
+                // electricChars feature in CodeMirror.
+                window.setTimeout(function () {
+                    instance.indentLine(cursor.line);
+                }, 75);
             }
         }
     };
@@ -379,7 +378,7 @@ define(function (require, exports, module) {
      * Handle CodeMirror key events.
      * @param {!Event} event
      */
-    Editor.prototype._handleKeyEvents = function (event) {
+    Editor.prototype._handleKeypressEvents = function (event) {
         this._checkElectricChars(event);
     };
 
@@ -691,15 +690,15 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
-        // onKeyEvent is an option in CodeMirror rather than an event--it's a
-        // low-level hook for all keyboard events rather than a specific event. For
-        // our purposes, though, it's convenient to treat it as an event internally,
-        // so we bridge it to jQuery events the same way we do ordinary CodeMirror
-        // events.
-        this._codeMirror.setOption("onKeyEvent", function (instance, event) {
-            $(self).triggerHandler("keyEvent", [self, event]);
+        // Redispatch these CodeMirror key events as jQuery events
+        function _onKeyEvent(instance, event) {
+            $(self).triggerHandler("keyEvent", [self, event]);  // deprecated
+            $(self).triggerHandler(event.type, [self, event]);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
-        });
+        }
+        this._codeMirror.on("keydown",  _onKeyEvent);
+        this._codeMirror.on("keypress", _onKeyEvent);
+        this._codeMirror.on("keyup",    _onKeyEvent);
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
         // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on

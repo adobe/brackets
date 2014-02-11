@@ -383,7 +383,7 @@ define(function (require, exports, module) {
             testToken = editor._codeMirror.getTokenAt(testPos, true);
 
         // Currently only support url. May be null if starting to type
-        if (ctx.token.className && ctx.token.className !== "string") {
+        if (ctx.token.type && ctx.token.type !== "string") {
             return createInfo();
         }
 
@@ -393,11 +393,11 @@ define(function (require, exports, module) {
         propValues[0] = backwardCtx.token.string;
 
         while (TokenUtils.movePrevToken(backwardCtx)) {
-            if (backwardCtx.token.className === "def" && backwardCtx.token.string === "@import") {
+            if (backwardCtx.token.type === "def" && backwardCtx.token.string === "@import") {
                 break;
             }
             
-            if (backwardCtx.token.className && backwardCtx.token.className !== "tag" && backwardCtx.token.string !== "url") {
+            if (backwardCtx.token.type && backwardCtx.token.type !== "tag" && backwardCtx.token.string !== "url") {
                 // Previous token may be white-space
                 // Otherwise, previous token may only be "url("
                 break;
@@ -407,7 +407,7 @@ define(function (require, exports, module) {
             offset += backwardCtx.token.string.length;
         }
         
-        if (backwardCtx.token.className !== "def" || backwardCtx.token.string !== "@import") {
+        if (backwardCtx.token.type !== "def" || backwardCtx.token.string !== "@import") {
             // Not in url
             return createInfo();
         }
