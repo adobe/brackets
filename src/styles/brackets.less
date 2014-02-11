@@ -1124,9 +1124,11 @@ a, img {
 /* Quick Open search bar & dropdown */
 
 .smart_autocomplete_container {
+    // the borders show up even if the container is empty, must set height to zero using JS.
+    border: 1px solid @tc-gray-panel-border;
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
-    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.09);
+    box-shadow: @tc-normal-shadow-bottom;
     opacity: 0;
     -webkit-animation: autocomplete 90ms cubic-bezier(.01, .91, 0, .99) 190ms 1;
     -webkit-animation-fill-mode: forwards;
