@@ -92,30 +92,26 @@ define(function (require, exports, module) {
         var cursor = editor.getCursorPos(true);
         
         var cursorStr = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1);
-        if (editor.hasSelection()) {
-            // Show info about selection size when one exists
-            var sels = editor.getSelections(),
-                selStr;
-            
-            if (sels.length > 1) {
-                selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
-            } else {
-                var sel = sels[0];
-                if (sel.start.line !== sel.end.line) {
-                    var lines = sel.end.line - sel.start.line + 1;
-                    if (sel.end.ch === 0) {
-                        lines--;  // end line is exclusive if ch is 0, inclusive otherwise
-                    }
-                    selStr = _formatCountable(lines, Strings.STATUSBAR_SELECTION_LINE_SINGULAR, Strings.STATUSBAR_SELECTION_LINE_PLURAL);
-                } else {
-                    var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
-                    selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
+        
+        var sels = editor.getSelections(),
+            selStr = "";
+
+        if (sels.length > 1) {
+            selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
+        } else if (editor.hasSelection()) {
+            var sel = sels[0];
+            if (sel.start.line !== sel.end.line) {
+                var lines = sel.end.line - sel.start.line + 1;
+                if (sel.end.ch === 0) {
+                    lines--;  // end line is exclusive if ch is 0, inclusive otherwise
                 }
+                selStr = _formatCountable(lines, Strings.STATUSBAR_SELECTION_LINE_SINGULAR, Strings.STATUSBAR_SELECTION_LINE_PLURAL);
+            } else {
+                var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
+                selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
             }
-            $cursorInfo.text(cursorStr + selStr);
-        } else {
-            $cursorInfo.text(cursorStr);
         }
+        $cursorInfo.text(cursorStr + selStr);
     }
     
     function _changeIndentWidth(value) {
