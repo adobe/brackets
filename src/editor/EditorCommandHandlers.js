@@ -37,7 +37,9 @@ define(function (require, exports, module) {
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
-        TokenUtils         = require("utils/TokenUtils");
+        TokenUtils         = require("utils/TokenUtils"),
+        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        _                  = require("thirdparty/lodash");
     
     /**
      * List of constants
@@ -560,23 +562,39 @@ define(function (require, exports, module) {
             return;
         }
 
-        var sel = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
-            delimiter = "";
+        var selections = editor.getSelections(),
+            delimiter = "",
+            edits = [],
+            rangeSels = [],
+            cursorSels = [],
+            doc = editor.document;
 
-        if (!hasSelection) {
-            sel.start.ch = 0;
-            sel.end = {line: sel.start.line + 1, ch: 0};
-            if (sel.end.line === editor.lineCount()) {
-                delimiter = "\n";
+        // When there are multiple selections, we want to handle all the cursors first (duplicating
+        // their lines), then all the ranges (duplicating the ranges).
+        _.each(selections, function (sel) {
+            if (CodeMirror.cmpPos(sel.start, sel.end) === 0) {
+                cursorSels.push(sel);
+            } else {
+                rangeSels.push(sel);
             }
-        }
+        });
+        
+        _.each(cursorSels, function (sel, index) {
+            // Only handle each line once.
+            if (index === 0 || sel.start.line > cursorSels[index - 1].start.line) {
+                var start = {line: sel.start.line, ch: 0},
+                    end = {line: sel.start.line + 1, ch: 0};
+                if (end.line === editor.lineCount()) {
+                    delimiter = "\n";
+                }
+                edits.push({ text: doc.getRange(start, end) + delimiter, start: start });
+            }
+        });
+        _.each(rangeSels, function (sel) {
+            edits.push({ text: doc.getRange(sel.start, sel.end), start: sel.start });
+        });
 
-        // Make the edit
-        var doc = editor.document;
-
-        var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
-        doc.replaceRange(selectedText, sel.start);
+        editor.doMultipleEdits(edits);
     }
 
     /**
@@ -588,27 +606,49 @@ define(function (require, exports, module) {
         if (!editor) {
             return;
         }
-
-        var from,
-            to,
-            sel = editor.getSelection(),
-            doc = editor.document;
-
-        from = {line: sel.start.line, ch: 0};
-        to = {line: sel.end.line + 1, ch: 0};
-        if (to.line === editor.getLastVisibleLine() + 1) {
-            // Instead of deleting the newline after the last line, delete the newline
-            // before the first line--unless this is the entire visible content of the editor,
-            // in which case just delete the line content.
-            if (from.line > editor.getFirstVisibleLine()) {
-                from.line -= 1;
-                from.ch = doc.getLine(from.line).length;
-            }
-            to.line -= 1;
-            to.ch = doc.getLine(to.line).length;
-        }
         
-        doc.replaceRange("", from, to);
+        // Walk the selections, calculating the deletion edits we need to do as we go;
+        // editor.doMultipleEdits() will take care of adjusting the edit locations when
+        // it actually performs the edits.
+        var doc = editor.document,
+            from,
+            to,
+            selections = editor.getSelections(),
+            edits = [];
+        
+        _.each(selections, function (sel, index) {
+            // We only want to delete each line once. So, if a selection is wholly contained
+            // in the same line that the previous selection ends on, we skip it. If a selection
+            // starts on the same line but continues to future lines, we just bump its start by one.
+            // (We know that the selections from getSelections() are guaranteed to be in order
+            // and non-overlapping.)
+            var selStartLine = sel.start.line;
+            if (index > 0 && selStartLine === selections[index - 1].end.line) {
+                if (sel.end.line > selStartLine) {
+                    selStartLine++;
+                } else {
+                    selStartLine = null;
+                }
+            }
+            if (selStartLine !== null) {
+                from = {line: selStartLine, ch: 0};
+                to = {line: sel.end.line + 1, ch: 0};
+                if (to.line === editor.getLastVisibleLine() + 1) {
+                    // Instead of deleting the newline after the last line, delete the newline
+                    // before the beginning of the line--unless this is the entire visible content 
+                    // of the editor, in which case just delete the line content.
+                    if (from.line > editor.getFirstVisibleLine()) {
+                        from.line -= 1;
+                        from.ch = doc.getLine(from.line).length;
+                    }
+                    to.line -= 1;
+                    to.ch = doc.getLine(to.line).length;
+                }
+
+                edits.push({text: "", start: from, end: to});
+            }
+        });
+        editor.doMultipleEdits(edits);
     }
     
     /**
@@ -728,35 +768,67 @@ define(function (require, exports, module) {
             return;
         }
         
-        var sel            = editor.getSelection(),
-            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+        var selections     = editor.getSelections(),
             isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
             lastLine       = editor.getLastVisibleLine(),
             cm             = editor._codeMirror,
             doc            = editor.document,
+            edits          = [],
+            newSelections,
             line;
         
-        // Insert the new line
-        switch (direction) {
-        case DIRECTION_UP:
-            line = sel.start.line;
-            break;
-        case DIRECTION_DOWN:
-            line = sel.end.line;
-            if (!(hasSelection && sel.end.ch === 0)) {
-                // If not linewise selection
-                line++;
-            }
-            break;
-        }
+        // First, insert all the newlines (skipping multiple selections on the same line), 
+        // then indent them all. (We can't easily do them all at once, because doMultipleEdits()
+        // won't do the indentation for us, but we want its help tracking any selection changes
+        // as the result of the edits.)
         
-        if (line > lastLine && isInlineWidget) {
-            doc.replaceRange("\n", {line: line - 1, ch: doc.getLine(line - 1).length}, null, "+input");
-        } else {
-            doc.replaceRange("\n", {line: line, ch: 0}, null, "+input");
-        }
-        cm.indentLine(line, "smart", true);
-        editor.setSelection({line: line, ch: null});
+        doc.batchOperation(function () {
+            _.each(selections, function (sel, index) {
+                if (index === 0 ||
+                        (direction === DIRECTION_UP && sel.start.line > selections[index - 1].start.line) ||
+                        (direction === DIRECTION_DOWN && sel.end.line > selections[index - 1].end.line)) {
+                    // Insert the new line
+                    switch (direction) {
+                    case DIRECTION_UP:
+                        line = sel.start.line;
+                        break;
+                    case DIRECTION_DOWN:
+                        line = sel.end.line;
+                        if (!(CodeMirror.cmpPos(sel.start, sel.end) !== 0 && sel.end.ch === 0)) {
+                            // If not linewise selection
+                            line++;
+                        }
+                        break;
+                    }
+
+                    var insertPos;
+                    if (line > lastLine && isInlineWidget) {
+                        insertPos = {line: line - 1, ch: doc.getLine(line - 1).length};
+                    } else {
+                        insertPos = {line: line, ch: 0};
+                    }
+                    // We want the selection after this edit to be right before the \n we just inserted.
+                    edits.push({text: "\n", start: insertPos, selections: [{start: insertPos, end: insertPos, primary: sel.primary}]});
+                } else {
+                    // We just want to discard this selection, since we've already operated on the
+                    // same line and it would just collapse to the same location. But if this was
+                    // primary, make sure the last selection we did operate on ends up as primary.
+                    if (sel.primary) {
+                        edits[edits.length - 1].selections[0].primary = true;
+                    }
+                }
+            });
+            newSelections = editor.doMultipleEdits(edits, "+input");
+            
+            // Now indent each added line (which doesn't mess up any line numbers, and
+            // we're going to set the character offset to the last position on each line anyway).
+            _.each(newSelections, function (sel) {
+                cm.indentLine(sel.start.line, "smart", true);
+                sel.start.ch = null; // last character on line
+                sel.end = sel.start;
+            });
+        });
+        editor.setSelections(newSelections);
     }
 
     /**
@@ -804,18 +876,7 @@ define(function (require, exports, module) {
     function selectLine(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
-            var sel  = editor.getSelection();
-            var from = {line: sel.start.line, ch: 0};
-            var to   = {line: sel.end.line + 1, ch: 0};
-            
-            if (to.line === editor.getLastVisibleLine() + 1) {
-                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
-                // which due to how CM clips coords would only work some of the time
-                to.line -= 1;
-                to.ch = editor.document.getLine(to.line).length;
-            }
-            
-            editor.setSelection(from, to);
+            editor.setSelections(editor.expandSelectionsToLines(editor.getSelections()));
         }
     }
 

@@ -435,8 +435,9 @@ define(function (require, exports, module) {
 
         // Prepopulate the search field
         if (!initialQuery) {
-            // Prepopulate with the current selection, if any
-            initialQuery = cm.getSelection();
+            // Prepopulate with the current primary selection, if any
+            var sel = editor.getSelection();
+            initialQuery = cm.getRange(sel.start, sel.end);
             
             // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
             var newline = initialQuery.indexOf("\n");

@@ -78,6 +78,9 @@ define(function (require, exports, module) {
         // Helper functions for testing cursor position / selection range
         // TODO: duplicated from EditorCommandHandlers-test
         function expectSelection(sel) {
+            if (!sel.reversed) {
+                sel.reversed = false;
+            }
             expect(myEditor.getSelection()).toEqual(sel);
         }
         function expectHighlightedMatches(selections, expectedDOMHighlightCount) {
@@ -509,6 +512,13 @@ define(function (require, exports, module) {
                 
                 enterSearchText("bar");
                 expectSelection(barExpectedMatches[0]);
+            });
+            
+            it("should get primary selection as initial query", function () {
+                myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}, primary: true},
+                                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 1}}]);
+                twCommandManager.execute(Commands.EDIT_FIND);
+                expect(getSearchField().val()).toEqual("require");
             });
             
             it("should extend original selection when appending to prepopulated text", function () {

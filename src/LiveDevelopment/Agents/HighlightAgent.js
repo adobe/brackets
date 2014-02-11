@@ -37,7 +37,8 @@ define(function HighlightAgent(require, exports, module) {
     var DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
-        RemoteAgent     = require("LiveDevelopment/Agents/RemoteAgent");
+        RemoteAgent     = require("LiveDevelopment/Agents/RemoteAgent"),
+        _               = require("thirdparty/lodash");
 
     var _highlight = {}; // active highlight
 
@@ -108,11 +109,22 @@ define(function HighlightAgent(require, exports, module) {
     }
     
     /** Highlight all nodes with 'data-brackets-id' value
-     * that matches id.
-     * @param {string} value of the 'data-brackets-id' to match
+     * that matches id, or if id is an array, matches any of the given ids.
+     * @param {string|Array<string>} value of the 'data-brackets-id' to match,
+     * or an array of such.
      */
-    function domElement(id) {
-        rule("[data-brackets-id='" + id + "']");
+    function domElement(ids) {
+        var selector = "";
+        if (!Array.isArray(ids)) {
+            ids = [ids];
+        }
+        _.each(ids, function (id) {
+            if (selector !== "") {
+                selector += ",";
+            }
+            selector += "[data-brackets-id='" + id + "']";
+        });
+        rule(selector);
     }
     
     /**

@@ -398,8 +398,8 @@ define(function (require, exports, module) {
         //    insertion point, insert a tab character or the appropriate number
         //    of spaces to pad to the nearest tab boundary.
         var instance = this._codeMirror,
-            from = this.getCursorPos(false, "from"),
-            to = this.getCursorPos(false, "to"),
+            from = this.getCursorPos(false, "start"),
+            to = this.getCursorPos(false, "end"),
             line = instance.getLine(from.line),
             indentAuto = false,
             insertTab = false;
@@ -418,8 +418,8 @@ define(function (require, exports, module) {
             // already been at the correct indentation level as far as CM is concerned, so insert 
             // another tab.
             if (instance.getLine(from.line).length === currentLength) {
-                var newFrom = this.getCursorPos(false, "from"),
-                    newTo = this.getCursorPos(false, "to");
+                var newFrom = this.getCursorPos(false, "start"),
+                    newTo = this.getCursorPos(false, "end");
                 if (newFrom.line === from.line && newFrom.ch === from.ch &&
                         newTo.line === to.line && newTo.ch === to.ch) {
                     insertTab = true;
@@ -769,15 +769,23 @@ define(function (require, exports, module) {
      * Gets the current cursor position within the editor.
      * @param {boolean} expandTabs  If true, return the actual visual column number instead of the character offset in
      *      the "ch" property.
-     * @param {?string} start Optional string indicating which end of the
+     * @param {?string} which Optional string indicating which end of the
      *  selection to return. It may be "start", "end", "head" (the side of the
      *  selection that moves when you press shift+arrow), or "anchor" (the
      *  fixed side of the selection). Omitting the argument is the same as
      *  passing "head". A {line, ch} object will be returned.)
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function (expandTabs, start) {
-        var cursor = _copyPos(this._codeMirror.getCursor(start));
+    Editor.prototype.getCursorPos = function (expandTabs, which) {
+        // Translate "start" and "end" to the official CM names (it actually
+        // supports them as-is, but that isn't documented and we don't want to
+        // rely on it).
+        if (which === "start") {
+            which = "from";
+        } else if (which === "end") {
+            which = "to";
+        }
+        var cursor = _copyPos(this._codeMirror.getCursor(which));
         
         if (expandTabs) {
             cursor.ch = this.getColOffset(cursor);
@@ -843,7 +851,7 @@ define(function (require, exports, module) {
      *
      * This does not alter the horizontal scroll position.
      *
-     * @param {number} centerOptions Option value, or 0 for no options.
+     * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
     Editor.prototype.centerOnCursor = function (centerOptions) {
         var $scrollerElement = $(this.getScrollerElement());
@@ -914,15 +922,55 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
+     * @private
+     * Takes an anchor/head pair and returns a start/end pair where the start is guaranteed to be <= end, and a "reversed" flag indicating
+     * if the head is before the anchor.
+     * @param {!{line: number, ch: number}} anchorPos
+     * @param {!{line: number, ch: number}} headPos
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}, reversed:boolean} the normalized range with start <= end
+     */
+    function _normalizeRange(anchorPos, headPos) {
+        if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
+            return {start: _copyPos(headPos), end: _copyPos(anchorPos), reversed: true};
+        } else {
+            return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
+        }
+    }
+    
+    /**
+     * Gets the current selection; if there is more than one selection, returns the primary selection
+     * (generally the last one made). Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
-     * of length zero).
-     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * of length zero). If `reversed` is set, then the head of the selection (the end of the selection
+     * that would be changed if the user extended the selection) is before the anchor. 
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}, reversed:boolean}
      */
     Editor.prototype.getSelection = function () {
-        var selStart = this.getCursorPos(false, "from"),
-            selEnd   = this.getCursorPos(false, "to");
-        return { start: selStart, end: selEnd };
+        return _normalizeRange(this.getCursorPos(false, "anchor"), this.getCursorPos(false, "head"));
+    };
+    
+    /**
+     * Returns an array of current selections, nonoverlapping and sorted in document order. 
+     * Each selection is a start/end pair, with the start guaranteed to come before the end.
+     * Cursors are represented as a range whose start is equal to the end.
+     * If `reversed` is set, then the head of the selection
+     * (the end of the selection that would be changed if the user extended the selection)
+     * is before the anchor. 
+     * If `primary` is set, then that selection is the primary selection.
+     * @return {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}
+     */
+    Editor.prototype.getSelections = function () {
+        var primarySel = this.getSelection();
+        return _.map(this._codeMirror.listSelections(), function (sel) {
+            var result = _normalizeRange(sel.anchor, sel.head);
+            if (result.start.line === primarySel.start.line && result.start.ch === primarySel.start.ch &&
+                    result.end.line === primarySel.end.line && result.end.ch === primarySel.end.ch) {
+                result.primary = true;
+            } else {
+                result.primary = false;
+            }
+            return result;
+        });
     };
     
     /**
@@ -935,21 +983,207 @@ define(function (require, exports, module) {
     
     /**
      * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
-     * end of the selection range. Optionally centers the around the cursor after
+     * end of the selection range. Optionally centers around the cursor after
      * making the selection
      *
      * @param {!{line:number, ch:number}} start
-     * @param {!{line:number, ch:number}} end
+     * @param {={line:number, ch:number}} end If not specified, defaults to start.
      * @param {boolean} center true to center the viewport
-     * @param {number} centerOptions Option value, or 0 for no options.
+     * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
     Editor.prototype.setSelection = function (start, end, center, centerOptions) {
-        this._codeMirror.setSelection(start, end);
+        this.setSelections([{start: start, end: end || start}], center, centerOptions);
+    };
+    
+    /**
+     * Sets a multiple selection, with the "primary" selection (the one returned by
+     * getSelection() and getCursorPos()) defaulting to the last if not specified.
+     * Overlapping ranges will be automatically merged, and the selection will be sorted.
+     * Optionally centers around the primary selection after making the selection.
+     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
+     *      The selection ranges to set. If the start and end of a range are the same, treated as a cursor.
+     *      If reversed is true, set the anchor of the range to the end instead of the start.
+     *      If primary is true, this is the primary selection. Behavior is undefined if more than
+     *      one selection has primary set to true. If none has primary set to true, the last one is primary.
+     * @param {boolean} center true to center the viewport around the primary selection.
+     * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
+     */
+    Editor.prototype.setSelections = function (selections, center, centerOptions) {
+        var primIndex;
+        this._codeMirror.setSelections(_.map(selections, function (sel, index) {
+            if (sel.primary) {
+                primIndex = index;
+            }
+            return { anchor: sel.reversed ? sel.end : sel.start, head: sel.reversed ? sel.start : sel.end };
+        }), primIndex);
         if (center) {
             this.centerOnCursor(centerOptions);
         }
     };
 
+    /**
+     * Utility function that takes a list of selection ranges as returned by `setSelections()` and
+     * expands them to encompass whole lines, merging selections as necessary and preserving the
+     * primary selection.
+     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
+     *     A list of selections as returned by `setSelections()`. Expected to be sorted and non-overlapping.
+     * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}}
+     *     The expanded selections. Also guaranteed to be sorted and non-overlapping.
+     */
+    Editor.prototype.expandSelectionsToLines = function (selections) {
+        var self = this, result = [], last;
+        _.each(selections, function (sel) {
+            var from = {line: sel.start.line, ch: 0};
+            var to   = {line: sel.end.line + 1, ch: 0};
+
+            if (to.line === self.getLastVisibleLine() + 1) {
+                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
+                // which due to how CM clips coords would only work some of the time
+                to.line -= 1;
+                to.ch = self.document.getLine(to.line).length;
+            }
+            
+            var newSel = {start: from, end: to, primary: sel.primary, reversed: sel.reversed};
+            if (last) {
+                if (self.posWithinRange(newSel.start, last.start, last.end, true)) {
+                    if (!self.posWithinRange(newSel.end, last.start, last.end, true)) {
+                        // Extend the last selection to include this one.
+                        last.end = newSel.end;
+                    }
+                    // If this was primary, make the selection it was merged into primary.
+                    if (newSel.primary) {
+                        last.primary = true;
+                    }
+                    // We can throw away this selection now since it was merged (partially or fully) into the last one.
+                    newSel = null;
+                }
+            }
+            if (newSel) {
+                result.push(newSel);
+                last = newSel;
+            }
+        });
+        return result;
+    };
+    
+    /**
+     * Adjusts a given position taking a given replaceRange-type edit into account. 
+     * If the position is within the edit range (start exclusive, end inclusive),
+     * it gets pushed to the end. Otherwise, if it's after the edit, it gets adjusted
+     * so it refers to the same character it did before the edit.
+     * @param {!{line:number, ch: number}} pos The position to adjust.
+     * @param {!Array.<string>} textLines The text of the change, split into an array of lines.
+     * @param {!{line: number, ch: number}} start The start of the edit.
+     * @param {!{line: number, ch: number}} end The end of the edit.
+     * @return {{line: number, ch: number}} The adjusted position.
+     */
+    Editor.prototype.adjustPosForChange = function (pos, textLines, start, end) {
+        // Same as CodeMirror.adjustForChange(), but that's a private function
+        // and Marijn would rather not expose it publicly.
+        var change = { text: textLines, from: start, to: end };
+
+        if (CodeMirror.cmpPos(pos, start) < 0) {
+            return pos;
+        }
+        if (CodeMirror.cmpPos(pos, end) <= 0) {
+            return CodeMirror.changeEnd(change);
+        }
+
+        var line = pos.line + change.text.length - (change.to.line - change.from.line) - 1,
+            ch = pos.ch;
+        if (pos.line === change.to.line) {
+            ch += CodeMirror.changeEnd(change).ch - change.to.ch;
+        }
+        return {line: line, ch: ch};
+    };
+    
+    /**
+     * Helper function for edit operations that operate on multiple selections. Takes an "edit list"
+     * that specifies a list of replaceRanges that should occur, but where all the positions are with
+     * respect to the document state before all the edits (i.e., you don't have to figure out how to fix
+     * up the selections after each sub-edit). Edits must be non-overlapping (in original-document terms).
+     * All the edits are done in a single batch.
+     *
+     * If your edits are structured in such a way that each individual edit would cause its associated
+     * selection to be properly updated, then all you need to specify are the edits themselves, and the
+     * selections will automatically be updated as the edits are performed. However, for some
+     * kinds of edits, you need to fix up the selection afterwards. In that case, you can specify one
+     * or more selections to be associated with each edit. Those selections are assumed to be in terms
+     * of the document state after the edit, *as if* that edit were the only one being performed (i.e.,
+     * you don't have to worry about adjusting for the effect of other edits). If you supply these selections,
+     * then this function will adjust them as necessary for the effects of other edits, and then return a
+     * flat list of all the selections, suitable for passing to `setSelections()`.
+     *
+     * @param {!Array<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}},
+     *                 selections: Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>>} edits
+     *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`.
+     *     `text` will replace the current contents of the range between `start` and `end`. 
+     *     If `end` is unspecified, the text is inserted at `start`.
+     *     `start` and `end` should be positions relative to the document *before* all edits are performed.
+     *     If any of the edits overlap, an error will be thrown.
+     *     If `selections` is specified, it should be an array of selections associated with this edit,
+     *     expressed in terms of the document state after this individual edit is performed (ignoring any
+     *     other edits that might have already happened or will later happen). Those selections will be 
+     *     corrected for the other edits that are performed and returned as the result of the function.
+     * @param {?string} origin An optional edit origin that's passed through to each replaceRange().
+     * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
+     *     The list of passed selections adjusted for the performed edits, if any.
+     */
+    Editor.prototype.doMultipleEdits = function (edits, origin) {
+        var self = this;
+        
+        // Sort the edits backwards, so we don't have to adjust the edit positions as we go along
+        // (though we do have to adjust the selection positions).
+        edits.sort(function (range1, range2) {
+            return CodeMirror.cmpPos(range2.start, range1.start);
+        });
+        
+        // Pull out the selections, in the same order as the edits.
+        var result = _.cloneDeep(_.pluck(edits, "selections"));
+        
+        // Preflight the edits to specify "end" if unspecified and make sure they don't overlap. 
+        // (We don't want to do it during the actual edits, since we don't want to apply some of
+        // the edits before we find out.)
+        _.each(edits, function (edit, index) {
+            if (!edit.end) {
+                edit.end = edit.start;
+            }
+            if (index > 0) {
+                var prevEdit = edits[index - 1];
+                // The edits are in reverse order, so we want to make sure this edit ends
+                // before the previous one starts.
+                if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
+                    throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
+                }
+            }
+        });
+        
+        // Perform the edits.
+        this.document.batchOperation(function () {
+            _.each(edits, function (edit, index) {
+                // Perform this edit. The edit positions are guaranteed to be okay since all the previous
+                // edits we've done have been later in the document. However, we have to fix up any
+                // selections that overlap or come after the edit.
+                self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
+                
+                var textLines = edit.text.split("\n");
+                _.each(result, function (selections, selIndex) {
+                    // Fix up all the selections *except* the one related to this edit.
+                    if (selections && selIndex !== index) {
+                        _.each(selections, function (sel) {
+                            sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
+                            sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
+                        });
+                    }
+                });
+            });
+        });
+        
+        return _.filter(_.flatten(result), function (item) {
+            return item !== undefined;
+        });
+    };
+    
     /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
@@ -1464,19 +1698,35 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
-        var sel         = this.getSelection(),
+        var self        = this,
+            sels        = this.getSelections(),
+            primarySel  = this.getSelection(),
             outerMode   = this._codeMirror.getMode(),
-            startMode   = TokenUtils.getModeAt(this._codeMirror, sel.start),
+            startMode   = TokenUtils.getModeAt(this._codeMirror, primarySel.start),
             isMixed     = (outerMode.name !== startMode.name);
 
         if (isMixed) {
-            // If mixed mode, check that mode is the same at start & end of selection
-            if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
-                var endMode = TokenUtils.getModeAt(this._codeMirror, sel.end);
+            // Shortcut the first check to avoid getModeAt(), which can be expensive
+            if (primarySel.start.line !== primarySel.end.line || primarySel.start.ch !== primarySel.end.ch) {
+                var endMode = TokenUtils.getModeAt(this._codeMirror, primarySel.end);
                 
                 if (startMode.name !== endMode.name) {
                     return null;
                 }
+            }
+
+            // If mixed mode, check that mode is the same at start & end of each selection
+            var hasMixedSel = _.some(sels, function (sel) {
+                if (sels === primarySel) {
+                    // We already checked this before, so we know it's not mixed.
+                    return false;
+                }
+                var selStartMode = TokenUtils.getModeAt(self._codeMirror, sel.start),
+                    selEndMode = TokenUtils.getModeAt(self._codeMirror, sel.end);
+                return (selStartMode.name !== startMode.name || selEndMode.name !== startMode.name);
+            });
+            if (hasMixedSel) {
+                return null;
             }
 
             return startMode.name;
