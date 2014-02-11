@@ -529,24 +529,29 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      * @param {KeyboardEvent} event
      */
-    function _handleKeyEvent(jqEvent, editor, event) {
+    function _handleKeydownEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
-        if (event.type === "keydown") {
-            if (!(event.ctrlKey || event.altKey || event.metaKey) &&
-                    (event.keyCode === KeyEvent.DOM_VK_ENTER ||
-                     event.keyCode === KeyEvent.DOM_VK_RETURN ||
-                     event.keyCode === KeyEvent.DOM_VK_TAB)) {
-                lastChar = String.fromCharCode(event.keyCode);
-            }
-        } else if (event.type === "keypress") {
-            // Last inserted character, used later by handleChange
-            lastChar = String.fromCharCode(event.charCode);
-            
-            // Pending Text is used in hintList._keydownHook()
-            if (hintList) {
-                hintList.addPendingText(lastChar);
-            }
-        } else if (event.type === "keyup" && _inSession(editor)) {
+        if (!(event.ctrlKey || event.altKey || event.metaKey) &&
+                (event.keyCode === KeyEvent.DOM_VK_ENTER ||
+                 event.keyCode === KeyEvent.DOM_VK_RETURN ||
+                 event.keyCode === KeyEvent.DOM_VK_TAB)) {
+            lastChar = String.fromCharCode(event.keyCode);
+        }
+    }
+    function _handleKeypressEvent(jqEvent, editor, event) {
+        keyDownEditor = editor;
+
+        // Last inserted character, used later by handleChange
+        lastChar = String.fromCharCode(event.charCode);
+
+        // Pending Text is used in hintList._keydownHook()
+        if (hintList) {
+            hintList.addPendingText(lastChar);
+        }
+    }
+    function _handleKeyupEvent(jqEvent, editor, event) {
+        keyDownEditor = editor;
+        if (_inSession(editor)) {
             if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
@@ -626,13 +631,17 @@ define(function (require, exports, module) {
     function activeEditorChangeHandler(event, current, previous) {
         if (current) {
             $(current).on("editorChange", _handleChange);
-            $(current).on("keyEvent", _handleKeyEvent);
+            $(current).on("keydown",  _handleKeydownEvent);
+            $(current).on("keypress", _handleKeypressEvent);
+            $(current).on("keyup",    _handleKeyupEvent);
         }
         
         if (previous) {
             //Removing all old Handlers
             $(previous).off("editorChange", _handleChange);
-            $(previous).off("keyEvent", _handleKeyEvent);
+            $(previous).off("keydown",  _handleKeydownEvent);
+            $(previous).off("keypress", _handleKeypressEvent);
+            $(previous).off("keyup",    _handleKeyupEvent);
         }
     }
     
