@@ -566,13 +566,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("2 Problems");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("2 Problems");
+                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
                 });
             });
         });
