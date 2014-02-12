@@ -286,3 +286,8 @@
     padding: 4px 4px;
 }
 
+.bezier-curve-editor .info .hint,
+.step-editor .info .hint {
+    margin-top: 30px;
+    font-size: 13px;
+}

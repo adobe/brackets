@@ -29,7 +29,9 @@ define(function (require, exports, module) {
     
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings");
+        Strings         = brackets.getModule("strings"),
+        StringUtils     = brackets.getModule("utils/StringUtils"),
+        _               = brackets.getModule("thirdparty/lodash");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
         InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
@@ -309,6 +311,10 @@ define(function (require, exports, module) {
 
         // current step function params
         this._stepParams = this._getStepParams(stepMatch);
+
+        if (stepMatch.originalLength) {
+            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "steps()", "steps(" + $.makeArray(this._stepParams).join(", ") + ")"));
+        }
 
         this.canvas = this.$element.find(".steps")[0];
 

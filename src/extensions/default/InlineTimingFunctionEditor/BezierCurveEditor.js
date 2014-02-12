@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings");
+        Strings         = brackets.getModule("strings"),
+        StringUtils     = brackets.getModule("utils/StringUtils");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
         InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
@@ -529,6 +530,10 @@ define(function (require, exports, module) {
 
         // current cubic-bezier() function params
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
+
+        if (bezierCurve.originalLength) {
+            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "cubic-bezier()", "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
+        }
 
         this.P1 = this.$element.find(".P1")[0];
         this.P2 = this.$element.find(".P2")[0];
