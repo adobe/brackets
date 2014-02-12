@@ -111,15 +111,46 @@ define(function (require, exports, module) {
      */
     StaticServer.prototype.readyToServe = function () {
         var self = this;
-        var port = _prefs.get("port");
+        var deferred = new $.Deferred();
 
-        return this._nodeDomain.exec("getServer", self._root, port)
+        function sanitizePort(port) {
+            port = parseInt(port, 10);
+            port = (port && !isNaN(port) && port > 0 && port < 65536) ? port : 0;
+            return port;
+        }
+
+        function onSuccess(address) {
+            self._baseUrl = "http://" + address.address + ":" + address.port + "/";
+            deferred.resolve();
+        }
+
+        function onFailure() {
+            self._baseUrl = "";
+            deferred.resolve();
+        }
+
+        var port = sanitizePort(_prefs.get("port"));
+
+        this._nodeDomain.exec("getServer", self._root, port)
             .done(function (address) {
-                self._baseUrl = "http://" + address.address + ":" + address.port + "/";
+
+                // If the port returned wasn't what was requested, then the preference has
+                // changed. Close the current server, and open a new one with the new port.
+                if (address.port !== port && port > 0) {
+                    return self._nodeDomain.exec("closeServer", self._root)
+                        .done(function () {
+                            return self._nodeDomain.exec("getServer", self._root, port)
+                                .done(onSuccess)
+                                .fail(onFailure);
+                        })
+                        .fail(onFailure);
+                }
+
+                onSuccess(address);
             })
-            .fail(function () {
-                self._baseUrl = "";
-            });
+            .fail(onFailure);
+
+        return deferred.promise();
     };
 
     /**
