@@ -111,6 +111,10 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE);
         menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.VIEW_ZOOM_IN);
+        menu.addMenuItem(Commands.VIEW_ZOOM_OUT);
+        menu.addMenuItem(Commands.VIEW_RESET_ZOOM);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_ACTIVE_LINE);
         menu.addMenuItem(Commands.TOGGLE_LINE_NUMBERS);
         menu.addMenuItem(Commands.TOGGLE_WORD_WRAP);

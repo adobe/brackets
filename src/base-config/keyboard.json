@@ -185,6 +185,25 @@
     "view.restoreFontSize":  [
         "Ctrl-0"
     ],
+    "view.zoomIn":  [
+        {
+            "key": "Alt-=",
+            "displayKey": "Alt-+"
+        },
+        {
+            "key": "Alt-+",
+            "displayKey": "Alt-+"
+        }
+    ],
+    "view.zoomOut":  [
+        {
+            "key": "Alt--",
+            "displayKey": "Alt-−"
+        }
+    ],
+    "view.resetZoom":  [
+        "Alt-0"
+    ],
     "view.scrollLineUp":  [
         {
             "key": "Ctrl-Up",
