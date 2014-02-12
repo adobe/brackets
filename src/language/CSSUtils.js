@@ -83,8 +83,7 @@ define(function (require, exports, module) {
      */
     function _isInPropValue(ctx) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment" ||
-                ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
         }
 
@@ -161,10 +160,9 @@ define(function (require, exports, module) {
     function _getPropNameStartingFromPropValue(ctx) {
         var ctxClone = $.extend({}, ctx);
         do {
-            // If we get a property name or "{" or ";" before getting a colon, then we don't 
+            // If we're no longer in the property value before seeing a colon, then we don't
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.type === "property" || ctxClone.token.type === "property error" ||
-                    ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+            if (ctxClone.token.string !== ":" && !_isInPropValue(ctxClone)) {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
@@ -189,9 +187,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
-                    ctx.token.string === ":" || ctx.token.string === "{" ||
-                    ctx.token.string === ";") {
+            if (ctx.token.string === ":" || !_isInPropValue(ctx)) {
                 break;
             }
 
@@ -236,14 +232,11 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         
-        while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
+        while (ctx.token.string !== ";" && ctx.token.string !== "}" && TokenUtils.moveNextToken(ctx)) {
             if (ctx.token.string === ";" || ctx.token.string === "}") {
                 break;
             }
-            // If we're already in the next rule, then we don't want to add the last value
-            // since it is the property name of the next rule.
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
-                    ctx.token.string === ":") {
+            if (!_isInPropValue(ctx)) {
                 lastValue = "";
                 break;
             }
@@ -259,7 +252,11 @@ define(function (require, exports, module) {
                     lastValue += ctx.token.string;
                 } else if (lastValue && lastValue.match(/,$/)) {
                     propValues.push(lastValue);
-                    lastValue = "";
+                    if (ctx.token.string.length > 0) {
+                        lastValue = ctx.token.string;
+                    } else {
+                        lastValue = "";
+                    }
                 } else {
                     // e.g. "rgba(50" gets broken into 2 tokens
                     lastValue += ctx.token.string;
@@ -1096,6 +1093,17 @@ define(function (require, exports, module) {
                     if (/[\{\}\;]/.test(ctx.token.string)) {
                         break;
                     }
+                    
+                    // Stop once we've reached a <style ...> tag
+                    if (ctx.token.string === "<style") {
+                        // Remove everything up to end-of-tag from selector
+                        var eotIndex = selector.indexOf(">");
+                        if (eotIndex !== -1) {
+                            selector = selector.substring(eotIndex + 1);
+                        }
+                        break;
+                    }
+                    
                     selector = ctx.token.string + selector;
                 }
                 if (!TokenUtils.movePrevToken(ctx)) {

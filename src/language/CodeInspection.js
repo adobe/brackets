@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * @private
      * @type {boolean}
      */
-    var _enabled = true;
+    var _enabled = false;
 
     /**
      * When collapsed, the errors panel is closed but the status bar icon is kept up to date.
@@ -434,6 +434,12 @@ define(function (require, exports, module) {
         if (enabled === undefined) {
             enabled = !_enabled;
         }
+        
+        // Take no action when there is no change.
+        if (enabled === _enabled) {
+            return;
+        }
+        
         _enabled = enabled;
 
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
@@ -458,6 +464,10 @@ define(function (require, exports, module) {
     function toggleCollapsed(collapsed, doNotSave) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
+        }
+        
+        if (collapsed === _collapsed) {
+            return;
         }
 
         _collapsed = collapsed;

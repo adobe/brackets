@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Грешка при брисању датотеке",
     "ERROR_DELETING_FILE"               : "Дошло је до грешке приликом покушаја да се обрише датотека <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Име {0} није валидно",
-    "INVALID_FILENAME_MESSAGE"          : "Имена датотека не смеју садржати следеће карактере: /?*:;{}<>\\| или системски резервисане речи.",
+    "INVALID_FILENAME_MESSAGE"          : "Имена датотека не смеју садржати следеће карактере: {0} или системски резервисане речи.",
     "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> већ постоји.",
     "ERROR_CREATING_FILE_TITLE"         : "Грешка при креирању {0}",
     "ERROR_CREATING_FILE"               : "Дошло је до грешке приликом покушаја да се креира {0} <span class='dialog-filename'>{1}</span>. {2}",
