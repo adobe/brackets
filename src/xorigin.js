@@ -63,7 +63,7 @@
         }
 
         // Show an error message
-        alert("Oops! This application doesn't run in browsers yet.\n\nIt is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the following repo to run this application:\n\ngithub.com/adobe/brackets-shell");
+        alert("Oops! This application doesn't run from a file: URL.\n\nPlease use the native desktop version (http://download.brackets.io/) or an online server-hosted version.");
 
         // Restore the original handler for later errors
         window.onerror = previousErrorHandler;

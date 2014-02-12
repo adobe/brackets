@@ -166,13 +166,8 @@ define(function (require, exports, module) {
             brackets.test.doneLoading = true;
         });
     }
-            
-    function _onReady() {
-        PerfUtils.addMeasurement("window.document Ready");
-
-        EditorManager.setEditorHolder($("#editor-holder"));
-
-        // Let the user know Brackets doesn't run in a web browser yet
+    
+    brackets.unsupportedInBrowser = function () {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
@@ -180,6 +175,13 @@ define(function (require, exports, module) {
                 Strings.ERROR_IN_BROWSER
             );
         }
+        return brackets.inBrowser;
+    };
+    
+    function _onReady() {
+        PerfUtils.addMeasurement("window.document Ready");
+
+        EditorManager.setEditorHolder($("#editor-holder"));
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -205,9 +207,14 @@ define(function (require, exports, module) {
             
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
-                // Finish UI initialization
-                var initialProjectPath = ProjectManager.getInitialProjectPath();
-                ProjectManager.openProject(initialProjectPath).always(function () {
+                var initialProjectPath, initialProjectFs;
+                if (brackets.inBrowser && params.get("project")) {
+                    initialProjectPath = params.get("project");
+                    initialProjectFs = "test-server-fs";  // TODO: should this be passed in too?
+                } else {
+                    initialProjectPath = ProjectManager.getInitialProjectPath();
+                }
+                ProjectManager.openProject(initialProjectPath, initialProjectFs).always(function () {
                     _initTest();
                     
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
@@ -243,7 +250,12 @@ define(function (require, exports, module) {
                     });
                     
                     // See if any startup files were passed to the application
-                    if (brackets.app.getPendingFilesToOpen) {
+                    if (brackets.inBrowser) {
+                        // Note: if "file" specified, "project" must have been specified too
+                        if (params.get("file")) {
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: ProjectManager.getProjectRoot().fullPath + "/" + params.get("file") });
+                        }
+                    } else if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, files) {
                             DragAndDrop.openDroppedFiles(files);
                         });

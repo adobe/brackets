@@ -214,7 +214,8 @@ define(function (require, exports, module) {
         STATE_FILENAME    = "state.json";
     
     // User-level preferences
-    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+//    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+    var userPrefFile = "/&&&doesnt_exist&&&/" + SETTINGS_FILENAME;
     
     /**
      * Get the full path to the user-level preferences file.
@@ -306,7 +307,8 @@ define(function (require, exports, module) {
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesSystem();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+//    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+    var userStateFile = "/&&&doesnt_exist&&&/" + STATE_FILENAME;
     
     stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     

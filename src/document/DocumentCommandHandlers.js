@@ -1085,20 +1085,28 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @return {!Array.<Document>} All Documents with unsaved changes whose files are in the given list. Empty array if no
+     * unsaved changes anywhere
+     */
+    function _getUnsavedDocs(fileList) {
+        var unsavedDocs = [];
+        fileList.forEach(function (file) {
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            if (doc && doc.isDirty) {
+                unsavedDocs.push(doc);
+            }
+        });
+        return unsavedDocs;
+    }
+    
+    /**
      * @param {!Array.<FileEntry>} list
      * @param {boolean} promptOnly
      * @param {boolean} clearCurrentDoc
      */
     function _closeList(list, promptOnly, clearCurrentDoc) {
         var result      = new $.Deferred(),
-            unsavedDocs = [];
-        
-        list.forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-            if (doc && doc.isDirty) {
-                unsavedDocs.push(doc);
-            }
-        });
+            unsavedDocs = _getUnsavedDocs(list);
         
         if (unsavedDocs.length === 0) {
             // No unsaved changes, so we can proceed without a prompt
@@ -1280,6 +1288,23 @@ define(function (require, exports, module) {
         );
     }
     
+    /** In-browser equivalent to handleFileCloseWindow(), much more constrained */
+    function handleBeforeUnload() {
+        var unsavedDocs = _getUnsavedDocs(DocumentManager.getWorkingSet());
+        if (unsavedDocs.length) {
+            var message = Strings.UNLOAD_WITH_UNSAVED + "\n";
+            unsavedDocs.forEach(function (doc) {
+                message += "\n    " + _shortTitleForDocument(doc);
+            });
+            return message;
+        }
+        
+        // TODO: Do we want a message even when not unsaved? Easy to hit Ctrl+W via muscle memory right now...
+//        } else {
+//            return Strings.UNLOAD_NO_UNSAVED;
+//        }
+    }
+    
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
         // Prefer selected sidebar item (which could be a folder)
@@ -1296,6 +1321,10 @@ define(function (require, exports, module) {
 
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         return _handleWindowGoingAway(
             commandData,
             function () {
@@ -1358,6 +1387,10 @@ define(function (require, exports, module) {
     }
     
     function handleFileDelete() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         var entry = ProjectManager.getSelectedItem();
         if (entry.isDirectory) {
             Dialogs.showModalDialog(
@@ -1392,6 +1425,10 @@ define(function (require, exports, module) {
 
     /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
     function handleShowInOS() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         var entry = ProjectManager.getSelectedItem();
         if (entry) {
             brackets.app.showOSFolder(entry.fullPath, function (err) {
@@ -1562,6 +1599,11 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
     } else {
         CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
+    }
+    
+    // In-browser, we can't veto closing the way we do in-shell. Best we can do is ugly confirmation dialog via beforeunload
+    if (brackets.inBrowser) {
+        $(window).on("beforeunload", handleBeforeUnload);
     }
 
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);

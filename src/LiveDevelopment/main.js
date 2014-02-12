@@ -122,6 +122,10 @@ define(function main(require, exports, module) {
 
     /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
     function _handleGoLiveCommand() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
         } else {

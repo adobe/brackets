@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, window */
 
 /**
  * Initializes the global "brackets" variable and it's properties.
@@ -46,6 +46,9 @@ define(function (require, exports, module) {
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
         global.brackets = {};
+    }
+    if (!global.appshell) {
+        global.appshell = global.brackets;
     }
     
     // Parse URL params
@@ -106,9 +109,81 @@ define(function (require, exports, module) {
         }
     };
     
-    // Create empty app namespace if running in-browser
+    // Stub brackets.app namespace if running in-browser
     if (!global.brackets.app) {
         global.brackets.app = {};
+        
+        global.brackets.app.openURLInDefaultBrowser = function (url) {
+            window.open(url);
+        };
+    }
+    
+    // Stub brackets.fs namespace if running in-browser
+    if (!global.appshell.fs) {
+        global.appshell.fs = {};
+        var appshell = global.appshell;
+        
+        // Copied from appshell_extensions.js -------------------------------------------------------------------------
+        /**
+         * @constant No error.
+         */
+        appshell.fs.NO_ERROR                    = 0;
+        
+        /**
+         * @constant Unknown error occurred.
+         */
+        appshell.fs.ERR_UNKNOWN                 = 1;
+        
+        /**
+         * @constant Invalid parameters passed to function.
+         */
+        appshell.fs.ERR_INVALID_PARAMS          = 2;
+        
+        /**
+         * @constant File or directory was not found.
+         */
+        appshell.fs.ERR_NOT_FOUND               = 3;
+        
+        /**
+         * @constant File or directory could not be read.
+         */
+        appshell.fs.ERR_CANT_READ               = 4;
+        
+        /**
+         * @constant An unsupported encoding value was specified.
+         */
+        appshell.fs.ERR_UNSUPPORTED_ENCODING    = 5;
+        
+        /**
+         * @constant File could not be written.
+         */
+        appshell.fs.ERR_CANT_WRITE              = 6;
+        
+        /**
+         * @constant Target directory is out of space. File could not be written.
+         */
+        appshell.fs.ERR_OUT_OF_SPACE            = 7;
+        
+        /**
+         * @constant Specified path does not point to a file.
+         */
+        appshell.fs.ERR_NOT_FILE                = 8;
+        
+        /**
+         * @constant Specified path does not point to a directory.
+         */
+        appshell.fs.ERR_NOT_DIRECTORY           = 9;
+     
+        /**
+         * @constant Specified file already exists.
+         */
+        appshell.fs.ERR_FILE_EXISTS             = 10;
+    
+        /**
+         * @constant The required browser is not installed
+         */
+        appshell.fs.ERR_BROWSER_NOT_INSTALLED   = 11;
+        // End --------------------------------------------------------------------------------------------------------
     }
     
     // Loading extensions requires creating new require.js contexts, which

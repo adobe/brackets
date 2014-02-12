@@ -38,7 +38,6 @@
         "jshint": "2.1.4"
     },
     "scripts": {
-        "postinstall": "grunt install",
         "test": "grunt test"
     },
     "licenses": [
@@ -46,5 +45,12 @@
             "type": "MIT",
             "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
         }
-    ]
+    ],
+    "description": "Brackets is an open source code editor for web designers and front-end developers.",
+    "bugs": {
+        "url": "https://github.com/adobe/brackets/issues"
+    },
+    "dependencies": {
+        "express": "~3.4.8"
+    }
 }

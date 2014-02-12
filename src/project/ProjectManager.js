@@ -910,6 +910,10 @@ define(function (require, exports, module) {
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath() {
+        if (brackets.inBrowser) {
+            return "/Getting Started";
+        }
+        
         var initialPath = FileUtils.getNativeBracketsDirectoryPath(),
             sampleUrl = Urls.GETTING_STARTED;
         if (sampleUrl) {
@@ -1080,7 +1084,7 @@ define(function (require, exports, module) {
             _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
 
             // Populate file tree as long as we aren't running in the browser
-            if (!brackets.inBrowser) {
+            if (true) {
                 if (!isUpdating) {
                     _watchProjectRoot(rootPath);
                 }
@@ -1728,6 +1732,10 @@ define(function (require, exports, module) {
      * @param {!(File|Directory)} entry File or Directory to rename
      */
     function renameItemInline(entry) {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
         showInTree(entry)
             .done(function ($selected) {
@@ -1873,6 +1881,9 @@ define(function (require, exports, module) {
      * @param {!(File|Directory)} entry File or Directory to delete
      */
     function deleteItem(entry) {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
         var result = new $.Deferred();
 
         entry.moveToTrash(function (err) {

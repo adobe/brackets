@@ -66,8 +66,8 @@ define({
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't fully run in browsers yet.",
+    "ERROR_IN_BROWSER"                  : "This feature is not yet supported when running {APP_NAME} in a web browser.",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
@@ -104,6 +104,8 @@ define({
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
+    "UNLOAD_NO_UNSAVED"                 : "This will quit {APP_NAME} entirely.",
+    "UNLOAD_WITH_UNSAVED"               : "You will lose your unsaved changes to the following files:",
     "EXT_MODIFIED_TITLE"                : "External Changes",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",

@@ -70,10 +70,12 @@ define(function (require, exports, module) {
         menu = Menus.addMenu(Strings.EDIT_MENU, Menus.AppMenuBar.EDIT_MENU);
         menu.addMenuItem(Commands.EDIT_UNDO);
         menu.addMenuItem(Commands.EDIT_REDO);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_CUT);
-        menu.addMenuItem(Commands.EDIT_COPY);
-        menu.addMenuItem(Commands.EDIT_PASTE);
+        if (!brackets.inBrowser) {
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.EDIT_CUT);
+            menu.addMenuItem(Commands.EDIT_COPY);
+            menu.addMenuItem(Commands.EDIT_PASTE);
+        }
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
@@ -145,9 +147,10 @@ define(function (require, exports, module) {
          * Help menu
          */
         menu = Menus.addMenu(Strings.HELP_MENU, Menus.AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
-
-        menu.addMenuDivider();
+        if (!brackets.inBrowser) {  // updates in browser version don't need user intervention
+            menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
+            menu.addMenuDivider();
+        }
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }

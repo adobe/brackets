@@ -440,6 +440,9 @@ define(function (require, exports, module) {
     // TODO: duplicates code from StaticServer
     // TODO: can this be done lazily?
     AppInit.appReady(function () {
+        if (brackets.inBrowser) {
+            return;
+        }
         _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
             var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionManagerDomain";
