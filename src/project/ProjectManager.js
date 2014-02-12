@@ -364,21 +364,6 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Get prefs tree state lookup key for given project path.
-     */
-    function _getTreeStateKey(path) {
-        // generate unique tree state key for this project path
-        var key = "projectTreeState_" + path;
-
-        // normalize to always have slash at end
-        if (key[key.length - 1] !== "/") {
-            key += "/";
-        }
-        return key;
-    }
-    
-    /**
-     * @private
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
@@ -392,7 +377,10 @@ define(function (require, exports, module) {
             entry,
             fullPath,
             shortPath,
-            depth;
+            depth,
+            context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath } };
 
         // Query open nodes by class selector
         $(".jstree-open:visible").each(function (index) {
@@ -419,7 +407,9 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        PreferencesManager.setViewState(_getTreeStateKey(_projectRoot.fullPath), openNodes);
+        PreferencesManager.projectLayer.setProjectPath(_projectRoot.fullPath);
+        PreferencesManager.setViewState("project.treeState", openNodes, context);
+        PreferencesManager.projectLayer.setProjectPath(null);
     }
     
     /**
@@ -1060,6 +1050,9 @@ define(function (require, exports, module) {
         }
         
         startLoad.done(function () {
+            var context = { location : { scope: "user",
+                                         layer: "project",
+                                         layerID: rootPath } };
 
             // Clear project path map
             _projectInitialLoad = {
@@ -1069,7 +1062,9 @@ define(function (require, exports, module) {
             };
 
             // restore project tree state from last time this project was open
-            _projectInitialLoad.previous = PreferencesManager.getViewState(_getTreeStateKey(rootPath)) || [];
+            PreferencesManager.projectLayer.setProjectPath(rootPath);
+            _projectInitialLoad.previous = PreferencesManager.getViewState("project.treeState", context) || [];
+            PreferencesManager.projectLayer.setProjectPath(null);
 
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
@@ -2150,7 +2145,10 @@ define(function (require, exports, module) {
      */
     function _checkPreferencePrefix(key) {
         if (key.indexOf("projectTreeState_/") === 0) {
-            return "user";
+            // Get the project path from the old preference key by stripping "projectTreeState_".
+            var projectPath = key.substr(key.indexOf("/"));
+            PreferencesManager.projectLayer.setProjectPath(projectPath);
+            return "user project.treeState " + projectPath;
         }
         
         return null;

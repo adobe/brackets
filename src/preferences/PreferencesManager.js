@@ -348,9 +348,10 @@ define(function (require, exports, module) {
      * Convenience function that gets a view state
      * 
      * @param {string} id preference to get
+     * @param {?Object} context Optional additional information about the request
      */
-    function getViewState(id) {
-        return stateManager.get(id);
+    function getViewState(id, context) {
+        return stateManager.get(id, context);
     }
     
     /**
@@ -358,12 +359,13 @@ define(function (require, exports, module) {
      * 
      * @param {string} id preference to set
      * @param {*} value new value for the preference
+     * @param {?Object} context Optional additional information about the request
      * @param {boolean=} doNotSave If it is undefined or false, then save the 
      *      view state immediately.
      */
-    function setViewState(id, value, options, doNotSave) {
+    function setViewState(id, value, context, doNotSave) {
         
-        stateManager.set(id, value, options);
+        stateManager.set(id, value, context);
         
         if (!doNotSave) {
             stateManager.save();

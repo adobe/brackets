@@ -815,7 +815,7 @@ define(function (require, exports, module) {
             workingSet   = getWorkingSet(),
             currentDoc   = getCurrentDocument(),
             projectRoot  = ProjectManager.getProjectRoot(),
-            projectFiles = { location : { scope: "user",
+            context      = { location : { scope: "user",
                                           layer: "project",
                                           layerID: projectRoot.fullPath } };
 
@@ -842,7 +842,7 @@ define(function (require, exports, module) {
 
         // Update the project path in project layer before writing out working set files.
         PreferencesManager.projectLayer.setProjectPath(projectRoot.fullPath);
-        PreferencesManager.setViewState("project.files", files, projectFiles);
+        PreferencesManager.setViewState("project.files", files, context);
         PreferencesManager.projectLayer.setProjectPath(null);
     }
 
@@ -853,10 +853,13 @@ define(function (require, exports, module) {
     function _projectOpen(e) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = [];
+            files = [],
+            context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: projectRoot.fullPath } };
         
         PreferencesManager.projectLayer.setProjectPath(projectRoot.fullPath);
-        files = PreferencesManager.getViewState("project.files");
+        files = PreferencesManager.getViewState("project.files", context);
         PreferencesManager.projectLayer.setProjectPath(null);
         
         console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
@@ -1007,7 +1010,8 @@ define(function (require, exports, module) {
      */
     function _checkPreferencePrefix(key) {
         if (key.indexOf("files_/") === 0) {
-            var projectPath = key.substr(6);
+            // Get the project path from the old preference key by stripping "files_".
+            var projectPath = key.substr(key.indexOf("/"));
             PreferencesManager.projectLayer.setProjectPath(projectPath);
             return "user project.files " + projectPath;
         }
