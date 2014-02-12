@@ -1438,12 +1438,21 @@ define(function (require, exports, module) {
          
         return result.promise();
     }
-        
+    
+    /** @type {boolean} prevents reentrancy of browserReload() */
+    var isReloading = false;
+    
     /**
     * Does a full reload of the browser window
     * @param {string} href The url to reload into the window
     */
     function browserReload(href) {
+        if (isReloading) {
+            return;
+        }
+        
+        isReloading = true;
+        
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
             // Give everyone a chance to save their state - but don't let any problems block
             // us from quitting
@@ -1452,7 +1461,7 @@ define(function (require, exports, module) {
             } catch (ex) {
                 console.error(ex);
             }
-           
+            
             // Disable the cache to make reloads work
             _disableCache().always(function () {
                 // Remove all menus to assure every part of Brackets is reloaded
@@ -1462,6 +1471,8 @@ define(function (require, exports, module) {
                 
                 window.location.href = href;
             });
+        }).fail(function () {
+            isReloading = false;
         });
     }
     
