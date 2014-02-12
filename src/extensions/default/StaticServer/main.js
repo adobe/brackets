@@ -33,7 +33,6 @@ define(function (require, exports, module) {
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
-        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
         NodeDomain           = brackets.getModule("utils/NodeDomain"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
@@ -53,12 +52,6 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {NodeDomain} A user-specified port number for the live development server to use.
-     */
-    var _port = 0;
-    
-    /**
-     * @private
      * @return {StaticServerProvider} The singleton StaticServerProvider initialized
      * on app ready.
      */
@@ -66,16 +59,13 @@ define(function (require, exports, module) {
         var config = {
             nodeDomain      : _nodeDomain,
             pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
-            root            : ProjectManager.getProjectRoot().fullPath,
-            port            : _port
+            root            : ProjectManager.getProjectRoot().fullPath
         };
         
         return new StaticServer(config);
     }
 
     AppInit.appReady(function () {
-        _port = PreferencesManager.get("liveDevPort") || 0;
-
         LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
     });
     

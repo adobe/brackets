@@ -106,7 +106,7 @@
      * @param {number} port number to clean, can be string as well
      * @return {number} a valid port number or zero if a value wasn't passed in or valid.
      */
-    function sanatizePort(port) {
+    function sanitizePort(port) {
         port = parseInt(port, 10);
         port = (port && !isNaN(port) && port > 0 && port < 65536) ? port : 0;
         return port;
@@ -134,7 +134,7 @@
         var server,
             app,
             address,
-            portNum = sanatizePort(port),
+            portNum = sanitizePort(port),
             pathKey = getPathKey(path);
 
         // create a new map for this server's requests

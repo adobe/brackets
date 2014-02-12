@@ -29,8 +29,17 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
 
-    var BaseServer  = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
-        FileUtils   = brackets.getModule("file/FileUtils");
+    var BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
+        FileUtils            = brackets.getModule("file/FileUtils"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
+
+    
+    /**
+     * @private
+     * 
+     * Prefences manager for this extension
+     */
+    var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
 
     /**
      * @constructor
@@ -44,12 +53,10 @@ define(function (require, exports, module) {
      *        pathResolver   - Function to covert absolute native paths to project relative paths
      *        root           - Native path to the project root (and base URL)
      *        nodeDomain     - An initialized NodeDomain
-     *        port           - Optional port number to serve from
      */
     function StaticServer(config) {
         this._nodeDomain = config.nodeDomain;
         this._onRequestFilter = this._onRequestFilter.bind(this);
-        this._port = config.port;
 
         BaseServer.call(this, config);
     }
@@ -104,7 +111,9 @@ define(function (require, exports, module) {
      */
     StaticServer.prototype.readyToServe = function () {
         var self = this;
-        return this._nodeDomain.exec("getServer", self._root, self._port)
+        var port = _prefs.get("port");
+
+        return this._nodeDomain.exec("getServer", self._root, port)
             .done(function (address) {
                 self._baseUrl = "http://" + address.address + ":" + address.port + "/";
             })
