@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         StringUtils         = require("utils/StringUtils");
 
-    var browserProcess;
+    var browserManager;
 
     var GOOGLE_CHROME_DEFAULT_ARGS  = [
             "--no-first-run",
@@ -208,70 +208,26 @@ define(function (require, exports, module) {
 
     /** openLiveBrowser
      * Open the given URL in the user's system browser, optionally enabling debugging.
+     * 
+     * TODO: the enableRemoteDebugging flag is unused now.
+     * 
      * @param {string} url The URL to open.
      * @param {boolean=} enableRemoteDebugging Whether to turn on remote debugging. Default false.
      * @return {$.Promise} 
      */
     function openLiveBrowser(url, enableRemoteDebugging) {
-        var result = new $.Deferred(),
-            browserDef = _getDebugBrowserDefinition();
-        
-        // brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
-        //     if (!err) {
-        //         // Undefined ids never get removed from list, so don't push them on
-        //         if (pid !== undefined) {
-        //             liveBrowserOpenedPIDs.push(pid);
-        //         }
-        //         result.resolve(pid);
-        //     } else {
-        //         result.reject(_browserErrToFileError(err));
-        //     }
-        // });
-
-        browserProcess = ChildProcess.exec(browserDef.path, _getArgs(browserDef, url));
-        result.resolve(browserProcess);
-        
+        var result = new $.Deferred().resolve(browserManager.openLiveBrowser(url));
         return result.promise();
     }
     
     /** closeLiveBrowser
+     * 
+     * TODO: this doesn't follow the signature at all. it closes all.
      *
      * @return {$.Promise}
      */
     function closeLiveBrowser(pid) {
-        var result = new $.Deferred();
-        
-        // if (isNaN(pid)) {
-        //     pid = 0;
-        // }
-        // brackets.app.closeLiveBrowser(function (err) {
-        //     if (!err) {
-        //         var i = liveBrowserOpenedPIDs.indexOf(pid);
-        //         if (i !== -1) {
-        //             liveBrowserOpenedPIDs.splice(i, 1);
-        //         }
-        //         result.resolve();
-        //     } else {
-        //         result.reject(_browserErrToFileError(err));
-        //     }
-        // }, pid);
-
-        if (browserProcess) {
-            var timeout = window.setTimeout(function () {
-                browserProcess = null;
-                result.reject();
-            }, 5000);
-
-            $(browserProcess).one("exit", function (code, signal) {
-                browserProcess = null;
-                window.clearTimeout(timeout);
-                result.resolve();
-            });
-
-            browserProcess.kill();
-        }
-
-        return result.promise();
+        return browserManager.closeAll();
     }
     
     /** closeAllLiveBrowsers
@@ -280,9 +236,7 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function closeAllLiveBrowsers() {
-        //make a copy incase the array is edited as we iterate
-        var closeIDs = liveBrowserOpenedPIDs.concat();
-        return Async.doSequentially(closeIDs, closeLiveBrowser, false);
+        return browserManager.closeAll();
     }
     
     /**
@@ -293,8 +247,78 @@ define(function (require, exports, module) {
         ChildProcess.exec("open " + url);
     }
     
+    function Browser(url, options) {
+        this.url = url;
+        this.options = options;
+    }
+    
+    Browser.prototype = {
+        launch: function () {
+            var browserDef = _getDebugBrowserDefinition();
 
+            this.process = ChildProcess.exec(browserDef.path, _getArgs(browserDef, this.url));
+            
+            // This should probably return a promise that's resolved once the browser is launched
+            return this;
+        },
+        
+        close: function () {
+            var result = new $.Deferred();
+            
+            if (!this.process) {
+                return result.resolve().promise();
+            }
+            
+            var timeout = window.setTimeout(function () {
+                this.process = null;
+                result.reject();
+            }.bind(this), 5000);
+
+            $(this.process).one("exit", function () {
+                this.process = null;
+                window.clearTimeout(timeout);
+                result.resolve();
+            }.bind(this));
+            
+            this.process.kill();
+            
+            return result.promise();
+        }
+    };
+    
+    function BrowserManager(options) {
+        this._browsers = [];
+        this.Browser = options.Browser || Browser;
+    }
+    
+    BrowserManager.prototype = {
+        openLiveBrowser: function (url) {
+            var browser = new this.Browser(url).launch();
+            this._browsers.push(browser);
+            $(browser).on("close", function () {
+                _.pull(this._browsers, browser);
+            }.bind(this));
+            return browser;
+        },
+        
+        closeAll: function () {
+            return Async.doInParallel(this._browsers, function (browser) {
+                return browser.close();
+            });
+        }
+    };
+    
+    function setBrowserManager(manager) {
+        browserManager = manager;
+    }
+    
+    setBrowserManager(new BrowserManager());
+    
     // Define public API
+    exports.BrowserManager = BrowserManager;
+    exports.Browser = Browser;
+    exports.setBrowserManager = setBrowserManager;
+    
     exports.openLiveBrowser = openLiveBrowser;
     exports.closeLiveBrowser = closeLiveBrowser;
     exports.closeAllLiveBrowsers = closeAllLiveBrowsers;
