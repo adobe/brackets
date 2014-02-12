@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $ */
+/*global define, window, $, brackets */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
@@ -364,15 +364,15 @@ define(function (require, exports, module) {
                 }
             });
         }
-    };
+    }
     
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
     CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
-    CommandManager.register(Strings.CMD_ZOOM_IN,            Commands.VIEW_ZOOM_IN,            function () { _handleZoom(1) });
-    CommandManager.register(Strings.CMD_ZOOM_OUT,           Commands.VIEW_ZOOM_OUT,           function () { _handleZoom(-1) });
-    CommandManager.register(Strings.CMD_RESET_ZOOM,         Commands.VIEW_RESET_ZOOM,         function () { _handleZoom(0) });
+    CommandManager.register(Strings.CMD_ZOOM_IN,            Commands.VIEW_ZOOM_IN,            function () { _handleZoom(1); });
+    CommandManager.register(Strings.CMD_ZOOM_OUT,           Commands.VIEW_ZOOM_OUT,           function () { _handleZoom(-1); });
+    CommandManager.register(Strings.CMD_RESET_ZOOM,         Commands.VIEW_RESET_ZOOM,         function () { _handleZoom(0); });
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
