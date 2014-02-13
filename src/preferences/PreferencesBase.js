@@ -684,10 +684,10 @@ define(function (require, exports, module) {
          * @return {Array.<string>} list of preference IDs that could have changed
          */
         defaultFilenameChanged: function (data, filename, oldFilename) {
-            var newGlob           = _findMatchingGlob(data,
-                                        FileUtils.getRelativeFilename(this.prefFilePath, filename)),
-                oldGlob       = _findMatchingGlob(data,
-                                    FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
+            var newGlob = _findMatchingGlob(data,
+                              FileUtils.getRelativeFilename(this.prefFilePath, filename)),
+                oldGlob = _findMatchingGlob(data,
+                              FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
             
             
             if (newGlob === oldGlob) {
@@ -701,45 +701,6 @@ define(function (require, exports, module) {
             }
             
             return _.union(_.keys(data[oldGlob]), _.keys(data[newGlob]));
-        }
-    };
-    
-    /**
-     * Helper object to add a new path-based Scope to the PreferencesSystem. When a path-based
-     * Scope will be added, its existence is first checked and *then* this PathScopeAdder will be
-     * used.
-     * 
-     * @param {string} filename Filename of the preferences file
-     * @param {string} scopeName Name of the new Scope to add
-     * @param {ScopeGenerator} scopeGenerator ScopeGenerator object that knows how to create the
-     *                      Scope with the correct kind of Storage object
-     * @param {string} before Name of the default Scope before which the new Scope should be added
-     */
-    function PathScopeAdder(filename, scopeName, scopeGenerator, before) {
-        this.filename = filename;
-        this.scopeName = scopeName;
-        this.scopeGenerator = scopeGenerator;
-        this.before = before;
-    }
-    
-    PathScopeAdder.prototype = {
-        /**
-         * Adds the new Scope to the given PreferencesSystem.
-         * 
-         * @param {PreferencesSystem} pm PreferencesSystem to which the Scope will be added
-         * @param {string} before Name of the Scope before which the new Scope should be added
-         * @return {Promise} Promise resolved once the Scope is loaded
-         */
-        add: function (pm, before) {
-            var scope = this.scopeGenerator.getScopeForFile(this.filename);
-            if (scope) {
-                var pathLayer = new PathLayer(this.filename);
-                scope.addLayer(pathLayer);
-                return pm.addScope(this.scopeName, scope,
-                    {
-                        before: before
-                    });
-            }
         }
     };
     

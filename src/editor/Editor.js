@@ -1552,19 +1552,26 @@ define(function (require, exports, module) {
         
         if (oldValue !== newValue) {
             this._currentOptions[prefName] = newValue;
-            if (prefName === STYLE_ACTIVE_LINE) {
-                this._updateStyleActiveLine();
-            }
-            this._codeMirror.setOption(cmOptions[prefName], newValue);
+            
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption("indentUnit", newValue === true ?
                                            this._currentOptions[TAB_SIZE] :
                                            this._currentOptions[SPACE_UNITS]
                                           );
-            } else if (prefName === TAB_SIZE || prefName === SPACE_UNITS) {
-                this._codeMirror.setOption("indentUnit", newValue);
+            } else if (prefName === STYLE_ACTIVE_LINE) {
+                this._updateStyleActiveLine();
+            } else {
+                // Set the CodeMirror option as long as it's not a change
+                // that is in conflict with the useTabChar setting.
+                var useTabChar = this._currentOptions[USE_TAB_CHAR];
+                if ((useTabChar && prefName === SPACE_UNITS) || 
+                    (!useTabChar && prefName === TAB_SIZE)) {
+                    return;
+                }
+                
+                this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
-                                           
+            
             $(this).triggerHandler("optionChange", [prefName, newValue]);
         }
     };
@@ -1584,8 +1591,7 @@ define(function (require, exports, module) {
         }
     };
     
-    // Global settings that affect all Editor instances (both currently open Editors as well as those created
-    // in the future)
+    // Global settings that affect Editor instances that share the same preference locations
 
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
@@ -1596,7 +1602,7 @@ define(function (require, exports, module) {
         PreferencesManager.setValueAndSave(USE_TAB_CHAR, value);
     };
     
-    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
     Editor.getUseTabChar = function () {
         return PreferencesManager.get(USE_TAB_CHAR);
     };
@@ -1638,7 +1644,7 @@ define(function (require, exports, module) {
         PreferencesManager.setValueAndSave(CLOSE_BRACKETS, value);
     };
     
-    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    /** @type {boolean} Gets whether the current editor uses auto close brackets */
     Editor.getCloseBrackets = function () {
         return PreferencesManager.get(CLOSE_BRACKETS);
     };
@@ -1652,7 +1658,7 @@ define(function (require, exports, module) {
         PreferencesManager.setValueAndSave(SHOW_LINE_NUMBERS, value);
     };
     
-    /** @type {boolean} Returns true if show line numbers is enabled for all editors */
+    /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
     Editor.getShowLineNumbers = function () {
         return PreferencesManager.get(SHOW_LINE_NUMBERS);
     };
@@ -1666,7 +1672,7 @@ define(function (require, exports, module) {
         PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
-    /** @type {boolean} Returns true if show active line is enabled for all editors */
+    /** @type {boolean} Returns true if show active line is enabled for the current editor */
     Editor.getShowActiveLine = function () {
         return PreferencesManager.get(STYLE_ACTIVE_LINE);
     };
@@ -1680,7 +1686,7 @@ define(function (require, exports, module) {
         PreferencesManager.set(WORD_WRAP, value);
     };
     
-    /** @type {boolean} Returns true if word wrap is enabled for all editors */
+    /** @type {boolean} Returns true if word wrap is enabled for the current editor */
     Editor.getWordWrap = function () {
         return PreferencesManager.get(WORD_WRAP);
     };

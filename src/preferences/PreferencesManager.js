@@ -263,12 +263,7 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        var relativeFilename = FileUtils.getRelativeFilename(projectDirectory, filename);
-        if (!relativeFilename) {
-            return false;
-        } else {
-            return true;
-        }
+        return FileUtils.getRelativeFilename(projectDirectory, filename) ? true : false;
     }
     
     /**
@@ -278,7 +273,7 @@ define(function (require, exports, module) {
      * edited file is within the project.
      */
     function _toggleProjectScope() {
-        if (_includeProjectScope() && projectScopeIsIncluded) {
+        if (_includeProjectScope() === projectScopeIsIncluded) {
             return;
         }
         if (projectScopeIsIncluded) {
