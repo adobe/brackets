@@ -23,10 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, WebSocket */
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
@@ -50,7 +52,11 @@ define(function (require, exports, module) {
         DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        Menus               = require("command/Menus"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        StatusBar           = require("widgets/StatusBar");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -75,8 +81,16 @@ define(function (require, exports, module) {
     /** @type {Number} index to use for next, new Untitled document */
     var _nextUntitledIndexToUse = 1;
     
+    /** @type {boolean} prevents reentrancy of browserReload() */
+    var _isReloading = false;
+    
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
+    
+    PreferencesManager.definePreference("defaultExtension", "string", "");
+    
+    /** @type {function} JSLint workaround for circular dependency */
+    var handleFileSaveAs;
 
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
@@ -92,7 +106,7 @@ define(function (require, exports, module) {
                     _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
                 } else {
                     // hide dirty dot if there is no document
-                    _$dirtydot.css("visibility", "hidden");                    
+                    _$dirtydot.css("visibility", "hidden");
                 }
             } else {
                 _$title.text("");
@@ -125,7 +139,7 @@ define(function (require, exports, module) {
             windowTitle = (currentDoc.isDirty) ? "• " + windowTitle : windowTitle;
         } else {
             // hide dirty dot if there is no document
-            _$dirtydot.css("visibility", "hidden");                    
+            _$dirtydot.css("visibility", "hidden");
         }
 
         // update shell/browser window title
@@ -416,7 +430,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
-     * @param {string} dir  The directory to use
+     * @param {Directory} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
@@ -430,7 +444,7 @@ define(function (require, exports, module) {
             //we've tried this enough            
             deferred.reject();
         } else {
-            var path = dir + "/" + suggestedName,
+            var path = dir.fullPath + suggestedName,
                 entry = isFolder ? FileSystem.getDirectoryForPath(path)
                                  : FileSystem.getFileForPath(path);
             
@@ -472,25 +486,26 @@ define(function (require, exports, module) {
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
         // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
-        var baseDir,
+        var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
         
-        baseDir = selected.fullPath;
         if (selected.isFile) {
-            baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
+            baseDirEntry = FileSystem.getDirectoryForPath(selected.parentPath);
         }
+        
+        baseDirEntry = baseDirEntry || selected;
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
-            return ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
+            return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
         }
         
-        return _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder)
+        return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
             .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 
@@ -499,7 +514,13 @@ define(function (require, exports, module) {
      * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
-        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, "");
+        //var defaultExtension = PreferencesManager.get("defaultExtension");
+        //if (defaultExtension) {
+        //    defaultExtension = "." + defaultExtension;
+        //}
+        var defaultExtension = "";  // disable preference setting for now 
+        
+        var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
         DocumentManager.setCurrentDocument(doc);
         EditorManager.focusEditor();
         
@@ -538,8 +559,6 @@ define(function (require, exports, module) {
             )
         );
     }
-    
-    
     
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
@@ -593,14 +612,12 @@ define(function (require, exports, module) {
                         doSave(docToSave, true).then(result.resolve, result.reject);
                     } else if (id === Dialogs.DIALOG_BTN_SAVE_AS) {
                         // Let the user choose a different path at which to write the file
-                        exports.handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
+                        handleFileSaveAs({doc: docToSave}).then(result.resolve, result.reject);
                     }
                 });
         }
             
-        if (docToSave.isDirty) {
-            var writeError = false;
-            
+        function trySave() {
             // We don't want normalized line endings, so it's important to pass true to getText()
             FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
@@ -614,6 +631,28 @@ define(function (require, exports, module) {
                         handleError(err);
                     }
                 });
+        }
+
+        if (docToSave.isDirty) {
+            var writeError = false;
+            
+            if (docToSave.keepChangesTime) {
+                // The user has decided to keep conflicting changes in the editor. Check to make sure
+                // the file hasn't changed since they last decided to do that.
+                docToSave.file.stat(function (err, stat) {
+                    // If the file has been deleted on disk, the stat will return an error, but that's fine since 
+                    // that means there's no file to overwrite anyway, so the save will succeed without us having
+                    // to set force = true.
+                    if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
+                        // OK, it's safe to overwrite the file even though we never reloaded the latest version,
+                        // since the user already said s/he wanted to ignore the disk version.
+                        force = true;
+                    }
+                    trySave();
+                });
+            } else {
+                trySave();
+            }
         } else {
             result.resolve(file);
         }
@@ -720,22 +759,17 @@ define(function (require, exports, module) {
             // ignoring warnings about the contents being modified outside of
             // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                // Add new file to project tree
-                ProjectManager.refreshFileTree().done(function () {
-                    // If there were unsaved changes before Save As, they don't stay with the old
-                    // file anymore - so must revert the old doc to match disk content.
-                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                    // not in the working set has the side effect of adding it to the working set.
-                    if (doc.isDirty && !(doc.isUntitled())) {
-                        // if the file is dirty it must be in the working set
-                        // doRevert is side effect free in this case
-                        doRevert(doc).always(openNewFile);
-                    } else {
-                        openNewFile();
-                    }
-                }).fail(function (error) {
-                    result.reject(error);
-                });
+                // If there were unsaved changes before Save As, they don't stay with the old
+                // file anymore - so must revert the old doc to match disk content.
+                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                // not in the working set has the side effect of adding it to the working set.
+                if (doc.isDirty && !(doc.isUntitled())) {
+                    // if the file is dirty it must be in the working set
+                    // doRevert is side effect free in this case
+                    doRevert(doc).always(openNewFile);
+                } else {
+                    openNewFile();
+                }
             }).fail(function (error) {
                 _showSaveFileError(error, path)
                     .done(function () {
@@ -872,7 +906,7 @@ define(function (require, exports, module) {
      * Prompts user with save as dialog and saves document.
      * @return {$.Promise} a promise that is resolved once the save has been completed
      */
-    function handleFileSaveAs(commandData) {
+    handleFileSaveAs = function (commandData) {
         // Default to current document if doc is null
         var doc = null,
             settings;
@@ -893,7 +927,7 @@ define(function (require, exports, module) {
         // doc may still be null, e.g. if no editors are open, but _doSaveAs() does a null check on
         // doc.
         return _doSaveAs(doc, settings);
-    }
+    };
 
     /**
      * Saves all unsaved documents.
@@ -1220,7 +1254,7 @@ define(function (require, exports, module) {
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
      */
-    function _handleAbortQuit() {
+    function handleAbortQuit() {
         _windowGoingAway = false;
     }
     
@@ -1228,7 +1262,7 @@ define(function (require, exports, module) {
      * @private
      * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
      */
-    function _handleBeforeMenuPopup() {
+    function handleBeforeMenuPopup() {
         $(PopUpManager).triggerHandler("beforeMenuPopup");
     }
     
@@ -1371,13 +1405,146 @@ define(function (require, exports, module) {
         }
     }
     
-    // Init DOM elements
+    /**
+     * Disables Brackets' cache via the remote debugging protocol.
+     * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
+     */
+    function _disableCache() {
+        var result = new $.Deferred();
+        
+        if (brackets.inBrowser) {
+            result.resolve();
+        } else {
+            var port = brackets.app.getRemoteDebuggingPort ? brackets.app.getRemoteDebuggingPort() : 9234;
+            Inspector.getDebuggableWindows("127.0.0.1", port)
+                .fail(result.reject)
+                .done(function (response) {
+                    var page = response[0];
+                    if (!page || !page.webSocketDebuggerUrl) {
+                        result.reject();
+                        return;
+                    }
+                    var _socket = new WebSocket(page.webSocketDebuggerUrl);
+                    // Disable the cache
+                    _socket.onopen = function _onConnect() {
+                        _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
+                    };
+                    // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
+                    _socket.onmessage = function _onMessage(e) {
+                        _socket.close();
+                        result.resolve();
+                    };
+                    // In case of an error
+                    _socket.onerror = result.reject;
+                });
+        }
+         
+        return result.promise();
+    }
+    
+    /**
+    * Does a full reload of the browser window
+    * @param {string} href The url to reload into the window
+    */
+    function browserReload(href) {
+        if (_isReloading) {
+            return;
+        }
+        
+        _isReloading = true;
+        
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
+            // Give everyone a chance to save their state - but don't let any problems block
+            // us from quitting
+            try {
+                $(ProjectManager).triggerHandler("beforeAppClose");
+            } catch (ex) {
+                console.error(ex);
+            }
+            
+            // Disable the cache to make reloads work
+            _disableCache().always(function () {
+                // Remove all menus to assure every part of Brackets is reloaded
+                _.forEach(Menus.getAllMenus(), function (value, key) {
+                    Menus.removeMenu(key);
+                });
+                
+                window.location.href = href;
+            });
+        }).fail(function () {
+            _isReloading = false;
+        });
+    }
+    
+    function handleReload() {
+        var href    = window.location.href,
+            params  = new UrlParams();
+        
+        // Make sure the Reload Without User Extensions parameter is removed
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts")) {
+            params.remove("reloadWithoutUserExts");
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        if (!params.isEmpty()) {
+            href += "?" + params.toString();
+        }
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
+    }
+    
+    function handleReloadWithoutExts() {
+        var href    = window.location.href,
+            params  = new UrlParams();
+        
+        params.parse();
+        
+        if (!params.get("reloadWithoutUserExts")) {
+            params.put("reloadWithoutUserExts", true);
+        }
+        
+        if (href.indexOf("?") !== -1) {
+            href = href.substring(0, href.indexOf("?"));
+        }
+        
+        href += "?" + params.toString();
+        
+        // Give Mac native menus extra time to update shortcut highlighting.
+        // Prevents the menu highlighting from getting messed up after reload.
+        window.setTimeout(function () {
+            browserReload(href);
+        }, 100);
+    }
+    
     AppInit.htmlReady(function () {
+        // If in Reload Without User Extensions mode, update UI and log console message
+        var params      = new UrlParams(),
+            $icon       = $("#toolbar-extension-manager"),
+            $indicator  = $("<div>" + Strings.STATUSBAR_USER_EXTENSIONS_DISABLED + "</div>");
+        
+        params.parse();
+        
+        if (params.get("reloadWithoutUserExts") === "true") {
+            CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
+            $icon.css({display: "none"});
+            StatusBar.addIndicator("status-user-exts", $indicator, true);
+            console.log("Brackets reloaded with extensions disabled");
+        }
+        
+        // Init DOM elements
         _$titleContainerToolbar = $("#titlebar");
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
         _$dirtydot = $(".dirty-dot", _$titleWrapper);
-        
     });
 
     // Exported for unit testing only
@@ -1413,10 +1580,12 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
     CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
     
-    // Those commands have no UI representation, and are only used internally 
-    CommandManager.registerInternal(Commands.APP_ABORT_QUIT,        _handleAbortQuit);
-    CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,  _handleBeforeMenuPopup);
-    CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,     handleFileCloseWindow);
+    // These commands have no UI representation and are only used internally
+    CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);
+    CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,      handleBeforeMenuPopup);
+    CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);
+    CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload);
+    CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
     
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

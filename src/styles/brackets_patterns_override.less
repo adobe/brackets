@@ -147,6 +147,9 @@ a:focus {
     .box-flex(1);
     text-align: center;
 
+    // Ensure that it stays on top
+    z-index: @z-index-brackets-main-toolbar;
+
     .buttons,
     .bottom-buttons {
         text-align: center;
@@ -1117,7 +1120,7 @@ input[type="color"],
         border-top: 1px solid transparent;
     }
     tbody th {
-        border-top: 1px solid transparent);
+        border-top: 1px solid transparent;
     }
     .right {
         text-align: right;

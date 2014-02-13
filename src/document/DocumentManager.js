@@ -497,7 +497,7 @@ define(function (require, exports, module) {
         _currentDocument = doc;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
-
+        
         PerfUtils.addMeasurement(perfTimerName);
     }
 
@@ -991,6 +991,11 @@ define(function (require, exports, module) {
         .on("_documentSaved", function (event, doc) {
             $(exports).triggerHandler("documentSaved", doc);
         });
+    
+    // Handle file saves that may affect preferences
+    $(exports).on("documentSaved", function (e, doc) {
+        PreferencesManager.fileChanged(doc.file.fullPath);
+    });
     
     // For unit tests and internal use only
     exports._clearCurrentDocument       = _clearCurrentDocument;

@@ -117,6 +117,16 @@ define(function (require, exports, module) {
     Document.prototype.diskTimestamp = null;
     
     /**
+     * The timestamp of the document at the point where the user last said to keep changes that conflict
+     * with the current disk version. Can also be -1, indicating that the file was deleted on disk at the
+     * last point when the user said to keep changes, or null, indicating that the user has not said to
+     * keep changes.
+     * Note that this is a time as returned by Date.getTime(), not a Date object.
+     * @type {?Number}
+     */
+    Document.prototype.keepChangesTime = null;
+
+    /**
      * True while refreshText() is in progress and change notifications shouldn't trip the dirty flag.
      * @type {boolean}
      */
@@ -287,8 +297,8 @@ define(function (require, exports, module) {
             // either be an array of lines or a single string?
             $(this).triggerHandler("change", [this, {text: text.split(/\r?\n/)}]);
         }
-        this.diskTimestamp = newTimestamp;
-        
+        this._updateTimestamp(newTimestamp);
+       
         // If Doc was dirty before refresh, reset it to clean now (don't always call, to avoid no-op dirtyFlagChange events) Since
         // _resetText() above already ensures Editor state is clean, it's safe to skip _markClean() as long as our own state is already clean too.
         if (this.isDirty) {
@@ -407,6 +417,15 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("_dirtyFlagChange", this);
     };
     
+    /**
+     * @private
+     */
+    Document.prototype._updateTimestamp = function (timestamp) {
+        this.diskTimestamp = timestamp;
+        // Clear the "keep changes" timestamp since it's no longer relevant.
+        this.keepChangesTime = null;
+    };
+    
     /** 
      * Called when the document is saved (which currently happens in DocumentCommandHandlers). Marks the
      * document not dirty and notifies listeners of the save.
@@ -422,7 +441,7 @@ define(function (require, exports, module) {
         var thisDoc = this;
         this.file.stat(function (err, stat) {
             if (!err) {
-                thisDoc.diskTimestamp = stat.mtime;
+                thisDoc._updateTimestamp(stat.mtime);
             } else {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
             }

@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesBase     = require("preferences/PreferencesBase");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
@@ -530,6 +531,15 @@ define(function (require, exports, module) {
         );
 
         runs(function () {
+            // Reconfigure the preferences manager so that the "user" scoped
+            // preferences are empty and the tests will not reconfigure
+            // the preferences of the user running the tests.
+            var pm = _testWindow.brackets.test.PreferencesManager._manager;
+            pm.removeScope("user");
+            pm.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            });
+            
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
         });
