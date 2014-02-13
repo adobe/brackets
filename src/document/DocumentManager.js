@@ -816,8 +816,7 @@ define(function (require, exports, module) {
             currentDoc   = getCurrentDocument(),
             projectRoot  = ProjectManager.getProjectRoot(),
             context      = { location : { scope: "user",
-                                          layer: "project",
-                                          layerID: projectRoot.fullPath } };
+                                          layer: "project" } };
 
         if (!projectRoot) {
             return;
@@ -840,10 +839,8 @@ define(function (require, exports, module) {
             }
         });
 
-        // Update the project path in project layer before writing out working set files.
-        PreferencesManager.projectLayer.setProjectPath(projectRoot.fullPath);
+        // Writing out working set files using the project layer specified in 'context'.
         PreferencesManager.setViewState("project.files", files, context);
-        PreferencesManager.projectLayer.setProjectPath(null);
     }
 
     /**
@@ -855,12 +852,9 @@ define(function (require, exports, module) {
         var projectRoot = ProjectManager.getProjectRoot(),
             files = [],
             context = { location : { scope: "user",
-                                     layer: "project",
-                                     layerID: projectRoot.fullPath } };
+                                     layer: "project" } };
         
-        PreferencesManager.projectLayer.setProjectPath(projectRoot.fullPath);
         files = PreferencesManager.getViewState("project.files", context);
-        PreferencesManager.projectLayer.setProjectPath(null);
         
         console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
@@ -1012,7 +1006,6 @@ define(function (require, exports, module) {
         if (key.indexOf("files_/") === 0) {
             // Get the project path from the old preference key by stripping "files_".
             var projectPath = key.substr(key.indexOf("/"));
-            PreferencesManager.projectLayer.setProjectPath(projectPath);
             return "user project.files " + projectPath;
         }
         
@@ -1020,7 +1013,6 @@ define(function (require, exports, module) {
     }
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
-    PreferencesManager.projectLayer.setProjectPath(null);
 
     // Handle file saves that may affect preferences
     $(exports).on("documentSaved", function (e, doc) {

@@ -379,8 +379,7 @@ define(function (require, exports, module) {
             shortPath,
             depth,
             context = { location : { scope: "user",
-                                     layer: "project",
-                                     layerID: _projectRoot.fullPath } };
+                                     layer: "project" } };
 
         // Query open nodes by class selector
         $(".jstree-open:visible").each(function (index) {
@@ -407,9 +406,7 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        PreferencesManager.projectLayer.setProjectPath(_projectRoot.fullPath);
         PreferencesManager.setViewState("project.treeState", openNodes, context);
-        PreferencesManager.projectLayer.setProjectPath(null);
     }
     
     /**
@@ -1051,8 +1048,7 @@ define(function (require, exports, module) {
         
         startLoad.done(function () {
             var context = { location : { scope: "user",
-                                         layer: "project",
-                                         layerID: rootPath } };
+                                         layer: "project" } };
 
             // Clear project path map
             _projectInitialLoad = {
@@ -1062,9 +1058,7 @@ define(function (require, exports, module) {
             };
 
             // restore project tree state from last time this project was open
-            PreferencesManager.projectLayer.setProjectPath(rootPath);
             _projectInitialLoad.previous = PreferencesManager.getViewState("project.treeState", context) || [];
-            PreferencesManager.projectLayer.setProjectPath(null);
 
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
@@ -1102,6 +1096,7 @@ define(function (require, exports, module) {
                             if (projectRootChanged) {
                                 // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                                 var promises = [];
+                                PreferencesManager.projectLayer.setProjectPath(_projectRoot ? _projectRoot.fullPath : null);
                                 $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
                                 $.when.apply($, promises).then(result.resolve, result.reject);
                             } else {
@@ -2147,7 +2142,6 @@ define(function (require, exports, module) {
         if (key.indexOf("projectTreeState_/") === 0) {
             // Get the project path from the old preference key by stripping "projectTreeState_".
             var projectPath = key.substr(key.indexOf("/"));
-            PreferencesManager.projectLayer.setProjectPath(projectPath);
             return "user project.treeState " + projectPath;
         }
         
