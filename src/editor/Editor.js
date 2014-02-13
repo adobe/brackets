@@ -1098,6 +1098,18 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Like _.each(), but if given a single item not in an array, acts as
+     * if it were an array containing just that item.
+     */
+    function oneOrEach(itemOrArr, cb) {
+        if (Array.isArray(itemOrArr)) {
+            _.each(itemOrArr, cb);
+        } else {
+            cb(itemOrArr, 0);
+        }
+    }
+    
+    /**
      * Helper function for edit operations that operate on multiple selections. Takes an "edit list"
      * that specifies a list of replaceRanges that should occur, but where all the positions are with
      * respect to the document state before all the edits (i.e., you don't have to figure out how to fix
@@ -1114,17 +1126,23 @@ define(function (require, exports, module) {
      * then this function will adjust them as necessary for the effects of other edits, and then return a
      * flat list of all the selections, suitable for passing to `setSelections()`.
      *
-     * @param {!Array<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}},
-     *                 selections: Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>>} edits
+     * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
+     *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}>} edits
      *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`.
+     *     `edit` is the edit to perform:
      *     `text` will replace the current contents of the range between `start` and `end`. 
      *     If `end` is unspecified, the text is inserted at `start`.
      *     `start` and `end` should be positions relative to the document *before* all edits are performed.
      *     If any of the edits overlap, an error will be thrown.
-     *     If `selections` is specified, it should be an array of selections associated with this edit,
+     *     If `selection` is specified, it should be a selection associated with this edit,
      *     expressed in terms of the document state after this individual edit is performed (ignoring any
-     *     other edits that might have already happened or will later happen). Those selections will be 
+     *     other edits that might have already happened or will later happen). That selection will be 
      *     corrected for the other edits that are performed and returned as the result of the function.
+     *     Note that `edit` and `selection` can each be either an individual edit/selection, or a group of
+     *     edits/selections to apply at once. This can be useful if you need to perform multiple edits in a row
+     *     and then specify a resulting selection that shouldn't be fixed up for any of those edits, or
+     *     if you have several selections that should ignore the effects of a given edit. Within an edit group,
+     *     edit positions must be specified relative to previous edits within that group.
      * @param {?string} origin An optional edit origin that's passed through to each replaceRange().
      * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
      *     The list of passed selections adjusted for the performed edits, if any.
@@ -1134,47 +1152,56 @@ define(function (require, exports, module) {
         
         // Sort the edits backwards, so we don't have to adjust the edit positions as we go along
         // (though we do have to adjust the selection positions).
-        edits.sort(function (range1, range2) {
-            return CodeMirror.cmpPos(range2.start, range1.start);
+        edits.sort(function (editDesc1, editDesc2) {
+            // TODO: what if the various edits in a group are in disparate parts of the document?
+            var edit1 = (Array.isArray(editDesc1.edit) ? editDesc1.edit[0] : editDesc1.edit),
+                edit2 = (Array.isArray(editDesc2.edit) ? editDesc2.edit[0] : editDesc2.edit);
+            return CodeMirror.cmpPos(edit2.start, edit1.start);
         });
         
         // Pull out the selections, in the same order as the edits.
-        var result = _.cloneDeep(_.pluck(edits, "selections"));
+        var result = _.cloneDeep(_.pluck(edits, "selection"));
         
         // Preflight the edits to specify "end" if unspecified and make sure they don't overlap. 
         // (We don't want to do it during the actual edits, since we don't want to apply some of
         // the edits before we find out.)
-        _.each(edits, function (edit, index) {
-            if (!edit.end) {
-                edit.end = edit.start;
-            }
-            if (index > 0) {
-                var prevEdit = edits[index - 1];
-                // The edits are in reverse order, so we want to make sure this edit ends
-                // before the previous one starts.
-                if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
-                    throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
+        _.each(edits, function (editDesc, index) {
+            oneOrEach(editDesc.edit, function (edit) {
+                if (!edit.end) {
+                    edit.end = edit.start;
                 }
-            }
+                if (index > 0) {
+                    var prevEditGroup = edits[index - 1].edit;
+                    // The edits are in reverse order, so we want to make sure this edit ends
+                    // before any of the previous ones start.
+                    oneOrEach(prevEditGroup, function (prevEdit) {
+                        if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
+                            throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
+                        }
+                    });
+                }
+            });
         });
         
         // Perform the edits.
         this.document.batchOperation(function () {
-            _.each(edits, function (edit, index) {
-                // Perform this edit. The edit positions are guaranteed to be okay since all the previous
-                // edits we've done have been later in the document. However, we have to fix up any
-                // selections that overlap or come after the edit.
-                self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
-                
-                var textLines = edit.text.split("\n");
-                _.each(result, function (selections, selIndex) {
-                    // Fix up all the selections *except* the one related to this edit.
-                    if (selections && selIndex !== index) {
-                        _.each(selections, function (sel) {
-                            sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
-                            sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
-                        });
-                    }
+            _.each(edits, function (editDesc, index) {
+                // Perform this group of edits. The edit positions are guaranteed to be okay
+                // since all the previous edits we've done have been later in the document. However,
+                // we have to fix up any selections that overlap or come after the edit.
+                oneOrEach(editDesc.edit, function (edit) {
+                    self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
+
+                    // Fix up all the selections *except* the one(s) related to this edit list.
+                    var textLines = edit.text.split("\n");
+                    _.each(result, function (selections, selIndex) {
+                        if (selections && selIndex !== index) {
+                            oneOrEach(selections, function (sel) {
+                                sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
+                                sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
+                            });
+                        }
+                    });
                 });
             });
         });

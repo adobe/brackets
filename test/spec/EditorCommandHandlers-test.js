@@ -1910,6 +1910,16 @@ define(function (require, exports, module) {
         
         
         describe("Move Lines Up/Down", function () {
+            function swapLines(lines, swaps) {
+                _.each(swaps, function (swap) {
+                    var temp = lines[swap[0]], i;
+                    for (i = 0; i < swap.length - 1; i++) {
+                        lines[swap[i]] = lines[swap[i + 1]];
+                    }
+                    lines[swap[swap.length - 1]] = temp;
+                });
+            }
+            
             beforeEach(setupFullEditor);
             
             it("should move whole line up if no selection", function () {
@@ -1919,9 +1929,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[0];
-                lines[0] = lines[1];
-                lines[1] = temp;
+                swapLines(lines, [[0, 1]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -1935,9 +1943,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[2];
-                lines[2] = lines[1];
-                lines[1] = temp;
+                swapLines(lines, [[2, 1]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -1976,9 +1982,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[5];
-                lines[5] = lines[6];
-                lines[6] = temp;
+                swapLines(lines, [[5, 6]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -1992,9 +1996,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[7];
-                lines[7] = lines[6];
-                lines[6] = temp;
+                swapLines(lines, [[7, 6]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2008,9 +2010,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[0];
-                lines[0] = lines[1];
-                lines[1] = temp;
+                swapLines(lines, [[0, 1]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2024,9 +2024,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[2];
-                lines[2] = lines[1];
-                lines[1] = temp;
+                swapLines(lines, [[2, 1]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2040,9 +2038,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[0];
-                lines[0] = lines[1];
-                lines[1] = temp;
+                swapLines(lines, [[0, 1]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2056,9 +2052,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[2];
-                lines[2] = lines[1];
-                lines[1] = temp;
+                swapLines(lines, [[2, 1]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2072,10 +2066,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[1];
-                lines[1] = lines[2];
-                lines[2] = lines[3];
-                lines[3] = temp;
+                swapLines(lines, [[1, 2, 3]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2089,10 +2080,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[4];
-                lines[4] = lines[3];
-                lines[3] = lines[2];
-                lines[2] = temp;
+                swapLines(lines, [[4, 3, 2]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2106,10 +2094,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[1];
-                lines[1] = lines[2];
-                lines[2] = lines[3];
-                lines[3] = temp;
+                swapLines(lines, [[1, 2, 3]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2123,10 +2108,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[4];
-                lines[4] = lines[3];
-                lines[3] = lines[2];
-                lines[2] = temp;
+                swapLines(lines, [[4, 3, 2]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2140,9 +2122,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[6];
-                lines[6] = lines[7];
-                lines[7] = temp;
+                swapLines(lines, [[6, 7]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2156,9 +2136,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[1];
-                lines[1] = lines[0];
-                lines[0] = temp;
+                swapLines(lines, [[1, 0]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2172,10 +2150,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[5];
-                lines[5] = lines[6];
-                lines[6] = lines[7];
-                lines[7] = temp;
+                swapLines(lines, [[5, 6, 7]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2189,10 +2164,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                var temp = lines[2];
-                lines[2] = lines[1];
-                lines[1] = lines[0];
-                lines[0] = temp;
+                swapLines(lines, [[2, 1, 0]]);
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -2215,6 +2187,150 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(defaultContent);
                 expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
+            });
+            
+            describe("with multiple selections", function () {
+                it("should move discontiguous lines up", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
+                                            {start: {line: 5, ch: 4}, end: {line: 5, ch: 4}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[0, 1], [2, 3], [4, 5]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, primary: true, reversed: false}]);
+                });
+                
+                it("should move discontiguous lines down", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
+                                            {start: {line: 5, ch: 4}, end: {line: 5, ch: 4}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[2, 1], [4, 3], [6, 5]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 6, ch: 4}, end: {line: 6, ch: 4}, primary: true, reversed: false}]);
+                });
+                
+                it("should move adjacent single lines with multiple selections up together", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[0, 1, 2]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true, reversed: false}]);
+                });
+
+                it("should move adjacent single lines with multiple selections down together", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[3, 2, 1]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, primary: true, reversed: false}]);
+                });
+
+                it("should move adjacent blocks of lines with multiple selections up together", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 2, ch: 6}},
+                                            {start: {line: 3, ch: 3}, end: {line: 3, ch: 3}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[0, 1, 2, 3]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 6}, primary: false, reversed: false},
+                                      {start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: true, reversed: false}]);
+                });
+
+                it("should move adjacent blocks of lines with multiple selections down together", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 2, ch: 6}},
+                                            {start: {line: 3, ch: 3}, end: {line: 3, ch: 3}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[4, 3, 2, 1]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 5}, end: {line: 3, ch: 6}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 3}, end: {line: 4, ch: 3}, primary: true, reversed: false}]);
+                });
+                
+                it("should move each line up only once if there are multiple cursors/selections on the same line, but preserve the selections", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: true},
+                                            {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
+                                            {start: {line: 3, ch: 5}, end: {line: 3, ch: 6}, reversed: true}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[0, 1], [2, 3]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true, reversed: false},
+                                      {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 2, ch: 5}, end: {line: 2, ch: 6}, primary: false, reversed: true}]);
+                });
+                
+                it("should move each line down only once if there are multiple cursors/selections on the same line, but preserve the selections", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: true},
+                                            {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
+                                            {start: {line: 3, ch: 5}, end: {line: 3, ch: 6}, reversed: true}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[2, 1], [4, 3]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, primary: true, reversed: false},
+                                      {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 4, ch: 5}, end: {line: 4, ch: 6}, primary: false, reversed: true}]);
+                });
+                
+                it("should properly coalesce selections that end/start on the same line when moving up", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 2, ch: 4}},
+                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[0, 1, 2]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 0, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: true, reversed: false}]);
+                });
+
+                it("should properly coalesce selections that end/start on the same line when moving down", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 2, ch: 4}},
+                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}}]);
+                
+                    CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                    var lines = defaultContent.split("\n");
+                    swapLines(lines, [[3, 2, 1]]);
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 2, ch: 4}, end: {line: 3, ch: 4}, primary: false, reversed: false},
+                                      {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
+                });
             });
         });
 

@@ -587,11 +587,11 @@ define(function (require, exports, module) {
                 if (end.line === editor.lineCount()) {
                     delimiter = "\n";
                 }
-                edits.push({ text: doc.getRange(start, end) + delimiter, start: start });
+                edits.push({edit: {text: doc.getRange(start, end) + delimiter, start: start }});
             }
         });
         _.each(rangeSels, function (sel) {
-            edits.push({ text: doc.getRange(sel.start, sel.end), start: sel.start });
+            edits.push({edit: {text: doc.getRange(sel.start, sel.end), start: sel.start }});
         });
 
         editor.doMultipleEdits(edits);
@@ -645,7 +645,7 @@ define(function (require, exports, module) {
                     to.ch = doc.getLine(to.line).length;
                 }
 
-                edits.push({text: "", start: from, end: to});
+                edits.push({edit: {text: "", start: from, end: to}});
             }
         });
         editor.doMultipleEdits(edits);
@@ -663,80 +663,111 @@ define(function (require, exports, module) {
             return;
         }
         
-        var doc = editor.document,
-            sel = editor.getSelection(),
-            originalSel    = editor.getSelection(),
-            hasSelection   = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+        var doc            = editor.document,
+            selections     = editor.getSelections(),
             isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
             firstLine      = editor.getFirstVisibleLine(),
             lastLine       = editor.getLastVisibleLine(),
             totalLines     = editor.lineCount(),
-            lineLength     = 0;
+            lineLength     = 0,
+            edits          = [];
         
-        sel.start.ch = 0;
-        // The end of the selection becomes the start of the next line, if it isn't already
-        if (!hasSelection || sel.end.ch !== 0) {
-            sel.end = {line: sel.end.line + 1, ch: 0};
-        }
+        // Combine adjacent lines with selections so they don't collide with each other, as they would
+        // if we did them individually.
+        var combinedSelections = [], prevSel;
+        _.each(selections, function (sel) {
+            var originalSel = _.cloneDeep(sel);
+            
+            // Adjust selection to encompass whole lines.
+            sel.start.ch = 0;
+            // The end of the selection becomes the start of the next line, if it isn't already
+            var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+            if (!hasSelection || sel.end.ch !== 0) {
+                sel.end = {line: sel.end.line + 1, ch: 0};
+            }
+
+            // If the start of the new selection is within the range of the previous (expanded) selection, merge
+            // the two selections together, but keep track of all the original selections that were related to this
+            // selection, so they can be properly adjusted. (We only have to check for the start being inside the previous
+            // range - it can't be before it because the selections started out sorted.)
+            if (prevSel && editor.posWithinRange(sel.start, prevSel.selectionForEdit.start, prevSel.selectionForEdit.end, true)) {
+                prevSel.selectionForEdit.end.line = sel.end.line;
+                prevSel.selectionsToTrack.push(originalSel);
+            } else {
+                prevSel = {selectionForEdit: sel, selectionsToTrack: [originalSel]};
+                combinedSelections.push(prevSel);
+            }
+        });
         
-        // Make the move
-        switch (direction) {
-        case DIRECTION_UP:
-            if (sel.start.line !== firstLine) {
-                doc.batchOperation(function () {
+        _.each(combinedSelections, function (combinedSel) {
+            var sel = combinedSel.selectionForEdit,
+                editGroup = [];
+
+            // Make the move
+            switch (direction) {
+            case DIRECTION_UP:
+                if (sel.start.line !== firstLine) {
                     var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
-                    
+
                     if (sel.end.line === lastLine + 1) {
                         if (isInlineWidget) {
                             prevText   = prevText.substring(0, prevText.length - 1);
                             lineLength = doc.getLine(sel.end.line - 1).length;
-                            doc.replaceRange("\n", { line: sel.end.line - 1, ch: lineLength });
+                            editGroup.push({text: "\n", start: { line: sel.end.line - 1, ch: lineLength }});
                         } else {
                             prevText = "\n" + prevText.substring(0, prevText.length - 1);
                         }
                     }
-                    
-                    doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
-                    doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 });
-                    
+
+                    editGroup.push({text: "", start: { line: sel.start.line - 1, ch: 0 }, end: sel.start});
+                    editGroup.push({text: prevText, start: { line: sel.end.line - 1, ch: 0 }});
+
                     // Make sure CodeMirror hasn't expanded the selection to include
                     // the line we inserted below.
-                    originalSel.start.line--;
-                    originalSel.end.line--;
-                });
-    
-                // Update the selection after the document batch so it's not blown away on resynchronization
-                // if this editor is not the master editor.
-                editor.setSelection(originalSel.start, originalSel.end);
-            }
-            break;
-        case DIRECTION_DOWN:
-            if (sel.end.line <= lastLine) {
-                doc.batchOperation(function () {
+                    _.each(combinedSel.selectionsToTrack, function (originalSel) {
+                        originalSel.start.line--;
+                        originalSel.end.line--;
+                    });
+
+                    edits.push({edit: editGroup, selection: combinedSel.selectionsToTrack});
+                }
+                break;
+            case DIRECTION_DOWN:
+                if (sel.end.line <= lastLine) {
                     var nextText      = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 }),
                         deletionStart = sel.end;
-                    
+
                     if (sel.end.line === lastLine) {
                         if (isInlineWidget) {
                             if (sel.end.line === totalLines - 1) {
                                 nextText += "\n";
                             }
                             lineLength = doc.getLine(sel.end.line - 1).length;
-                            doc.replaceRange("\n", { line: sel.end.line, ch: doc.getLine(sel.end.line).length });
+                            editGroup.push({text: "\n", start: { line: sel.end.line, ch: doc.getLine(sel.end.line).length }});
                         } else {
                             nextText     += "\n";
                             deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
                         }
                     }
-    
-                    doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
+
+                    editGroup.push({text: "", start: deletionStart, end: { line: sel.end.line + 1, ch: 0 }});
                     if (lineLength) {
-                        doc.replaceRange("", { line: sel.end.line - 1, ch: lineLength }, { line: sel.end.line, ch: 0 });
+                        editGroup.push({text: "", start: { line: sel.end.line - 1, ch: lineLength }, end: { line: sel.end.line, ch: 0 }});
                     }
-                    doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
-                });
+                    editGroup.push({text: nextText, start: { line: sel.start.line, ch: 0 }});
+                    
+                    // In this case, we don't need to track selections, because the edits are done in such a way that
+                    // the existing selections will automatically be updated properly by CodeMirror as it does the edits.
+                    edits.push({edit: editGroup});
+                }
+                break;
             }
-            break;
+        });
+        if (edits.length) {
+            var newSels = editor.doMultipleEdits(edits);
+            if (direction === DIRECTION_UP) {
+                editor.setSelections(newSels);
+            }
         }
     }
     
@@ -808,7 +839,7 @@ define(function (require, exports, module) {
                         insertPos = {line: line, ch: 0};
                     }
                     // We want the selection after this edit to be right before the \n we just inserted.
-                    edits.push({text: "\n", start: insertPos, selections: [{start: insertPos, end: insertPos, primary: sel.primary}]});
+                    edits.push({edit: {text: "\n", start: insertPos}, selection: {start: insertPos, end: insertPos, primary: sel.primary}});
                 } else {
                     // We just want to discard this selection, since we've already operated on the
                     // same line and it would just collapse to the same location. But if this was
