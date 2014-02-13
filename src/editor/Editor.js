@@ -1564,8 +1564,8 @@ define(function (require, exports, module) {
                 // Set the CodeMirror option as long as it's not a change
                 // that is in conflict with the useTabChar setting.
                 var useTabChar = this._currentOptions[USE_TAB_CHAR];
-                if ((useTabChar && prefName === SPACE_UNITS) || 
-                    (!useTabChar && prefName === TAB_SIZE)) {
+                if ((useTabChar && prefName === SPACE_UNITS) ||
+                        (!useTabChar && prefName === TAB_SIZE)) {
                     return;
                 }
                 
