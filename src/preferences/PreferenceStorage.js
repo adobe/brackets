@@ -199,6 +199,7 @@ define(function (require, exports, module) {
         var prefs = this._json,
             self = this,
             complete = true,
+            manager  = isViewState ? PreferencesManager.stateManager : PreferencesManager,
             deferred = new $.Deferred();
         
         if (!convertedKeys) {
@@ -230,11 +231,7 @@ define(function (require, exports, module) {
                                                 layerID: projectPath } };
                     }
                     
-                    if (isViewState) {
-                        PreferencesManager.stateManager.set(newKey, prefs[key], options);
-                    } else {
-                        PreferencesManager.set(newKey, prefs[key]);
-                    }
+                    manager.set(newKey, prefs[key], options);
                     convertedKeys.push(key);
                 }
             } else {
@@ -243,21 +240,12 @@ define(function (require, exports, module) {
         });
         
         if (convertedKeys.length > 0) {
-            if (isViewState) {
-                PreferencesManager.stateManager.save().done(function () {
-                    _commit();
-                    deferred.resolve(complete, convertedKeys);
-                }).fail(function (error) {
-                    deferred.reject(error);
-                });
-            } else {
-                PreferencesManager.save().done(function () {
-                    _commit();
-                    deferred.resolve(complete, convertedKeys);
-                }).fail(function (error) {
-                    deferred.reject(error);
-                });
-            }
+            manager.save().done(function () {
+                _commit();
+                deferred.resolve(complete, convertedKeys);
+            }).fail(function (error) {
+                deferred.reject(error);
+            });
         } else {
             deferred.resolve(complete, convertedKeys);
         }

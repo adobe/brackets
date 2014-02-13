@@ -1340,16 +1340,6 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Adds a Layer to the specified scope.
-         *
-         * @param {string} scope Name of the scope where the layer object is to be added.
-         * @param {Layer} layer Layer object to add to this Scope
-         */
-        addLayer: function (scope, layer) {
-            this._scopes[scope].addLayer(layer);
-        },
-
-        /**
          * Path Scopes provide special handling for scopes that are managed by a
          * collection of files in the file tree. The idea is that files are
          * searched for going up the file tree to the root.

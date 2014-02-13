@@ -1000,7 +1000,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Exemine each preference key for migration of the working set files.
+     * Examine each preference key for migration of the working set files.
      * If the key has a prefix of "files_/", then it is a working set files 
      * preference from old preference model.
      *

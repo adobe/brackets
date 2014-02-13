@@ -213,11 +213,11 @@ define(function (require, exports, module) {
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
-                    // an old version that might not have set the "livedev.afterFirstLaunch" pref.)
+                    // an old version that might not have set the "afterFirstLaunch" pref.)
                     var deferred = new $.Deferred();
                     
-                    if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("livedev.afterFirstLaunch")) {
-                        PreferencesManager.setViewState("livedev.afterFirstLaunch", "true");
+                    if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
+                        PreferencesManager.setViewState("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {

@@ -231,25 +231,9 @@ define(function (require, exports, module) {
         return userPrefFile;
     }
 
-    // TODO: In order to migrate all view states I have to move the code that creates stateManager 
-    // (and adds a user scope to it) before the code that creates preferencesManager and all its scopes.
-    // Need to figure out why ???
-    //
-    // "State" is stored like preferences but it is not generally intended to be user-editable.
-    // It's for more internal, implicit things like window size, working set, etc.
-    var stateManager = new PreferencesBase.PreferencesSystem();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
-    
-    var userScope = stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
-    var projectLayer = new PreferencesBase.ProjectLayer();
-    
-    userScope.done(function () {
-        stateManager.addLayer("user", projectLayer);
-    });
-
     var preferencesManager = new PreferencesBase.PreferencesSystem();
     
-    userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
     // Set up the .brackets.json file handling
     userScope
@@ -286,6 +270,15 @@ define(function (require, exports, module) {
         return preferencesManager.getPrefixedSystem(prefix);
     }
     
+    // "State" is stored like preferences but it is not generally intended to be user-editable.
+    // It's for more internal, implicit things like window size, working set, etc.
+    var stateManager = new PreferencesBase.PreferencesSystem();
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+    var smUserScope = new PreferencesBase.Scope(new PreferencesBase.FileStorage(userStateFile, true));
+    var projectLayer = new PreferencesBase.ProjectLayer();
+    smUserScope.addLayer(projectLayer);
+    var smUserScopeLoading = stateManager.addScope("user", smUserScope);
+
     /**
      * Converts from the old localStorage-based preferences to the new-style
      * preferences according to the "rules" given.
@@ -307,27 +300,29 @@ define(function (require, exports, module) {
      *      exemines each preference key for migration.
      */
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
-        userScope.done(function () {
-            var prefs = getPreferenceStorage(clientID, null, true);
-            
-            if (!prefs) {
-                return;
-            }
-            
-            var prefsID = getClientID(clientID);
-            if (prefStorage.convertedKeysMap === undefined) {
-                prefStorage.convertedKeysMap = {};
-            }
-            var convertedKeysMap = prefStorage.convertedKeysMap;
-            
-            prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback)
-                .done(function (complete, convertedKeys) {
-                    prefStorage.convertedKeysMap[prefsID] = convertedKeys;
-                    savePreferences();
-                });
-        }).fail(function (error) {
-            console.error("Error while converting ", getClientID(clientID));
-            console.error(error);
+        smUserScopeLoading.done(function () {
+            userScope.done(function () {
+                var prefs = getPreferenceStorage(clientID, null, true);
+
+                if (!prefs) {
+                    return;
+                }
+
+                var prefsID = getClientID(clientID);
+                if (prefStorage.convertedKeysMap === undefined) {
+                    prefStorage.convertedKeysMap = {};
+                }
+                var convertedKeysMap = prefStorage.convertedKeysMap;
+
+                prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback)
+                    .done(function (complete, convertedKeys) {
+                        prefStorage.convertedKeysMap[prefsID] = convertedKeys;
+                        savePreferences();
+                    });
+            }).fail(function (error) {
+                console.error("Error while converting ", getClientID(clientID));
+                console.error(error);
+            });
         });
     }
 
