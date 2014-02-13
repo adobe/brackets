@@ -397,7 +397,8 @@ define(function (require, exports, module) {
                 whenOpening: true,
                 whenClosing: true,
                 indentTags: []
-            }
+            },
+            cursorScrollMargin: 3
         });
         
         // Can't get CodeMirror's focused state without searching for
@@ -707,6 +708,9 @@ define(function (require, exports, module) {
         this._codeMirror.on("update", function (instance) {
             $(self).triggerHandler("update", [self]);
         });
+        this._codeMirror.on("overwriteToggle", function (instance, newstate) {
+            $(self).triggerHandler("overwriteToggle", [self, newstate]);
+        });
     };
     
     /**
@@ -915,6 +919,15 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor(centerOptions);
         }
+    };
+
+    /**
+     * Sets the editors overwrite mode state. If null is passed, the state is toggled.
+     *
+     * @param {?boolean} start
+     */
+    Editor.prototype.toggleOverwrite = function (state) {
+        this._codeMirror.toggleOverwrite(state);
     };
 
     /**
