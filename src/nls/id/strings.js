@@ -375,7 +375,7 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} Paket tidak valid.",
     "MISSING_PACKAGE_VERSION"              : "package.json tidak menyebutkan versi paket.",
     "INVALID_VERSION_NUMBER"               : "Versi ({0}) tidak valid.",
-    "INVALID_BRACKETS_VERSION"             : "T{APP_NAME} compatibility string ({0}) is invalid.",
+    "INVALID_BRACKETS_VERSION"             : "Kompatibilitas {APP_NAME} dengan ({0}) tidak Valid.",
     "DISALLOWED_WORDS"                     : "Kata ({1}) tidak diijinkan pada {0} .",
     "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. diinstal pada folder disabled extensions.",
     "MISSING_MAIN"                         : "Tidak menemukan berkas main.js.",
@@ -458,7 +458,7 @@ define({
     "LANGUAGE_MESSAGE"                          : "Bahasa:",
     "LANGUAGE_SUBMIT"                           : "Jalankan ulang {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Batal",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "Default Sistem",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Sistem Default",
 
     // Locales (used by Debug > Switch Language)
     "LOCALE_CS"                                 : "Czech",
