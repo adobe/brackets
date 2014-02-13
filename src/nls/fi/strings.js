@@ -59,7 +59,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Virhe poistettaessa tiedostoa",
     "ERROR_DELETING_FILE"               : "Tapahtui virhe yrittäessä poistaa tiedosto <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Kelpaamaton {0}nimi",
-    "INVALID_FILENAME_MESSAGE"          : "Tiedostonimi ei voi sisältää seuraavia merkkejä: /?*:;{}<>\\| tai mitään järjestelmän varaamia sanoja.",
+    "INVALID_FILENAME_MESSAGE"          : "Tiedostonimi ei voi sisältää seuraavia merkkejä: {0} tai mitään järjestelmän varaamia sanoja.",
     "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> on jo olemassa.",
     "ERROR_CREATING_FILE_TITLE"         : "Virhe luodessa {0}a",
     "ERROR_CREATING_FILE"               : "Virhe yrittäessä luoda {0}a <span class='dialog-filename'>{1}</span>. {2}",

@@ -231,24 +231,28 @@ define(function (require, exports, module) {
     var userScope = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
     // Set up the .brackets.json file handling
-    preferencesManager.addPathScopes(".brackets.json", {
-        before: "user",
-        checkExists: function (filename) {
-            var result = new $.Deferred(),
-                file = FileSystem.getFileForPath(filename);
-            file.exists(function (err, doesExist) {
-                result.resolve(doesExist);
-            });
-            return result.promise();
-        },
-        getScopeForFile: function (filename) {
-            return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
-        }
-    });
-    
-    // Session Scope is for storing prefs in memory only but with the highest precedence.
-    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
-    
+    userScope
+        .done(function () {
+            preferencesManager.addPathScopes(".brackets.json", {
+                before: "user",
+                checkExists: function (filename) {
+                    var result = new $.Deferred(),
+                        file = FileSystem.getFileForPath(filename);
+                    file.exists(function (err, doesExist) {
+                        result.resolve(doesExist);
+                    });
+                    return result.promise();
+                },
+                getScopeForFile: function (filename) {
+                    return new PreferencesBase.Scope(new PreferencesBase.FileStorage(filename));
+                }
+            })
+                .done(function () {
+                    // Session Scope is for storing prefs in memory only but with the highest precedence.
+                    preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
+                });
+        });
+        
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`
