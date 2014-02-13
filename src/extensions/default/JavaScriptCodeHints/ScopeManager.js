@@ -29,7 +29,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, CodeMirror, $, Worker, setTimeout */
+/*global define, brackets, $, Worker, setTimeout */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
+        CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
