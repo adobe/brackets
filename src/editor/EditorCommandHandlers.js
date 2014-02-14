@@ -664,7 +664,7 @@ define(function (require, exports, module) {
         }
         
         var doc            = editor.document,
-            selections     = editor.getSelections(),
+            lineSelections = editor.getLineSelections(),
             isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
             firstLine      = editor.getFirstVisibleLine(),
             lastLine       = editor.getLastVisibleLine(),
@@ -672,35 +672,8 @@ define(function (require, exports, module) {
             lineLength     = 0,
             edits          = [];
         
-        // Combine adjacent lines with selections so they don't collide with each other, as they would
-        // if we did them individually.
-        var combinedSelections = [], prevSel;
-        _.each(selections, function (sel) {
-            var originalSel = _.cloneDeep(sel);
-            
-            // Adjust selection to encompass whole lines.
-            sel.start.ch = 0;
-            // The end of the selection becomes the start of the next line, if it isn't already
-            var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-            if (!hasSelection || sel.end.ch !== 0) {
-                sel.end = {line: sel.end.line + 1, ch: 0};
-            }
-
-            // If the start of the new selection is within the range of the previous (expanded) selection, merge
-            // the two selections together, but keep track of all the original selections that were related to this
-            // selection, so they can be properly adjusted. (We only have to check for the start being inside the previous
-            // range - it can't be before it because the selections started out sorted.)
-            if (prevSel && editor.posWithinRange(sel.start, prevSel.selectionForEdit.start, prevSel.selectionForEdit.end, true)) {
-                prevSel.selectionForEdit.end.line = sel.end.line;
-                prevSel.selectionsToTrack.push(originalSel);
-            } else {
-                prevSel = {selectionForEdit: sel, selectionsToTrack: [originalSel]};
-                combinedSelections.push(prevSel);
-            }
-        });
-        
-        _.each(combinedSelections, function (combinedSel) {
-            var sel = combinedSel.selectionForEdit,
+        _.each(lineSelections, function (lineSel) {
+            var sel = lineSel.selectionForEdit,
                 editGroup = [];
 
             // Make the move
@@ -724,12 +697,12 @@ define(function (require, exports, module) {
 
                     // Make sure CodeMirror hasn't expanded the selection to include
                     // the line we inserted below.
-                    _.each(combinedSel.selectionsToTrack, function (originalSel) {
+                    _.each(lineSel.selectionsToTrack, function (originalSel) {
                         originalSel.start.line--;
                         originalSel.end.line--;
                     });
 
-                    edits.push({edit: editGroup, selection: combinedSel.selectionsToTrack});
+                    edits.push({edit: editGroup, selection: lineSel.selectionsToTrack});
                 }
                 break;
             case DIRECTION_DOWN:
@@ -812,6 +785,9 @@ define(function (require, exports, module) {
         // then indent them all. (We can't easily do them all at once, because doMultipleEdits()
         // won't do the indentation for us, but we want its help tracking any selection changes
         // as the result of the edits.)
+        
+        // Note that we don't just use `editor.getLineSelections()` here because we don't actually want
+        // to coalesce adjacent selections - we just want to ignore dupes.
         
         doc.batchOperation(function () {
             _.each(selections, function (sel, index) {
