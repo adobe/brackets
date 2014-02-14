@@ -288,7 +288,14 @@
 
 .bezier-curve-editor .info .hint,
 .step-editor .info .hint {
-    margin-top: 30px;
+    margin-top: 25px;
     font-size: 13px;
     display: none;
+    opacity: 1;
+}
+
+.bezier-curve-editor .info .hint.fadeout,
+.step-editor .info .hint.fadeout {
+    transition: opacity 1.2s;
+    opacity: 0;
 }

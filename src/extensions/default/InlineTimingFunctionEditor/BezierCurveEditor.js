@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings"),
-        StringUtils     = brackets.getModule("utils/StringUtils");
+        StringUtils     = brackets.getModule("utils/StringUtils"),
+        AnimationUtils  = brackets.getModule("utils/AnimationUtils");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
         InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
@@ -533,9 +534,11 @@ define(function (require, exports, module) {
 
         this.hint = $(".hint", this.$element);
         if (bezierCurve.originalLength) {
+            this.hintShown = true;
             this.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "cubic-bezier()", "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
             this.hint.css("display", "block");
         } else {
+            this.hintShown = false;
             this.hint.css("display", "none");
         }
 
@@ -609,9 +612,16 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[0] + ", " +
             this._cubicBezierCoords[1] + ", " +
             this._cubicBezierCoords[2] + ", " +
-            this._cubicBezierCoords[3] + ")";
+            this._cubicBezierCoords[3] + ")",
+            self           = this;
         this._callback(bezierCurveVal);
-        this.hint.fadeOut(1000);
+        if (this.hintShown) {
+            this.hintShown = false;
+            AnimationUtils.animateUsingClass(this.hint[0], "fadeout")
+                .done(function () {
+                    self.hint.css("display", "none");
+                });
+        }
     };
 
     /**

@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
-        _               = brackets.getModule("thirdparty/lodash");
+        AnimationUtils  = brackets.getModule("utils/AnimationUtils");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
         InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
@@ -314,9 +314,11 @@ define(function (require, exports, module) {
 
         this.hint = $(".hint", this.$element);
         if (stepMatch.originalLength) {
+            this.hintShown = true;
             $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "steps()", "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")"));
             this.hint.css("display", "block");
         } else {
+            this.hintShown = false;
             this.hint.css("display", "none");
         }
 
@@ -363,9 +365,16 @@ define(function (require, exports, module) {
     StepEditor.prototype._commitTimingFunction = function () {
         var stepFuncVal = "steps(" +
             this._stepParams.count.toString() + ", " +
-            this._stepParams.timing + ")";
+            this._stepParams.timing + ")",
+            self        = this;
         this._callback(stepFuncVal);
-        this.hint.fadeOut(1000);
+        if (this.hintShown) {
+            this.hintShown = false;
+            AnimationUtils.animateUsingClass(this.hint[0], "fadeout")
+                .done(function () {
+                    self.hint.css("display", "none");
+                });
+        }
     };
 
     /**
