@@ -114,7 +114,7 @@ define(function (require, exports, module) {
                 _$dirtydot.css("visibility", "hidden");
             }
         
-            // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+            // Set _$titleWrapper to a fixed width just large enough to accommodate _$title. This seems equivalent to what
             // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
             // fixed width set on it (see the "#titlebar" CSS rule for details).
             _$titleWrapper.css("width", "");
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
     function updateDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
 
-        // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
+        // TODO: This timer is causing a "Recursive tests with the same name are not supported"
         // exception. This code should be removed (if not needed), or updated with a unique
         // timer name (if needed).
         // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
@@ -227,7 +227,7 @@ define(function (require, exports, module) {
                 // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
                 // message that in turn calls _cleanup() after the user clicks OK in the message box.
                 // So we need to explicitly close the currently viewing image file whose filename is  
-                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
+                // no longer valid. Calling notifyPathDeleted will close the image viewer and then select 
                 // the previously opened text file or show no-editor if none exists.
                 EditorManager.notifyPathDeleted(fullFilePath);
             } else {
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
      * @private
      * Ensures the suggested file name doesn't already exit.
      * @param {Directory} dir  The directory to use
-     * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
+     * @param {string} baseFileName  The base to start with, "-n" will get appended to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
      *   the given base name
@@ -755,7 +755,7 @@ define(function (require, exports, module) {
             newFile = FileSystem.getFileForPath(path);
             
             // Save as warns you when you're about to overwrite a file, so we
-            // explictly allow "blind" writes to the filesystem in this case,
+            // explicitly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
