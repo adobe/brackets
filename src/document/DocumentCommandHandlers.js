@@ -71,7 +71,7 @@ define(function (require, exports, module) {
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
     /** @type {string} String template for window title. Use emdash on mac only. */
-    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
+    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -130,9 +130,9 @@ define(function (require, exports, module) {
             }
         }
 
-        // build shell/browser window title, e.g. "• file.html — Brackets"
+        // build shell/browser window title, e.g. "• file.html (myProject) — Brackets"
         if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath + " (" + ProjectManager.getProjectRoot().name + ")", windowTitle);
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, ProjectManager.getProjectRoot().name, windowTitle);
         }
         
         if (currentDoc) {
