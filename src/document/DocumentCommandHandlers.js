@@ -132,7 +132,7 @@ define(function (require, exports, module) {
 
         // build shell/browser window title, e.g. "• file.html — Brackets"
         if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath + " (" + _.escape(ProjectManager.getProjectRoot().name + ")"), windowTitle);
         }
         
         if (currentDoc) {
