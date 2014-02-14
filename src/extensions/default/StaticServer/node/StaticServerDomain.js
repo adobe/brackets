@@ -101,19 +101,6 @@
 
     /**
      * @private
-     * Converts given value to a valid port number or zero.
-     * A zero will cause a random port to be used.
-     * @param {number} port number to clean, can be string as well
-     * @return {number} a valid port number or zero if a value wasn't passed in or valid.
-     */
-    function sanitizePort(port) {
-        port = parseInt(port, 10);
-        port = (port && !isNaN(port) && port > 0 && port < 65536) ? port : 0;
-        return port;
-    }
-
-    /**
-     * @private
      * Generates a key based on a server's absolute path
      * @param {string} path Absolute path for a server
      * @returns {string}
@@ -134,7 +121,6 @@
         var server,
             app,
             address,
-            portNum = sanitizePort(port),
             pathKey = getPathKey(path);
 
         // create a new map for this server's requests
@@ -260,7 +246,7 @@
             }
         });
 
-        server.listen(portNum, "127.0.0.1");
+        server.listen(port, "127.0.0.1");
     }
     
     /**
