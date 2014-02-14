@@ -531,8 +531,12 @@ define(function (require, exports, module) {
         // current cubic-bezier() function params
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
 
+        this.hint = $(".hint", this.$element);
         if (bezierCurve.originalLength) {
-            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "cubic-bezier()", "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
+            this.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "cubic-bezier()", "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
+            this.hint.css("display", "block");
+        } else {
+            this.hint.css("display", "none");
         }
 
         this.P1 = this.$element.find(".P1")[0];
@@ -607,6 +611,7 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[2] + ", " +
             this._cubicBezierCoords[3] + ")";
         this._callback(bezierCurveVal);
+        this.hint.fadeOut(1000);
     };
 
     /**

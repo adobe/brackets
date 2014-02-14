@@ -290,4 +290,5 @@
 .step-editor .info .hint {
     margin-top: 30px;
     font-size: 13px;
+    display: none;
 }

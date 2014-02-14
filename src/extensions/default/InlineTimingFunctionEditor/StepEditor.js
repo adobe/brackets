@@ -312,8 +312,12 @@ define(function (require, exports, module) {
         // current step function params
         this._stepParams = this._getStepParams(stepMatch);
 
+        this.hint = $(".hint", this.$element);
         if (stepMatch.originalLength) {
-            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "steps()", "steps(" + $.makeArray(this._stepParams).join(", ") + ")"));
+            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "steps()", "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")"));
+            this.hint.css("display", "block");
+        } else {
+            this.hint.css("display", "none");
         }
 
         this.canvas = this.$element.find(".steps")[0];
@@ -361,6 +365,7 @@ define(function (require, exports, module) {
             this._stepParams.count.toString() + ", " +
             this._stepParams.timing + ")";
         this._callback(stepFuncVal);
+        this.hint.fadeOut(1000);
     };
 
     /**
