@@ -76,40 +76,37 @@ define(function (require, exports, module) {
         _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
-    PreferencesManager.definePreference("useTabChar", "boolean", false);
-    PreferencesManager.definePreference("tabSize", "number", 4);
-    PreferencesManager.definePreference("spaceUnits", "number", 4);
-    PreferencesManager.definePreference("closeBrackets", "boolean", false);
-    PreferencesManager.definePreference("showLineNumbers", "boolean", true);
-    PreferencesManager.definePreference("styleActiveLine", "boolean", false);
-    PreferencesManager.definePreference("wordWrap", "boolean", true);
+    var USE_TAB_CHAR      = "useTabChar",
+        TAB_SIZE          = "tabSize",
+        SPACE_UNITS       = "spaceUnits",
+        CLOSE_BRACKETS    = "closeBrackets",
+        SHOW_LINE_NUMBERS = "showLineNumbers",
+        STYLE_ACTIVE_LINE = "styleActiveLine",
+        WORD_WRAP         = "wordWrap",
+        cmOptions         = {};
     
-    var editorSettings = ["useTabChar", "tabSize", "spaceUnits", "closeBrackets",
-                          "showLineNumbers", "styleActiveLine", "wordWrap"];
+    // Mappings from Brackets preferences to CodeMirror options
+    cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
+    cmOptions[TAB_SIZE]           = "indentUnit";
+    cmOptions[SPACE_UNITS]        = "indentUnit";
+    cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
+    cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
+    cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
+    cmOptions[WORD_WRAP]          = "lineWrapping";
+    
+    PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
+    PreferencesManager.definePreference(TAB_SIZE, "number", 4);
+    PreferencesManager.definePreference(SPACE_UNITS, "number", 4);
+    PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", false);
+    PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
+    PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
+    PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
+    
+    var editorOptions = [USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
+                          SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP];
 
     /** Editor preferences */
     
-    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = PreferencesManager.get("useTabChar");
-    
-    /** @type {number}  Global setting: Tab size */
-    var _tabSize = PreferencesManager.get("tabSize");
-    
-    /** @type {number}  Global setting: Space units (i.e. number of spaces when indenting) */
-    var _spaceUnits = PreferencesManager.get("spaceUnits");
-    
-    /** @type {boolean}  Global setting: Auto closes (, {, [, " and ' */
-    var _closeBrackets = PreferencesManager.get("closeBrackets");
-    
-    /** @type {boolean}  Global setting: Show line numbers in the gutter */
-    var _showLineNumbers = PreferencesManager.get("showLineNumbers");
-
-    /** @type {boolean}  Global setting: Highlight the background of the line that has the cursor */
-    var _styleActiveLine = PreferencesManager.get("styleActiveLine");
-
-    /** @type {boolean}  Global setting: Auto wrap lines */
-    var _wordWrap = PreferencesManager.get("wordWrap");
-
     /** @type {boolean}  Guard flag to prevent focus() reentrancy (via blur handlers), even across Editors */
     var _duringFocus = false;
 
@@ -271,14 +268,7 @@ define(function (require, exports, module) {
      * @param {!Event} event
      */
     function _handleCursorActivity(jqEvent, editor, event) {
-        // If there is a selection in the editor, temporarily hide Active Line Highlight
-        if (editor.hasSelection()) {
-            if (editor._codeMirror.getOption("styleActiveLine")) {
-                editor._codeMirror.setOption("styleActiveLine", false);
-            }
-        } else {
-            editor._codeMirror.setOption("styleActiveLine", _styleActiveLine);
-        }
+        editor._updateStyleActiveLine();
     }
     
     function _handleKeyEvents(jqEvent, editor, event) {
@@ -380,22 +370,29 @@ define(function (require, exports, module) {
             "Cmd-Left": "goLineStartSmart"
         };
         
+        var currentOptions = this._currentOptions = _.zipObject(
+            editorOptions,
+            _.map(editorOptions, function (prefName) {
+                return self._getOption(prefName);
+            })
+        );
+        
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            indentWithTabs: _useTabChar,
-            tabSize: _tabSize,
-            indentUnit: _useTabChar ? _tabSize : _spaceUnits,
-            lineNumbers: _showLineNumbers,
-            lineWrapping: _wordWrap,
-            styleActiveLine: _styleActiveLine,
+            indentWithTabs: currentOptions[USE_TAB_CHAR],
+            tabSize: currentOptions[TAB_SIZE],
+            indentUnit: currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
+            lineNumbers: currentOptions[SHOW_LINE_NUMBERS],
+            lineWrapping: currentOptions[WORD_WRAP],
+            styleActiveLine: currentOptions[STYLE_ACTIVE_LINE],
             coverGutterNextToScrollbar: true,
             matchBrackets: true,
             matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
-            autoCloseBrackets: _closeBrackets,
+            autoCloseBrackets: currentOptions[CLOSE_BRACKETS],
             autoCloseTags: {
                 whenOpening: true,
                 whenClosing: true,
@@ -1530,167 +1527,176 @@ define(function (require, exports, module) {
      */
     Editor.prototype._hideMarks = [];
     
-    // Global settings that affect all Editor instances (both currently open Editors as well as those created
-    // in the future)
-
     /**
      * @private
-     * Updates Editor option with the given value. Affects all Editors.
-     * @param {boolean | number} value
-     * @param {string} cmOption - CodeMirror option string
+     * 
+     * Retrieve the value of the named preference for this document.
+     * 
+     * @param {string} prefName Name of preference to retrieve.
+     * @return {*} current value of that pref
      */
-    function _setEditorOption(value, cmOption) {
-        _instances.forEach(function (editor) {
-            editor._codeMirror.setOption(cmOption, value);
+    Editor.prototype._getOption = function (prefName) {
+        return PreferencesManager.get(prefName, this.document.file.fullPath);
+    };
+    
+    /**
+     * @private
+     * 
+     * Updates the editor to the current value of prefName for the file being edited.
+     * 
+     * @param {string} prefName Name of the preference to visibly update
+     */
+    Editor.prototype._updateOption = function (prefName) {
+        var oldValue = this._currentOptions[prefName],
+            newValue = this._getOption(prefName);
+        
+        if (oldValue !== newValue) {
+            this._currentOptions[prefName] = newValue;
             
-            // If there is a selection in the editor, temporarily hide Active Line Highlight
-            if ((cmOption === "styleActiveLine") && (value === true)) {
-                if (editor.hasSelection()) {
-                    editor._codeMirror.setOption("styleActiveLine", false);
+            if (prefName === USE_TAB_CHAR) {
+                this._codeMirror.setOption("indentUnit", newValue === true ?
+                                           this._currentOptions[TAB_SIZE] :
+                                           this._currentOptions[SPACE_UNITS]
+                                          );
+            } else if (prefName === STYLE_ACTIVE_LINE) {
+                this._updateStyleActiveLine();
+            } else {
+                // Set the CodeMirror option as long as it's not a change
+                // that is in conflict with the useTabChar setting.
+                var useTabChar = this._currentOptions[USE_TAB_CHAR];
+                if ((useTabChar && prefName === SPACE_UNITS) ||
+                        (!useTabChar && prefName === TAB_SIZE)) {
+                    return;
                 }
+                
+                this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
             
-            $(editor).triggerHandler("optionChange", [cmOption, value]);
-        });
-    }
+            $(this).triggerHandler("optionChange", [prefName, newValue]);
+        }
+    };
     
     /**
      * @private
-     * Updates Editor option and the corresponding preference with the given value. Affects all Editors.
-     * @param {boolean | number} value
-     * @param {string} cmOption - CodeMirror option string
-     * @param {string} prefName - preference name string
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
+     * 
+     * Used to ensure that "style active line" is turned off when there is a selection.
      */
-    function _setEditorOptionAndPref(value, cmOption, prefName, _editorOnly) {
-        _setEditorOption(value, cmOption);
-        if (!_editorOnly) {
-            PreferencesManager.setValueAndSave(prefName, value);
+    Editor.prototype._updateStyleActiveLine = function () {
+        if (this.hasSelection()) {
+            if (this._codeMirror.getOption("styleActiveLine")) {
+                this._codeMirror.setOption("styleActiveLine", false);
+            }
+        } else {
+            this._codeMirror.setOption("styleActiveLine", this._currentOptions[STYLE_ACTIVE_LINE]);
         }
-    }
+    };
     
+    // Global settings that affect Editor instances that share the same preference locations
+
     /**
-     * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
+     * Sets whether to use tab characters (vs. spaces) when inserting new text.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setUseTabChar = function (value, _editorOnly) {
-        _useTabChar = value;
-        _setEditorOptionAndPref(value, "indentWithTabs", "useTabChar", _editorOnly);
-        _setEditorOption(_useTabChar ? _tabSize : _spaceUnits, "indentUnit");
+    Editor.setUseTabChar = function (value) {
+        PreferencesManager.setValueAndSave(USE_TAB_CHAR, value);
     };
     
-    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
     Editor.getUseTabChar = function () {
-        return _useTabChar;
+        return PreferencesManager.get(USE_TAB_CHAR);
     };
     
     /**
-     * Sets tab character width. Affects all Editors.
+     * Sets tab character width.
+     * Affects any editors that share the same preference location.
      * @param {number} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setTabSize = function (value, _editorOnly) {
-        _tabSize = value;
-        _setEditorOptionAndPref(value, "tabSize", "tabSize", _editorOnly);
-        _setEditorOption(value, "indentUnit");
+    Editor.setTabSize = function (value) {
+        PreferencesManager.setValueAndSave(TAB_SIZE, value);
     };
     
     /** @type {number} Get indent unit  */
     Editor.getTabSize = function () {
-        return _tabSize;
+        return PreferencesManager.get(TAB_SIZE);
     };
     
     /**
-     * Sets indentation width. Affects all Editors.
+     * Sets indentation width.
+     * Affects any editors that share the same preference location.
      * @param {number} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setSpaceUnits = function (value, _editorOnly) {
-        _spaceUnits = value;
-        _setEditorOptionAndPref(value, "indentUnit", "spaceUnits", _editorOnly);
+    Editor.setSpaceUnits = function (value) {
+        PreferencesManager.setValueAndSave(SPACE_UNITS, value);
     };
     
     /** @type {number} Get indentation width */
     Editor.getSpaceUnits = function () {
-        return _spaceUnits;
+        return PreferencesManager.get(SPACE_UNITS);
     };
     
     /**
-     * Sets the auto close brackets. Affects all Editors.
+     * Sets the auto close brackets.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setCloseBrackets = function (value, _editorOnly) {
-        _closeBrackets = value;
-        _setEditorOptionAndPref(value, "autoCloseBrackets", "closeBrackets", _editorOnly);
+    Editor.setCloseBrackets = function (value) {
+        PreferencesManager.setValueAndSave(CLOSE_BRACKETS, value);
     };
     
-    /** @type {boolean} Gets whether all Editors use auto close brackets */
+    /** @type {boolean} Gets whether the current editor uses auto close brackets */
     Editor.getCloseBrackets = function () {
-        return _closeBrackets;
+        return PreferencesManager.get(CLOSE_BRACKETS);
     };
     
     /**
-     * Sets show line numbers option and reapply it to all open editors.
+     * Sets show line numbers option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setShowLineNumbers = function (value, _editorOnly) {
-        _showLineNumbers = value;
-        _setEditorOptionAndPref(value, "lineNumbers", "showLineNumbers", _editorOnly);
+    Editor.setShowLineNumbers = function (value) {
+        PreferencesManager.setValueAndSave(SHOW_LINE_NUMBERS, value);
     };
     
-    /** @type {boolean} Returns true if show line numbers is enabled for all editors */
+    /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
     Editor.getShowLineNumbers = function () {
-        return _showLineNumbers;
+        return PreferencesManager.get(SHOW_LINE_NUMBERS);
     };
     
     /**
-     * Sets show active line option and reapply it to all open editors.
+     * Sets show active line option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setShowActiveLine = function (value, _editorOnly) {
-        _styleActiveLine = value;
-        _setEditorOptionAndPref(value, "styleActiveLine", "styleActiveLine", _editorOnly);
+    Editor.setShowActiveLine = function (value) {
+        PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
-    /**
-     * Synonym for setShowActiveLine. This is needed because the preference name
-     * is styleActiveLine and editorSettings automatically calls this setter.
-     */
-    Editor.setStyleActiveLine = Editor.setShowActiveLine;
-    
-    /** @type {boolean} Returns true if show active line is enabled for all editors */
+    /** @type {boolean} Returns true if show active line is enabled for the current editor */
     Editor.getShowActiveLine = function () {
-        return _styleActiveLine;
+        return PreferencesManager.get(STYLE_ACTIVE_LINE);
     };
     
     /**
-     * Sets word wrap option and reapply it to all open editors.
+     * Sets word wrap option.
+     * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {boolean} _editorOnly private flag to denote that pref should not be changed
      */
-    Editor.setWordWrap = function (value, _editorOnly) {
-        _wordWrap = value;
-        _setEditorOptionAndPref(value, "lineWrapping", "wordWrap", _editorOnly);
+    Editor.setWordWrap = function (value) {
+        PreferencesManager.set(WORD_WRAP, value);
     };
     
-    /** @type {boolean} Returns true if word wrap is enabled for all editors */
+    /** @type {boolean} Returns true if word wrap is enabled for the current editor */
     Editor.getWordWrap = function () {
-        return _wordWrap;
+        return PreferencesManager.get(WORD_WRAP);
     };
     
     // Set up listeners for preference changes
-    editorSettings.forEach(function (setting) {
-        var setterName = "set" + setting[0].toUpperCase() + setting.substr(1);
-        PreferencesManager.on("change", setting, function () {
-            if (Editor[setterName]) {
-                Editor[setterName](PreferencesManager.get(setting), true);
-            } else {
-                console.error("No Editor setter for ", setting);
-            }
+    editorOptions.forEach(function (prefName) {
+        PreferencesManager.on("change", prefName, function () {
+            _instances.forEach(function (editor) {
+                editor._updateOption(prefName);
+            });
         });
     });
     
@@ -1701,7 +1707,7 @@ define(function (require, exports, module) {
      */
     function _convertPreferences() {
         var rules = {};
-        editorSettings.forEach(function (setting) {
+        editorOptions.forEach(function (setting) {
             rules[setting] = "user";
         });
         PreferencesManager.convertPreferences(module, rules);
