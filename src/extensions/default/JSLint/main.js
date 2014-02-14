@@ -78,6 +78,8 @@ define(function (require, exports, module) {
         
         var options = prefs.get("options");
 
+        _lastRunOptions = _.clone(options);
+        
         if (!options) {
             options = {};
         } else {
@@ -98,8 +100,6 @@ define(function (require, exports, module) {
             options.browser = true;
         }
 
-        _lastRunOptions = _.clone(options);
-        
         var jslintResult = JSLINT(text, options);
         
         if (!jslintResult) {
