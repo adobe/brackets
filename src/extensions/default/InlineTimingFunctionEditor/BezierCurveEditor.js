@@ -535,7 +535,7 @@ define(function (require, exports, module) {
         this.hint = $(".hint", this.$element);
         if (bezierCurve.originalLength) {
             this.hintShown = true;
-            this.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "cubic-bezier()", "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
+            this.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
             this.hint.css("display", "block");
         } else {
             this.hintShown = false;

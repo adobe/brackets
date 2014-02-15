@@ -315,7 +315,7 @@ define(function (require, exports, module) {
         this.hint = $(".hint", this.$element);
         if (stepMatch.originalLength) {
             this.hintShown = true;
-            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, "steps()", "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")"));
+            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")"));
             this.hint.css("display", "block");
         } else {
             this.hintShown = false;

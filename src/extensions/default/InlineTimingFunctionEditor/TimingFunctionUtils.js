@@ -85,6 +85,7 @@ define(function (require, exports, module) {
             def = [ ".42", "0", ".58", "1" ],
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
             originalLength = match[0].length,
+            originalString = match[0],
             i;
 
         if (match) {
@@ -128,6 +129,7 @@ define(function (require, exports, module) {
         if (match) {
             match.index = oldIndex; // re-set the index here to get the right context
             match.originalLength = originalLength;
+            match.originalString = originalString;
             return match;
         }
         return null;
@@ -171,6 +173,7 @@ define(function (require, exports, module) {
             params = def,
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
             originalLength = match[0].length,
+            originalString = match[0],
             i;
 
         if (match) {
@@ -215,6 +218,7 @@ define(function (require, exports, module) {
         if (params) {
             params.index = oldIndex; // re-set the index here to get the right context
             params.originalLength = originalLength;
+            params.originalString = originalString;
             return params;
         }
         return null;
