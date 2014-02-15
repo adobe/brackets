@@ -491,7 +491,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Verlauf",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Ausgewählten Punkt bewegen<br><kbd class='text'>Umschalt</kbd> Um 10 Einheiten bewegen<br><kbd class='text'>Tab</kbd> Zwischen Punkten wechseln",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Stufenzahl vergrößern oder verkleinern<br><kbd>←</kbd><kbd>→</kbd> 'Start' oder 'Ende'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "Der Code im Dokument <code>{0}</code> ist nicht korrekt, daher wird <code>{1}</code> angezeigt. Die Änderungen werden bei der ersten Bearbeitung ins Dokument übernommen.",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Der Code im Dokument <code>{0}</code> ist nicht korrekt, daher wird die Funktion <code>{1}</code> angezeigt. Die Änderungen werden bei der ersten Bearbeitung ins Dokument übernommen.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",
