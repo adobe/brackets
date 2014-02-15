@@ -46,8 +46,7 @@ define(function (require, exports, module) {
      */
     var DIRECTION_UP    = -1;
     var DIRECTION_DOWN  = +1;
-    
-    
+        
     /**
      * @private
      * Creates regular expressions for multiple line comment prefixes
@@ -132,64 +131,70 @@ define(function (require, exports, module) {
      * @param {!Array.<string>} prefixes, e.g. ["//"]
      */
     function lineCommentPrefix(editor, prefixes) {
-        var doc       = editor.document,
-            sel       = editor.getSelection(),
-            startLine = sel.start.line,
-            endLine   = sel.end.line,
-            lineExp   = _createLineExpressions(prefixes);
+        var doc            = editor.document,
+            // Don't merge adjacent line selections - we want to toggle separate cursors independently
+            lineSelections = editor.convertToLineSelections(editor.getSelections(), { mergeAdjacent: false }),
+            lineExp        = _createLineExpressions(prefixes),
+            edits          = [];
         
-        // Is a range of text selected? (vs just an insertion pt)
-        var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
-        
-        // In full-line selection, cursor pos is start of next line - but don't want to modify that line
-        if (sel.end.ch === 0 && hasSelection) {
-            endLine--;
-        }
-        
-        // Decide if we're commenting vs. un-commenting
-        // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
-        // some editors like Sublime don't comment them out)
-        var containsUncommented = _containsUncommented(editor, startLine, endLine, lineExp);
-        var i;
-        var line;
-        var prefix;
-        var commentI;
-        var updateSelection = false;
-        
-        // Make the edit
-        doc.batchOperation(function () {
-            
+        _.each(lineSelections, function (lineSel) {
+            var sel         = lineSel.selectionForEdit,
+                trackedSels = lineSel.selectionsToTrack,
+                startLine   = sel.start.line,
+                endLine     = sel.end.line,
+                editGroup   = [];
+
+            // Is a range of text selected? (vs just an insertion pt)
+            var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
+
+            // In full-line selection, cursor pos is start of next line - but don't want to modify that line
+            if (sel.end.ch === 0 && hasSelection) {
+                endLine--;
+            }
+
+            // Decide if we're commenting vs. un-commenting
+            // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
+            // some editors like Sublime don't comment them out)
+            var containsUncommented = _containsUncommented(editor, startLine, endLine, lineExp);
+            var i;
+            var line;
+            var prefix;
+            var commentI;
+            var updateSelection = false;
+
             if (containsUncommented) {
                 // Comment out - prepend the first prefix to each line
                 for (i = startLine; i <= endLine; i++) {
-                    doc.replaceRange(prefixes[0], {line: i, ch: 0});
+                    editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
                 }
                 
-                // Make sure selection includes the prefix that was added at start of range
-                if (sel.start.ch === 0 && hasSelection) {
-                    updateSelection = true;
-                }
-            
+                // Make sure tracked selections include the prefix that was added at start of range
+                _.each(trackedSels, function (trackedSel) {
+                    if (trackedSel.start.ch === 0 && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
+                        trackedSel.start = {line: trackedSel.start.line, ch: 0};
+                        trackedSel.end = {line: trackedSel.end.line, ch: (trackedSel.end.line === endLine ? trackedSel.end.ch + prefixes[0].length : 0)};
+                    } else {
+                        trackedSel.isBeforeEdit = true;
+                    }
+                });
             } else {
                 // Uncomment - remove the prefix on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
                     line   = doc.getLine(i);
                     prefix = _getLinePrefix(line, lineExp, prefixes);
-                    
+
                     if (prefix) {
                         commentI = line.indexOf(prefix);
-                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + prefix.length});
+                        editGroup.push({text: "", start: {line: i, ch: commentI}, end: {line: i, ch: commentI + prefix.length}});
                     }
                 }
+                _.each(trackedSels, function (trackedSel) {
+                    trackedSel.isBeforeEdit = true;
+                });
             }
+            edits.push({edit: editGroup, selection: trackedSels});
         });
-        
-        // Update the selection after the document batch so it's not blown away on resynchronization
-        // if this editor is not the master editor.
-        if (updateSelection) {
-            // use *current* selection end, which has been updated for our text insertions
-            editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
-        }
+        editor.setSelections(editor.doMultipleEdits(edits));
     }
     
     
@@ -579,16 +584,15 @@ define(function (require, exports, module) {
             }
         });
         
-        _.each(cursorSels, function (sel, index) {
-            // Only handle each line once.
-            if (index === 0 || sel.start.line > cursorSels[index - 1].start.line) {
-                var start = {line: sel.start.line, ch: 0},
-                    end = {line: sel.start.line + 1, ch: 0};
-                if (end.line === editor.lineCount()) {
-                    delimiter = "\n";
-                }
-                edits.push({edit: {text: doc.getRange(start, end) + delimiter, start: start }});
+        var cursorLineSels = editor.convertToLineSelections(cursorSels);
+        _.each(cursorLineSels, function (lineSel, index) {
+            var sel = lineSel.selectionForEdit;
+            if (sel.end.line === editor.lineCount()) {
+                delimiter = "\n";
             }
+            // Don't need to explicitly track selections since we are doing the edits in such a way that
+            // the existing selections will get appropriately updated.
+            edits.push({edit: {text: doc.getRange(sel.start, sel.end) + delimiter, start: sel.start }});
         });
         _.each(rangeSels, function (sel) {
             edits.push({edit: {text: doc.getRange(sel.start, sel.end), start: sel.start }});
@@ -613,40 +617,31 @@ define(function (require, exports, module) {
         var doc = editor.document,
             from,
             to,
-            selections = editor.getSelections(),
+            // We set expandEndAtStartOfLine so we delete the line at the end of a selection even if the selection ends at the first char.
+            lineSelections = editor.convertToLineSelections(editor.getSelections(), { expandEndAtStartOfLine: true }),
             edits = [];
         
-        _.each(selections, function (sel, index) {
-            // We only want to delete each line once. So, if a selection is wholly contained
-            // in the same line that the previous selection ends on, we skip it. If a selection
-            // starts on the same line but continues to future lines, we just bump its start by one.
-            // (We know that the selections from getSelections() are guaranteed to be in order
-            // and non-overlapping.)
-            var selStartLine = sel.start.line;
-            if (index > 0 && selStartLine === selections[index - 1].end.line) {
-                if (sel.end.line > selStartLine) {
-                    selStartLine++;
-                } else {
-                    selStartLine = null;
-                }
-            }
-            if (selStartLine !== null) {
-                from = {line: selStartLine, ch: 0};
-                to = {line: sel.end.line + 1, ch: 0};
-                if (to.line === editor.getLastVisibleLine() + 1) {
-                    // Instead of deleting the newline after the last line, delete the newline
-                    // before the beginning of the line--unless this is the entire visible content 
-                    // of the editor, in which case just delete the line content.
-                    if (from.line > editor.getFirstVisibleLine()) {
-                        from.line -= 1;
-                        from.ch = doc.getLine(from.line).length;
-                    }
-                    to.line -= 1;
-                    to.ch = doc.getLine(to.line).length;
-                }
+        _.each(lineSelections, function (lineSel, index) {
+            var sel = lineSel.selectionForEdit,
+                selStartLine = sel.start.line;
 
-                edits.push({edit: {text: "", start: from, end: to}});
+            from = sel.start;
+            to = sel.end; // this is already at the beginning of the line after the last selected line
+            if (to.line === editor.getLastVisibleLine() + 1) {
+                // Instead of deleting the newline after the last line, delete the newline
+                // before the beginning of the line--unless this is the entire visible content 
+                // of the editor, in which case just delete the line content.
+                if (from.line > editor.getFirstVisibleLine()) {
+                    from.line -= 1;
+                    from.ch = doc.getLine(from.line).length;
+                }
+                to.line -= 1;
+                to.ch = doc.getLine(to.line).length;
             }
+
+            // We don't need to track the original selections, since they'll get collapsed as
+            // part of the various deletions that occur.
+            edits.push({edit: {text: "", start: from, end: to}});
         });
         editor.doMultipleEdits(edits);
     }
@@ -664,7 +659,7 @@ define(function (require, exports, module) {
         }
         
         var doc            = editor.document,
-            lineSelections = editor.getLineSelections(),
+            lineSelections = editor.convertToLineSelections(editor.getSelections()),
             isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
             firstLine      = editor.getFirstVisibleLine(),
             lastLine       = editor.getLastVisibleLine(),

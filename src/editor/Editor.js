@@ -974,29 +974,39 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Takes the current selection set, and expands each selection so it encompasses whole lines. Merges
+     * Takes the given selections, and expands each selection so it encompasses whole lines. Merges
      * adjacent line selections together. Keeps track of each original selection associated with a given
      * line selection (there might be multiple if individual selections were merged into a single line selection).
      * Useful for doing multiple-selection-aware line edits.
+     * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
+     *      The selections to expand.
+     * @param {{expandEndAtStartOfLine: boolean, mergeAdjacent: boolean}} options
+     *      expandEndAtStartOfLine: true if a range selection that ends at the beginning of a line should be expanded
+     *          to encompass the line. Default false.
+     *      mergeAdjacent: true if adjacent line ranges should be merged. Default true.
+     * @param {boolean} mergeAdjacent true if two adjacent line ranges should be merged into a single range.
      * @return {Array.<{selectionForEdit: {start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}, 
      *                  selectionsToTrack: Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}>}
      *      The combined line selections. For each selection, `selectionForEdit` is the line selection, and `selectionsToTrack` is
      *      the set of original selections that combined to make up the given line selection.
      */
-    Editor.prototype.getLineSelections = function () {
+    Editor.prototype.convertToLineSelections = function (selections, options) {
         var self = this;
+        options = options || {};
+        _.defaults(options, { expandEndAtStartOfLine: false, mergeAdjacent: true });
         
         // Combine adjacent lines with selections so they don't collide with each other, as they would
         // if we did them individually.
         var combinedSelections = [], prevSel;
-        _.each(this.getSelections(), function (sel) {
+        _.each(selections, function (sel) {
             var originalSel = _.cloneDeep(sel);
             
             // Adjust selection to encompass whole lines.
             sel.start.ch = 0;
             // The end of the selection becomes the start of the next line, if it isn't already
+            // or if expandEndAtStartOfLine is set.
             var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-            if (!hasSelection || sel.end.ch !== 0) {
+            if (options.expandEndAtStartOfLine || !hasSelection || sel.end.ch !== 0) {
                 sel.end = {line: sel.end.line + 1, ch: 0};
             }
 
@@ -1004,7 +1014,7 @@ define(function (require, exports, module) {
             // the two selections together, but keep track of all the original selections that were related to this
             // selection, so they can be properly adjusted. (We only have to check for the start being inside the previous
             // range - it can't be before it because the selections started out sorted.)
-            if (prevSel && self.posWithinRange(sel.start, prevSel.selectionForEdit.start, prevSel.selectionForEdit.end, true)) {
+            if (prevSel && self.posWithinRange(sel.start, prevSel.selectionForEdit.start, prevSel.selectionForEdit.end, options.mergeAdjacent)) {
                 prevSel.selectionForEdit.end.line = sel.end.line;
                 prevSel.selectionsToTrack.push(originalSel);
             } else {
@@ -1169,17 +1179,20 @@ define(function (require, exports, module) {
      * flat list of all the selections, suitable for passing to `setSelections()`.
      *
      * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
-     *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}>} edits
+     *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>} edits
      *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`.
      *     `edit` is the edit to perform:
-     *     `text` will replace the current contents of the range between `start` and `end`. 
-     *     If `end` is unspecified, the text is inserted at `start`.
-     *     `start` and `end` should be positions relative to the document *before* all edits are performed.
+     *         `text` will replace the current contents of the range between `start` and `end`. 
+     *         If `end` is unspecified, the text is inserted at `start`.
+     *         `start` and `end` should be positions relative to the document *before* all edits are performed.
      *     If any of the edits overlap, an error will be thrown.
-     *     If `selection` is specified, it should be a selection associated with this edit,
-     *     expressed in terms of the document state after this individual edit is performed (ignoring any
-     *     other edits that might have already happened or will later happen). That selection will be 
-     *     corrected for the other edits that are performed and returned as the result of the function.
+     *     If `selection` is specified, it should be a selection associated with this edit.
+     *          If `isBeforeEdit` is set on the selection, the selection will be fixed up for this edit.
+     *          If not, it won't be fixed up for this edit, meaning it should be expressed in terms of
+     *          the document state after this individual edit is performed (ignoring any other edits).
+     *          Note that if you were planning on just specifying `isBeforeEdit` for every selection, you can
+     *          accomplish the same thing by simply not passing any selections and letting the editor update
+     *          the existing selections automatically.
      *     Note that `edit` and `selection` can each be either an individual edit/selection, or a group of
      *     edits/selections to apply at once. This can be useful if you need to perform multiple edits in a row
      *     and then specify a resulting selection that shouldn't be fixed up for any of those edits, or
@@ -1198,7 +1211,13 @@ define(function (require, exports, module) {
             // TODO: what if the various edits in a group are in disparate parts of the document?
             var edit1 = (Array.isArray(editDesc1.edit) ? editDesc1.edit[0] : editDesc1.edit),
                 edit2 = (Array.isArray(editDesc2.edit) ? editDesc2.edit[0] : editDesc2.edit);
-            return CodeMirror.cmpPos(edit2.start, edit1.start);
+            // If no actual edit is specified, we don't care where it ends up - but we want to
+            // update the tracked selections.
+            if (!edit1 || !edit2) {
+                return 0;
+            } else {
+                return CodeMirror.cmpPos(edit2.start, edit1.start);
+            }
         });
         
         // Pull out the selections, in the same order as the edits.
@@ -1209,18 +1228,20 @@ define(function (require, exports, module) {
         // the edits before we find out.)
         _.each(edits, function (editDesc, index) {
             oneOrEach(editDesc.edit, function (edit) {
-                if (!edit.end) {
-                    edit.end = edit.start;
-                }
-                if (index > 0) {
-                    var prevEditGroup = edits[index - 1].edit;
-                    // The edits are in reverse order, so we want to make sure this edit ends
-                    // before any of the previous ones start.
-                    oneOrEach(prevEditGroup, function (prevEdit) {
-                        if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
-                            throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
-                        }
-                    });
+                if (edit) {
+                    if (!edit.end) {
+                        edit.end = edit.start;
+                    }
+                    if (index > 0) {
+                        var prevEditGroup = edits[index - 1].edit;
+                        // The edits are in reverse order, so we want to make sure this edit ends
+                        // before any of the previous ones start.
+                        oneOrEach(prevEditGroup, function (prevEdit) {
+                            if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
+                                throw new Error("Editor.doMultipleEdits(): Overlapping edits specified");
+                            }
+                        });
+                    }
                 }
             });
         });
@@ -1232,25 +1253,34 @@ define(function (require, exports, module) {
                 // since all the previous edits we've done have been later in the document. However,
                 // we have to fix up any selections that overlap or come after the edit.
                 oneOrEach(editDesc.edit, function (edit) {
-                    self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
+                    if (edit) {
+                        self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
 
-                    // Fix up all the selections *except* the one(s) related to this edit list.
-                    var textLines = edit.text.split("\n");
-                    _.each(result, function (selections, selIndex) {
-                        if (selections && selIndex !== index) {
-                            oneOrEach(selections, function (sel) {
-                                sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
-                                sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
-                            });
-                        }
-                    });
+                        // Fix up all the selections *except* the one(s) related to this edit list that
+                        // are not "before-edit" selections.
+                        var textLines = edit.text.split("\n");
+                        _.each(result, function (selections, selIndex) {
+                            if (selections) {
+                                oneOrEach(selections, function (sel) {
+                                    if (sel.isBeforeEdit || selIndex !== index) {
+                                        sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
+                                        sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
+                                    }
+                                });
+                            }
+                        });
+                    }
                 });
             });
         });
         
-        return _.filter(_.flatten(result), function (item) {
+        result = _.filter(_.flatten(result), function (item) {
             return item !== undefined;
         });
+        _.each(result, function (item) {
+            delete item.isBeforeEdit;
+        });
+        return result;
     };
 
     /**
