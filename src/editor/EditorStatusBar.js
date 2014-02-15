@@ -143,15 +143,22 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
-    function _updateOverwriteLabel(event, editor, newstate) {
+    function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
         
-        AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        }
     }
     
     function _updateEditorOverwriteMode() {
         var editor = EditorManager.getActiveEditor();
         
+        $(editor).off("overwriteToggle.statusbar", _updateOverwriteLabel);
+        $(editor).on("overwriteToggle.statusbar", function (event, editor, newstate) {
+            _updateOverwriteLabel(event, editor, newstate, true);
+            $(editor).on("overwriteToggle.statusbar", _updateOverwriteLabel);
+        });
         editor.toggleOverwrite(null);
     }
     
