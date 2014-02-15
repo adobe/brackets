@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileViewController  = require("project/FileViewController"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -339,7 +340,7 @@ define(function (require, exports, module) {
                 // So we call `prepareClose()` first, and finish the close later.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                FileViewController.addToWorkingSetAndSelect(fullPath)
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
@@ -349,6 +350,7 @@ define(function (require, exports, module) {
                     .always(function () {
                         self.close();
                     });
+
             } else if (cursorPos) {
                 EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
             }
