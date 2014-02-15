@@ -269,11 +269,13 @@ define(function (require, exports, module) {
             editor.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
             editor.hint.css("display", "block");
         } else if (!show && editor.hintShown) {
-            AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
-                .done(function () {
-                    editor.hint.css("display", "none");
-                    editor.hintShown = false;
-                });
+            window.setTimeout(function () {
+                AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
+                    .done(function () {
+                        editor.hint.css("display", "none");
+                        editor.hintShown = false;
+                    });
+            }, 400);
         } else if (!show) {
             editor.hintShown = false;
             editor.hint.css("display", "none");
