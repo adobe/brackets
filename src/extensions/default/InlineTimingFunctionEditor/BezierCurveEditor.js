@@ -29,9 +29,7 @@ define(function (require, exports, module) {
     
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
-        AnimationUtils  = brackets.getModule("utils/AnimationUtils");
+        Strings         = brackets.getModule("strings");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
         InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
@@ -533,14 +531,7 @@ define(function (require, exports, module) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
 
         this.hint = $(".hint", this.$element);
-        if (bezierCurve.originalLength) {
-            this.hintShown = true;
-            this.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")"));
-            this.hint.css("display", "block");
-        } else {
-            this.hintShown = false;
-            this.hint.css("display", "none");
-        }
+        TimingFunctionUtils.showHideHint(this, bezierCurve.originalLength, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
 
         this.P1 = this.$element.find(".P1")[0];
         this.P2 = this.$element.find(".P2")[0];
@@ -615,13 +606,7 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[3] + ")",
             self           = this;
         this._callback(bezierCurveVal);
-        if (this.hintShown) {
-            this.hintShown = false;
-            AnimationUtils.animateUsingClass(this.hint[0], "fadeout")
-                .done(function () {
-                    self.hint.css("display", "none");
-                });
-        }
+        TimingFunctionUtils.showHideHint(this, 0);
     };
 
     /**
@@ -704,6 +689,7 @@ define(function (require, exports, module) {
     BezierCurveEditor.prototype.handleExternalUpdate = function (bezierCurve) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
         this._updateCanvas();
+        TimingFunctionUtils.showHideHint(this, bezierCurve.originalLength, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
     };
 
     

@@ -29,9 +29,7 @@ define(function (require, exports, module) {
     
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
-        AnimationUtils  = brackets.getModule("utils/AnimationUtils");
+        Strings         = brackets.getModule("strings");
 
     var TimingFunctionUtils            = require("TimingFunctionUtils"),
         InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
@@ -313,14 +311,7 @@ define(function (require, exports, module) {
         this._stepParams = this._getStepParams(stepMatch);
 
         this.hint = $(".hint", this.$element);
-        if (stepMatch.originalLength) {
-            this.hintShown = true;
-            $(".hint", this.$element).html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")"));
-            this.hint.css("display", "block");
-        } else {
-            this.hintShown = false;
-            this.hint.css("display", "none");
-        }
+        TimingFunctionUtils.showHideHint(this, stepMatch.originalLength, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
 
         this.canvas = this.$element.find(".steps")[0];
 
@@ -368,13 +359,7 @@ define(function (require, exports, module) {
             this._stepParams.timing + ")",
             self        = this;
         this._callback(stepFuncVal);
-        if (this.hintShown) {
-            this.hintShown = false;
-            AnimationUtils.animateUsingClass(this.hint[0], "fadeout")
-                .done(function () {
-                    self.hint.css("display", "none");
-                });
-        }
+        TimingFunctionUtils.showHideHint(this, 0);
     };
 
     /**
@@ -443,6 +428,7 @@ define(function (require, exports, module) {
     StepEditor.prototype.handleExternalUpdate = function (stepMatch) {
         this._stepParams = this._getStepParams(stepMatch);
         this._updateCanvas();
+        TimingFunctionUtils.showHideHint(this, stepMatch.originalLength, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
     };
 
     

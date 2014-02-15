@@ -22,13 +22,17 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, brackets */
 
 /**
  *  Utilities functions related to color matching
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var Strings         = brackets.getModule("strings"),
+        StringUtils     = brackets.getModule("utils/StringUtils"),
+        AnimationUtils  = brackets.getModule("utils/AnimationUtils");
     
     /**
      * Regular expressions for matching timing functions
@@ -244,6 +248,35 @@ define(function (require, exports, module) {
 
         return true;
     }
+    
+    /**
+     * Show, hide or update the hint text
+     * 
+     * @param {(BezierCurveEditor|StepsEditor)} editor BezierCurveEditor or StepsEditor where the hint should be changed
+     * @param {boolean} show Whether the hint should be shown or hidden
+     * @param {string=} documentCode The invalid code from the document (can be omitted when hiding)
+     * @param {string=} editorCode The valid code that is shown in the Inline Editor (can be omitted when hiding)
+     */
+    function showHideHint(editor, show, documentCode, editorCode) {
+        if (!editor.hint) {
+            return;
+        }
+        
+        if (show) {
+            editor.hintShown = true;
+            editor.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
+            editor.hint.css("display", "block");
+        } else if (!show && editor.hintShown) {
+            AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
+                .done(function () {
+                    editor.hint.css("display", "none");
+                    editor.hintShown = false;
+                });
+        } else if (!show) {
+            editor.hintShown = false;
+            editor.hint.css("display", "none");
+        }
+    }
 
     /**
      * Tag this match with type and return it for chaining
@@ -409,4 +442,5 @@ define(function (require, exports, module) {
     exports.timingFunctionMatch = timingFunctionMatch;
     exports.bezierCurveMatch    = bezierCurveMatch;
     exports.stepsMatch          = stepsMatch;
+    exports.showHideHint        = showHideHint;
 });
