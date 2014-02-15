@@ -252,7 +252,7 @@ define(function (require, exports, module) {
     /**
      * Show, hide or update the hint text
      * 
-     * @param {(BezierCurveEditor|StepsEditor)} editor BezierCurveEditor or StepsEditor where the hint should be changed
+     * @param {(BezierCurveEditor|StepEditor)} editor BezierCurveEditor or StepsEditor where the hint should be changed
      * @param {boolean} show Whether the hint should be shown or hidden
      * @param {string=} documentCode The invalid code from the document (can be omitted when hiding)
      * @param {string=} editorCode The valid code that is shown in the Inline Editor (can be omitted when hiding)
