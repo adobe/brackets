@@ -99,6 +99,7 @@ define(function (require, exports, module) {
         if (match) {
             for (i = 0; i <= 3; i++) {
                 if (match[i]) {
+                    match[i] = match[i].trim();
                     param = _convertToNumber(match[i]);
 
                     // Verify the param is a number
@@ -186,7 +187,8 @@ define(function (require, exports, module) {
 
         if (match) {
             if (match[0]) {
-                param = _convertToNumber(match[0]);
+                param = match[0].replace(/[\s\"']/g, ""); // replace possible trailing whitespace or leading quotes
+                param = _convertToNumber(param);
 
                 // Verify number_of_params is a number
                 // If not, replace it with the default value

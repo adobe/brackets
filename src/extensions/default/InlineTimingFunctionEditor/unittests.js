@@ -76,6 +76,21 @@ define(function (require, exports, module) {
         describe("TimingFunctionUtils for bezier curve functions", function () {
             var match;
             
+            /**
+             * Expects an invalid steps() function to be corrected the right way, with the right match, originalLength
+             * and originalString given a string to match and an expectation of the output match.
+             * @param {string} str The string to match
+             * @param {Array} expectedArray The array that should equal the output match.
+             */
+            function testInvalidBezier(str, expectedArray) {
+                var match = TimingFunctionUtils.timingFunctionMatch(str, false);
+                runs(function () {
+                    expectArraysToBeEqual(match, expectedArray);
+                    expect(match.originalLength).toEqual(str.length);
+                    expect(match.originalString).toEqual(str);
+                });
+            }
+            
             // Valid cubic-bezier function cases
             it("should match bezier curve function in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(.1, .2, .3, .4)", false);
@@ -164,31 +179,27 @@ define(function (require, exports, module) {
                 expect(match[0]).toEqual("ease-in-out");
             });
             
-            // Invalid cases
-            it("should not match cubic-bezier function with out-of-range X parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(-.2, 0, 1.2, 1)", false);
-                expect(match).toBeFalsy();
+            // Invalid cubic-beziers - they should be corrected automatically
+            it("should correct cubic-bezier function with out-of-range X parameters", function () {
+                testInvalidBezier("cubic-bezier(-.2, 0, 1.2, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
-            it("should not match cubic-bezier function with Infinity parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, Infinity, 1, -Infinity)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with Infinity parameters", function () {
+                testInvalidBezier("cubic-bezier(0, Infinity, 1, -Infinity)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
-            it("should not match cubic-bezier function with non-numeric parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(x1, y1, x2, y2)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with non-numeric parameters", function () {
+                testInvalidBezier("cubic-bezier(x1, y1, x2, y2)", ["cubic-bezier(.42, 0, .58, 1)", ".42", "0", ".58", "1"]);
             });
-            it("should not match cubic-bezier function with no parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier()", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with no parameters", function () {
+                testInvalidBezier("cubic-bezier()", ["cubic-bezier(.42, 0, .58, 1)", ".42", "0", ".58", "1"]);
             });
-            it("should not match cubic-bezier function with 3 parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, 0, 1)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with 3 parameters", function () {
+                testInvalidBezier("cubic-bezier(0, 0, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
-            it("should not match cubic-bezier function with 5 parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier(0, 0, 1, 1, 1)", false);
-                expect(match).toBeFalsy();
+            it("should correct cubic-bezier function with 5 parameters", function () {
+                testInvalidBezier("cubic-bezier(0, 0, 1, 1, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
             });
+            
+            // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match cubic-bezier function with invalid whitespace", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("cubic-bezier (0, 0, 1, 1)", false);
                 expect(match).toBeFalsy();
@@ -209,6 +220,21 @@ define(function (require, exports, module) {
         
         describe("TimingFunctionUtils for step functions", function () {
             var match;
+            
+            /**
+             * Expects an invalid steps() function to be corrected the right way, with the right match, originalLength
+             * and originalString given a string to match and an expectation of the output match.
+             * @param {string} str The string to match
+             * @param {Array} expectedArray The array that should equal the output match.
+             */
+            function testInvalidStep(str, expectedArray) {
+                var match = TimingFunctionUtils.timingFunctionMatch(str, false);
+                runs(function () {
+                    expectArraysToBeEqual(match, expectedArray);
+                    expect(match.originalLength).toEqual(str.length);
+                    expect(match.originalString).toEqual(str);
+                });
+            }
             
             // Valid steps function cases
             it("should match steps function in strict mode", function () {
@@ -280,53 +306,50 @@ define(function (require, exports, module) {
                 expect(match[0]).toEqual("step-end");
             });
             
-            // Invalid cases
-            it("should not match steps function with zero steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(0)", false);
-                expect(match).toBeFalsy();
+            // Invalid steps - they should be corrected automatically
+            it("should correct steps function with zero steps", function () {
+                testInvalidStep("steps(0)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with a non-integer number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(3.0)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with a non-integer number of steps", function () {
+                testInvalidStep("steps(3.0)", ["steps(3, end)", "3", "end"]);
             });
-            it("should not match steps function with a negative number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(-2)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with a negative number of steps", function () {
+                testInvalidStep("steps(-2)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with an infinite number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(Infinity,)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with an infinite number of steps", function () {
+                testInvalidStep("steps(Infinity,)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with NaN number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(NaN,)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with NaN number of steps", function () {
+                testInvalidStep("steps(NaN,)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with non-numeric number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(x)", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with non-numeric number of steps", function () {
+                testInvalidStep("steps(x)", ["steps(5, end)", "5", "end"]);
             });
-            it("should not match steps function with a string-value number of steps", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps('3')", false);
-                expect(match).toBeFalsy();
+            it("should correct steps function with a string-value number of steps", function () {
+                testInvalidStep("steps('3')", ["steps(3, end)", "3", "end"]);
             });
+            it("should correct steps function with no parameters", function () {
+                testInvalidStep("steps()", ["steps(5, end)", "5", "end"]);
+            });
+            it("should correct steps function with empty second parameter", function () {
+                testInvalidStep("steps(1,)", ["steps(1, end)", "1", "end"]);
+            });
+            it("should correct steps function with undefined second parameter", function () {
+                testInvalidStep("steps(1, middle)", ["steps(1, end)", "1", "end"]);
+            });
+            it("should correct steps function with typo in second parameter", function () {
+                testInvalidStep("steps(1, satrt)", ["steps(1, start)", "1", "start"]);
+            });
+            it("should correct steps function with a string as second parameter", function () {
+                testInvalidStep("steps(1, 'start')", ["steps(1, start)", "1", "start"]);
+            });
+            it("should correct steps function with 3 parameters", function () {
+                testInvalidStep("steps(1, start, end)", ["steps(1, start)", "1", "start"]);
+            });
+            
+            // Real invalid cubic-beziers - they should NOT be corrected automatically
             it("should not match steps function with no parens", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("steps", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with no parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps()", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with empty second parameter", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(1,)", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with undefined second parameter", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(1, middle)", false);
-                expect(match).toBeFalsy();
-            });
-            it("should not match steps function with 3 parameters", function () {
-                match = TimingFunctionUtils.timingFunctionMatch("steps(1, start, end)", false);
                 expect(match).toBeFalsy();
             });
             it("should not match steps function with invalid whitespace", function () {
@@ -388,6 +411,18 @@ define(function (require, exports, module) {
             });
             it("should bookmark step-start function when opened in inline editor", function () {
                 testOpenTimingFunction({line: 20, ch: 40}, 32, 42);
+            });
+            it("should bookmark long, invalid cubic-bezier() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 25, ch: 52}, 32, 74);
+            });
+            it("should bookmark empty, invalid cubic-bezier() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 26, ch: 47}, 32, 46);
+            });
+            it("should bookmark long, invalid steps() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 30, ch: 44}, 32, 50);
+            });
+            it("should bookmark empty, invalid steps() function when opened in inline editor", function () {
+                testOpenTimingFunction({line: 31, ch: 45}, 32, 39);
             });
         });
         
