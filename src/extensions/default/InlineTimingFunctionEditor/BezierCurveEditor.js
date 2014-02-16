@@ -531,7 +531,13 @@ define(function (require, exports, module) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
 
         this.hint = $(".hint", this.$element);
-        TimingFunctionUtils.showHideHint(this, bezierCurve.originalLength, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message need to be shown
+        if (bezierCurve.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
 
         this.P1 = this.$element.find(".P1")[0];
         this.P2 = this.$element.find(".P2")[0];
@@ -606,7 +612,7 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[3] + ")",
             self           = this;
         this._callback(bezierCurveVal);
-        TimingFunctionUtils.showHideHint(this, 0);
+        TimingFunctionUtils.showHideHint(this, false);
     };
 
     /**
@@ -689,7 +695,13 @@ define(function (require, exports, module) {
     BezierCurveEditor.prototype.handleExternalUpdate = function (bezierCurve) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
         this._updateCanvas();
-        TimingFunctionUtils.showHideHint(this, bezierCurve.originalLength, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message need to be shown
+        if (bezierCurve.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
     };
 
     

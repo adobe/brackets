@@ -88,7 +88,6 @@ define(function (require, exports, module) {
             // take ease-in-out as default value in case there are no params yet (or they are invalid)
             def = [ ".42", "0", ".58", "1" ],
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
-            originalLength = match[0].length,
             originalString = match[0],
             i;
 
@@ -116,8 +115,6 @@ define(function (require, exports, module) {
                             match[i] = "1";
                         }
                     }
-                } else {
-                    match[i] = undefined;
                 }
 
                 if (!match[i]) {
@@ -133,7 +130,6 @@ define(function (require, exports, module) {
 
         if (match) {
             match.index = oldIndex; // re-set the index here to get the right context
-            match.originalLength = originalLength;
             match.originalString = originalString;
             return match;
         }
@@ -177,7 +173,6 @@ define(function (require, exports, module) {
             def = [ "5", "end" ],
             params = def,
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
-            originalLength = match[0].length,
             originalString = match[0],
             i;
 
@@ -223,7 +218,6 @@ define(function (require, exports, module) {
 
         if (params) {
             params.index = oldIndex; // re-set the index here to get the right context
-            params.originalLength = originalLength;
             params.originalString = originalString;
             return params;
         }
@@ -244,7 +238,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        if (match[2] && !(match[2] === "start" || match[2] === "end")) {
+        if (match[2] && match[2] !== "start" && match[2] !== "end") {
             return false;
         }
 
@@ -268,7 +262,7 @@ define(function (require, exports, module) {
             editor.hintShown = true;
             editor.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
             editor.hint.css("display", "block");
-        } else if (!show && editor.hintShown) {
+        } else if (editor.hintShown) {
             window.setTimeout(function () {
                 AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
                     .done(function () {
@@ -276,7 +270,7 @@ define(function (require, exports, module) {
                         editor.hintShown = false;
                     });
             }, 400);
-        } else if (!show) {
+        } else {
             editor.hintShown = false;
             editor.hint.css("display", "none");
         }

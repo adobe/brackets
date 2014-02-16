@@ -77,7 +77,7 @@ define(function (require, exports, module) {
             var match;
             
             /**
-             * Expects an invalid steps() function to be corrected the right way, with the right match, originalLength
+             * Expects an invalid steps() function to be corrected the right way, with the right match
              * and originalString given a string to match and an expectation of the output match.
              * @param {string} str The string to match
              * @param {Array} expectedArray The array that should equal the output match.
@@ -86,7 +86,6 @@ define(function (require, exports, module) {
                 var match = TimingFunctionUtils.timingFunctionMatch(str, false);
                 runs(function () {
                     expectArraysToBeEqual(match, expectedArray);
-                    expect(match.originalLength).toEqual(str.length);
                     expect(match.originalString).toEqual(str);
                 });
             }
@@ -222,7 +221,7 @@ define(function (require, exports, module) {
             var match;
             
             /**
-             * Expects an invalid steps() function to be corrected the right way, with the right match, originalLength
+             * Expects an invalid steps() function to be corrected the right way, with the right match
              * and originalString given a string to match and an expectation of the output match.
              * @param {string} str The string to match
              * @param {Array} expectedArray The array that should equal the output match.
@@ -231,7 +230,6 @@ define(function (require, exports, module) {
                 var match = TimingFunctionUtils.timingFunctionMatch(str, false);
                 runs(function () {
                     expectArraysToBeEqual(match, expectedArray);
-                    expect(match.originalLength).toEqual(str.length);
                     expect(match.originalString).toEqual(str);
                 });
             }

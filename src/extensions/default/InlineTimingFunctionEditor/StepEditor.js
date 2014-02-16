@@ -311,7 +311,13 @@ define(function (require, exports, module) {
         this._stepParams = this._getStepParams(stepMatch);
 
         this.hint = $(".hint", this.$element);
-        TimingFunctionUtils.showHideHint(this, stepMatch.originalLength, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message need to be shown
+        if (stepMatch.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
 
         this.canvas = this.$element.find(".steps")[0];
 
@@ -359,7 +365,7 @@ define(function (require, exports, module) {
             this._stepParams.timing + ")",
             self        = this;
         this._callback(stepFuncVal);
-        TimingFunctionUtils.showHideHint(this, 0);
+        TimingFunctionUtils.showHideHint(this, false);
     };
 
     /**
@@ -428,7 +434,13 @@ define(function (require, exports, module) {
     StepEditor.prototype.handleExternalUpdate = function (stepMatch) {
         this._stepParams = this._getStepParams(stepMatch);
         this._updateCanvas();
-        TimingFunctionUtils.showHideHint(this, stepMatch.originalLength, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message need to be shown
+        if (stepMatch.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
     };
 
     

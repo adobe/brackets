@@ -129,7 +129,7 @@ define(function (require, exports, module) {
             return null;
         }
         
-        originalLength = (matches.originalLength || matches[0].length);
+        originalLength = ((matches.originalString && matches.originalString.length) || matches[0].length);
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
         // the matched length here.
         if (end.ch === undefined || (end.ch - start.ch) !== originalLength) {

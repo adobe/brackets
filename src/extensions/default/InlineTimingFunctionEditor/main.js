@@ -91,7 +91,7 @@ define(function (require, exports, module) {
         
         // check for subsequent matches, and use first match after pos
         var lineOffset = 0,
-            matchLength = (currentMatch.originalLength || currentMatch[0].length);
+            matchLength = ((currentMatch.originalString && currentMatch.originalString.length) || currentMatch[0].length);
         while (pos.ch > (currentMatch.index + matchLength + lineOffset)) {
             var restOfLine = cursorLine.substring(currentMatch.index + matchLength + lineOffset),
                 newMatch = TimingFunctionUtils.timingFunctionMatch(restOfLine, false);
