@@ -234,7 +234,7 @@ define(function (require, exports, module) {
     function _validateStepsParams(match) {
         var count = _convertToNumber(match[1]);
 
-        if (!count.isNumber || count.value < 1 || Math.floor(count) === count) {
+        if (!count.isNumber || count.value < 1 || Math.floor(count.value) !== count.value) {
             return false;
         }
 
@@ -269,7 +269,6 @@ define(function (require, exports, module) {
                     editor.hintShown = false;
                 });
         } else {
-            editor.hintShown = false;
             editor.hint.css("display", "none");
         }
     }

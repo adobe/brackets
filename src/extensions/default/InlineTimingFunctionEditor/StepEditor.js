@@ -312,7 +312,7 @@ define(function (require, exports, module) {
 
         this.hint = $(".hint", this.$element);
         // If function was auto-corrected, then originalString holds the original function,
-        // and an informational message need to be shown
+        // and an informational message needs to be shown
         if (stepMatch.originalString) {
             TimingFunctionUtils.showHideHint(this, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
         } else {
@@ -362,8 +362,7 @@ define(function (require, exports, module) {
     StepEditor.prototype._commitTimingFunction = function () {
         var stepFuncVal = "steps(" +
             this._stepParams.count.toString() + ", " +
-            this._stepParams.timing + ")",
-            self        = this;
+            this._stepParams.timing + ")";
         this._callback(stepFuncVal);
         TimingFunctionUtils.showHideHint(this, false);
     };
@@ -435,7 +434,7 @@ define(function (require, exports, module) {
         this._stepParams = this._getStepParams(stepMatch);
         this._updateCanvas();
         // If function was auto-corrected, then originalString holds the original function,
-        // and an informational message need to be shown
+        // and an informational message needs to be shown
         if (stepMatch.originalString) {
             TimingFunctionUtils.showHideHint(this, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
         } else {

@@ -532,7 +532,7 @@ define(function (require, exports, module) {
 
         this.hint = $(".hint", this.$element);
         // If function was auto-corrected, then originalString holds the original function,
-        // and an informational message need to be shown
+        // and an informational message needs to be shown
         if (bezierCurve.originalString) {
             TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
         } else {
@@ -609,8 +609,7 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[0] + ", " +
             this._cubicBezierCoords[1] + ", " +
             this._cubicBezierCoords[2] + ", " +
-            this._cubicBezierCoords[3] + ")",
-            self           = this;
+            this._cubicBezierCoords[3] + ")";
         this._callback(bezierCurveVal);
         TimingFunctionUtils.showHideHint(this, false);
     };
@@ -696,7 +695,7 @@ define(function (require, exports, module) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
         this._updateCanvas();
         // If function was auto-corrected, then originalString holds the original function,
-        // and an informational message need to be shown
+        // and an informational message needs to be shown
         if (bezierCurve.originalString) {
             TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
         } else {
