@@ -76,16 +76,19 @@ define(function (require, exports, module) {
         _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
-    var USE_TAB_CHAR      = "useTabChar",
+    var SMART_INDENT      = "smartIndent",
+        USE_TAB_CHAR      = "useTabChar",
         TAB_SIZE          = "tabSize",
         SPACE_UNITS       = "spaceUnits",
         CLOSE_BRACKETS    = "closeBrackets",
         SHOW_LINE_NUMBERS = "showLineNumbers",
         STYLE_ACTIVE_LINE = "styleActiveLine",
         WORD_WRAP         = "wordWrap",
+        CLOSE_TAGS        = "closeTags",
         cmOptions         = {};
     
     // Mappings from Brackets preferences to CodeMirror options
+    cmOptions[SMART_INDENT]       = "smartIndent";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[TAB_SIZE]           = "indentUnit";
     cmOptions[SPACE_UNITS]        = "indentUnit";
@@ -93,7 +96,9 @@ define(function (require, exports, module) {
     cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
     cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
     cmOptions[WORD_WRAP]          = "lineWrapping";
+    cmOptions[CLOSE_TAGS]         = "autoCloseTags";
     
+    PreferencesManager.definePreference(SMART_INDENT, "boolean", true);
     PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
     PreferencesManager.definePreference(TAB_SIZE, "number", 4);
     PreferencesManager.definePreference(SPACE_UNITS, "number", 4);
@@ -101,9 +106,10 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
+    PreferencesManager.definePreference(CLOSE_TAGS, "Object", { whenOpening: true, whenClosing: true, indentTabs: [] });
     
-    var editorOptions = [USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
-                          SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP];
+    var editorOptions = [SMART_INDENT, USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
+                          SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP, CLOSE_TAGS];
 
     /** Editor preferences */
     
@@ -381,6 +387,7 @@ define(function (require, exports, module) {
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            smartIndent: currentOptions[SMART_INDENT],
             indentWithTabs: currentOptions[USE_TAB_CHAR],
             tabSize: currentOptions[TAB_SIZE],
             indentUnit: currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
@@ -393,11 +400,7 @@ define(function (require, exports, module) {
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
             autoCloseBrackets: currentOptions[CLOSE_BRACKETS],
-            autoCloseTags: {
-                whenOpening: true,
-                whenClosing: true,
-                indentTags: []
-            },
+            autoCloseTags: currentOptions[CLOSE_TAGS],
             cursorScrollMargin: 3
         });
         
