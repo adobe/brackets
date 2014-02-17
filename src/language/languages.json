@@ -79,8 +79,7 @@
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"],
-        "lineComment": ["//"]
+        "fileExtensions": ["json"]
     },
 
     "xml": {
