@@ -1347,6 +1347,10 @@ define(function LiveDevelopment(require, exports, module) {
         return _server;
     }
 
+    function getServerBaseUrl() {
+        return _server.getBaseUrl();
+    }
+
     // For unit testing
     exports.launcherUrl               = launcherUrl;
     exports._getServer                = _getServer;
@@ -1365,4 +1369,5 @@ define(function LiveDevelopment(require, exports, module) {
     exports.redrawHighlight     = redrawHighlight;
     exports.init                = init;
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
+    exports.getServerBaseUrl    = getServerBaseUrl;
 });
