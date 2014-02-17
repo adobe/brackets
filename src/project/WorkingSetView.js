@@ -69,6 +69,8 @@ define(function (require, exports, module) {
      * Redraw selection when list size changes or DocumentManager currentDocument changes.
      */
     function _fireSelectionChanged() {
+        _scrollSelectedDocIntoView();
+
         // redraw selection
         $openFilesList.trigger("selectionChanged");
 
