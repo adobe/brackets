@@ -154,6 +154,9 @@ define(function LiveDevelopment(require, exports, module) {
     var _liveDocument;        // the document open for live editing.
     var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
     var _openDeferred;        // promise returned for each call to open()
+
+    // Disallow re-entrancy of loadAgents()
+    var _loadAgentsPromise;
     
     /**
      * Current live preview server
@@ -545,10 +548,17 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
+        // If we're already loading agents return same promise
+        if (_loadAgentsPromise) {
+            return _loadAgentsPromise;
+        }
+        
         var result = new $.Deferred(),
             promises = [],
             enableAgentsPromise,
             allAgentsPromise;
+
+        _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
 
@@ -589,14 +599,22 @@ define(function LiveDevelopment(require, exports, module) {
                         _setStatus(status);
 
                         result.resolve();
+                        _loadAgentsPromise = null;
                     })
-                    .fail(result.reject);
+                    .fail(function () {
+                        result.reject();
+                        _loadAgentsPromise = null;
+                    });
             } else {
                 result.reject();
+                _loadAgentsPromise = null;
             }
         });
 
-        allAgentsPromise.fail(result.reject);
+        allAgentsPromise.fail(function () {
+            result.reject();
+            _loadAgentsPromise = null;
+        });
         
         // show error loading live dev dialog
         result.fail(function () {
@@ -612,7 +630,7 @@ define(function LiveDevelopment(require, exports, module) {
         // resolve/reject the open() promise after agents complete
         result.then(_openDeferred.resolve, _openDeferred.reject);
 
-        return result.promise();
+        return _loadAgentsPromise;
     }
 
     /**
@@ -889,7 +907,7 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function reconnect() {
         unloadAgents();
-        loadAgents();
+        loadAgents();   // TODO: promise is ignored
     }
 
     /**
@@ -1018,14 +1036,14 @@ define(function LiveDevelopment(require, exports, module) {
         var browserStarted  = false,
             retryCount      = 0;
         
-        // Open the live browser if the connection fails, retry 6 times
+        // Open the live browser if the connection fails, retry 3 times
         Inspector.connectToURL(launcherUrl).fail(function onConnectFail(err) {
             if (err === "CANCEL") {
                 _openDeferred.reject(err);
                 return;
             }
 
-            if (retryCount > 6) {
+            if (retryCount > 3) {
                 _setStatus(STATUS_ERROR);
 
                 var dialogPromise = Dialogs.showModalDialog(
@@ -1053,9 +1071,11 @@ define(function LiveDevelopment(require, exports, module) {
                         _close()
                             .done(function () {
                                 browserStarted = false;
-                                window.setTimeout(function () {
+                                _openDeferred.resolve();
+                                var doc = _getCurrentDocument();
+                                _prepareServer(doc).done(function () {
                                     // After browser closes, try to open the interstitial page again
-                                    _openInterstitialPage();
+                                    _doLaunchAfterServerReady(doc);
                                 });
                             })
                             .fail(function (err) {
@@ -1119,7 +1139,7 @@ define(function LiveDevelopment(require, exports, module) {
             if (exports.status !== STATUS_ERROR) {
                 window.setTimeout(function retryConnect() {
                     Inspector.connectToURL(launcherUrl).fail(onConnectFail);
-                }, 500);
+                }, 3000);
             }
         });
     }
