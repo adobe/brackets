@@ -482,7 +482,7 @@ define({
     "LOCALE_RO"                                 : "Romanès",
     "LOCALE_RU"                                 : "Rus",
     "LOCALE_SK"                                 : "Eslovac",
-    "LOCALE_SR"									: "Serbi",
+    "LOCALE_SR"                                 : "Serbi",
     "LOCALE_SV"                                 : "Suec",
     "LOCALE_TR"                                 : "Turc",
     "LOCALE_ZH_CN"                              : "Xinès, simplificat",
