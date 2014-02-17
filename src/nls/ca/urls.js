@@ -28,6 +28,6 @@ define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "ca/Com Començar",
     "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_es/",
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.es"
+    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.ca"
 
 });

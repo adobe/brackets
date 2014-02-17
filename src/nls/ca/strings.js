@@ -36,6 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "No es pot llegir l'arxiu.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directori de destí no es pot modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Els permisos no permeten fer modificacions.",
+    "CONTENTS_MODIFIED_ERR"             : "L'arxiu s'ha modificat fora de {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "L'arxiu ja existeix",
     "FILE"                              : "Arxiu",
     "DIRECTORY"                         : "Directori",
@@ -65,7 +66,7 @@ define({
     "ERROR_CREATING_FILE"               : "Hi ha hagut un error en intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Vaja... sembla que {APP_NAME} encara no funciona en navegadors.",
+    "ERROR_IN_BROWSER_TITLE"            : "Vaja, sembla que {APP_NAME} encara no funciona en navegadors.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} està desenvolupat en HTML, però ara mateix funciona com una aplicació d'escriptori per a poder editar arxius en local. Si us plau, utilitza l'aplicació del repositori <b>github.com/adobe/brackets-shell</b> per a executar {APP_NAME}.",
 
     // FileIndexManager error string
@@ -107,6 +108,7 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminació",
     "CONFIRM_FOLDER_DELETE"             : "¿Estàs segur de que vols eliminar el directori <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "arxiu eliminat",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> s'ha modificat en el disc.<br /><br />Vols guardar l'arxiu i sobreescriure aquests canvis?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> s'ha modificat, pero també te canvis en {APP_NAME}.<br /><br />¿Quina versió vols conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> s'ha eliminat, pero té canvis sense guardar en {APP_NAME}.<br /><br />¿Vols conservar els canvis?",
     
@@ -115,6 +117,8 @@ define({
     "CANCEL"                            : "Cancel·lar",
     "DONT_SAVE"                         : "No guardar",
     "SAVE"                              : "Guardar",
+    "SAVE_AS"                           : "Guardar com\u2026",
+    "SAVE_AND_OVERWRITE"                : "Guardar i reemplaçar",
     "DELETE"                            : "Eliminar",
     "BUTTON_YES"                        : "Si",
     "BUTTON_NO"                         : "No",
@@ -159,6 +163,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "més de ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click per a expandir/contreure tot",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obtenint informació sobre les actualitzacions",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Hi ha hagut un problema al obtenir la informació sobre les últimes actualitzacions des del servidor. Si us plau, assegura't d'estar connectat a internet i torna-ho a intentar.",
 
@@ -192,9 +197,11 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Mida de tabulador:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} línia",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} línies",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions desactivades",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
     
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "Errors de {0}",
     "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Problemes",
     "ERRORS_PANEL_TITLE_MULTI"              : "Problemes de sintaxi",
     "SINGLE_ERROR"                          : "1 Error de {0}",
@@ -248,6 +255,7 @@ define({
     "CMD_SELECT_ALL"                      : "Seleccionar tot",
     "CMD_SELECT_LINE"                     : "Seleccionar línia",
     "CMD_FIND"                            : "Cercar",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Cercar\u2026",
     "CMD_FIND_IN_FILES"                   : "Cercar en arxius",
     "CMD_FIND_IN_SUBTREE"                 : "Cercar en\u2026",
     "CMD_FIND_NEXT"                       : "Cercar següent",
@@ -311,6 +319,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "obrir carpeta d'extensions",
     "CMD_TWITTER"                         : "{TWITTER_NAME} a Twitter",
     "CMD_ABOUT"                           : "Quant a {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Preferències",
     
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versió experimental",
@@ -350,6 +359,7 @@ define({
     "OVERWRITE"                            : "sobreescriure",
     "CANT_REMOVE_DEV"                      : "Les extensions en la carpeta \"dev\" s'han d'eliminar manualment.",
     "CANT_UPDATE"                          : "L'actualització no és compatible amb aquesta versió de {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Les extensions situades a la carpeta \"dev\" no es poden actualitzar automáticament.",
     "INSTALL_EXTENSION_TITLE"              : "instal·lar extensió",
     "UPDATE_EXTENSION_TITLE"               : "actualitzar extensió",
     "INSTALL_EXTENSION_LABEL"              : "URL de l'extensió",
@@ -409,11 +419,12 @@ define({
     "UNDO_REMOVE"                          : "Desfer",
     "MARKED_FOR_UPDATE"                    : "Marcada per a actualitzar",
     "UNDO_UPDATE"                          : "Desfer",
-    "CHANGE_AND_QUIT_TITLE"                : "Canviar extensions",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Per a actualitzar o eliminar les extensions marcades, necessites tancar i reiniciar {APP_NAME}. Es demanarà confirmació Per a guardar els canvis pendents.",
-    "REMOVE_AND_QUIT"                      : "Eliminar extensions i sortir",
-    "CHANGE_AND_QUIT"                      : "Canviar extensions i sortir",
-    "UPDATE_AND_QUIT"                      : "Actualitzar extensions i sortir",
+    "CHANGE_AND_RELOAD_TITLE"                : "Canviar extensions",
+    "CHANGE_AND_RELOAD_MESSAGE"              : "Per a actualitzar o eliminar les extensions marcades, necessites reiniciar {APP_NAME}. Es demanarà confirmació Per a guardar els canvis pendents.",
+    "REMOVE_AND_RELOAD"                      : "Eliminar extensions i reiniciar",
+    "CHANGE_AND_RELOAD"                      : "Canviar extensions i reiniciar",
+    "UPDATE_AND_RELOAD"                      : "Actualitzar extensions i reiniciar",
+    "PROCESSING_EXTENSIONS"                : "Procesant els canvis en l'extensió\u2026",
     "EXTENSION_NOT_INSTALLED"              : "No es pot eliminar l'extensió {{0}} perquè no es troba instal·lada.",
     "NO_EXTENSIONS"                        : "Encara no hi ha cap extensió instal·lada.<br />Fes click a la pestanya Disponibles per a  començar.",
     "NO_EXTENSION_MATCHES"                 : "No hi ha extensions que coincideixin amb la teva cerca.",
@@ -436,6 +447,7 @@ define({
     "DEBUG_MENU"                                : "Desenvolupament",
     "CMD_SHOW_DEV_TOOLS"                        : "Mostrar eines per a desenvolupadors",
     "CMD_REFRESH_WINDOW"                        : "Reiniciar {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reiniciar sense extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nova finestra de {APP_NAME}",
     "CMD_SWITCH_LANGUAGE"                       : "Canviar d'idioma",
     "CMD_RUN_UNIT_TESTS"                        : "Executar tests",
@@ -450,10 +462,11 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel·lar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminat",
     
-    // Locales (used by Debug > Switch Language)
+    // Locals (used by Debug > Switch Language)
     "LOCALE_CA"                                 : "Català",
     "LOCALE_CS"                                 : "Txec",
     "LOCALE_DE"                                 : "Alemany",
+    "LOCALE_EL"                                 : "Grec",
     "LOCALE_EN"                                 : "Anglès",
     "LOCALE_ES"                                 : "Castellà",
     "LOCALE_FI"                                 : "Finès",
@@ -469,15 +482,18 @@ define({
     "LOCALE_RO"                                 : "Romanès",
     "LOCALE_RU"                                 : "Rus",
     "LOCALE_SK"                                 : "Eslovac",
-	"LOCALE_SR"									: "Serbi",
+    "LOCALE_SR"									: "Serbi",
     "LOCALE_SV"                                 : "Suec",
     "LOCALE_TR"                                 : "Turc",
     "LOCALE_ZH_CN"                              : "Xinès, simplificat",
     "LOCALE_HU"                                 : "Hongarès",
+    "LOCALE_KO"                                 : "Coreà",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Temps",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progressió",
+    "BEZIER_EDITOR_INFO" : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Moure el punt seleccionat<br><kbd class='text'>Shift</kbd> Moure de 10 en 10<br><kbd class='text'>Tab</kbd> Canviar els punts",
+    "STEPS_EDITOR_INFO" : "<kbd>↑</kbd><kbd>↓</kbd> Incrementar o decrementar els pasos<br><kbd>←</kbd><kbd>→</kbd> 'Començar' o 'Finalitzar'",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
