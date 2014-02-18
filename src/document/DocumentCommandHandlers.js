@@ -72,6 +72,8 @@ define(function (require, exports, module) {
     var _currentTitlePath = null;
     /** @type {string} String template for window title. Use emdash on mac only. */
     var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
+    /** @type {string} String template for window title when no file is open. Use emdash on mac only. */
+    var WINDOW_TITLE_STRING_INIT = (brackets.platform !== "mac") ? "({0}) - {1}" : "({0}) \u2014 {1}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -95,7 +97,7 @@ define(function (require, exports, module) {
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
-            windowTitle = brackets.config.app_title;
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING_INIT, ProjectManager.getProjectRoot().name, brackets.config.app_title);
 
         if (!brackets.nativeMenus) {
             if (currentlyViewedPath) {
@@ -132,7 +134,7 @@ define(function (require, exports, module) {
 
         // build shell/browser window title, e.g. "• file.html (myProject) — Brackets"
         if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, ProjectManager.getProjectRoot().name, windowTitle);
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, ProjectManager.getProjectRoot().name, brackets.config.app_title);
         }
         
         if (currentDoc) {
