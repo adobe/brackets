@@ -501,6 +501,17 @@ define(function (require, exports, module) {
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
+            // Displays the primary console messages from the test window in the the
+            // test runner's console as well.
+            ["log", "info", "warn", "error"].forEach(function (method) {
+                var originalMethod = _testWindow.console[method];
+                _testWindow.console[method] = function () {
+                    var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
+                    console[method].apply(console, log);
+                    originalMethod.apply(_testWindow.console, arguments);
+                };
+            });
+            
             _testWindow.isBracketsTestWindow = true;
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
