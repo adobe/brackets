@@ -36,8 +36,7 @@ define(function (require, exports, module) {
 
     describe("Install Extension Dialog", function () {
         var testWindow, dialog, fields, goodInstaller, badInstaller, closed,
-            url = "http://brackets.io/extensions/myextension.zip",
-            oldExtensionWikiURL = brackets.config.extension_wiki_url;
+            url = "http://brackets.io/extensions/myextension.zip";
         
         this.category = "integration";
         
@@ -55,7 +54,7 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
-            testWindow.brackets.config.extension_wiki_url = oldExtensionWikiURL;
+            testWindow.brackets.config.extension_listing_url = brackets.config.extension_listing_url;
             runs(function () {
                 if (dialog) {
                     dialog._close();
@@ -99,8 +98,10 @@ define(function (require, exports, module) {
         
         describe("with Browse Extensions enabled", function () {
             it("should open the extension list wiki page when the user clicks on the Browse Extensions button", function () {
-                var extensionWikiURL = "https://github.com/adobe/brackets/wiki/Brackets-Extensions";
-                testWindow.brackets.config.extension_wiki_url = extensionWikiURL;
+                // Set the extension_listing_url in the configuration so that the button will
+                // show up.
+                var extensionListingURL = "https://github.com/adobe/brackets/wiki/Brackets-Extensions";
+                testWindow.brackets.config.extension_listing_url = extensionListingURL;
                 
                 dialog = new testWindow.brackets.test.InstallExtensionDialog._Dialog();
                 dialog.show()
@@ -115,7 +116,7 @@ define(function (require, exports, module) {
                 var NativeApp = testWindow.brackets.getModule("utils/NativeApp");
                 spyOn(NativeApp, "openURLInDefaultBrowser");
                 fields.$browseExtensionsButton.click();
-                expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith(extensionWikiURL);
+                expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith(extensionListingURL);
             });
         });
         
