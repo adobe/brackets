@@ -1599,7 +1599,7 @@ define(function (require, exports, module) {
      * @param {boolean} value
      */
     Editor.setUseTabChar = function (value) {
-        PreferencesManager.setValueAndSave(USE_TAB_CHAR, value);
+        PreferencesManager.set(USE_TAB_CHAR, value);
     };
     
     /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
@@ -1613,7 +1613,7 @@ define(function (require, exports, module) {
      * @param {number} value
      */
     Editor.setTabSize = function (value) {
-        PreferencesManager.setValueAndSave(TAB_SIZE, value);
+        PreferencesManager.set(TAB_SIZE, value);
     };
     
     /** @type {number} Get indent unit  */
@@ -1627,7 +1627,7 @@ define(function (require, exports, module) {
      * @param {number} value
      */
     Editor.setSpaceUnits = function (value) {
-        PreferencesManager.setValueAndSave(SPACE_UNITS, value);
+        PreferencesManager.set(SPACE_UNITS, value);
     };
     
     /** @type {number} Get indentation width */
@@ -1641,7 +1641,7 @@ define(function (require, exports, module) {
      * @param {boolean} value
      */
     Editor.setCloseBrackets = function (value) {
-        PreferencesManager.setValueAndSave(CLOSE_BRACKETS, value);
+        PreferencesManager.set(CLOSE_BRACKETS, value);
     };
     
     /** @type {boolean} Gets whether the current editor uses auto close brackets */
@@ -1655,7 +1655,7 @@ define(function (require, exports, module) {
      * @param {boolean} value
      */
     Editor.setShowLineNumbers = function (value) {
-        PreferencesManager.setValueAndSave(SHOW_LINE_NUMBERS, value);
+        PreferencesManager.set(SHOW_LINE_NUMBERS, value);
     };
     
     /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
