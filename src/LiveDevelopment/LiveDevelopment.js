@@ -1348,7 +1348,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     function getServerBaseUrl() {
-        return _server.getBaseUrl();
+        return _server && _server.getBaseUrl();
     }
 
     // For unit testing
