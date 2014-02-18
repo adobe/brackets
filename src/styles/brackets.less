@@ -1077,7 +1077,7 @@ a, img {
             top: 24px;
             min-width: 291px + 2px;  // to align with search field above it
 
-            background-color: #f74687;
+            background-color: @bc-error;
             color: @bc-white;
             font-size: 12px;
             padding: 3px 8px;
@@ -1400,13 +1400,13 @@ label input {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1000;    // TODO: put in @var
+    z-index: @z-index-brackets-inline-editor-error;
     visibility: hidden;
     opacity: 1.0;
     
     .text {
         padding: 5px 10px;
-        background-color: #f74687;  // TODO: put in @var
+        background-color: @bc-error;
         border-radius: 3px;
         color: @bc-white;
         box-shadow: @tc-dropdown-shadow;
@@ -1416,14 +1416,14 @@ label input {
         height: 0;
         width: 0;
         border-width: 0 10px 10px 10px;
-        border-color: transparent transparent #f74687 transparent;  // TODO: put in @var
+        border-color: transparent transparent @bc-error transparent;
         border-style: solid;
     }
     .arrowBelow {
         height: 0;
         width: 0;
         border-width: 10px 10px 0 10px;
-        border-color: #f74687 transparent transparent transparent;  // TODO: put in @var
+        border-color: @bc-error transparent transparent transparent;
         border-style: solid;
     }
     &.animating {

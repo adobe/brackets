@@ -1340,11 +1340,6 @@ define(function (require, exports, module) {
         
         AnimationUtils.animateUsingClass(this._$messagePopover[0], "animating")
             .done(_clearMessagePopover);
-        
-        // TODO:
-        // - add shadow to "arrow"
-        // - clear message on scroll?, change editors?, click in page?, typing?
-        // - test conflicts with other popovers, menus, dropdowns
     };
     
     /**
