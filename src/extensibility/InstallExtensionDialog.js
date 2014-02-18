@@ -332,7 +332,8 @@ define(function (require, exports, module) {
 
         var context = {
             Strings: Strings,
-            isUpdate: this._isUpdate
+            isUpdate: this._isUpdate,
+            includeBrowseExtensions: !!brackets.config.extension_wiki_url
         };
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 

@@ -14,7 +14,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn left browse-extensions">{{Strings.BROWSE_EXTENSIONS}}</button>
+        {{#includeBrowseExtensions}}<button class="btn left browse-extensions">{{Strings.BROWSE_EXTENSIONS}}</button>{{/includeBrowseExtensions}}
         <button class="dialog-button btn" data-button-id="cancel">{{Strings.CANCEL}}</button>
         <button class="dialog-button btn primary" data-button-id="ok" disabled>{{Strings.INSTALL}}</button>
     </div>
