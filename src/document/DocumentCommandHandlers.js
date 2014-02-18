@@ -81,6 +81,9 @@ define(function (require, exports, module) {
     /** @type {Number} index to use for next, new Untitled document */
     var _nextUntitledIndexToUse = 1;
     
+    /** @type {boolean} prevents reentrancy of browserReload() */
+    var _isReloading = false;
+    
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
     
@@ -614,9 +617,7 @@ define(function (require, exports, module) {
                 });
         }
             
-        if (docToSave.isDirty) {
-            var writeError = false;
-            
+        function trySave() {
             // We don't want normalized line endings, so it's important to pass true to getText()
             FileUtils.writeText(file, docToSave.getText(true), force)
                 .done(function () {
@@ -630,6 +631,28 @@ define(function (require, exports, module) {
                         handleError(err);
                     }
                 });
+        }
+
+        if (docToSave.isDirty) {
+            var writeError = false;
+            
+            if (docToSave.keepChangesTime) {
+                // The user has decided to keep conflicting changes in the editor. Check to make sure
+                // the file hasn't changed since they last decided to do that.
+                docToSave.file.stat(function (err, stat) {
+                    // If the file has been deleted on disk, the stat will return an error, but that's fine since 
+                    // that means there's no file to overwrite anyway, so the save will succeed without us having
+                    // to set force = true.
+                    if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
+                        // OK, it's safe to overwrite the file even though we never reloaded the latest version,
+                        // since the user already said s/he wanted to ignore the disk version.
+                        force = true;
+                    }
+                    trySave();
+                });
+            } else {
+                trySave();
+            }
         } else {
             result.resolve(file);
         }
@@ -1418,12 +1441,18 @@ define(function (require, exports, module) {
          
         return result.promise();
     }
-        
+    
     /**
     * Does a full reload of the browser window
     * @param {string} href The url to reload into the window
     */
     function browserReload(href) {
+        if (_isReloading) {
+            return;
+        }
+        
+        _isReloading = true;
+        
         return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
             // Give everyone a chance to save their state - but don't let any problems block
             // us from quitting
@@ -1432,7 +1461,7 @@ define(function (require, exports, module) {
             } catch (ex) {
                 console.error(ex);
             }
-           
+            
             // Disable the cache to make reloads work
             _disableCache().always(function () {
                 // Remove all menus to assure every part of Brackets is reloaded
@@ -1442,6 +1471,8 @@ define(function (require, exports, module) {
                 
                 window.location.href = href;
             });
+        }).fail(function () {
+            _isReloading = false;
         });
     }
     

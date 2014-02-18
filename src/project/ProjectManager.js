@@ -95,9 +95,11 @@ define(function (require, exports, module) {
      * File and folder names which are not displayed or searched
      * TODO: We should add the rest of the file names that TAR excludes:
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * TODO: This should be user configurable
+     *    https://github.com/adobe/brackets/issues/6781
      * @type {RegExp}
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|^\.hgignore$|\~$/;
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|\~$/;
 
     /**
      * @private
@@ -2149,6 +2151,18 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
+    
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
+        } else {
+            PreferencesManager._setProjectSettingsFile();
+        }
+    }
+    
+    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
