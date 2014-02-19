@@ -834,11 +834,11 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         if (_openDeferred) {
-            _doInspectorDisconnect(doCloseWindow).done(cleanup);
-
             if (_openDeferred.state() === "pending") {
                 _openDeferred.reject();
             }
+
+            _doInspectorDisconnect(doCloseWindow).done(cleanup);
         } else {
             // Deferred may not be created yet
             // We always close attempt to close the live dev connection on
