@@ -135,7 +135,8 @@ define(function (require, exports, module) {
             function projectPrefsAreSet() {
                 // The test project file, the Brackets repo file, 
                 // user and defaults should be the scopes
-                return Object.keys(PreferencesManager._manager._scopes).length > 3;
+                return Object.keys(PreferencesManager._manager._scopes).length > 3 &&
+                    PreferencesManager._manager._scopes.project.storage.path === testPath + "/.brackets.json";
             }
             waitsFor(projectPrefsAreSet, "prefs appear to be loaded");
             runs(function () {
