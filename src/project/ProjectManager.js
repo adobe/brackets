@@ -1088,10 +1088,14 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-                        PreferencesManager._setCurrentEditingFile(rootPath);
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
+                        
+                        if (projectRootChanged) {
+                            PreferencesManager._setProjectSettingsFile(rootPath + SETTINGS_FILENAME);
+                            PreferencesManager._setCurrentEditingFile(rootPath);
+                        }
 
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
@@ -2151,18 +2155,6 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
-    
-    function _reloadProjectPreferencesScope() {
-        var root = getProjectRoot();
-        if (root) {
-            // Alias the "project" Scope to the path Scope for the project-level settings file
-            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
-        } else {
-            PreferencesManager._setProjectSettingsFile();
-        }
-    }
-    
-    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
