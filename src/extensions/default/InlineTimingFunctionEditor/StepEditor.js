@@ -310,6 +310,15 @@ define(function (require, exports, module) {
         // current step function params
         this._stepParams = this._getStepParams(stepMatch);
 
+        this.hint = $(".hint", this.$element);
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message needs to be shown
+        if (stepMatch.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
+
         this.canvas = this.$element.find(".steps")[0];
 
         this.canvas.stepEditor = this;
@@ -355,6 +364,7 @@ define(function (require, exports, module) {
             this._stepParams.count.toString() + ", " +
             this._stepParams.timing + ")";
         this._callback(stepFuncVal);
+        TimingFunctionUtils.showHideHint(this, false);
     };
 
     /**
@@ -423,6 +433,13 @@ define(function (require, exports, module) {
     StepEditor.prototype.handleExternalUpdate = function (stepMatch) {
         this._stepParams = this._getStepParams(stepMatch);
         this._updateCanvas();
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message needs to be shown
+        if (stepMatch.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
     };
 
     
