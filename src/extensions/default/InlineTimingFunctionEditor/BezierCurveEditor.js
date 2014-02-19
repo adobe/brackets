@@ -530,6 +530,15 @@ define(function (require, exports, module) {
         // current cubic-bezier() function params
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
 
+        this.hint = $(".hint", this.$element);
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message needs to be shown
+        if (bezierCurve.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
+
         this.P1 = this.$element.find(".P1")[0];
         this.P2 = this.$element.find(".P2")[0];
         this.curve = this.$element.find(".curve")[0];
@@ -602,6 +611,7 @@ define(function (require, exports, module) {
             this._cubicBezierCoords[2] + ", " +
             this._cubicBezierCoords[3] + ")";
         this._callback(bezierCurveVal);
+        TimingFunctionUtils.showHideHint(this, false);
     };
 
     /**
@@ -684,6 +694,13 @@ define(function (require, exports, module) {
     BezierCurveEditor.prototype.handleExternalUpdate = function (bezierCurve) {
         this._cubicBezierCoords = this._getCubicBezierCoords(bezierCurve);
         this._updateCanvas();
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message needs to be shown
+        if (bezierCurve.originalString) {
+            TimingFunctionUtils.showHideHint(this, true, bezierCurve.originalString, "cubic-bezier(" + this._cubicBezierCoords.join(", ") + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this, false);
+        }
     };
 
     
