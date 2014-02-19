@@ -1543,7 +1543,16 @@ define(function (require, exports, module) {
         function updateHeight() {
             // Notify CodeMirror for the height change.
             if (isAttached) {
+                var focused = window.document.activeElement;
+
                 inlineWidget.info.changed();
+
+                // From CodeMirror function updateDisplayInner():
+                // There might have been a widget with a focused element
+                // in the hidden nodes, if so re-focus it.
+                if (focused && window.document.activeElement !== focused && focused.offsetHeight) {
+                    focused.focus();
+                }
             }
         }
         
