@@ -1003,9 +1003,10 @@ define(function (require, exports, module) {
      * @return {?string} - the scope to which the preference is to be migrated
      */
     function _checkPreferencePrefix(key) {
-        if (key.indexOf("files_/") === 0) {
+        var pathPrefix = "files_";
+        if (key.indexOf(pathPrefix) === 0) {
             // Get the project path from the old preference key by stripping "files_".
-            var projectPath = key.substr(key.indexOf("/"));
+            var projectPath = key.substr(pathPrefix.length - 1);
             return "user project.files " + projectPath;
         }
         
