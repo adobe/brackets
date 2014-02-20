@@ -39,12 +39,10 @@ define(function (require, exports, module) {
      * this deprecation warning.
      */
     function _trimStack(stack) {
-        var startOfFirstLine = stack.indexOf("\n") + 1,     // Find the index after 'Error\n'
-            firstLine = stack.substr(startOfFirstLine, stack.indexOf(")") - startOfFirstLine + 1),
-            indexOfFirstRequireJSline;
+        var indexOfFirstRequireJSline;
         
-        // Remove the first line in the stack that shows this module
-        stack = stack.replace(firstLine, "");
+        // Remove everything in the stack up to the end of the line that shows this module file path
+        stack = stack.substr(stack.indexOf(")") + 1);
         
         // Find the very first line of require.js in the stack if the call is from an extension.
         // Remove all those lines from the call stack.
