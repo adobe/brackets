@@ -489,6 +489,8 @@ define(function (require, exports, module) {
      * comes from the "default" scope, the new value will be set at the level just above
      * default.
      * 
+     * The preferences are saved automatically unless doNotSave is true.
+     * 
      * As with the `get()` function, the context can be a filename,
      * CURRENT_FILE, CURRENT_PROJECT or a full context object as supported by
      * PreferencesSystem.
@@ -496,13 +498,18 @@ define(function (require, exports, module) {
      * @param {string} id Identifier of the preference to set
      * @param {Object} value New value for the preference
      * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
+     * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
      * @return {boolean} true if a value was set
      */
-    function set(id, value, options) {
+    function set(id, value, options, doNotSave) {
         if (options && options.context) {
             options.context = _normalizeContext(options.context);
         }
-        return preferencesManager.set(id, value, options);
+        var wasSet = preferencesManager.set(id, value, options);
+        if (!doNotSave) {
+            preferencesManager.save();
+        }
+        return wasSet;
     }
 
     /**
@@ -515,6 +522,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if a value was set
      */
     function setValueAndSave(id, value, options) {
+        // TODO: Add a deprecation warning for this.
         var changed = set(id, value, options);
         preferencesManager.save();
         return changed;
