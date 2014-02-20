@@ -33,11 +33,12 @@ define(function (require, exports, module) {
     "use strict";
     
     var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
-        FileUtils         = require("file/FileUtils"),
-        ExtensionLoader   = require("utils/ExtensionLoader"),
-        PreferencesBase   = require("preferences/PreferencesBase"),
-        FileSystem        = require("filesystem/FileSystem"),
-        _                 = require("thirdparty/lodash");
+        FileUtils            = require("file/FileUtils"),
+        DeprecationWarning   = require("utils/DeprecationWarning"),
+        ExtensionLoader      = require("utils/ExtensionLoader"),
+        PreferencesBase      = require("preferences/PreferencesBase"),
+        FileSystem           = require("filesystem/FileSystem"),
+        _                    = require("thirdparty/lodash");
     
     /**
      * The local storage ID
@@ -113,6 +114,13 @@ define(function (require, exports, module) {
      * @return {PreferenceStorage}
      */
     function getPreferenceStorage(clientID, defaults, _doNotCreate) {
+        // No one should be calling this to access the old preference storage except for 
+        // migrating the old preferences to the new model. So if this is called without 
+        // having _doNotCreate set to true, then the caller is using the old preferences model.
+        if (!_doNotCreate) {
+            var clientString = typeof clientID === "object" ? clientID.uri : clientID;
+            DeprecationWarning.deprecationWarning("getPreferenceStorage is called with client ID '" + clientString + ",' use PreferencesManager.definePreference instead.");
+        }
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
             return;
@@ -224,7 +232,7 @@ define(function (require, exports, module) {
     function getUserPrefFile() {
         return userPrefFile;
     }
-    
+
     var preferencesManager = new PreferencesBase.PreferencesSystem();
     
     var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
@@ -325,6 +333,15 @@ define(function (require, exports, module) {
         return preferencesManager.getPrefixedSystem(prefix);
     }
     
+    // "State" is stored like preferences but it is not generally intended to be user-editable.
+    // It's for more internal, implicit things like window size, working set, etc.
+    var stateManager = new PreferencesBase.PreferencesSystem();
+    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+    var smUserScope = new PreferencesBase.Scope(new PreferencesBase.FileStorage(userStateFile, true));
+    var projectLayer = new PreferencesBase.ProjectLayer();
+    smUserScope.addLayer(projectLayer);
+    var smUserScopeLoading = stateManager.addScope("user", smUserScope);
+
     /**
      * Converts from the old localStorage-based preferences to the new-style
      * preferences according to the "rules" given.
@@ -339,37 +356,39 @@ define(function (require, exports, module) {
      * 
      * @param {string|Object} clientID ClientID used in the old preferences
      * @param {Object} rules Rules for conversion (as defined above)
+     * @param {boolean=} isViewState If it is undefined or false, then the preferences
+     *      listed in 'rules' are those normal user-editable preferences. Otherwise,
+     *      they are view state settings.
+     * @param {function(string)=} prefCheckCallback Optional callback function that
+     *      examines each preference key for migration.
      */
-    function convertPreferences(clientID, rules) {
-        userScopeLoading.done(function () {
-            var prefs = getPreferenceStorage(clientID, null, true);
-            
-            if (!prefs) {
-                return;
-            }
-            
-            var prefsID = getClientID(clientID);
-            if (prefStorage.convertedKeysMap === undefined) {
-                prefStorage.convertedKeysMap = {};
-            }
-            var convertedKeysMap = prefStorage.convertedKeysMap;
-            
-            prefs.convert(rules, convertedKeysMap[prefsID]).done(function (complete, convertedKeys) {
-                prefStorage.convertedKeysMap[prefsID] = convertedKeys;
-                savePreferences();
+    function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
+        smUserScopeLoading.done(function () {
+            userScopeLoading.done(function () {
+                var prefs = getPreferenceStorage(clientID, null, true);
+
+                if (!prefs) {
+                    return;
+                }
+
+                var prefsID = getClientID(clientID);
+                if (prefStorage.convertedKeysMap === undefined) {
+                    prefStorage.convertedKeysMap = {};
+                }
+                var convertedKeysMap = prefStorage.convertedKeysMap;
+
+                prefs.convert(rules, convertedKeysMap[prefsID], isViewState, prefCheckCallback)
+                    .done(function (complete, convertedKeys) {
+                        prefStorage.convertedKeysMap[prefsID] = convertedKeys;
+                        savePreferences();
+                    });
+            }).fail(function (error) {
+                console.error("Error while converting ", getClientID(clientID));
+                console.error(error);
             });
-        }).fail(function (error) {
-            console.error("Error while converting ", getClientID(clientID));
-            console.error(error);
         });
     }
 
-    // "State" is stored like preferences but it is not generally intended to be user-editable.
-    // It's for more internal, implicit things like window size, working set, etc.
-    var stateManager = new PreferencesBase.PreferencesSystem();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
-    
-    stateManager.addScope("user", new PreferencesBase.FileStorage(userStateFile, true));
     
     // Constants for preference lookup contexts.
     
@@ -528,6 +547,33 @@ define(function (require, exports, module) {
         return changed;
     }
     
+    /**
+     * Convenience function that gets a view state
+     * 
+     * @param {string} id preference to get
+     * @param {?Object} context Optional additional information about the request
+     */
+    function getViewState(id, context) {
+        return stateManager.get(id, context);
+    }
+    
+    /**
+     * Convenience function that sets a view state and then saves the file
+     * 
+     * @param {string} id preference to set
+     * @param {*} value new value for the preference
+     * @param {?Object} context Optional additional information about the request
+     * @param {boolean=} doNotSave If it is undefined or false, then save the 
+     *      view state immediately.
+     */
+    function setViewState(id, value, context, doNotSave) {
+        
+        stateManager.set(id, value, context);
+        
+        if (!doNotSave) {
+            stateManager.save();
+        }
+    }
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager                = preferencesManager;
@@ -549,8 +595,11 @@ define(function (require, exports, module) {
     exports.getPreference       = preferencesManager.getPreference.bind(preferencesManager);
     exports.getExtensionPrefs   = getExtensionPrefs;
     exports.setValueAndSave     = setValueAndSave;
+    exports.getViewState        = getViewState;
+    exports.setViewState        = setViewState;
     exports.addScope            = preferencesManager.addScope.bind(preferencesManager);
     exports.stateManager        = stateManager;
+    exports.projectLayer        = projectLayer;
     exports.FileStorage         = PreferencesBase.FileStorage;
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
     exports.definePreference    = preferencesManager.definePreference.bind(preferencesManager);

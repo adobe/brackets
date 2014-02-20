@@ -47,8 +47,6 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
-    var prefs = PreferencesManager.getPreferenceStorage(module);
-    
     /** @const {string} Recent Projects commands ID */
     var TOGGLE_DROPDOWN = "recentProjects.toggle";
     
@@ -66,7 +64,7 @@ define(function (require, exports, module) {
      * Warning: unlike most paths in Brackets, these lack a trailing "/"
      */
     function getRecentProjects() {
-        var recentProjects = prefs.getValue("recentProjects") || [],
+        var recentProjects = PreferencesManager.getViewState("recentProjects") || [],
             i;
         
         for (i = 0; i < recentProjects.length; i++) {
@@ -91,7 +89,7 @@ define(function (require, exports, module) {
         if (recentProjects.length > MAX_PROJECTS) {
             recentProjects = recentProjects.slice(0, MAX_PROJECTS);
         }
-        prefs.setValue("recentProjects", recentProjects);
+        PreferencesManager.setViewState("recentProjects", recentProjects);
     }
     
     /**
@@ -131,7 +129,7 @@ define(function (require, exports, module) {
                         newProjects.push(recentProjects[i]);
                     }
                 }
-                prefs.setValue("recentProjects", newProjects);
+                PreferencesManager.setViewState("recentProjects", newProjects);
                 $(this).closest("li").remove();
                 checkHovers(e.pageX, e.pageY);
                 
@@ -195,7 +193,7 @@ define(function (require, exports, module) {
 
         // remove project
         recentProjects.splice(index, 1);
-        prefs.setValue("recentProjects", recentProjects);
+        PreferencesManager.setViewState("recentProjects", recentProjects);
         checkHovers(e.pageX, e.pageY);
 
         if (recentProjects.length === 1) {
@@ -460,6 +458,7 @@ define(function (require, exports, module) {
         }
     }
     
+    PreferencesManager.convertPreferences(module, {"recentProjects": "user"}, true);
     
     // Register command handlers
     CommandManager.register(Strings.CMD_TOGGLE_RECENT_PROJECTS, TOGGLE_DROPDOWN, handleKeyEvent);
