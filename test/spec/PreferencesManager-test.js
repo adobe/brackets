@@ -139,9 +139,9 @@ define(function (require, exports, module) {
                     PreferencesManager._manager._scopes.project.storage.path === testPath + "/.brackets.json";
             }
             waitsFor(projectPrefsAreSet, "prefs appear to be loaded");
-            runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).toBe(92);
-            });
+            waitsFor(function () {
+                return PreferencesManager.get("spaceUnits") === 92;
+            }, "spaceUnits should be 92");
             
             waitsForDone(FileViewController.openAndSelectDocument(nonProjectFile,
                          FileViewController.WORKING_SET_VIEW));
