@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define */
+/*global define, console */
 
 /**
  *  Utilities functions to display deprecation warning in the console.
