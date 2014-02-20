@@ -1074,51 +1074,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Utility function that takes a list of selection ranges as returned by `setSelections()` and
-     * expands them to encompass whole lines, merging selections as necessary and preserving the
-     * primary selection.
-     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
-     *     A list of selections as returned by `setSelections()`. Expected to be sorted and non-overlapping.
-     * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}}
-     *     The expanded selections. Also guaranteed to be sorted and non-overlapping.
-     */
-    Editor.prototype.expandSelectionsToLines = function (selections) {
-        var self = this, result = [], last;
-        _.each(selections, function (sel) {
-            var from = {line: sel.start.line, ch: 0};
-            var to   = {line: sel.end.line + 1, ch: 0};
-
-            if (to.line === self.getLastVisibleLine() + 1) {
-                // Last line: select to end of line instead of start of (hidden/nonexistent) following line,
-                // which due to how CM clips coords would only work some of the time
-                to.line -= 1;
-                to.ch = self.document.getLine(to.line).length;
-            }
-            
-            var newSel = {start: from, end: to, primary: sel.primary, reversed: sel.reversed};
-            if (last) {
-                if (self.posWithinRange(newSel.start, last.start, last.end, true)) {
-                    if (!self.posWithinRange(newSel.end, last.start, last.end, true)) {
-                        // Extend the last selection to include this one.
-                        last.end = newSel.end;
-                    }
-                    // If this was primary, make the selection it was merged into primary.
-                    if (newSel.primary) {
-                        last.primary = true;
-                    }
-                    // We can throw away this selection now since it was merged (partially or fully) into the last one.
-                    newSel = null;
-                }
-            }
-            if (newSel) {
-                result.push(newSel);
-                last = newSel;
-            }
-        });
-        return result;
-    };
-    
-    /**
      * Adjusts a given position taking a given replaceRange-type edit into account. 
      * If the position is within the edit range (start exclusive, end inclusive),
      * it gets pushed to the end. Otherwise, if it's after the edit, it gets adjusted

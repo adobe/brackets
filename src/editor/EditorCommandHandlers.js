@@ -947,7 +947,9 @@ define(function (require, exports, module) {
     function selectLine(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
-            editor.setSelections(editor.expandSelectionsToLines(editor.getSelections()));
+            // We can just use `convertToLineSelections`, but throw away the original tracked selections and just use the
+            // coalesced selections.
+            editor.setSelections(_.pluck(editor.convertToLineSelections(editor.getSelections(), { expandEndAtStartOfLine: true }), "selectionForEdit"));
         }
     }
 
