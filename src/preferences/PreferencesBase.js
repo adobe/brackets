@@ -537,6 +537,13 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * @constructor
+     * 
+     * Create a default project layer object that has a single property "key"
+     * with "project" as its value. 
+     *
+     */
     function ProjectLayer() {
         this.projectPath = null;
     }
@@ -544,7 +551,14 @@ define(function (require, exports, module) {
     ProjectLayer.prototype = {
         key: "project",
 
-        get: function (data, id, context) {
+        /**
+         * Retrieve the current value based on the current project path
+         * in the layer.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         */
+        get: function (data, id) {
             if (!data || !this.projectPath) {
                 return;
             }
@@ -555,7 +569,15 @@ define(function (require, exports, module) {
             return;
         },
 
-        getPreferenceLocation: function (data, id, context) {
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this project layer for the current project path.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @return {string} the Layer ID, in this case the current project path.
+         */
+        getPreferenceLocation: function (data, id) {
             if (!data || !this.projectPath) {
                 return;
             }
@@ -567,9 +589,23 @@ define(function (require, exports, module) {
             return;
         },
 
+        /**
+         * Sets the preference value in the given data structure for the layerID provided. If no
+         * layerID is provided, then the current project path is used. If a layerID is provided 
+         * and it does not exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} value new value to assign to the preference
+         * @param {Object} context Object with scope and layer key-value pairs (not yet used in project layer)
+         * @param {string=} layerID Optional: project path to be used for setting value
+         * @return {boolean} true if the value was set
+         */
         set: function (data, id, value, context, layerID) {
             if (!layerID) {
-                layerID = this.getPreferenceLocation(data, id, context);
+                layerID = this.getPreferenceLocation(data, id);
             }
 
             if (!layerID) {
@@ -588,7 +624,12 @@ define(function (require, exports, module) {
             return true;
         },
 
-        getKeys: function (data, context) {
+        /**
+         * Retrieves the keys provided by this layer object.
+         * 
+         * @param {Object} data the preference data from the Scope
+         */
+        getKeys: function (data) {
             if (!data) {
                 return;
             }
@@ -596,6 +637,11 @@ define(function (require, exports, module) {
             return _.union.apply(null, _.map(_.values(data), _.keys));
         },
 
+        /**
+         * Set the project path to be used as the layer ID of this layer object.
+         * 
+         * @param {string} projectPath Path of the project root
+         */
         setProjectPath: function (projectPath) {
             this.projectPath = projectPath;
         }

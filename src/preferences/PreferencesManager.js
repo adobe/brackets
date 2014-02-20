@@ -33,11 +33,12 @@ define(function (require, exports, module) {
     "use strict";
     
     var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
-        FileUtils         = require("file/FileUtils"),
-        ExtensionLoader   = require("utils/ExtensionLoader"),
-        PreferencesBase   = require("preferences/PreferencesBase"),
-        FileSystem        = require("filesystem/FileSystem"),
-        _                 = require("thirdparty/lodash");
+        FileUtils            = require("file/FileUtils"),
+        DeprecationWarning   = require("utils/DeprecationWarning"),
+        ExtensionLoader      = require("utils/ExtensionLoader"),
+        PreferencesBase      = require("preferences/PreferencesBase"),
+        FileSystem           = require("filesystem/FileSystem"),
+        _                    = require("thirdparty/lodash");
     
     /**
      * The local storage ID
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
         // migrating the old preferences to the new model. So if this is called without 
         // having _doNotCreate set to true, then the caller is using the old preferences model.
         if (!_doNotCreate) {
-            console.warn("PreferencesManager.getPreferenceStorage is deprecated. Use PreferencesManager.definePreference instead.");
+            DeprecationWarning.deprecationWarning("getPreferenceStorage is called with client ID '" + clientID + ",' use PreferencesManager.definePreference instead.");
         }
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
