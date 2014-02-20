@@ -25,7 +25,7 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView */
+waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
         it("should receive events", function () {
             var connection = createConnection();
             var eventMessages = [];
-            var spy = jasmine.createSpy()
+            var spy = jasmine.createSpy();
             $(connection).one(
                 "test:eventOne",
                 spy
