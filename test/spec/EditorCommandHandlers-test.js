@@ -996,6 +996,35 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 1, ch: 28}}); // no change
             });
             
+            describe("with multiple selections", function () {
+                it("should comment out multiple selections/cursors, preserving primary/reversed selections", function () {
+                    var lines = defaultContent.split("\n");
+                    lines[1] = lines[1].substr(0, 4) + "/**/" + lines[1].substr(4);
+                    lines[3] = lines[3].substr(0, 4) + "/*" + lines[3].substr(4, 8) + "*/" + lines[3].substr(12);
+                    
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                            {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true}]);
+                    testToggleBlock(lines.join("\n"), [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: true, reversed: false},
+                                                       {start: {line: 3, ch: 6}, end: {line: 3, ch: 14}, primary: false, reversed: true}]);
+                });
+                
+                it("should skip the case where a selection covers multiple block comments, but still track it and handle other selections", function () {
+                    var lines = defaultContent.split("\n");
+                    lines[4] = "    /*a*/ /*()*/ {";
+                    var startingContent = lines.join("\n");
+                    myDocument.setText(startingContent);
+                    
+                    myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}},
+                                            {start: {line: 4, ch: 0}, end: {line: 4, ch: 18}, reversed: true}]);
+                    CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                    
+                    lines.splice(1, 0, "*/");
+                    lines.splice(0, 0, "/*");
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, primary: false, reversed: false},
+                                                              {start: {line: 6, ch: 0}, end: {line: 6, ch: 18}, primary: true, reversed: true}]);
+                });
+            });
         });
         
         // If the cursor's/selection's lines contain nothing but line comments and whitespace, we assume the user
@@ -1440,6 +1469,47 @@ define(function (require, exports, module) {
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectSelection({start: {line: 11, ch: 0}, end: {line: 14, ch: 0}});
             });
+            
+            describe("with multiple selections", function () {
+                it("should handle multiple selections where one of them is in a line comment", function () {
+                    // Add a line comment to line 1
+                    var lines = defaultContent.split("\n");
+                    lines[1] = "//" + lines[1];
+                    myDocument.setText(lines.join("\n"));
+                    
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                            {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}}]);
+                    
+                    CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                    
+                    // Line 1 should no longer have a line comment, and line 3 should have a block comment.
+                    lines[1] = lines[1].substr(2);
+                    lines[3] = lines[3].substr(0, 4) + "/*" + lines[3].substr(4, 8) + "*/" + lines[3].substr(12);
+                    
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
+                                      {start: {line: 3, ch: 6}, end: {line: 3, ch: 14}, primary: false, reversed: false}]);
+                });
+                
+                it("should handle multiple selections where several of them are in the same line comment, preserving the ignored selections", function () {
+                    // Add a line comment to line 1
+                    var lines = defaultContent.split("\n");
+                    lines[1] = "//" + lines[1];
+                    myDocument.setText(lines.join("\n"));
+                    
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                            {start: {line: 1, ch: 6}, end: {line: 1, ch: 6}}]);
+                    
+                    CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                    
+                    // Line 1 should no longer have a line comment
+                    lines[1] = lines[1].substr(2);
+                    
+                    expect(myDocument.getText()).toEqual(lines.join("\n"));
+                    expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
+                                      {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false}]);
+                });
+            });
         });
         
         // In cases where the language only supports block comments, the line comment/uncomment command may perform block comment/uncomment instead
@@ -1709,6 +1779,56 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(htmlContent);
                 expectSelection({start: {line: 3, ch: 0}, end: {line: 11, ch: 0}});
+            });
+            
+            describe("with multiple selections", function () {
+                it("should handle multiple selections in different regions, toggling block selection in each", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
+                                            {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
+                                            {start: {line: 8, ch: 0}, end: {line: 13, ch: 0}}]);
+                    
+                    var lines = htmlContent.split("\n");
+                    lines[1] = "    <!--<head>-->";
+                    lines[4] = "                /*font-size: 15px;*/";
+                    lines.splice(13, 0, "*/");
+                    lines.splice(8, 0, "/*");
+                    
+                    testToggleBlock(lines.join("\n"), [{start: {line: 1, ch: 8}, end: {line: 1, ch: 14}, primary: false, reversed: false},
+                                                       {start: {line: 4, ch: 18}, end: {line: 4, ch: 34}, primary: false, reversed: false},
+                                                       {start: {line: 9, ch: 0}, end: {line: 14, ch: 0}, primary: true, reversed: false}]);
+                });
+                
+                it("should handle multiple selections in different regions, toggling line selection (but falling back to block selection in HTML/CSS)", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
+                                            {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
+                                            {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
+                    
+                    var lines = htmlContent.split("\n");
+                    lines[1] = "<!--    <head>-->";
+                    lines[4] = "/*                font-size: 15px;*/";
+                    lines[10] = "//                    a();";
+                    
+                    testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8}, end: {line: 1, ch: 14}, primary: false, reversed: false},
+                                                      {start: {line: 4, ch: 18}, end: {line: 4, ch: 34}, primary: false, reversed: false},
+                                                      {start: {line: 10, ch: 2}, end: {line: 10, ch: 2}, primary: true, reversed: false}]);
+                });
+                
+                it("shouldn't comment anything in a mixed-mode selection, but should track it properly and comment the other selections", function () {
+                    // Select the whole HTML tag so it will actually insert a line, causing other selections to get fixed up.
+                    myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}},
+                                            {start: {line: 5, ch: 0}, end: {line: 7, ch: 0}, reversed: true, primary: true},
+                                            {start: {line: 8, ch: 0}, end: {line: 13, ch: 0}}]);
+                    
+                    var lines = htmlContent.split("\n");
+                    lines.splice(13, 0, "*/");
+                    lines.splice(8, 0, "/*");
+                    lines.splice(2, 0, "-->");
+                    lines.splice(1, 0, "<!--");
+                    
+                    testToggleBlock(lines.join("\n"), [{start: {line: 2, ch: 0}, end: {line: 3, ch: 0}, primary: false, reversed: false},
+                                                       {start: {line: 7, ch: 0}, end: {line: 9, ch: 0}, primary: true, reversed: true},
+                                                       {start: {line: 11, ch: 0}, end: {line: 16, ch: 0}, primary: false, reversed: false}]);
+                });
             });
 
         });

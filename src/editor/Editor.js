@@ -1180,7 +1180,8 @@ define(function (require, exports, module) {
      *
      * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>} edits
-     *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`.
+     *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`. This array
+     *     will be mutated.
      *     `edit` is the edit to perform:
      *         `text` will replace the current contents of the range between `start` and `end`. 
      *         If `end` is unspecified, the text is inserted at `start`.
@@ -1211,10 +1212,12 @@ define(function (require, exports, module) {
             // TODO: what if the various edits in a group are in disparate parts of the document?
             var edit1 = (Array.isArray(editDesc1.edit) ? editDesc1.edit[0] : editDesc1.edit),
                 edit2 = (Array.isArray(editDesc2.edit) ? editDesc2.edit[0] : editDesc2.edit);
-            // If no actual edit is specified, we don't care where it ends up - but we want to
-            // update the tracked selections.
-            if (!edit1 || !edit2) {
-                return 0;
+            // Treat all no-op edits as if they should happen before all other edits (the order
+            // doesn't really matter, as long as they sort out of the way of the real edits).
+            if (!edit1) {
+                return -1;
+            } else if (!edit2) {
+                return 1;
             } else {
                 return CodeMirror.cmpPos(edit2.start, edit1.start);
             }
@@ -1793,12 +1796,34 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Gets the syntax-highlighting mode for the current selection or cursor position. (The mode may
-     * vary within one file due to embedded languages, e.g. JS embedded in an HTML script block).
-     *
+     * Gets the syntax-highlighting mode for the given range.
      * Returns null if the mode at the start of the selection differs from the mode at the end -
      * an *approximation* of whether the mode is consistent across the whole range (a pattern like
      * A-B-A would return A as the mode, not null).
+     *
+     * @param {!{line: number, ch: number}} start The start of the range to check.
+     * @param {!{line: number, ch: number}} end The end of the range to check.
+     * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
+     *     naming the mode along with configuration options required by the mode.
+     *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     */
+    Editor.prototype.getModeForRange = function (start, end) {
+        var startMode = TokenUtils.getModeAt(this._codeMirror, start),
+            endMode = TokenUtils.getModeAt(this._codeMirror, end);
+        if (!startMode || !endMode || startMode.name !== endMode.name) {
+            return null;
+        } else {
+            return startMode;
+        }
+    };
+    
+    /**
+     * Gets the syntax-highlighting mode for the current selection or cursor position. (The mode may
+     * vary within one file due to embedded languages, e.g. JS embedded in an HTML script block). See
+     * `getModeForRange()` for how this is determined for a single selection.
+     *
+     * If there are multiple selections, this will return a mode only if all the selections are individually
+     * consistent and resolve to the same mode.
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
@@ -1829,9 +1854,9 @@ define(function (require, exports, module) {
                     // We already checked this before, so we know it's not mixed.
                     return false;
                 }
-                var selStartMode = TokenUtils.getModeAt(self._codeMirror, sel.start),
-                    selEndMode = TokenUtils.getModeAt(self._codeMirror, sel.end);
-                return (selStartMode.name !== startMode.name || selEndMode.name !== startMode.name);
+                
+                var rangeMode = self.getModeForRange(sel.start, sel.end);
+                return (!rangeMode || rangeMode.name !== startMode.name);
             });
             if (hasMixedSel) {
                 return null;
