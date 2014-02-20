@@ -532,6 +532,8 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @deprecated Use set instead.
+     * 
      * Convenience function that sets a preference and then saves the file, mimicking the
      * old behavior a bit more closely.
      * 
@@ -541,7 +543,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if a value was set
      */
     function setValueAndSave(id, value, options) {
-        // TODO: Add a deprecation warning for this.
+        DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
         var changed = set(id, value, options);
         preferencesManager.save();
         return changed;
