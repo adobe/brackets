@@ -67,8 +67,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        console.warn(message);
-        console.warn(_trimStack(new Error().stack));
+        console.warn(message + "\n" + _trimStack(new Error().stack));
         displayedWarnings[message] = true;
     }
 
