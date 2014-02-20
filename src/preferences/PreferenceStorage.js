@@ -191,7 +191,7 @@ define(function (require, exports, module) {
      *      listed in 'rules' are those normal user-editable preferences. Otherwise,
      *      they are view state settings.
      * @param {function(string)=} prefCheckCallback Optional callback function that
-     *      exemines each preference key for migration.
+     *      examines each preference key for migration.
      * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
      *                      `complete` flag that denotes whether everything from this object 
      *                      was converted (making it safe to delete entirely).

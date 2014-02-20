@@ -998,7 +998,7 @@ define(function (require, exports, module) {
      * If the key has a prefix of "files_/", then it is a working set files 
      * preference from old preference model.
      *
-     * @param {string} key The key of the preference to be exemined
+     * @param {string} key The key of the preference to be examined
      *      for migration of working set files.
      * @return {?string} - the scope to which the preference is to be migrated
      */

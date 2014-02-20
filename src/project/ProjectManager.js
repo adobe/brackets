@@ -2132,11 +2132,11 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Exemine each preference key for migration of project tree states.
+     * Examine each preference key for migration of project tree states.
      * If the key has a prefix of "projectTreeState_/", then it is a project tree states
      * preference from old preference model.
      *
-     * @param {string} key The key of the preference to be exemined
+     * @param {string} key The key of the preference to be examined
      *      for migration of project tree states.
      * @return {?string} - the scope to which the preference is to be migrated
      */

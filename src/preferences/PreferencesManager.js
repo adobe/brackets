@@ -118,7 +118,8 @@ define(function (require, exports, module) {
         // migrating the old preferences to the new model. So if this is called without 
         // having _doNotCreate set to true, then the caller is using the old preferences model.
         if (!_doNotCreate) {
-            DeprecationWarning.deprecationWarning("getPreferenceStorage is called with client ID '" + clientID + ",' use PreferencesManager.definePreference instead.");
+            var clientString = typeof clientID === "object" ? clientID.uri : clientID;
+            DeprecationWarning.deprecationWarning("getPreferenceStorage is called with client ID '" + clientString + ",' use PreferencesManager.definePreference instead.");
         }
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
@@ -359,7 +360,7 @@ define(function (require, exports, module) {
      *      listed in 'rules' are those normal user-editable preferences. Otherwise,
      *      they are view state settings.
      * @param {function(string)=} prefCheckCallback Optional callback function that
-     *      exemines each preference key for migration.
+     *      examines each preference key for migration.
      */
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
         smUserScopeLoading.done(function () {

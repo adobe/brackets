@@ -440,9 +440,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Exemine each preference key for migration of any panel state.
+     * Examine each preference key for migration of any panel state.
      *
-     * @param {string} key The key of the preference to be exemined
+     * @param {string} key The key of the preference to be examined
      *      for migration of panel states.
      * @return {?string} - the scope to which the preference is to be migrated
      */
