@@ -422,8 +422,21 @@ define(function (require, exports, module) {
             
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
-                callback(FileSystemError.CONTENTS_MODIFIED);
-                return;
+
+                if (options.hasOwnProperty("checkData")) {
+                    appshell.fs.readFile(path, encoding, function (_err, _data) {
+                        if (_err || _data !== options.checkData) {
+                            callback(FileSystemError.CONTENTS_MODIFIED);
+                            return;
+                        }
+                    
+                        _finishWrite(false);
+                    });
+                    return;
+                } else {
+                    callback(FileSystemError.CONTENTS_MODIFIED);
+                    return;
+                }
             }
             
             _finishWrite(false);
