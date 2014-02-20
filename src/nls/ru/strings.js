@@ -268,7 +268,7 @@ define({
     "CMD_LINE_DOWN"                       : "Переместить строку вниз",
     "CMD_OPEN_LINE_ABOVE"                 : "Встравить строку сверху",
     "CMD_OPEN_LINE_BELOW"                 : "Вставить строку снизу",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Автоматически закрывать скобкуи",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Автоматически закрывать скобки",
     "CMD_SHOW_CODE_HINTS"                 : "Показывать подсказки в коде",
     
     // View menu commands
