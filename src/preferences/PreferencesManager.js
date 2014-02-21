@@ -274,7 +274,7 @@ define(function (require, exports, module) {
                 _userScopeCorrupt = true;
             }
         })
-        .done(function () {
+        .always(function () {
             _addScopePromises.push(preferencesManager.addScope("project", projectScope, {
                 before: "user"
             }));
