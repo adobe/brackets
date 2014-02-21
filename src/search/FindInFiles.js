@@ -712,7 +712,7 @@ define(function (require, exports, module) {
         
         // Use context to store it in project-based view state
 //        PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
-        _exclusionGlobs = PreferencesManager.setViewState("search.exclusion", _exclusionGlobs, context);
+       PreferencesManager.setViewState("search.exclusion", _exclusionGlobs, context);
     }
     
     /**
