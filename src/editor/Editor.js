@@ -1226,7 +1226,7 @@ define(function (require, exports, module) {
                 // we have to fix up any selections that overlap or come after the edit.
                 oneOrEach(editDesc.edit, function (edit) {
                     if (edit) {
-                        self._codeMirror.replaceRange(edit.text, edit.start, edit.end, origin);
+                        self.document.replaceRange(edit.text, edit.start, edit.end, origin);
 
                         // Fix up all the selections *except* the one(s) related to this edit list that
                         // are not "before-edit" selections.
