@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         Strings               = require("strings"),
         StringUtils           = require("utils/StringUtils"),
+        PreferencesManager    = require("preferences/PreferencesManager"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
@@ -65,7 +66,8 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
-        ModalBar              = require("widgets/ModalBar").ModalBar;
+        ModalBar              = require("widgets/ModalBar").ModalBar,
+        globmatch             = require("thirdparty/globmatch");        
     
     var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
@@ -122,6 +124,11 @@ define(function (require, exports, module) {
      **/
     var _fileSystemChangeHandler;
 
+    /**
+     * @type {Array.<string>} a list of files/folder exclusions to be used in 'find in files'
+     **/
+    var _exclusionGlobs = [];
+    
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
@@ -692,6 +699,22 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    function _getExclusionGlobs() {
+        return _exclusionGlobs;
+    }
+    
+    function _updateExclusionGlobs(globs) {
+        var context = { location : { scope: "user",
+                                     layer: "project" } };
+        
+        // TODO: limit to 10 exclusions in globs
+        _exclusionGlobs = globs;
+        
+        // Use context to store it in project-based view state
+//        PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
+        _exclusionGlobs = PreferencesManager.setViewState("search.exclusion", _exclusionGlobs, context);
+    }
+    
     /**
      * Used to filter out image files when building a list of file in which to
      * search. Ideally this would filter out ALL binary files.
@@ -700,6 +723,15 @@ define(function (require, exports, module) {
      * @return {boolean} Whether or not the entry's contents should be searched
      */
     function _findInFilesFilter(entry) {
+        var globCounter;
+        for (globCounter = 0; globCounter < _exclusionGlobs.length; globCounter++) {
+            var glob = _exclusionGlobs[globCounter];
+
+            if (globmatch(entry.fullPath, glob)) {
+                return false;
+            }
+        }
+
         var language = LanguageManager.getLanguageForPath(entry.fullPath);
         return !language.isBinary();
     }
@@ -720,8 +752,13 @@ define(function (require, exports, module) {
         }
         
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
-            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
+            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query),
+            context = { location : { scope: "user",
+                                     layer: "project" } };
         
+        // Use context to get it from project-based view state
+//        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion") || [];
+        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion", context) || [];
         ProjectManager.getAllFiles(_findInFilesFilter, true)
             .then(function (fileListResult) {
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
