@@ -390,7 +390,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, expectedHash : object=}} options
+     * @param {{encoding : string=, mode : number=, expectedHash : object=, expectedContents : string=}} options
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
@@ -423,9 +423,9 @@ define(function (require, exports, module) {
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
 
-                if (options.hasOwnProperty("checkData")) {
+                if (options.hasOwnProperty("expectedContents")) {
                     appshell.fs.readFile(path, encoding, function (_err, _data) {
-                        if (_err || _data !== options.checkData) {
+                        if (_err || _data !== options.expectedContents) {
                             callback(FileSystemError.CONTENTS_MODIFIED);
                             return;
                         }

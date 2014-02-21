@@ -158,8 +158,15 @@ define(function (require, exports, module) {
         var cb = _getCallback("writeFile", path, callback);
                 
         if (_model.exists(path) && options.hasOwnProperty("expectedHash") && options.expectedHash !== _model.stat(path)._hash) {
-            cb(FileSystemError.CONTENTS_MODIFIED);
-            return;
+            if (options.hasOwnProperty("expectedContents")) {
+                if (options.expectedContents !== _model.readFile(path)) {
+                    cb(FileSystemError.CONTENTS_MODIFIED);
+                    return;
+                } 
+            } else {
+                cb(FileSystemError.CONTENTS_MODIFIED);
+                return;
+            }
         }
         
         _model.writeFile(path, data);
