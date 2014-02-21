@@ -67,7 +67,8 @@ define(function (require, exports, module) {
         globmatch         = require("thirdparty/globmatch");
     
     // CONSTANTS
-    var PREFERENCE_CHANGE = "change";
+    var PREFERENCE_CHANGE = "change",
+        SCOPEORDER_CHANGE = "scopeOrderChange";
     
     /*
      * Storages manage the loading and saving of preference data. 
@@ -284,7 +285,7 @@ define(function (require, exports, module) {
                 });
             return result.promise();
         },
-        
+            
         /**
          * Saves the prefs for this `Scope`.
          * 
@@ -683,10 +684,10 @@ define(function (require, exports, module) {
          * @return {Array.<string>} list of preference IDs that could have changed
          */
         defaultFilenameChanged: function (data, filename, oldFilename) {
-            var newGlob           = _findMatchingGlob(data,
-                                        FileUtils.getRelativeFilename(this.prefFilePath, filename)),
-                oldGlob       = _findMatchingGlob(data,
-                                    FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
+            var newGlob = _findMatchingGlob(data,
+                              FileUtils.getRelativeFilename(this.prefFilePath, filename)),
+                oldGlob = _findMatchingGlob(data,
+                              FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
             
             
             if (newGlob === oldGlob) {
@@ -700,45 +701,6 @@ define(function (require, exports, module) {
             }
             
             return _.union(_.keys(data[oldGlob]), _.keys(data[newGlob]));
-        }
-    };
-    
-    /**
-     * Helper object to add a new path-based Scope to the PreferencesSystem. When a path-based
-     * Scope will be added, its existence is first checked and *then* this PathScopeAdder will be
-     * used.
-     * 
-     * @param {string} filename Filename of the preferences file
-     * @param {string} scopeName Name of the new Scope to add
-     * @param {ScopeGenerator} scopeGenerator ScopeGenerator object that knows how to create the
-     *                      Scope with the correct kind of Storage object
-     * @param {string} before Name of the default Scope before which the new Scope should be added
-     */
-    function PathScopeAdder(filename, scopeName, scopeGenerator, before) {
-        this.filename = filename;
-        this.scopeName = scopeName;
-        this.scopeGenerator = scopeGenerator;
-        this.before = before;
-    }
-    
-    PathScopeAdder.prototype = {
-        /**
-         * Adds the new Scope to the given PreferencesSystem.
-         * 
-         * @param {PreferencesSystem} pm PreferencesSystem to which the Scope will be added
-         * @param {string} before Name of the Scope before which the new Scope should be added
-         * @return {Promise} Promise resolved once the Scope is loaded
-         */
-        add: function (pm, before) {
-            var scope = this.scopeGenerator.getScopeForFile(this.filename);
-            if (scope) {
-                var pathLayer = new PathLayer(this.filename);
-                scope.addLayer(pathLayer);
-                return pm.addScope(this.scopeName, scope,
-                    {
-                        before: before
-                    });
-            }
         }
     };
     
@@ -1072,6 +1034,7 @@ define(function (require, exports, module) {
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry === shadowEntry;
                 }),
+                $this = $(this),
                 done = false,
                 i = index + 1;
             
@@ -1085,14 +1048,18 @@ define(function (require, exports, module) {
             }
             switch (shadowScopeOrder[i].promise.state()) {
             case "pending":
-                // cannot decide now, lookup once pending promise its resolved
+                // cannot decide now, lookup once pending promise is settled
                 shadowScopeOrder[i].promise.always(function () {
                     this._tryAddToScopeOrder(shadowEntry);
                 }.bind(this));
                 break;
             case "resolved":
                 this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
-                $(this).trigger(PREFERENCE_CHANGE, {
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: shadowEntry.id,
+                    action: "added"
+                });
+                $this.trigger(PREFERENCE_CHANGE, {
                     ids: shadowEntry.scope.getKeys()
                 });
                 break;
@@ -1105,8 +1072,8 @@ define(function (require, exports, module) {
         /**
          * @private
          * 
-         * Schedules the new Scope to be added the scope order in the correct
-         * place once the promise is resolved. Context's _shadowScopeOrder is
+         * Schedules the new Scope to be added the scope order in the specified
+         * location once the promise is resolved. Context's _shadowScopeOrder is
          * used to keep track of the order in which the scope should appear. If
          * the scope which should precede this scope fails to load, then
          * _shadowScopeOrder will be searched for the next appropriate context
@@ -1123,56 +1090,88 @@ define(function (require, exports, module) {
          * @param {$.Promise} promise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
-        addToScopeOrder: function (id, scope, promise, addBefore) {
+        _addToScopeOrder: function (id, scope, promise, addBefore) {
             var defaultScopeOrder = this._defaultContext.scopeOrder,
                 shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                shadowEntry,
+                index,
+                isPending = false;
+
+            $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }.bind(this));
+
+            index = _.findIndex(shadowScopeOrder, function (entry) {
+                return entry.id === id;
+            });
+
+            if (index > -1) {
+                shadowEntry = shadowScopeOrder[index];
+            } else {
+                /* new scope is being added. */
                 shadowEntry = {
                     id: id,
                     promise: promise,
                     scope: scope
                 };
-            
-            $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
-                $(this).trigger(PREFERENCE_CHANGE, data);
-            }.bind(this));
-
-            if (!addBefore) {
-                shadowScopeOrder.unshift(shadowEntry);
-            } else {
-                var index = _.findIndex(shadowScopeOrder, function (entry) {
+                if (!addBefore) {
+                    shadowScopeOrder.unshift(shadowEntry);
+                } else {
+                    index = _.findIndex(shadowScopeOrder, function (entry) {
                         return entry.id === addBefore;
                     });
-                if (index > -1) {
-                    shadowScopeOrder.splice(index, 0, shadowEntry);
-                } else {
-                    var queue = this._pendingScopes[addBefore];
-                    if (!queue) {
-                        queue = [];
-                        this._pendingScopes[addBefore] = queue;
+                    if (index > -1) {
+                        shadowScopeOrder.splice(index, 0, shadowEntry);
+                    } else {
+                        var queue = this._pendingScopes[addBefore];
+                        if (!queue) {
+                            queue = [];
+                            this._pendingScopes[addBefore] = queue;
+                        }
+                        queue.unshift(shadowEntry);
+                        isPending = true;
                     }
-                    queue.unshift(shadowEntry);
                 }
             }
-
-            promise
-                .then(function () {
-                    this._scopes[id] = scope;
-                    this._tryAddToScopeOrder(shadowEntry);
-                }.bind(this))
-                .fail(function (err) {
-                    // clean up all what's been done up to this point
-                    _.pull(shadowScopeOrder, shadowEntry);
-                    delete this._pendingEvents[id];
-                }.bind(this));
-
-            if (this._pendingScopes[id]) {
-                var pending = this._pendingScopes[id];
-                delete this._pendingScopes[id];
-                pending.forEach(function (entry) {
-                    this.addToScopeOrder(entry.id, entry.scope, entry.promise, id);
-                }.bind(this));
+            
+            if (!isPending) {
+                promise
+                    .then(function () {
+                        this._scopes[id] = scope;
+                        this._tryAddToScopeOrder(shadowEntry);
+                    }.bind(this))
+                    .fail(function (err) {
+                        // clean up all what's been done up to this point
+                        _.pull(shadowScopeOrder, shadowEntry);
+                        delete this._pendingEvents[id];
+                    }.bind(this));
+                if (this._pendingScopes[id]) {
+                    var pending = this._pendingScopes[id];
+                    delete this._pendingScopes[id];
+                    pending.forEach(function (entry) {
+                        this._addToScopeOrder(entry.id, entry.scope, entry.promise, id);
+                    }.bind(this));
+                }
             }
-
+        },
+        
+        /**
+         * Adds scope to the scope order by its id. The scope should be previously added to the preference system.
+         * 
+         * @param {string} id the scope id
+         * @param {string} before the id of the scope to add before
+         *
+         */
+        addToScopeOrder: function (id, addBefore) {
+            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                index = _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry.id === id;
+                }),
+                entry;
+            if (index > -1) {
+                entry = shadowScopeOrder[index];
+                this._addToScopeOrder(entry.id, entry.scope, entry.promise, addBefore);
+            }
         },
         
         /**
@@ -1183,8 +1182,13 @@ define(function (require, exports, module) {
         removeFromScopeOrder: function (id) {
             var scope = this._scopes[id];
             if (scope) {
-                this._defaultContext.scopeOrder = _.without(this._defaultContext.scopeOrder, id);
-                $(this).trigger(PREFERENCE_CHANGE, {
+                _.pull(this._defaultContext.scopeOrder, id);
+                var $this = $(this);
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: id,
+                    action: "removed"
+                });
+                $this.trigger(PREFERENCE_CHANGE, {
                     ids: scope.getKeys()
                 });
                 $(scope).off(".prefsys");
@@ -1232,7 +1236,7 @@ define(function (require, exports, module) {
             
             promise = scope.load();
 
-            this.addToScopeOrder(id, scope, promise, options.before);
+            this._addToScopeOrder(id, scope, promise, options.before);
             
             promise
                 .fail(function (err) {
@@ -1266,12 +1270,15 @@ define(function (require, exports, module) {
                 return entry.id === id;
             });
             this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
+            $(this).trigger(SCOPEORDER_CHANGE, {
+                id: id,
+                action: "removed"
+            });
+            $(this).trigger(PREFERENCE_CHANGE, {
+                ids: scope.getKeys()
+            });
 
             $(scope).off(PREFERENCE_CHANGE);
-            var keys = scope.getKeys();
-            $(this).trigger(PREFERENCE_CHANGE, {
-                ids: keys
-            });
         },
         
         /**

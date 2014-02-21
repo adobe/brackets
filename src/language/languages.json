@@ -130,7 +130,9 @@
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
-        "fileExtensions": ["java"]
+        "fileExtensions": ["java"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "scala": {
@@ -156,26 +158,31 @@
     "perl": {
         "name": "Perl",
         "mode": "perl",
-        "fileExtensions": ["pl", "pm"]
+        "fileExtensions": ["pl", "pm"],
+        "lineComment": ["#"]
     },
 
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile"]
+        "fileNames": ["Gemfile", "Rakefile"],
+        "lineComment": ["#"]
     },
 
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"]
+        "fileExtensions": ["py", "pyw", "wsgi"],
+        "lineComment": ["#"]
     },
 
     "sass": {
         "name": "SASS",
         "mode": "sass",
-        "fileExtensions": ["sass"]
+        "fileExtensions": ["sass"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "lua": {
@@ -199,19 +206,23 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"]
+        "fileExtensions": ["md", "markdown"],
+        "blockComment": ["<!--", "-->"]
     },
 
     "yaml": {
         "name": "YAML",
         "mode": "yaml",
-        "fileExtensions": ["yaml", "yml"]
+        "fileExtensions": ["yaml", "yml"],
+        "lineComment": ["#"]
     },
 
     "hx": {
         "name": "Haxe",
         "mode": "haxe",
-        "fileExtensions": ["hx"]
+        "fileExtensions": ["hx"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "bash": {

@@ -82,7 +82,7 @@ define(function (require, exports, module) {
      * @param {string} prefName Name of preference that should be toggled by the function
      */
     function _getToggler(prefName) {
-        return function _toggleLineNumbers() {
+        return function () {
             PreferencesManager.set(prefName, !PreferencesManager.get(prefName));
         };
     }
