@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
+    
     describe("FileSystem", function () {
         
         // Callback factories
@@ -1059,6 +1060,36 @@ define(function (require, exports, module) {
                     expect(writeCalls).toBe(2);
                 });
             });
+            
+            it("should verify blind writes", function () {
+                var file = fileSystem.getFileForPath(filename),
+                    cb1 = writeCallback(),
+                    cb2 = writeCallback(),
+                    newFileContent = "Computer programming is an exact science",
+                    checkedContent = file._contents = fileSystem._impl._model.readFile(filename);   // avoids having to use a callback
+                
+                // Make sure that cache matches so writes will proceed over blind write
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBe(checkedContent);
+                    expect(file._hash).toBeFalsy();
+                    expect(writeCalls).toBe(0);
+                    
+                    file.write(newFileContent, cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+
+                // confirm impl write and updated cache
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(cb1.stat).toBeTruthy();
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(newFileContent);
+                    expect(file._hash).toBeTruthy();
+                    expect(writeCalls).toBe(1);
+                });
+            });            
             
             it("should persist data on write and update cached data", function () {
                 var file = fileSystem.getFileForPath(filename),
