@@ -121,7 +121,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Generates an edit that adds or remove line-comment tokens to all the lines in the selected range,
+     * Generates an edit that adds or removes line-comment tokens to all the lines in the selected range,
      * preserving selection and cursor position. Applies to currently focused Editor. The given selection
      * must already be a line selection in the form returned by `Editor.convertToLineSelections()`.
      * 

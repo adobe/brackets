@@ -978,13 +978,13 @@ define(function (require, exports, module) {
      * adjacent line selections together. Keeps track of each original selection associated with a given
      * line selection (there might be multiple if individual selections were merged into a single line selection).
      * Useful for doing multiple-selection-aware line edits.
+     *
      * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
      *      The selections to expand.
      * @param {{expandEndAtStartOfLine: boolean, mergeAdjacent: boolean}} options
      *      expandEndAtStartOfLine: true if a range selection that ends at the beginning of a line should be expanded
      *          to encompass the line. Default false.
      *      mergeAdjacent: true if adjacent line ranges should be merged. Default true.
-     * @param {boolean} mergeAdjacent true if two adjacent line ranges should be merged into a single range.
      * @return {Array.<{selectionForEdit: {start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}, 
      *                  selectionsToTrack: Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}>}
      *      The combined line selections. For each selection, `selectionForEdit` is the line selection, and `selectionsToTrack` is
@@ -1133,15 +1133,22 @@ define(function (require, exports, module) {
      * then this function will adjust them as necessary for the effects of other edits, and then return a
      * flat list of all the selections, suitable for passing to `setSelections()`.
      *
-     * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
-     *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>} edits
+     * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}
+     *                        | Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
+     *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, 
+     *                              primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}
+     *                        | Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, 
+     *                                  primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>} edits
      *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`. This array
      *     will be mutated.
+     *
      *     `edit` is the edit to perform:
      *         `text` will replace the current contents of the range between `start` and `end`. 
      *         If `end` is unspecified, the text is inserted at `start`.
-     *         `start` and `end` should be positions relative to the document *before* all edits are performed.
+     *         `start` and `end` should be positions relative to the document *ignoring* all other edit descriptions
+     *         (i.e., as if you were only performing this one edit on the document).
      *     If any of the edits overlap, an error will be thrown.
+     *
      *     If `selection` is specified, it should be a selection associated with this edit.
      *          If `isBeforeEdit` is set on the selection, the selection will be fixed up for this edit.
      *          If not, it won't be fixed up for this edit, meaning it should be expressed in terms of
@@ -1149,11 +1156,15 @@ define(function (require, exports, module) {
      *          Note that if you were planning on just specifying `isBeforeEdit` for every selection, you can
      *          accomplish the same thing by simply not passing any selections and letting the editor update
      *          the existing selections automatically.
+     *
      *     Note that `edit` and `selection` can each be either an individual edit/selection, or a group of
-     *     edits/selections to apply at once. This can be useful if you need to perform multiple edits in a row
-     *     and then specify a resulting selection that shouldn't be fixed up for any of those edits, or
-     *     if you have several selections that should ignore the effects of a given edit. Within an edit group,
-     *     edit positions must be specified relative to previous edits within that group.
+     *     edits/selections to apply in order. This can be useful if you need to perform multiple edits in a row
+     *     and then specify a resulting selection that shouldn't be fixed up for any of those edits (but should be
+     *     fixed up for edits related to other selections). It can also be useful if you have several selections
+     *     that should ignore the effects of a given edit because you've fixed them up already (this commonly happens
+     *     with line-oriented edits where multiple cursors on the same line should be ignored, but still tracked). 
+     *     Within an edit group, edit positions must be specified relative to previous edits within that group.
+     *
      * @param {?string} origin An optional edit origin that's passed through to each replaceRange().
      * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
      *     The list of passed selections adjusted for the performed edits, if any.
