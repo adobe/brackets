@@ -599,33 +599,29 @@ define(function LiveDevelopment(require, exports, module) {
                         _setStatus(status);
 
                         result.resolve();
-                        _loadAgentsPromise = null;
                     })
-                    .fail(function () {
-                        result.reject();
-                        _loadAgentsPromise = null;
-                    });
+                    .fail(result.reject);
             } else {
                 result.reject();
-                _loadAgentsPromise = null;
             }
         });
 
-        allAgentsPromise.fail(function () {
-            result.reject();
-            _loadAgentsPromise = null;
-        });
+        allAgentsPromise.fail(result.reject);
         
-        // show error loading live dev dialog
-        result.fail(function () {
-            _setStatus(STATUS_ERROR);
+        result
+            .fail(function () {
+                // show error loading live dev dialog
+                _setStatus(STATUS_ERROR);
 
-            Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
-                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
-            );
-        });
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            })
+            .always(function () {
+                _loadAgentsPromise = null;
+            });
 
         // resolve/reject the open() promise after agents complete
         result.then(_openDeferred.resolve, _openDeferred.reject);
@@ -904,10 +900,11 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * Unload and reload agents
+     * @return {jQuery.Promise} Resolves once the agents are loaded
      */
     function reconnect() {
         unloadAgents();
-        loadAgents();   // TODO: promise is ignored
+        return loadAgents();
     }
 
     /**
@@ -923,7 +920,7 @@ define(function LiveDevelopment(require, exports, module) {
      * Create a promise that resolves when the interstitial page has
      * finished loading.
      * 
-     * @return {jQuery.Promise}
+     * @return {jQuery.Promise} Resolves once page is loaded
      */
     function _waitForInterstitialPageLoad() {
         var deferred    = $.Deferred(),
@@ -972,7 +969,8 @@ define(function LiveDevelopment(require, exports, module) {
             // navigate to the page first before loading can complete.
             // To accomodate this, we load all agents and navigate in
             // parallel.
-            loadAgents();
+            loadAgents();   // TODO - should we use Async.doInParallel() here?
+                            // We could also separate into preLoadAgents() and postLoadAgents()
 
             _getInitialDocFromCurrent().done(function (doc) {
                 if (doc) {
@@ -1313,10 +1311,10 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (wasRequested) {
             // Unload and reload agents before reloading the page
-            reconnect();
-
-            // Reload HTML page
-            Inspector.Page.reload();
+            reconnect().done(function () {
+                // Reload HTML page
+                Inspector.Page.reload();
+            });
         }
     }
 
