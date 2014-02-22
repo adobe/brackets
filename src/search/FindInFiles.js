@@ -548,7 +548,8 @@ define(function (require, exports, module) {
      * @return {boolean}  True when the search results changed from a file change
      */
     function _updateSearchResults(doc, changeList) {
-        var i, diff, matches, resultsChanged = false,
+        var i, diff, matches,
+            resultsChanged = false,
             fullPath = doc.file.fullPath,
             lines, start, howMany;
         
