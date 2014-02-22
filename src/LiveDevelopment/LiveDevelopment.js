@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, open */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -1079,12 +1079,8 @@ define(function LiveDevelopment(require, exports, module) {
                         _close()
                             .done(function () {
                                 browserStarted = false;
-                                _openDeferred.resolve();
-                                var doc = _getCurrentDocument();
-                                _prepareServer(doc).done(function () {
-                                    // After browser closes, try to open the interstitial page again
-                                    _doLaunchAfterServerReady(doc);
-                                });
+                                // Continue to use _openDeferred
+                                open(true);
                             })
                             .fail(function (err) {
                                 // Report error?
@@ -1215,9 +1211,16 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
-    /** Open the Connection and go live */
-    function open() {
-        _openDeferred = new $.Deferred();
+    /**
+     * Open the Connection and go live
+     *
+     * @param {!boolean} restart  true if relaunching and _openDeferred already exists
+     * @return {jQuery.Promise} Resolves once live preview is open
+     */
+    function open(restart) {
+        if (!restart) {
+            _openDeferred = new $.Deferred();
+        }
         
         // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
