@@ -220,9 +220,11 @@ define(function (require, exports, module) {
                 }
             },
             "Esc": function (instance) {
-                // FIXME (jasonsanjose): be smarter about current state
-                CodeMirror.commands.singleSelection(instance);
-                self.removeAllInlineWidgets();
+                if (self.getSelections().length > 1) {
+                    CodeMirror.commands.singleSelection(instance);
+                } else {
+                    self.removeAllInlineWidgets();
+                }
             },
             "Cmd-Left": "goLineStartSmart"
         };
