@@ -766,7 +766,12 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector.Page).off(".livedev");
         $(Inspector).off(".livedev");
 
-        unloadAgents();
+        // Wait if agents are loading
+        if (_loadAgentsPromise) {
+            _loadAgentsPromise.always(unloadAgents);
+        } else {
+            unloadAgents();
+        }
         
         // Close live documents 
         _closeDocuments();
@@ -903,6 +908,11 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {jQuery.Promise} Resolves once the agents are loaded
      */
     function reconnect() {
+        if (_loadAgentsPromise) {
+            // Agents are already loading, so don't unload
+            return _loadAgentsPromise;
+        }
+
         unloadAgents();
         return loadAgents();
     }
