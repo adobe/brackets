@@ -1322,7 +1322,7 @@ define(function (require, exports, module) {
      *  partial updates to tern or not.
      *
      * @param {Array.<{from: {line:number, ch: number}, to: {line:number, ch: number},
-     * text: Array<string>}>} changeList - the document changes (since last change event)
+     *     text: Array<string>}>} changeList - the document changes from the current change event
      */
     function trackChange(changeList) {
         var changed = documentChanges, i;
