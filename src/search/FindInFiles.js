@@ -704,19 +704,20 @@ define(function (require, exports, module) {
     }
     
     function _updateExclusionGlobs(globs) {
-        var context = { location : { scope: "user",
-                                     layer: "project" } };
-        
-        // TODO: limit to 10 exclusions in globs
-        _exclusionGlobs = globs;
-        
-        // Use context to store it in project-based view state
-//        PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
-       PreferencesManager.setViewState("search.exclusion", _exclusionGlobs, context);
+        if (globs && _.isArray(globs)) {
+            // Limit to 10 exclusions in globs before writing out
+            _exclusionGlobs = globs.slice(0, 10);
+            PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
+        } else {
+            // Remove all exclusions
+            _exclusionGlobs = [];
+            PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
+        }
     }
     
     /**
-     * Used to filter out image files when building a list of file in which to
+     * Used to filter out files that match to exclusion glob strings,
+     * and then filter out image files when building a list of file in which to
      * search. Ideally this would filter out ALL binary files.
      * @private
      * @param {FileSystemEntry} entry The entry to test
@@ -724,6 +725,7 @@ define(function (require, exports, module) {
      */
     function _findInFilesFilter(entry) {
         var globCounter;
+        
         for (globCounter = 0; globCounter < _exclusionGlobs.length; globCounter++) {
             var glob = _exclusionGlobs[globCounter];
 
@@ -752,13 +754,9 @@ define(function (require, exports, module) {
         }
         
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
-            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query),
-            context = { location : { scope: "user",
-                                     layer: "project" } };
+            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        // Use context to get it from project-based view state
-//        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion") || [];
-        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion", context) || [];
+        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion") || [];
         ProjectManager.getAllFiles(_findInFilesFilter, true)
             .then(function (fileListResult) {
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
