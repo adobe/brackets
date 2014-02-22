@@ -1324,10 +1324,15 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (wasRequested) {
             // Unload and reload agents before reloading the page
-            reconnect().done(function () {
-                // Reload HTML page
-                Inspector.Page.reload();
-            });
+            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+            // navigate to the page first before loading can complete.
+            // To accomodate this, we load all agents (in reconnect())
+            // and navigate in parallel.
+            reconnect();    // TODO - should we use Async.doInParallel() here?
+                            // We could also separate into preLoadAgents() and postLoadAgents()
+
+            // Reload HTML page
+            Inspector.Page.reload();
         }
     }
 
