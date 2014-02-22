@@ -82,7 +82,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per effettuare una connessione con Anteprima Live, Chrome deve essere rilanciato con il debugging remoto abilitato.<br /><br />Vuoi rilanciare Chrome e abilitare il debugging remoto?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Impossibile caricare Sviluppo Live",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Apri un file HTML per lanciare l'Anteprima Live.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Per avviare l'Anteprima Live con un file server-side, è necessario specificare un URL di base per questo progetto.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Errore durante l'avvio del server HTTP server per i file di sviluppo in tempo reale. Riprova ancora.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Benvenuto nell'Anteprima Live!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Anteprima Live connette {APP_NAME} al tuo browser. Lancia una anteprima del tuo file HTML nel browser e dopo ogni tua modifica l'anteprima verrà aggiornata istantaneamente per riflettere le modifiche del tuo codice.<br /><br />In questa versione preliminare di {APP_NAME}, Anteprima Live funziona solo per le modifiche su <strong>file CSS</strong> e solo con <strong>Google Chrome</strong>. Verrà implementata presto anche per HTML e JavaScript!<br /><br />(Vedrai questo messaggio una sola volta.)",
@@ -104,7 +104,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Vuoi cambiare le modifiche apportate al file <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vuoi cambiare le modifiche apportate ai seguenti file?",
     "EXT_MODIFIED_TITLE"                : "Modifiche esterne",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Conferma cancellazione",
     "CONFIRM_FOLDER_DELETE"             : "Sei sicuro di eliminare la cartella <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Eliminato",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> è stato modificato sul disco.<br /><br />Vuoi salvare il file e sovrascrivere le modifiche?",
@@ -176,7 +176,7 @@ define({
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Maiuscolo",
+    "KEYBOARD_SHIFT"  : "Maiusc",
     "KEYBOARD_SPACE"  : "Spazio",
     
     /**
@@ -205,7 +205,7 @@ define({
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Nessun problema trovato - ottimo lavoro!",
     "LINT_DISABLED"                         : "Linting disabilitato",
     "NO_LINT_AVAILABLE"                     : "Linter disponibile {0}",
-    "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "NOTHING_TO_LINT"                       : "Nessun avviso da lint",
     
     
     /**
@@ -267,7 +267,7 @@ define({
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
     "CMD_OPEN_LINE_BELOW"               : "Apri linea sotto",
-    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi Brackets automaticamente",
+    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi automaticamente tag doppi",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
     
     // View menu commands
@@ -281,9 +281,9 @@ define({
     "CMD_SCROLL_LINE_DOWN"              : "Scorri verso il basso",
     "CMD_TOGGLE_LINE_NUMBERS"           : "Numeri linea",
     "CMD_TOGGLE_ACTIVE_LINE"            : "Evidenzia linea attiva",
-    "CMD_TOGGLE_WORD_WRAP"              : "Word Wrap",
+    "CMD_TOGGLE_WORD_WRAP"              : "A capo automaticamente",
     "CMD_LIVE_HIGHLIGHT"                : "Ispezione Anteprima Live",
-    "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files on Save",
+    "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files al salvataggio",
     "CMD_SORT_WORKINGSET_BY_ADDED"      : "Ordina per data di aggiunta",
     "CMD_SORT_WORKINGSET_BY_NAME"       : "Ordina per nome",
     "CMD_SORT_WORKINGSET_BY_TYPE"       : "Ordina per tipo",
@@ -324,7 +324,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR"            : "Conserva le modifiche nell'editor",
     "CLOSE_DONT_SAVE"                   : "Chiudi (non salvare)",
     "RELAUNCH_CHROME"                   : "Riavvia Chrome",
-    "ABOUT"                             : "About",
+    "ABOUT"                             : "Informazioni",
     "CLOSE"                             : "Chiudi",
     "ABOUT_TEXT_LINE1"                  : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                  : "Avvisi, termini e condizioni circa i software di terze parti raggiungibili all'indirizzo <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> incorporati come riferimento.",
@@ -361,7 +361,7 @@ define({
     "INSTALL_EXTENSION_LABEL"              : "Indirizzo URL dell'estensione",
     "INSTALL_EXTENSION_HINT"               : "Indirizzo URL dell'archivio contenente l'estensione o del repo GitHub",
     "INSTALLING_FROM"                      : "Installazione dell'estensione da {0}\u2026",
-    "INSTALL_SUCCEEDED"                    : "Installazione andata a buon fine!",
+    "INSTALL_SUCCEEDED"                    : "Installazione è andata a buon fine!",
     "INSTALL_FAILED"                       : "Installazione fallita.",
     "CANCELING_INSTALL"                    : "Cancellazione\u2026",
     "CANCELING_HUNG"                       : "L'arresto dell'installazione sta prendendo molto tempo. Potrebbe essersi verificato un errore interno.",
