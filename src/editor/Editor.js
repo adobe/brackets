@@ -988,7 +988,9 @@ define(function (require, exports, module) {
      * @return {Array.<{selectionForEdit: {start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}, 
      *                  selectionsToTrack: Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>}>}
      *      The combined line selections. For each selection, `selectionForEdit` is the line selection, and `selectionsToTrack` is
-     *      the set of original selections that combined to make up the given line selection.
+     *      the set of original selections that combined to make up the given line selection. Note that the selectionsToTrack will
+     *      include the original objects passed in `selections`, so if it is later mutated the original passed-in selections will be
+     *      mutated as well.
      */
     Editor.prototype.convertToLineSelections = function (selections, options) {
         var self = this;
@@ -999,26 +1001,26 @@ define(function (require, exports, module) {
         // if we did them individually.
         var combinedSelections = [], prevSel;
         _.each(selections, function (sel) {
-            var originalSel = _.cloneDeep(sel);
+            var newSel = _.cloneDeep(sel);
             
             // Adjust selection to encompass whole lines.
-            sel.start.ch = 0;
+            newSel.start.ch = 0;
             // The end of the selection becomes the start of the next line, if it isn't already
             // or if expandEndAtStartOfLine is set.
-            var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-            if (options.expandEndAtStartOfLine || !hasSelection || sel.end.ch !== 0) {
-                sel.end = {line: sel.end.line + 1, ch: 0};
+            var hasSelection = (newSel.start.line !== newSel.end.line) || (newSel.start.ch !== newSel.end.ch);
+            if (options.expandEndAtStartOfLine || !hasSelection || newSel.end.ch !== 0) {
+                newSel.end = {line: newSel.end.line + 1, ch: 0};
             }
 
             // If the start of the new selection is within the range of the previous (expanded) selection, merge
             // the two selections together, but keep track of all the original selections that were related to this
             // selection, so they can be properly adjusted. (We only have to check for the start being inside the previous
             // range - it can't be before it because the selections started out sorted.)
-            if (prevSel && self.posWithinRange(sel.start, prevSel.selectionForEdit.start, prevSel.selectionForEdit.end, options.mergeAdjacent)) {
-                prevSel.selectionForEdit.end.line = sel.end.line;
-                prevSel.selectionsToTrack.push(originalSel);
+            if (prevSel && self.posWithinRange(newSel.start, prevSel.selectionForEdit.start, prevSel.selectionForEdit.end, options.mergeAdjacent)) {
+                prevSel.selectionForEdit.end.line = newSel.end.line;
+                prevSel.selectionsToTrack.push(sel);
             } else {
-                prevSel = {selectionForEdit: sel, selectionsToTrack: [originalSel]};
+                prevSel = {selectionForEdit: newSel, selectionsToTrack: [sel]};
                 combinedSelections.push(prevSel);
             }
         });
@@ -1135,9 +1137,9 @@ define(function (require, exports, module) {
      *
      * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}
      *                        | Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
-     *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, 
+     *                  selection: ?{start:{line:number, ch:number}, end:{line:number, ch:number}, 
      *                              primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}
-     *                        | Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, 
+     *                        | ?Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, 
      *                                  primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>} edits
      *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`. This array
      *     will be mutated.
@@ -1163,7 +1165,8 @@ define(function (require, exports, module) {
      *     fixed up for edits related to other selections). It can also be useful if you have several selections
      *     that should ignore the effects of a given edit because you've fixed them up already (this commonly happens
      *     with line-oriented edits where multiple cursors on the same line should be ignored, but still tracked). 
-     *     Within an edit group, edit positions must be specified relative to previous edits within that group.
+     *     Within an edit group, edit positions must be specified relative to previous edits within that group. Also,
+     *     the total bounds of edit groups must not overlap (e.g. edits in one group can't surround an edit from another group).
      *
      * @param {?string} origin An optional edit origin that's passed through to each replaceRange().
      * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
@@ -1175,7 +1178,6 @@ define(function (require, exports, module) {
         // Sort the edits backwards, so we don't have to adjust the edit positions as we go along
         // (though we do have to adjust the selection positions).
         edits.sort(function (editDesc1, editDesc2) {
-            // TODO: what if the various edits in a group are in disparate parts of the document?
             var edit1 = (Array.isArray(editDesc1.edit) ? editDesc1.edit[0] : editDesc1.edit),
                 edit2 = (Array.isArray(editDesc2.edit) ? editDesc2.edit[0] : editDesc2.edit);
             // Treat all no-op edits as if they should happen before all other edits (the order
@@ -1243,9 +1245,15 @@ define(function (require, exports, module) {
             });
         });
         
-        result = _.filter(_.flatten(result), function (item) {
-            return item !== undefined;
-        });
+        result = _.chain(result)
+            .filter(function (item) {
+                return item !== undefined;
+            })
+            .flatten()
+            .sort(function (sel1, sel2) {
+                return CodeMirror.cmpPos(sel1.start, sel2.start);
+            })
+            .value();
         _.each(result, function (item) {
             delete item.isBeforeEdit;
         });
