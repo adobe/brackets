@@ -396,6 +396,7 @@ define({
     /**
      * Locales
      */
+    "LOCALE_CA"                                 : "Catalan",
     "LOCALE_CS"                                 : "Cseh",
     "LOCALE_DE"                                 : "Német",
     "LOCALE_EN"                                 : "Angol",
