@@ -230,6 +230,13 @@
         "fileExtensions": ["sh"],
         "lineComment": ["#"]
     },
+    
+    "htaccess": {
+        "name": "Htaccess",
+        "mode": "htaccess",
+        "fileExtensions": ["htaccess"],
+        "lineComment": ["#"]
+    }
   
     "image": {
         "name": "Image",
