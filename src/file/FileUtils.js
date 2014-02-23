@@ -308,6 +308,26 @@ define(function (require, exports, module) {
 
         return baseName.substr(idx + 1);
     }
+    
+    /**
+     * Computes filename as relative to the basePath. For example:
+     * basePath: /foo/bar/, filename: /foo/bar/baz.txt
+     * returns: baz.txt
+     * 
+     * The net effect is that the common prefix is stripped away. If basePath is not
+     * a prefix of filename, then undefined is returned.
+     * 
+     * @param {string} basePath Path against which we're computing the relative path
+     * @param {string} filename Full path to the file for which we are computing a relative path
+     * @return {string} relative path
+     */
+    function getRelativeFilename(basePath, filename) {
+        if (!filename || filename.substr(0, basePath.length) !== basePath) {
+            return;
+        }
+        
+        return filename.substr(basePath.length);
+    }
 
     /** @const - hard-coded for now, but may want to make these preferences */
     var _staticHtmlFileExts = ["htm", "html"],
@@ -404,6 +424,7 @@ define(function (require, exports, module) {
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
+    exports.getRelativeFilename            = getRelativeFilename;
     exports.getFileExtension               = getFileExtension;
     exports.compareFilenames               = compareFilenames;
 });
