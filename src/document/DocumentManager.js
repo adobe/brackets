@@ -1006,7 +1006,7 @@ define(function (require, exports, module) {
         var pathPrefix = "files_";
         if (key.indexOf(pathPrefix) === 0) {
             // Get the project path from the old preference key by stripping "files_".
-            var projectPath = key.substr(pathPrefix.length - 1);
+            var projectPath = key.substr(pathPrefix.length);
             return "user project.files " + projectPath;
         }
         
