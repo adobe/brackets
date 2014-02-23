@@ -67,7 +67,7 @@ define(function (require, exports, module) {
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar,
-        globmatch             = require("thirdparty/globmatch");        
+        globmatch             = require("thirdparty/globmatch");
     
     var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
