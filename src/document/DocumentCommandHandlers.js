@@ -1551,34 +1551,40 @@ define(function (require, exports, module) {
     exports._parseDecoratedPath = _parseDecoratedPath;
 
     // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_FILE_OPEN,              Commands.FILE_OPEN, handleFileOpen);
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,     Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
     // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
     // File > New should open a new blank tab, and handleFileNewInProject should
     // be called from a "+" button in the project
-    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,  Commands.FILE_NEW_UNTITLED, handleFileNew);
-    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
-    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-    CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
-    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
-    CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
-    CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
-    CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
+    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,      Commands.FILE_NEW_UNTITLED, handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW,               Commands.FILE_NEW, handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,        Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,              Commands.FILE_SAVE, handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,          Commands.FILE_SAVE_ALL, handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,           Commands.FILE_SAVE_AS, handleFileSaveAs);
+    CommandManager.register(Strings.CMD_FILE_RENAME,            Commands.FILE_RENAME, handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,            Commands.FILE_DELETE, handleFileDelete);
     
-    CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
+    CommandManager.register(Strings.CMD_FILE_CLOSE,             Commands.FILE_CLOSE, handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,         Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,        Commands.FILE_CLOSE_LIST, handleFileCloseList);
 
     if (brackets.platform === "win") {
-        CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Strings.CMD_EXIT,               Commands.FILE_QUIT, handleFileQuit);
     } else {
-        CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
     }
 
-    CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-    CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-    CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-    CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    CommandManager.register(Strings.CMD_NEXT_DOC,               Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,               Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,           Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
+    if (brackets.platform === "win") {
+        CommandManager.register(Strings.CMD_SHOW_IN_EXPLORER,   Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    } else if (brackets.platform === "mac") {
+        CommandManager.register(Strings.CMD_SHOW_IN_FINDER,     Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    } else {
+        CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    }
     
     // These commands have no UI representation and are only used internally
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);
