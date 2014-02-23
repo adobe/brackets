@@ -236,12 +236,13 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Commands        = require("command/Commands"),
-        CommandManager  = require("command/CommandManager"),
-        EditorManager   = require("editor/EditorManager"),
-        Strings         = require("strings"),
-        KeyEvent        = require("utils/KeyEvent"),
-        CodeHintList    = require("editor/CodeHintList").CodeHintList;
+    var Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Strings             = require("strings"),
+        KeyEvent            = require("utils/KeyEvent"),
+        CodeHintList        = require("editor/CodeHintList").CodeHintList,
+        PreferencesManager  = require("preferences/PreferencesManager");
 
     var hintProviders   = { "all" : [] },
         lastChar        = null,
@@ -250,9 +251,10 @@ define(function (require, exports, module) {
         hintList        = null,
         deferredHints   = null,
         keyDownEditor   = null;
-
     
-    var _insertHintOnTabDefault = false;
+    
+    PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
+    
 
     /**
      * Determines the default behavior of the CodeHintManager on tab key events.
@@ -265,7 +267,7 @@ define(function (require, exports, module) {
      *      selected hint on tab key events.
      */
     function setInsertHintOnTab(insertHintOnTab) {
-        _insertHintOnTabDefault = insertHintOnTab;
+        PreferencesManager.set("insertHintOnTab", insertHintOnTab);
     }
     
     /**
@@ -474,7 +476,7 @@ define(function (require, exports, module) {
             if (sessionProvider.insertHintOnTab !== undefined) {
                 insertHintOnTab = sessionProvider.insertHintOnTab;
             } else {
-                insertHintOnTab = _insertHintOnTabDefault;
+                insertHintOnTab = PreferencesManager.get("insertHintOnTab");
             }
             
             sessionEditor = editor;
