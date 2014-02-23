@@ -236,7 +236,7 @@
         "mode": "htaccess",
         "fileExtensions": ["htaccess"],
         "lineComment": ["#"]
-    }
+    },
   
     "image": {
         "name": "Image",
