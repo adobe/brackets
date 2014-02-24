@@ -25,7 +25,7 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView */
+waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -194,23 +194,27 @@ define(function (require, exports, module) {
         it("should receive events", function () {
             var connection = createConnection();
             var eventMessages = [];
-            $(connection).on(
-                "base.log",
-                function (evt, level, timestamp, message) {
-                    eventMessages.push(message);
-                }
+            var spy = jasmine.createSpy();
+            $(connection).one(
+                "test:eventOne",
+                spy
             );
             runConnectAndWait(connection, false);
             runLoadDomainsAndWait(connection, ["TestCommandsOne"], false);
             runs(function () {
-                connection.domains.test.log("1234");
+                connection.domains.test.emitEventOne();
             });
             waitsFor(
                 function () {
-                    return eventMessages.indexOf("1234") >= 0;
+                    return spy.calls.length === 1;
                 },
                 CONNECTION_TIMEOUT
             );
+            runs(function () {
+                expect(spy.calls[0].args[0].type).toBe("test:eventOne"); // event.type
+                expect(spy.calls[0].args[1]).toBe("foo"); // argOne
+                expect(spy.calls[0].args[2]).toBe("bar"); // argTwo
+            });
         });
         
         it("should parse domain event specifications", function () {
