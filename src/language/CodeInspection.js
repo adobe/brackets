@@ -86,14 +86,6 @@ define(function (require, exports, module) {
     });
     
     /**
-     * Ensures that we don't start running until the app is ready.
-     * 
-     * @private
-     * @type {boolean}
-     */
-    var _ready = false;
-    
-    /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
      * @private
@@ -267,10 +259,6 @@ define(function (require, exports, module) {
      * @param {?string} providerName name of the provider that is requesting a run
      */
     function run() {
-        if (!_ready) {
-            return;
-        }
-        
         if (!_enabled) {
             _hasErrors = false;
             Resizer.hide($problemsPanel);
@@ -580,10 +568,6 @@ define(function (require, exports, module) {
         // Set initial UI state
         toggleEnabled(prefs.get(PREF_ENABLED), true);
         toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
-    });
-    
-    AppInit.appReady(function () {
-        _ready = true;
     });
 
     // Testing

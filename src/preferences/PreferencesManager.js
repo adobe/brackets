@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         ExtensionLoader      = require("utils/ExtensionLoader"),
         PreferencesBase      = require("preferences/PreferencesBase"),
         FileSystem           = require("filesystem/FileSystem"),
+        AppInit              = require("utils/AppInit"),
         _                    = require("thirdparty/lodash");
     
     /**
@@ -234,6 +235,7 @@ define(function (require, exports, module) {
     }
 
     var preferencesManager = new PreferencesBase.PreferencesSystem();
+    preferencesManager.pauseChangeEvents();
     
     var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
     
@@ -576,6 +578,10 @@ define(function (require, exports, module) {
             stateManager.save();
         }
     }
+    
+    AppInit.appReady(function () {
+        preferencesManager.resumeChangeEvents();
+    });
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._manager                = preferencesManager;
