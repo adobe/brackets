@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false */
+/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, jasmine: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -101,14 +101,35 @@ define(function (require, exports, module) {
                     $(myDocument).off("change", changeHandler);
                     changeFired = true;
                     expect(doc).toBe(myDocument);
-                    expect(changeList.from).toEqual({line: 0, ch: 0});
-                    expect(changeList.to).toEqual({line: 1, ch: 0});
-                    expect(changeList.text).toEqual(["new content"]);
-                    expect(changeList.next).toBe(undefined);
+                    expect(changeList.length).toBe(1);
+                    expect(changeList[0].from).toEqual({line: 0, ch: 0});
+                    expect(changeList[0].to).toEqual({line: 1, ch: 0});
+                    expect(changeList[0].text).toEqual(["new content"]);
                 }
                 $(myDocument).on("change", changeHandler);
                 myEditor._codeMirror.setValue("new content");
                 expect(changeFired).toBe(true);
+            });
+            
+            it("should send an array of multiple change records for an operation", function () {
+                var cm = myEditor._codeMirror,
+                    changeHandler = jasmine.createSpy();
+                $(myDocument).on("change", changeHandler);
+                cm.operation(function () {
+                    cm.replaceRange("inserted", {line: 1, ch: 0});
+                    cm.replaceRange("", {line: 0, ch: 0}, {line: 0, ch: 4});
+                });
+                
+                expect(changeHandler.callCount).toBe(1);
+                
+                var args = changeHandler.mostRecentCall.args;
+                expect(args[1]).toBe(myDocument);
+                expect(args[2][0].text).toEqual(["inserted"]);
+                expect(args[2][0].from).toEqual({line: 1, ch: 0});
+                expect(args[2][0].to).toEqual({line: 1, ch: 0});
+                expect(args[2][1].text).toEqual([""]);
+                expect(args[2][1].from).toEqual({line: 0, ch: 0});
+                expect(args[2][1].to).toEqual({line: 0, ch: 4});
             });
             
             it("should set mode based on Document language", function () {

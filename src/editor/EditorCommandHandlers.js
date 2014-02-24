@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 
@@ -839,7 +839,6 @@ define(function (require, exports, module) {
         var selections     = editor.getSelections(),
             isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
             lastLine       = editor.getLastVisibleLine(),
-            cm             = editor._codeMirror,
             doc            = editor.document,
             edits          = [],
             newSelections,
@@ -894,7 +893,11 @@ define(function (require, exports, module) {
             // Now indent each added line (which doesn't mess up any line numbers, and
             // we're going to set the character offset to the last position on each line anyway).
             _.each(newSelections, function (sel) {
-                cm.indentLine(sel.start.line, "smart", true);
+                // This is a bit of a hack. The document is the one that batches operations, but we want
+                // to use CodeMirror's "smart indent" operation. So we need to use the document's own backing editor's
+                // CodeMirror to do the indentation. A better way to fix this would be to expose this
+                // operation on Document, but I'm not sure we want to sign up for that as a public API.
+                doc._masterEditor._codeMirror.indentLine(sel.start.line, "smart", true);
                 sel.start.ch = null; // last character on line
                 sel.end = sel.start;
             });

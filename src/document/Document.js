@@ -43,13 +43,12 @@ define(function (require, exports, module) {
      *
      * change -- When the text of the editor changes (including due to undo/redo). 
      *
-     *        Passes ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
+     *        Passes ({Document}, {ChangeList}), where ChangeList is an array
      *        of change record objects. Each change record looks like:
      *
      *            { from: start of change, expressed as {line: <line number>, ch: <character offset>},
      *              to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
-     *              text: array of lines of text to replace existing text,
-     *              next: next change record in the linked list, or undefined if this is the last record }
+     *              text: array of lines of text to replace existing text }
      *      
      *        The line and ch offsets are both 0-based.
      *
@@ -62,9 +61,6 @@ define(function (require, exports, module) {
      *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
      *        (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
      *        event.
-     *  
-     *        (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
-     *        it an ordinary array)
      *
      * deleted -- When the file for this document has been deleted. All views onto the document should
      *      be closed. The document will no longer be editable or dispatch "change" events.
@@ -295,7 +291,7 @@ define(function (require, exports, module) {
             // TODO: Dumb to split it here just to join it again in the change handler, but this is
             // the CodeMirror change format. Should we document our change format to allow this to
             // either be an array of lines or a single string?
-            $(this).triggerHandler("change", [this, {text: text.split(/\r?\n/)}]);
+            $(this).triggerHandler("change", [this, [{text: text.split(/\r?\n/)}]]);
         }
         this._updateTimestamp(newTimestamp);
        

@@ -543,89 +543,90 @@ define(function (require, exports, module) {
      * @private
      * Update the search results using the given list of changes fr the given document
      * @param {Document} doc  The Document that changed, should be the current one
-     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
-     *      A linked list as described in the Document constructor
-     * @param {boolean} resultsChanged  True when the search results changed from a file change
+     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}>} changeList
+     *      An array of changes as described in the Document constructor
+     * @return {boolean}  True when the search results changed from a file change
      */
-    function _updateSearchResults(doc, change, resultsChanged) {
+    function _updateSearchResults(doc, changeList) {
         var i, diff, matches,
+            resultsChanged = false,
             fullPath = doc.file.fullPath,
-            lines    = [],
-            start    = 0,
-            howMany  = 0;
-            
-        // There is no from or to positions, so the entire file changed, we must search all over again
-        if (!change.from || !change.to) {
-            _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
-            resultsChanged = true;
+            lines, start, howMany;
         
-        } else {
-            // Get only the lines that changed
-            for (i = 0; i < change.text.length; i++) {
-                lines.push(doc.getLine(change.from.line + i));
-            }
-            
-            // We need to know how many lines changed to update the rest of the lines
-            if (change.from.line !== change.to.line) {
-                diff = change.from.line - change.to.line;
+        changeList.forEach(function (change) {
+            lines = [];
+            start = 0;
+            howMany = 0;
+
+            // There is no from or to positions, so the entire file changed, we must search all over again
+            if (!change.from || !change.to) {
+                _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
+                resultsChanged = true;
+
             } else {
-                diff = lines.length - 1;
-            }
-            
-            if (searchResults[fullPath]) {
-                // Search the last match before a replacement, the amount of matches deleted and update
-                // the lines values for all the matches after the change
-                searchResults[fullPath].matches.forEach(function (item) {
-                    if (item.end.line < change.from.line) {
-                        start++;
-                    } else if (item.end.line <= change.to.line) {
-                        howMany++;
-                    } else {
-                        item.start.line += diff;
-                        item.end.line   += diff;
-                    }
-                });
-                
-                // Delete the lines that where deleted or replaced
-                if (howMany > 0) {
-                    searchResults[fullPath].matches.splice(start, howMany);
+                // Get only the lines that changed
+                for (i = 0; i < change.text.length; i++) {
+                    lines.push(doc.getLine(change.from.line + i));
                 }
-                resultsChanged = true;
-            }
-            
-            // Searches only over the lines that changed
-            matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
-            if (matches && matches.length) {
-                // Updates the line numbers, since we only searched part of the file
-                matches.forEach(function (value, key) {
-                    matches[key].start.line += change.from.line;
-                    matches[key].end.line   += change.from.line;
-                });
-                
-                // If the file index exists, add the new matches to the file at the start index found before
-                if (searchResults[fullPath]) {
-                    Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
-                // If not, add the matches to a new file index
+
+                // We need to know how many lines changed to update the rest of the lines
+                if (change.from.line !== change.to.line) {
+                    diff = change.from.line - change.to.line;
                 } else {
-                    searchResults[fullPath] = {
-                        matches:   matches,
-                        collapsed: false
-                    };
+                    diff = lines.length - 1;
                 }
-                resultsChanged = true;
+
+                if (searchResults[fullPath]) {
+                    // Search the last match before a replacement, the amount of matches deleted and update
+                    // the lines values for all the matches after the change
+                    searchResults[fullPath].matches.forEach(function (item) {
+                        if (item.end.line < change.from.line) {
+                            start++;
+                        } else if (item.end.line <= change.to.line) {
+                            howMany++;
+                        } else {
+                            item.start.line += diff;
+                            item.end.line   += diff;
+                        }
+                    });
+
+                    // Delete the lines that where deleted or replaced
+                    if (howMany > 0) {
+                        searchResults[fullPath].matches.splice(start, howMany);
+                    }
+                    resultsChanged = true;
+                }
+
+                // Searches only over the lines that changed
+                matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+                if (matches && matches.length) {
+                    // Updates the line numbers, since we only searched part of the file
+                    matches.forEach(function (value, key) {
+                        matches[key].start.line += change.from.line;
+                        matches[key].end.line   += change.from.line;
+                    });
+
+                    // If the file index exists, add the new matches to the file at the start index found before
+                    if (searchResults[fullPath]) {
+                        Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
+                    // If not, add the matches to a new file index
+                    } else {
+                        searchResults[fullPath] = {
+                            matches:   matches,
+                            collapsed: false
+                        };
+                    }
+                    resultsChanged = true;
+                }
+
+                // All the matches where deleted, remove the file from the results
+                if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
+                }
             }
-            
-            // All the matches where deleted, remove the file from the results
-            if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
-                delete searchResults[fullPath];
-                resultsChanged = true;
-            }
-            
-            // This is link to the next change object, so we need to keep searching
-            if (change.next) {
-                return _updateSearchResults(doc, change.next, resultsChanged);
-            }
-        }
+        });
+        
         return resultsChanged;
     }
 

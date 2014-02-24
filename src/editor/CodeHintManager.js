@@ -594,8 +594,8 @@ define(function (require, exports, module) {
             }
 
             // Pending Text is used in hintList._keydownHook()
-            if (hintList && changeList.text.length && changeList.text[0].length) {
-                hintList.removePendingText(changeList.text[0]);
+            if (hintList && changeList[0] && changeList[0].text.length && changeList[0].text[0].length) {
+                hintList.removePendingText(changeList[0].text[0]);
             }
         }
     }

@@ -252,7 +252,7 @@ define(function (require, exports, module) {
      *
      * @param {Object} previousDOM The root of the HTMLSimpleDOM tree representing a previous state of the DOM.
      * @param {Editor} editor The editor containing the instrumented HTML.
-     * @param {Array=} changeList An optional list of CodeMirror change records representing the
+     * @param {Array=} changeList An optional array of CodeMirror change records representing the
      *     edits the user made in the editor since previousDOM was built. If provided, and the
      *     edits are not structural, DOMUpdater will do a fast incremental reparse. If not provided,
      *     or if one of the edits changes the DOM structure, DOMUpdater will reparse the whole DOM.
@@ -269,16 +269,17 @@ define(function (require, exports, module) {
         }
         
         // If there's more than one change, be conservative and assume we have to do a full reparse.
-        if (changeList && !changeList.next) {
+        if (changeList && changeList.length === 1) {
             // If the inserted or removed text doesn't have any characters that could change the
             // structure of the DOM (e.g. by adding or removing a tag boundary), then we can do
             // an incremental reparse of just the parent tag containing the edit. This should just
             // be the marked range that contains the beginning of the edit range, since that position
             // isn't changed by the edit.
-            if (!isDangerousEdit(changeList.text) && !isDangerousEdit(changeList.removed)) {
+            var change = changeList[0];
+            if (!isDangerousEdit(change.text) && !isDangerousEdit(change.removed)) {
                 // If the edit is right at the beginning or end of a tag, we want to be conservative
                 // and use the parent as the edit range.
-                var startMark = _getMarkerAtDocumentPos(editor, changeList.from, true);
+                var startMark = _getMarkerAtDocumentPos(editor, change.from, true);
                 if (startMark) {
                     var range = startMark.find();
                     if (range) {
