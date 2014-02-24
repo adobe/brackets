@@ -1059,7 +1059,7 @@ define(function (require, exports, module) {
         // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
         // you can't escape quotes in it.
         var i;
-        if (root instanceof $) {
+        if (root.jquery) {
             root = root.get(0);
         }
         if (!root) {
