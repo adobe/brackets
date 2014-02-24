@@ -59,6 +59,7 @@ define(function (require, exports, module) {
         "sr": true,
         "sv": true,
         "tr": true,
-        "zh-cn": true
+        "zh-cn": true,
+        "id": true
     };
 });
