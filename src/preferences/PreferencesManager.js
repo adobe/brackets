@@ -581,6 +581,7 @@ define(function (require, exports, module) {
     exports._manager                = preferencesManager;
     exports._setCurrentEditingFile  = _setCurrentEditingFile;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
+    exports._smUserScopeLoading     = smUserScopeLoading;
     
     // Public API
     
