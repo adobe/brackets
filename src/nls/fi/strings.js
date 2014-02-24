@@ -493,6 +493,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Edistyminen",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä<br><kbd class='text'>Tab</kbd> Muuta pisteitä",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Lisää tai vähennä askelmia<br><kbd>←</kbd><kbd>→</kbd> ”Start” tai ”end”",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Vanha arvo <code>{0}</code> ei ole kelvollinen, joten näytetty funktio vaihdettiin arvoksi <code>{1}</code>. Dokumentti päivitetään ensimmäisellä muokkauksella.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nykyinen väri",
