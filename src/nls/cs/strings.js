@@ -447,32 +447,6 @@ define({
     "LANGUAGE_CANCEL"                   : "Zrušit",
     "LANGUAGE_SYSTEM_DEFAULT"           : "Výchozí",
 
-    /**
-     * Jazyky
-     */
-    "LOCALE_CS"                                 : "Česky",
-    "LOCALE_DE"                                 : "Německy",
-    "LOCALE_EN"                                 : "Anglicky",
-    "LOCALE_ES"                                 : "Španělsky",
-    "LOCALE_FR"                                 : "Francouzsky",
-    "LOCALE_IT"                                 : "Italsky",
-    "LOCALE_JA"                                 : "Japonsky",
-    "LOCALE_NB"                                 : "Norsky",
-    "LOCALE_NL"                                 : "Holandsky",
-    "LOCALE_FA_IR"                              : "Persky-perština",
-    "LOCALE_PL"                                 : "Polsky",
-    "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
-    "LOCALE_PT_PT"                              : "Portugalsky",
-    "LOCALE_RO"                                 : "Rumunsky",
-    "LOCALE_RU"                                 : "Rusky",
-    "LOCALE_SK"                                 : "Slovensky",
-	"LOCALE_SR"									: "Srbština",
-    "LOCALE_SV"                                 : "Švédsky",
-    "LOCALE_TR"                                 : "Turecky",
-    "LOCALE_FI"                                 : "Finsky",
-    "LOCALE_ZH_CN"                              : "Čínsky",
-    "LOCALE_HU"                                 : "Maďarsky",
-
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
