@@ -450,6 +450,7 @@ define({
     /**
      * Jazyky
      */
+    "LOCALE_CA"                                 : "Catalan",
     "LOCALE_CS"                                 : "Česky",
     "LOCALE_DE"                                 : "Německy",
     "LOCALE_EN"                                 : "Anglicky",

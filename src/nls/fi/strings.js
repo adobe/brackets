@@ -446,6 +446,7 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Järjestelmän oletus",
     
     // Locales (used by Debug > Switch Language)
+    "LOCALE_CA"                                 : "katalaani",
     "LOCALE_CS"                                 : "tšekki",
     "LOCALE_DE"                                 : "saksa",
     "LOCALE_EN"                                 : "englanti",
