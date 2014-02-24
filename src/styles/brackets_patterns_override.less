@@ -1110,6 +1110,29 @@ input[type="color"],
     }
 }
 
+// Style <select> dropdown to match button style (requires extra div afterward to place arrow icon, however)
+select.btn {
+    width: auto;
+    -webkit-appearance: none;
+    padding-left: 4px;
+    padding-right: 17px;
+    font-weight: normal;
+}
+.select-btn-after {
+    display: inline-block;
+    height: 0px;
+    width: 0px;
+    position: relative;
+    left: -19px;
+    top: -1px;
+
+    /* dropdown triangle */
+    border-top: 4px solid @tc-gray-component-triangle;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+}
+
+
 /* Tables */
 
 .table, table {

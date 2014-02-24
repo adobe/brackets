@@ -166,6 +166,14 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "No filter",
+    "EDIT_FILE_FILTER"                  : "Edit filter...",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
+    "FILE_FILTER_LIST_PREFIX"           : "except",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+    
 
     /**
      * ProjectManager

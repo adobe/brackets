@@ -42,7 +42,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash");
+    var _ = require("thirdparty/lodash"),
+        FileFilters = require("search/FileFilters");
     
     var Async                 = require("utils/Async"),
         Resizer               = require("utils/Resizer"),
@@ -771,12 +772,14 @@ define(function (require, exports, module) {
         if (this.closed) {
             return;
         }
-        
+        this.modalBar.close(true, !suppressAnimation);
+    };
+    
+    FindInFilesDialog.prototype._handleClose = function () {
         // Hide error popup, since it hangs down low enough to make the slide-out look awkward
         $(".modal-bar .error").hide();
         
         this.closed = true;
-        this.modalBar.close(true, !suppressAnimation);
         EditorManager.focusEditor();
         dialog = null;
     };
@@ -800,7 +803,15 @@ define(function (require, exports, module) {
         // (Any previous open FindInFiles bar instance was already handled by our caller)
         FindReplace._closeFindBar();
         
-        this.modalBar    = new ModalBar(dialogHTML, false);
+        this.modalBar    = new ModalBar(dialogHTML, true);
+        $(this.modalBar).on("close", this._handleClose.bind(this));
+        
+        // Custom closing behavior: if in the middle of executing search, blur shouldn't close ModalBar yet. And
+        // don't close bar when opening Edit Filter dialog either.
+        var self = this;
+        this.modalBar.isLockedOpen = function () {
+            return self.getDialogTextField().attr("disabled") || $(".modal.instance .exclusions-editor").length > 0;
+        };
         
         var $searchField = $("input#find-what");
         
@@ -834,12 +845,6 @@ define(function (require, exports, module) {
                 }
             })
             .bind("input", handleQueryChange)
-            .blur(function () {
-                if (that.getDialogTextField().attr("disabled")) {
-                    return;
-                }
-                that._close();
-            })
             .focus();
         
         this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
@@ -848,6 +853,8 @@ define(function (require, exports, module) {
             
             handleQueryChange();  // re-validate regexp if needed
         });
+        
+        FileFilters.populateDropdown($(".exclusions-dropdown", this.modalBar.getRoot()));
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();

@@ -120,6 +120,14 @@ define(function (require, exports, module) {
     ModalBar.prototype._autoClose = false;
     
     /**
+     * Allows client code to block autoClose from closing the ModalBar: if set, this function is called whenever
+     * autoClose would normally close the ModalBar. Returning true prevents the close from occurring. Programmatically
+     * calling close() will still close the bar, however.
+     * @type {?function():boolean}
+     */
+    ModalBar.prototype.isLockedOpen = null;
+    
+    /**
      * @return {number} Height of the modal bar in pixels, if open.
      */
     ModalBar.prototype.height = function () {
@@ -229,6 +237,10 @@ define(function (require, exports, module) {
      * dismisses the modal bar.
      */
     ModalBar.prototype._handleFocusChange = function (e) {
+        if (this.isLockedOpen && this.isLockedOpen()) {
+            return;
+        }
+        
         if (!$.contains(this._$root.get(0), e.target)) {
             this.close();
         }
