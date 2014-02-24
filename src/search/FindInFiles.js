@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         Strings               = require("strings"),
         StringUtils           = require("utils/StringUtils"),
+        PreferencesManager    = require("preferences/PreferencesManager"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
@@ -66,7 +67,8 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
-        ModalBar              = require("widgets/ModalBar").ModalBar;
+        ModalBar              = require("widgets/ModalBar").ModalBar,
+        globmatch             = require("thirdparty/globmatch");
     
     var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
@@ -123,6 +125,11 @@ define(function (require, exports, module) {
      **/
     var _fileSystemChangeHandler;
 
+    /**
+     * @type {Array.<string>} a list of files/folder exclusions to be used in 'find in files'
+     **/
+    var _exclusionGlobs = [];
+    
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
@@ -693,14 +700,41 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    function _getExclusionGlobs() {
+        return _exclusionGlobs;
+    }
+    
+    function _updateExclusionGlobs(globs) {
+        if (globs && _.isArray(globs)) {
+            // Limit to 10 exclusions in globs before writing out
+            _exclusionGlobs = globs.slice(0, 10);
+            PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
+        } else {
+            // Remove all exclusions
+            _exclusionGlobs = [];
+            PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
+        }
+    }
+    
     /**
-     * Used to filter out image files when building a list of file in which to
+     * Used to filter out files that match to exclusion glob strings,
+     * and then filter out image files when building a list of file in which to
      * search. Ideally this would filter out ALL binary files.
      * @private
      * @param {FileSystemEntry} entry The entry to test
      * @return {boolean} Whether or not the entry's contents should be searched
      */
     function _findInFilesFilter(entry) {
+        var globCounter;
+        
+        for (globCounter = 0; globCounter < _exclusionGlobs.length; globCounter++) {
+            var glob = _exclusionGlobs[globCounter];
+
+            if (globmatch(entry.fullPath, glob)) {
+                return false;
+            }
+        }
+
         var language = LanguageManager.getLanguageForPath(entry.fullPath);
         return !language.isBinary();
     }
@@ -723,6 +757,7 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
+        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion") || [];
         ProjectManager.getAllFiles(_findInFilesFilter, true)
             .then(function (fileListResult) {
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
