@@ -220,9 +220,11 @@ define(function (require, exports, module) {
                 }
             },
             "Esc": function (instance) {
-                // FIXME (jasonsanjose): be smarter about current state
-                CodeMirror.commands.singleSelection(instance);
-                self.removeAllInlineWidgets();
+                if (self.getSelections().length > 1) {
+                    CodeMirror.commands.singleSelection(instance);
+                } else {
+                    self.removeAllInlineWidgets();
+                }
             },
             "Cmd-Left": "goLineStartSmart"
         };
@@ -568,8 +570,9 @@ define(function (require, exports, module) {
         // Apply text changes to CodeMirror editor
         var cm = this._codeMirror;
         cm.operation(function () {
-            var change, newText;
-            for (change = changeList; change; change = change.next) {
+            var change, newText, i;
+            for (i = 0; i < changeList.length; i++) {
+                change = changeList[i];
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
                     if (change.from || change.to) {
@@ -700,7 +703,9 @@ define(function (require, exports, module) {
         // FUTURE: if this list grows longer, consider making this a more generic mapping
         // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
         // Document
-        this._codeMirror.on("change", function (instance, changeList) {
+        // Also, note that we use the new "changes" event in v4, which provides an array of
+        // change objects. Our own event is still called just "change".
+        this._codeMirror.on("changes", function (instance, changeList) {
             $(self).triggerHandler("change", [self, changeList]);
         });
         this._codeMirror.on("beforeChange", function (instance, changeObj) {
