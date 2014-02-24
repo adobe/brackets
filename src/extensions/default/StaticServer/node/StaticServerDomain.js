@@ -98,7 +98,7 @@
     function normalizeRootPath(path) {
         return (path && path[path.length - 1] === "/") ? path.slice(0, -1) : path;
     }
-    
+
     /**
      * @private
      * Generates a key based on a server's absolute path
@@ -117,7 +117,7 @@
      *    an error (or null if there was no error) and the server (or null if there
      *    was an error). 
      */
-    function _createServer(path, createCompleteCallback) {
+    function _createServer(path, port, createCompleteCallback) {
         var server,
             app,
             address,
@@ -208,11 +208,11 @@
             
             // dispatch request event
             _domainManager.emitEvent("staticServer", "requestFilter", [request]);
-            
+
             // set a timeout if custom responses are not returned
             timeoutId = setTimeout(function () { resume(true); }, _filterRequestTimeout);
         }
-        
+
         app = connect();
         app.use(rewrite);
         // JSLint complains if we use `connect.static` because static is a
@@ -221,7 +221,10 @@
         app.use(connect.directory(path));
 
         server = http.createServer(app);
-        server.listen(0, "127.0.0.1", function () {
+
+        // Once the server is listening then verify we can handle requests
+        // before calling the callback
+        server.on("listening", function () {
             requestRoot(
                 server,
                 function (err, res) {
@@ -233,6 +236,17 @@
                 }
             );
         });
+
+        // If the given port/address is in use then use a random port
+        server.on("error", function (e) {
+            if (e.code === "EADDRINUSE") {
+                server.listen(0, "127.0.0.1");
+            } else {
+                throw e;
+            }
+        });
+
+        server.listen(port, "127.0.0.1");
     }
     
     /**
@@ -248,13 +262,13 @@
      *    The "family" property of the address indicates whether the address is,
      *    for example, IPv4, IPv6, or a UNIX socket.
      */
-    function _cmdGetServer(path, cb) {
+    function _cmdGetServer(path, port, cb) {
         // Make sure the key doesn't conflict with some built-in property of Object.
         var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
             cb(null, _servers[pathKey].address());
         } else {
-            _createServer(path, function (err, server) {
+            _createServer(path, port, function (err, server) {
                 if (err) {
                     cb(err, null);
                 } else {
@@ -371,11 +385,18 @@
             _cmdGetServer,
             true,
             "Starts or returns an existing server for the given path.",
-            [{
-                name: "path",
-                type: "string",
-                description: "absolute filesystem path for root of server"
-            }],
+            [
+                {
+                    name: "path",
+                    type: "string",
+                    description: "Absolute filesystem path for root of server."
+                },
+                {
+                    name: "port",
+                    type: "number",
+                    description: "Port number to use for HTTP server.  Pass zero to assign a random port."
+                }
+            ],
             [{
                 name: "address",
                 type: "{address: string, family: string, port: number}",

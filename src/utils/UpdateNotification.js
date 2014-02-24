@@ -41,22 +41,25 @@ define(function (require, exports, module) {
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
-    var defaultPrefs = {lastNotifiedBuildNumber: 0};
-    
-    
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
     
-    // PreferenceStorage
-    var _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    // Init default last build number
+    PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
+
+    PreferencesManager.convertPreferences(module, {
+        "lastNotifiedBuildNumber": "user",
+        "lastInfoURLFetchTime": "user",
+        "updateInfo": "user"
+    }, true);
     
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.
-    var _lastNotifiedBuildNumber = _prefs.getValue("lastNotifiedBuildNumber");
+    var _lastNotifiedBuildNumber = PreferencesManager.getViewState("lastNotifiedBuildNumber");
     
     // Last time the versionInfoURL was fetched
-    var _lastInfoURLFetchTime = _prefs.getValue("lastInfoURLFetchTime");
+    var _lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
 
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
@@ -106,7 +109,7 @@ define(function (require, exports, module) {
         }
         
         // If we don't have data saved in prefs, fetch
-        data = _prefs.getValue("updateInfo");
+        data = PreferencesManager.getViewState("updateInfo");
         if (!data) {
             fetchData = true;
         }
@@ -126,8 +129,8 @@ define(function (require, exports, module) {
                             data = JSON.parse(jqXHR.responseText);
                             if (!dontCache) {
                                 _lastInfoURLFetchTime = (new Date()).getTime();
-                                _prefs.setValue("lastInfoURLFetchTime", _lastInfoURLFetchTime);
-                                _prefs.setValue("updateInfo", data);
+                                PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                                PreferencesManager.setViewState("updateInfo", data);
                             }
                             result.resolve(data);
                         } catch (e) {
@@ -285,7 +288,7 @@ define(function (require, exports, module) {
                         _lastNotifiedBuildNumber = allUpdates[0].buildNumber;
                         // Don't save prefs is we have overridden values
                         if (!usingOverrides) {
-                            _prefs.setValue("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
+                            PreferencesManager.setViewState("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
                         }
                     }
                 } else if (force) {
