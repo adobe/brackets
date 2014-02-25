@@ -309,13 +309,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     */
-    function _getBaseUrlKey() {
-        return "projectBaseUrl_" + _projectRoot;
-    }
-
-    /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
      * is open (during startup, or running outside of app shell).
      * @return {String}
@@ -329,6 +322,10 @@ define(function (require, exports, module) {
      * @param {String}
      */
     function setBaseUrl(projectBaseUrl) {
+        var context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath} };
+        
         _projectBaseUrl = projectBaseUrl;
 
         // Ensure trailing slash to be consistent with _projectRoot.fullPath
@@ -337,7 +334,7 @@ define(function (require, exports, module) {
             _projectBaseUrl += "/";
         }
 
-        PreferencesManager.setViewState(_getBaseUrlKey(), _projectBaseUrl);
+        PreferencesManager.setViewState("project.baseUrl", _projectBaseUrl, context);
     }
     
     /**
@@ -381,7 +378,8 @@ define(function (require, exports, module) {
             shortPath,
             depth,
             context = { location : { scope: "user",
-                                     layer: "project" } };
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath } };
 
         // Query open nodes by class selector
         $(".jstree-open:visible").each(function (index) {
@@ -1059,6 +1057,10 @@ define(function (require, exports, module) {
                 fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
             };
 
+            if (!isUpdating) {
+                PreferencesManager.projectLayer.setProjectPath(rootPath);
+            }
+            
             // restore project tree state from last time this project was open
             _projectInitialLoad.previous = PreferencesManager.getViewState("project.treeState", context) || [];
 
@@ -1080,7 +1082,7 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
-                        _projectBaseUrl = PreferencesManager.getViewState(_getBaseUrlKey()) || "";
+                        _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -1098,7 +1100,6 @@ define(function (require, exports, module) {
                             if (projectRootChanged) {
                                 // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
                                 var promises = [];
-                                PreferencesManager.projectLayer.setProjectPath(_projectRoot ? _projectRoot.fullPath : null);
                                 $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [_projectRoot]);
                                 $.when.apply($, promises).then(result.resolve, result.reject);
                             } else {
@@ -2141,13 +2142,23 @@ define(function (require, exports, module) {
      * @return {?string} - the scope to which the preference is to be migrated
      */
     function _checkPreferencePrefix(key) {
-        var pathPrefix = "projectTreeState_";
+        var pathPrefix = "projectTreeState_",
+            projectPath;
         if (key.indexOf(pathPrefix) === 0) {
             // Get the project path from the old preference key by stripping "projectTreeState_".
-            var projectPath = key.substr(pathPrefix.length);
+            projectPath = key.substr(pathPrefix.length);
             return "user project.treeState " + projectPath;
         }
         
+        pathPrefix = "projectBaseUrl_";
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
+            // and "]".
+            projectPath = key.substr(key.indexOf(" ") + 1);
+            projectPath = projectPath.substr(0, projectPath.length - 1);
+            return "user project.baseUrl " + projectPath;
+        }
+
         return null;
     }
     
@@ -2157,7 +2168,8 @@ define(function (require, exports, module) {
     PreferencesManager.convertPreferences(module, {
         "projectPath": "user",
         "projectTreeState_": "user",
-        "welcomeProjects": "user"
+        "welcomeProjects": "user",
+        "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
     
     function _reloadProjectPreferencesScope() {
