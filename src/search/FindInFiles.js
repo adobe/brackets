@@ -67,8 +67,7 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
-        ModalBar              = require("widgets/ModalBar").ModalBar,
-        globmatch             = require("thirdparty/globmatch");
+        ModalBar              = require("widgets/ModalBar").ModalBar;
     
     var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
@@ -125,11 +124,6 @@ define(function (require, exports, module) {
      **/
     var _fileSystemChangeHandler;
 
-    /**
-     * @type {Array.<string>} a list of files/folder exclusions to be used in 'find in files'
-     **/
-    var _exclusionGlobs = [];
-    
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
@@ -700,51 +694,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    function _getExclusionGlobs() {
-        return _exclusionGlobs;
-    }
-    
-    function _updateExclusionGlobs(globs) {
-        if (globs && _.isArray(globs)) {
-            // Limit to 10 exclusions in globs before writing out
-            _exclusionGlobs = globs.slice(0, 10);
-            PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
-        } else {
-            // Remove all exclusions
-            _exclusionGlobs = [];
-            PreferencesManager.setViewState("search.exclusion", _exclusionGlobs);
-        }
-    }
-    
-    /**
-     * Used to filter out files that match to exclusion glob strings,
-     * and then filter out image files when building a list of file in which to
-     * search. Ideally this would filter out ALL binary files.
-     * @private
-     * @param {FileSystemEntry} entry The entry to test
-     * @return {boolean} Whether or not the entry's contents should be searched
-     */
-    function _findInFilesFilter(entry) {
-        var globCounter;
-        
-        for (globCounter = 0; globCounter < _exclusionGlobs.length; globCounter++) {
-            var glob = _exclusionGlobs[globCounter];
-
-            if (globmatch(entry.fullPath, glob)) {
-                return false;
-            }
-        }
-
-        var language = LanguageManager.getLanguageForPath(entry.fullPath);
-        return !language.isBinary();
-    }
-    
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
      */
-    function _doSearch(query) {
+    function _doSearch(query, userFilter) {
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
@@ -757,8 +712,22 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        _exclusionGlobs = PreferencesManager.getViewState("search.exclusion") || [];
-        ProjectManager.getAllFiles(_findInFilesFilter, true)
+        /**
+         * Filters out files/folders that match user's exclusion filter, and files that are known
+         * binary types (currently just image/audio; ideally we'd filter out ALL binary files).
+         * @param {FileSystemEntry} entry The entry to test
+         * @return {boolean} True if the entry's contents should be included in the file list
+         */
+        function fileFilter(entry) {
+            if (!FileFilters.filterPath(userFilter, entry.fullPath)) {
+                return false;
+            }
+
+            var language = LanguageManager.getLanguageForPath(entry.fullPath);
+            return !language.isBinary();
+        }
+        
+        ProjectManager.getAllFiles(fileFilter, true)
             .then(function (fileListResult) {
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
                 return Async.doInParallel(fileListResult, doSearch);
@@ -848,7 +817,8 @@ define(function (require, exports, module) {
             return self.getDialogTextField().attr("disabled") || $(".modal.instance .exclusions-editor").length > 0;
         };
         
-        var $searchField = $("input#find-what");
+        var $searchField = $("input#find-what"),
+            $filterDropdown = $(".exclusions-dropdown", that.modalBar.getRoot());
         
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
@@ -875,7 +845,8 @@ define(function (require, exports, module) {
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
-                        _doSearch(query);
+                        var userFilter = FileFilters.commitDropdown($filterDropdown);
+                        _doSearch(query, userFilter);
                     }
                 }
             })
@@ -889,7 +860,7 @@ define(function (require, exports, module) {
             handleQueryChange();  // re-validate regexp if needed
         });
         
-        FileFilters.populateDropdown($(".exclusions-dropdown", this.modalBar.getRoot()));
+        FileFilters.populateDropdown($filterDropdown);
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();
