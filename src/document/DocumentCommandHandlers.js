@@ -1550,6 +1550,16 @@ define(function (require, exports, module) {
     // Exported for unit testing only
     exports._parseDecoratedPath = _parseDecoratedPath;
 
+    // Set some command strings
+    var quitString  = Strings.CMD_QUIT,
+        showInOS    = Strings.CMD_SHOW_IN_OS;
+    if (brackets.platform === "win") {
+        quitString  = Strings.CMD_EXIT;
+        showInOS    = Strings.CMD_SHOW_IN_EXPLORER;
+    } else if (brackets.platform === "mac") {
+        showInOS    = Strings.CMD_SHOW_IN_FINDER;
+    }
+
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
@@ -1568,21 +1578,11 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
     CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
     CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
-
-    var quitString  = Strings.CMD_QUIT,
-        showInOS    = Strings.CMD_SHOW_IN_OS;
-    if (brackets.platform === "win") {
-        quitString  = Strings.CMD_EXIT;
-        showInOS    = Strings.CMD_SHOW_IN_EXPLORER;
-    } else if (brackets.platform === "mac") {
-        showInOS    = Strings.CMD_SHOW_IN_FINDER;
-    }
     CommandManager.register(quitString,                     Commands.FILE_QUIT, handleFileQuit);
 
     CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-
     CommandManager.register(showInOS,                       Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
 
     // These commands have no UI representation and are only used internally
