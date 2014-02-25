@@ -609,7 +609,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("({0}) - " + brackets.config.app_title);
                 });
             });
 
@@ -625,7 +625,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("({0}) - " + brackets.config.app_title);
                 });
             });
         });

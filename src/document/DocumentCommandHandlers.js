@@ -70,10 +70,10 @@ define(function (require, exports, module) {
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
+    /** @type {string} String template for window title when no file is open. */
+    var WINDOW_TITLE_STRING_INIT = (brackets.platform !== "mac") ? "({0}) - {1}" : "({0}) \u2014 {1}";
     /** @type {string} String template for window title. Use emdash on mac only. */
     var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
-    /** @type {string} String template for window title when no file is open. Use emdash on mac only. */
-    var WINDOW_TITLE_STRING_INIT = (brackets.platform !== "mac") ? "({0}) - {1}" : "({0}) \u2014 {1}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
