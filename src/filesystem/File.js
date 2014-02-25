@@ -149,7 +149,8 @@ define(function (require, exports, module) {
         
         // Request a consistency check if the write is not blind
         if (!options.blind) {
-            options.expectedHash = this._hash;
+            options.expectedHash = this._hash; 
+            options.expectedContents = this._contents;
         }
         
         // Block external change events until after the write has finished

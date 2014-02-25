@@ -332,7 +332,8 @@ define(function (require, exports, module) {
 
         var context = {
             Strings: Strings,
-            isUpdate: this._isUpdate
+            isUpdate: this._isUpdate,
+            includeBrowseExtensions: !!brackets.config.extension_listing_url
         };
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
@@ -352,7 +353,7 @@ define(function (require, exports, module) {
         this.$cancelButton.on("click", this._handleCancel.bind(this));
         this.$url.on("input", this._handleUrlInput.bind(this));
         this.$browseExtensionsButton.on("click", function () {
-            NativeApp.openURLInDefaultBrowser(brackets.config.extension_wiki_url);
+            NativeApp.openURLInDefaultBrowser(brackets.config.extension_listing_url);
         });
         $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         

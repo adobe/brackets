@@ -445,27 +445,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Peruuta",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Järjestelmän oletus",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "tšekki",
-    "LOCALE_DE"                                 : "saksa",
-    "LOCALE_EN"                                 : "englanti",
-    "LOCALE_ES"                                 : "espanja",
-    "LOCALE_FI"                                 : "suomi",
-    "LOCALE_FR"                                 : "ranska",
-    "LOCALE_IT"                                 : "italia",
-    "LOCALE_JA"                                 : "japani",
-    "LOCALE_NB"                                 : "norja",
-    "LOCALE_PL"                                 : "puola",
-    "LOCALE_PT_BR"                              : "portugali, Brasilia",
-    "LOCALE_PT_PT"                              : "portugali",
-    "LOCALE_RU"                                 : "venäjä",
-    "LOCALE_SK"                                 : "slovakia",
-    "LOCALE_SR"                                 : "serbia",
-    "LOCALE_SV"                                 : "ruotsi",
-    "LOCALE_TR"                                 : "turkki",
-    "LOCALE_ZH_CN"                              : "kiina, yksinkertaistettu",
-    "LOCALE_HU"                                 : "unkari",
-    
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Edistyminen",

@@ -321,6 +321,10 @@ define(function (require, exports, module) {
             if (location && location.layer) {
                 var layer = this._layerMap[location.layer];
                 if (layer) {
+                    if (this.data[layer.key] === undefined) {
+                        this.data[layer.key] = {};
+                    }
+                    
                     var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
                     this._dirty = this._dirty || wasSet;
                     return wasSet;
@@ -533,6 +537,116 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * @constructor
+     * 
+     * Create a default project layer object that has a single property "key"
+     * with "project" as its value. 
+     *
+     */
+    function ProjectLayer() {
+        this.projectPath = null;
+    }
+
+    ProjectLayer.prototype = {
+        key: "project",
+
+        /**
+         * Retrieve the current value based on the current project path
+         * in the layer.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         */
+        get: function (data, id) {
+            if (!data || !this.projectPath) {
+                return;
+            }
+
+            if (data[this.projectPath] && data[this.projectPath][id]) {
+                return data[this.projectPath][id];
+            }
+            return;
+        },
+
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this project layer for the current project path.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @return {string} the Layer ID, in this case the current project path.
+         */
+        getPreferenceLocation: function (data, id) {
+            if (!data || !this.projectPath) {
+                return;
+            }
+
+            if (data[this.projectPath] && data[this.projectPath][id]) {
+                return this.projectPath;
+            }
+
+            return;
+        },
+
+        /**
+         * Sets the preference value in the given data structure for the layerID provided. If no
+         * layerID is provided, then the current project path is used. If a layerID is provided 
+         * and it does not exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} value new value to assign to the preference
+         * @param {Object} context Object with scope and layer key-value pairs (not yet used in project layer)
+         * @param {string=} layerID Optional: project path to be used for setting value
+         * @return {boolean} true if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (value === undefined) {
+                delete section[id];
+            } else {
+                section[id] = value;
+            }
+            return true;
+        },
+
+        /**
+         * Retrieves the keys provided by this layer object.
+         * 
+         * @param {Object} data the preference data from the Scope
+         */
+        getKeys: function (data) {
+            if (!data) {
+                return;
+            }
+
+            return _.union.apply(null, _.map(_.values(data), _.keys));
+        },
+
+        /**
+         * Set the project path to be used as the layer ID of this layer object.
+         * 
+         * @param {string} projectPath Path of the project root
+         */
+        setProjectPath: function (projectPath) {
+            this.projectPath = projectPath;
+        }
+    };
+    
     /**
      * Provides layered preferences based on file globs, generally following the model provided
      * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
@@ -1556,5 +1670,6 @@ define(function (require, exports, module) {
     exports.Scope              = Scope;
     exports.MemoryStorage      = MemoryStorage;
     exports.PathLayer          = PathLayer;
+    exports.ProjectLayer       = ProjectLayer;
     exports.FileStorage        = FileStorage;
 });
