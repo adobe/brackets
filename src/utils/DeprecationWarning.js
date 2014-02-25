@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         var indexOfFirstRequireJSline;
         
         // Remove everything in the stack up to the end of the line that shows this module file path
-        stack = stack.substr(stack.indexOf(")") + 1);
+        stack = stack.substr(stack.indexOf(")\n") + 2);
         
         // Find the very first line of require.js in the stack if the call is from an extension.
         // Remove all those lines from the call stack.

@@ -447,9 +447,7 @@ define(function (require, exports, module) {
      * @return {?string} - the scope to which the preference is to be migrated
      */
     function _isPanelPreferences(key) {
-        // TODO: Need to update 'panels' array to include all Edge Code panels.
-        var panels = ["problems-panel", "search-results"];
-        if (panels.indexOf(key) > -1) {
+        if (key) {
             return "user";
         }
         
