@@ -315,10 +315,18 @@ define(function (require, exports, module) {
             });
         });
         
+        function makeDummyLines(num) {
+            var content = [], i;
+            for (i = 0; i < num; i++) {
+                content.push("this is line " + i);
+            }
+            return content;
+        }
+        
         describe("Selections", function () {
             
             beforeEach(function () {
-                createTestEditor("this is line 1\nthis is line 2\nthis is line 3\nthis is line 4\nthis is line 5", "unknown");
+                createTestEditor(makeDummyLines(10).join("\n"), "unknown");
             });
                 
             describe("hasSelection", function () {
@@ -723,6 +731,202 @@ define(function (require, exports, module) {
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     
+                });
+            });
+            
+            describe("convertToLineSelections", function () {
+                it("should expand a cursor to a line selection, keeping original selection for tracking", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                });
+                
+                it("should expand a range within a line to a line selection, keeping original selection for tracking", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 8}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                });
+                
+                it("should expand a range that spans multiple lines to a line selection", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 1, ch: 8}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                });
+                
+                it("should preserve the reversed attribute on a tracked range", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 8}, reversed: true}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                });
+                
+                it("should keep a line selection the same if expandEndAtStartOfLine is not set", function () {
+                    var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                });
+                
+                it("should expand a line selection if expandEndAtStartOfLine is set", function () {
+                    var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true});
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                });
+                
+                it("should process a discontiguous mix of cursor, range, and line selections separately, preserving the primary tracked selection", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                          {start: {line: 2, ch: 4}, end: {line: 2, ch: 8}, primary: true},
+                                          {start: {line: 4, ch: 4}, end: {line: 5, ch: 8}},
+                                          {start: {line: 7, ch: 0}, end: {line: 8, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(4);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[1].selectionForEdit.start).toEqual({line: 2, ch: 0});
+                    expect(result[1].selectionForEdit.end).toEqual({line: 3, ch: 0});
+                    expect(result[1].selectionsToTrack.length).toBe(1);
+                    expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
+                    expect(result[2].selectionForEdit.start).toEqual({line: 4, ch: 0});
+                    expect(result[2].selectionForEdit.end).toEqual({line: 6, ch: 0});
+                    expect(result[2].selectionsToTrack.length).toBe(1);
+                    expect(result[2].selectionsToTrack[0]).toEqual(origSelections[2]);
+                    expect(result[3].selectionForEdit.start).toEqual({line: 7, ch: 0});
+                    expect(result[3].selectionForEdit.end).toEqual({line: 8, ch: 0}); // not expanded since expandEndAtStartOfLine is false
+                    expect(result[3].selectionsToTrack.length).toBe(1);
+                    expect(result[3].selectionsToTrack[0]).toEqual(origSelections[3]);
+                });
+
+                it("should merge selections on same line, preserving primary/reversed info on subsumed selections", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                          {start: {line: 0, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: true},
+                                          {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(2);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(2);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
+                    expect(result[1].selectionForEdit.start).toEqual({line: 4, ch: 0});
+                    expect(result[1].selectionForEdit.end).toEqual({line: 5, ch: 0});
+                    expect(result[1].selectionsToTrack.length).toBe(1);
+                    expect(result[1].selectionsToTrack[0]).toEqual(origSelections[2]);
+                });
+                
+                it("should merge selections on adjacent lines by default", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                          {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                          {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(2);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(2);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
+                    expect(result[1].selectionForEdit.start).toEqual({line: 4, ch: 0});
+                    expect(result[1].selectionForEdit.end).toEqual({line: 5, ch: 0});
+                    expect(result[1].selectionsToTrack.length).toBe(1);
+                    expect(result[1].selectionsToTrack[0]).toEqual(origSelections[2]);
+                });
+                
+                it("should merge adjacent multiline selections where the first selection ends on the same line where the second selection starts", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                          {start: {line: 1, ch: 8}, end: {line: 2, ch: 8}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 3, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(2);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
+                });
+                
+                it("should not merge selections on adjacent lines if mergeAdjacent is false", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                          {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                          {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections, {mergeAdjacent: false});
+                    expect(result.length).toBe(3);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 1, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[1].selectionForEdit.start).toEqual({line: 1, ch: 0});
+                    expect(result[1].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[1].selectionsToTrack.length).toBe(1);
+                    expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
+                    expect(result[2].selectionForEdit.start).toEqual({line: 4, ch: 0});
+                    expect(result[2].selectionForEdit.end).toEqual({line: 5, ch: 0}); // not expanded since expandEndAtStartOfLine not set
+                    expect(result[2].selectionsToTrack.length).toBe(1);
+                    expect(result[2].selectionsToTrack[0]).toEqual(origSelections[2]);
+                });
+                
+                it("should merge line selections separated by a one-line gap by default if expandEndAtStartOfLine is true", function () {
+                    var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, primary: true},
+                                          {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true});
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 4, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(2);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
+                });
+                
+                it("should not merge line selections separated by a one-line gap if expandEndAtStartOfLine is true but mergeAdjacent is false", function () {
+                    // Note that in this case, if you were to actually set this as a multiple selection, CodeMirror would
+                    // merge the adjacent selections at that point. But while processing an edit you might not want that.
+                    var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, primary: true},
+                                          {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true, mergeAdjacent: false});
+                    expect(result.length).toBe(2);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 2, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(1);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[1].selectionForEdit.start).toEqual({line: 2, ch: 0});
+                    expect(result[1].selectionForEdit.end).toEqual({line: 4, ch: 0});
+                    expect(result[1].selectionsToTrack.length).toBe(1);
+                    expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
+                });
+                
+                it("should merge multiple adjacent/overlapping selections together", function () {
+                    var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                          {start: {line: 1, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: true},
+                                          {start: {line: 2, ch: 8}, end: {line: 5, ch: 0}}],
+                        result = myEditor.convertToLineSelections(origSelections);
+                    expect(result.length).toBe(1);
+                    expect(result[0].selectionForEdit.start).toEqual({line: 0, ch: 0});
+                    expect(result[0].selectionForEdit.end).toEqual({line: 5, ch: 0});
+                    expect(result[0].selectionsToTrack.length).toBe(3);
+                    expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
+                    expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
+                    expect(result[0].selectionsToTrack[2]).toEqual(origSelections[2]);
                 });
             });
         });

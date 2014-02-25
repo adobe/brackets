@@ -139,7 +139,7 @@ define(function (require, exports, module) {
      *      tracked through the edit.
      * @return {{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}}
-     *      An edit description suitable for including in the edits array passed to `Editor.doMultipleEdits()`.
+     *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
     function _getLineCommentPrefixEdit(editor, prefixes, lineSel) {
         var doc         = editor.document,
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
      *      An array of selections that should be tracked through this edit.
      * @return {{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}}
-     *      An edit description suitable for including in the edits array passed to `Editor.doMultipleEdits()`.
+     *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
     function _getBlockCommentPrefixSuffixEdit(editor, prefix, suffix, linePrefixes, sel, selectionsToTrack) {
         var doc            = editor.document,
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
      *      tracked through the edit.
      * @return {{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}}
-     *      An edit description suitable for including in the edits array passed to `Editor.doMultipleEdits()`.
+     *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
     function _getLineCommentPrefixSuffixEdit(editor, prefix, suffix, lineSel) {
         var sel             = lineSel.selectionForEdit,
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
      *      selections The selections we want to line-comment.
      * @return {Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}|Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
      *                  selection: {start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}|Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>}
-     *      An array of edit descriptions suitable for including in the edits array passed to `Editor.doMultipleEdits()`.
+     *      An array of edit descriptions suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
     function _getLineCommentEdits(editor, selections) {
         // We need to expand line selections in order to coalesce cursors on the same line, but we
@@ -580,7 +580,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        editor.setSelections(editor.doMultipleEdits(_getLineCommentEdits(editor, editor.getSelections())));
+        editor.setSelections(editor.document.doMultipleEdits(_getLineCommentEdits(editor, editor.getSelections())));
     }
     
     /**
@@ -623,7 +623,7 @@ define(function (require, exports, module) {
         // selections can be tracked appropriately.
         edits.push.apply(edits, _getLineCommentEdits(editor, lineCommentSels));
         
-        editor.setSelections(editor.doMultipleEdits(edits));
+        editor.setSelections(editor.document.doMultipleEdits(edits));
     }
         
     /**
@@ -667,7 +667,7 @@ define(function (require, exports, module) {
             edits.push({edit: {text: doc.getRange(sel.start, sel.end), start: sel.start }});
         });
 
-        editor.doMultipleEdits(edits);
+        doc.doMultipleEdits(edits);
     }
 
     /**
@@ -681,7 +681,7 @@ define(function (require, exports, module) {
         }
         
         // Walk the selections, calculating the deletion edits we need to do as we go;
-        // editor.doMultipleEdits() will take care of adjusting the edit locations when
+        // document.doMultipleEdits() will take care of adjusting the edit locations when
         // it actually performs the edits.
         var doc = editor.document,
             from,
@@ -712,7 +712,7 @@ define(function (require, exports, module) {
             // part of the various deletions that occur.
             edits.push({edit: {text: "", start: from, end: to}});
         });
-        editor.doMultipleEdits(edits);
+        doc.doMultipleEdits(edits);
     }
     
     /**
@@ -801,7 +801,7 @@ define(function (require, exports, module) {
             }
         });
         if (edits.length) {
-            var newSels = editor.doMultipleEdits(edits);
+            var newSels = doc.doMultipleEdits(edits);
             if (direction === DIRECTION_UP) {
                 editor.setSelections(newSels);
             }
@@ -888,7 +888,7 @@ define(function (require, exports, module) {
                     }
                 }
             });
-            newSelections = editor.doMultipleEdits(edits, "+input");
+            newSelections = doc.doMultipleEdits(edits, "+input");
             
             // Now indent each added line (which doesn't mess up any line numbers, and
             // we're going to set the character offset to the last position on each line anyway).
