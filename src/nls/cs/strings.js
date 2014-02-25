@@ -36,7 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
-    "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci   {APP_NAME}.",
+    "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
     "FILE"                              : "Soubor",
     "DIRECTORY"                         : "Složka",
@@ -186,7 +186,7 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázany",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázány",
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",
