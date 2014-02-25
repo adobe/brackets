@@ -246,7 +246,7 @@ define(function (require, exports, module) {
      * @private
      * @type {$.Deferred}
      */
-    var _deferred = new $.Deferred();
+    var _prefManagerReadyDeferred = new $.Deferred();
     
     /**
      * Promises to add scopes. Used at init time only. 
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
 
             Async.waitForAll(_addScopePromises)
                 .always(function () {
-                    _deferred.resolve();
+                    _prefManagerReadyDeferred.resolve();
                 });
         });
     
@@ -639,7 +639,6 @@ define(function (require, exports, module) {
     }
     
     // Private API for unit testing and use elsewhere in Brackets core
-    exports.ready                  = _deferred.promise();
     exports._isUserScopeCorrupt    = function () { return _userScopeCorrupt; };
     exports._manager                = preferencesManager;
     exports._setCurrentEditingFile  = _setCurrentEditingFile;
@@ -651,6 +650,7 @@ define(function (require, exports, module) {
     exports.CURRENT_FILE        = CURRENT_FILE;
     exports.CURRENT_PROJECT     = CURRENT_PROJECT;
     
+    exports.ready               = _prefManagerReadyDeferred.promise();
     exports.getUserPrefFile     = getUserPrefFile;
     exports.get                 = get;
     exports.set                 = set;

@@ -1034,11 +1034,11 @@ define(function (require, exports, module) {
             scopeOrder: ["default"],
             _shadowScopeOrder: [{
                 id: "default",
+                scope: this._scopes["default"],
                 promise: (new $.Deferred()).resolve().promise()
             }]
         };
         
-        this._pendingEvents = {};
         this._pendingScopes = {};
         
         this._saveInProgress = false;
@@ -1257,7 +1257,6 @@ define(function (require, exports, module) {
                     .fail(function (err) {
                         // clean up all what's been done up to this point
                         _.pull(shadowScopeOrder, shadowEntry);
-                        delete this._pendingEvents[id];
                     }.bind(this));
                 if (this._pendingScopes[id]) {
                     var pending = this._pendingScopes[id];
@@ -1298,6 +1297,7 @@ define(function (require, exports, module) {
             if (scope) {
                 _.pull(this._defaultContext.scopeOrder, id);
                 var $this = $(this);
+                $(scope).off(".prefsys");
                 $this.trigger(SCOPEORDER_CHANGE, {
                     id: id,
                     action: "removed"
@@ -1305,7 +1305,6 @@ define(function (require, exports, module) {
                 $this.trigger(PREFERENCE_CHANGE, {
                     ids: scope.getKeys()
                 });
-                $(scope).off(".prefsys");
             }
         },
         
@@ -1377,22 +1376,13 @@ define(function (require, exports, module) {
             if (!scope) {
                 return;
             }
-            delete this._scopes[id];
-            delete this._pendingEvents[id];
-            _.pull(this._defaultContext.scopeOrder, id);
+
+            this.removeFromScopeOrder(id);
             shadowIndex = _.findIndex(this._defaultContext._shadowScopeOrder, function (entry) {
                 return entry.id === id;
             });
             this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
-            $(this).trigger(SCOPEORDER_CHANGE, {
-                id: id,
-                action: "removed"
-            });
-            $(this).trigger(PREFERENCE_CHANGE, {
-                ids: scope.getKeys()
-            });
-
-            $(scope).off(PREFERENCE_CHANGE);
+            delete this._scopes[id];
         },
         
         /**
