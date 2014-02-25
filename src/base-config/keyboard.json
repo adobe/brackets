@@ -187,22 +187,41 @@
     ],
     "view.zoomIn":  [
         {
+            "key": "Ctrl-Alt-=",
+            "displayKey": "Ctrl-Alt-+"
+        },
+        {
+            "key": "Ctrl-Alt-+",
+            "displayKey": "Ctrl-Alt-+"
+        },
+        {
             "key": "Alt-=",
-            "displayKey": "Alt-+"
+            "displayKey": "Alt-+",
+            "platform": "mac"
         },
         {
             "key": "Alt-+",
-            "displayKey": "Alt-+"
+            "platform": "mac"
         }
     ],
     "view.zoomOut":  [
         {
+            "key": "Ctrl-Alt--",
+            "displayKey": "Ctrl-Alt-−"
+        },
+        {
             "key": "Alt--",
-            "displayKey": "Alt-−"
+            "platform": "mac"
         }
     ],
     "view.resetZoom":  [
-        "Alt-0"
+        {
+            "key": "Ctrl-Alt-0"
+        },
+        {
+            "key": "Alt-0",
+            "platform": "mac"
+        }
     ],
     "view.scrollLineUp":  [
         {
