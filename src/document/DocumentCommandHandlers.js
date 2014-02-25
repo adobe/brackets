@@ -70,9 +70,11 @@ define(function (require, exports, module) {
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
-    /** @type {string} String template for window title when no file is open. */
+    /** @type {string} The current project name; displayed in window title. Set to app_title to avoid split-second display of null */
+    var _projectName = brackets.config.app_title;
+    /** @type {string} String template for window title when no file is open. Use emdash on mac only. */
     var WINDOW_TITLE_STRING_INIT = (brackets.platform !== "mac") ? "({0}) - {1}" : "({0}) \u2014 {1}";
-    /** @type {string} String template for window title. Use emdash on mac only. */
+    /** @type {string} String template for window title. */
     var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
@@ -94,10 +96,18 @@ define(function (require, exports, module) {
     /** @type {function} JSLint workaround for circular dependency */
     var handleFileSaveAs;
 
+    /**
+     * @private
+     * Get the project root and insert into the global name space.
+     */
+    function _getProjectName() {
+       _projectName = ProjectManager.getProjectRoot().name;
+    }
+
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING_INIT, ProjectManager.getProjectRoot().name, brackets.config.app_title);
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING_INIT, _projectName, brackets.config.app_title);
 
         if (!brackets.nativeMenus) {
             if (currentlyViewedPath) {
@@ -134,7 +144,7 @@ define(function (require, exports, module) {
 
         // build shell/browser window title, e.g. "• file.html (myProject) — Brackets"
         if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, ProjectManager.getProjectRoot().name, brackets.config.app_title);
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, _projectName, brackets.config.app_title);
         }
         
         if (currentDoc) {
@@ -1590,6 +1600,7 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
     
     // Listen for changes that require updating the editor titlebar
+    $(ProjectManager).on("projectOpen", _getProjectName);
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("fileNameChange", updateDocumentTitle);
     $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
