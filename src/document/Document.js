@@ -449,9 +449,10 @@ define(function (require, exports, module) {
     
     /**
      * Adjusts a given position taking a given replaceRange-type edit into account. 
-     * If the position is within the edit range (start exclusive, end inclusive),
-     * it gets pushed to the end. Otherwise, if it's after the edit, it gets adjusted
-     * so it refers to the same character it did before the edit.
+     * If the position is within the original edit range (start and end inclusive),
+     * it gets pushed to the end of the content that replaced the range. Otherwise, 
+     * if it's after the edit, it gets adjusted so it refers to the same character
+     * it did before the edit.
      * @param {!{line:number, ch: number}} pos The position to adjust.
      * @param {!Array.<string>} textLines The text of the change, split into an array of lines.
      * @param {!{line: number, ch: number}} start The start of the edit.

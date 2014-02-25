@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, jasmine, describe, beforeFirst, afterLast, afterEach, it, runs, waitsFor, expect, waitsForDone */
+/*global define, $, jasmine, describe, beforeFirst, afterLast, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
                 expect(shouldDie).toThrow();
             });
 
-        });        
+        });
     });
     
     describe("Document Integration", function () {
