@@ -70,8 +70,12 @@ define(function (require, exports, module) {
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
-    /** @type {string} String template for window title. Use emdash on mac only. */
-    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
+    /** @type {string} The current project name; displayed in window title. Set to app_title to avoid split-second display of null */
+    var _projectName = brackets.config.app_title;
+    /** @type {string} String template for window title when no file is open. Use emdash on mac only. */
+    var WINDOW_TITLE_STRING_INIT = (brackets.platform !== "mac") ? "({0}) - {1}" : "({0}) \u2014 {1}";
+    /** @type {string} String template for window title. */
+    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
@@ -95,7 +99,7 @@ define(function (require, exports, module) {
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
-            windowTitle = brackets.config.app_title;
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING_INIT, _projectName, brackets.config.app_title);
 
         if (!brackets.nativeMenus) {
             if (currentlyViewedPath) {
@@ -114,7 +118,7 @@ define(function (require, exports, module) {
                 _$dirtydot.css("visibility", "hidden");
             }
         
-            // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+            // Set _$titleWrapper to a fixed width just large enough to accommodate _$title. This seems equivalent to what
             // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
             // fixed width set on it (see the "#titlebar" CSS rule for details).
             _$titleWrapper.css("width", "");
@@ -130,9 +134,9 @@ define(function (require, exports, module) {
             }
         }
 
-        // build shell/browser window title, e.g. "• file.html — Brackets"
+        // build shell/browser window title, e.g. "• file.html (myProject) — Brackets"
         if (currentlyViewedPath) {
-            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, windowTitle);
+            windowTitle = StringUtils.format(WINDOW_TITLE_STRING, _currentTitlePath, _projectName, brackets.config.app_title);
         }
         
         if (currentDoc) {
@@ -168,7 +172,7 @@ define(function (require, exports, module) {
     function updateDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
 
-        // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
+        // TODO: This timer is causing a "Recursive tests with the same name are not supported"
         // exception. This code should be removed (if not needed), or updated with a unique
         // timer name (if needed).
         // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
@@ -227,7 +231,7 @@ define(function (require, exports, module) {
                 // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
                 // message that in turn calls _cleanup() after the user clicks OK in the message box.
                 // So we need to explicitly close the currently viewing image file whose filename is  
-                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
+                // no longer valid. Calling notifyPathDeleted will close the image viewer and then select 
                 // the previously opened text file or show no-editor if none exists.
                 EditorManager.notifyPathDeleted(fullFilePath);
             } else {
@@ -431,7 +435,7 @@ define(function (require, exports, module) {
      * @private
      * Ensures the suggested file name doesn't already exit.
      * @param {Directory} dir  The directory to use
-     * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
+     * @param {string} baseFileName  The base to start with, "-n" will get appended to make unique
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
      *   the given base name
@@ -755,7 +759,7 @@ define(function (require, exports, module) {
             newFile = FileSystem.getFileForPath(path);
             
             // Save as warns you when you're about to overwrite a file, so we
-            // explictly allow "blind" writes to the filesystem in this case,
+            // explicitly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
@@ -1588,6 +1592,9 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
     
     // Listen for changes that require updating the editor titlebar
+    $(ProjectManager).on("projectOpen", function () {
+        _projectName = ProjectManager.getProjectRoot().name;
+    });
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("fileNameChange", updateDocumentTitle);
     $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
