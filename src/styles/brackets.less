@@ -1403,9 +1403,11 @@ label input {
     top: 0;
     left: 0;
     z-index: @z-index-brackets-inline-editor-error;
-    visibility: hidden;
     opacity: 1.0;
-    
+
+    -webkit-transform: scale(0);
+    transform: scale(0);
+
     .text {
         padding: 5px 10px;
         background-color: @bc-error;
@@ -1428,11 +1430,22 @@ label input {
         border-color: @bc-error transparent transparent transparent;
         border-style: solid;
     }
-    &.animating {
-        opacity: 0.0;
+    &.animateOpen {
+        -webkit-transition: -webkit-transform 125ms;
+        transition: transform 125ms;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+    &.animateClose {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        transition: 500ms 5s opacity ease-in;
+        -webkit-transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
+        transition: opacity 500ms 5s ease-in, transform 500ms 5s;
+        opacity: 0.0;
+    }
+    &.open {
+        -webkit-transform: scale(1);
+        transform: scale(1);
     }
 }

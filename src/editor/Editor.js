@@ -1331,7 +1331,7 @@ define(function (require, exports, module) {
         }
         
         // Popover text and arrow are positioned individually
-        this._$messagePopover.css({"visibility": "visible", "top": top, "left": left});
+        this._$messagePopover.css({"top": top, "left": left});
         
         // Position popover arrow exactly centered over/under cursor
         arrowLeft = cursorCoord.left - left - POPOVER_ARROW_HALF_WIDTH;
@@ -1341,8 +1341,11 @@ define(function (require, exports, module) {
             this._$messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
         }
         
-        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animating")
-            .done(_clearMessagePopover);
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
+            self._$messagePopover.addClass("open");
+            AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
+                .done(_clearMessagePopover);
+        });
     };
     
     /**
