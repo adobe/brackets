@@ -207,25 +207,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
         return getLiveDocForPath(editor.document.file.fullPath);
     }
-    
-    function _deleteRelatedDocument(liveDoc) {
-        if (_relatedDocuments[liveDoc.doc.url]) {
-            delete _relatedDocuments[liveDoc.doc.url];
-        }
-            
-        if (_server) {
-            _server.remove(liveDoc);
-        }
-    }
-    
-    /**
-     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
-     * given file is no longer associated with the HTML document that is live (e.g.
-     * if the related file has been deleted on disk).
-     */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
-        _deleteRelatedDocument(liveDoc);
-    }
 
     /**
      * @private
@@ -253,6 +234,42 @@ define(function LiveDevelopment(require, exports, module) {
                 liveDocument.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
             }
         });
+    }
+
+    /**
+     * @private
+     * Close a live document
+     */
+    function _closeDocument(liveDocument) {
+        _doClearErrors(liveDocument);
+        liveDocument.close();
+        
+        if (liveDocument.editor) {
+            $(liveDocument.editor).off(".livedev");
+        }
+        
+        $(liveDocument).off(".livedev");
+    }
+    
+    function _removeRelatedDocument(liveDoc) {
+        if (_relatedDocuments[liveDoc.doc.url]) {
+            delete _relatedDocuments[liveDoc.doc.url];
+        }
+            
+        if (_server) {
+            _server.remove(liveDoc);
+        }
+        
+        _closeDocument(liveDoc);
+    }
+    
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        _removeRelatedDocument(liveDoc);
     }
 
     /**
@@ -315,21 +332,6 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * Close a live document
-     */
-    function _closeDocument(liveDocument) {
-        _doClearErrors(liveDocument);
-        liveDocument.close();
-        
-        if (liveDocument.editor) {
-            $(liveDocument.editor).off(".livedev");
-        }
-        
-        $(liveDocument).off(".livedev");
-    }
-
-    /**
-     * @private
      * Close all live documents
      */
     function _closeDocuments() {
@@ -340,6 +342,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         Object.keys(_relatedDocuments).forEach(function (url) {
             _closeDocument(_relatedDocuments[url]);
+            delete _relatedDocuments[url];
         });
         
         // Clear all documents from request filtering
@@ -460,7 +463,7 @@ define(function LiveDevelopment(require, exports, module) {
         var liveDoc = _relatedDocuments[url];
         
         if (liveDoc) {
-            _deleteRelatedDocument(liveDoc);
+            _removeRelatedDocument(liveDoc);
         }
     }
 
