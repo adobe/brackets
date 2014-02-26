@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
+        AppInit                 = require("utils/AppInit"),
         Async                   = require("utils/Async"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
@@ -256,6 +257,7 @@ define(function (require, exports, module) {
     var _addScopePromises = [];
     
     var preferencesManager = new PreferencesBase.PreferencesSystem();
+    preferencesManager.pauseChangeEvents();
 
     // Create a Project scope
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
@@ -638,11 +640,16 @@ define(function (require, exports, module) {
         }
     }
     
+    AppInit.appReady(function () {
+        preferencesManager.resumeChangeEvents();
+    });
+    
     // Private API for unit testing and use elsewhere in Brackets core
     exports._isUserScopeCorrupt    = function () { return _userScopeCorrupt; };
     exports._manager                = preferencesManager;
     exports._setCurrentEditingFile  = _setCurrentEditingFile;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
+    exports._smUserScopeLoading     = smUserScopeLoading;
     
     // Public API
     

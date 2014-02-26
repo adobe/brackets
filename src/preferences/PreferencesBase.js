@@ -1055,6 +1055,9 @@ define(function (require, exports, module) {
         // Keeps track of cached path scope objects.
         this._pathScopes = {};
         
+        // Keeps track of change events that need to be sent when change events are resumed
+        this._changeEventQueue = null;
+        
         var notifyPrefChange = function (id) {
             var pref = this._knownPrefs[id];
             if (pref) {
@@ -1173,7 +1176,7 @@ define(function (require, exports, module) {
                     id: shadowEntry.id,
                     action: "added"
                 });
-                $this.trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: shadowEntry.scope.getKeys()
                 });
                 break;
@@ -1209,10 +1212,11 @@ define(function (require, exports, module) {
                 shadowScopeOrder = this._defaultContext._shadowScopeOrder,
                 shadowEntry,
                 index,
-                isPending = false;
+                isPending = false,
+                self = this;
 
             $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
-                $(this).trigger(PREFERENCE_CHANGE, data);
+                self._triggerChange(data);
             }.bind(this));
 
             index = _.findIndex(shadowScopeOrder, function (entry) {
@@ -1302,7 +1306,7 @@ define(function (require, exports, module) {
                     id: id,
                     action: "removed"
                 });
-                $this.trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: scope.getKeys()
                 });
             }
@@ -1494,7 +1498,7 @@ define(function (require, exports, module) {
             
             var wasSet = scope.set(id, value, context, location);
             if (wasSet) {
-                $(this).trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: [id]
                 });
             }
@@ -1565,7 +1569,7 @@ define(function (require, exports, module) {
             
             changes = _.union.apply(null, changes);
             if (changes.length > 0) {
-                $(this).trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: changes
                 });
             }
@@ -1627,6 +1631,47 @@ define(function (require, exports, module) {
                 pref.off(event, handler);
             } else {
                 $(this).off(event, handler);
+            }
+        },
+        
+        /**
+         * @private
+         * 
+         * Sends a change event to listeners. If change events have been paused (see
+         * pauseChangeEvents) then the IDs are queued up.
+         * 
+         * @param {{ids: Array.<string>}} data Message to send
+         */
+        _triggerChange: function (data) {
+            if (this._changeEventQueue) {
+                this._changeEventQueue = _.union(this._changeEventQueue, data.ids);
+            } else {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }
+        },
+        
+        /**
+         * Turns off sending of change events, queueing them up for sending once sending is resumed.
+         * The events are compacted so that each preference that will be notified is only
+         * notified once. (For example, if `spaceUnits` is changed 5 times, only one change
+         * event will be sent upon resuming events.)
+         */
+        pauseChangeEvents: function () {
+            if (!this._changeEventQueue) {
+                this._changeEventQueue = [];
+            }
+        },
+        
+        /**
+         * Turns sending of events back on, sending any events that were queued while the
+         * events were paused.
+         */
+        resumeChangeEvents: function () {
+            if (this._changeEventQueue) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: this._changeEventQueue
+                });
+                this._changeEventQueue = null;
             }
         },
         

@@ -816,7 +816,8 @@ define(function (require, exports, module) {
             currentDoc   = getCurrentDocument(),
             projectRoot  = ProjectManager.getProjectRoot(),
             context      = { location : { scope: "user",
-                                          layer: "project" } };
+                                          layer: "project",
+                                          layerID: projectRoot.fullPath } };
 
         if (!projectRoot) {
             return;
