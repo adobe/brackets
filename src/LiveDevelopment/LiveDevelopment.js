@@ -432,7 +432,6 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
-        _setStatus(STATUS_ERROR);
     }
     
     function _styleSheetAdded(event, url) {
