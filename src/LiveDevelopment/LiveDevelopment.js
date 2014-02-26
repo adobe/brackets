@@ -979,11 +979,10 @@ define(function LiveDevelopment(require, exports, module) {
             // navigate to the page first before loading can complete.
             // To accomodate this, we load all agents and navigate in
             // parallel.
-            loadAgents();   // TODO - should we use Async.doInParallel() here?
-                            // We could also separate into preLoadAgents() and postLoadAgents()
+            loadAgents();
 
             _getInitialDocFromCurrent().done(function (doc) {
-                if (doc) {
+                if (doc && _liveDocument && doc === _liveDocument.doc) {
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
                     if (_server) {
@@ -1328,8 +1327,7 @@ define(function LiveDevelopment(require, exports, module) {
             // navigate to the page first before loading can complete.
             // To accomodate this, we load all agents (in reconnect())
             // and navigate in parallel.
-            reconnect();    // TODO - should we use Async.doInParallel() here?
-                            // We could also separate into preLoadAgents() and postLoadAgents()
+            reconnect();
 
             // Reload HTML page
             Inspector.Page.reload();
