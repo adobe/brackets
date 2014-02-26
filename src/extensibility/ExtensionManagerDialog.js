@@ -60,17 +60,17 @@ define(function (require, exports, module) {
             return;
         }
         
-        var buttonLabel = Strings.CHANGE_AND_QUIT;
+        var buttonLabel = Strings.CHANGE_AND_RELOAD;
         if (hasRemovedExtensions && !hasUpdatedExtensions) {
-            buttonLabel = Strings.REMOVE_AND_QUIT;
+            buttonLabel = Strings.REMOVE_AND_RELOAD;
         } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
-            buttonLabel = Strings.UPDATE_AND_QUIT;
+            buttonLabel = Strings.UPDATE_AND_RELOAD;
         }
         
         var dlg = Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_CHANGE_EXTENSIONS,
-            Strings.CHANGE_AND_QUIT_TITLE,
-            Strings.CHANGE_AND_QUIT_MESSAGE,
+            Strings.CHANGE_AND_RELOAD_TITLE,
+            Strings.CHANGE_AND_RELOAD_MESSAGE,
             [
                 {
                     className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
@@ -103,7 +103,7 @@ define(function (require, exports, module) {
                         ExtensionManager.updateExtensions()
                             .done(function () {
                                 dlg.close();
-                                CommandManager.execute(Commands.FILE_QUIT);
+                                CommandManager.execute(Commands.APP_RELOAD);
                             })
                             .fail(function (errorArray) {
                                 dlg.close();
@@ -126,8 +126,8 @@ define(function (require, exports, module) {
                                     Strings.EXTENSION_MANAGER_UPDATE,
                                     StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
                                 ).done(function () {
-                                    // We still have to quit even if some of the removals failed.
-                                    CommandManager.execute(Commands.FILE_QUIT);
+                                    // We still have to reload even if some of the removals failed.
+                                    CommandManager.execute(Commands.APP_RELOAD);
                                 });
                             });
                     })
@@ -144,8 +144,8 @@ define(function (require, exports, module) {
                             Strings.EXTENSION_MANAGER_REMOVE,
                             StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
                         ).done(function () {
-                            // We still have to quit even if some of the removals failed.
-                            CommandManager.execute(Commands.FILE_QUIT);
+                            // We still have to reload even if some of the removals failed.
+                            CommandManager.execute(Commands.APP_RELOAD);
                         });
                     });
             } else {
@@ -207,7 +207,9 @@ define(function (require, exports, module) {
         // Dialog tabs
         $dlg.find(".nav-tabs a")
             .on("click", function (event) {
+                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
                 $(this).tab("show");
+                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
             });
         
         // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount

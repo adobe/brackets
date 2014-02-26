@@ -28,7 +28,9 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
-        FileSystem       = require("filesystem/FileSystem");
+        FileSystem       = require("filesystem/FileSystem"),
+        StringUtils      = require("utils/StringUtils"),
+        Strings;
 
     describe("Code Inspection", function () {
         this.category = "integration";
@@ -38,6 +40,8 @@ define(function (require, exports, module) {
             $,
             brackets,
             CodeInspection,
+            CommandManager,
+            Commands  = require("command/Commands"),
             EditorManager;
 
         var toggleJSLintResults = function (visible) {
@@ -104,6 +108,8 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
+                    Strings = testWindow.require("strings");
+                    CommandManager = brackets.test.CommandManager;
                     EditorManager = brackets.test.EditorManager;
                     CodeInspection = brackets.test.CodeInspection;
                     CodeInspection.toggleEnabled(true);
@@ -123,6 +129,7 @@ define(function (require, exports, module) {
             testWindow    = null;
             $             = null;
             brackets      = null;
+            CommandManager = null;
             EditorManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
@@ -487,7 +494,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should run two linter and display two expanded collapsible sections in the errors panel", function () {
+            it("should run two linters and display two expanded collapsible sections in the errors panel", function () {
                 var codeInspector1 = createCodeInspector("javascript linter 1", failLintResult());
                 var codeInspector2 = createCodeInspector("javascript linter 2", failLintResult());
                 CodeInspection.register("javascript", codeInspector1);
@@ -537,13 +544,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("1 JavaScript Linter Problem");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("1 JavaScript Linter Problem");
+                    expect(tooltip).toBe(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"));
                 });
             });
 
@@ -570,13 +577,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("2 JavaScript Linter Problems");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("2 JavaScript Linter Problems");
+                    expect(tooltip).toBe(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2));
                 });
             });
 
@@ -592,14 +599,14 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("2 Problems");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
                     // tooltip will contain + in the title if the inspection was aborted
-                    expect(tooltip).toBe("2 Problems");
+                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
                 });
             });
 
@@ -616,7 +623,7 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("No problems found - good job!");
+                    expect(tooltip).toBe(Strings.NO_ERRORS_MULTIPLE_PROVIDER);
                 });
             });
 
@@ -631,7 +638,89 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("No JavaScript Linter1 problems found - good job!");
+                    expect(tooltip).toBe(StringUtils.format(Strings.NO_ERRORS, "JavaScript Linter1"));
+                });
+            });
+            
+            it("should Go to First Error with errors from only one provider", function () {
+                var codeInspector = createCodeInspector("javascript linter", failLintResult());
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
+                    
+                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+            });
+
+            it("should Go to First Error with errors from two providers", function () {
+                var codeInspector1 = createCodeInspector("javascript linter 1", {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                var codeInspector2 = createCodeInspector("javascript linter 2", {
+                    errors: [
+                        {
+                            pos: { line: 0, ch: 2 },
+                            message: "Different error",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    CommandManager.execute(Commands.NAVIGATE_GOTO_FIRST_PROBLEM);
+                    
+                    // 'first' error is in order of linter registration, not in line number order
+                    expect(EditorManager.getActiveEditor().getCursorPos()).toEqual({line: 1, ch: 3});
+                });
+            });
+
+            it("should handle missing or negative line numbers gracefully (https://github.com/adobe/brackets/issues/6441)", function () {
+                var codeInspector1 = createCodeInspector("NoLineNumberLinter", {
+                    errors: [
+                        {
+                            pos: { line: -1, ch: 0 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+
+                var codeInspector2 = createCodeInspector("NoLineNumberLinter2", {
+                    errors: [
+                        {
+                            pos: { line: "all", ch: 0 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $problemPanelTitle = $("#problems-panel .title").text();
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
                 });
             });
         });

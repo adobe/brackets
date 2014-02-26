@@ -41,6 +41,7 @@ define(function (require, exports, module) {
 
         Data                = require("text!data.json"),
 
+        urlHints,
         data,
         htmlAttrs;
     
@@ -766,19 +767,24 @@ define(function (require, exports, module) {
         return false;
     };
 
-    AppInit.appReady(function () {
-        data            = JSON.parse(Data);
-        htmlAttrs       = data.htmlAttrs;
+    function _clearCachedHints() {
+        // Verify cache exists and is not deferred
+        if (urlHints && urlHints.cachedHints && urlHints.cachedHints.deferred &&
+                urlHints.cachedHints.deferred.state() !== "pending") {
 
-        var urlHints = new UrlCodeHints();
-        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
-        
-        function _clearCachedHints() {
             // Cache may or may not be stale. Main benefit of cache is to limit async lookups
             // during typing. File tree updates cannot happen during typing, so it's probably
             // not worth determining whether cache may still be valid. Just delete it.
             urlHints.cachedHints = null;
         }
+    }
+        
+    AppInit.appReady(function () {
+        data            = JSON.parse(Data);
+        htmlAttrs       = data.htmlAttrs;
+
+        urlHints        = new UrlCodeHints();
+        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
         
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);

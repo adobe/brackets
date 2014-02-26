@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     exports.FILE_DELETE                 = "file.delete";                // DocumentCommandHandlers.js   handleFileDelete()
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";      // ExtensionManagerDialog.js    _showDialog()
     exports.FILE_REFRESH                = "file.refresh";               // ProjectManager.js            refreshFileTree()
+    exports.FILE_OPEN_PREFERENCES       = "file.openPreferences";       // PreferencesManager.js        _handleOpenPreferences()
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.FILE_CLOSE_WINDOW           = "file.close_window";          // DocumentCommandHandlers.js   handleFileCloseWindow()
@@ -132,8 +133,11 @@ define(function (require, exports, module) {
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()
 
     // APP
+    exports.APP_RELOAD                  = "app.reload";                 // DocumentCommandHandlers.js   handleReload()
+    exports.APP_RELOAD_WITHOUT_EXTS     = "app.reload_without_exts";    // DocumentCommandHandlers.js   handleReloadWithoutExts()
+    
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
-    exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   _handleAbortQuit()
-    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   _handleBeforeMenuPopup()
+    exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
+    exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
 });
 

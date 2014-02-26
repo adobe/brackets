@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,57 +32,71 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        Strings                 = require("strings");
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        Strings                 = require("strings"),
+        _                       = require("thirdparty/lodash");
+    
+    // Constants for the preferences referred to in this file
+    var SHOW_LINE_NUMBERS = "showLineNumbers",
+        STYLE_ACTIVE_LINE = "styleActiveLine",
+        WORD_WRAP         = "wordWrap",
+        CLOSE_BRACKETS    = "closeBrackets";
     
     /**
      * @private
-     * Activates/Deactivates showing line numbers option
+     * 
+     * Maps from preference names to the command names needed to update the checked status.
      */
-    function _toggleLineNumbers() {
-        Editor.setShowLineNumbers(!Editor.getShowLineNumbers());
-        CommandManager.get(Commands.TOGGLE_LINE_NUMBERS).setChecked(Editor.getShowLineNumbers());
+    var _optionMapping = {};
+    _optionMapping[SHOW_LINE_NUMBERS] = Commands.TOGGLE_LINE_NUMBERS;
+    _optionMapping[STYLE_ACTIVE_LINE] = Commands.TOGGLE_ACTIVE_LINE;
+    _optionMapping[WORD_WRAP] = Commands.TOGGLE_WORD_WRAP;
+    _optionMapping[CLOSE_BRACKETS] = Commands.TOGGLE_CLOSE_BRACKETS;
+    
+    /**
+     * @private
+     * 
+     * Updates the command checked status based on the preference name given.
+     * 
+     * @param {string} name Name of preference that has changed
+     */
+    function _updateCheckedState(name) {
+        var mapping = _optionMapping[name];
+        if (!mapping) {
+            return;
+        }
+        CommandManager.get(mapping).setChecked(PreferencesManager.get(name));
     }
     
-
+    // Listen to preference changes for the preferences we care about
+    Object.keys(_optionMapping).forEach(function (preference) {
+        PreferencesManager.on("change", preference, function () {
+            _updateCheckedState(preference);
+        });
+    });
+        
     /**
      * @private
-     * Activates/Deactivates showing active line option
+     * Creates a function that will toggle the named preference.
+     * 
+     * @param {string} prefName Name of preference that should be toggled by the function
      */
-    function _toggleActiveLine() {
-        Editor.setShowActiveLine(!Editor.getShowActiveLine());
-        CommandManager.get(Commands.TOGGLE_ACTIVE_LINE).setChecked(Editor.getShowActiveLine());
-    }
-    
-
-    /**
-     * @private
-     * Activates/Deactivates word wrap option
-     */
-    function _toggleWordWrap() {
-        Editor.setWordWrap(!Editor.getWordWrap());
-        CommandManager.get(Commands.TOGGLE_WORD_WRAP).setChecked(Editor.getWordWrap());
-    }
-    
-    /**
-     * @private
-     * Activates/Deactivates the automatic close brackets option
-     */
-    function _toggleCloseBrackets() {
-        Editor.setCloseBrackets(!Editor.getCloseBrackets());
-        CommandManager.get(Commands.TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
+    function _getToggler(prefName) {
+        return function () {
+            PreferencesManager.set(prefName, !PreferencesManager.get(prefName));
+        };
     }
     
     function _init() {
-        CommandManager.get(Commands.TOGGLE_LINE_NUMBERS).setChecked(Editor.getShowLineNumbers());
-        CommandManager.get(Commands.TOGGLE_ACTIVE_LINE).setChecked(Editor.getShowActiveLine());
-        CommandManager.get(Commands.TOGGLE_WORD_WRAP).setChecked(Editor.getWordWrap());
-        CommandManager.get(Commands.TOGGLE_CLOSE_BRACKETS).setChecked(Editor.getCloseBrackets());
+        _.each(_optionMapping, function (commandName, prefName) {
+            CommandManager.get(commandName).setChecked(PreferencesManager.get(prefName));
+        });
     }
     
-    CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _toggleLineNumbers);
-    CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _toggleActiveLine);
-    CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _toggleWordWrap);
-    CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _toggleCloseBrackets);
+    CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _getToggler(SHOW_LINE_NUMBERS));
+    CommandManager.register(Strings.CMD_TOGGLE_ACTIVE_LINE, Commands.TOGGLE_ACTIVE_LINE, _getToggler(STYLE_ACTIVE_LINE));
+    CommandManager.register(Strings.CMD_TOGGLE_WORD_WRAP, Commands.TOGGLE_WORD_WRAP, _getToggler(WORD_WRAP));
+    CommandManager.register(Strings.CMD_TOGGLE_CLOSE_BRACKETS, Commands.TOGGLE_CLOSE_BRACKETS, _getToggler(CLOSE_BRACKETS));
 
     AppInit.htmlReady(_init);
 });

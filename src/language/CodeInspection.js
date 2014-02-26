@@ -60,11 +60,7 @@ define(function (require, exports, module) {
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
     
-    var INDICATOR_ID = "status-inspection",
-        defaultPrefs = {
-            enabled: brackets.config["linting.enabled_by_default"],
-            collapsed: false
-        };
+    var INDICATOR_ID = "status-inspection";
 
     /** Values for problem's 'type' property */
     var Type = {
@@ -77,18 +73,25 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @private
-     * @type {PreferenceStorage}
+     * Constants for the preferences defined in this file.
      */
-    var _prefs = null;
-
+    var PREF_ENABLED = "enabled",
+        PREF_COLLAPSED = "collapsed";
+    
+    var prefs = PreferencesManager.getExtensionPrefs("linting");
+    
+    PreferencesManager.convertPreferences(module, {
+        "enabled": "user linting.enabled",
+        "collapsed": "user linting.collapsed"
+    });
+    
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
      * @private
      * @type {boolean}
      */
-    var _enabled = true;
+    var _enabled = false;
 
     /**
      * When collapsed, the errors panel is closed but the status bar icon is kept up to date.
@@ -278,7 +281,10 @@ define(function (require, exports, module) {
 
     /**
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
-     * bottom panel.
+     * bottom panel. Does not run if inspection is disabled or if a providerName is given and does not
+     * match the current doc's provider name.
+     * 
+     * @param {?string} providerName name of the provider that is requesting a run
      */
     function run() {
         if (!_enabled) {
@@ -333,13 +339,14 @@ define(function (require, exports, module) {
 
                     if (inspectionResult.result) {
                         inspectionResult.result.errors.forEach(function (error) {
-                            // some inspectors don't always provide a line number
-                            if (!isNaN(error.pos.line)) {
+                            // some inspectors don't always provide a line number or report a negative line number
+                            if (!isNaN(error.pos.line) &&
+                                    (error.pos.line + 1) > 0 &&
+                                    (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                                 error.friendlyLine = error.pos.line + 1;
-                                error.codeSnippet = currentDoc.getLine(error.pos.line);
                                 error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
                             }
-
+                            
                             if (error.type !== Type.META) {
                                 numProblems++;
                             }
@@ -449,17 +456,27 @@ define(function (require, exports, module) {
     /**
      * Enable or disable all inspection.
      * @param {?boolean} enabled Enabled state. If omitted, the state is toggled.
+     * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
      */
-    function toggleEnabled(enabled) {
+    function toggleEnabled(enabled, doNotSave) {
         if (enabled === undefined) {
             enabled = !_enabled;
         }
+        
+        // Take no action when there is no change.
+        if (enabled === _enabled) {
+            return;
+        }
+        
         _enabled = enabled;
 
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
         updateListeners();
-        _prefs.setValue("enabled", _enabled);
-
+        if (!doNotSave) {
+            prefs.set(PREF_ENABLED, _enabled);
+            prefs.save();
+        }
+    
         // run immediately
         run();
     }
@@ -470,15 +487,23 @@ define(function (require, exports, module) {
      * collapsed, the panel will not reopen automatically on switch files or save.
      *
      * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
+     * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
      */
-    function toggleCollapsed(collapsed) {
+    function toggleCollapsed(collapsed, doNotSave) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
+        
+        if (collapsed === _collapsed) {
+            return;
+        }
 
         _collapsed = collapsed;
-        _prefs.setValue("collapsed", _collapsed);
-
+        if (!doNotSave) {
+            prefs.set(PREF_COLLAPSED, _collapsed);
+            prefs.save();
+        }
+        
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
@@ -492,17 +517,27 @@ define(function (require, exports, module) {
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
-            $problemsPanel.find("tr:first-child").trigger("click");
+            $problemsPanel.find("tr:not(.inspector-section)").first().trigger("click");
         }
     }
 
     // Register command handlers
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
+    
+    // Register preferences
+    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
+        .on("change", function (e, data) {
+            toggleEnabled(prefs.get(PREF_ENABLED), true);
+        });
+    
+    prefs.definePreference(PREF_COLLAPSED, "boolean", false)
+        .on("change", function (e, data) {
+            toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
+        });
+    
 
-    // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
-
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
@@ -559,8 +594,8 @@ define(function (require, exports, module) {
         });
 
         // Set initial UI state
-        toggleEnabled(_prefs.getValue("enabled"));
-        toggleCollapsed(_prefs.getValue("collapsed"));
+        toggleEnabled(prefs.get(PREF_ENABLED), true);
+        toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
     });
 
     // Testing
@@ -571,4 +606,5 @@ define(function (require, exports, module) {
     exports.Type           = Type;
     exports.toggleEnabled  = toggleEnabled;
     exports.inspectFile    = inspectFile;
+    exports.requestRun    = run;
 });

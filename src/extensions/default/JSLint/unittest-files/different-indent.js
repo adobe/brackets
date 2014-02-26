@@ -1,0 +1,3 @@
+function notAnError() {
+  "use strict";
+}

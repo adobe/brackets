@@ -53,7 +53,7 @@ define({
     "ERROR_RENAMING_FILE_TITLE"         : "Dosya ismi değiştirilirken hata",
     "ERROR_RENAMING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyasının ismi değiştirilirken hata meydana geldi. {1}",
     "INVALID_FILENAME_TITLE"            : "Hatalı dosya ismi",
-    "INVALID_FILENAME_MESSAGE"          : "Dosya isimleri yandaki karakterleri bulunduramaz: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Dosya isimleri yandaki karakterleri bulunduramaz: {0}",
     "FILE_ALREADY_EXISTS"               : "<span class='dialog-filename'>{0}</span> dosyası zaten bulunmakta",
     "ERROR_CREATING_FILE_TITLE"         : "Dosya yaratılırken hata",
     "ERROR_CREATING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyası yaratılırken hata meydana geldi. {1}",
@@ -267,27 +267,6 @@ define({
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
     "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
     "LANGUAGE_CANCEL"                      : "İptal",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_DE"                                 : "Almanca",
-    "LOCALE_EN"                                 : "Ingilizce",
-    "LOCALE_FR"                                 : "Fransizca",
-    "LOCALE_CS"                                 : "Çekçe",
-    "LOCALE_ES"                                 : "İspanyolca",
-    "LOCALE_IT"                                 : "İtalyanca",
-    "LOCALE_JA"                                 : "Japonca",
-    "LOCALE_NB"                                 : "Norveççe",
-    "LOCALE_PL"                                 : "Polonyaca",
-    "LOCALE_PT_BR"                              : "Portekizce, Brezilya",
-    "LOCALE_PT_PT"                              : "Portekizce",
-    "LOCALE_RU"                                 : "Rusça",
-	"LOCALE_SR"                                 : "Sırpça",
-    "LOCALE_SV"                                 : "İsveççe",
-    "LOCALE_TR"                                 : "Türkçe",
-    "LOCALE_ZH_CN"                              : "Çince, basitleştirilmiş",
-    "LOCALE_HU"                                 : "Macarca",
     
     // extensions/default/JSLint
     "CMD_JSLINT"                           : "JSLint Aç",

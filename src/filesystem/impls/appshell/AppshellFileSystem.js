@@ -390,7 +390,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, expectedHash : object=}} options
+     * @param {{encoding : string=, mode : number=, expectedHash : object=, expectedContents : string=}} options
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
@@ -422,8 +422,21 @@ define(function (require, exports, module) {
             
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
-                callback(FileSystemError.CONTENTS_MODIFIED);
-                return;
+
+                if (options.hasOwnProperty("expectedContents")) {
+                    appshell.fs.readFile(path, encoding, function (_err, _data) {
+                        if (_err || _data !== options.expectedContents) {
+                            callback(FileSystemError.CONTENTS_MODIFIED);
+                            return;
+                        }
+                    
+                        _finishWrite(false);
+                    });
+                    return;
+                } else {
+                    callback(FileSystemError.CONTENTS_MODIFIED);
+                    return;
+                }
             }
             
             _finishWrite(false);
@@ -550,7 +563,7 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = appshell.platform === "mac";
+    exports.recursiveWatch = appshell.platform === "mac" || appshell.platform === "win";
     
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC

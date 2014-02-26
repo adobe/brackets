@@ -41,8 +41,7 @@ define(function (require, exports, module) {
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
-    var defaultPrefs               = { enabled: true },
-        enabled,                             // Only show preview if true
+    var enabled,                             // Only show preview if true
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
@@ -53,6 +52,9 @@ define(function (require, exports, module) {
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
+    
+    prefs = PreferencesManager.getExtensionPrefs("quickview");
+    prefs.definePreference("enabled", "boolean", true);
 
     /**
      * There are three states for this var:
@@ -661,7 +663,7 @@ define(function (require, exports, module) {
         CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
-    function setEnabled(_enabled) {
+    function setEnabled(_enabled, doNotSave) {
         if (enabled !== _enabled) {
             enabled = _enabled;
             var editorHolder = $("#editor-holder")[0];
@@ -687,7 +689,10 @@ define(function (require, exports, module) {
 
                 hidePreview();
             }
-            prefs.setValue("enabled", enabled);
+            if (!doNotSave) {
+                prefs.set("enabled", enabled);
+                prefs.save();
+            }
         }
         // Always update the checkmark, even if the enabled flag hasn't changed.
         updateMenuItemCheckmark();
@@ -708,11 +713,17 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
     Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
     
-    // Init PreferenceStorage
-    prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    // Convert old preferences
+    PreferencesManager.convertPreferences(module, {
+        "enabled": "user quickview.enabled"
+    });
 
     // Setup initial UI state
-    setEnabled(prefs.getValue("enabled"));
+    setEnabled(prefs.get("enabled"), true);
+    
+    prefs.on("change", "enabled", function () {
+        setEnabled(prefs.get("enabled"), true);
+    });
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;
