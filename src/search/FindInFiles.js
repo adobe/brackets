@@ -818,7 +818,7 @@ define(function (require, exports, module) {
         };
         
         var $searchField = $("input#find-what"),
-            $filterDropdown = $(".exclusions-dropdown", that.modalBar.getRoot());
+            filterPicker;
         
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
@@ -845,7 +845,7 @@ define(function (require, exports, module) {
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
-                        var userFilter = FileFilters.commitDropdown($filterDropdown);
+                        var userFilter = FileFilters.commitPicker(filterPicker);
                         _doSearch(query, userFilter);
                     }
                 }
@@ -860,7 +860,8 @@ define(function (require, exports, module) {
             handleQueryChange();  // re-validate regexp if needed
         });
         
-        FileFilters.populateDropdown($filterDropdown);
+        filterPicker = FileFilters.createFilterPicker();
+        this.modalBar.getRoot().find("#find-group").append(filterPicker.$button);
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();

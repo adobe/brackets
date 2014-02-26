@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var _                   = require("thirdparty/lodash"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Dialogs             = require("widgets/Dialogs"),
+        DropdownButton      = require("widgets/DropdownButton").DropdownButton,
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
         globmatch           = require("thirdparty/globmatch"),
@@ -74,7 +75,7 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState("search.exclusions", filters);
         }
         
-        // Update last-used pref (-1 for 'No filter", or MRU-list index - which will always be 0 due to above code)
+        // Update last-used pref (-1 for "No filter", else MRU-list index - which will always be 0 due to above code)
         PreferencesManager.setViewState("search.exclusion.lastUsed", filter.length ? 0 : -1);
     }
     
@@ -114,86 +115,95 @@ define(function (require, exports, module) {
     }
     
     
-    /** Returns the selected DOM node's jQuery object given a <select> tag's jQuery object */
-    function selectedOption($select) {
-        return $($select[0].selectedOptions[0]);
-    }
-
     /**
      * Marks the filter picker's currently selected item as most-recently used, and returns the corresponding
      * filter object for use with filterPath().
      */
-    function commitDropdown($select) {
-        var filter = selectedOption($select).data("filter");
+    function commitPicker(picker) {
+        var filter = picker.items[picker.selectedIndex];
         markLastUsed(filter);
         return filter;
     }
     
     /**
-     * Turns the given <select> element into a filter picker: it is populated with a list of recently used filters
-     * and an option to edit the selected filter. The edit option is automatically functional, but selecting any
-     * other item does nothing; the client should call commitDropdown() when the UI containing the filter picker is
-     * confirmed (which updates the MRU order) and then use the returned filter object as needed.
+     * Creates a UI element for selecting a filter, populated with a list of recently used filters and an option to
+     * edit the selected filter. The edit option is fully functional, but selecting any other item does nothing. The
+     * client should call commitDropdown() when the UI containing the filter picker is confirmed (which updates the MRU
+     * order) and then use the returned filter object as needed.
      */
-    function populateDropdown($select) {
-        var $lastSelected;
+    function createFilterPicker() {
+        var dropdownItems,
+            picker;
         
-        function doPopulate() {
-            $select.empty();
-
-            function addOption(filter, label) {
-                var $option = $("<option/>");
-                $option.text(label);
-                if (filter !== undefined) {
-                    $option.data("filter", filter);
+        function joinBolded(segments) {
+            var html = "";
+            segments.forEach(function (seg, index) {
+                if (index) {
+                    html += ", ";
                 }
-
-                $select.append($option);
-            }
-
-            addOption([], Strings.NO_FILE_FILTER);
-
-            getFilters().forEach(function (filter) {
-                if (filter.length > 2) {
-                    addOption(filter, Strings.FILE_FILTER_LIST_PREFIX + " " + filter[0] + ", " + filter[1] + " " +
-                                      StringUtils.format(Strings.FILE_FILTER_CLIPPED_SUFFIX, filter.length - 2));
-                } else {
-                    addOption(filter, Strings.FILE_FILTER_LIST_PREFIX + " " + filter.join(", "));
-                }
+                html += "<strong>" + _.escape(seg) + "</strong>";
             });
-
-            addOption(undefined, Strings.EDIT_FILE_FILTER);
-            
-            // Initialize selection
-            var lastUsedFilterIndex = PreferencesManager.getViewState("search.exclusion.lastUsed");
-            if (lastUsedFilterIndex === undefined) {  // index 0 is falsy, so must check more explicitly
-                lastUsedFilterIndex = -1;
+            return html;
+        }
+        function itemRenderer(filter) {
+            if (!filter) {
+                return Strings.EDIT_FILE_FILTER;
+            } else if (!filter.length) {
+                return Strings.NO_FILE_FILTER;
+            } else {
+                // Normal filter object from the MRU list
+                if (filter.length > 2) {
+                    return Strings.FILE_FILTER_LIST_PREFIX + " " + joinBolded(filter.slice(0, 2)) + " " +
+                           StringUtils.format(Strings.FILE_FILTER_CLIPPED_SUFFIX, filter.length - 2);
+                } else {
+                    return Strings.FILE_FILTER_LIST_PREFIX + " " + joinBolded(filter);
+                }
             }
-            if (lastUsedFilterIndex !== -1) {  // -1 indicates 'No filter'; nothing to do in that case since it's always first in list
-                $select[0].selectedIndex = lastUsedFilterIndex + 1;
-            }
-            $lastSelected = selectedOption($select);
         }
         
+        function setSelected(index) {
+            // Store selection in an expando we stuff onto picker, so it's easily retrieved in commitPicker() later
+            picker.selectedIndex = index;
+            
+            // Custom formatted button label
+            picker.$button.html(itemRenderer(dropdownItems[picker.selectedIndex]));
+        }
+        
+        function doPopulate() {
+            dropdownItems = _.clone(getFilters());
+            dropdownItems.unshift([]);  // 'No filter' item always at top
+            dropdownItems.push(undefined);  // 'Edit filter' item always at bottom
+            picker.items = dropdownItems;
+
+            // Initialize selection (pref unset or -1 indicates 'No filter'; else specifies index in MRU list)
+            var lastUsedFilterIndex = PreferencesManager.getViewState("search.exclusion.lastUsed");
+            if (lastUsedFilterIndex === undefined || lastUsedFilterIndex === -1) {
+                setSelected(0);
+            } else {
+                setSelected(lastUsedFilterIndex + 1);
+            }
+        }
+        
+        picker = new DropdownButton("", []);
+        picker.itemRenderer = itemRenderer;
+        picker.dropdownExtraClasses = "exclusions-dropdown";
         doPopulate();
         
-        $select.on("change", function () {
-            var $selected = selectedOption($select);
-            if ($selected.data("filter") === undefined) {
-                editFilter($lastSelected.data("filter"))
+        $(picker).on("select", function (event, item, itemIndex) {
+            if (!item) {
+                editFilter(dropdownItems[picker.selectedIndex])
                     .done(function (buttonId) {
                         if (buttonId === Dialogs.DIALOG_BTN_OK) {
-                            // Update dropdown contents (also automatically reselects the edited filter, due to markLastUsed() call)
+                            // Update dropdownItems list - editFilter() changes MRU order
                             doPopulate();
-                        } else {
-                            // If canceled, just reselect what was selected before
-                            $select[0].selectedIndex = $lastSelected.index();
                         }
                     });
             } else {
-                $lastSelected = $selected;
+                setSelected(itemIndex);
             }
         });
+        
+        return picker;
     }
     
     
@@ -217,8 +227,8 @@ define(function (require, exports, module) {
     }
     
     
-    exports.populateDropdown = populateDropdown;
-    exports.commitDropdown   = commitDropdown;
+    exports.createFilterPicker = createFilterPicker;
+    exports.commitPicker       = commitPicker;
     exports.getFilters = getFilters;
     exports.editFilter = editFilter;
     exports.filterPath = filterPath;
