@@ -130,7 +130,7 @@ define(function RemoteAgent(require, exports, module) {
         _stopKeepAliveInterval();
     }
 
-    // WebInspector Event: Page.loadEventFired
+    // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {timestamp}
 
@@ -152,7 +152,7 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).one("frameNavigated.RemoteAgent", _onFrameNavigated);
+        $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
         $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _onFrameStartedLoading);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
 
