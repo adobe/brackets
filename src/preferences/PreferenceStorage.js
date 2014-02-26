@@ -225,7 +225,7 @@ define(function (require, exports, module) {
                     var newKey = parts.length > 1 ? parts[1] : key;
                     var options = null;
                     
-                    if (parts.length > 2 && parts[2].indexOf("/") === 0) {
+                    if (parts.length > 2 && parts[2].indexOf("/") !== -1) {
                         var projectPath = rule.substr(rule.indexOf(parts[2]));
                         options = { location: { scope: "user",
                                                 layer: "project",
