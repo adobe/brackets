@@ -28,8 +28,10 @@
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
  * from a {Document}.
+ *
+ * CSSAgent dispatches styleSheetAdded and styleSheetRemoved events, passing
+ * the URL for the added/removed style sheet.
  */
-
 define(function CSSAgent(require, exports, module) {
     "use strict";
 
@@ -38,7 +40,12 @@ define(function CSSAgent(require, exports, module) {
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     var _load; // {$.Deferred} load promise
-    var _urlToStyle; // {url -> loaded} style definition
+    
+    /** @type {Object.<string, CSS.CSSStyleSheetHeader>} */
+    var _urlToStyle;
+    
+    /** @type {Object.<string, string>} */
+    var _styleSheetIdToUrl;
 
     /** 
      * Create a canonicalized version of the given URL, stripping off query strings and hashes.
@@ -49,34 +56,29 @@ define(function CSSAgent(require, exports, module) {
         return PathUtils.parseUrl(url).hrefNoSearch;
     }
 
-    // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(event, res) {
-        // res = {timestamp}
+    /**
+     * @private
+     * WebInspector Event: Page.frameNavigated
+     * @param {jQuery.Event} event
+     * @param {frame: Frame} res
+     */
+    function _onFrameNavigated(event, res) {
+        // Clear maps when navigating to a new page
         _urlToStyle = {};
-        Inspector.CSS.enable().done(function () {
-            Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
-                var i, header;
-                for (i in res.headers) {
-                    header = res.headers[i];
-                    _urlToStyle[_canonicalize(header.sourceURL)] = header;
-                }
-                _load.resolve();
-            });
-        });
+        _styleSheetIdToUrl = {};
     }
 
     /** Get a style sheet for a url
      * @param {string} url
      */
     function styleForURL(url) {
-        if (_urlToStyle) {
-            return _urlToStyle[_canonicalize(url)];
-        }
-        
-        return null;
+        return _urlToStyle[_canonicalize(url)];
     }
 
-    /** Get a list of all loaded stylesheet files by URL */
+    /**
+     * @deprecated Use styleSheetAdded and styleSheetRemoved events
+     * Get a list of all loaded stylesheet files by URL
+     */
     function getStylesheetURLs() {
         var urls = [], url;
         for (url in _urlToStyle) {
@@ -104,17 +106,62 @@ define(function CSSAgent(require, exports, module) {
         console.assert(style, "Style Sheet for document not loaded: " + doc.url);
         Inspector.CSS.setStyleSheetText(style.styleSheetId, "");
     }
+    
+    /**
+     * @private
+     * @param {jQuery.Event} event
+     * @param {header: CSSStyleSheetHeader}
+     */
+    function _styleSheetAdded(event, res) {
+        if (!_urlToStyle) {
+            return;
+        }
+        
+        var url = _canonicalize(res.header.sourceURL);
+        
+        _urlToStyle[url] = res.header;
+        _styleSheetIdToUrl[res.header.styleSheetId] = url;
+        
+        $(exports).triggerHandler("styleSheetAdded", [url]);
+    }
+    
+    /**
+     * @private
+     * @param {jQuery.Event} event
+     * @param {styleSheetId: StyleSheetId}
+     */
+    function _styleSheetRemoved(event, res) {
+        if (!_urlToStyle) {
+            return;
+        }
+        
+        var url = _styleSheetIdToUrl[res.styleSheetId];
+        
+        if (url) {
+            delete _urlToStyle[url];
+        }
+        
+        delete _styleSheetIdToUrl[res.styleSheetId];
+        
+        $(exports).triggerHandler("styleSheetRemoved", [url]);
+    }
 
     /** Initialize the agent */
     function load() {
-        _load = new $.Deferred();
-        $(Inspector.Page).on("loadEventFired.CSSAgent", _onLoadEventFired);
+        // "loading" is done when the domain is enabled 
+        _load = Inspector.CSS.enable();
+        
+        $(Inspector.Page).on("frameNavigated.CSSAgent", _onFrameNavigated);
+        $(Inspector.CSS).on("styleSheetAdded.CSSAgent", _styleSheetAdded);
+        $(Inspector.CSS).on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
+        
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
         $(Inspector.Page).off(".CSSAgent");
+        $(Inspector.CSS).off(".CSSAgent");
     }
 
     // Export public functions

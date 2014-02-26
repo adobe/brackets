@@ -104,12 +104,14 @@ define(function LiveDevelopment(require, exports, module) {
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
 
     // Agents
+    var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
+    
     var agents = {
         "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
         "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
         "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
         "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
-        "css"       : require("LiveDevelopment/Agents/CSSAgent"),
+        "css"       : CSSAgent,
         "script"    : require("LiveDevelopment/Agents/ScriptAgent"),
         "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
         "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
@@ -147,8 +149,12 @@ define(function LiveDevelopment(require, exports, module) {
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
-    var _liveDocument;        // the document open for live editing.
-    var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
+    /** @type {HTMLDocument} */
+    var _liveDocument;
+    
+    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    var _relatedDocuments = {};
+    
     var _openDeferred;        // promise returned for each call to open()
     
     /**
@@ -202,21 +208,23 @@ define(function LiveDevelopment(require, exports, module) {
         return getLiveDocForPath(editor.document.file.fullPath);
     }
     
+    function _deleteRelatedDocument(liveDoc) {
+        if (_relatedDocuments[liveDoc.doc.url]) {
+            delete _relatedDocuments[liveDoc.doc.url];
+        }
+            
+        if (_server) {
+            _server.remove(liveDoc);
+        }
+    }
+    
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
      * if the related file has been deleted on disk).
      */
     function _handleRelatedDocumentDeleted(event, liveDoc) {
-        var index = _relatedDocuments.indexOf(liveDoc);
-        
-        if (index !== -1) {
-            _relatedDocuments.splice(index, 1);
-            
-            if (_server) {
-                _server.remove(liveDoc);
-            }
-        }
+        _deleteRelatedDocument(liveDoc);
     }
 
     /**
@@ -330,13 +338,9 @@ define(function LiveDevelopment(require, exports, module) {
             _liveDocument = undefined;
         }
         
-        if (_relatedDocuments) {
-            _relatedDocuments.forEach(function (liveDoc) {
-                _closeDocument(liveDoc);
-            });
-            
-            _relatedDocuments = undefined;
-        }
+        Object.keys(_relatedDocuments).forEach(function (url) {
+            _closeDocument(_relatedDocuments[url]);
+        });
         
         // Clear all documents from request filtering
         if (_server) {
@@ -364,55 +368,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         return liveDocument;
-    }
-    
-    /**
-     * @private
-     * Populate array of related documents reported by the browser agent(s)
-     */
-    function _getRelatedDocuments() {
-        function createLiveStylesheet(url) {
-            var stylesheetDeferred  = $.Deferred(),
-                promise             = stylesheetDeferred.promise(),
-                path                = _server && _server.urlToPath(url);
-
-            // path may be null if loading an external stylesheet
-            if (path) {
-                DocumentManager.getDocumentForPath(path)
-                    .fail(function () {
-                        // A failure to open a related file is benign
-                        stylesheetDeferred.resolve();
-                    })
-                    .done(function (doc) {
-                        // CSSAgent includes containing HTMLDocument in list returned
-                        // from getStyleSheetURLS() (which could be useful for collecting
-                        // embedded style sheets) but we need to filter doc out here.
-                        if ((_classForDocument(doc) === CSSDocument) &&
-                                (!_liveDocument || (doc !== _liveDocument.doc))) {
-                            var liveDoc = _createDocument(doc);
-                            if (liveDoc) {
-                                _relatedDocuments.push(liveDoc);
-                                _server.add(liveDoc);
-                                
-                                $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
-                            }
-                        }
-                        stylesheetDeferred.resolve();
-                    });
-            } else {
-                stylesheetDeferred.resolve();
-            }
-
-            return promise;
-        }
-
-        // Gather related CSS documents.
-        // FUTURE: Gather related JS documents as well.
-        _relatedDocuments = [];
-        
-        return Async.doInParallel(agents.css.getStylesheetURLs(),
-                                  createLiveStylesheet,
-                                  false); // don't fail fast
     }
 
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
@@ -475,6 +430,38 @@ define(function LiveDevelopment(require, exports, module) {
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
         _setStatus(STATUS_ERROR);
+    }
+    
+    function _styleSheetAdded(event, url) {
+        var path = _server && _server.urlToPath(url);
+
+        // path may be null if loading an external stylesheet
+        if (!path) {
+            return;
+        }
+
+        var docPromise = DocumentManager.getDocumentForPath(path);
+
+        docPromise.done(function (doc) {
+            if ((_classForDocument(doc) === CSSDocument) &&
+                    (!_liveDocument || (doc !== _liveDocument.doc))) {
+                var liveDoc = _createDocument(doc);
+                if (liveDoc) {
+                    _server.add(liveDoc);
+                    _relatedDocuments[doc.url] = liveDoc;
+
+                    $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
+                }
+            }
+        });
+    }
+    
+    function _styleSheetRemoved(event, url) {
+        var liveDoc = _relatedDocuments[url];
+        
+        if (liveDoc) {
+            _deleteRelatedDocument(liveDoc);
+        }
     }
 
     /** Unload the agents */
@@ -563,30 +550,19 @@ define(function LiveDevelopment(require, exports, module) {
         allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
 
         allAgentsPromise.done(function () {
-            // After (1) the interstitial page loads, (2) then browser navigation
-            // to the base URL is completed, and (3) the agents finish loading
-            // gather related documents and finally set status to STATUS_ACTIVE.
+            // After (1) the interstitial page loads and (2) then browser navigation
+            // to the base URL is completed, finally set status to STATUS_ACTIVE.
             var doc = (_liveDocument) ? _liveDocument.doc : null;
 
             if (doc) {
-                var status = STATUS_ACTIVE,
-                    relatedDocumentsPromise;
+                var status = STATUS_ACTIVE;
 
-                // Note: the following promise is never explicitly rejected, so there
-                // is no failure handler. If _getRelatedDocuments is changed so that rejection
-                // is possible, failure should be managed accordingly.
-                relatedDocumentsPromise = Async.withTimeout(_getRelatedDocuments(), 5000);
-
-                relatedDocumentsPromise
-                    .done(function () {
-                        if (_docIsOutOfSync(doc)) {
-                            status = STATUS_OUT_OF_SYNC;
-                        }
-                        _setStatus(status);
-
-                        result.resolve();
-                    })
-                    .fail(result.reject);
+                if (_docIsOutOfSync(doc)) {
+                    status = STATUS_OUT_OF_SYNC;
+                }
+                
+                _setStatus(status);
+                result.resolve();
             } else {
                 result.reject();
             }
@@ -810,19 +786,13 @@ define(function LiveDevelopment(require, exports, module) {
                 deferred.resolve();
             });
         }
-
-        if (_openDeferred) {
-            _doInspectorDisconnect(doCloseWindow).done(cleanup);
-
-            if (_openDeferred.state() === "pending") {
-                _openDeferred.reject();
-            }
-        } else {
-            // Deferred may not be created yet
-            // We always close attempt to close the live dev connection on
-            // ProjectManager beforeProjectClose and beforeAppClose events
-            cleanup();
+        
+        // Reject calls to open if requests are still pending
+        if (_openDeferred && _openDeferred.state() === "pending") {
+            _openDeferred.reject();
         }
+        
+        _doInspectorDisconnect(doCloseWindow).done(cleanup);
         
         return deferred.promise();
     }
@@ -1187,6 +1157,11 @@ define(function LiveDevelopment(require, exports, module) {
     function open() {
         _openDeferred = new $.Deferred();
         
+        // Cleanup deferred when finished
+        _openDeferred.always(function () {
+            _openDeferred = null;
+        });
+        
         // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
         _getInitialDocFromCurrent().done(function (doc) {
@@ -1324,13 +1299,17 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
+        
         $(Inspector).on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
+        $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
+        $(CSSAgent).on("styleSheetRemoved.livedev", _styleSheetRemoved);
+        
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
         $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
-
+        
         // Register user defined server provider
         LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
         LiveDevServerManager.registerServer({ create: _createFileServer }, 0);
