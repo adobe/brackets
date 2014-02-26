@@ -382,9 +382,12 @@ define(function (require, exports, module) {
             }
         }, true);
     }
-
-    // Dispatch htmlReady event
+    
+    // Wait for view state to load.
+    var viewStateTimer = PerfUtils.markStart("User viewstate loading");
     PreferencesManager._smUserScopeLoading.always(function () {
+        PerfUtils.addMeasurement(viewStateTimer);
+        // Dispatch htmlReady event
         _beforeHTMLReady();
         AppInit._dispatchReady(AppInit.HTML_READY);
         $(window.document).ready(_onReady);
