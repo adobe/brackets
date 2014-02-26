@@ -96,14 +96,6 @@ define(function (require, exports, module) {
     /** @type {function} JSLint workaround for circular dependency */
     var handleFileSaveAs;
 
-    /**
-     * @private
-     * Get the project root and insert into the global name space.
-     */
-    function _getProjectName() {
-       _projectName = ProjectManager.getProjectRoot().name;
-    }
-
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
             currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
@@ -1600,7 +1592,9 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
     
     // Listen for changes that require updating the editor titlebar
-    $(ProjectManager).on("projectOpen", _getProjectName);
+    $(ProjectManager).on("projectOpen", function () {
+        _projectName = ProjectManager.getProjectRoot().name;
+    });
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
     $(DocumentManager).on("fileNameChange", updateDocumentTitle);
     $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
