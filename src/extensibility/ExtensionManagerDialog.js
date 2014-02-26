@@ -165,6 +165,7 @@ define(function (require, exports, module) {
             $dlg,
             views   = [],
             $search,
+            $primaryButton,
             $searchClear,
             context = { Strings: Strings, showRegistry: !!brackets.config.extension_registry },
             models  = [];
@@ -203,6 +204,7 @@ define(function (require, exports, module) {
         $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
+        $primaryButton = $(".primary", $dlg);
         
         // Dialog tabs
         $dlg.find(".nav-tabs a")
@@ -266,6 +268,13 @@ define(function (require, exports, module) {
                 });
             });
             
+            // don't close the dialog if the user press the enter key
+            $search.on("focus", function (e) {
+                $primaryButton.removeClass("primary");
+            }).on("blur", function (e) {
+                $primaryButton.addClass("primary");
+            });
+
             // Filter the views when the user types in the search field.
             $dlg.on("input", ".search", function (e) {
                 var query = $(this).val();

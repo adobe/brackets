@@ -1550,6 +1550,19 @@ define(function (require, exports, module) {
                             expect($(".registry", $dlg).length).toBe(1);
                         });
                     });
+
+                    it("should not close the dialog when the user hit the enter key", function () {
+                        runs(function () {
+                            setRegistryURL("");
+                            openDialog();
+                            fakeLoadDeferred.resolve();
+
+                            $(".search", $dlg).focus();
+                            SpecRunnerUtils.simulateKeyEvent(13, "keypress", $("<body>")[0]);
+
+                            expect($dlg.is(":visible")).toBe(true);
+                        });
+                    });
                 });
             });
         });
