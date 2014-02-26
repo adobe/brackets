@@ -305,6 +305,8 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
+    "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
+    "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
     "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
 
     // Help menu commands
