@@ -45,6 +45,9 @@ define(function CSSAgent(require, exports, module) {
     /** @type {Object.<string, string>} */
     var _styleSheetIdToUrl;
 
+    /** @type {boolean} */
+    var _getAllStyleSheetsNotFound = false;
+
     /** 
      * Create a canonicalized version of the given URL, stripping off query strings and hashes.
      * @param {string} url the URL to canonicalize
@@ -157,20 +160,35 @@ define(function CSSAgent(require, exports, module) {
      * @param {frameId: Network.FrameId}
      */
     function _onFrameStoppedLoading(event, res) {
-        // _styleSheetAdded will ignore duplicates
-        Inspector.CSS.getAllStyleSheets(function (res) {
+        // Manually fire getAllStyleSheets since it will be removed from
+        // Inspector.json in a future update
+        Inspector.send("CSS", "getAllStyleSheets").done(function (res) {
             res.headers.forEach(function (header) {
+                // _styleSheetAdded will ignore duplicates
                 _styleSheetAdded(null, { header: header });
             });
+        }).fail(function (err) {
+            // Disable getAllStyleSheets if the first call fails
+            _getAllStyleSheetsNotFound = (err.code === -32601);
+            $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         });
+    }
+
+    /** Enable the domain */
+    function enable() {
+        return Inspector.CSS.enable();
     }
 
     /** Initialize the agent */
     function load() {
         $(Inspector.Page).on("frameNavigated.CSSAgent", _onFrameNavigated);
-        $(Inspector.Page).on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         $(Inspector.CSS).on("styleSheetAdded.CSSAgent", _styleSheetAdded);
         $(Inspector.CSS).on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
+
+        // getAllStyleSheets was deleted beginning with Chrome 34
+        if (!_getAllStyleSheetsNotFound) {
+            $(Inspector.Page).on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+        }
     }
 
     /** Clean up */
@@ -180,6 +198,7 @@ define(function CSSAgent(require, exports, module) {
     }
 
     // Export public functions
+    exports.enable = enable;
     exports.styleForURL = styleForURL;
     exports.getStylesheetURLs = getStylesheetURLs;
     exports.reloadCSSForDocument = reloadCSSForDocument;
