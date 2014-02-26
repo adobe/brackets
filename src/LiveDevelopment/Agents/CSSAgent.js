@@ -39,8 +39,6 @@ define(function CSSAgent(require, exports, module) {
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
-    var _load; // {$.Deferred} load promise
-    
     /** @type {Object.<string, CSS.CSSStyleSheetHeader>} */
     var _urlToStyle;
     
@@ -117,7 +115,13 @@ define(function CSSAgent(require, exports, module) {
             return;
         }
         
-        var url = _canonicalize(res.header.sourceURL);
+        var url = _canonicalize(res.header.sourceURL),
+            existing = _urlToStyle[url];
+        
+        // detect duplicates
+        if (existing && existing.styleSheetId === res.header.styleSheetId) {
+            return;
+        }
         
         _urlToStyle[url] = res.header;
         _styleSheetIdToUrl[res.header.styleSheetId] = url;
@@ -145,17 +149,28 @@ define(function CSSAgent(require, exports, module) {
         
         $(exports).triggerHandler("styleSheetRemoved", [url]);
     }
+    
+    /**
+     * @private
+     * Attempt to use deleted API CSS.getAllStyleSheets
+     * @param {jQuery.Event} event
+     * @param {frameId: Network.FrameId}
+     */
+    function _onFrameStoppedLoading(event, res) {
+        // _styleSheetAdded will ignore duplicates
+        Inspector.CSS.getAllStyleSheets(function (res) {
+            res.headers.forEach(function (header) {
+                _styleSheetAdded(null, { header: header });
+            });
+        });
+    }
 
     /** Initialize the agent */
     function load() {
-        // "loading" is done when the domain is enabled 
-        _load = Inspector.CSS.enable();
-        
         $(Inspector.Page).on("frameNavigated.CSSAgent", _onFrameNavigated);
+        $(Inspector.Page).on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         $(Inspector.CSS).on("styleSheetAdded.CSSAgent", _styleSheetAdded);
         $(Inspector.CSS).on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
-        
-        return _load.promise();
     }
 
     /** Clean up */
