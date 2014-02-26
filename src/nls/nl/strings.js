@@ -431,27 +431,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Annuleer",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systeem Standaard",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tsjechisch",
-    "LOCALE_DE"                                 : "Duits",
-    "LOCALE_EN"                                 : "Engels",
-    "LOCALE_ES"                                 : "Spaans",
-    "LOCALE_FI"                                 : "Fins",
-    "LOCALE_FR"                                 : "Frans",
-    "LOCALE_IT"                                 : "Italiaans",
-    "LOCALE_JA"                                 : "Japans",
-    "LOCALE_NB"                                 : "Noors",
-    "LOCALE_NL"                                 : "Nederlands",
-    "LOCALE_PL"                                 : "Pools",
-    "LOCALE_PT_BR"                              : "Portugees, Brazilië",
-    "LOCALE_PT_PT"                              : "Portugees",
-    "LOCALE_RU"                                 : "Russisch",
-    "LOCALE_SK"                                 : "Slovaaks",
-    "LOCALE_SV"                                 : "Zweeds",
-    "LOCALE_TR"                                 : "Turks",
-    "LOCALE_ZH_CN"                              : "Chinees, simpel",
-    "LOCALE_HU"                                 : "Hongaars",
-    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Huidige Kleur",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Originele Kleur",

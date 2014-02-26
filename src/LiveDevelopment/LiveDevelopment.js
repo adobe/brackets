@@ -131,10 +131,6 @@ define(function LiveDevelopment(require, exports, module) {
 
     launcherUrl = launcherUrl.substr(0, launcherUrl.lastIndexOf("/")) + "/LiveDevelopment/launch.html";
     launcherUrl = window.location.origin + launcherUrl;
-    
-    // TODO: Remove this temporary flag. Once we're certain that Live HTML is ready,
-    // we can remove all traces of this flag.
-    brackets.livehtml = true;
 
     // Some agents are still experimental, so we don't enable them all by default
     // However, extensions can enable them by calling enableAgent().
@@ -1347,6 +1343,10 @@ define(function LiveDevelopment(require, exports, module) {
         return _server;
     }
 
+    function getServerBaseUrl() {
+        return _server && _server.getBaseUrl();
+    }
+
     // For unit testing
     exports.launcherUrl               = launcherUrl;
     exports._getServer                = _getServer;
@@ -1365,4 +1365,5 @@ define(function LiveDevelopment(require, exports, module) {
     exports.redrawHighlight     = redrawHighlight;
     exports.init                = init;
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
+    exports.getServerBaseUrl    = getServerBaseUrl;
 });

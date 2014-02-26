@@ -167,12 +167,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = null;
-
-    /**
-     * @private
      * Used to initialize jstree state
      */
     var _projectInitialLoad = null;
@@ -315,13 +309,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     */
-    function _getBaseUrlKey() {
-        return "projectBaseUrl_" + _projectRoot;
-    }
-
-    /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
      * is open (during startup, or running outside of app shell).
      * @return {String}
@@ -335,6 +322,10 @@ define(function (require, exports, module) {
      * @param {String}
      */
     function setBaseUrl(projectBaseUrl) {
+        var context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath} };
+        
         _projectBaseUrl = projectBaseUrl;
 
         // Ensure trailing slash to be consistent with _projectRoot.fullPath
@@ -343,7 +334,7 @@ define(function (require, exports, module) {
             _projectBaseUrl += "/";
         }
 
-        _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
+        PreferencesManager.setViewState("project.baseUrl", _projectBaseUrl, context);
     }
     
     /**
@@ -372,27 +363,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Get prefs tree state lookup key for given project path.
-     */
-    function _getTreeStateKey(path) {
-        // generate unique tree state key for this project path
-        var key = "projectTreeState_" + path;
-
-        // normalize to always have slash at end
-        if (key[key.length - 1] !== "/") {
-            key += "/";
-        }
-        return key;
-    }
-    
-    /**
-     * @private
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
         
         // save the current project
-        _prefs.setValue("projectPath", _projectRoot.fullPath);
+        PreferencesManager.setViewState("projectPath", _projectRoot.fullPath);
 
         // save jstree state
         var openNodes = [],
@@ -400,7 +376,10 @@ define(function (require, exports, module) {
             entry,
             fullPath,
             shortPath,
-            depth;
+            depth,
+            context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath } };
 
         // Query open nodes by class selector
         $(".jstree-open:visible").each(function (index) {
@@ -427,7 +406,7 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        _prefs.setValue(_getTreeStateKey(_projectRoot.fullPath), openNodes);
+        PreferencesManager.setViewState("project.treeState", openNodes, context);
     }
     
     /**
@@ -930,7 +909,7 @@ define(function (require, exports, module) {
             return true;
         }
         var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
-        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
     
@@ -940,10 +919,10 @@ define(function (require, exports, module) {
     function addWelcomeProjectPath(path) {
         var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         
-        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
         if (welcomeProjects.indexOf(pathNoSlash) === -1) {
             welcomeProjects.push(pathNoSlash);
-            _prefs.setValue("welcomeProjects", welcomeProjects);
+            PreferencesManager.setViewState("welcomeProjects", welcomeProjects);
         }
     }
     
@@ -963,7 +942,7 @@ define(function (require, exports, module) {
      * first launch.
      */
     function getInitialProjectPath() {
-        return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
+        return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
     
     /**
@@ -1068,6 +1047,8 @@ define(function (require, exports, module) {
         }
         
         startLoad.done(function () {
+            var context = { location : { scope: "user",
+                                         layer: "project" } };
 
             // Clear project path map
             _projectInitialLoad = {
@@ -1076,8 +1057,12 @@ define(function (require, exports, module) {
                 fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
             };
 
+            if (!isUpdating) {
+                PreferencesManager.projectLayer.setProjectPath(rootPath);
+            }
+            
             // restore project tree state from last time this project was open
-            _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
+            _projectInitialLoad.previous = PreferencesManager.getViewState("project.treeState", context) || [];
 
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
@@ -1097,7 +1082,7 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
-                        _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+                        _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -2146,11 +2131,46 @@ define(function (require, exports, module) {
         });
     });
 
-    // Init PreferenceStorage
-    var defaults = {
-        projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
-    };
-    _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
+    /**
+     * @private
+     * Examine each preference key for migration of project tree states.
+     * If the key has a prefix of "projectTreeState_/", then it is a project tree states
+     * preference from old preference model.
+     *
+     * @param {string} key The key of the preference to be examined
+     *      for migration of project tree states.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _checkPreferencePrefix(key) {
+        var pathPrefix = "projectTreeState_",
+            projectPath;
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "projectTreeState_".
+            projectPath = key.substr(pathPrefix.length);
+            return "user project.treeState " + projectPath;
+        }
+        
+        pathPrefix = "projectBaseUrl_";
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
+            // and "]".
+            projectPath = key.substr(key.indexOf(" ") + 1);
+            projectPath = projectPath.substr(0, projectPath.length - 1);
+            return "user project.baseUrl " + projectPath;
+        }
+
+        return null;
+    }
+    
+    // Init default project path to welcome project
+    PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
+
+    PreferencesManager.convertPreferences(module, {
+        "projectPath": "user",
+        "projectTreeState_": "user",
+        "welcomeProjects": "user",
+        "projectBaseUrl_": "user"
+    }, true, _checkPreferencePrefix);
     
     function _reloadProjectPreferencesScope() {
         var root = getProjectRoot();

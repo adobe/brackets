@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master","cshtml","vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -79,14 +79,13 @@
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"],
-        "lineComment": ["//"]
+        "fileExtensions": ["json"]
     },
 
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config", "plist"],
         "blockComment": ["<!--", "-->"]
     },
 

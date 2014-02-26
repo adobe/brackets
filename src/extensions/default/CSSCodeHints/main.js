@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
-        this.secondaryTriggerKeys = ": ";
+        this.secondaryTriggerKeys = ":";
         this.exclusion = null;
     }
 

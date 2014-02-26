@@ -134,13 +134,16 @@ define(function (require, exports, module) {
                 
                 var eventNames = Object.keys(connection.domainEvents[this._domainName]);
                 eventNames.forEach(function (domainEvent) {
-                    var connectionEvent = this._domainName + "." + domainEvent + EVENT_NAMESPACE;
+                    var connectionEvent = this._domainName + ":" + domainEvent + EVENT_NAMESPACE;
                     
                     $(connection).on(connectionEvent, function () {
                         var params = Array.prototype.slice.call(arguments, 1);
                         $(this).triggerHandler(domainEvent, params);
                     }.bind(this));
                 }, this);
+            }.bind(this))
+            .fail(function (err) {
+                console.error("[NodeDomain] Error loading domain \"" + this._domainName + "\": " + err);
             }.bind(this));
     };
     
