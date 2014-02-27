@@ -1325,9 +1325,8 @@ define(function (require, exports, module) {
         }
         
         // Estimate where to position popover.
-        top = (arrowBelow)
-                    ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
-                    : cursorCoord.bottom + POPOVER_MARGIN;
+        top = (arrowBelow) ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
+                           : cursorCoord.bottom + POPOVER_MARGIN;
         left = cursorCoord.left - (this._$messagePopover.width() / 2);
         
         popoverRect = {
