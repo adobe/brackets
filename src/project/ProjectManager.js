@@ -671,6 +671,29 @@ define(function (require, exports, module) {
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
+                .off("click.jstree", "li > ins")
+                .on("click.jstree", "li > ins", function (event) {
+                    var $node = $(event.target).parent("li");
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.altKey) {
+                            // collapse subtree
+                            // note: expanding using open_all is a bad idea due to poor performance
+                            if ($node.is(".jstree-open")) {
+                                _projectTree.jstree("close_all", $node);
+                                return;
+                            }
+                        } else {
+                            // toggle siblings
+                            var methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
+                            $node.parent().children("li").each(function () {
+                                _projectTree.jstree(methodName, $(this));
+                            });
+                            return;
+                        }
+                    }
+                    // original behaviour
+                    _projectTree.jstree("toggle_node", $node);
+                })
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
