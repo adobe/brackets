@@ -77,6 +77,7 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
+        menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND);
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);

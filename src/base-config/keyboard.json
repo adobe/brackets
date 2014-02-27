@@ -65,6 +65,9 @@
             "platform": "mac"
         }
     ],
+    "edit.splitSelIntoLines": [
+        "Ctrl-Alt-L"
+    ],
     "edit.find":  [
         "Ctrl-F"
     ],
