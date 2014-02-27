@@ -88,7 +88,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise} Dialog box promise
      */
     function editFilter(filter) {
-        var globInfoURL = "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets";  // FIXME: link to a dedicated wiki page
+        var globInfoURL = "https://github.com/adobe/brackets/wiki/Using-File-Filters";
         var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, globInfoURL) +
             "<textarea class='exclusions-editor'></textarea>";
         var buttons = [
@@ -116,13 +116,36 @@ define(function (require, exports, module) {
     
     
     /**
+     * Converts a user-specified filter object (as chosen in picker or retrieved from getFilters()) to a 'compiled' form
+     * that can be used with filterPath().
+     * @param {!Array.<string>} userFilter
+     * @return {!Array.<string>} 'compiled' filter that can be passed to filterPath()
+     */
+    function compile(userFilter) {
+        return userFilter.map(function (glob) {
+            // Automatic "**" prefix if not explicitly present
+            if (glob.substr(0, 2) !== "**") {
+                glob = "**" + glob;
+            }
+            // Automatic "**" suffix if not explicitly present and no "." in last path segment of filter string
+            if (glob.substr(-2, 2) !== "**") {
+                var lastSeg = glob.lastIndexOf("/");
+                if (glob.indexOf(".", lastSeg + 1) !== -1) {  // if no "/" present, this treats whole string as 'last segment'
+                    glob += "**";
+                }
+            }
+            return glob;
+        });
+    }
+    
+    /**
      * Marks the filter picker's currently selected item as most-recently used, and returns the corresponding
-     * filter object for use with filterPath().
+     * 'compiled' filter object ready for use with filterPath().
      */
     function commitPicker(picker) {
         var filter = picker.items[picker.selectedIndex];
         markLastUsed(filter);
-        return filter;
+        return compile(filter);
     }
     
     /**
@@ -167,6 +190,13 @@ define(function (require, exports, module) {
             
             // Custom formatted button label
             picker.$button.html(itemRenderer(dropdownItems[picker.selectedIndex]));
+            
+            // Tooltip with full filter text (not clipped as in label)
+            if (picker.selectedIndex > 0) {
+                picker.$button.attr("title", Strings.FILE_FILTER_LIST_PREFIX + " " + dropdownItems[picker.selectedIndex].join(", "));
+            } else {
+                picker.$button.attr("title", "");
+            }
         }
         
         function doPopulate() {
@@ -211,13 +241,13 @@ define(function (require, exports, module) {
      * Returns false if the given path matches any of the exclusion globs in the given filter. Returns true
      * if the path does not match any of the globs.
      * 
-     * @param {!Array.<string>} filter
+     * @param {!Array.<string>} compiledFilter  'Compiled' filter object as returned by compile()
      * @param {!string} fullPath
      */
-    function filterPath(filter, fullPath) {
+    function filterPath(compiledFilter, fullPath) {
         var i;
-        for (i = 0; i < filter.length; i++) {
-            var glob = filter[i];
+        for (i = 0; i < compiledFilter.length; i++) {
+            var glob = compiledFilter[i];
 
             if (globmatch(fullPath, glob)) {
                 return false;
