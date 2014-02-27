@@ -240,7 +240,7 @@ define(function (require, exports, module) {
      * @param {string} fullPath
      * @param {string} contents
      * @param {RegExp} queryExpr
-     * @return {boolean} True if the matches were added to the search results
+     * @return {boolean} True iff the matches were added to the search results
      */
     function _addSearchMatches(fullPath, contents, queryExpr) {
         var matches = _getSearchMatches(contents, queryExpr);
@@ -285,13 +285,10 @@ define(function (require, exports, module) {
                 if (entryName1 !== entryName2) {
                     if (index < folders1 && index < folders2) {
                         return entryName1.toLocaleLowerCase().localeCompare(entryName2.toLocaleLowerCase());
-                    } else if (index >= folders1 && index < folders2) {
-                        return 1;
-                    } else if (index < folders1 && index >= folders2) {
-                        return -1;
-                    } else {
+                    } else if (index >= folders1 && index >= folders2) {
                         return FileUtils.compareFilenames(entryName1, entryName2);
                     }
+                    return (index >= folders1 && index < folders2) ? 1 : -1;
                 }
                 index++;
             }
@@ -369,6 +366,8 @@ define(function (require, exports, module) {
                 matchesCounter = 0,
                 showMatches    = false;
             
+            // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
+            // we filled the results for one page
             searchFiles.some(function (fullPath) {
                 showMatches = true;
                 item = searchResults[fullPath];
