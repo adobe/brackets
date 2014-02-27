@@ -251,7 +251,12 @@ define(function LiveDevelopment(require, exports, module) {
         $(liveDocument).off(".livedev");
     }
     
-    function _removeRelatedDocument(liveDoc) {
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
         if (_relatedDocuments[liveDoc.doc.url]) {
             delete _relatedDocuments[liveDoc.doc.url];
         }
@@ -261,15 +266,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
         
         _closeDocument(liveDoc);
-    }
-    
-    /**
-     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
-     * given file is no longer associated with the HTML document that is live (e.g.
-     * if the related file has been deleted on disk).
-     */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
-        _removeRelatedDocument(liveDoc);
     }
 
     /**
@@ -435,10 +431,14 @@ define(function LiveDevelopment(require, exports, module) {
     }
     
     function _styleSheetAdded(event, url) {
-        var path = _server && _server.urlToPath(url);
+        var path = _server && _server.urlToPath(url),
+            exists = !!_relatedDocuments[url];
 
-        // path may be null if loading an external stylesheet
-        if (!path) {
+        // path may be null if loading an external stylesheet.
+        // Also, the stylesheet may already exist and be reported as added twice
+        // due to Chrome reporting added/removed events after incremental changes
+        // are pushed to the browser
+        if (!path || exists) {
             return;
         }
 
@@ -456,14 +456,6 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             }
         });
-    }
-    
-    function _styleSheetRemoved(event, url) {
-        var liveDoc = _relatedDocuments[url];
-        
-        if (liveDoc) {
-            _removeRelatedDocument(liveDoc);
-        }
     }
 
     /** Unload the agents */
@@ -1226,8 +1218,6 @@ define(function LiveDevelopment(require, exports, module) {
         if (!doc || !Inspector.connected()) {
             return;
         }
-
-        hideHighlight();
         
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
@@ -1239,6 +1229,9 @@ define(function LiveDevelopment(require, exports, module) {
             // TODO (jasonsanjose): optimize this by reusing the same connection
             // no need to fully teardown.
             close().done(open);
+        } else if (wasRequested) {
+            // Update highlight
+            showHighlight();
         }
     }
 
@@ -1304,8 +1297,10 @@ define(function LiveDevelopment(require, exports, module) {
         
         $(Inspector).on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
+
+        // Only listen for styleSheetAdded
+        // We may get interim added/removed events when pushing incremental updates
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
-        $(CSSAgent).on("styleSheetRemoved.livedev", _styleSheetRemoved);
         
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
