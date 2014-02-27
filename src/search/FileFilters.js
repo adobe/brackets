@@ -130,7 +130,7 @@ define(function (require, exports, module) {
             // Automatic "**" suffix if not explicitly present and no "." in last path segment of filter string
             if (glob.substr(-2, 2) !== "**") {
                 var lastSeg = glob.lastIndexOf("/");
-                if (glob.indexOf(".", lastSeg + 1) !== -1) {  // if no "/" present, this treats whole string as 'last segment'
+                if (glob.indexOf(".", lastSeg + 1) === -1) {  // if no "/" present, this treats whole string as 'last segment'
                     glob += "**";
                 }
             }
@@ -261,5 +261,6 @@ define(function (require, exports, module) {
     exports.commitPicker       = commitPicker;
     exports.getFilters = getFilters;
     exports.editFilter = editFilter;
+    exports.compile    = compile;
     exports.filterPath = filterPath;
 });
