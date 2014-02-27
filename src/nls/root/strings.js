@@ -260,6 +260,8 @@ define({
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
+    "CMD_ADD_NEXT_LINE_TO_SEL"            : "Add Next Line to Selection",
+    "CMD_ADD_PREV_LINE_TO_SEL"            : "Add Previous Line to Selection",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
     "CMD_FIND_IN_FILES"                   : "Find in Files",

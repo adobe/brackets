@@ -78,6 +78,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
+        menu.addMenuItem(Commands.EDIT_ADD_PREV_LINE_TO_SEL);
+        menu.addMenuItem(Commands.EDIT_ADD_NEXT_LINE_TO_SEL);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND);
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);

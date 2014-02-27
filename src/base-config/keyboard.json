@@ -68,6 +68,18 @@
     "edit.splitSelIntoLines": [
         "Ctrl-Alt-L"
     ],
+    "edit.addPrevLineToSel": [
+        {
+            "key": "Ctrl-Alt-Up",
+            "displayKey": "Ctrl-Alt-↑"
+        }
+    ],
+    "edit.addNextLineToSel": [
+        {
+            "key": "Ctrl-Alt-Down",
+            "displayKey": "Ctrl-Alt-↓"
+        }
+    ],
     "edit.find":  [
         "Ctrl-F"
     ],
