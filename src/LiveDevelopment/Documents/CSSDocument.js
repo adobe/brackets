@@ -48,7 +48,8 @@
 define(function CSSDocumentModule(require, exports, module) {
     "use strict";
 
-    var CSSAgent        = require("LiveDevelopment/Agents/CSSAgent"),
+    var _               = require("thirdparty/lodash"),
+        CSSAgent        = require("LiveDevelopment/Agents/CSSAgent"),
         CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
@@ -69,6 +70,9 @@ define(function CSSDocumentModule(require, exports, module) {
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
         this.onDeleted = this.onDeleted.bind(this);
+        
+        this._updateBrowser = _.debounce(this._updateBrowser, 250);
+
         $(this.doc).on("change.CSSDocument", this.onChange);
         $(this.doc).on("deleted.CSSDocument", this.onDeleted);
         
@@ -81,34 +85,46 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
-    /** Get the browser version of the StyleSheet object */
-    CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
-        var deferred = new $.Deferred();
+    CSSDocument.prototype._url = null;
 
-        // WebInspector Command: CSS.getStyleSheet
-        Inspector.CSS.getStyleSheet(this.styleSheet.styleSheetId, function callback(res) {
-            // res = {styleSheet}
-            if (res.styleSheet) {
-                deferred.resolve(res.styleSheet);
-            } else {
-                deferred.reject();
+    Object.defineProperties(CSSDocument.prototype, {
+        "url": {
+            get: function () { return this._url; },
+            set: function (url) {
+                _url = url;
+
+                // Force initial update for dirty files
+                if (this.doc.isDirty) {
+                    this._updateBrowser();
+                }
             }
-        });
+        }
+    });
 
-        return deferred.promise();
+    /**
+     * @private
+     * Get the CSSStyleSheetHeader for this document
+     */
+    CSSDocument.prototype._getStyleSheetHeader = function () {
+        return CSSAgent.styleForURL(this.doc.url);
     };
 
-    /** Get the browser version of the source */
+    /**
+     * @deprecated
+     * CSSStyleSheetBody was removed in protocol 1.1. This method is unused in Brackets 36.
+     * Get the browser version of the StyleSheet object
+     * @return {jQuery.promise}
+     */
+    CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
+        return new $.Deferred().reject().promise();
+    };
+
+    /**
+     * Get the browser version of the source
+     * @return {jQuery.promise} Promise resolved with the text content of this CSS document
+     */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
-        var deferred = new $.Deferred();
-
-        this.getStyleSheetFromBrowser().done(function onDone(styleSheet) {
-            deferred.resolve(styleSheet.text);
-        }).fail(function onFail() {
-            deferred.reject();
-        });
-
-        return deferred.promise();
+        return Inspector.CSS.getStyleSheetText(this._getStyleSheetHeader().styleSheetId);
     };
  
     /** Close the document */
@@ -118,17 +134,16 @@ define(function CSSDocumentModule(require, exports, module) {
         this.doc.releaseRef();
         this.detachFromEditor();
     };
- 
+
     /**
-     * Force the browser to update if the file is dirty
+     * @private
+     * Update the style sheet text content and redraw highlights
      */
     CSSDocument.prototype._updateBrowser = function () {
-        // get the style sheet
-        this.styleSheet = CSSAgent.styleForURL(this.doc.url);
+        var reloadPromise = CSSAgent.reloadCSSForDocument(this.doc);
 
-        // If the CSS document is dirty, push the changes into the browser now
-        if (this.doc.isDirty) {
-            CSSAgent.reloadCSSForDocument(this.doc);
+        if (Inspector.config.highlight) {
+            reloadPromise.done(HighlightAgent.redraw);
         }
     };
 
@@ -200,11 +215,7 @@ define(function CSSDocumentModule(require, exports, module) {
 
     /** Triggered whenever the Document is edited */
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
-        // brute force: update the CSS
-        CSSAgent.reloadCSSForDocument(this.doc);
-        if (Inspector.config.highlight) {
-            HighlightAgent.redraw();
-        }
+        this._updateBrowser();
     };
 
     /** Triggered if the Document's file is deleted */
@@ -241,11 +252,13 @@ define(function CSSDocumentModule(require, exports, module) {
         // WebInspector Command: CSS.getMatchedStylesForNode
         Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onGetMatchesStyles(res) {
             // res = {matchedCSSRules, pseudoElements, inherited}
-            var codeMirror = this.editor._codeMirror;
+            var codeMirror = this.editor._codeMirror,
+                styleSheetId = this._getStyleSheetHeader().styleSheetId;
+
             var i, rule, from, to;
             for (i in res.matchedCSSRules) {
                 rule = res.matchedCSSRules[i];
-                if (rule.ruleId && rule.ruleId.styleSheetId === this.styleSheet.styleSheetId) {
+                if (rule.ruleId && rule.ruleId.styleSheetId === styleSheetId) {
                     from = codeMirror.posFromIndex(rule.selectorRange.start);
                     to = codeMirror.posFromIndex(rule.style.range.end);
                     this._highlight.push(codeMirror.markText(from, to, { className: "highlight" }));

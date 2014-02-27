@@ -69,8 +69,10 @@ define(function CSSAgent(require, exports, module) {
         _styleSheetIdToUrl = {};
     }
 
-    /** Get a style sheet for a url
+    /**
+     * Get a style sheet for a url
      * @param {string} url
+     * @return {CSS.CSSStyleSheetHeader}
      */
     function styleForURL(url) {
         return _urlToStyle[_canonicalize(url)];
@@ -90,22 +92,26 @@ define(function CSSAgent(require, exports, module) {
         return urls;
     }
 
-    /** Reload a CSS style sheet from a document
+    /**
+     * Reload a CSS style sheet from a document
      * @param {Document} document
+     * @return {jQuery.Promise}
      */
     function reloadCSSForDocument(doc) {
         var style = styleForURL(doc.url);
         console.assert(style, "Style Sheet for document not loaded: " + doc.url);
-        Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
+        return Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
     }
 
-    /** Empties a CSS style sheet given a document that has been deleted
+    /**
+     * Empties a CSS style sheet given a document that has been deleted
      * @param {Document} document
+     * @return {jQuery.Promise}
      */
     function clearCSSForDocument(doc) {
         var style = styleForURL(doc.url);
         console.assert(style, "Style Sheet for document not loaded: " + doc.url);
-        Inspector.CSS.setStyleSheetText(style.styleSheetId, "");
+        return Inspector.CSS.setStyleSheetText(style.styleSheetId, "");
     }
     
     /**
@@ -129,7 +135,7 @@ define(function CSSAgent(require, exports, module) {
         _urlToStyle[url] = res.header;
         _styleSheetIdToUrl[res.header.styleSheetId] = url;
         
-        $(exports).triggerHandler("styleSheetAdded", [url]);
+        $(exports).triggerHandler("styleSheetAdded", [url, res.header]);
     }
     
     /**
@@ -142,7 +148,8 @@ define(function CSSAgent(require, exports, module) {
             return;
         }
         
-        var url = _styleSheetIdToUrl[res.styleSheetId];
+        var url = _styleSheetIdToUrl[res.styleSheetId],
+            header = url && _urlToStyle[url];
         
         if (url) {
             delete _urlToStyle[url];
@@ -150,7 +157,7 @@ define(function CSSAgent(require, exports, module) {
         
         delete _styleSheetIdToUrl[res.styleSheetId];
         
-        $(exports).triggerHandler("styleSheetRemoved", [url]);
+        $(exports).triggerHandler("styleSheetRemoved", [url, header]);
     }
     
     /**
