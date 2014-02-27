@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window, _clearMessagePopover */
+/*global define, $, CodeMirror, window */
 
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
@@ -706,7 +706,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.on("blur", function () {
             self._focused = false;
-            // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
+            $(self).triggerHandler("blur", [self]);
         });
 
         this._codeMirror.on("update", function (instance) {
@@ -1279,11 +1279,7 @@ define(function (require, exports, module) {
             POPOVER_ARROW_HALF_WIDTH = 10;
 
         function _removeListeners() {
-            $(self)
-                .off("change",   _clearMessagePopover)
-                .off("scroll",   _clearMessagePopover)
-                .off("update",   _clearMessagePopover);
-            self._codeMirror.off("blur", _clearMessagePopover);
+            $(self).off(".msgbox");
         }
 
         function _clearMessagePopover() {
@@ -1296,10 +1292,11 @@ define(function (require, exports, module) {
         
         function _addListeners() {
             $(self)
-                .on("change",   _clearMessagePopover)
-                .on("scroll",   _clearMessagePopover)
-                .on("update",   _clearMessagePopover);
-            self._codeMirror.on("blur", _clearMessagePopover);
+                .on("blur.msgbox",           _clearMessagePopover)
+                .on("change.msgbox",         _clearMessagePopover)
+                .on("cursorActivity.msgbox", _clearMessagePopover)
+                .on("scroll.msgbox",         _clearMessagePopover)
+                .on("update.msgbox",         _clearMessagePopover);
         }
 
         // Only 1 message at a time
