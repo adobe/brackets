@@ -1557,6 +1557,7 @@ define(function (require, exports, module) {
             this._currentOptions[prefName] = newValue;
             
             if (prefName === USE_TAB_CHAR) {
+                this._codeMirror.setOption(cmOptions[prefName], newValue);
                 this._codeMirror.setOption("indentUnit", newValue === true ?
                                            this._currentOptions[TAB_SIZE] :
                                            this._currentOptions[SPACE_UNITS]

@@ -7,7 +7,7 @@
     * If you're creating a locale-specific translation for a particular country, add a hyphen 
       and the country code in lowercase (e.g. `en-ca`, `en-gb`).
 2. Add an entry for your translation to the `module.exports` object in `nls/strings.js`.
-3. Edit the root `strings.js` file and add a new `LOCALE_`* entry for your language, as seen in
+3. Edit the root `strings-app.js` file and add a new `LOCALE_`* entry for your language, as seen in
    the Debug > Switch Language UI.
 4. Copy the root `strings.js` file into your subfolder and start translating!
 5. Use the [UI walkthrough steps](https://github.com/adobe/brackets/wiki/Localization-Tests) to

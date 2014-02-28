@@ -285,7 +285,7 @@ define(function (require, exports, module) {
                 });
             return result.promise();
         },
-        
+            
         /**
          * Saves the prefs for this `Scope`.
          * 
@@ -1031,7 +1031,12 @@ define(function (require, exports, module) {
         this._scopes["default"].load();
         
         this._defaultContext = {
-            scopeOrder: ["default"]
+            scopeOrder: ["default"],
+            _shadowScopeOrder: [{
+                id: "default",
+                scope: this._scopes["default"],
+                promise: (new $.Deferred()).resolve().promise()
+            }]
         };
         
         this._pendingScopes = {};
@@ -1049,6 +1054,9 @@ define(function (require, exports, module) {
         
         // Keeps track of cached path scope objects.
         this._pathScopes = {};
+        
+        // Keeps track of change events that need to be sent when change events are resumed
+        this._changeEventQueue = null;
         
         var notifyPrefChange = function (id) {
             var pref = this._knownPrefs[id];
@@ -1103,66 +1111,183 @@ define(function (require, exports, module) {
         getPreference: function (id) {
             return this._knownPrefs[id];
         },
+
+        /**
+         * @private
+         *
+         * Adds the scope before the scope specified by before argument.  This
+         * function must never be called directly. Use addScope to add scopes to
+         * PreferencesSystem, including from within its implementation.
+         * 
+         * @param {string} id Id of the scope to add
+         * @param {string} before Id of the scope to add it before
+         */
+        _pushToScopeOrder: function (id, before) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                index = _.findIndex(defaultScopeOrder, function (id) {
+                    return id === before;
+                });
+            if (index > -1) {
+                defaultScopeOrder.splice(index, 0, id);
+            } else {
+                // error
+                throw new Error("Internal error: scope " + before + " should be in the scope order");
+            }
+
+        },
+
+        /**
+         * @private
+         *
+         * Tries to add scope to the scopeOrder once it's resolved. It looks up
+         * context's _shadowScopeOrder to find an appropriate context to add it
+         * before.
+         *
+         * @param {Object} shadowEntry Shadow entry of the resolved scope
+         */
+        _tryAddToScopeOrder: function (shadowEntry) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                index = _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry === shadowEntry;
+                }),
+                $this = $(this),
+                done = false,
+                i = index + 1;
+            
+            // Find an appropriate scope of lower priority to add it before
+            while (i < shadowScopeOrder.length) {
+                if (shadowScopeOrder[i].promise.state() === "pending" ||
+                        shadowScopeOrder[i].promise.state() === "resolved") {
+                    break;
+                }
+                i++;
+            }
+            switch (shadowScopeOrder[i].promise.state()) {
+            case "pending":
+                // cannot decide now, lookup once pending promise is settled
+                shadowScopeOrder[i].promise.always(function () {
+                    this._tryAddToScopeOrder(shadowEntry);
+                }.bind(this));
+                break;
+            case "resolved":
+                this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: shadowEntry.id,
+                    action: "added"
+                });
+                this._triggerChange({
+                    ids: shadowEntry.scope.getKeys()
+                });
+                break;
+            default:
+                throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
+            }
+
+        },
         
         /**
          * @private
          * 
-         * Adds the new Scope to the scope order in the correct place.
-         * If the Scope before which this new Scope is being added does not
-         * yet exist, the Scope is held in a "pending scopes" list to be added
-         * once the before Scope is ready.
+         * Schedules the new Scope to be added the scope order in the specified
+         * location once the promise is resolved. Context's _shadowScopeOrder is
+         * used to keep track of the order in which the scope should appear. If
+         * the scope which should precede this scope fails to load, then
+         * _shadowScopeOrder will be searched for the next appropriate context
+         * (the first one which is pending or loaded that is before the failed
+         * scope). There's always the lowest-priority "default" scope which is
+         * loaded and added, it guarantees that a successfully loaded scope will
+         * always be added.
          * 
-         * Adding a Scope "before" another Scope means that the new Scope's preferences
-         * will take priority over the "before" Scope's preferences.
+         * Adding a Scope "before" another Scope means that the new Scope's
+         * preferences will take priority over the "before" Scope's preferences.
          * 
          * @param {string} id Name of the new Scope
+         * @param {Scope} scope The scope object to add
+         * @param {$.Promise} promise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
-        addToScopeOrder: function (id, addBefore) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder;
-            
-            var scope = this._scopes[id],
-                $this = $(this);
-            
+        _addToScopeOrder: function (id, scope, promise, addBefore) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                shadowEntry,
+                index,
+                isPending = false,
+                self = this;
+
             $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
-                $this.trigger(PREFERENCE_CHANGE, data);
+                self._triggerChange(data);
+            }.bind(this));
+
+            index = _.findIndex(shadowScopeOrder, function (entry) {
+                return entry.id === id;
             });
 
-            if (!addBefore) {
-                defaultScopeOrder.unshift(id);
-                $this.trigger(SCOPEORDER_CHANGE, {
-                    id: id,
-                    action: "added"
-                });
-                $this.trigger(PREFERENCE_CHANGE, {
-                    ids: scope.getKeys()
-                });
+            if (index > -1) {
+                shadowEntry = shadowScopeOrder[index];
             } else {
-                var addIndex = defaultScopeOrder.indexOf(addBefore);
-                if (addIndex > -1) {
-                    defaultScopeOrder.splice(addIndex, 0, id);
-                    $this.trigger(SCOPEORDER_CHANGE, {
-                        id: id,
-                        action: "added"
-                    });
-                    $this.trigger(PREFERENCE_CHANGE, {
-                        ids: scope.getKeys()
-                    });
+                /* new scope is being added. */
+                shadowEntry = {
+                    id: id,
+                    promise: promise,
+                    scope: scope
+                };
+                if (!addBefore) {
+                    shadowScopeOrder.unshift(shadowEntry);
                 } else {
-                    var queue = this._pendingScopes[addBefore];
-                    if (!queue) {
-                        queue = [];
-                        this._pendingScopes[addBefore] = queue;
+                    index = _.findIndex(shadowScopeOrder, function (entry) {
+                        return entry.id === addBefore;
+                    });
+                    if (index > -1) {
+                        shadowScopeOrder.splice(index, 0, shadowEntry);
+                    } else {
+                        var queue = this._pendingScopes[addBefore];
+                        if (!queue) {
+                            queue = [];
+                            this._pendingScopes[addBefore] = queue;
+                        }
+                        queue.unshift(shadowEntry);
+                        isPending = true;
                     }
-                    queue.unshift(id);
                 }
             }
-            if (this._pendingScopes[id]) {
-                var pending = this._pendingScopes[id];
-                delete this._pendingScopes[id];
-                pending.forEach(function (scopeID) {
-                    this.addToScopeOrder(scopeID, id);
-                }.bind(this));
+            
+            if (!isPending) {
+                promise
+                    .then(function () {
+                        this._scopes[id] = scope;
+                        this._tryAddToScopeOrder(shadowEntry);
+                    }.bind(this))
+                    .fail(function (err) {
+                        // clean up all what's been done up to this point
+                        _.pull(shadowScopeOrder, shadowEntry);
+                    }.bind(this));
+                if (this._pendingScopes[id]) {
+                    var pending = this._pendingScopes[id];
+                    delete this._pendingScopes[id];
+                    pending.forEach(function (entry) {
+                        this._addToScopeOrder(entry.id, entry.scope, entry.promise, id);
+                    }.bind(this));
+                }
+            }
+        },
+        
+        /**
+         * Adds scope to the scope order by its id. The scope should be previously added to the preference system.
+         * 
+         * @param {string} id the scope id
+         * @param {string} before the id of the scope to add before
+         *
+         */
+        addToScopeOrder: function (id, addBefore) {
+            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                index = _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry.id === id;
+                }),
+                entry;
+            if (index > -1) {
+                entry = shadowScopeOrder[index];
+                this._addToScopeOrder(entry.id, entry.scope, entry.promise, addBefore);
             }
         },
         
@@ -1176,14 +1301,14 @@ define(function (require, exports, module) {
             if (scope) {
                 _.pull(this._defaultContext.scopeOrder, id);
                 var $this = $(this);
+                $(scope).off(".prefsys");
                 $this.trigger(SCOPEORDER_CHANGE, {
                     id: id,
                     action: "removed"
                 });
-                $this.trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: scope.getKeys()
                 });
-                $(scope).off(".prefsys");
             }
         },
         
@@ -1214,6 +1339,7 @@ define(function (require, exports, module) {
          *                   with id and scope.
          */
         addScope: function (id, scope, options) {
+            var promise;
             options = options || {};
             
             if (this._scopes[id]) {
@@ -1225,14 +1351,11 @@ define(function (require, exports, module) {
                 scope = new Scope(scope);
             }
             
-            var deferred = $.Deferred();
+            promise = scope.load();
+
+            this._addToScopeOrder(id, scope, promise, options.before);
             
-            scope.load()
-                .then(function () {
-                    this._scopes[id] = scope;
-                    this.addToScopeOrder(id, options.before);
-                    deferred.resolve(id, scope);
-                }.bind(this))
+            promise
                 .fail(function (err) {
                     // With preferences, it is valid for there to be no file.
                     // It is not valid to have an unparseable file.
@@ -1241,7 +1364,7 @@ define(function (require, exports, module) {
                     }
                 });
             
-            return deferred.promise();
+            return promise;
         },
         
         /**
@@ -1252,16 +1375,18 @@ define(function (require, exports, module) {
          * @param {string} id Name of the Scope to remove
          */
         removeScope: function (id) {
-            var scope = this._scopes[id];
+            var scope = this._scopes[id],
+                shadowIndex;
             if (!scope) {
                 return;
             }
-            
+
             this.removeFromScopeOrder(id);
-            
+            shadowIndex = _.findIndex(this._defaultContext._shadowScopeOrder, function (entry) {
+                return entry.id === id;
+            });
+            this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
             delete this._scopes[id];
-            
-            $(scope).off(PREFERENCE_CHANGE);
         },
         
         /**
@@ -1373,7 +1498,7 @@ define(function (require, exports, module) {
             
             var wasSet = scope.set(id, value, context, location);
             if (wasSet) {
-                $(this).trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: [id]
                 });
             }
@@ -1444,7 +1569,7 @@ define(function (require, exports, module) {
             
             changes = _.union.apply(null, changes);
             if (changes.length > 0) {
-                $(this).trigger(PREFERENCE_CHANGE, {
+                this._triggerChange({
                     ids: changes
                 });
             }
@@ -1506,6 +1631,47 @@ define(function (require, exports, module) {
                 pref.off(event, handler);
             } else {
                 $(this).off(event, handler);
+            }
+        },
+        
+        /**
+         * @private
+         * 
+         * Sends a change event to listeners. If change events have been paused (see
+         * pauseChangeEvents) then the IDs are queued up.
+         * 
+         * @param {{ids: Array.<string>}} data Message to send
+         */
+        _triggerChange: function (data) {
+            if (this._changeEventQueue) {
+                this._changeEventQueue = _.union(this._changeEventQueue, data.ids);
+            } else {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }
+        },
+        
+        /**
+         * Turns off sending of change events, queueing them up for sending once sending is resumed.
+         * The events are compacted so that each preference that will be notified is only
+         * notified once. (For example, if `spaceUnits` is changed 5 times, only one change
+         * event will be sent upon resuming events.)
+         */
+        pauseChangeEvents: function () {
+            if (!this._changeEventQueue) {
+                this._changeEventQueue = [];
+            }
+        },
+        
+        /**
+         * Turns sending of events back on, sending any events that were queued while the
+         * events were paused.
+         */
+        resumeChangeEvents: function () {
+            if (this._changeEventQueue) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: this._changeEventQueue
+                });
+                this._changeEventQueue = null;
             }
         },
         
