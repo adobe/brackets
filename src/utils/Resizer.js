@@ -64,6 +64,8 @@ define(function (require, exports, module) {
     
     var $mainView;
     
+    var isResizing = false;
+    
     /**
      * Shows a resizable element.
      * @param {DOMNode} element Html element to show if possible
@@ -214,7 +216,7 @@ define(function (require, exports, module) {
             adjustSibling(elementSize);
             
             $element.trigger("panelExpanded", [elementSize]);
-            PreferencesManager.setViewState(elementID, elementPrefs, null, true);
+            PreferencesManager.setViewState(elementID, elementPrefs, null, isResizing);
         });
                       
         $element.data("hide", function () {
@@ -236,7 +238,7 @@ define(function (require, exports, module) {
             adjustSibling(0);
             
             $element.trigger("panelCollapsed", [elementSize]);
-            PreferencesManager.setViewState(elementID, elementPrefs, null, true);
+            PreferencesManager.setViewState(elementID, elementPrefs, null, isResizing);
         });
         
         // If the resizer is positioned right or bottom of the panel, we need to listen to
@@ -255,9 +257,9 @@ define(function (require, exports, module) {
                 newSize         = startSize,
                 previousSize    = startSize,
                 baseSize        = 0,
-                isMouseDown     = true,
                 resizeStarted   = false;
             
+            isResizing = true;
             $body.append($resizeShield);
                         
             if ($resizableElement.length) {
@@ -273,7 +275,7 @@ define(function (require, exports, module) {
             function doRedraw() {
                 // only run this if the mouse is down so we don't constantly loop even
                 // after we're done resizing.
-                if (!isMouseDown) {
+                if (!isResizing) {
                     return;
                 }
                 
@@ -347,7 +349,7 @@ define(function (require, exports, module) {
             }
             
             function endResize(e) {
-                if (isMouseDown) {
+                if (isResizing) {
                     
                     var elementSize	= elementSizeFunction.apply($element);
                     if ($element.is(":visible")) {
@@ -359,7 +361,7 @@ define(function (require, exports, module) {
                         repositionResizer(elementSize);
                     }
 
-                    isMouseDown = false;
+                    isResizing = false;
                     
                     if (resizeStarted) {
                         $element.trigger("panelResizeEnd", [elementSize]);
