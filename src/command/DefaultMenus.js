@@ -86,6 +86,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_FIND_NEXT);
         menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
         menu.addMenuItem(Commands.EDIT_ADD_NEXT_MATCH);
+        menu.addMenuItem(Commands.EDIT_SKIP_CURRENT_MATCH);
 
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_REPLACE);

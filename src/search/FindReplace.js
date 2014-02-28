@@ -236,9 +236,11 @@ define(function (require, exports, module) {
      * was already a range (even a non-word range), adds the next instance of the contents of that range as a selection.
      *
      * @param {!Editor} editor The editor to search in
-     * @param {{line: number, ch: number}} pos The position to start at.
+     * @param {boolean=} removePrimary Whether to remove the current primary selection in addition to adding the
+     * next one. If true, we add the next match even if the current primary selection is a cursor (we expand it
+     * first to determine what to match).
      */
-    function _expandWordAndAddNextToSelection(editor, pos) {
+    function _expandWordAndAddNextToSelection(editor, removePrimary) {
         editor = editor || EditorManager.getActiveEditor();
         if (!editor) {
             return;
@@ -246,6 +248,7 @@ define(function (require, exports, module) {
         
         var selections = editor.getSelections(),
             primarySel,
+            primaryIndex,
             searchText,
             added = false;
         
@@ -253,10 +256,11 @@ define(function (require, exports, module) {
             return (CodeMirror.cmpPos(sel1.start, sel2.start) === 0 && CodeMirror.cmpPos(sel1.end, sel2.end) === 0);
         }
         
-        _.each(selections, function (sel) {
+        _.each(selections, function (sel, index) {
             var isEmpty = (CodeMirror.cmpPos(sel.start, sel.end) === 0);
             if (sel.primary) {
                 primarySel = sel;
+                primaryIndex = index;
                 if (!isEmpty) {
                     searchText = editor.document.getRange(primarySel.start, primarySel.end);
                 }
@@ -265,6 +269,11 @@ define(function (require, exports, module) {
                 var wordInfo = _getWordAt(editor, sel.start);
                 sel.start = wordInfo.start;
                 sel.end = wordInfo.end;
+                if (sel.primary && removePrimary) {
+                    // Get the expanded text, even though we're going to remove this selection,
+                    // since in this case we still want to select the next match.
+                    searchText = wordInfo.text;
+                }
             }
         });
         
@@ -301,6 +310,10 @@ define(function (require, exports, module) {
             }
         }
         
+        if (removePrimary) {
+            selections.splice(primaryIndex, 1);
+        }
+        
         if (added) {
             // Avoid scrolling to matches that are already on screen.
             _selectAndScrollTo(editor, selections, true);
@@ -308,6 +321,10 @@ define(function (require, exports, module) {
             // If all we did was expand some selections, don't center anything.
             editor.setSelections(selections);
         }
+    }
+    
+    function _skipCurrentMatch(editor) {
+        return _expandWordAndAddNextToSelection(editor, true);
     }
 
     /**
@@ -835,11 +852,12 @@ define(function (require, exports, module) {
 
     $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
-    CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND,           _launchFind);
-    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,      _findNext);
-    CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE,        _replace);
-    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS,  _findPrevious);
-    CommandManager.register(Strings.CMD_ADD_NEXT_MATCH, Commands.EDIT_ADD_NEXT_MATCH, _expandWordAndAddNextToSelection);
+    CommandManager.register(Strings.CMD_FIND,                   Commands.EDIT_FIND,                    _launchFind);
+    CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.EDIT_FIND_NEXT,               _findNext);
+    CommandManager.register(Strings.CMD_REPLACE,                Commands.EDIT_REPLACE,                 _replace);
+    CommandManager.register(Strings.CMD_FIND_PREVIOUS,          Commands.EDIT_FIND_PREVIOUS,           _findPrevious);
+    CommandManager.register(Strings.CMD_ADD_NEXT_MATCH,         Commands.EDIT_ADD_NEXT_MATCH,          _expandWordAndAddNextToSelection);
+    CommandManager.register(Strings.CMD_SKIP_CURRENT_MATCH,     Commands.EDIT_SKIP_CURRENT_MATCH,      _skipCurrentMatch);
     
     // APIs shared with FindInFiles
     exports._updatePrefsFromSearchBar        = _updatePrefsFromSearchBar;

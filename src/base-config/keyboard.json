@@ -109,6 +109,11 @@
             "key": "Ctrl-B"
         }
     ],
+    "edit.skipCurrentMatch": [
+        {
+            "key": "Ctrl-Shift-B"
+        }
+    ],
     "edit.replace":  [
         {
             "key": "Ctrl-H"

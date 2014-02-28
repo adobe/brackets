@@ -167,6 +167,56 @@ define(function (require, exports, module) {
                                                         {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
             });
         });
+        
+        describe("expandAndAddNextToSelection - with removeCurrent (for Skip Match)", function () {
+            it("should remove a single range selection and select the next instance", function () {
+                editor.setSelection({line: 2, ch: 23}, {line: 2, ch: 30});
+                FindReplace._expandWordAndAddNextToSelection(editor, true);
+                expect(editor.getSelections()).toEqual([{start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
+            });
+            
+            it("should expand a single cursor to a range, then change the selection to the next instance of that range", function () {
+                editor.setSelection({line: 2, ch: 26}, {line: 2, ch: 26});
+                FindReplace._expandWordAndAddNextToSelection(editor, true);
+                expect(editor.getSelections()).toEqual([{start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
+            });
+            
+            it("should, when one cursor and one range are selected, expand the cursor and change the range selection to its next match", function () {
+                editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
+                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
+                FindReplace._expandWordAndAddNextToSelection(editor, true);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
+            });
+            
+            it("should wrap around the end of the document and switch to the next instance at the beginning of the document", function () {
+                editor.setSelection({line: 4, ch: 14}, {line: 4, ch: 21}); // "require"
+                FindReplace._expandWordAndAddNextToSelection(editor, true);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false}]);
+            });
+            
+            it("should skip over matches that are already in the selection (but still remove the current one)", function () {
+                // select all instances of "require" except the second one
+                editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
+                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                FindReplace._expandWordAndAddNextToSelection(editor, true);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: true, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false}]);
+            });
+
+            it("should just remove the primary selection if all instances are already selected", function () {
+                editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
+                                      {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}},
+                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                FindReplace._expandWordAndAddNextToSelection(editor, true);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}]);
+            });
+        });
     });
     
     describe("FindReplace - Integration", function () {

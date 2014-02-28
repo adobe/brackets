@@ -269,6 +269,7 @@ define({
     "CMD_FIND_NEXT"                       : "Find Next",
     "CMD_FIND_PREVIOUS"                   : "Find Previous",
     "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
+    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
     "CMD_REPLACE"                         : "Replace",
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
