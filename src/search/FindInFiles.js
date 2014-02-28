@@ -861,7 +861,7 @@ define(function (require, exports, module) {
         });
         
         filterPicker = FileFilters.createFilterPicker();
-        this.modalBar.getRoot().find("#find-group").append(filterPicker.$button);
+        this.modalBar.getRoot().find("#find-group").append(filterPicker);
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();

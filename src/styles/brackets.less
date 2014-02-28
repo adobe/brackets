@@ -1162,19 +1162,15 @@ a, img {
         margin-left: 0px;
         border-radius: 0;
     }
-    
-    // File exclusion filter (used only in Find in Files search bar, for now)
-    .btn-dropdown {
-        font-weight: normal;
-        text-shadow: none;
-        padding-top: 4px;  // align text with other labels in search bar
-        padding-left: 8px;
-        margin-left: 8px;
-    }
 }
 
-.exclusions-dropdown.dropdownbutton-popup.dropdown-menu {
-    max-height: none;  // ensure "Edit filter" item not scrolled out of view
+// File exclusion filter (used only in Find in Files search bar, for now)
+.filter-picker {
+    display: inline-block;
+    margin-left: 8px;
+    button {
+        margin-left: 8px;
+    }
 }
 
 // File exclusion filter editor dialog
