@@ -1177,7 +1177,6 @@ define(function LiveDevelopment(require, exports, module) {
                 })
                 .fail(function () {
                     _showWrongDocError();
-                    _openDeferred.reject();
                 });
         });
 
