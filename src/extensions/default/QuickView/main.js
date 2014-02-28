@@ -36,12 +36,12 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings");
+        Strings             = brackets.getModule("strings"),
+        ViewUtils           = brackets.getModule("utils/ViewUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
-    var defaultPrefs               = { enabled: true },
-        enabled,                             // Only show preview if true
+    var enabled,                             // Only show preview if true
         prefs                      = null,   // Preferences
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
@@ -52,6 +52,9 @@ define(function (require, exports, module) {
         HOVER_DELAY                 = 350,  // Time (ms) mouse must remain over a provider's matched text before popover appears
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
+    
+    prefs = PreferencesManager.getExtensionPrefs("quickview");
+    prefs.definePreference("enabled", "boolean", true);
 
     /**
      * There are three states for this var:
@@ -108,12 +111,23 @@ define(function (require, exports, module) {
             top           = ypos - $previewContainer.outerHeight() - POINTER_HEIGHT,
             left          = xpos - previewWidth / 2,
             $editorHolder = $("#editor-holder"),
-            editorLeft    = $editorHolder.offset().left;
+            elementRect = {
+                top:    top,
+                left:   left - POPOVER_HORZ_MARGIN,
+                height: $previewContainer.outerHeight() + POINTER_HEIGHT,
+                width:  previewWidth + 2 * POPOVER_HORZ_MARGIN
+            },
+            clip = ViewUtils.getElementClipSize($editorHolder, elementRect);
 
-        left = Math.max(left, editorLeft + POPOVER_HORZ_MARGIN);
-        left = Math.min(left, editorLeft + $editorHolder.width() - previewWidth - POPOVER_HORZ_MARGIN);
-        
-        if (top < 0) {
+        // Prevent horizontal clipping
+        if (clip.left > 0) {
+            left += clip.left;
+        } else if (clip.right > 0) {
+            left -= clip.right;
+        }
+
+        // If clipped on top, flip popover below line
+        if (clip.top > 0) {
             top = ybot + POINTER_HEIGHT;
             $previewContainer
                 .removeClass("preview-bubble-above")
@@ -123,6 +137,7 @@ define(function (require, exports, module) {
                 .removeClass("preview-bubble-below")
                 .addClass("preview-bubble-above");
         }
+        
         $previewContainer
             .css({
                 left: left,
@@ -648,7 +663,7 @@ define(function (require, exports, module) {
         CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
-    function setEnabled(_enabled) {
+    function setEnabled(_enabled, doNotSave) {
         if (enabled !== _enabled) {
             enabled = _enabled;
             var editorHolder = $("#editor-holder")[0];
@@ -674,7 +689,10 @@ define(function (require, exports, module) {
 
                 hidePreview();
             }
-            prefs.setValue("enabled", enabled);
+            if (!doNotSave) {
+                prefs.set("enabled", enabled);
+                prefs.save();
+            }
         }
         // Always update the checkmark, even if the enabled flag hasn't changed.
         updateMenuItemCheckmark();
@@ -695,11 +713,17 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
     Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
     
-    // Init PreferenceStorage
-    prefs = PreferencesManager.getPreferenceStorage(module, defaultPrefs);
+    // Convert old preferences
+    PreferencesManager.convertPreferences(module, {
+        "enabled": "user quickview.enabled"
+    });
 
     // Setup initial UI state
-    setEnabled(prefs.getValue("enabled"));
+    setEnabled(prefs.get("enabled"), true);
+    
+    prefs.on("change", "enabled", function () {
+        setEnabled(prefs.get("enabled"), true);
+    });
     
     // For unit testing
     exports._queryPreviewProviders  = queryPreviewProviders;

@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var _                            = require("thirdparty/lodash"),
+        AnimationUtils      = require("utils/AnimationUtils"),
         AppInit                      = require("utils/AppInit"),
         EditorManager                = require("editor/EditorManager"),
         Editor                       = require("editor/Editor").Editor,
@@ -48,7 +49,8 @@ define(function (require, exports, module) {
         $fileInfo,
         $indentType,
         $indentWidthLabel,
-        $indentWidthInput;
+        $indentWidthInput,
+        $statusOverwrite;
     
     
     function _formatCountable(number, singularStr, pluralStr) {
@@ -156,6 +158,22 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
+    function _updateOverwriteLabel(event, editor, newstate) {
+        $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
+        
+        AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+    }
+    
+    function _updateEditorOverwriteMode() {
+        var editor = EditorManager.getActiveEditor();
+        
+        editor.toggleOverwrite(null);
+    }
+    
+    function _initOverwriteMode(currentEditor) {
+        currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+    }
+    
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off(".statusbar");
@@ -169,10 +187,15 @@ define(function (require, exports, module) {
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
+            $(current).on("optionChange.statusbar", function () {
+                _updateIndentType();
+                _updateIndentSize();
+            });
             $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
+            $(current).on("overwriteToggle.statusbar", _updateOverwriteLabel);
             
             current.document.addRef();
             $(current.document).on("languageChanged.statusbar", function () {
@@ -182,6 +205,7 @@ define(function (require, exports, module) {
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);
             _updateFileInfo(current);
+            _initOverwriteMode(current);
             _updateIndentType();
             _updateIndentSize();
         }
@@ -223,6 +247,7 @@ define(function (require, exports, module) {
         $indentType         = $("#indent-type");
         $indentWidthLabel   = $("#indent-width-label");
         $indentWidthInput   = $("#indent-width-input");
+        $statusOverwrite    = $("#status-overwrite");
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -269,6 +294,8 @@ define(function (require, exports, module) {
             // (passing in null will reset the force flag)
             document.setLanguageOverride(selectedLang === defaultLang ? null : selectedLang);
         });
+
+        $statusOverwrite.on("click", _updateEditorOverwriteMode);
         
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }

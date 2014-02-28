@@ -379,7 +379,13 @@ function _endDownload(downloadId, error) {
 /**
  * Implements "downloadFile" command, asynchronously.
  */
-function _cmdDownloadFile(downloadId, url, callback) {
+function _cmdDownloadFile(downloadId, url, proxy, callback) {
+    // Backwards compatibility check, added in 0.37
+    if (typeof proxy === "function") {
+        callback = proxy;
+        proxy = undefined;
+    }
+    
     if (pendingDownloads[downloadId]) {
         callback(Errors.DOWNLOAD_ID_IN_USE, null);
         return;
@@ -387,7 +393,8 @@ function _cmdDownloadFile(downloadId, url, callback) {
     
     var req = request.get({
         url: url,
-        encoding: null
+        encoding: null,
+        proxy: proxy
     },
         // Note: we could use the traditional "response"/"data"/"end" events too if we wanted to stream data
         // incrementally, limit download size, etc. - but the simple callback is good enough for our needs.
@@ -593,6 +600,10 @@ function init(domainManager) {
             name: "url",
             type: "string",
             description: "URL to download from"
+        }, {
+            name: "proxy",
+            type: "string",
+            description: "optional proxy URL"
         }],
         {
             type: "string",

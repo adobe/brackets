@@ -87,7 +87,7 @@ define(function (require, exports, module) {
     function inlineProvider(hostEditor, pos) {
         var langId = hostEditor.getLanguageForSelection().getId();
         // Only provide docs when cursor is in CSS content
-        if (langId !== "css" && langId !== "scss") {
+        if (langId !== "css" && langId !== "scss" && langId !== "less") {
             return null;
         }
         

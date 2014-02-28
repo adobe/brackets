@@ -29,7 +29,9 @@
  * and manages File and Directory instances, dispatches events when the file system changes,
  * and provides methods for showing 'open' and 'save' dialogs.
  *
- * The FileSystem must be initialized very early during application startup. 
+ * FileSystem automatically initializes when loaded. It depends on a pluggable "impl" layer, which
+ * it loads itself but must be designated in the require.config() that loads FileSystem. For details
+ * see: https://github.com/adobe/brackets/wiki/File-System-Implementations
  *
  * There are three ways to get File or Directory instances:
  *    * Use FileSystem.resolve() to convert a path to a File/Directory object. This will only
@@ -37,7 +39,18 @@
  *    * Use FileSystem.getFileForPath()/FileSystem.getDirectoryForPath() if you know the
  *      file/directory already exists, or if you want to create a new entry.
  *    * Use Directory.getContents() to return all entries for the specified Directory.
- *
+ * 
+ * All paths passed *to* FileSystem APIs must be in the following format:
+ *    * The path separator is "/" regardless of platform
+ *    * Paths begin with "/" on Mac/Linux and "c:/" (or some other drive letter) on Windows
+ * 
+ * All paths returned *from* FileSystem APIs additionally meet the following guarantees:
+ *    * No ".." segments
+ *    * No consecutive "/"s
+ *    * Paths to a directory always end with a trailing "/"
+ * (Because FileSystem normalizes paths automatically, paths passed *to* FileSystem do not need
+ * to meet these requirements)
+ * 
  * FileSystem dispatches the following events:
  *    change - Sent whenever there is a change in the file system. The handler
  *          is passed up to three arguments: the changed entry and, if that changed entry 
@@ -46,6 +59,11 @@
  *          *  a File - the contents of the file have changed, and should be reloaded.
  *          *  a Directory - an immediate child of the directory has been added, removed,
  *             or renamed/moved. Not triggered for "grandchildren".
+ *               - If the added & removed arguments are null, we don't know what was added/removed:
+ *                 clients should assume the whole subtree may have changed.
+ *               - If the added & removed arguments are 0-length, there's no net change in the set
+ *                 of files but a file may have been replaced: clients should assume the contents
+ *                 of any immediate child file may have changed.
  *          *  null - a 'wholesale' change happened, and you should assume everything may
  *             have changed.
  *          For changes made externally, there may be a significant delay before a "change" event
@@ -253,18 +271,17 @@ define(function (require, exports, module) {
                     impl[commandName].call(impl, entry.fullPath, requestCb);
                 }.bind(this), callback);
             }
-        } else {
+        } else if (shouldWatch) {
             // The impl can't handle recursive watch requests, so it's up to the
-            // filesystem to recursively watch or unwatch all subdirectories.
+            // filesystem to recursively watch all subdirectories.
             this._enqueueWatchRequest(function (requestCb) {
                 // First construct a list of entries to watch or unwatch
-                var entriesToWatchOrUnwatch = [],
-                    watchOrUnwatch = impl[commandName].bind(impl);
+                var entriesToWatch = [];
                 
                 var visitor = function (child) {
                     if (watchedRoot.filter(child.name, child.parentPath)) {
                         if (child.isDirectory || child === watchedRoot.entry) {
-                            entriesToWatchOrUnwatch.push(child);
+                            entriesToWatch.push(child);
                         }
                         return true;
                     }
@@ -273,27 +290,32 @@ define(function (require, exports, module) {
                 
                 entry.visit(visitor, function (err) {
                     if (err) {
+                        // Unexpected error
                         requestCb(err);
                         return;
                     }
                     
                     // Then watch or unwatched all these entries
-                    var count = entriesToWatchOrUnwatch.length;
+                    var count = entriesToWatch.length;
                     if (count === 0) {
                         requestCb(null);
                         return;
                     }
                     
-                    var watchOrUnwatchCallback = function () {
+                    var watchCallback = function () {
                         if (--count === 0) {
                             requestCb(null);
                         }
                     };
                     
-                    entriesToWatchOrUnwatch.forEach(function (entry) {
-                        watchOrUnwatch(entry.fullPath, watchOrUnwatchCallback);
+                    entriesToWatch.forEach(function (entry) {
+                        impl.watchPath(entry.fullPath, watchCallback);
                     });
                 });
+            }, callback);
+        } else {
+            this._enqueueWatchRequest(function (requestCb) {
+                impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
         }
     };
@@ -427,7 +449,7 @@ define(function (require, exports, module) {
      * @return {boolean} True if the fullPath is absolute and false otherwise.
      */
     FileSystem.isAbsolutePath = function (fullPath) {
-        return (fullPath[0] === "/" || fullPath[1] === ":");
+        return (fullPath[0] === "/" || (fullPath[1] === ":" && fullPath[2] === "/"));
     };
 
     function _ensureTrailingSlash(path) {
@@ -714,6 +736,10 @@ define(function (require, exports, module) {
             }
             
             var watchOrUnwatchCallback = function (err) {
+                if (err) {
+                    console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
+                }
+                
                 if (--counter === 0) {
                     callback(addedEntries, removedEntries);
                 }
@@ -769,9 +795,11 @@ define(function (require, exports, module) {
             } else {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
-                    if (!(added && added.length === 0 && removed && removed.length === 0)) {
-                        this._fireChangeEvent(entry, added, removed);
-                    }
+                    
+                    // We send a change even if added & removed are both zero-length. Something may still have changed,
+                    // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
+                    // listing.
+                    this._fireChangeEvent(entry, added, removed);
                 }.bind(this));
             }
         }

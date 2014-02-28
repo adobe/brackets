@@ -50,7 +50,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
-        Resizer             = require("utils/Resizer");
+        Resizer             = require("utils/Resizer"),
+        _                   = require("thirdparty/lodash");        
 
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
@@ -72,7 +73,7 @@ define(function (require, exports, module) {
             displayName = "/";
         }
         
-        $projectTitle.html(displayName);
+        $projectTitle.html(_.escape(displayName));
         $projectTitle.attr("title", fullPath);
         
         // Trigger a scroll on the project files container to 

@@ -25,7 +25,7 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone */
+waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -194,23 +194,27 @@ define(function (require, exports, module) {
         it("should receive events", function () {
             var connection = createConnection();
             var eventMessages = [];
-            $(connection).on(
-                "base.log",
-                function (evt, level, timestamp, message) {
-                    eventMessages.push(message);
-                }
+            var spy = jasmine.createSpy();
+            $(connection).one(
+                "test:eventOne",
+                spy
             );
             runConnectAndWait(connection, false);
             runLoadDomainsAndWait(connection, ["TestCommandsOne"], false);
             runs(function () {
-                connection.domains.test.log("1234");
+                connection.domains.test.emitEventOne();
             });
             waitsFor(
                 function () {
-                    return eventMessages.indexOf("1234") >= 0;
+                    return spy.calls.length === 1;
                 },
                 CONNECTION_TIMEOUT
             );
+            runs(function () {
+                expect(spy.calls[0].args[0].type).toBe("test:eventOne"); // event.type
+                expect(spy.calls[0].args[1]).toBe("foo"); // argOne
+                expect(spy.calls[0].args[2]).toBe("bar"); // argTwo
+            });
         });
         
         it("should parse domain event specifications", function () {
@@ -398,6 +402,72 @@ define(function (require, exports, module) {
                 expect(connectionOne.domains.test.reverseAsync).toBeFalsy();
             });
 
+        });
+        
+        it("should receive synchronous binary command responses", function () {
+            var connection = createConnection();
+            var commandDeferred = null;
+            var result = null;
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["BinaryTestCommands"], false);
+            runs(function () {
+                commandDeferred = connection.domains.binaryTest.getBufferSync();
+                commandDeferred.done(function (response) {
+                    result = response;
+                });
+            });
+            waitsFor(
+                function () {
+                    return commandDeferred &&
+                        commandDeferred.state() === "resolved" &&
+                        result;
+                },
+                CONNECTION_TIMEOUT
+            );
+            runs(function () {
+                var view = new DataView(result);
+                
+                expect(result instanceof ArrayBuffer).toBe(true);
+                expect(result.byteLength).toBe(18);
+                expect(view.getUint8(0)).toBe(1);
+                expect(view.getUint32(1)).toBe(4294967295);
+                expect(view.getFloat32(5, false)).toBe(3.141592025756836);
+                expect(view.getFloat64(9, true)).toBe(1.7976931348623157e+308);
+                expect(view.getInt8(17)).toBe(-128);
+            });
+        });
+        
+        it("should receive asynchronous binary command response", function () {
+            var connection = createConnection();
+            var commandDeferred = null;
+            var result = null;
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["BinaryTestCommands"], false);
+            runs(function () {
+                commandDeferred = connection.domains.binaryTest.getBufferAsync();
+                commandDeferred.done(function (response) {
+                    result = response;
+                });
+            });
+            waitsFor(
+                function () {
+                    return commandDeferred &&
+                        commandDeferred.state() === "resolved" &&
+                        result;
+                },
+                CONNECTION_TIMEOUT
+            );
+            runs(function () {
+                var view = new DataView(result);
+                                
+                expect(result instanceof ArrayBuffer).toBe(true);
+                expect(result.byteLength).toBe(18);
+                expect(view.getUint8(0)).toBe(1);
+                expect(view.getUint32(1)).toBe(4294967295);
+                expect(view.getFloat32(5, false)).toBe(3.141592025756836);
+                expect(view.getFloat64(9, true)).toBe(1.7976931348623157e+308);
+                expect(view.getInt8(17)).toBe(-128);
+            });
         });
     });
 });
