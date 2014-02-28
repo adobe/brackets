@@ -112,7 +112,6 @@ define(function (require, exports, module) {
         this._registeredModules = [];
         this._pendingInterfaceRefreshDeferreds = [];
         this._pendingCommandDeferreds = [];
-        $(this).on("base.newDomains", this._refreshInterface.bind(this));
     }
     
     /**
@@ -124,7 +123,7 @@ define(function (require, exports, module) {
      * to call to enable the debugger.
      *
      * This object is automatically replaced every time the API changes (based
-     * on the base.newDomains event from the server). Therefore, code that
+     * on the base:newDomains event from the server). Therefore, code that
      * uses this object should not keep their own pointer to the domain property.
      */
     NodeConnection.prototype.domains = null;
@@ -460,7 +459,18 @@ define(function (require, exports, module) {
         
         switch (m.type) {
         case "event":
-            $(this).triggerHandler(m.message.domain + "." + m.message.event,
+            var $this = $(this);
+
+            if (m.message.domain === "base" && m.message.event === "newDomains") {
+                this._refreshInterface();
+            }
+            
+            // Event type for backwards compatibility for original design: "domain.event"
+            $this.triggerHandler(m.message.domain + "." + m.message.event,
+                                   m.message.parameters);
+
+            // Event type "domain:event"
+            $this.triggerHandler(m.message.domain + ":" + m.message.event,
                                    m.message.parameters);
             break;
         case "commandResponse":
@@ -492,7 +502,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Helper function for refreshing the interface in the "domain" property.
-     * Automatically called when the connection receives a base.newDomains
+     * Automatically called when the connection receives a base:newDomains
      * event from the server, and also called at connection time.
      */
     NodeConnection.prototype._refreshInterface = function () {

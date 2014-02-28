@@ -60,10 +60,14 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Error deleting file",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid {0} name",
-    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\| or use any system reserved words.",
+    "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: {0} or use any system reserved words.",
     "FILE_ALREADY_EXISTS"               : "The {0} <span class='dialog-filename'>{1}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
+
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Error reading preferences",
+    "ERROR_PREFS_CORRUPT"               : "Your preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to restart {APP_NAME} for the changes to take effect.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
@@ -162,7 +166,8 @@ define({
     "FIND_IN_FILES_MATCHES"             : "matches",
     "FIND_IN_FILES_MORE_THAN"           : "Over ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
 
@@ -197,6 +202,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Line",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Lines",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensions Disabled",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
@@ -304,6 +311,8 @@ define({
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
+    "CMD_SHOW_IN_EXPLORER"                : "Show in Explorer",
+    "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Show in OS",
     
     // Help menu commands
@@ -459,37 +468,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Czech",
-    "LOCALE_DE"                                 : "German",
-    "LOCALE_EL"                                 : "Greek",
-    "LOCALE_EN"                                 : "English",
-    "LOCALE_ES"                                 : "Spanish",
-    "LOCALE_FI"                                 : "Finnish",
-    "LOCALE_FR"                                 : "French",
-    "LOCALE_IT"                                 : "Italian",
-    "LOCALE_JA"                                 : "Japanese",
-    "LOCALE_NB"                                 : "Norwegian",
-    "LOCALE_NL"                                 : "Dutch",
-    "LOCALE_FA_IR"                              : "Persian-Farsi",
-    "LOCALE_PL"                                 : "Polish",
-    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                              : "Portuguese",
-    "LOCALE_RO"                                 : "Romanian",
-    "LOCALE_RU"                                 : "Russian",
-    "LOCALE_SK"                                 : "Slovak",
-    "LOCALE_SR"                                 : "Serbian",
-    "LOCALE_SV"                                 : "Swedish",
-    "LOCALE_TR"                                 : "Turkish",
-    "LOCALE_ZH_CN"                              : "Chinese, simplified",
-    "LOCALE_HU"                                 : "Hungarian",
-    "LOCALE_KO"                                 : "Korean",
-    
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",

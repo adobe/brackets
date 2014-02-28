@@ -28,7 +28,9 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
-        FileSystem       = require("filesystem/FileSystem");
+        FileSystem       = require("filesystem/FileSystem"),
+        StringUtils      = require("utils/StringUtils"),
+        Strings;
 
     describe("Code Inspection", function () {
         this.category = "integration";
@@ -83,6 +85,7 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
+                    Strings = testWindow.require("strings");
                     CommandManager = brackets.test.CommandManager;
                     EditorManager = brackets.test.EditorManager;
                     CodeInspection = brackets.test.CodeInspection;
@@ -393,13 +396,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("1 JavaScript Linter Problem");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("1 JavaScript Linter Problem");
+                    expect(tooltip).toBe(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"));
                 });
             });
 
@@ -426,13 +429,13 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("2 JavaScript Linter Problems");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("2 JavaScript Linter Problems");
+                    expect(tooltip).toBe(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2));
                 });
             });
 
@@ -448,14 +451,14 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $problemPanelTitle = $("#problems-panel .title").text();
-                    expect($problemPanelTitle).toBe("2 Problems");
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
 
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
                     // tooltip will contain + in the title if the inspection was aborted
-                    expect(tooltip).toBe("2 Problems");
+                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
                 });
             });
 
@@ -472,7 +475,7 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("No problems found - good job!");
+                    expect(tooltip).toBe(Strings.NO_ERRORS_MULTIPLE_PROVIDER);
                 });
             });
 
@@ -487,7 +490,7 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe("No JavaScript Linter1 problems found - good job!");
+                    expect(tooltip).toBe(StringUtils.format(Strings.NO_ERRORS, "JavaScript Linter1"));
                 });
             });
             
@@ -536,6 +539,42 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should handle missing or negative line numbers gracefully (https://github.com/adobe/brackets/issues/6441)", function () {
+                var codeInspector1 = createCodeInspector("NoLineNumberLinter", {
+                    errors: [
+                        {
+                            pos: { line: -1, ch: 0 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+
+                var codeInspector2 = createCodeInspector("NoLineNumberLinter2", {
+                    errors: [
+                        {
+                            pos: { line: "all", ch: 0 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                });
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $problemPanelTitle = $("#problems-panel .title").text();
+                    expect($problemPanelTitle).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+
+                    var tooltip = $statusBar.attr("title");
+                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+                });
+            });
         });
         
         describe("Code Inspector Registration", function () {
