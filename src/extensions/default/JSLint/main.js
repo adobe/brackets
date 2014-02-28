@@ -67,19 +67,21 @@ define(function (require, exports, module) {
      */
     function lintOneFile(text, fullPath) {
 
-        if(jsx) {
-            try {
-                text = jsx.transform(text).code;
+        if (/@jsx React\.DOM/.test(text)) {
+            if(jsx) {
+                try {
+                    text = jsx.transform(text).code;
 
-            } catch (e) {
+                } catch (e) {
 
-                return {
-                    errors: [{
-                        pos: { line: e.lineNumber - 1, ch: e.column },
-                        message: 'jsx-transform: ' + e.description,
-                        type: CodeInspection.Type.WARNING
-                    }]
-                };
+                    return {
+                        errors: [{
+                            pos: { line: e.lineNumber - 1, ch: e.column },
+                            message: 'jsx-transform: ' + e.description,
+                            type: CodeInspection.Type.WARNING
+                        }]
+                    };
+                }
             }
         }
 
