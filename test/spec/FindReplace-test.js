@@ -407,6 +407,33 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should Find Next after search bar closed, remembering case sensitivity state", function () {
+                runs(function () {
+                    myEditor.setCursorPos(0, 0);
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND);
+                    
+                    toggleCaseSensitive(true);
+                    enterSearchText("Foo");
+                    pressEscape();
+                    expectHighlightedMatches([]);
+                });
+                
+                waitsForSearchBarClose();
+                
+                runs(function () {
+                    expectSelection(capitalFooSelections[0]);
+                    twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                    expectSelection(capitalFooSelections[1]);
+                    twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                    expectSelection(capitalFooSelections[2]);
+
+                    // next find should wraparound since it should skip the lowercase "foo()"
+                    twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+                    expectSelection(capitalFooSelections[0]);
+                });
+            });
+
             it("shouldn't Find Next after search bar reopened", function () {
                 runs(function () {
                     myEditor.setCursorPos(0, 0);
