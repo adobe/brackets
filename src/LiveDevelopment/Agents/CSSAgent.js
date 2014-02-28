@@ -40,7 +40,7 @@ define(function CSSAgent(require, exports, module) {
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     /** @type {Object.<string, CSS.CSSStyleSheetHeader>} */
-    var _urlToStyle;
+    var _urlToStyle = {};
     
     /** @type {Object.<string, string>} */
     var _styleSheetIdToUrl;
@@ -120,10 +120,6 @@ define(function CSSAgent(require, exports, module) {
      * @param {header: CSSStyleSheetHeader}
      */
     function _styleSheetAdded(event, res) {
-        if (!_urlToStyle) {
-            return;
-        }
-        
         var url = _canonicalize(res.header.sourceURL),
             existing = _urlToStyle[url];
         

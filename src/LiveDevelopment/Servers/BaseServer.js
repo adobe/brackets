@@ -81,6 +81,12 @@ define(function (require, exports, module) {
         // for live development (the file for HTML files)
         // TODO: Issue #2033 Improve how default page is determined
         doc.root = { url: doc.url };
+
+        // TODO: Better workflow of liveDocument.doc.url assignment
+        // Force sync the browser after a URL is assigned
+        if (doc.isDirty && liveDocument._updateBrowser) {
+            liveDocument._updateBrowser();
+        }
     };
 
     /**

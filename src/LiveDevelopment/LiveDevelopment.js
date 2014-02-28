@@ -575,9 +575,6 @@ define(function LiveDevelopment(require, exports, module) {
             );
         });
 
-        // resolve/reject the open() promise after agents complete
-        result.then(_openDeferred.resolve, _openDeferred.reject);
-
         return result.promise();
     }
 
@@ -914,7 +911,9 @@ define(function LiveDevelopment(require, exports, module) {
             // navigate to the page first before loading can complete.
             // To accomodate this, we load all agents and navigate in
             // parallel.
-            loadAgents();
+
+            // resolve/reject the open() promise after agents complete
+            loadAgents().then(_openDeferred.resolve, _openDeferred.reject);
 
             _getInitialDocFromCurrent().done(function (doc) {
                 if (doc) {

@@ -83,22 +83,6 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
-    CSSDocument.prototype._url = null;
-
-    Object.defineProperties(CSSDocument.prototype, {
-        "url": {
-            get: function () { return this._url; },
-            set: function (url) {
-                this._url = url;
-
-                // Force initial update for dirty files
-                if (this.doc.isDirty) {
-                    this._updateBrowser();
-                }
-            }
-        }
-    });
-
     /**
      * @private
      * Get the CSSStyleSheetHeader for this document
@@ -123,7 +107,8 @@ define(function CSSDocumentModule(require, exports, module) {
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
         var deferred = new $.Deferred(),
-            inspectorPromise = Inspector.CSS.getStyleSheetText(this._getStyleSheetHeader().styleSheetId);
+            styleSheetId = this._getStyleSheetHeader().styleSheetId,
+            inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
         
         inspectorPromise.then(function (res) {
             deferred.resolve(res.text);
