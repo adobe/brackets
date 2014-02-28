@@ -104,6 +104,11 @@
             "platform": "mac"
         }
     ],
+    "edit.addNextMatch": [
+        {
+            "key": "Ctrl-B"
+        }
+    ],
     "edit.replace":  [
         {
             "key": "Ctrl-H"

@@ -30,25 +30,148 @@ define(function (require, exports, module) {
     
     var Commands              = require("command/Commands"),
         KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
+        FindReplace           = require("search/FindReplace");
 
-    describe("FindReplace", function () {
+    var defaultContent = "/* Test comment */\n" +
+                         "define(function (require, exports, module) {\n" +
+                         "    var Foo = require(\"modules/Foo\"),\n" +
+                         "        Bar = require(\"modules/Bar\"),\n" +
+                         "        Baz = require(\"modules/Baz\");\n" +
+                         "    \n" +
+                         "    function callFoo() {\n" +
+                         "        \n" +
+                         "        foo();\n" +
+                         "        \n" +
+                         "    }\n" +
+                         "\n" +
+                         "}";
+        
+    describe("FindReplace - Unit", function () {
+        var editor, doc;
+        
+        beforeEach(function () {
+            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
+            editor = mocks.editor;
+            doc = mocks.doc;
+        });
+        
+        afterEach(function () {
+            SpecRunnerUtils.destroyMockEditor(doc);
+            editor = null;
+            doc = null;
+        });
+        
+        describe("getWordAt", function () {
+            it("should select a word bounded by whitespace from a pos in the middle of the word", function () {
+                expect(FindReplace._getWordAt(editor, {line: 2, ch: 9}))
+                    .toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, text: "Foo"});
+            });
+            it("should select a word bounded by whitespace from a pos at the beginning of the word", function () {
+                expect(FindReplace._getWordAt(editor, {line: 2, ch: 8}))
+                    .toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, text: "Foo"});
+            });
+            it("should select a word bounded by whitespace from a pos at the end of the word", function () {
+                expect(FindReplace._getWordAt(editor, {line: 2, ch: 11}))
+                    .toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, text: "Foo"});
+            });
+            
+            it("should select a word bounded by nonword characters from a pos in the middle of the word", function () {
+                expect(FindReplace._getWordAt(editor, {line: 2, ch: 26}))
+                    .toEqual({start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, text: "modules"});
+            });
+            it("should select a word bounded by nonword characters from a pos at the beginning of the word", function () {
+                expect(FindReplace._getWordAt(editor, {line: 2, ch: 23}))
+                    .toEqual({start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, text: "modules"});
+            });
+            it("should select a word bounded by nonword characters from a pos at the end of the word", function () {
+                expect(FindReplace._getWordAt(editor, {line: 2, ch: 23}))
+                    .toEqual({start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, text: "modules"});
+            });
+            
+            it("should return an empty range in the middle of whitespace", function () {
+                expect(FindReplace._getWordAt(editor, {line: 8, ch: 4}))
+                    .toEqual({start: {line: 8, ch: 4}, end: {line: 8, ch: 4}, text: ""});
+            });
+            it("should return an empty range in the middle of non-word chars", function () {
+                expect(FindReplace._getWordAt(editor, {line: 8, ch: 13}))
+                    .toEqual({start: {line: 8, ch: 13}, end: {line: 8, ch: 13}, text: ""});
+            });
+        });
+        
+        describe("expandAndAddNextToSelection", function () {
+            it("should do nothing if the cursor is in non-word/whitespace", function () {
+                editor.setSelection({line: 8, ch: 4});
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 8, ch: 4}, end: {line: 8, ch: 4}, primary: true, reversed: false}]);
+            });
+            
+            it("should expand a single cursor to the containing word without adding a new selection", function () {
+                editor.setSelection({line: 2, ch: 26});
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: true, reversed: false}]);
+            });
+            
+            it("should add the next match for a single word selection as a new primary selection", function () {
+                editor.setSelection({line: 2, ch: 23}, {line: 2, ch: 30});
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
+            });
+            
+            it("should expand two cursors without adding a new selection", function () {
+                editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
+                                      {start: {line: 3, ch: 16}, end: {line: 3, ch: 16}}]);
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}]);
+            });
+            
+            it("should, when one cursor and one range are selected, expand the cursor and add the next match for the range to the selection", function () {
+                editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
+                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
+            });
+            
+            it("should wrap around the end of the document and add the next instance at the beginning of the document", function () {
+                editor.setSelection({line: 4, ch: 14}, {line: 4, ch: 21}); // "require"
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+            });
+            
+            it("should skip over matches that are already in the selection", function () {
+                // select all instances of "require" except the second one
+                editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
+                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: true, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+            });
+            
+            it("should do nothing if all instances are already selected", function () {
+                editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
+                                      {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}},
+                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: true, reversed: false}]);
+            });
+        });
+    });
+    
+    describe("FindReplace - Integration", function () {
         
         this.category = "integration";
-        
-        var defaultContent = "/* Test comment */\n" +
-                             "define(function (require, exports, module) {\n" +
-                             "    var Foo = require(\"modules/Foo\"),\n" +
-                             "        Bar = require(\"modules/Bar\"),\n" +
-                             "        Baz = require(\"modules/Baz\");\n" +
-                             "    \n" +
-                             "    function callFoo() {\n" +
-                             "        \n" +
-                             "        foo();\n" +
-                             "        \n" +
-                             "    }\n" +
-                             "\n" +
-                             "}";
         
         var LINE_FIRST_REQUIRE = 2;
         var LINE_AFTER_REQUIRES = 5;

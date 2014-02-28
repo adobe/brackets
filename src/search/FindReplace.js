@@ -50,7 +50,9 @@ define(function (require, exports, module) {
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        ViewUtils           = require("utils/ViewUtils");
+        ViewUtils           = require("utils/ViewUtils"),
+        _                   = require("thirdparty/lodash"),
+        CodeMirror          = require("thirdparty/CodeMirror2/lib/CodeMirror");
     
     var searchBarTemplate            = require("text!htmlContent/findreplace-bar.html"),
         searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
@@ -153,6 +155,162 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Returns the next match for the current query (from the search state) before/after the given position. Wraps around
+     * the end of the document if no match is found before the end.
+     *
+     * @param {!Editor} editor The editor to search in
+     * @param {boolean} rev True to search backwards
+     * @param {{line: number, ch: number}=} pos The position to start from. Defaults to the current primary selection's
+     *      head cursor position.
+     * @return {?{start: {line: number, ch: number}, end: {line: number, ch: number}}} The range for the next match, or
+     *      null if there is no match.
+     */
+    function _getNextMatch(editor, rev, pos) {
+        var cm = editor._codeMirror;
+        var state = getSearchState(cm);
+        var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(false, rev ? "start" : "end"));
+
+        state.lastMatch = cursor.find(rev);
+        if (!state.lastMatch) {
+            // If no result found before hitting edge of file, try wrapping around
+            cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            state.lastMatch = cursor.find(rev);
+
+            if (!state.lastMatch) {
+                // No result found, period: clear selection & bail
+                cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
+                return null;
+            }
+        }
+
+        return {start: cursor.from(), end: cursor.to()};
+    }
+
+    /**
+     * @private
+     * Sets the given selections in the editor and applies some heuristics to determine whether and how we should
+     * center the primary selection.
+     *
+     * @param {!Editor} editor The editor to search in
+     * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
+     *      The selections to set. Must not be empty.
+     * @param {boolean=} preferNoScroll Whether to avoid scrolling if the hit is in the top half of the screen. Default false.
+     */
+    function _selectAndScrollTo(editor, selections, preferNoScroll) {
+        var primarySelection = _.find(selections, function (sel) { return sel.primary; }) || _.last(selections),
+            resultVisible = editor.isLineVisible(primarySelection.start.line),
+            centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
+
+        if (preferNoScroll && resultVisible) {
+            // no need to scroll if the line with the match is in view
+            centerOptions = Editor.BOUNDARY_IGNORE_TOP;
+        }
+        editor.setSelections(selections, true, centerOptions);
+    }
+    
+    /**
+     * Returns the range of the word surrounding the given editor position. Similar to getWordAt() from CodeMirror.
+     *
+     * @param {!Editor} editor The editor to search in
+     * @param {!{line: number, ch: number}} pos The position to find a word at.
+     * @return {{start:{line: number, ch: number}, end:{line:number, ch:number}, text:string}} The range and content of the found word. If
+     *     there is no word, start will equal end and the text will be the empty string.
+     */
+    function _getWordAt(editor, pos) {
+        var cm = editor._codeMirror,
+            start = pos.ch,
+            end = start,
+            line = cm.getLine(pos.line);
+        while (start && CodeMirror.isWordChar(line.charAt(start - 1))) {
+            --start;
+        }
+        while (end < line.length && CodeMirror.isWordChar(line.charAt(end))) {
+            ++end;
+        }
+        return {start: {line: pos.line, ch: start}, end: {line: pos.line, ch: end}, text: line.slice(start, end)};
+    }
+    
+    /**
+     * Expands each empty range in the selection to the nearest word boundaries. Then, if the primary selection 
+     * was already a range (even a non-word range), adds the next instance of the contents of that range as a selection.
+     *
+     * @param {!Editor} editor The editor to search in
+     * @param {{line: number, ch: number}} pos The position to start at.
+     */
+    function _expandWordAndAddNextToSelection(editor, pos) {
+        editor = editor || EditorManager.getActiveEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var selections = editor.getSelections(),
+            primarySel,
+            searchText,
+            added = false;
+        
+        function selEq(sel1, sel2) {
+            return (CodeMirror.cmpPos(sel1.start, sel2.start) === 0 && CodeMirror.cmpPos(sel1.end, sel2.end) === 0);
+        }
+        
+        _.each(selections, function (sel) {
+            var isEmpty = (CodeMirror.cmpPos(sel.start, sel.end) === 0);
+            if (sel.primary) {
+                primarySel = sel;
+                if (!isEmpty) {
+                    searchText = editor.document.getRange(primarySel.start, primarySel.end);
+                }
+            }
+            if (isEmpty) {
+                var wordInfo = _getWordAt(editor, sel.start);
+                sel.start = wordInfo.start;
+                sel.end = wordInfo.end;
+            }
+        });
+        
+        if (searchText && searchText.length) {
+            // We store this as a query in the state so that if the user next does a "Find Next",
+            // it will use the same query (but throw away the existing selection).
+            var state = getSearchState(editor._codeMirror);
+            state.query = searchText;
+            
+            // Skip over matches that are already in the selection.
+            var searchStart = primarySel.end,
+                nextMatch,
+                isInSelection;
+            do {
+                nextMatch = _getNextMatch(editor, false, searchStart);
+                if (nextMatch) {
+                    // This is a little silly, but if we just stick the equivalence test function in here
+                    // JSLint complains about creating a function in a loop, even though it's safe in this case.
+                    isInSelection = _.find(selections, _.partial(selEq, nextMatch));
+                    searchStart = nextMatch.end;
+                    
+                    // If we've gone all the way around, then all instances must have been selected already.
+                    if (CodeMirror.cmpPos(searchStart, primarySel.end) === 0) {
+                        nextMatch = null;
+                        break;
+                    }
+                }
+            } while (nextMatch && isInSelection);
+            
+            if (nextMatch) {
+                nextMatch.primary = true;
+                selections.push(nextMatch);
+                added = true;
+            }
+        }
+        
+        if (added) {
+            // Avoid scrolling to matches that are already on screen.
+            _selectAndScrollTo(editor, selections, true);
+        } else {
+            // If all we did was expand some selections, don't center anything.
+            editor.setSelections(selections);
+        }
+    }
+
+    /**
      * Selects the next match (or prev match, if rev==true) starting from either the current position
      * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
      * need not be an existing match. If a new match is found, sets to state.lastMatch either the regex
@@ -166,31 +324,12 @@ define(function (require, exports, module) {
     function findNext(editor, rev, preferNoScroll, pos) {
         var cm = editor._codeMirror;
         cm.operation(function () {
-            var state = getSearchState(cm);
-            var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(false, rev ? "start" : "end"));
-
-            state.lastMatch = cursor.find(rev);
-            if (!state.lastMatch) {
-                // If no result found before hitting edge of file, try wrapping around
-                cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
-                state.lastMatch = cursor.find(rev);
-                
-                if (!state.lastMatch) {
-                    // No result found, period: clear selection & bail
-                    cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
-                    return;
-                }
+            var nextMatch = _getNextMatch(editor, rev, pos);
+            if (!nextMatch) {
+                cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
+            } else {
+                _selectAndScrollTo(editor, [nextMatch], preferNoScroll);
             }
-
-            var resultVisible = editor.isLineVisible(cursor.from().line),
-                centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
-            
-            if (preferNoScroll && resultVisible) {
-                // no need to scroll if the line with the match is in view
-                centerOptions = Editor.BOUNDARY_IGNORE_TOP;
-            }
-            cm.scrollIntoView({from: cursor.from(), to: cursor.to()});
-            editor.setSelection(cursor.from(), cursor.to(), true, centerOptions);
         });
     }
 
@@ -696,14 +835,19 @@ define(function (require, exports, module) {
 
     $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
-    CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND,          _launchFind);
-    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,     _findNext);
-    CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE,       _replace);
-    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND,           _launchFind);
+    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT,      _findNext);
+    CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE,        _replace);
+    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS,  _findPrevious);
+    CommandManager.register(Strings.CMD_ADD_NEXT_MATCH, Commands.EDIT_ADD_NEXT_MATCH, _expandWordAndAddNextToSelection);
     
     // APIs shared with FindInFiles
-    exports._updatePrefsFromSearchBar  = _updatePrefsFromSearchBar;
-    exports._updateSearchBarFromPrefs  = _updateSearchBarFromPrefs;
-    exports._closeFindBar              = _closeFindBar;
-    exports._registerFindInFilesCloser = _registerFindInFilesCloser;
+    exports._updatePrefsFromSearchBar        = _updatePrefsFromSearchBar;
+    exports._updateSearchBarFromPrefs        = _updateSearchBarFromPrefs;
+    exports._closeFindBar                    = _closeFindBar;
+    exports._registerFindInFilesCloser       = _registerFindInFilesCloser;
+    
+    // For unit testing
+    exports._getWordAt                       = _getWordAt;
+    exports._expandWordAndAddNextToSelection = _expandWordAndAddNextToSelection;
 });
