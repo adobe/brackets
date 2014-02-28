@@ -27,28 +27,27 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Menus             = brackets.getModule("command/Menus"),
-        CommandManager    = brackets.getModule("command/CommandManager"),
-        Commands          = brackets.getModule("command/Commands"),
-        dm                = brackets.getModule("document/DocumentManager"),
-        docCH             = brackets.getModule("document/DocumentCommandHandlers"),
-        strings           = brackets.getModule("i18n!nls/strings"),
-        settings          = JSON.parse(require("text!settings.json")),
-        working_set_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
-        close_others      = "file.close_others",
-        close_above       = "file.close_above",
-        close_below       = "file.close_below";
+    var Menus                   = brackets.getModule("command/Menus"),
+        CommandManager          = brackets.getModule("command/CommandManager"),
+        Commands                = brackets.getModule("command/Commands"),
+        DocumentManager         = brackets.getModule("document/DocumentManager"),
+        Strings                 = brackets.getModule("strings"),
+        Settings                = JSON.parse(require("text!settings.json")),
+        workingSetCmenu         = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU),
+        closeOthers             = "file.close_others",
+        closeAbove              = "file.close_above",
+        closeBelow              = "file.close_below";
 
     function handleClose(mode) {
 
-        var targetIndex = dm.findInWorkingSet(dm.getCurrentDocument().file.fullPath),
-            workingSet   = dm.getWorkingSet().slice(0),
-            start = (mode === close_below) ? (targetIndex + 1) : 0,
-            end   = (mode === close_above) ? (targetIndex) : (workingSet.length),
+        var targetIndex = DocumentManager.findInWorkingSet(DocumentManager.getCurrentDocument().file.fullPath),
+            workingSet   = DocumentManager.getWorkingSet().slice(0),
+            start = (mode === closeBelow) ? (targetIndex + 1) : 0,
+            end   = (mode === closeAbove) ? (targetIndex) : (workingSet.length),
             files = [],
             i;
         
-        if (mode === close_others) {
+        if (mode === closeOthers) {
             end--;
             workingSet.splice(targetIndex, 1);
         }
@@ -60,54 +59,54 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
     }
 
-    function _currentDocChangedHandler() {
-        var doc = dm.getCurrentDocument();
+    function _contextMenuOpenHandler() {
+        var doc = DocumentManager.getCurrentDocument();
         
         if (doc) {
-            var docIndex   = dm.findInWorkingSet(doc.file.fullPath),
-                workingSet = dm.getWorkingSet().slice(0);
+            var docIndex   = DocumentManager.findInWorkingSet(doc.file.fullPath),
+                workingSet = DocumentManager.getWorkingSet().slice(0);
             
-            if (docIndex === workingSet.length - 1) { // hide "Close Others Below" when the last file in Working Files is selected
-                CommandManager.get(close_below).setEnabled(false);
+            if (docIndex === workingSet.length - 1) { // hide "Close Others Below" if the last file in Working Files is selected
+                CommandManager.get(closeBelow).setEnabled(false);
             } else {
-                CommandManager.get(close_below).setEnabled(true);
+                CommandManager.get(closeBelow).setEnabled(true);
             }
             
-            if (workingSet.length === 1) { // hide "Close Others" when there is only one file in Working Files
-                CommandManager.get(close_others).setEnabled(false);
+            if (workingSet.length === 1) { // hide "Close Others" if there is only one file in Working Files
+                CommandManager.get(closeOthers).setEnabled(false);
             } else {
-                CommandManager.get(close_others).setEnabled(true);
+                CommandManager.get(closeOthers).setEnabled(true);
             }
             
-            if (docIndex === 0) { // hide "Close Others Above" when the first file in Working Files is selected
-                CommandManager.get(close_above).setEnabled(false);
+            if (docIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
+                CommandManager.get(closeAbove).setEnabled(false);
             } else {
-                CommandManager.get(close_above).setEnabled(true);
+                CommandManager.get(closeAbove).setEnabled(true);
             }
         }
     }
 
-    if (settings.close_below) {
-        CommandManager.register(strings.CMD_FILE_CLOSE_BELOW, close_below, function () {
-            handleClose(close_below);
+    if (Settings.close_below) {
+        CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
+            handleClose(closeBelow);
         });
-        working_set_cmenu.addMenuItem(close_below, "", Menus.AFTER, Commands.FILE_CLOSE);
+        workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
 
-    if (settings.close_others) {
-        CommandManager.register(strings.CMD_FILE_CLOSE_OTHERS, close_others, function () {
-            handleClose(close_others);
+    if (Settings.close_others) {
+        CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
+            handleClose(closeOthers);
         });
-        working_set_cmenu.addMenuItem(close_others, "", Menus.AFTER, Commands.FILE_CLOSE);
+        workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
 
-    if (settings.close_above) {
-        CommandManager.register(strings.CMD_FILE_CLOSE_ABOVE, close_above, function () {
-            handleClose(close_above);
+    if (Settings.close_above) {
+        CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
+            handleClose(closeAbove);
         });
-        working_set_cmenu.addMenuItem(close_above, "", Menus.AFTER, Commands.FILE_CLOSE);
+        workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
     }
 
-    // Add a document change handler
-    $(dm).on("currentDocumentChange", _currentDocChangedHandler);
+    // Add a context menu open handler
+    $(workingSetCmenu).on("beforeContextMenuOpen", _contextMenuOpenHandler);
 });
