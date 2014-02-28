@@ -778,12 +778,15 @@ define(function LiveDevelopment(require, exports, module) {
             });
         }
         
-        // Reject calls to open if requests are still pending
         if (_openDeferred && _openDeferred.state() === "pending") {
+            // Reject calls to open if requests are still pending
             _openDeferred.reject();
+        } else if (exports.status === STATUS_INACTIVE) {
+            // Ignore close if status is inactive
+            deferred.resolve();
+        } else {
+            _doInspectorDisconnect(doCloseWindow).done(cleanup);
         }
-        
-        _doInspectorDisconnect(doCloseWindow).done(cleanup);
         
         return deferred.promise();
     }
