@@ -789,8 +789,8 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = name.substring(name.lastIndexOf("/"));
-                
+                var fileName = name.substring(name.lastIndexOf("/") + 1);
+
                 function _fileFilter(entry) {
                     return entry.name === fileName;
                 }
