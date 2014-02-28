@@ -1189,7 +1189,7 @@ define(function LiveDevelopment(require, exports, module) {
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
         
-        if (doc.updateHighlight) {
+        if (doc && doc.updateHighlight) {
             doc.updateHighlight();
         }
     }

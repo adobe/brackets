@@ -70,8 +70,6 @@ define(function CSSDocumentModule(require, exports, module) {
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
         this.onDeleted = this.onDeleted.bind(this);
-        
-        this._updateBrowser = _.debounce(this._updateBrowser, 250);
 
         $(this.doc).on("change.CSSDocument", this.onChange);
         $(this.doc).on("deleted.CSSDocument", this.onDeleted);
@@ -91,7 +89,7 @@ define(function CSSDocumentModule(require, exports, module) {
         "url": {
             get: function () { return this._url; },
             set: function (url) {
-                _url = url;
+                this._url = url;
 
                 // Force initial update for dirty files
                 if (this.doc.isDirty) {
@@ -124,7 +122,14 @@ define(function CSSDocumentModule(require, exports, module) {
      * @return {jQuery.promise} Promise resolved with the text content of this CSS document
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
-        return Inspector.CSS.getStyleSheetText(this._getStyleSheetHeader().styleSheetId);
+        var deferred = new $.Deferred(),
+            inspectorPromise = Inspector.CSS.getStyleSheetText(this._getStyleSheetHeader().styleSheetId);
+        
+        inspectorPromise.then(function (res) {
+            deferred.resolve(res.text);
+        }, deferred.reject);
+        
+        return deferred.promise();
     };
  
     /** Close the document */
