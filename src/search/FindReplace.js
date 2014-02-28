@@ -163,25 +163,25 @@ define(function (require, exports, module) {
      * @param {boolean} rev True to search backwards
      * @param {{line: number, ch: number}=} pos The position to start from. Defaults to the current primary selection's
      *      head cursor position.
+     * @param {boolean=} wrap Whether to wrap the search around if we hit the end of the document. Default true.
      * @return {?{start: {line: number, ch: number}, end: {line: number, ch: number}}} The range for the next match, or
      *      null if there is no match.
      */
-    function _getNextMatch(editor, rev, pos) {
+    function _getNextMatch(editor, rev, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
         var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(false, rev ? "start" : "end"));
 
         state.lastMatch = cursor.find(rev);
-        if (!state.lastMatch) {
+        if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
             cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
             state.lastMatch = cursor.find(rev);
-
-            if (!state.lastMatch) {
-                // No result found, period: clear selection & bail
-                cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
-                return null;
-            }
+        }
+        if (!state.lastMatch) {
+            // No result found, period: clear selection & bail
+            cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
+            return null;
         }
 
         return {start: cursor.from(), end: cursor.to()};
@@ -232,6 +232,17 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Helper function. Returns true if two selections are equal.
+     * @param {!{start: {line: number, ch: number}, end: {line: number, ch: number}}} sel1 The first selection to compare
+     * @param {!{start: {line: number, ch: number}, end: {line: number, ch: number}}} sel2 The second selection to compare
+     * @return {boolean} true if the selections are equal
+     */
+    function _selEq(sel1, sel2) {
+        return (CodeMirror.cmpPos(sel1.start, sel2.start) === 0 && CodeMirror.cmpPos(sel1.end, sel2.end) === 0);
+    }
+
+    /**
      * Expands each empty range in the selection to the nearest word boundaries. Then, if the primary selection 
      * was already a range (even a non-word range), adds the next instance of the contents of that range as a selection.
      *
@@ -251,10 +262,6 @@ define(function (require, exports, module) {
             primaryIndex,
             searchText,
             added = false;
-        
-        function selEq(sel1, sel2) {
-            return (CodeMirror.cmpPos(sel1.start, sel2.start) === 0 && CodeMirror.cmpPos(sel1.end, sel2.end) === 0);
-        }
         
         _.each(selections, function (sel, index) {
             var isEmpty = (CodeMirror.cmpPos(sel.start, sel.end) === 0);
@@ -292,7 +299,7 @@ define(function (require, exports, module) {
                 if (nextMatch) {
                     // This is a little silly, but if we just stick the equivalence test function in here
                     // JSLint complains about creating a function in a loop, even though it's safe in this case.
-                    isInSelection = _.find(selections, _.partial(selEq, nextMatch));
+                    isInSelection = _.find(selections, _.partial(_selEq, nextMatch));
                     searchStart = nextMatch.end;
                     
                     // If we've gone all the way around, then all instances must have been selected already.
@@ -325,6 +332,44 @@ define(function (require, exports, module) {
     
     function _skipCurrentMatch(editor) {
         return _expandWordAndAddNextToSelection(editor, true);
+    }
+    
+    /**
+     * Takes the primary selection, expands it to a word range if necessary, then sets the selection to
+     * include all instances of that range. Removes all other selections. Does nothing if the selection
+     * is not a range after expansion.
+     */
+    function _findAllAndSelect(editor) {
+        editor = editor || EditorManager.getActiveEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var sel = editor.getSelection(),
+            newSelections = [];
+        if (CodeMirror.cmpPos(sel.start, sel.end) === 0) {
+            sel = _getWordAt(editor, sel.start);
+        }
+        if (CodeMirror.cmpPos(sel.start, sel.end) !== 0) {
+            var searchStart = {line: 0, ch: 0},
+                state = getSearchState(editor._codeMirror),
+                nextMatch;
+            state.query = editor.document.getRange(sel.start, sel.end);
+            
+            while ((nextMatch = _getNextMatch(editor, false, searchStart, false)) !== null) {
+                if (_selEq(sel, nextMatch)) {
+                    nextMatch.primary = true;
+                }
+                newSelections.push(nextMatch);
+                searchStart = nextMatch.end;
+            }
+            
+            // This should find at least the original selection, but just in case...
+            if (newSelections.length) {
+                // Don't change the scroll position.
+                editor.setSelections(newSelections, false);
+            }
+        }
     }
 
     /**
@@ -856,6 +901,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.EDIT_FIND_NEXT,               _findNext);
     CommandManager.register(Strings.CMD_REPLACE,                Commands.EDIT_REPLACE,                 _replace);
     CommandManager.register(Strings.CMD_FIND_PREVIOUS,          Commands.EDIT_FIND_PREVIOUS,           _findPrevious);
+    CommandManager.register(Strings.CMD_FIND_ALL_AND_SELECT,    Commands.EDIT_FIND_ALL_AND_SELECT,     _findAllAndSelect);
     CommandManager.register(Strings.CMD_ADD_NEXT_MATCH,         Commands.EDIT_ADD_NEXT_MATCH,          _expandWordAndAddNextToSelection);
     CommandManager.register(Strings.CMD_SKIP_CURRENT_MATCH,     Commands.EDIT_SKIP_CURRENT_MATCH,      _skipCurrentMatch);
     
@@ -868,4 +914,5 @@ define(function (require, exports, module) {
     // For unit testing
     exports._getWordAt                       = _getWordAt;
     exports._expandWordAndAddNextToSelection = _expandWordAndAddNextToSelection;
+    exports._findAllAndSelect                = _findAllAndSelect;
 });

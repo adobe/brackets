@@ -119,6 +119,21 @@ define(function (require, exports, module) {
                                                         {start: {line: 3, ch: 23}, end: {line: 3, ch: 30}, primary: true, reversed: false}]);
             });
             
+            it("should add the next match for an existing range that isn't actually a word", function () {
+                editor.setSelection({line: 2, ch: 14}, {line: 2, ch: 22}); // "require("
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 14}, end: {line: 2, ch: 22}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 22}, primary: true, reversed: false}]);
+            });
+            
+            it("should find the next match case-insensitively", function () {
+                editor.setSelection({line: 6, ch: 17}, {line: 6, ch: 20}); // "Foo" in "callFoo" - should next find "foo" in "foo()"
+                FindReplace._expandWordAndAddNextToSelection(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 6, ch: 17}, end: {line: 6, ch: 20}, primary: false, reversed: false},
+                                                        {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}, primary: true, reversed: false}]);
+                
+            });
+            
             it("should expand two cursors without adding a new selection", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
                                       {start: {line: 3, ch: 16}, end: {line: 3, ch: 16}}]);
@@ -215,6 +230,62 @@ define(function (require, exports, module) {
                 expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
                                                         {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
                                                         {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false}]);
+            });
+        });
+        
+        describe("findAllAndSelect", function () {
+            it("should find all instances of a selected range when first instance is selected, keeping it primary", function () {
+                editor.setSelection({line: 1, ch: 17}, {line: 1, ch: 24});
+                FindReplace._findAllAndSelect(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: true, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+            });
+
+            it("should find all instances of a selected range when instance other than first is selected, keeping it primary", function () {
+                editor.setSelection({line: 3, ch: 14}, {line: 3, ch: 21});
+                FindReplace._findAllAndSelect(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+            });
+            
+            it("should throw away selections other than the primary selection", function () {
+                editor.setSelections([{start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true},
+                                      {start: {line: 6, ch: 4}, end: {line: 6, ch: 6}}]);
+                FindReplace._findAllAndSelect(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+            });
+            
+            it("should expand cursor to range, then find other instances", function () {
+                editor.setSelection({line: 3, ch: 18}, {line: 3, ch: 18});
+                FindReplace._findAllAndSelect(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}, primary: false, reversed: false},
+                                                        {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true, reversed: false},
+                                                        {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}, primary: false, reversed: false}]);
+            });
+
+            it("should find all case insensitively", function () {
+                editor.setSelection({line: 8, ch: 10}, {line: 8, ch: 10}); // inside "foo", should also find "Foo"s
+                FindReplace._findAllAndSelect(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
+                                                        {start: {line: 2, ch: 31}, end: {line: 2, ch: 34}, primary: false, reversed: false},
+                                                        {start: {line: 6, ch: 17}, end: {line: 6, ch: 20}, primary: false, reversed: false},
+                                                        {start: {line: 8, ch: 8}, end: {line: 8, ch: 11}, primary: true, reversed: false}]);
+            });
+            
+            it("should not change the selection if the primary selection is a cursor inside a non-word", function () {
+                editor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
+                                      {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}}]);
+                FindReplace._findAllAndSelect(editor);
+                expect(editor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}, primary: false, reversed: false},
+                                                        {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}, primary: true, reversed: false}]);
             });
         });
     });

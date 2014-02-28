@@ -268,6 +268,7 @@ define({
     "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
     "CMD_FIND_NEXT"                       : "Find Next",
     "CMD_FIND_PREVIOUS"                   : "Find Previous",
+    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
     "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
     "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
     "CMD_REPLACE"                         : "Replace",

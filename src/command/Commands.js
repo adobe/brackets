@@ -77,6 +77,7 @@ define(function (require, exports, module) {
     exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";         // FindInFiles.js               _doFindInSubtree()
     exports.EDIT_FIND_NEXT              = "edit.findNext";              // FindReplace.js               _findNext()
     exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";          // FindReplace.js               _findPrevious()
+    exports.EDIT_FIND_ALL_AND_SELECT    = "edit.findAllAndSelect";      // FindReplace.js               _findAllAndSelect()
     exports.EDIT_ADD_NEXT_MATCH         = "edit.addNextMatch";          // FindReplace.js               _expandAndAddNextToSelection()
     exports.EDIT_SKIP_CURRENT_MATCH     = "edit.skipCurrentMatch";      // FindReplace.js               _skipCurrentMatch()
     exports.EDIT_REPLACE                = "edit.replace";               // FindReplace.js               _replace()

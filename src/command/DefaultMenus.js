@@ -85,6 +85,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
         menu.addMenuItem(Commands.EDIT_FIND_NEXT);
         menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
+        menu.addMenuItem(Commands.EDIT_FIND_ALL_AND_SELECT);
         menu.addMenuItem(Commands.EDIT_ADD_NEXT_MATCH);
         menu.addMenuItem(Commands.EDIT_SKIP_CURRENT_MATCH);
 
