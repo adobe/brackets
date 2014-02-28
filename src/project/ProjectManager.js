@@ -1081,6 +1081,7 @@ define(function (require, exports, module) {
 
                         _projectRoot = rootEntry;
                         _projectBaseUrl = PreferencesManager.getViewState(_getBaseUrlKey()) || "";
+                        _allFilesCachePromise = null;
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an

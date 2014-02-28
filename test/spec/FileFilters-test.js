@@ -21,13 +21,17 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsForDone, runs */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs */
 /*unittests: FileFilters*/
 
 define(function (require, exports, module) {
     'use strict';
     
-    var FileFilters           = require("search/FileFilters");
+    var FileFilters     = require("search/FileFilters"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        Dialogs         = require("widgets/Dialogs"),
+        Commands        = require("command/Commands"),
+        KeyEvent        = require("utils/KeyEvent");
 
     describe("FileFilters", function () {
         
@@ -58,18 +62,93 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Updating MRU list", function () {
-            
-            // TODO: call FileFilters.editFilter() / FileFilters.commitPicker(),
-            //       then check that FileFilters.getFilters() has updated accordingly
-            
-        });
         
         describe("Find in Files filtering", function () {
             
-            // TODO: open FindInFiles search bar, pick item from dropdown, run search - make sure filter was applied
-            // (some of the utilities in FindReplace-test may be useful here)
+            this.category = "integration";
             
+            var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
+                testWindow,
+                FileFilters,
+                FindInFiles,
+                CommandManager,
+                $;
+            
+            beforeFirst(function () {
+                // Create a new window that will be shared by ALL tests in this spec.
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+
+                    // Load module instances from brackets.test
+                    FileFilters     = testWindow.brackets.test.FileFilters;
+                    FindInFiles     = testWindow.brackets.test.FindInFiles;
+                    CommandManager  = testWindow.brackets.test.CommandManager;
+                    $               = testWindow.$;
+                    
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            afterLast(function () {
+                testWindow = null;
+                FileFilters = null;
+                FindInFiles = null;
+                CommandManager = null;
+                $ = null;
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+            function openSearchBar() {
+                // Make sure search bar from previous test has animated out fully
+                runs(function () {
+                    waitsFor(function () {
+                        return $(".modal-bar").length === 0;
+                    }, "search bar close");
+                });
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.EDIT_FIND_IN_FILES));
+                });
+            }
+
+            function executeSearch(searchString) {
+                var $searchField = $(".modal-bar #find-group input");
+                $searchField.val(searchString).trigger("input");
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+                waitsFor(function () {
+                    return FindInFiles._searchResults;
+                }, "Find in Files done");
+            }
+
+            it("should search all files by default", function () {
+                openSearchBar();
+                runs(function () {
+                    executeSearch("{1}");
+                });
+                runs(function () {
+                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeTruthy();
+                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                });
+            });
+            
+            it("should exclude files from search", function () {
+                openSearchBar();
+                runs(function () {
+                    // Launch filter editor
+                    $(".filter-picker button").click();
+                    
+                    // Edit the filter & confirm changes
+                    $(".modal.instance textarea").val("*.css");
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                });
+                // (dialogs close asynchronously)
+                runs(function () {
+                    executeSearch("{1}");
+                });
+                runs(function () {
+                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();  // *.css should have been excluded this time
+                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                });
+            });
         });
         
     });

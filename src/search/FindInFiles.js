@@ -738,6 +738,8 @@ define(function (require, exports, module) {
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
                 $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                
+                exports._searchResults = searchResults;  // for unit tests
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -906,6 +908,7 @@ define(function (require, exports, module) {
         currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
+        exports._searchResults = null;  // for unit tests
                             
         dialog.showDialog(initialString, scope);
     }
@@ -1045,6 +1048,7 @@ define(function (require, exports, module) {
 
     };
     
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var panelHtml = Mustache.render(searchPanelTemplate, Strings);
@@ -1068,4 +1072,7 @@ define(function (require, exports, module) {
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
+    
+    // For unit testing - updated in _doSearch() when search complete
+    exports._searchResults = null;
 });

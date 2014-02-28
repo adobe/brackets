@@ -159,6 +159,8 @@ define(function (require, exports, module) {
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             LanguageManager         : LanguageManager,
+            FindInFiles             : require("search/FindInFiles"),
+            FileFilters             : require("search/FileFilters"),
             doneLoading             : false
         };
 
