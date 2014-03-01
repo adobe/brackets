@@ -44,10 +44,9 @@ define(function (require, exports, module) {
     var commandsRegistered  = false,
         menuEntry           = {},
         prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
-    prefs.definePreference("enabled", "boolean", true);
-    prefs.definePreference("closeAbove", "boolean", true);
     prefs.definePreference("closeBelow", "boolean", true);
     prefs.definePreference("closeOthers", "boolean", true);
+    prefs.definePreference("closeAbove", "boolean", true);
 
     function handleClose(mode) {
 
@@ -98,36 +97,25 @@ define(function (require, exports, module) {
     }
 
     function prefChangeHandler() {
-        // it's senseless to look prefs up for the current file, instead look them up for the current project
-        var enabled         = prefs.get("enabled", PreferencesManager.CURRENT_PROJECT),
-            prefCloseAbove  = prefs.get("closeAbove", PreferencesManager.CURRENT_PROJECT) && enabled,
-            prefCloseBelow  = prefs.get("closeBelow", PreferencesManager.CURRENT_PROJECT) && enabled,
-            prefCloseOthers = prefs.get("closeOthers", PreferencesManager.CURRENT_PROJECT) && enabled;
-        console.log(enabled);
+        // it's senseless to look prefs up for the current file, instead look them up for
+        // the current project (or globally)
+        var prefCloseBelow  = prefs.get("closeBelow", PreferencesManager.CURRENT_PROJECT),
+            prefCloseOthers = prefs.get("closeOthers", PreferencesManager.CURRENT_PROJECT),
+            prefCloseAbove  = prefs.get("closeAbove", PreferencesManager.CURRENT_PROJECT);
         
-        if (enabled) {
-            if (!commandsRegistered) {
-                CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
-                    handleClose(closeBelow);
-                });
-                CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
-                    handleClose(closeOthers);
-                });
-                CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
-                    handleClose(closeAbove);
-                });
-                commandsRegistered = true;
-            }
+        if (!commandsRegistered && (prefCloseBelow || prefCloseOthers || prefCloseAbove)) {
+            CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
+                handleClose(closeBelow);
+            });
+            CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
+                handleClose(closeOthers);
+            });
+            CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
+                handleClose(closeAbove);
+            });
+            commandsRegistered = true;
         }
         
-        if (prefCloseAbove !== menuEntry.closeAbove) {
-            if (prefCloseAbove) {
-                workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
-            } else {
-                workingSetCmenu.removeMenuItem(closeAbove);
-            }
-            menuEntry.closeAbove = prefCloseAbove;
-        }
         if (prefCloseBelow !== menuEntry.closeBelow) {
             if (prefCloseBelow) {
                 workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
@@ -143,6 +131,14 @@ define(function (require, exports, module) {
                 workingSetCmenu.removeMenuItem(closeOthers);
             }
             menuEntry.closeOthers = prefCloseOthers;
+        }
+        if (prefCloseAbove !== menuEntry.closeAbove) {
+            if (prefCloseAbove) {
+                workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
+            } else {
+                workingSetCmenu.removeMenuItem(closeAbove);
+            }
+            menuEntry.closeAbove = prefCloseAbove;
         }
     }
 
