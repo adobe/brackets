@@ -1283,7 +1283,7 @@ define(function (require, exports, module) {
         }
 
         function _clearMessagePopover() {
-            if (self._$messagePopover.length > 0) {
+            if (self._$messagePopover && self._$messagePopover.length > 0) {
                 self._$messagePopover.remove();
                 self._$messagePopover = null;
             }
@@ -1295,7 +1295,6 @@ define(function (require, exports, module) {
                 .on("blur.msgbox",           _clearMessagePopover)
                 .on("change.msgbox",         _clearMessagePopover)
                 .on("cursorActivity.msgbox", _clearMessagePopover)
-                .on("scroll.msgbox",         _clearMessagePopover)
                 .on("update.msgbox",         _clearMessagePopover);
         }
 
@@ -1304,8 +1303,11 @@ define(function (require, exports, module) {
             _clearMessagePopover();
         }
         
+        // Make sure cursor is in view
+        cursorPos = this.getCursorPos();
+        this._codeMirror.scrollIntoView(cursorPos);
+        
         // Determine if arrow is above or below
-        cursorPos   = this.getCursorPos();
         cursorCoord = this._codeMirror.charCoords(cursorPos);
         
         // Assume popover height is max of 2 lines
@@ -1353,14 +1355,25 @@ define(function (require, exports, module) {
         } else {
             this._$messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
         }
-        
-        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
-            self._$messagePopover.addClass("open");
-            AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
-                .done(_clearMessagePopover);
-        });
 
+        // Add listeners
         _addListeners();
+
+        // Animate open
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
+            // Make sure we still have a popover
+            if (self._$messagePopover && self._$messagePopover.length > 0) {
+                self._$messagePopover.addClass("open");
+
+                // Don't add scroll listeners until open so we don't get event
+                // from scrolling cursor into view
+                $(self).on("scroll.msgbox", _clearMessagePopover);
+
+                // Animate closed -- which includes delay to show message
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
+                    .done(_clearMessagePopover);
+            }
+        });
     };
     
     /**
