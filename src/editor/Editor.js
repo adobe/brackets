@@ -395,7 +395,10 @@ define(function (require, exports, module) {
             lineWrapping: currentOptions[WORD_WRAP],
             styleActiveLine: currentOptions[STYLE_ACTIVE_LINE],
             coverGutterNextToScrollbar: true,
-            matchBrackets: true,
+            matchBrackets: {
+                maxScanLineLength: 50000,
+                maxScanLines: 1000
+            },
             matchTags: {bothTags: true},
             dragDrop: false,
             extraKeys: codeMirrorKeyMap,
