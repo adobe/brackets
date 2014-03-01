@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         Dialogs          = require("widgets/Dialogs"),
         KeyEvent         = require("utils/KeyEvent"),
         FileUtils        = require("file/FileUtils"),
-        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
+        Strings          = require("strings");
 
     describe("InlineEditorProviders", function () {
         
@@ -78,13 +79,11 @@ define(function (require, exports, module) {
          * 
          * @param {string} openFile  Project relative file path to open in a main editor.
          * @param {number} openOffset  The offset index location within openFile to open an inline editor.
-         * @param {?boolean} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
+         * @param {boolean=} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
+         * @param {Array<{string}>=} workingSet  Optional array of files to open in working set
          */
         function initInlineTest(openFile, openOffset, expectInline, workingSet) {
-            var allFiles,
-                editor,
-                hostOpened = false,
-                err = false;
+            var editor;
             
             workingSet = workingSet || [];
             
@@ -145,6 +144,14 @@ define(function (require, exports, module) {
             return false;
         }
 
+        function expectPopoverMessageWithText(text) {
+            var $popover  = testWindow.$(".popover-message");
+            expect($popover.length).toEqual(1);
+
+            var popoverText = $(".text", $popover).html();
+            expect(popoverText).toEqual(text);
+        }
+        
         /*
          * Note that the bulk of selector matching tests are in CSSutils-test.js.
          * These tests are primarily focused on the InlineEditorProvider module.
@@ -405,8 +412,33 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 3, false);
                 
                 runs(function () {
-                    // verify no inline open
+                    // verify no inline editor open
                     expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+
+                    // verify popover message is displayed with correct string
+                    expectPopoverMessageWithText(Strings.ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND);
+                });
+            });
+
+            it("should not open an inline editor when positioned on title attribute", function () {
+                initInlineTest("test1.html", 12, false);
+                
+                runs(function () {
+                    // verify no inline editor open
+                    expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+
+                    // verify popover message is displayed with correct string
+                    expectPopoverMessageWithText(Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR);
+
+                    // verify popover message is automatically dismissed after short wait
+                    // current delay is 5 sec + 0.5 sec fade-out transition
+                    waits(6000);
+                });
+
+                runs(function () {
+                    // verify no popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(0);
                 });
             });
 
@@ -414,8 +446,76 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 4, false);
                 
                 runs(function () {
-                    // verify no inline open
+                    // verify no inline editor open
                     expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+                });
+            });
+            
+            it("should close first popover message before opening another one", function () {
+                var editor,
+                    openFile = "test1.html";
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                });
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+
+                    // attempt to open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[3]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    // attempt to open another inline editor at a different offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[12]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    // verify only 1 popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+            });
+            
+            it("should close popover message on selection change", function () {
+                var editor,
+                    openFile = "test1.html";
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                });
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+
+                    // attempt to open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[3]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    // change selection
+                    var offset = infos[openFile].offsets[12];
+                    editor.setCursorPos(offset.line, offset.ch);
+
+                    // verify no popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(0);
                 });
             });
             
