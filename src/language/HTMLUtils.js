@@ -496,7 +496,7 @@ define(function (require, exports, module) {
                 // Check for end of this block which normally is the </style> tag
                 // with tokenModeName in "xml". If we encounter embedded php code, we
                 // will get "clike" tokenModeName and we need to skip all of them.
-                if (tokenModeName != "clike" && tokenModeName !== modeName) {
+                if (tokenModeName !== "clike" && tokenModeName !== modeName) {
                     // currentBlock.end is already set to pos of the last token by now
                     currentBlock.text = editor.document.getRange(currentBlock.start, currentBlock.end);
                     inBlock = false;
