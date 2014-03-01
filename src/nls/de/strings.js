@@ -305,6 +305,8 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
+    "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
+    "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
     "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
 
     // Help menu commands
@@ -459,32 +461,6 @@ define({
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
-
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tschechisch",
-    "LOCALE_DE"                                 : "Deutsch",
-    "LOCALE_EL"                                 : "Griechisch",
-    "LOCALE_EN"                                 : "Englisch",
-    "LOCALE_ES"                                 : "Spanisch",
-    "LOCALE_FA_IR"                              : "Persisch (Farsi)",
-    "LOCALE_FI"                                 : "Finnisch",
-    "LOCALE_FR"                                 : "Französisch",
-    "LOCALE_IT"                                 : "Italienisch",
-    "LOCALE_JA"                                 : "Japanisch",
-    "LOCALE_NB"                                 : "Norwegisch",
-    "LOCALE_NL"                                 : "Niederländisch",
-    "LOCALE_PL"                                 : "Polnisch",
-    "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
-    "LOCALE_PT_PT"                              : "Portugiesisch",
-    "LOCALE_RO"                                 : "Rumänisch",
-    "LOCALE_RU"                                 : "Russisch",
-    "LOCALE_SK"                                 : "Slowakisch",
-    "LOCALE_SR"                                 : "Serbisch",
-    "LOCALE_SV"                                 : "Schwedisch",
-    "LOCALE_TR"                                 : "Türkisch",
-    "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
-    "LOCALE_HU"                                 : "Ungarisch",
-    "LOCALE_KO"                                 : "Koreanisch",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",

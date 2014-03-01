@@ -32,13 +32,18 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var OldPreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
-        FileUtils            = require("file/FileUtils"),
-        DeprecationWarning   = require("utils/DeprecationWarning"),
-        ExtensionLoader      = require("utils/ExtensionLoader"),
-        PreferencesBase      = require("preferences/PreferencesBase"),
-        FileSystem           = require("filesystem/FileSystem"),
-        _                    = require("thirdparty/lodash");
+    var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
+        AppInit                 = require("utils/AppInit"),
+        Async                   = require("utils/Async"),
+        Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        DeprecationWarning      = require("utils/DeprecationWarning"),
+        FileUtils               = require("file/FileUtils"),
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        PreferencesBase         = require("preferences/PreferencesBase"),
+        FileSystem              = require("filesystem/FileSystem"),
+        Strings                 = require("strings"),
+        _                       = require("thirdparty/lodash");
     
     /**
      * The local storage ID
@@ -53,7 +58,6 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var CLIENT_ID_PREFIX = "com.adobe.brackets.";
-    
     
     // Private Properties
     var preferencesKey,
@@ -232,17 +236,29 @@ define(function (require, exports, module) {
     function getUserPrefFile() {
         return userPrefFile;
     }
-
+    
+    /** 
+     * A boolean property indicating if the user scope configuration file is malformed.
+     */
+    var _userScopeCorrupt = false;
+    
+    /**
+     * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
+     * @private
+     * @type {$.Deferred}
+     */
+    var _prefManagerReadyDeferred = new $.Deferred();
+    
+    /**
+     * Promises to add scopes. Used at init time only. 
+     * @private
+     * @type {Array.<$.Promise>}
+     */
+    var _addScopePromises = [];
+    
     var preferencesManager = new PreferencesBase.PreferencesSystem();
-    
-    var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
-    
-    // Set up the .brackets.json file handling
-    userScopeLoading.done(function () {
-        // Session Scope is for storing prefs in memory only but with the highest precedence.
-        preferencesManager.addScope("session", new PreferencesBase.MemoryStorage());
-    });
-    
+    preferencesManager.pauseChangeEvents();
+
     // Create a Project scope
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
         projectScope            = new PreferencesBase.Scope(projectStorage),
@@ -253,9 +269,35 @@ define(function (require, exports, module) {
     
     projectScope.addLayer(projectPathLayer);
     
-    preferencesManager.addScope("project", projectScope, {
-        before: "user"
-    });
+    var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    
+    _addScopePromises.push(userScopeLoading);
+    
+    // Set up the .brackets.json file handling
+    userScopeLoading
+        .fail(function (err) {
+            _addScopePromises.push(preferencesManager.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            }));
+
+            if (err.name && err.name === "ParsingError") {
+                _userScopeCorrupt = true;
+            }
+        })
+        .always(function () {
+            _addScopePromises.push(preferencesManager.addScope("project", projectScope, {
+                before: "user"
+            }));
+    
+            // Session Scope is for storing prefs in memory only but with the highest precedence.
+            _addScopePromises.push(preferencesManager.addScope("session", new PreferencesBase.MemoryStorage()));
+
+            Async.waitForAll(_addScopePromises)
+                .always(function () {
+                    _prefManagerReadyDeferred.resolve();
+                });
+        });
+    
     
     /**
      * @private
@@ -532,6 +574,27 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     */
+    function _handleOpenPreferences() {
+        var fullPath = getUserPrefFile(),
+            file = FileSystem.getFileForPath(fullPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    });
+            }
+        });
+        
+    }
+    
+    CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
+    
+    /**
      * @deprecated Use set instead.
      * 
      * Convenience function that sets a preference and then saves the file, mimicking the
@@ -577,10 +640,16 @@ define(function (require, exports, module) {
         }
     }
     
+    AppInit.appReady(function () {
+        preferencesManager.resumeChangeEvents();
+    });
+    
     // Private API for unit testing and use elsewhere in Brackets core
+    exports._isUserScopeCorrupt    = function () { return _userScopeCorrupt; };
     exports._manager                = preferencesManager;
     exports._setCurrentEditingFile  = _setCurrentEditingFile;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
+    exports._smUserScopeLoading     = smUserScopeLoading;
     
     // Public API
     
@@ -588,6 +657,7 @@ define(function (require, exports, module) {
     exports.CURRENT_FILE        = CURRENT_FILE;
     exports.CURRENT_PROJECT     = CURRENT_PROJECT;
     
+    exports.ready               = _prefManagerReadyDeferred.promise();
     exports.getUserPrefFile     = getUserPrefFile;
     exports.get                 = get;
     exports.set                 = set;

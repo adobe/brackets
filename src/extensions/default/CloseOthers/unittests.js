@@ -37,14 +37,14 @@ define(function (require, exports, module) {
         FileSystem;
 
     describe("CloseOthers", function () {
-		var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
-			testPath      = extensionPath + "/unittest-files/",
-			testWindow,
-			$,
-			docSelectIndex,
-			cmdToRun,
-			brackets;
-		
+        var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
+            testPath      = extensionPath + "/unittest-files/",
+            testWindow,
+            $,
+            docSelectIndex,
+            cmdToRun,
+            brackets;
+        
         function createUntitled(count) {
             function doCreateUntitled(content) {
                 runs(function () {
@@ -84,12 +84,12 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
                     $ = testWindow.$;
-					brackets		= testWindow.brackets;
+                    brackets		= testWindow.brackets;
                     DocumentManager = testWindow.brackets.test.DocumentManager;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     EditorManager   = testWindow.brackets.test.EditorManager;
                     Dialogs			= testWindow.brackets.test.Dialogs;
-					Commands        = testWindow.brackets.test.Commands;
+                    Commands        = testWindow.brackets.test.Commands;
                     FileSystem      = testWindow.brackets.test.FileSystem;
                 });
             });
@@ -145,10 +145,10 @@ define(function (require, exports, module) {
             cmdToRun       = "file.close_others";
 
             runs(runCloseOthers);
-			
-			runs(function () {
-				expect(DocumentManager.getWorkingSet().length).toEqual(1);
-			});
+            
+            runs(function () {
+                expect(DocumentManager.getWorkingSet().length).toEqual(1);
+            });
         });
 
         it("Close others above", function () {

@@ -213,7 +213,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     /** Triggered on change by the editor */
     HTMLDocument.prototype._onChange = function (event, editor, change) {
         // Make sure LiveHTML is turned on
-        if (!brackets.livehtml || !this._instrumentationEnabled) {
+        if (!this._instrumentationEnabled) {
             return;
         }
 
