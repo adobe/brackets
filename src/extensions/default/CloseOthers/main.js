@@ -44,9 +44,9 @@ define(function (require, exports, module) {
     var commandsRegistered  = false,
         menuEntry           = {},
         prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
-    prefs.definePreference("closeBelow", "boolean", true);
-    prefs.definePreference("closeOthers", "boolean", true);
-    prefs.definePreference("closeAbove", "boolean", true);
+    prefs.definePreference("below", "boolean", true);
+    prefs.definePreference("others", "boolean", true);
+    prefs.definePreference("above", "boolean", true);
 
     function handleClose(mode) {
 
@@ -99,9 +99,9 @@ define(function (require, exports, module) {
     function prefChangeHandler() {
         // it's senseless to look prefs up for the current file, instead look them up for
         // the current project (or globally)
-        var prefCloseBelow  = prefs.get("closeBelow", PreferencesManager.CURRENT_PROJECT),
-            prefCloseOthers = prefs.get("closeOthers", PreferencesManager.CURRENT_PROJECT),
-            prefCloseAbove  = prefs.get("closeAbove", PreferencesManager.CURRENT_PROJECT);
+        var prefCloseBelow  = prefs.get("below", PreferencesManager.CURRENT_PROJECT),
+            prefCloseOthers = prefs.get("others", PreferencesManager.CURRENT_PROJECT),
+            prefCloseAbove  = prefs.get("above", PreferencesManager.CURRENT_PROJECT);
         
         if (!commandsRegistered && (prefCloseBelow || prefCloseOthers || prefCloseAbove)) {
             CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
