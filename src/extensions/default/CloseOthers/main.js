@@ -42,7 +42,7 @@ define(function (require, exports, module) {
 
     // Global vars and preferences
     var commandsRegistered  = false,
-        menuEntry           = {},
+        menuEntriesShown    = {},
         prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
     prefs.definePreference("below", "boolean", true);
     prefs.definePreference("others", "boolean", true);
@@ -116,30 +116,28 @@ define(function (require, exports, module) {
             commandsRegistered = true;
         }
         
-        if (prefCloseBelow !== menuEntry.closeBelow) {
+        if (prefCloseBelow !== menuEntriesShown.closeBelow) {
             if (prefCloseBelow) {
                 workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
                 workingSetCmenu.removeMenuItem(closeBelow);
             }
-            menuEntry.closeBelow = prefCloseBelow;
         }
-        if (prefCloseOthers !== menuEntry.closeOthers) {
+        if (prefCloseOthers !== menuEntriesShown.closeOthers) {
             if (prefCloseOthers) {
                 workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
                 workingSetCmenu.removeMenuItem(closeOthers);
             }
-            menuEntry.closeOthers = prefCloseOthers;
         }
-        if (prefCloseAbove !== menuEntry.closeAbove) {
+        if (prefCloseAbove !== menuEntriesShown.closeAbove) {
             if (prefCloseAbove) {
                 workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
                 workingSetCmenu.removeMenuItem(closeAbove);
             }
-            menuEntry.closeAbove = prefCloseAbove;
         }
+        menuEntriesShown = {"closeBelow": prefCloseBelow, "closeOthers": prefCloseOthers, "closeAbove": prefCloseAbove};
     }
 
     // Initialize using the prefs
