@@ -59,8 +59,7 @@ define(function (require, exports, module) {
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
-        DEBUG_RESTART_NODE              = "debug.restartNode",
-        DEBUG_OPEN_PREFERENCES          = "debug.openPreferences";
+        DEBUG_RESTART_NODE              = "debug.restartNode";
     
     function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
@@ -230,23 +229,6 @@ define(function (require, exports, module) {
         });
     }
     
-    
-    function handleOpenPreferences() {
-        var fullPath = PreferencesManager.getUserPrefFile(),
-            file = FileSystem.getFileForPath(fullPath);
-        file.exists(function (err, doesExist) {
-            if (doesExist) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-            } else {
-                FileUtils.writeText(file, "", true)
-                    .done(function () {
-                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-                    });
-            }
-        });
-        
-    }
-    
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -267,7 +249,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
-    CommandManager.register(Strings.CMD_OPEN_PREFERENCES,     DEBUG_OPEN_PREFERENCES,       handleOpenPreferences);
     
     enableRunTestsMenuItem();
     
@@ -288,7 +269,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
-    menu.addMenuItem(DEBUG_OPEN_PREFERENCES);
+    menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;
