@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands,           // loaded from brackets.test
+    var CommandManager,     // loaded from brackets.test
+        Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
@@ -152,6 +153,37 @@ define(function (require, exports, module) {
             expect(popoverText).toEqual(text);
         }
         
+        function getBounds(object, useOffset) {
+            var left = (useOffset ? object.offset().left : parseInt(object.css("left"), 10)),
+                top = (useOffset ? object.offset().top : parseInt(object.css("top"), 10));
+            return {
+                left:   left,
+                top:    top,
+                right:  left + object.outerWidth(),
+                bottom: top + object.outerHeight()
+            };
+        }
+
+        function boundsInsideWindow(object) {
+            // For the popover, we can't use offset(), because jQuery gets confused by the
+            // scale factor and transform origin that the animation uses. Instead, we rely on
+            // the fact that its offset parent is body, and just test its explicit left/top values.
+            var bounds = getBounds(object, false),
+                editorBounds = getBounds(testWindow.$("#editor-holder"), true);
+
+            return bounds.left >= editorBounds.left   &&
+                bounds.right   <= editorBounds.right  &&
+                bounds.top     >= editorBounds.top    &&
+                bounds.bottom  <= editorBounds.bottom;
+        }
+
+        function toggleOption(commandID, text) {
+            runs(function () {
+                var promise = CommandManager.execute(commandID);
+                waitsForDone(promise, text);
+            });
+        }
+
         /*
          * Note that the bulk of selector matching tests are in CSSutils-test.js.
          * These tests are primarily focused on the InlineEditorProvider module.
@@ -171,6 +203,7 @@ define(function (require, exports, module) {
                     testWindow = w;
     
                     // Load module instances from brackets.test
+                    CommandManager      = testWindow.brackets.test.CommandManager;
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
@@ -516,6 +549,77 @@ define(function (require, exports, module) {
                     // verify no popover message
                     var $popover = testWindow.$(".popover-message");
                     expect($popover.length).toEqual(0);
+                });
+            });
+            
+            it("should position message popover inside left edge of window", function () {
+                var $popover;
+                initInlineTest("test1.html", 11, false);
+
+                runs(function () {
+                    $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+
+                runs(function () {
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+                });
+            });
+
+            it("should position message popover inside top edge of window", function () {
+                var $popover;
+                initInlineTest("test1.html", 3, false);
+
+                runs(function () {
+                    $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+
+                runs(function () {
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+                });
+            });
+
+            it("should scroll cursor into view and position message popover inside right edge of window", function () {
+                var $popover, scrollPos, editor,
+                    openFile = "test1.html";
+
+                runs(function () {
+                    // Turn off word wrap for next tests
+                    toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                });
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                });
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor.getScrollPos().x).toEqual(0);
+
+                    // attempt to open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[13]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+
+                runs(function () {
+                    // Popover should be inside right edge
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+
+                    // verify that page scrolled left
+                    expect(editor.getScrollPos().x).toBeGreaterThan(0);
+
+                    // restore word wrap
+                    toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 });
             });
             
