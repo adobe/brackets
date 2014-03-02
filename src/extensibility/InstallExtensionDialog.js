@@ -134,7 +134,7 @@ define(function (require, exports, module) {
             break;
             
         case STATE_INSTALLING:
-            url = $.trim(this.$url.val());
+            url = this.$url.val().trim();
             this.$inputArea.hide();
             this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
@@ -298,9 +298,8 @@ define(function (require, exports, module) {
      * Handle typing in the URL field.
      */
     InstallExtensionDialog.prototype._handleUrlInput = function (e) {
-        var url         = this.$url.val(),
-            trimmedUrl  = $.trim(url),
-            valid       = (trimmedUrl !== "");
+        var url     = this.$url.val().trim(),
+            valid   = (url !== "");
         if (!valid && this._state === STATE_VALID_URL) {
             this._enterState(STATE_START);
         } else if (valid && this._state === STATE_START) {
