@@ -590,11 +590,21 @@ define(function (require, exports, module) {
 
             // Pending Text is used in hintList._keydownHook()
             if (hintList && changeList.text.length && changeList.text[0].length) {
-                hintList.removePendingText(changeList.text[0]);
+                var expectedLength = editor.getCursorPos().ch - changeList.from.ch,
+                    newText = changeList.text[0];
+                // We may get extra text in newText since some features like auto 
+                // close braces can append some text automatically.
+                // See https://github.com/adobe/brackets/issues/6345#issuecomment-32548064
+                // as an example of this scenario.
+                if (newText.length > expectedLength) {
+                    // Strip off the extra text before calling removePendingText.
+                    newText = newText.substr(0, expectedLength);
+                }
+                hintList.removePendingText(newText);
             }
         }
     }
-
+    
     /**
      * Test whether the provider has an exclusion that is still the same as text after the cursor.
      *
