@@ -169,13 +169,6 @@ define(function (require, exports, module) {
     CodeHintList.prototype.removePendingText = function (text) {
         if (this.pendingText.indexOf(text) === 0) {
             this.pendingText = this.pendingText.slice(text.length);
-        } else if (text.indexOf(this.pendingText) === 0) {
-            // We get here if this.pendingText is a substring of text.
-            // This can happen when some extra characters are auto appended 
-            // by some features like auto close braces. 
-            // See https://github.com/adobe/brackets/issues/6345#issuecomment-32548064
-            // as an example of this scenario.
-            this.pendingText = "";
         }
     };
 
