@@ -347,11 +347,12 @@ define(function (require, exports, module) {
          * @return {boolean} always returns true
          */
         _performSet: function (id, value) {
-            this._dirty = true;
-            if (value === undefined) {
+            if (value === undefined && this.data[id]) {
                 delete this.data[id];
-            } else {
+                this._dirty = true;
+            } else if (this.data[id] !== value) {
                 this.data[id] = value;
+                this._dirty = true;
             }
             return true;
         },
