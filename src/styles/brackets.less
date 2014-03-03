@@ -1107,7 +1107,7 @@ a, img {
         display: inline-block;
     }
 
-    #find-case-sensitive, #find-regexp {
+    #find-case-sensitive, #find-regexp, #find-show-list {
         padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
@@ -1122,6 +1122,9 @@ a, img {
     }
     #find-case-sensitive.active .button-icon {
         .sprite-swap(0, 72px);
+    }
+    #find-show-list .button-icon {
+        .sprite-swap(0, 96px);
     }
     #find-regexp.active, #find-case-sensitive.active {
         background-color: @tc-highlight;
@@ -1144,6 +1147,9 @@ a, img {
         border-right: none;
         margin-right: 0;
     }
+    #find-show-list {
+        margin-right: 0;
+    }
     #find-next, #replace-all, #find-regexp {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
@@ -1157,7 +1163,7 @@ a, img {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
-    #find-case-sensitive, #replace-yes {
+    #find-case-sensitive, #replace-yes, #find-show-list {
         border-left: none;
         margin-left: 0px;
         border-radius: 0;
