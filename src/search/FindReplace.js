@@ -84,6 +84,9 @@ define(function (require, exports, module) {
     /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
     var closeFindInFilesBar;
     
+    /** @type {?String} The (localized) title attribute of the #find-counter, including the shortcut */
+    var showInListTitle;
+    
     function SearchState() {
         this.searchStartPos = null;
         this.query = null;
@@ -275,8 +278,14 @@ define(function (require, exports, module) {
             state = getSearchState(cm);
         
         function indicateHasMatches(numResults) {
+            if (!showInListTitle) {
+                showInListTitle = Strings.FIND_SHOW_IN_LIST + " (" + KeyBindingManager.formatKeyDescriptor("Alt-Enter") + ")";
+            }
+            
             // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
-            ViewUtils.toggleClass($("#find-what, #find-counter"), "no-results", !state.foundAny && $("#find-what").val());
+            var query = $("#find-what").val();
+            ViewUtils.toggleClass($("#find-what, #find-counter"), "no-results", !state.foundAny && query);
+            $("#find-counter").attr("title", (state.foundAny && query) ? showInListTitle : "");
             
             // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
             $("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
@@ -360,6 +369,17 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Shows the found results in a list (which is just the invoked FindInFiles panel)
+     */
+    function _showResultsInList() {
+        if (!$("#find-counter").hasClass("no-results")) {
+            var query = $("#find-what").val();
+            modalBar.close(true, true);
+            CommandManager.execute(Commands.EDIT_FIND_IN_SUBTREE, DocumentManager.getCurrentDocument().file, query);
+        }
+    }
+    
     
     /**
      * Opens the search bar with the given HTML content (Find or Find-Replace), attaches common Find behaviors,
@@ -413,16 +433,12 @@ define(function (require, exports, module) {
                 
                 handleQueryChange(editor, state);
             })
-            .on("click", "#find-counter", function (e) {
-                var query = $("#find-what").val();
-                if (query && state.foundAny) {
-                    modalBar.close(true, true);
-                    CommandManager.execute(Commands.EDIT_FIND_IN_SUBTREE, DocumentManager.getCurrentDocument().file, query);
-                }
-            })
+            .on("click", "#find-counter", _showResultsInList)
             .on("keydown", function (e) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                    if (!e.shiftKey) {
+                    if (e.altKey) {
+                        _showResultsInList();
+                    } else if (!e.shiftKey) {
                         findNext(editor);
                     } else {
                         findNext(editor, true);

@@ -131,7 +131,7 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} results",
     "FIND_RESULT_COUNT_SINGLE"          : "1 result",
     "FIND_NO_RESULTS"                   : "No results",
-    "FIND_SHOW_IN_A_LIST"               : "Show results in a list",
+    "FIND_SHOW_IN_LIST"                 : "Show results in a list",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
     "BUTTON_REPLACE_ALL"                : "All\u2026",
     "BUTTON_REPLACE"                    : "Replace",
