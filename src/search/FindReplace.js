@@ -276,13 +276,11 @@ define(function (require, exports, module) {
         
         function indicateHasMatches(numResults) {
             // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
-            ViewUtils.toggleClass($("#find-what"), "no-results", !state.foundAny && $("#find-what").val());
+            ViewUtils.toggleClass($("#find-what, #find-counter"), "no-results", !state.foundAny && $("#find-what").val());
             
-            // Buttons disabled if blank, OR if no matches (Replace buttons, Show in list button) /
-            // < 2 matches (nav buttons)
+            // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
             $("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
             $("#replace-yes, #replace-all").prop("disabled", !state.foundAny);
-            $("#find-show-list").prop("disabled", !state.foundAny);
         }
         
         cm.operation(function () {
@@ -415,10 +413,12 @@ define(function (require, exports, module) {
                 
                 handleQueryChange(editor, state);
             })
-            .on("click", "#find-show-list", function (e) {
+            .on("click", "#find-counter", function (e) {
                 var query = $("#find-what").val();
-                modalBar.close(true, true);
-                CommandManager.execute(Commands.EDIT_FIND_IN_SUBTREE, DocumentManager.getCurrentDocument().file, query);
+                if (query && state.foundAny) {
+                    modalBar.close(true, true);
+                    CommandManager.execute(Commands.EDIT_FIND_IN_SUBTREE, DocumentManager.getCurrentDocument().file, query);
+                }
             })
             .on("keydown", function (e) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
