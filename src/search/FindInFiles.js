@@ -713,22 +713,20 @@ define(function (require, exports, module) {
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
         /**
-         * Filters out files/folders that match user's exclusion filter, and files that are known
-         * binary types (currently just image/audio; ideally we'd filter out ALL binary files).
+         * Filters out files that are known binary types (currently just image/audio; ideally we'd filter out ALL binary files).
          * @param {FileSystemEntry} entry The entry to test
          * @return {boolean} True if the entry's contents should be included in the file list
          */
         function fileFilter(entry) {
-            if (!FileFilters.filterPath(userFilter, entry.fullPath)) {
-                return false;
-            }
-
             var language = LanguageManager.getLanguageForPath(entry.fullPath);
             return !language.isBinary();
         }
         
         ProjectManager.getAllFiles(fileFilter, true)
             .then(function (fileListResult) {
+                // Filter out files/folders that match user's current exclusion filter
+                fileListResult = FileFilters.filterFileList(userFilter, fileListResult);
+                
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
                 return Async.doInParallel(fileListResult, doSearch);
             })

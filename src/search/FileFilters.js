@@ -37,13 +37,12 @@ define(function (require, exports, module) {
         DropdownButton      = require("widgets/DropdownButton").DropdownButton,
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
-        globmatch           = require("thirdparty/globmatch"),
         PreferencesManager  = require("preferences/PreferencesManager");
     
     
     /**
      * A search filter is an array of one or more glob strings. The filter must be 'compiled' via compile()
-     * before passing to filterPath().
+     * before passing to filterPath()/filterFileList().
      * @return {!Array.<string>>}
      */
     function getLastFilter() {
@@ -52,7 +51,7 @@ define(function (require, exports, module) {
     
     /**
      * A search filter is an array of one or more glob strings. The filter must be 'compiled' via compile()
-     * before passing to filterPath().
+     * before passing to filterPath()/filterFileList().
      * @return {!Array.<string>>}
      */
     function setLastFilter(filter) {
@@ -82,9 +81,6 @@ define(function (require, exports, module) {
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 var newFilter = dialog.getElement().find(".exclusions-editor").val().split("\n");
-                newFilter = newFilter.filter(function (glob) {
-                    return glob.trim().length;
-                });
                 
                 // Update saved filter preference
                 setLastFilter(newFilter);
@@ -98,12 +94,18 @@ define(function (require, exports, module) {
     
     /**
      * Converts a user-specified filter object (as chosen in picker or retrieved from getFilters()) to a 'compiled' form
-     * that can be used with filterPath().
+     * that can be used with filterPath()/filterFileList().
      * @param {!Array.<string>} userFilter
-     * @return {!Array.<string>} 'compiled' filter that can be passed to filterPath()
+     * @return {!string} 'compiled' filter that can be passed to filterPath()/filterFileList().
      */
     function compile(userFilter) {
-        return userFilter.map(function (glob) {
+        // Remove blank lines
+        var trimmedGlobs = userFilter.filter(function (glob) {
+            return glob.trim().length;
+        });
+        
+        // Automatically apply ** prefix/suffix to make writing simple substring-match filters more intuitive
+        var wrappedGlobs = trimmedGlobs.map(function (glob) {
             // Automatic "**" prefix if not explicitly present
             if (glob.substr(0, 2) !== "**") {
                 glob = "**" + glob;
@@ -117,7 +119,39 @@ define(function (require, exports, module) {
             }
             return glob;
         });
+        
+        // Convert to regular expression for fast matching
+        var regexStrings = wrappedGlobs.map(function (glob) {
+            var reStr = "", i;
+            for (i = 0; i < glob.length; i++) {
+                var ch = glob[i];
+                if (ch === "*") {
+                    // Check for `**`
+                    if (glob[i + 1] === "*") {
+                        // Special case: `/**/` can collapse - that is, it shouldn't require matching both slashes
+                        if (glob[i + 2] === "/" && glob[i - 1] === "/") {
+                            reStr += "(.*/)?";
+                            i += 2; // skip 2nd * and / after it
+                        } else {
+                            reStr += ".*";
+                            i++;    // skip 2nd *
+                        }
+                    } else {
+                        // Single `*`
+                        reStr += "[^/]*";
+                    }
+                } else if (ch === "?") {
+                    reStr += "[^/]";  // unlike '?' in regexp, in globs this requires exactly 1 char
+                } else {
+                    // Regular char with no special meaning
+                    reStr += StringUtils.regexEscape(ch);
+                }
+            }
+            return "^" + reStr + "$";
+        });
+        return regexStrings.join("|");
     }
+    
     
     /**
      * Marks the filter picker's currently selected item as most-recently used, and returns the corresponding
@@ -187,21 +221,38 @@ define(function (require, exports, module) {
     
     /**
      * Returns false if the given path matches any of the exclusion globs in the given filter. Returns true
-     * if the path does not match any of the globs.
+     * if the path does not match any of the globs. If filtering many paths at once, use filterFileList()
+     * for much better performance.
      * 
-     * @param {!Array.<string>} compiledFilter  'Compiled' filter object as returned by compile()
+     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
      * @param {!string} fullPath
+     * @return {boolean}
      */
     function filterPath(compiledFilter, fullPath) {
-        var i;
-        for (i = 0; i < compiledFilter.length; i++) {
-            var glob = compiledFilter[i];
-
-            if (globmatch(fullPath, glob)) {
-                return false;
-            }
+        if (!compiledFilter) {
+            return true;
         }
-        return true;
+        
+        var re = new RegExp(compiledFilter);
+        return !fullPath.match(re);
+    }
+    
+    /**
+     * Returns a copy of 'files' filtered to just those that don't match any of the exclusion globs in the filter.
+     * 
+     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
+     * @param {!Array.<File>} files
+     * @return {!Array.<File>}
+     */
+    function filterFileList(compiledFilter, files) {
+        if (!compiledFilter) {
+            return files;
+        }
+        
+        var re = new RegExp(compiledFilter);
+        return files.filter(function (f) {
+            return !f.fullPath.match(re);
+        });
     }
     
     
@@ -211,4 +262,5 @@ define(function (require, exports, module) {
     exports.editFilter = editFilter;
     exports.compile    = compile;
     exports.filterPath = filterPath;
+    exports.filterFileList = filterFileList;
 });
