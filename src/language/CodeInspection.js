@@ -446,7 +446,6 @@ define(function (require, exports, module) {
         updateListeners();
         if (!doNotSave) {
             prefs.set(PREF_ENABLED, _enabled);
-            prefs.save();
         }
     
         // run immediately
