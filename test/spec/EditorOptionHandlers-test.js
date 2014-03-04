@@ -52,7 +52,8 @@ define(function (require, exports, module) {
             CLOSE_BRACKET = 93,
             SINGLE_QUOTE  = 39,
             BACKSPACE     =  8,
-            RIGHT_ARROW   = 36;
+            RIGHT_ARROW   = 36,
+            LEFT_ARROW    = 37;
         
         
         beforeFirst(function () {
@@ -170,16 +171,16 @@ define(function (require, exports, module) {
         
         function checkSoftTab(editor, startPos, keyCode, expectedEndPos) {
             runs(function () {
-                var input, endPos;
+                var input;
 
                 expect(editor).toBeTruthy();
                 input = editor._codeMirror.getInputField();
                 editor.setCursorPos(startPos);
+                expect(editor.getCursorPos()).toEqual(startPos);
 
                 SpecRunnerUtils.simulateKeyEvent(keyCode, "keydown", input);
 
-                endPos = editor.getCursorPos();
-                expect(endPos).toEqual(expectedEndPos);
+                expect(editor.getCursorPos()).toEqual(expectedEndPos);
             });
         }
 
@@ -485,22 +486,24 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should NOT use soft tabs when disabled", function () {
-                runs(function () {
-                    // Disable soft tabs
-                    PreferencesManager.set("softTabs", false);
-                });
-                
+            it("should NOT use soft tabs when disabled", function () {
                 openEditor(JS_FILE);
                 
                 runs(function () {
+                    // Disable soft tabs
+                    PreferencesManager.set("softTabs", false);
+                    expect(PreferencesManager.get("softTabs")).toEqual(false);
+                });
+                
+                runs(function () {
                     var editor = EditorManager.getCurrentFullEditor();
-                    checkSoftTab(editor, {line: 4, ch: 0}, RIGHT_ARROW, {line: 4, ch: 1});
+                    checkSoftTab(editor, {line: 4, ch: 1}, LEFT_ARROW,  {line: 4, ch: 0});
                 });
                 
                 runs(function () {
                     // Re-enable soft tabs
                     PreferencesManager.set("softTabs", true);
+                    expect(PreferencesManager.get("softTabs")).toEqual(true);
                 });
             });
         });
