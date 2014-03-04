@@ -936,10 +936,15 @@ define(function (require, exports, module) {
             initialString = dialog.getDialogTextField().val();
             dialog._close(true);
         }
-
+        
+        // Save the currently selected file's fullpath if there is one selected and if it is a file
+        var selectedItem = ProjectManager.getSelectedItem();
+        if (selectedItem && !selectedItem.isDirectory) {
+            selectedEntry = selectedItem.fullPath;
+        }
+        
         dialog             = new FindInFilesDialog();
         searchResults      = {};
-        selectedEntry      = ProjectManager.getSelectedItem().fullPath;
         currentStart       = 0;
         currentQuery       = "";
         currentQueryExpr   = null;
