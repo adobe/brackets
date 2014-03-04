@@ -35,32 +35,111 @@ define(function CSSAgent(require, exports, module) {
 
     require("thirdparty/path-utils/path-utils.min");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var Async               = require("utils/Async"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        SourceMapConsumer   = require("thirdparty/source-map/lib/source-map/source-map-consumer").SourceMapConsumer;
 
     var _load; // {$.Deferred} load promise
     var _urlToStyle; // {url -> loaded} style definition
+    var _sourceMapURLs;
 
-    /** 
-     * Create a canonicalized version of the given URL, stripping off query strings and hashes.
-     * @param {string} url the URL to canonicalize
-     * @return the canonicalized URL
-     */
-    function _canonicalize(url) {
-        return PathUtils.parseUrl(url).hrefNoSearch;
+    function _initSourceMaps() {
+        var deferred = new $.Deferred();
+
+        if (!_sourceMapURLs || _sourceMapURLs.length === 0) {
+            return deferred.resolve().promise();
+        }
+
+        // Process source maps
+        var server = LiveDevelopment._getServer(),
+            sourceMapPath,
+            sourceMapPaths = [],
+            sourceMapDeferred,
+            sourceMapFile,
+            parseURL,
+            sourceURL;
+
+        // Read source map content from disk
+        var readSourceMapsPromise = Async.doInParallel(_sourceMapURLs, function (sourceMapURL) {
+            sourceMapDeferred = new $.Deferred();
+            sourceMapPath = server.urlToPath(sourceMapURL);
+
+            if (!sourceMapPath) {
+                return sourceMapDeferred.resolve().promise();
+            }
+            
+            sourceMapFile = FileSystem.getFileForPath(sourceMapPath);
+            parseURL = PathUtils.parseUrl(sourceMapURL);
+
+            // TODO setup change events
+            FileUtils.readAsText(sourceMapFile).done(function (contents) {
+                var sourceMap = new SourceMapConsumer(contents),
+                    localSources = [];
+                
+                sourceMap.sources.forEach(function (source) {
+                    // Add the source file (e.g. SCSS or LESS) as a style sheet URL
+                    sourceURL = sourceMapURL.replace(new RegExp(parseURL.filename + "$"), source);
+
+                    if (!Array.isArray(_urlToStyle[sourceURL])) {
+                        _urlToStyle[sourceURL] = [];
+                    }
+                    _urlToStyle[sourceURL].push(sourceMap);
+                    
+                    localSources.push(FileSystem.getFileForPath(sourceMapFile.parentPath + source));
+                });
+
+                // Swap generated file relative paths with local absolute paths
+                sourceMap.localSources = localSources;
+
+                // If the generated file name is missing, assume the source-map file name and drop the .map extension
+                if (!sourceMap.file) {
+                    sourceMap.file = sourceMapFile.name.slice(0, -4);
+                }
+
+                sourceMap.file = FileSystem.getFileForPath(sourceMapFile.parentPath + sourceMap.file);
+
+                sourceMapDeferred.resolve();
+            }).fail(sourceMapDeferred.reject);
+
+            return sourceMapDeferred.promise();
+        }, false);
+
+        readSourceMapsPromise.then(deferred.resolve, deferred.reject);
+
+        return deferred.promise();
     }
 
     // WebInspector Event: Page.loadEventFired
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
         _urlToStyle = {};
+        _sourceMapURLs = [];
+        
         Inspector.CSS.enable().done(function () {
             Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
-                var i, header;
+                var i,
+                    header,
+                    parseURL,
+                    sourceURL,
+                    sourceMapURL;
+
                 for (i in res.headers) {
                     header = res.headers[i];
-                    _urlToStyle[_canonicalize(header.sourceURL)] = header;
+                    parseURL = PathUtils.parseUrl(header.sourceURL);
+                    sourceURL = parseURL.hrefNoSearch;
+                    
+                    _urlToStyle[sourceURL] = header;
+                    
+                    if (header.sourceMapURL) {
+                        sourceMapURL = sourceURL.replace(new RegExp(parseURL.filename + "$"), header.sourceMapURL);
+                        _sourceMapURLs.push(sourceMapURL);
+                    }
                 }
-                _load.resolve();
+
+                _initSourceMaps().always(_load.resolve);
             });
         });
     }
@@ -70,7 +149,7 @@ define(function CSSAgent(require, exports, module) {
      */
     function styleForURL(url) {
         if (_urlToStyle) {
-            return _urlToStyle[_canonicalize(url)];
+            return _urlToStyle[PathUtils.parseUrl(url).hrefNoSearch];
         }
         
         return null;
@@ -78,13 +157,11 @@ define(function CSSAgent(require, exports, module) {
 
     /** Get a list of all loaded stylesheet files by URL */
     function getStylesheetURLs() {
-        var urls = [], url;
-        for (url in _urlToStyle) {
-            if (_urlToStyle.hasOwnProperty(url)) {
-                urls.push(url);
-            }
-        }
-        return urls;
+        return Object.keys(_urlToStyle);
+    }
+    
+    function getStylesheetSourceMapURLs() {
+        return _sourceMapURLs;
     }
 
     /** Reload a CSS style sheet from a document
@@ -120,6 +197,7 @@ define(function CSSAgent(require, exports, module) {
     // Export public functions
     exports.styleForURL = styleForURL;
     exports.getStylesheetURLs = getStylesheetURLs;
+    exports.getStylesheetSourceMapURLs = getStylesheetSourceMapURLs;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;

@@ -1067,7 +1067,8 @@ define(function (require, exports, module) {
      *          selector string is returned.
      */
     function findSelectorAtDocumentPos(editor, pos) {
-        var cm = editor._codeMirror;
+        // FIXME allow CodeMirror or Editor?
+        var cm = editor._codeMirror || editor;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
         var selector = "", inSelector = false, foundChars = false;
 
