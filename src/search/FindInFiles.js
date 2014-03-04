@@ -90,6 +90,9 @@ define(function (require, exports, module) {
     /** @type {Panel} Bottom panel holding the search results. Initialized in htmlReady() */
     var searchResultsPanel;
     
+    /** @type {Entry} the File selected on the initial search */
+    var selectedEntry;
+    
     /** @type {number} The index of the first result that is displayed */
     var currentStart = 0;
     
@@ -260,9 +263,7 @@ define(function (require, exports, module) {
      * Sorts the file keys to show the results from the selected file first and the rest sorted by path
      */
     function _sortResultFiles() {
-        var selectedEntry = ProjectManager.getSelectedItem().fullPath;
         searchFiles = Object.keys(searchResults);
-        
         searchFiles.sort(function (key1, key2) {
             if (selectedEntry === key1) {
                 return -1;
@@ -938,6 +939,7 @@ define(function (require, exports, module) {
 
         dialog             = new FindInFilesDialog();
         searchResults      = {};
+        selectedEntry      = ProjectManager.getSelectedItem().fullPath;
         currentStart       = 0;
         currentQuery       = "";
         currentQueryExpr   = null;
