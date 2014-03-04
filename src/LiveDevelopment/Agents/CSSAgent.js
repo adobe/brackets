@@ -140,10 +140,6 @@ define(function CSSAgent(require, exports, module) {
      * @param {styleSheetId: StyleSheetId}
      */
     function _styleSheetRemoved(event, res) {
-        if (!_urlToStyle) {
-            return;
-        }
-        
         var url = _styleSheetIdToUrl[res.styleSheetId],
             header = url && _urlToStyle[url];
         

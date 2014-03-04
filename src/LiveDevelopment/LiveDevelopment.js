@@ -544,8 +544,6 @@ define(function LiveDevelopment(require, exports, module) {
         allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
 
         allAgentsPromise.done(function () {
-            // After (1) the interstitial page loads and (2) then browser navigation
-            // to the base URL is completed, finally set status to STATUS_ACTIVE.
             var doc = (_liveDocument) ? _liveDocument.doc : null;
 
             if (doc) {
