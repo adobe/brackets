@@ -225,7 +225,7 @@
  * or if instead a tab character should be inserted into the editor. If omitted,
  * the fallback behavior is determined by the CodeHintManager. The default
  * behavior is to insert a tab character, but this can be changed with the
- * CodeHintManager.setInsertHintOnTab() method.
+ * insertHintOnTab Preference.
  */
 
 
@@ -256,20 +256,6 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
     
 
-    /**
-     * Determines the default behavior of the CodeHintManager on tab key events.
-     * setInsertHintOnTab(true) indicates that the currently selected code hint
-     * should be inserted on tab key events. setInsertHintOnTab(false) indicates
-     * that a tab character should be inserted into the editor on tab key events.
-     * The default behavior can be overridden by individual providers.
-     *
-     * @param {boolean} Indicates whether providers should insert the currently
-     *      selected hint on tab key events.
-     */
-    function setInsertHintOnTab(insertHintOnTab) {
-        PreferencesManager.set("insertHintOnTab", insertHintOnTab);
-    }
-    
     /**
      * Comparator to sort providers from high to low priority
      */
@@ -657,5 +643,4 @@ define(function (require, exports, module) {
     exports.isOpen                  = isOpen;
     exports.registerHintProvider    = registerHintProvider;
     exports.hasValidExclusion       = hasValidExclusion;
-    exports.setInsertHintOnTab      = setInsertHintOnTab;
 });
