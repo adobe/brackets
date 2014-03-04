@@ -100,7 +100,7 @@ define(function (require, exports, module) {
 
     function getSearchCursor(cm, query, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return cm.getSearchCursor(query, pos, !$("#find-case-sensitive").is(".active"));
+        return cm.getSearchCursor(query, pos, !PreferencesManager.getViewState("caseSensitive"));
     }
     
     function _updateSearchBarFromPrefs() {

@@ -225,7 +225,7 @@
  * or if instead a tab character should be inserted into the editor. If omitted,
  * the fallback behavior is determined by the CodeHintManager. The default
  * behavior is to insert a tab character, but this can be changed with the
- * CodeHintManager.setInsertHintOnTab() method.
+ * insertHintOnTab Preference.
  */
 
 
@@ -236,12 +236,13 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Commands        = require("command/Commands"),
-        CommandManager  = require("command/CommandManager"),
-        EditorManager   = require("editor/EditorManager"),
-        Strings         = require("strings"),
-        KeyEvent        = require("utils/KeyEvent"),
-        CodeHintList    = require("editor/CodeHintList").CodeHintList;
+    var Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Strings             = require("strings"),
+        KeyEvent            = require("utils/KeyEvent"),
+        CodeHintList        = require("editor/CodeHintList").CodeHintList,
+        PreferencesManager  = require("preferences/PreferencesManager");
 
     var hintProviders   = { "all" : [] },
         lastChar        = null,
@@ -250,24 +251,11 @@ define(function (require, exports, module) {
         hintList        = null,
         deferredHints   = null,
         keyDownEditor   = null;
-
     
-    var _insertHintOnTabDefault = false;
-
-    /**
-     * Determines the default behavior of the CodeHintManager on tab key events.
-     * setInsertHintOnTab(true) indicates that the currently selected code hint
-     * should be inserted on tab key events. setInsertHintOnTab(false) indicates
-     * that a tab character should be inserted into the editor on tab key events.
-     * The default behavior can be overridden by individual providers.
-     *
-     * @param {boolean} Indicates whether providers should insert the currently
-     *      selected hint on tab key events.
-     */
-    function setInsertHintOnTab(insertHintOnTab) {
-        _insertHintOnTabDefault = insertHintOnTab;
-    }
     
+    PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
+    
+
     /**
      * Comparator to sort providers from high to low priority
      */
@@ -474,7 +462,7 @@ define(function (require, exports, module) {
             if (sessionProvider.insertHintOnTab !== undefined) {
                 insertHintOnTab = sessionProvider.insertHintOnTab;
             } else {
-                insertHintOnTab = _insertHintOnTabDefault;
+                insertHintOnTab = PreferencesManager.get("insertHintOnTab");
             }
             
             sessionEditor = editor;
@@ -590,11 +578,21 @@ define(function (require, exports, module) {
 
             // Pending Text is used in hintList._keydownHook()
             if (hintList && changeList.text.length && changeList.text[0].length) {
-                hintList.removePendingText(changeList.text[0]);
+                var expectedLength = editor.getCursorPos().ch - changeList.from.ch,
+                    newText = changeList.text[0];
+                // We may get extra text in newText since some features like auto 
+                // close braces can append some text automatically.
+                // See https://github.com/adobe/brackets/issues/6345#issuecomment-32548064
+                // as an example of this scenario.
+                if (newText.length > expectedLength) {
+                    // Strip off the extra text before calling removePendingText.
+                    newText = newText.substr(0, expectedLength);
+                }
+                hintList.removePendingText(newText);
             }
         }
     }
-
+    
     /**
      * Test whether the provider has an exclusion that is still the same as text after the cursor.
      *
@@ -655,5 +653,4 @@ define(function (require, exports, module) {
     exports.isOpen                  = isOpen;
     exports.registerHintProvider    = registerHintProvider;
     exports.hasValidExclusion       = hasValidExclusion;
-    exports.setInsertHintOnTab      = setInsertHintOnTab;
 });
