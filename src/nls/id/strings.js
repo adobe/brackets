@@ -424,7 +424,7 @@ define({
     "UPDATE_AND_RELOAD"                    : "Update Ekstensi dan jalankan ulang",
     "PROCESSING_EXTENSIONS"                : "Memproses perubahan ekstensi\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Tidak dapat menghapus extensi {0} karena tidak terinstall.",
-    "NO_EXTENSIONS"                        : "Belum ada ekstensi yang diinstal.<br>Klik pada tab tersedia untuk mwnginstall EKstensi.",
+    "NO_EXTENSIONS"                        : "Belum ada ekstensi yang diinstal.<br>Klik pada tab tersedia untuk mwnginstall Ekstensi.",
     "NO_EXTENSION_MATCHES"                 : "Tidak ditemukan ekstensi yang sesuai dengan kriteria pencarian.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "Hati - hati dalam menginstall ekstensi dari sumber yang tidak di ketahui.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Terinstall",
