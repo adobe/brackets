@@ -592,11 +592,12 @@ define(function (require, exports, module) {
         var from,
             to,
             sel = editor.getSelection(),
-            doc = editor.document;
-
+            doc = editor.document,
+            endLine;
+        
         from = {line: sel.start.line, ch: 0};
-        to = {line: sel.end.line + 1, ch: 0};
-        if (to.line === editor.getLastVisibleLine() + 1) {
+        
+        if (sel.end.line === editor.getLastVisibleLine()) {
             // Instead of deleting the newline after the last line, delete the newline
             // before the first line--unless this is the entire visible content of the editor,
             // in which case just delete the line content.
@@ -604,8 +605,16 @@ define(function (require, exports, module) {
                 from.line -= 1;
                 from.ch = doc.getLine(from.line).length;
             }
-            to.line -= 1;
-            to.ch = doc.getLine(to.line).length;
+            to = {line: sel.end.line, ch: doc.getLine(sel.end.line).length};
+        } else {
+            // Don't delete the line that the selection ends on if the selection
+            // starts on a previous line and ends right at the beginning of the
+            // last line.
+            endLine = sel.end.line + 1;
+            if (sel.start.line < sel.end.line && sel.end.ch === 0) {
+                endLine--;
+            }
+            to = {line: endLine, ch: 0};
         }
         
         doc.replaceRange("", from, to);
