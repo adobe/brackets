@@ -50,7 +50,9 @@ define(function (require, exports, module) {
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        ViewUtils           = require("utils/ViewUtils");
+        ViewUtils           = require("utils/ViewUtils"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs");
     
     var searchBarTemplate            = require("text!htmlContent/findreplace-bar.html"),
         searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
@@ -63,7 +65,7 @@ define(function (require, exports, module) {
     var FIND_HIGHLIGHT_MAX  = 2000;
 
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
-    var REPLACE_ALL_MAX     = 300;
+    var REPLACE_ALL_MAX     = 500;
     
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
@@ -502,6 +504,7 @@ define(function (require, exports, module) {
             to,
             line,
             multiLine,
+            tooManyResults,
             matchResult = cursor.findNext();
 
         // Collect all results from document
@@ -522,11 +525,12 @@ define(function (require, exports, module) {
                 result:    matchResult
             });
 
-            if (results.length >= REPLACE_ALL_MAX) {
+            matchResult = cursor.findNext();
+
+            if (results.length >= REPLACE_ALL_MAX && matchResult) {
+                tooManyResults = true;
                 break;
             }
-            
-            matchResult = cursor.findNext();
         }
 
         // This text contains some formatting, so all the strings are assumed to be already escaped
@@ -535,7 +539,7 @@ define(function (require, exports, module) {
                 Strings.FIND_REPLACE_TITLE_PART3,
                 resultsLength,
                 resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                resultsLength >= REPLACE_ALL_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
+                tooManyResults ? Strings.FIND_IN_FILES_MORE_THAN : ""
             );
 
         // Insert the search summary
@@ -558,6 +562,34 @@ define(function (require, exports, module) {
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
+            if (tooManyResults) {
+                // show a dialog indicating that there were more than REPLACE_ALL_MAX results
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_INFO,
+                    Strings.REPLACE_ALL_TOO_MANY_RESULTS_TITLE,
+                    StringUtils.format(
+                        Strings.REPLACE_ALL_TOO_MANY_RESULTS_MSG,
+                        REPLACE_ALL_MAX
+                    ),
+                    [
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                            id        : Dialogs.DIALOG_BTN_CANCEL,
+                            text      : Strings.CANCEL
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id        : Dialogs.DIALOG_BTN_OK,
+                            text      : Strings.REPLACE_ALL_TOO_MANY_RESULTS_CONTINUE
+                        }
+                    ]
+                )
+                    .done(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            _showReplaceAllPanel(editor, replaceWhat, replaceWith);
+                        }
+                    });
+            }
         });
 
         // Insert the search results
