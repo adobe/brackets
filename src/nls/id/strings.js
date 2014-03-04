@@ -39,7 +39,7 @@ define({
     "CONTENTS_MODIFIED_ERR"             : "Berkas telah di ubah di luar dari {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Berkas atau direktori telah ada.",
     "FILE"                              : "berkas",
-    "DIRECTORY"                         : "directori",
+    "DIRECTORY"                         : "direktori",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Kesalahan membuka proyek",
@@ -54,20 +54,20 @@ define({
     "ERROR_RELOADING_FILE_TITLE"        : "Gagal update perubahan dari disk",
     "ERROR_RELOADING_FILE"              : "Gagal membuka ulang berkas <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Gagal menyimpan berkas",
-    "ERROR_SAVING_FILE"                 : "Gagal meyimpan berkas <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_SAVING_FILE"                 : "Gagal menyimpan berkas <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Gagal mengubah nama berkas",
-    "ERROR_RENAMING_FILE"               : "Terjadi kesalahan saa mencoba mengubah nama berkas <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE"               : "Terjadi kesalahan saat mencoba mengubah nama berkas <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Gagal menghapus berkas",
     "ERROR_DELETING_FILE"               : "Terjadi kesalahan saat akan menghapus berkas <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nama {0} tidak valid",
-    "INVALID_FILENAME_MESSAGE"          : "Nama berkas tidak boleh berisi karakter: {0} atau menggunakan nama yang telah  digunakan pada sistem.",
+    "INVALID_FILENAME_MESSAGE"          : "Nama berkas tidak boleh berisi karakter: {0} atau menggunakan nama yang telah digunakan pada sistem.",
     "FILE_ALREADY_EXISTS"               : "Berkas {0} <span class='dialog-filename'>{1}</span> sudah ada.",
     "ERROR_CREATING_FILE_TITLE"         : "Gagal membuat {0}",
     "ERROR_CREATING_FILE"               : "Kesalahan terjadi saat akan membuat berkas {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "ups! {APP_NAME} belum dijalankan di browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tpi sekarang di jalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tapi sekarang di jalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Gagal Mendata Berkas",
@@ -75,7 +75,7 @@ define({
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Gagal Menjalankan Browser",
-    "ERROR_CANT_FIND_CHROME"            : "Tidak menemukan aplikasi google chrome harap di install terlebih dahula.",
+    "ERROR_CANT_FIND_CHROME"            : "Tidak menemukan aplikasi google chrome harap di install terlebih dahulu.",
     "ERROR_LAUNCHING_BROWSER"           : "Terjadi kesalahan dalam menjalankan browser. (error {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Gagal Preview Langsung",
@@ -97,9 +97,9 @@ define({
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Preview Langsung (gagal update karena penulisan salah)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Preview Langsung dibatalkan karena browser's developer tools sedang dibuka",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Preview Langsung dibatalakan karena halaman telah ditutup",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Preview Langsung dibatalakan karena browser membuka halaman yang bukan dari proyek",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Preview Langsung dibatalakan karena sebab yang belum diketahui ({0})",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Preview Langsung dibatalkan karena halaman telah ditutup",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Preview Langsung dibatalkan karena browser membuka halaman yang bukan dari proyek",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Preview Langsung dibatalkan karena sebab yang belum diketahui ({0})",
 
     "SAVE_CLOSE_TITLE"                  : "Simpan perubahan",
     "SAVE_CLOSE_MESSAGE"                : "Apakah anda akan menyimpan setelah melakukan perubahan <span class='dialog-filename'>{0}</span>?",
@@ -108,9 +108,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Hapus?",
     "CONFIRM_FOLDER_DELETE"             : "Apakah anda yakin akan menghapus folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Berkas telah dihapus",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> telah dirubah.<br /><br />Apakah anda akan menyimpan dan membatalkan perubahan?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> Telah di rubah, tapi belum disimpan pada {APP_NAME}.<br /><br />Versi yang mana yang ingin anda simpan?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> telah di hapus di luar brackets, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda akan menyimpan perubahan?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> Telah dirubah.<br /><br />Apakah anda akan menyimpan dan membatalkan perubahan?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> Telah dirubah, tapi belum disimpan pada {APP_NAME}.<br /><br />Versi yang mana yang ingin anda simpan?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> Telah di hapus di luar {APP_NAME}, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda akan menyimpan perubahan?",
 
     // Generic dialog/button labels
     "OK"                                : "Iya",
@@ -143,7 +143,7 @@ define({
 
     "RELEASE_NOTES"                     : "Catatan rilis",
     "NO_UPDATE_TITLE"                   : "Aplikasi terbaru!",
-    "NO_UPDATE_MESSAGE"                 : "Anda menggunakan versi terkhir dari {APP_NAME}.",
+    "NO_UPDATE_MESSAGE"                 : "Anda menggunakan versi terakhir dari {APP_NAME}.",
 
     // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Ganti \"",
@@ -157,7 +157,7 @@ define({
     "FIND_IN_FILES_SCOPED"              : "di <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "dalam proyek",
     "FIND_IN_FILES_FILE"                : "Berkas",
-    "FIND_IN_FILES_FILES"               : "Berkas",
+    "FIND_IN_FILES_FILES"               : "Arsip",
     "FIND_IN_FILES_MATCH"               : "sesuai",
     "FIND_IN_FILES_MATCHES"             : "sesuai",
     "FIND_IN_FILES_MORE_THAN"           : "Lebih Dari ",
@@ -184,7 +184,7 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
+    "STATUSBAR_CURSOR_POSITION"             : "Baris {0}, Kolom {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 kolom {0} dipilih",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 kolom {0} dipilih",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 baris {0} dipilih",
@@ -207,7 +207,7 @@ define({
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Tidak ditemukan Kesalahan - kerja bagus!",
     "LINT_DISABLED"                         : "Linting tidak diijinkan",
     "NO_LINT_AVAILABLE"                     : "Tidak ada linter tersedia untuk {0}",
-    "NOTHING_TO_LINT"                       : "Tudak ada yang di lint",
+    "NOTHING_TO_LINT"                       : "Tidak ada yang di lint",
 
 
     /**
@@ -216,7 +216,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Berkas",
-    "CMD_FILE_NEW_UNTITLED"               : "Baru",
+    "CMD_FILE_NEW_UNTITLED"               : "Berkas Baru Tanpa Judul",
     "CMD_FILE_NEW"                        : "Berkas Baru",
     "CMD_FILE_NEW_FOLDER"                 : "Folder Baru",
     "CMD_FILE_OPEN"                       : "Buka\u2026",
