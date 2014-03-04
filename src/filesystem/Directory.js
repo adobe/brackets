@@ -85,10 +85,21 @@ define(function (require, exports, module) {
     Directory.prototype._clearCachedData = function (preserveImmediateChildren) {
         FileSystemEntry.prototype._clearCachedData.apply(this);
         
-        if (!preserveImmediateChildren && this._contents) {
-            this._contents.forEach(function (child) {
-                child._clearCachedData(true);
-            });
+        if (!preserveImmediateChildren) {
+            if (this._contents) {
+                this._contents.forEach(function (child) {
+                    child._clearCachedData(true);
+                });
+            } else {
+                // Our _contents is cleared, but File objects that are our children may still exist.
+                // Scan the full index to catch all of them.
+                var dirPath = this.fullPath;
+                this._fileSystem._index.visitAll(function (entry) {
+                    if (entry.parentPath === dirPath) {
+                        entry._clearCachedData(true);
+                    }
+                });
+            }
         }
         
         this._contents = undefined;
