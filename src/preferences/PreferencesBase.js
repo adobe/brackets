@@ -344,17 +344,21 @@ define(function (require, exports, module) {
          * 
          * @param {string} id key to set or delete
          * @param {*} value value for this key (undefined to delete)
-         * @return {boolean} always returns true
+         * @return {boolean} true if the value was set.
          */
         _performSet: function (id, value) {
-            if (value === undefined && this.data[id]) {
-                delete this.data[id];
-                this._dirty = true;
-            } else if (this.data[id] !== value) {
+            if (value === undefined) {
+                if(this.data[id]) {
+                    delete this.data[id];
+                    this._dirty = true;
+                    return true;
+                }
+            } else if (!_.isEqual(this.data[id], value)) {
                 this.data[id] = value;
                 this._dirty = true;
+                return true;
             }
-            return true;
+            return false;
         },
         
         /**
@@ -618,11 +622,15 @@ define(function (require, exports, module) {
                 data[layerID] = section = {};
             }
             if (value === undefined) {
-                delete section[id];
-            } else {
+                if (section[id]) {
+                    delete section[id];
+                    return true;
+                }
+            } else if (!_.isEqual(section[id], value)) {
                 section[id] = value;
+                return true;
             }
-            return true;
+            return false;
         },
 
         /**
@@ -743,11 +751,15 @@ define(function (require, exports, module) {
                 data[layerID] = section = {};
             }
             if (value === undefined) {
-                delete section[id];
-            } else {
+                if (section[id]) {
+                    delete section[id];
+                    return true;
+                }
+            } else if (!_.isEqual(section[id], value)) {
                 section[id] = value;
+                return true;
             }
-            return true;
+            return false;
         },
         
         /**
