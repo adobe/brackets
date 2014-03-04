@@ -85,6 +85,7 @@ define(function (require, exports, module) {
         STYLE_ACTIVE_LINE = "styleActiveLine",
         WORD_WRAP         = "wordWrap",
         CLOSE_TAGS        = "closeTags",
+        SOFT_TABS         = "softTabs",
         cmOptions         = {};
     
     // Mappings from Brackets preferences to CodeMirror options
@@ -107,6 +108,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
     PreferencesManager.definePreference(CLOSE_TAGS, "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(SOFT_TABS, "boolean", true);
     
     var editorOptions = [SMART_INDENT, USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
                           SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP, CLOSE_TAGS];
@@ -193,7 +195,8 @@ define(function (require, exports, module) {
      */
     function _handleSoftTabNavigation(instance, direction, functionName) {
         var handled = false;
-        if (!instance.getOption("indentWithTabs")) {
+
+        if (!instance.getOption("indentWithTabs") && PreferencesManager.get(SOFT_TABS)) {
             var indentUnit = instance.getOption("indentUnit"),
                 cursor     = instance.getCursor(),
                 jump       = cursor.ch % indentUnit,
@@ -1693,6 +1696,20 @@ define(function (require, exports, module) {
     /** @type {boolean} Returns true if word wrap is enabled for the current editor */
     Editor.getWordWrap = function () {
         return PreferencesManager.get(WORD_WRAP);
+    };
+    
+    /**
+     * Sets the soft tabs.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.setSoftTabs = function (value) {
+        PreferencesManager.set(SOFT_TABS, value);
+    };
+    
+    /** @type {boolean} Gets whether the current editor uses soft tabs */
+    Editor.getSoftTabs = function () {
+        return PreferencesManager.get(SOFT_TABS);
     };
     
     // Set up listeners for preference changes
