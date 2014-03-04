@@ -476,7 +476,10 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
                 });
             });
-            
+        });
+        
+        
+        describe("Toggle Soft Tab Preference", function () {
             it("should use soft tabs by default", function () {
                 openEditor(JS_FILE);
                 
