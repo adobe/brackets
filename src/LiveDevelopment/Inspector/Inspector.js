@@ -134,8 +134,12 @@ define(function Inspector(require, exports, module) {
         } else {
             var deferred = new $.Deferred();
             promise = deferred.promise();
-            callback = function (result) {
-                deferred.resolve(result);
+            callback = function (result, error) {
+                if (error) {
+                    deferred.reject(error);
+                } else {
+                    deferred.resolve(result);
+                }
             };
         }
 
@@ -144,14 +148,28 @@ define(function Inspector(require, exports, module) {
 
         // verify the parameters against the method signature
         // this also constructs the params object of type {name -> value}
-        for (i in signature) {
-            if (_verifySignature(args[i], signature[i])) {
-                params[signature[i].name] = args[i];
+        if (signature) {
+            for (i in signature) {
+                if (_verifySignature(args[i], signature[i])) {
+                    params[signature[i].name] = args[i];
+                }
             }
         }
+
         _socket.send(JSON.stringify({ method: method, id: id, params: params }));
 
         return promise;
+    }
+
+    /**
+     * Manually send a message to the remote debugger
+     * All passed arguments after the command are passed on as parameters.
+     * If the last argument is a function, it is used as the callback function.
+     * @param {string} domain
+     * @param {string} command
+     */
+    function send(domain, command, varargs) {
+        return _send(domain + "." + command, null, varargs);
     }
 
     /** WebSocket did close */
@@ -186,20 +204,27 @@ define(function Inspector(require, exports, module) {
      * @param {object} message
      */
     function _onMessage(message) {
-        var response = JSON.parse(message.data);
+        var response = JSON.parse(message.data),
+            callback = _messageCallbacks[response.id];
+
+        if (callback) {
+            // Messages with an ID are a response to a command, fire callback
+            callback(response.result, response.error);
+            delete _messageCallbacks[response.id];
+        } else if (response.method) {
+            // Messages with a method are an event, trigger event handlers
+            var domainAndMethod = response.method.split("."),
+                domain = domainAndMethod[0],
+                method = domainAndMethod[1];
+
+            $(exports[domain]).triggerHandler(method, response.params);
+        }
+
+        // Always fire event handlers for all messages/errors
         $exports.triggerHandler("message", [response]);
+
         if (response.error) {
             $exports.triggerHandler("error", [response.error]);
-        } else if (response.result) {
-            if (_messageCallbacks[response.id]) {
-                _messageCallbacks[response.id](response.result);
-                delete _messageCallbacks[response.id];
-            }
-        } else {
-            var domainAndMethod = response.method.split(".");
-            var domain = domainAndMethod[0];
-            var method = domainAndMethod[1];
-            $(exports[domain]).triggerHandler(method, response.params);
         }
     }
 
@@ -363,5 +388,6 @@ define(function Inspector(require, exports, module) {
     exports.connect = connect;
     exports.connectToURL = connectToURL;
     exports.connected = connected;
+    exports.send = send;
     exports.init = init;
 });
