@@ -207,7 +207,7 @@ define(function (require, exports, module) {
                 });
             });
 			
-            // from Issue #6212
+            // from Issue #6121
             it("should recognize that a previously untitled, but now saved, document can be saved without prompting for a filename", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
@@ -223,25 +223,16 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_SAVE);
                     
                     waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog).toHaveBeenCalled();   // first save should prompt user for filename
                 });
                 
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_SAVE);
                     
                     waitsForDone(promise, "FILE_SAVE");
-                });
                     
-                runs(function () {
-                    var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
-
-                    expect(noLongerUntitledDocument.isDirty).toBe(false);
-                    expect(noLongerUntitledDocument.isUntitled()).toBe(false);
-                    expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
-
-                    // Verify file exists, & clean up
-                    expectAndDelete(newFilePath);
+                    expect(FileSystem.showSaveDialog.callCount).toEqual(1); // second save should not prompt
                 });
             });
 
