@@ -70,14 +70,14 @@
     ],
     "edit.addPrevLineToSel": [
         {
-            "key": "Ctrl-Alt-Up",
-            "displayKey": "Ctrl-Alt-↑"
+            "key": "Shift-Alt-Up",
+            "displayKey": "Shift-Alt-↑"
         }
     ],
     "edit.addNextLineToSel": [
         {
-            "key": "Ctrl-Alt-Down",
-            "displayKey": "Ctrl-Alt-↓"
+            "key": "Shift-Alt-Down",
+            "displayKey": "Shift-Alt-↓"
         }
     ],
     "edit.find":  [
