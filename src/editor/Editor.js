@@ -1046,7 +1046,7 @@ define(function (require, exports, module) {
      * making the selection
      *
      * @param {!{line:number, ch:number}} start
-     * @param {={line:number, ch:number}} end If not specified, defaults to start.
+     * @param {{line:number, ch:number}=} end If not specified, defaults to start.
      * @param {boolean} center true to center the viewport
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */

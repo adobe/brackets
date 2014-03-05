@@ -938,7 +938,7 @@ define(function (require, exports, module) {
     /**
      * Unindent a line of text if no selection. Otherwise, unindent all lines in selection.
      */
-    function unidentText() {
+    function unindentText() {
         var editor = EditorManager.getFocusedEditor();
         if (!editor) {
             return;
@@ -954,6 +954,67 @@ define(function (require, exports, module) {
             // coalesced selections.
             editor.setSelections(_.pluck(editor.convertToLineSelections(editor.getSelections(), { expandEndAtStartOfLine: true }), "selectionForEdit"));
         }
+    }
+    
+    /**
+     * @private
+     * Takes the current selection and splits each range into separate selections, one per line.
+     * @param {!Editor} editor The editor to operate on.
+     */
+    function splitSelIntoLines(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("splitSelectionByLine");
+        }
+    }
+
+    /**
+     * @private
+     * Adds a cursor on the next/previous line after/before each selected range to the selection.
+     * @param {!Editor} editor The editor to operate on.
+     * @param {number} dir The direction to add - 1 is down, -1 is up.
+     */
+    function addLineToSelection(editor, dir) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (editor) {
+            var origSels = editor.getSelections(),
+                newSels = [];
+            _.each(origSels, function (sel) {
+                var pos;
+                if ((dir === -1 && sel.start.line > editor.getFirstVisibleLine()) || (dir === 1 && sel.end.line < editor.getLastVisibleLine())) {
+                    // Add a new cursor on the next line up/down. It's okay if it overlaps another selection, because CM
+                    // will take care of throwing it away in that case. It will also take care of clipping the char position
+                    // to the end of the new line if the line is shorter.
+                    pos = _.clone(dir === -1 ? sel.start : sel.end);
+                    pos.line += dir;
+
+                    // If this is the primary selection, we want the new cursor we're adding to become the
+                    // primary selection.
+                    newSels.push({start: pos, end: pos, primary: sel.primary});
+                    sel.primary = false;
+                }
+            });
+            // CM will take care of sorting the selections.
+            editor.setSelections(origSels.concat(newSels));
+        }
+    }
+    
+    /**
+     * @private
+     * Adds a cursor on the previous line before each selected range to the selection.
+     * @param {!Editor} editor The editor to operate on.
+     */
+    function addPrevLineToSelection(editor) {
+        addLineToSelection(editor, -1);
+    }
+    
+    /**
+     * @private
+     * Adds a cursor on the next line after each selected range to the selection.
+     * @param {!Editor} editor The editor to operate on.
+     */
+    function addNextLineToSelection(editor) {
+        addLineToSelection(editor, 1);
     }
 
     function handleUndoRedo(operation) {
@@ -1003,22 +1064,25 @@ define(function (require, exports, module) {
     }
         
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,           Commands.EDIT_INDENT,           indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,         Commands.EDIT_UNINDENT,         unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,          Commands.EDIT_LINE_COMMENT,     lineComment);
-    CommandManager.register(Strings.CMD_BLOCK_COMMENT,    Commands.EDIT_BLOCK_COMMENT,    blockComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,        Commands.EDIT_DUPLICATE,        duplicateText);
-    CommandManager.register(Strings.CMD_DELETE_LINES,     Commands.EDIT_DELETE_LINES,     deleteCurrentLines);
-    CommandManager.register(Strings.CMD_LINE_UP,          Commands.EDIT_LINE_UP,          moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,        Commands.EDIT_LINE_DOWN,        moveLineDown);
-    CommandManager.register(Strings.CMD_OPEN_LINE_ABOVE,  Commands.EDIT_OPEN_LINE_ABOVE,  openLineAbove);
-    CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,  Commands.EDIT_OPEN_LINE_BELOW,  openLineBelow);
-    CommandManager.register(Strings.CMD_SELECT_LINE,      Commands.EDIT_SELECT_LINE,      selectLine);
+    CommandManager.register(Strings.CMD_INDENT,                 Commands.EDIT_INDENT,                 indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,               Commands.EDIT_UNINDENT,               unindentText);
+    CommandManager.register(Strings.CMD_COMMENT,                Commands.EDIT_LINE_COMMENT,           lineComment);
+    CommandManager.register(Strings.CMD_BLOCK_COMMENT,          Commands.EDIT_BLOCK_COMMENT,          blockComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,              Commands.EDIT_DUPLICATE,              duplicateText);
+    CommandManager.register(Strings.CMD_DELETE_LINES,           Commands.EDIT_DELETE_LINES,           deleteCurrentLines);
+    CommandManager.register(Strings.CMD_LINE_UP,                Commands.EDIT_LINE_UP,                moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,              Commands.EDIT_LINE_DOWN,              moveLineDown);
+    CommandManager.register(Strings.CMD_OPEN_LINE_ABOVE,        Commands.EDIT_OPEN_LINE_ABOVE,        openLineAbove);
+    CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,        Commands.EDIT_OPEN_LINE_BELOW,        openLineBelow);
+    CommandManager.register(Strings.CMD_SELECT_LINE,            Commands.EDIT_SELECT_LINE,            selectLine);
+    CommandManager.register(Strings.CMD_SPLIT_SEL_INTO_LINES,   Commands.EDIT_SPLIT_SEL_INTO_LINES,   splitSelIntoLines);
+    CommandManager.register(Strings.CMD_ADD_NEXT_LINE_TO_SEL,   Commands.EDIT_ADD_NEXT_LINE_TO_SEL,   addNextLineToSelection);
+    CommandManager.register(Strings.CMD_ADD_PREV_LINE_TO_SEL,   Commands.EDIT_ADD_PREV_LINE_TO_SEL,   addPrevLineToSelection);
 
-    CommandManager.register(Strings.CMD_UNDO,             Commands.EDIT_UNDO,             handleUndo);
-    CommandManager.register(Strings.CMD_REDO,             Commands.EDIT_REDO,             handleRedo);
-    CommandManager.register(Strings.CMD_CUT,              Commands.EDIT_CUT,              ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,             Commands.EDIT_COPY,             ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,            Commands.EDIT_PASTE,            ignoreCommand);
-    CommandManager.register(Strings.CMD_SELECT_ALL,       Commands.EDIT_SELECT_ALL,       _handleSelectAll);
+    CommandManager.register(Strings.CMD_UNDO,                   Commands.EDIT_UNDO,                   handleUndo);
+    CommandManager.register(Strings.CMD_REDO,                   Commands.EDIT_REDO,                   handleRedo);
+    CommandManager.register(Strings.CMD_CUT,                    Commands.EDIT_CUT,                    ignoreCommand);
+    CommandManager.register(Strings.CMD_COPY,                   Commands.EDIT_COPY,                   ignoreCommand);
+    CommandManager.register(Strings.CMD_PASTE,                  Commands.EDIT_PASTE,                  ignoreCommand);
+    CommandManager.register(Strings.CMD_SELECT_ALL,             Commands.EDIT_SELECT_ALL,             _handleSelectAll);
 });
