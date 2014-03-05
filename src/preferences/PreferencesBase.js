@@ -348,7 +348,7 @@ define(function (require, exports, module) {
          */
         _performSet: function (id, value) {
             if (value === undefined) {
-                if(this.data[id]) {
+                if (this.data[id]) {
                     delete this.data[id];
                     this._dirty = true;
                     return true;

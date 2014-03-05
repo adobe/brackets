@@ -185,6 +185,39 @@ define(function (require, exports, module) {
                 
                 expect(layer.set(data, "spaceUnits", 13, {}, "**.md")).toBe(true);
             });
+
+            it("should not set the same value twice", function () {
+                var data = {
+                    "**.html": {
+                        spaceUnits: 2
+                    },
+                    "lib/*.js": {
+                        spaceUnits: 3
+                    }
+                };
+                
+                var originalData = _.clone(data, true);
+                
+                var layer = new PreferencesBase.PathLayer("/.brackets.json");
+                
+                expect(layer.set(data, "spaceUnits", 11, {
+                    filename: "/index.html"
+                })).toBe(true);
+
+                // Try to set the same value again.
+                expect(layer.set(data, "spaceUnits", 11, {
+                    filename: "/index.html"
+                })).toBe(false);
+
+                expect(data).toEqual({
+                    "**.html": {
+                        spaceUnits: 11
+                    },
+                    "lib/*.js": {
+                        spaceUnits: 3
+                    }
+                });
+            });
         });
         
         describe("Scope", function () {
@@ -200,6 +233,25 @@ define(function (require, exports, module) {
                 
                 expect(scope.get("spaceUnits")).toBe(4);
                 expect(scope.getKeys().sort()).toEqual(["spaceUnits", "useTabChar"].sort());
+            });
+            
+            it("should not set the same value twice", function () {
+                var data = {
+                    spaceUnits: 4,
+                    useTabChar: false
+                };
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                // MemoryStorage operates synchronously
+                scope.load();
+                
+                expect(scope.get("spaceUnits")).toBe(4);
+
+                expect(scope.set("spaceUnits", 12)).toBe(true);
+
+                // Try to set the same value again.
+                expect(scope.set("spaceUnits", 12)).toBe(false);
+                expect(scope.get("spaceUnits")).toBe(12);
             });
             
             it("should look up a value with a path layer", function () {
