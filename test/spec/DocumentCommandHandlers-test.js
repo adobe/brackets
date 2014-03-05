@@ -206,6 +206,44 @@ define(function (require, exports, module) {
                     expectAndDelete(newFilePath);
                 });
             });
+			
+            // from Issue #6212
+            it("should recognize that a previously untitled, but now saved, document can be saved without prompting for a filename", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+                     
+                runs(function () {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                });
+                    
+                runs(function () {
+                    var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
+
+                    expect(noLongerUntitledDocument.isDirty).toBe(false);
+                    expect(noLongerUntitledDocument.isUntitled()).toBe(false);
+                    expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
+                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+
+                    // Verify file exists, & clean up
+                    expectAndDelete(newFilePath);
+                });
+            });
 
             it("should swap out untitled document from working set even when not current", function () {
                 runs(function () {
