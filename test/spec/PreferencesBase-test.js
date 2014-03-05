@@ -672,6 +672,41 @@ define(function (require, exports, module) {
                 expect(changes).toEqual(1);
             });
             
+            it("can pause and resume broadcast of events", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                pm.addScope("user", new PreferencesBase.MemoryStorage());
+                pm.pauseChangeEvents();
+                
+                var spaceUnitChanges = 0,
+                    fooChanges = 0,
+                    globalChangeMessages = [];
+                pm.definePreference("spaceUnits", "number", 4).on("change", function () {
+                    spaceUnitChanges++;
+                });
+                pm.definePreference("foo", "string", "bar").on("change", function () {
+                    fooChanges++;
+                });
+                pm.on("change", function (e, data) {
+                    globalChangeMessages.push(data);
+                });
+                
+                pm.set("spaceUnits", 8);
+                pm.set("foo", "baz");
+                expect(spaceUnitChanges).toBe(0);
+                expect(fooChanges).toBe(0);
+                expect(globalChangeMessages).toEqual([]);
+                
+                pm.resumeChangeEvents();
+                expect(spaceUnitChanges).toBe(1);
+                expect(fooChanges).toBe(1);
+                expect(globalChangeMessages).toEqual([{
+                    ids: ["spaceUnits", "foo"]
+                }]);
+                
+                pm.set("foo", "zippy");
+                expect(fooChanges).toBe(2);
+            });
+            
             it("can dynamically modify the default scope order", function () {
                 var pm = new PreferencesBase.PreferencesSystem();
                 pm.addScope("user", new PreferencesBase.MemoryStorage({

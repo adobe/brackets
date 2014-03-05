@@ -84,7 +84,7 @@ define(function (require, exports, module) {
 
         // TODO: Better workflow of liveDocument.doc.url assignment
         // Force sync the browser after a URL is assigned
-        if (liveDocument._updateBrowser) {
+        if (doc.isDirty && liveDocument._updateBrowser) {
             liveDocument._updateBrowser();
         }
     };

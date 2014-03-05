@@ -79,18 +79,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = {};
-
-    /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _defaultPrefs = { fontSizeAdjustment: 0 };
-
-    /**
-     * @private
      * @type {boolean}
      */
     var _fontSizePrefsLoaded = false;
@@ -198,21 +186,21 @@ define(function (require, exports, module) {
     /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
         if (_adjustFontSize(1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
+            PreferencesManager.setViewState("fontSizeAdjustment", PreferencesManager.getViewState("fontSizeAdjustment") + 1);
         }
     }
     
     /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
         if (_adjustFontSize(-1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
+            PreferencesManager.setViewState("fontSizeAdjustment", PreferencesManager.getViewState("fontSizeAdjustment") - 1);
         }
     }
     
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _adjustFontSize(-_prefs.getValue("fontSizeAdjustment"));
-        _prefs.setValue("fontSizeAdjustment", 0);
+        _adjustFontSize(-PreferencesManager.getViewState("fontSizeAdjustment"));
+        PreferencesManager.setViewState("fontSizeAdjustment", 0);
     }
     
     
@@ -233,7 +221,7 @@ define(function (require, exports, module) {
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
                 _removeDynamicFontSize();
-                _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+                _adjustFontSize(PreferencesManager.getViewState("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
             }
             
@@ -358,8 +346,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    // Initialize the PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
+    // Initialize the default font size
+    PreferencesManager.stateManager.definePreference("fontSizeAdjustment", "number", 0);
+    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);

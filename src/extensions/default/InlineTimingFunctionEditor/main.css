@@ -286,3 +286,16 @@
     padding: 4px 4px;
 }
 
+.bezier-curve-editor .info .hint,
+.step-editor .info .hint {
+    margin-top: 25px;
+    font-size: 13px;
+    display: none;
+    opacity: 1;
+}
+
+.bezier-curve-editor .info .hint.fadeout,
+.step-editor .info .hint.fadeout {
+    transition: opacity 0.6s ease-in 0.1s;
+    opacity: 0;
+}

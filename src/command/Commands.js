@@ -53,6 +53,7 @@ define(function (require, exports, module) {
     exports.FILE_DELETE                 = "file.delete";                // DocumentCommandHandlers.js   handleFileDelete()
     exports.FILE_EXTENSION_MANAGER      = "file.extensionManager";      // ExtensionManagerDialog.js    _showDialog()
     exports.FILE_REFRESH                = "file.refresh";               // ProjectManager.js            refreshFileTree()
+    exports.FILE_OPEN_PREFERENCES       = "file.openPreferences";       // PreferencesManager.js        _handleOpenPreferences()
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.FILE_CLOSE_WINDOW           = "file.close_window";          // DocumentCommandHandlers.js   handleFileCloseWindow()

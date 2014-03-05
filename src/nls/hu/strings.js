@@ -393,27 +393,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Mégsem",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Rendszer Alapértelmezett",
     
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                                 : "Cseh",
-    "LOCALE_DE"                                 : "Német",
-    "LOCALE_EN"                                 : "Angol",
-    "LOCALE_ES"                                 : "Spanyol",
-    "LOCALE_FR"                                 : "Francia",
-    "LOCALE_IT"                                 : "Olasz",
-    "LOCALE_JA"                                 : "Japán",
-    "LOCALE_NB"                                 : "Norvég",
-    "LOCALE_PL"                                 : "Lengyel",
-    "LOCALE_PT_BR"                              : "Portugál, Brazil",
-    "LOCALE_PT_PT"                              : "Portugál",
-    "LOCALE_RU"                                 : "Orosz",
-	"LOCALE_SR"                                 : "Szerb",
-    "LOCALE_SV"                                 : "Svéd",
-    "LOCALE_TR"                                 : "Török",
-    "LOCALE_ZH_CN"                              : "Kínai, egyszerűsített",
-    "LOCALE_HU"                                 : "Magyar",
-    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Jelenlegi szín",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Eredeti szín",
