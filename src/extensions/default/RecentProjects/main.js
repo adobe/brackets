@@ -425,8 +425,9 @@ define(function (require, exports, module) {
             if (!SidebarView.isVisible()) {
                 SidebarView.show();
             }
-
-            showDropdown();
+            
+            $("#project-dropdown-toggle").trigger("click");
+            
             $dropdown.focus();
             $links = $dropdown.find("a");
             // By default, select the most recent project (which is at the top of the list underneath Open Folder),
