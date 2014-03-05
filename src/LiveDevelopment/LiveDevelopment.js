@@ -572,7 +572,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         allAgentsPromise.fail(result.reject);
         
-        result
+        _loadAgentsPromise
             .fail(function () {
                 // show error loading live dev dialog
                 _setStatus(STATUS_ERROR);
@@ -587,7 +587,7 @@ define(function LiveDevelopment(require, exports, module) {
                 _loadAgentsPromise = null;
             });
 
-        return result.promise();
+        return _loadAgentsPromise;
     }
 
     /**
