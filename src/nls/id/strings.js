@@ -34,22 +34,22 @@ define({
     "GENERIC_ERROR"                     : "(kesalahan {0})",
     "NOT_FOUND_ERR"                     : "Berkas tidak ditemukan.",
     "NOT_READABLE_ERR"                  : "Berkas tidak bisa dibuka.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Direktori tujuan tidak dapat di modifikasi.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Direktori tujuan tidak dapat dimodifikasi.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Status anda tidak mengijinkan untuk melakukan perubahan berkas.",
-    "CONTENTS_MODIFIED_ERR"             : "Berkas telah di ubah di luar dari {APP_NAME}.",
+    "CONTENTS_MODIFIED_ERR"             : "Berkas telah diubah di luar dari {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Berkas atau direktori telah ada.",
     "FILE"                              : "berkas",
     "DIRECTORY"                         : "direktori",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Kesalahan membuka proyek",
-    "OPEN_DIALOG_ERROR"                 : "Kesalahan terjadi saat menampilkan jendela buka berkas. (error {0})",
+    "OPEN_DIALOG_ERROR"                 : "Terjadi kesalahan saat menampilkan jendela buka berkas. (error {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Ada kesalahan saat akan membuka direktori <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Kesalahan terjadi saat akan membaca isi dari direktori <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Gagal membuka berkas",
-    "ERROR_OPENING_FILE"                : "Ada kesalahan terjadi saat akan membuka berkas <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE"                : "Terjadi kesalahan saat akan membuka berkas <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "Terjadi kesalahan saat akan membuka berkas berikut:",
     "ERROR_RELOADING_FILE_TITLE"        : "Gagal update perubahan dari disk",
     "ERROR_RELOADING_FILE"              : "Gagal membuka ulang berkas <span class='dialog-filename'>{0}</span>. {1}",
@@ -63,30 +63,30 @@ define({
     "INVALID_FILENAME_MESSAGE"          : "Nama berkas tidak boleh berisi karakter: {0} atau menggunakan nama yang telah digunakan pada sistem.",
     "FILE_ALREADY_EXISTS"               : "Berkas {0} <span class='dialog-filename'>{1}</span> sudah ada.",
     "ERROR_CREATING_FILE_TITLE"         : "Gagal membuat {0}",
-    "ERROR_CREATING_FILE"               : "Kesalahan terjadi saat akan membuat berkas {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_CREATING_FILE"               : "Terjadi kesalahan saat akan membuat berkas {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "ups! {APP_NAME} belum dijalankan di browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tapi sekarang di jalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} belum dijalankan di browser.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tapi sekarang dijalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Gagal Mendata Berkas",
-    "ERROR_MAX_FILES"                   : "Jumlah maksimal berkas yang di index telah mencapai batas. Kemungkinan fungsi index tidak berjalan sebagai mana mestinya.",
+    "ERROR_MAX_FILES"                   : "Jumlah maksimal berkas yang diindeks telah mencapai batas. Kemungkinan fungsi index tidak berjalan sebagaimana mestinya.",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Gagal Menjalankan Browser",
-    "ERROR_CANT_FIND_CHROME"            : "Tidak menemukan aplikasi google chrome harap di instal terlebih dahulu.",
+    "ERROR_CANT_FIND_CHROME"            : "Tidak menemukan aplikasi Google Chrome. Harap diinstal terlebih dahulu.",
     "ERROR_LAUNCHING_BROWSER"           : "Terjadi kesalahan dalam menjalankan browser. (error {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Gagal Preview Langsung",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Menjalankan koneksi ke browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Agar preview langsung dapat dijalankan, Chrome harus dijalankan ulang ulang dengan Mode Remote Debugging.<br /><br />Apakah anda akan menjalankan ulang Chrome dan mengijinkan remote debugging?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Agar preview langsung dapat dijalankan, Chrome harus dijalankan ulang dengan Mode Remote Debugging.<br /><br />Apakah anda ingin menjalankan ulang Chrome dan mengijinkan Remote Debugging?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Tidak dapat membuka halaman",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Buka berkas HTML atau pastikan ada file index.html dalam struktur folder anda untuk menggunakan preview langsung.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Untuk menjalankan server-side preview, anda di harapkan untuk melakukan pengaturan url dasar.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Gagal menjalankan HTTP Server untuk melakukan preview kangsung. Coba lagi.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Untuk menjalankan server-side preview, sebaiknya anda melakukan pengaturan url dasar.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Gagal menjalankan HTTP Server untuk melakukan preview langsung. Coba lagi.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Preview Langsung!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview mengkoneksikan {APP_NAME} ke browser anda. Menjalankan berkas HTML anda di browser, dan mengubah tampilannya selagi anda mengubah kode.<br /><br />Dalam versi awal dari {APP_NAME} ini, Live Preview hanya dapat digunakan menggunakan <strong>Google Chrome</strong> dan di update langsung selagi anda melakukan perubahan pada <strong> berkas CSS atau HTML</strong>. Perubahan pada berkas JavaScript secara otomatis akan di load ulang saat anda menyimpan.<br /><br />(Anda hanya melihat pesan ini sekali saja.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Preview Langsung mengkoneksikan {APP_NAME} ke browser anda. Menjalankan berkas HTML anda di browser, dan mengubah tampilannya selagi anda mengubah kode.<br /><br />Dalam versi awal dari {APP_NAME} ini, Live Preview hanya dapat digunakan menggunakan <strong>Google Chrome</strong> dan di-update langsung selagi anda melakukan perubahan pada <strong> berkas CSS atau HTML</strong>. Perubahan pada berkas JavaScript secara otomatis akan di-load ulang saat anda menyimpan.<br /><br />(Anda hanya melihat pesan ini sekali saja.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Untuk informasi lebih lanjut, lihat <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Preview Langsung",
@@ -96,7 +96,7 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Preview Langsung (simpan file untuk melakukan refresh)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Preview Langsung (gagal update karena penulisan salah)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Preview Langsung dibatalkan karena browser's developer tools sedang dibuka",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Preview Langsung dibatalkan karena Developer Tools pada browser sedang dibuka",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Preview Langsung dibatalkan karena halaman telah ditutup",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Preview Langsung dibatalkan karena browser membuka halaman yang bukan dari proyek",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Preview Langsung dibatalkan karena sebab yang belum diketahui ({0})",
@@ -110,7 +110,7 @@ define({
     "FILE_DELETED_TITLE"                : "Berkas telah dihapus",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> Telah dirubah.<br /><br />Apakah anda akan menyimpan dan membatalkan perubahan?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> Telah dirubah, tapi belum disimpan pada {APP_NAME}.<br /><br />Versi yang mana yang ingin anda simpan?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> Telah di hapus di luar {APP_NAME}, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda akan menyimpan perubahan?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> Telah dihapus di luar {APP_NAME}, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda akan menyimpan perubahan?",
 
     // Generic dialog/button labels
     "OK"                                : "Iya",
@@ -142,8 +142,8 @@ define({
     "CHOOSE_FOLDER"                     : "Pilih Folder",
 
     "RELEASE_NOTES"                     : "Catatan rilis",
-    "NO_UPDATE_TITLE"                   : "Aplikasi terbaru!",
-    "NO_UPDATE_MESSAGE"                 : "Anda menggunakan versi terakhir dari {APP_NAME}.",
+    "NO_UPDATE_TITLE"                   : "Versi terbaru!",
+    "NO_UPDATE_MESSAGE"                 : "Anda menggunakan versi terbaru dari {APP_NAME}.",
 
     // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Ganti \"",
@@ -170,7 +170,7 @@ define({
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING"   : "Loading\u2026",
+    "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
     "WORKING_FILES"     : "Berkas aktif",
 
@@ -179,7 +179,7 @@ define({
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_SPACE"  : "Spasi",
 
     /**
      * StatusBar strings
@@ -190,9 +190,9 @@ define({
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 baris {0} dipilih",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 baris {0} dipilih",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klik untuk mengubah indentasi menggunakan spasi",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klik untuk mengubah indentasi menggunakan tabs",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klik untuk mengubah indentasi menggunakan tab",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klik untuk mengubah jumlah spasi yang digunakan untuk indentasi",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klik untuk mengubah jumlah karakter dalam satu tabs",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Klik untuk mengubah jumlah karakter dalam satu tab",
     "STATUSBAR_SPACES"                      : "Spasi:",
     "STATUSBAR_TAB_SIZE"                    : "Ukuran Tab:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} baris",
@@ -207,7 +207,7 @@ define({
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Tidak ditemukan Kesalahan - kerja bagus!",
     "LINT_DISABLED"                         : "Linting tidak diijinkan",
     "NO_LINT_AVAILABLE"                     : "Tidak ada linter tersedia untuk {0}",
-    "NOTHING_TO_LINT"                       : "Tidak ada yang di lint",
+    "NOTHING_TO_LINT"                       : "Tidak ada yang di-lint",
 
 
     /**
@@ -221,14 +221,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Folder Baru",
     "CMD_FILE_OPEN"                       : "Buka\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Tambahkan ke working set",
-    "CMD_OPEN_DROPPED_FILES"              : "Buka file yang di drop",
+    "CMD_OPEN_DROPPED_FILES"              : "Buka file yang di-drop",
     "CMD_OPEN_FOLDER"                     : "Buka Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Tutup",
     "CMD_FILE_CLOSE_ALL"                  : "Tutup Semua",
     "CMD_FILE_CLOSE_LIST"                 : "Daftar Tutup",
     "CMD_FILE_CLOSE_OTHERS"               : "Tutup yang lain",
-    "CMD_FILE_CLOSE_ABOVE"                : "Tutup semua yang diatas",
-    "CMD_FILE_CLOSE_BELOW"                : "Tutup semua yang dibawah",
+    "CMD_FILE_CLOSE_ABOVE"                : "Tutup semua yang di atas",
+    "CMD_FILE_CLOSE_BELOW"                : "Tutup semua yang di bawah",
     "CMD_FILE_SAVE"                       : "Simpan",
     "CMD_FILE_SAVE_ALL"                   : "Simpan Semua",
     "CMD_FILE_SAVE_AS"                    : "Simpan Sebagai\u2026",
@@ -305,7 +305,7 @@ define({
     "CMD_NEXT_DOC"                        : "Dokumen Berikutnya",
     "CMD_PREV_DOC"                        : "Dokumen Sebelumnya",
     "CMD_SHOW_IN_TREE"                    : "Tambahkan Ke Daftar Berkas",
-    "CMD_SHOW_IN_OS"                      : "Tampilkan DI OS",
+    "CMD_SHOW_IN_OS"                      : "Tampilkan Di OS",
 
     // Help menu commands
     "HELP_MENU"                           : "Bantuan",
@@ -355,7 +355,7 @@ define({
     "UPDATE"                               : "Update",
     "REMOVE"                               : "Hapus",
     "OVERWRITE"                            : "Timpa",
-    "CANT_REMOVE_DEV"                      : "Ekstensi pada folder \"dev\" harus di hapus manual.",
+    "CANT_REMOVE_DEV"                      : "Ekstensi pada folder \"dev\" harus dihapus manual.",
     "CANT_UPDATE"                          : "Update tidak kompatibel dengan {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Ekstensi pada folder \"dev\" tidak dapat melakukan update otomatis.",
     "INSTALL_EXTENSION_TITLE"              : "Instal Ekstensi",
@@ -377,7 +377,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Versi ({0}) tidak valid.",
     "INVALID_BRACKETS_VERSION"             : "Kompatibilitas {APP_NAME} dengan ({0}) tidak Valid.",
     "DISALLOWED_WORDS"                     : "Kata ({1}) tidak diijinkan pada {0} .",
-    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. diinstal pada folder disabled extensions.",
+    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. Ekstensi akan diinstal pada folder disabled extensions.",
     "MISSING_MAIN"                         : "Tidak menemukan berkas main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Menginstal Paket ini akan menimpa ekstensi yang lama. Ganti ekstensi yan lama?",
     "EXTENSION_SAME_VERSION"               : "Versi ekstensi ini sama dengan yang telah terinstal. Timpa ekstensi yang telah ada?",
@@ -412,13 +412,13 @@ define({
     "EXTENSION_MANAGER_REMOVE"             : "Hapus Ekstensi",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Gagal menghapus extensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "EXTENSION_MANAGER_UPDATE"             : "Update Ekstensi",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap di jalankan ulang.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "MARKED_FOR_REMOVAL"                   : "Ditandai untuk dihapus",
     "UNDO_REMOVE"                          : "Batalkan",
     "MARKED_FOR_UPDATE"                    : "Ditandai untuk diupdate",
     "UNDO_UPDATE"                          : "Batalkan",
     "CHANGE_AND_RELOAD_TITLE"              : "Ganti Ekstensi",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Untuk update atau hapus ekstensi yang di tandai, {APP_NAME} akan dijalankan ulang. Anda akan diminta untuk menyimpan perubahan.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Untuk update atau hapus ekstensi yang ditandai, {APP_NAME} akan dijalankan ulang. Anda akan diminta untuk menyimpan perubahan.",
     "REMOVE_AND_RELOAD"                    : "Hapus Ekstensi dan jalankan ulang",
     "CHANGE_AND_RELOAD"                    : "Ganti Ekstensi dan jalankan ulang",
     "UPDATE_AND_RELOAD"                    : "Update Ekstensi dan jalankan ulang",
@@ -432,7 +432,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Update",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Tidak ditemukan kesamaan.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "TIdak di temukan kesamaan dengan yang di pilih.<br> Klik \"New Rule\" untuk membuat atribut baru.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Tidak ditemukan kesamaan dengan yang dipilih.<br> Klik \"New Rule\" untuk membuat atribut baru.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Tidak ditemukan file css.<br>Buat file css untuk menambahkan atribut.",
 
     /**
@@ -468,6 +468,7 @@ define({
     "LOCALE_ES"                                 : "Spanish",
     "LOCALE_FI"                                 : "Finnish",
     "LOCALE_FR"                                 : "French",
+    "LOCALE_ID"                                 : "Indonesian",
     "LOCALE_IT"                                 : "Italian",
     "LOCALE_JA"                                 : "Japanese",
     "LOCALE_NB"                                 : "Norwegian",
@@ -485,7 +486,6 @@ define({
     "LOCALE_ZH_CN"                              : "Chinese, simplified",
     "LOCALE_HU"                                 : "Hungarian",
     "LOCALE_KO"                                 : "Korean",
-    "LOCALE_ID"                                 : "Indonesian",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Waktu",
