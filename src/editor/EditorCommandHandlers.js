@@ -938,7 +938,7 @@ define(function (require, exports, module) {
     /**
      * Unindent a line of text if no selection. Otherwise, unindent all lines in selection.
      */
-    function unidentText() {
+    function unindentText() {
         var editor = EditorManager.getFocusedEditor();
         if (!editor) {
             return;
@@ -1044,7 +1044,7 @@ define(function (require, exports, module) {
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,                 Commands.EDIT_INDENT,                 indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,               Commands.EDIT_UNINDENT,               unidentText);
+    CommandManager.register(Strings.CMD_UNINDENT,               Commands.EDIT_UNINDENT,               unindentText);
     CommandManager.register(Strings.CMD_COMMENT,                Commands.EDIT_LINE_COMMENT,           lineComment);
     CommandManager.register(Strings.CMD_BLOCK_COMMENT,          Commands.EDIT_BLOCK_COMMENT,          blockComment);
     CommandManager.register(Strings.CMD_DUPLICATE,              Commands.EDIT_DUPLICATE,              duplicateText);

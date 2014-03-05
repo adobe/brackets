@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     exports.EDIT_SKIP_CURRENT_MATCH     = "edit.skipCurrentMatch";      // FindReplace.js               _skipCurrentMatch()
     exports.EDIT_REPLACE                = "edit.replace";               // FindReplace.js               _replace()
     exports.EDIT_INDENT                 = "edit.indent";                // EditorCommandHandlers.js     indentText()
-    exports.EDIT_UNINDENT               = "edit.unindent";              // EditorCommandHandlers.js     unidentText()
+    exports.EDIT_UNINDENT               = "edit.unindent";              // EditorCommandHandlers.js     unindentText()
     exports.EDIT_DUPLICATE              = "edit.duplicate";             // EditorCommandHandlers.js     duplicateText()
     exports.EDIT_DELETE_LINES           = "edit.deletelines";           // EditorCommandHandlers.js     deleteCurrentLines()
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";           // EditorCommandHandlers.js     lineComment()
