@@ -1040,23 +1040,14 @@ define(function (require, exports, module) {
                 checkSoftTab({line: 0, ch: 2}, 1, "deleteH", {line: 0, ch: 2}, "      ");
             });
 
-            it("should move left to content if content reaches past previous tab stop", function () {
+            it("should not handle soft tab if moving left after non-whitespace content", function () {
                 myEditor.document.setText("start   content");
-                checkSoftTab({line: 0, ch: 8}, -1, "moveH", {line: 0, ch: 5});
+                checkSoftTab({line: 0, ch: 8}, -1, "moveH", false);
             });
-            it("should backspace to content if content reaches past previous tab stop", function () {
+            it("should not handle soft tab if moving right after non-whitespace content", function () {
                 myEditor.document.setText("start   content");
-                checkSoftTab({line: 0, ch: 8}, -1, "deleteH", {line: 0, ch: 5}, "startcontent");
+                checkSoftTab({line: 0, ch: 5}, 1, "moveH", false);
             });
-            it("should move right to content if content starts before next tab stop", function () {
-                myEditor.document.setText("start   content");
-                checkSoftTab({line: 0, ch: 5}, 1, "moveH", {line: 0, ch: 8});
-            });
-            it("should delete right to content if content starts before next tab stop", function () {
-                myEditor.document.setText("start   content");
-                checkSoftTab({line: 0, ch: 5}, 1, "deleteH", {line: 0, ch: 5}, "startcontent");
-            });
-            
             it("should not handle soft tab if moving left at beginning of line", function () {
                 myEditor.document.setText("    content");
                 checkSoftTab({line: 0, ch: 0}, -1, "moveH", false);

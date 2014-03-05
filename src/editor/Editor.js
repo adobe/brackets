@@ -463,6 +463,11 @@ define(function (require, exports, module) {
                 jump       = cursor.ch % indentUnit,
                 line       = instance.getLine(cursor.line);
 
+            // Don't do any soft tab handling if there are non-whitespace characters before the cursor.
+            if (line.substr(0, cursor.ch).search(/\S/) !== -1) {
+                return false;
+            }
+            
             if (direction === 1) {
                 jump = indentUnit - jump;
 
