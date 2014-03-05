@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     // Load JSLint, a non-module lib
     require("thirdparty/jslint/jslint");
+    var jsx = require('thirdparty/react/JSXTransformer-0.9.0');
     
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
@@ -65,6 +66,25 @@ define(function (require, exports, module) {
      * a gold star when no errors are found.
      */
     function lintOneFile(text, fullPath) {
+
+        if (/@jsx React\.DOM/.test(text)) {
+            if(jsx) {
+                try {
+                    text = jsx.transform(text).code;
+
+                } catch (e) {
+
+                    return {
+                        errors: [{
+                            pos: { line: e.lineNumber - 1, ch: e.column },
+                            message: 'jsx-transform: ' + e.description,
+                            type: CodeInspection.Type.WARNING
+                        }]
+                    };
+                }
+            }
+        }
+
         // If a line contains only whitespace, remove the whitespace
         // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
         // but that doesn't work.
