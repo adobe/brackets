@@ -445,7 +445,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    expect(cb.contents.length).toBe(2);
+                    expect(cb.contents.length).toBe(3);
                     expect(cb.contents[0].fullPath).toBe("/subdir/file3.txt");
                 });
             });
@@ -1089,7 +1089,7 @@ define(function (require, exports, module) {
                     expect(file._hash).toBeTruthy();
                     expect(writeCalls).toBe(1);
                 });
-            });            
+            });
             
             it("should persist data on write and update cached data", function () {
                 var file = fileSystem.getFileForPath(filename),
@@ -1182,6 +1182,87 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(file._isWatched()).toBe(true);
                     expect(file._stat).toBeFalsy();
+                    expect(file._contents).toBeFalsy(); // contents and stat should be cleared
+                    expect(file._hash).toBe(savedHash); // but hash should not be cleared
+                    
+                    file.read(cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl read and new cached data
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBe(cb2.stat);
+                    expect(file._contents).toBe(cb2.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(2); // The impl should have been called a second time
+                });
+            });
+            
+            // Issue #7006
+            it("should invalidate cache when grandparent and parent directories change", function () {
+                var filename = "/subdir/child/file5.txt",
+                    grandparent = fileSystem.getDirectoryForPath("/subdir/"),
+                    parent = fileSystem.getDirectoryForPath("/subdir/child/"),
+                    file = fileSystem.getFileForPath(filename),
+                    cb1 = readCallback(),
+                    cb2 = readCallback(),
+                    fileChanged = false,
+                    savedHash;
+                
+                MockFileSystemImpl.when("readFile", filename, function (cb) {
+                    return function () {
+                        var args = arguments;
+                        readCalls++;
+                        cb.apply(undefined, args);
+                    };
+                });
+                
+                // confirm empty cached data and then read
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(0);
+                    
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and cached data and then fire a synthetic change event
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(cb1.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    savedHash = file._hash;
+                    
+                    $(fileSystem).on("change", function (event, filename) {
+                        fileChanged = true;
+                    });
+                    
+                    // Start by invalidating the grandparent
+                    fileSystem._handleExternalChange(grandparent.fullPath);
+                });
+                waitsFor(function () { return fileChanged; });
+                
+                runs(function () {
+                    expect(file._contents).toBeTruthy();
+                    fileChanged = false;
+                    
+                    // Next, invalidate the parent which should also cause the
+                    // file's contents cache to be cleared
+                    fileSystem._handleExternalChange(parent.fullPath);
+                });
+                waitsFor(function () { return fileChanged; });
+                
+                // confirm cached contents were cleared
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
                     expect(file._contents).toBeFalsy(); // contents and stat should be cleared
                     expect(file._hash).toBe(savedHash); // but hash should not be cleared
                     
