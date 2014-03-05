@@ -42,10 +42,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash"),
-        FileFilters = require("search/FileFilters");
-    
-    var Async                 = require("utils/Async"),
+    var _                     = require("thirdparty/lodash"),
+        FileFilters           = require("search/FileFilters"),
+        Async                 = require("utils/Async"),
         Resizer               = require("utils/Resizer"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),

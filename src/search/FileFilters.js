@@ -43,16 +43,16 @@ define(function (require, exports, module) {
     /**
      * A search filter is an array of one or more glob strings. The filter must be 'compiled' via compile()
      * before passing to filterPath()/filterFileList().
-     * @return {!Array.<string>>}
+     * @return {!Array.<string>}
      */
     function getLastFilter() {
         return PreferencesManager.getViewState("search.exclusions") || [];
     }
     
     /**
-     * A search filter is an array of one or more glob strings. The filter must be 'compiled' via compile()
-     * before passing to filterPath()/filterFileList().
-     * @return {!Array.<string>>}
+     * Sets the value of getLastFilter(). Automatically set when editFilter() is completed.
+     * @param {!Array.<string>} filter
+     * @return {!Array.<string>}
      */
     function setLastFilter(filter) {
         PreferencesManager.setViewState("search.exclusions", filter);
@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     /**
      * Opens a dialog box to edit the given filter. When editing is finished, the value of getLastFilter() changes to
      * reflect the edits. If the dialog was canceled, the preference is left unchanged.
+     * @param {!Array.<string>} filter
      * @return {!$.Promise} Dialog box promise
      */
     function editFilter(filter) {
@@ -74,13 +75,18 @@ define(function (require, exports, module) {
             { className : Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK, text: Strings.OK },
             { className : Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL, text: Strings.CANCEL }
         ];
-        var dialog = Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_INFO, "Edit Filter", html, buttons);
+        var dialog = Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_INFO, Strings.FILE_FILTER_DIALOG, html, buttons);
         
         dialog.getElement().find(".exclusions-editor").val(filter.join("\n")).focus();
         
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 var newFilter = dialog.getElement().find(".exclusions-editor").val().split("\n");
+                
+                // Remove blank lines
+                newFilter = newFilter.filter(function (glob) {
+                    return glob.trim().length;
+                });
                 
                 // Update saved filter preference
                 setLastFilter(newFilter);
@@ -99,13 +105,8 @@ define(function (require, exports, module) {
      * @return {!string} 'compiled' filter that can be passed to filterPath()/filterFileList().
      */
     function compile(userFilter) {
-        // Remove blank lines
-        var trimmedGlobs = userFilter.filter(function (glob) {
-            return glob.trim().length;
-        });
-        
         // Automatically apply ** prefix/suffix to make writing simple substring-match filters more intuitive
-        var wrappedGlobs = trimmedGlobs.map(function (glob) {
+        var wrappedGlobs = userFilter.map(function (glob) {
             // Automatic "**" prefix if not explicitly present
             if (glob.substr(0, 2) !== "**") {
                 glob = "**" + glob;
@@ -156,6 +157,8 @@ define(function (require, exports, module) {
     /**
      * Marks the filter picker's currently selected item as most-recently used, and returns the corresponding
      * 'compiled' filter object ready for use with filterPath().
+     * @param {!jQueryObject} picker UI returned from createFilterPicker()
+     * @return {!string} 'compiled' filter that can be passed to filterPath()/filterFileList().
      */
     function commitPicker(picker) {
         var filter = getLastFilter();
@@ -167,20 +170,19 @@ define(function (require, exports, module) {
      * edit the selected filter. The edit option is fully functional, but selecting any other item does nothing. The
      * client should call commitDropdown() when the UI containing the filter picker is confirmed (which updates the MRU
      * order) and then use the returned filter object as needed.
+     * 
+     * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
     function createFilterPicker() {
         var $picker = $("<div class='filter-picker'><span class='filter-label'></span><button class='btn no-focus'></button></div>"),
             $button = $picker.find("button");
         
         function joinBolded(segments) {
-            var html = "";
-            segments.forEach(function (seg, index) {
-                if (index) {
-                    html += ", ";
-                }
-                html += "<strong>" + _.escape(seg) + "</strong>";
-            });
-            return html;
+            return segments
+                .map(function (seg) {
+                    return "<strong>" + _.escape(seg) + "</strong>";
+                })
+                .join(", ");
         }
         function itemRenderer(filter) {
             // Format filter in condensed form
@@ -256,11 +258,11 @@ define(function (require, exports, module) {
     }
     
     
-    exports.createFilterPicker = createFilterPicker;
-    exports.commitPicker       = commitPicker;
-    exports.getLastFilter      = getLastFilter;
-    exports.editFilter = editFilter;
-    exports.compile    = compile;
-    exports.filterPath = filterPath;
-    exports.filterFileList = filterFileList;
+    exports.createFilterPicker  = createFilterPicker;
+    exports.commitPicker        = commitPicker;
+    exports.getLastFilter       = getLastFilter;
+    exports.editFilter          = editFilter;
+    exports.compile             = compile;
+    exports.filterPath          = filterPath;
+    exports.filterFileList      = filterFileList;
 });
