@@ -751,7 +751,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            doc.isSaving = true;
+            doc.isSaving = true;    // mark that we're saving the document
             
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
@@ -761,7 +761,7 @@ define(function (require, exports, module) {
             // ignoring warnings about the contents being modified outside of
             // the editor.
             FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                doc.isSaving = false;
+                doc.isSaving = false;   // mark that we're done saving the document
                 
                 // If there were unsaved changes before Save As, they don't stay with the old
                 // file anymore - so must revert the old doc to match disk content.
@@ -775,7 +775,7 @@ define(function (require, exports, module) {
                     openNewFile();
                 }
             }).fail(function (error) {
-                doc.isSaving = false;
+                doc.isSaving = false;   // mark that we're done saving the document
                 
                 _showSaveFileError(error, path)
                     .done(function () {
