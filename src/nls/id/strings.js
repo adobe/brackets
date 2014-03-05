@@ -80,13 +80,13 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Gagal Preview Langsung",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Menjalankan koneksi ke browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Agar preview langsung dapat dijalankan, Chrome harus dijalankan ulang dengan Mode Remote Debugging.<br /><br />Apakah anda akan menjalankan ulang Chrome dan mengijinkan Remote Debugging?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Agar preview langsung dapat dijalankan, Chrome harus dijalankan ulang dengan Mode Remote Debugging.<br /><br />Apakah anda ingin menjalankan ulang Chrome dan mengijinkan Remote Debugging?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Tidak dapat membuka halaman",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Buka berkas HTML atau pastikan ada file index.html dalam struktur folder anda untuk menggunakan preview langsung.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Untuk menjalankan server-side preview, anda di harapkan untuk melakukan pengaturan url dasar.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Untuk menjalankan server-side preview, sebaiknya anda melakukan pengaturan url dasar.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Gagal menjalankan HTTP Server untuk melakukan preview langsung. Coba lagi.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Preview Langsung!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Preview Langsung mengkoneksikan {APP_NAME} ke browser anda. Menjalankan berkas HTML anda di browser, dan mengubah tampilannya selagi anda mengubah kode.<br /><br />Dalam versi awal dari {APP_NAME} ini, Live Preview hanya dapat digunakan menggunakan <strong>Google Chrome</strong> dan diupdate langsung selagi anda melakukan perubahan pada <strong> berkas CSS atau HTML</strong>. Perubahan pada berkas JavaScript secara otomatis akan di-load ulang saat anda menyimpan.<br /><br />(Anda hanya melihat pesan ini sekali saja.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Preview Langsung mengkoneksikan {APP_NAME} ke browser anda. Menjalankan berkas HTML anda di browser, dan mengubah tampilannya selagi anda mengubah kode.<br /><br />Dalam versi awal dari {APP_NAME} ini, Live Preview hanya dapat digunakan menggunakan <strong>Google Chrome</strong> dan di-update langsung selagi anda melakukan perubahan pada <strong> berkas CSS atau HTML</strong>. Perubahan pada berkas JavaScript secara otomatis akan di-load ulang saat anda menyimpan.<br /><br />(Anda hanya melihat pesan ini sekali saja.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Untuk informasi lebih lanjut, lihat <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Preview Langsung",
