@@ -36,7 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Berkas tidak bisa dibuka.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Direktori tujuan tidak dapat dimodifikasi.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Status anda tidak mengijinkan untuk melakukan perubahan berkas.",
-    "CONTENTS_MODIFIED_ERR"             : "Berkas telah di ubah di luar dari {APP_NAME}.",
+    "CONTENTS_MODIFIED_ERR"             : "Berkas telah diubah di luar dari {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Berkas atau direktori telah ada.",
     "FILE"                              : "berkas",
     "DIRECTORY"                         : "direktori",
@@ -67,11 +67,11 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} belum dijalankan di browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tapi sekarang di jalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tapi sekarang dijalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Gagal Mendata Berkas",
-    "ERROR_MAX_FILES"                   : "Jumlah maksimal berkas yang di index telah mencapai batas. Kemungkinan fungsi index tidak berjalan sebagaimana mestinya.",
+    "ERROR_MAX_FILES"                   : "Jumlah maksimal berkas yang diindeks telah mencapai batas. Kemungkinan fungsi index tidak berjalan sebagaimana mestinya.",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Gagal Menjalankan Browser",
@@ -170,7 +170,7 @@ define({
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING"   : "Loading\u2026",
+    "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
     "WORKING_FILES"     : "Berkas aktif",
 
@@ -305,7 +305,7 @@ define({
     "CMD_NEXT_DOC"                        : "Dokumen Berikutnya",
     "CMD_PREV_DOC"                        : "Dokumen Sebelumnya",
     "CMD_SHOW_IN_TREE"                    : "Tambahkan Ke Daftar Berkas",
-    "CMD_SHOW_IN_OS"                      : "Tampilkan DI OS",
+    "CMD_SHOW_IN_OS"                      : "Tampilkan Di OS",
 
     // Help menu commands
     "HELP_MENU"                           : "Bantuan",
@@ -355,7 +355,7 @@ define({
     "UPDATE"                               : "Update",
     "REMOVE"                               : "Hapus",
     "OVERWRITE"                            : "Timpa",
-    "CANT_REMOVE_DEV"                      : "Ekstensi pada folder \"dev\" harus di hapus manual.",
+    "CANT_REMOVE_DEV"                      : "Ekstensi pada folder \"dev\" harus dihapus manual.",
     "CANT_UPDATE"                          : "Update tidak kompatibel dengan {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Ekstensi pada folder \"dev\" tidak dapat melakukan update otomatis.",
     "INSTALL_EXTENSION_TITLE"              : "Instal Ekstensi",
@@ -377,7 +377,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Versi ({0}) tidak valid.",
     "INVALID_BRACKETS_VERSION"             : "Kompatibilitas {APP_NAME} dengan ({0}) tidak Valid.",
     "DISALLOWED_WORDS"                     : "Kata ({1}) tidak diijinkan pada {0} .",
-    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. diinstal pada folder disabled extensions.",
+    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. Ekstensi akan diinstal pada folder disabled extensions.",
     "MISSING_MAIN"                         : "Tidak menemukan berkas main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Menginstal Paket ini akan menimpa ekstensi yang lama. Ganti ekstensi yan lama?",
     "EXTENSION_SAME_VERSION"               : "Versi ekstensi ini sama dengan yang telah terinstall. Timpa ekstensi yang telah ada?",
@@ -405,20 +405,20 @@ define({
     "EXTENSION_ERROR"                      : "Ekstensi Error",
     "EXTENSION_KEYWORDS"                   : "Kata Kunci",
     "EXTENSION_INSTALLED"                  : "Terinstall",
-    "EXTENSION_UPDATE_INSTALLED"           : "Update untuk ekstensi ini telah diinstal dan akan dijalankan setelah {APP_NAME} di buka ulang.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Update untuk ekstensi ini telah diinstal dan akan dijalankan setelah {APP_NAME} dibuka ulang.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Cari",
     "EXTENSION_MORE_INFO_LINK"             : "Selengkapnya",
     "BROWSE_EXTENSIONS"                    : "Telusuri Ekstensi",
     "EXTENSION_MANAGER_REMOVE"             : "Hapus Ekstensi",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Gagal menghapus extensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "EXTENSION_MANAGER_UPDATE"             : "Update Ekstensi",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap di jalankan ulang.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "MARKED_FOR_REMOVAL"                   : "Ditandai untuk dihapus",
     "UNDO_REMOVE"                          : "Batalkan",
     "MARKED_FOR_UPDATE"                    : "Ditandai untuk diupdate",
     "UNDO_UPDATE"                          : "Batalkan",
     "CHANGE_AND_RELOAD_TITLE"              : "Ganti Ekstensi",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Untuk update atau hapus ekstensi yang di tandai, {APP_NAME} akan dijalankan ulang. Anda akan diminta untuk menyimpan perubahan.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Untuk update atau hapus ekstensi yang ditandai, {APP_NAME} akan dijalankan ulang. Anda akan diminta untuk menyimpan perubahan.",
     "REMOVE_AND_RELOAD"                    : "Hapus Ekstensi dan jalankan ulang",
     "CHANGE_AND_RELOAD"                    : "Ganti Ekstensi dan jalankan ulang",
     "UPDATE_AND_RELOAD"                    : "Update Ekstensi dan jalankan ulang",
@@ -426,13 +426,13 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Tidak dapat menghapus extensi {0} karena tidak terinstall.",
     "NO_EXTENSIONS"                        : "Belum ada ekstensi yang diinstal.<br>Klik pada tab tersedia untuk mwnginstall Ekstensi.",
     "NO_EXTENSION_MATCHES"                 : "Tidak ditemukan ekstensi yang sesuai dengan kriteria pencarian.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Hati-hati dalam menginstall ekstensi dari sumber yang tidak di ketahui.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Hati-hati dalam menginstall ekstensi dari sumber yang tidak diketahui.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Terinstall",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Ditemukan",
     "EXTENSIONS_UPDATES_TITLE"             : "Update",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Tidak ditemukan kesamaan.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Tidak di temukan kesamaan dengan yang di pilih.<br> Klik \"New Rule\" untuk membuat atribut baru.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Tidak ditemukan kesamaan dengan yang dipilih.<br> Klik \"New Rule\" untuk membuat atribut baru.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Tidak ditemukan file css.<br>Buat file css untuk menambahkan atribut.",
 
     /**
