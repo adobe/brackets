@@ -56,7 +56,6 @@ define(function (require, exports, module) {
 
     /** @type {$.Element} jQuery elements used for the dropdown menu */
     var $dropdownItem,
-        $dropdownToggle,
         $dropdown,
         $links;
 
@@ -385,9 +384,7 @@ define(function (require, exports, module) {
 
         Menus.closeAll();
 
-        $dropdown = $(renderList());
-        var toggleOffset = $dropdownToggle.offset();
-        $dropdown
+        $dropdown = $(renderList())
             .css({
                 left: position.pageX,
                 top: position.pageY
@@ -428,8 +425,9 @@ define(function (require, exports, module) {
             if (!SidebarView.isVisible()) {
                 SidebarView.show();
             }
-
-            showDropdown();
+            
+            $("#project-dropdown-toggle").trigger("click");
+            
             $dropdown.focus();
             $links = $dropdown.find("a");
             // By default, select the most recent project (which is at the top of the list underneath Open Folder),
