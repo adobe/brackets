@@ -43,7 +43,9 @@ define(function (require, exports, module) {
     // Global vars and preferences
     var commandsRegistered  = false,
         menuEntriesShown    = {},
+        menuItemsAdded      = { closeBelow: false, closeOthers: false, closeAbove: false },
         prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
+    
     prefs.definePreference("below", "boolean", true);
     prefs.definePreference("others", "boolean", true);
     prefs.definePreference("above", "boolean", true);
@@ -72,7 +74,7 @@ define(function (require, exports, module) {
     function _contextMenuOpenHandler() {
         var doc = DocumentManager.getCurrentDocument();
         
-        if (doc) {
+        if (doc && commandsRegistered) {
             var docIndex   = DocumentManager.findInWorkingSet(doc.file.fullPath),
                 workingSet = DocumentManager.getWorkingSet().slice(0);
             
@@ -119,27 +121,38 @@ define(function (require, exports, module) {
         if (prefCloseBelow !== menuEntriesShown.closeBelow) {
             if (prefCloseBelow) {
                 workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
-            } else {
+                menuItemsAdded.closeBelow = true;
+            } else if (menuItemsAdded.closeBelow) {
                 workingSetCmenu.removeMenuItem(closeBelow);
             }
         }
+        
         if (prefCloseOthers !== menuEntriesShown.closeOthers) {
             if (prefCloseOthers) {
                 workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
-            } else {
+                menuItemsAdded.closeOthers = true;
+            } else if (menuItemsAdded.closeOthers) {
                 workingSetCmenu.removeMenuItem(closeOthers);
             }
         }
+        
         if (prefCloseAbove !== menuEntriesShown.closeAbove) {
             if (prefCloseAbove) {
                 workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
-            } else {
+                menuItemsAdded.closeAbove = true;
+            } else if (menuItemsAdded.closeAbove) {
                 workingSetCmenu.removeMenuItem(closeAbove);
             }
         }
-        menuEntriesShown = {"closeBelow": prefCloseBelow, "closeOthers": prefCloseOthers, "closeAbove": prefCloseAbove};
+        
+        menuEntriesShown = {
+            closeBelow:  prefCloseBelow,
+            closeOthers: prefCloseOthers,
+            closeAbove:  prefCloseAbove
+        };
     }
 
+    
     // Initialize using the prefs
     prefChangeHandler();
 
