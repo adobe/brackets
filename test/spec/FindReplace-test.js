@@ -354,6 +354,16 @@ define(function (require, exports, module) {
             }
             expect(actualHighlights.length).toEqual(expectedDOMHighlightCount);
         }
+        function expectFindNextSelections(selections) {
+            var i;
+            for (i = 0; i < selections.length; i++) {
+                expectSelection(selections[i]);
+                twCommandManager.execute(Commands.EDIT_FIND_NEXT);
+            }
+
+            // next find should wraparound
+            expectSelection(selections[0]);
+        }
         
         
         function getSearchBar() {
@@ -654,6 +664,25 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should Find Next after search bar closed, remembering case sensitivity state", function () {
+                runs(function () {
+                    myEditor.setCursorPos(0, 0);
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND);
+                    
+                    toggleCaseSensitive(true);
+                    enterSearchText("Foo");
+                    pressEscape();
+                    expectHighlightedMatches([]);
+                });
+                
+                waitsForSearchBarClose();
+                
+                runs(function () {
+                    expectFindNextSelections(capitalFooSelections);
+                });
+            });
+
             it("shouldn't Find Next after search bar reopened", function () {
                 runs(function () {
                     myEditor.setCursorPos(0, 0);
@@ -922,6 +951,37 @@ define(function (require, exports, module) {
                 expectSelection(expectedSelections[0]);
             });
             
+             
+            it("should Find Next after search bar closed, remembering last used regexp", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE + 1, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 1, ch: 34}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE + 2, ch: 31}, end: {line: LINE_FIRST_REQUIRE + 2, ch: 34}}
+                ];
+
+                runs(function () {
+                    myEditor.setCursorPos(0, 0);
+                    
+                    twCommandManager.execute(Commands.EDIT_FIND);
+                    
+                    toggleRegexp(true);
+                    enterSearchText("Ba.");
+                    pressEscape();
+                    expectHighlightedMatches([]);
+                });
+                
+                waitsForSearchBarClose();
+                
+                runs(function () {
+                    expectFindNextSelections(expectedSelections);
+                    
+                    // explicitly clean up since we closed the search bar
+                    twCommandManager.execute(Commands.EDIT_FIND);
+                    toggleRegexp(false);
+                });
+            });
+
             it("toggling regexp option should update results immediately", function () {
                 myEditor.setCursorPos(0, 0);
 
@@ -972,7 +1032,7 @@ define(function (require, exports, module) {
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
             });
-            
+
             it("shouldn't choke on invalid regexp", function () {
                 myEditor.setCursorPos(0, 0);
                 
