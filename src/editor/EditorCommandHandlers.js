@@ -956,13 +956,24 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Takes the current selection and splits each range into separate selections, one per line.
+     * @param {!Editor} editor The editor to operate on.
+     */
     function splitSelIntoLines(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
             editor._codeMirror.execCommand("splitSelectionByLine");
         }
     }
-    
+
+    /**
+     * @private
+     * Adds a cursor on the next/previous line after/before each selected range to the selection.
+     * @param {!Editor} editor The editor to operate on.
+     * @param {number} dir The direction to add - 1 is down, -1 is up.
+     */
     function addLineToSelection(editor, dir) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
@@ -988,10 +999,20 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Adds a cursor on the previous line before each selected range to the selection.
+     * @param {!Editor} editor The editor to operate on.
+     */
     function addPrevLineToSelection(editor) {
         addLineToSelection(editor, -1);
     }
     
+    /**
+     * @private
+     * Adds a cursor on the next line after each selected range to the selection.
+     * @param {!Editor} editor The editor to operate on.
+     */
     function addNextLineToSelection(editor) {
         addLineToSelection(editor, 1);
     }
