@@ -283,7 +283,7 @@ define(function (require, exports, module) {
                 
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn("");
-                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () {});
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 InspectorModule.CSS = {
