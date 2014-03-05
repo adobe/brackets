@@ -87,6 +87,7 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
+        ChildProcess            = require("utils/ChildProcess"),
         _                       = require("thirdparty/lodash");
         
     // Load modules that self-register and just need to get included in the main project
@@ -159,6 +160,7 @@ define(function (require, exports, module) {
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             LanguageManager         : LanguageManager,
+            FileUtils               : FileUtils,
             doneLoading             : false
         };
 
