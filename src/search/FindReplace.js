@@ -195,9 +195,11 @@ define(function (require, exports, module) {
      * @param {!Editor} editor The editor to search in
      * @param {!Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>} selections
      *      The selections to set. Must not be empty.
-     * @param {boolean=} preferNoScroll Whether to avoid scrolling if the hit is in the top half of the screen. Default false.
+     * @param {boolean} center Whether to try to center the primary selection vertically on the screen. If false, the selection will still be scrolled
+     *      into view if it's offscreen, but will not be centered.
+     * @param {boolean=} preferNoScroll If center is true, whether to avoid scrolling if the hit is in the top half of the screen. Default false.
      */
-    function _selectAndScrollTo(editor, selections, preferNoScroll) {
+    function _selectAndScrollTo(editor, selections, center, preferNoScroll) {
         var primarySelection = _.find(selections, function (sel) { return sel.primary; }) || _.last(selections),
             resultVisible = editor.isLineVisible(primarySelection.start.line),
             centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
@@ -206,7 +208,16 @@ define(function (require, exports, module) {
             // no need to scroll if the line with the match is in view
             centerOptions = Editor.BOUNDARY_IGNORE_TOP;
         }
-        editor.setSelections(selections, true, centerOptions);
+        
+        // Make sure the primary selection is fully visible on screen.
+        var primary = _.find(selections, function (sel) {
+            return sel.primary;
+        });
+        if (!primary) {
+            primary = _.last(selections);
+        }
+        editor._codeMirror.scrollIntoView({from: primary.start, to: primary.end});
+        editor.setSelections(selections, center, centerOptions);
     }
     
     /**
@@ -322,11 +333,11 @@ define(function (require, exports, module) {
         }
         
         if (added) {
-            // Avoid scrolling to matches that are already on screen.
-            _selectAndScrollTo(editor, selections, true);
+            // Center the new match, but avoid scrolling to matches that are already on screen.
+            _selectAndScrollTo(editor, selections, true, true);
         } else {
             // If all we did was expand some selections, don't center anything.
-            editor.setSelections(selections);
+            _selectAndScrollTo(editor, selections, false);
         }
     }
     
@@ -390,7 +401,7 @@ define(function (require, exports, module) {
             if (!nextMatch) {
                 cm.setCursor(editor.getCursorPos());  // collapses selection, keeping cursor in place to avoid scrolling
             } else {
-                _selectAndScrollTo(editor, [nextMatch], preferNoScroll);
+                _selectAndScrollTo(editor, [nextMatch], true, preferNoScroll);
             }
         });
     }
