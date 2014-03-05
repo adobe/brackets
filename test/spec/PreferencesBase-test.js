@@ -248,12 +248,43 @@ define(function (require, exports, module) {
                 expect(scope.get("spaceUnits")).toBe(4);
 
                 expect(scope.set("spaceUnits", 12)).toBe(true);
+                expect(scope._dirty).toBe(true);
 
-                // Try to set the same value again.
+                // Explicitly save it in order to clear dirty flag.
+                scope.save();
+                expect(scope._dirty).toBe(false);
+                
+                // Try to set the same value again and verify that the dirty flag is not set.
                 expect(scope.set("spaceUnits", 12)).toBe(false);
                 expect(scope.get("spaceUnits")).toBe(12);
+                expect(scope._dirty).toBe(false);
             });
             
+            it("should remove the preference when setting it with 'undefined' value", function () {
+                var data = {
+                    spaceUnits: 0,
+                    useTabChar: false
+                };
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                // MemoryStorage operates synchronously
+                scope.load();
+                
+                expect(scope.get("spaceUnits")).toBe(0);
+
+                // Remove 'spaceUnits' by calling set with 'undefined' second argument
+                expect(scope.set("spaceUnits")).toBe(true);
+                expect(scope._dirty).toBe(true);
+                expect(scope.getKeys()).toEqual(["useTabChar"]);
+
+                expect(scope.get("useTabChar")).toBe(false);
+                
+                // Remove 'useTabChar' by calling set with 'undefined' second argument
+                expect(scope.set("useTabChar")).toBe(true);
+                expect(scope._dirty).toBe(true);
+                expect(scope.getKeys()).toEqual([]);
+            });
+
             it("should look up a value with a path layer", function () {
                 var data = {
                     spaceUnits: 4,

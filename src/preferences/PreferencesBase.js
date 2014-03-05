@@ -347,15 +347,13 @@ define(function (require, exports, module) {
          * @return {boolean} true if the value was set.
          */
         _performSet: function (id, value) {
-            if (value === undefined) {
-                if (this.data[id]) {
-                    delete this.data[id];
-                    this._dirty = true;
-                    return true;
-                }
-            } else if (!_.isEqual(this.data[id], value)) {
-                this.data[id] = value;
+            if (!_.isEqual(this.data[id], value)) {
                 this._dirty = true;
+                if (value === undefined) {
+                    delete this.data[id];
+                } else {
+                    this.data[id] = value;
+                }
                 return true;
             }
             return false;
@@ -621,13 +619,12 @@ define(function (require, exports, module) {
             if (!section) {
                 data[layerID] = section = {};
             }
-            if (value === undefined) {
-                if (section[id]) {
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
                     delete section[id];
-                    return true;
+                } else {
+                    section[id] = value;
                 }
-            } else if (!_.isEqual(section[id], value)) {
-                section[id] = value;
                 return true;
             }
             return false;
@@ -750,13 +747,12 @@ define(function (require, exports, module) {
             if (!section) {
                 data[layerID] = section = {};
             }
-            if (value === undefined) {
-                if (section[id]) {
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
                     delete section[id];
-                    return true;
+                } else {
+                    section[id] = value;
                 }
-            } else if (!_.isEqual(section[id], value)) {
-                section[id] = value;
                 return true;
             }
             return false;
