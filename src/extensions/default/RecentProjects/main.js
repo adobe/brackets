@@ -56,7 +56,6 @@ define(function (require, exports, module) {
 
     /** @type {$.Element} jQuery elements used for the dropdown menu */
     var $dropdownItem,
-        $dropdownToggle,
         $dropdown,
         $links;
 
@@ -385,9 +384,7 @@ define(function (require, exports, module) {
 
         Menus.closeAll();
 
-        $dropdown = $(renderList());
-        var toggleOffset = $dropdownToggle.offset();
-        $dropdown
+        $dropdown = $(renderList())
             .css({
                 left: position.pageX,
                 top: position.pageY
