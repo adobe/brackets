@@ -333,7 +333,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentasi dan kode sumber pada <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Dibuat menggunakan \u2764 dan JavaScript oleh:",
     "ABOUT_TEXT_LINE6"                     : "Banyak orang (Ada masalah untuk menampilkan daftarnya).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Dokumen Berlandaskan Web dan logo grafis berlandaskan Web berlisensi dibawah Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Ada versi terbaru dari {APP_NAME} Klik disini untuk lebih detail.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Tersedia",
     "UPDATE_MESSAGE"                       : "Hai, ada update terbaru dari {APP_NAME}. Beberapa fitur terbaru:",
@@ -344,7 +344,7 @@ define({
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Protokol {0} Tidak Didukung oleh Live Preview&mdash;gunakan http: atau https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Url dasar tidak boleh ada kriteria pencarian seperti \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Url tidak boleh ada tanda atau simbol \"{0}\".",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Karakter Spesial Seperti '{0}' must be %-encoded.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Karakter Spesial Seperti '{0}' harus di %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Terjadi kegagalan membuka url",
 
     // CSS Quick Edit
