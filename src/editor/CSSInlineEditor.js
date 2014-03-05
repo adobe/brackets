@@ -306,10 +306,9 @@ define(function (require, exports, module) {
                 });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, []);  // actual item list populated later, below
+                newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, [], _stylesheetListRenderer); // actual item list populated later, below
                 newRuleButton.$button.addClass("disabled");  // disabled until list is known
                 newRuleButton.$button.addClass("btn-mini stylesheet-button");
-                newRuleButton.itemRenderer = _stylesheetListRenderer;
                 $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 

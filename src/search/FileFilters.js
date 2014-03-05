@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, brackets, window */
 
 /**
  * Utilities for managing file-set filters, as used in Find in Files.
@@ -68,8 +68,7 @@ define(function (require, exports, module) {
     function editFilter(filter) {
         var lastFocus = window.document.activeElement;
         
-        var globInfoURL = "https://github.com/adobe/brackets/wiki/Using-File-Filters";
-        var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, globInfoURL) +
+        var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url) +
             "<textarea class='exclusions-editor'></textarea>";
         var buttons = [
             { className : Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK, text: Strings.OK },

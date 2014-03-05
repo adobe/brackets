@@ -53,9 +53,13 @@ define(function (require, exports, module) {
      * 
      * @param {!string} label  Label to display on the button
      * @param {!Array.<*>} items  Items in the dropdown list
+     * @param {?function(*, number):!string} itemRenderer  Optional function to convert a single item to HTML
+     *          (see itemRenderer() docs below). If not provided, items are assumed to be plain text strings.
      */
-    function DropdownButton(label, items) {
+    function DropdownButton(label, items, itemRenderer) {
         this.items = items;
+        
+        this.itemRenderer = itemRenderer || this.itemRenderer;
         
         this._onClick        = this._onClick.bind(this);
         this.closeDropdown   = this.closeDropdown.bind(this);
@@ -68,13 +72,6 @@ define(function (require, exports, module) {
     
     /** @type {!Array.<*>} Items in dropdown list - may be changed any time dropdown isn't open */
     DropdownButton.prototype.items = null;
-    
-    /**
-     * If provided, called for each item when rendering dropdown. Returns a string of HTML.
-     * If not provided, items are assumed to be plain text strings.
-     * @type {?function(*, number):!string}
-     */
-    DropdownButton.prototype.itemRenderer = null;
     
     /** @type {!jQueryObject} The clickable button. Available as soon as the DropdownButton is constructed. */
     DropdownButton.prototype.$button = null;
@@ -101,20 +98,26 @@ define(function (require, exports, module) {
         event.stopPropagation();
     };
     
-    function _defaultItemRenderer(item) {
+    /**
+     * Called for each item when rendering the dropdown.
+     * @param {*} item from items array
+     * @param {number} index in items array
+     * @return {!string} Formatted & escaped HTML
+     */
+    DropdownButton.prototype.itemRenderer = function (item, index) {
         return _.escape(String(item));
-    }
-        
+    };
+    
     /** Converts the list of item objects into HTML list items in format required by DropdownEventHandler */
-    function _renderList(items, itemRenderer) {
+    DropdownButton.prototype._renderList = function () {
         var html = "";
-        items.forEach(function (item, i) {
+        this.items.forEach(function (item, i) {
             html += "<li><a class='stylesheet-link' data-index='" + i + "'>";
-            html += itemRenderer(item);
+            html += this.itemRenderer(item, i);
             html += "</a></li>";
-        });
+        }.bind(this));
         return html;
-    }
+    };
     
     /** Pops open the dropdown if currently closed. Does nothing if items.length == 0 */
     DropdownButton.prototype.showDropdown = function () {
@@ -131,7 +134,7 @@ define(function (require, exports, module) {
         
         var $dropdown = $("<ul class='dropdown-menu dropdownbutton-popup' tabindex='-1'>")
             .addClass(this.dropdownExtraClasses)  // (no-op if unspecified)
-            .append(_renderList(this.items, this.itemRenderer || _defaultItemRenderer))
+            .append(this._renderList())
             .appendTo($("body"))
             .data("attached-to", this.$button[0]);  // keep ModalBar open while dropdown focused
 
