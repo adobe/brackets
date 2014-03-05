@@ -31,7 +31,8 @@ define(function (require, exports, module) {
     var Editor          = require("editor/Editor").Editor,
         EditorManager   = require("editor/EditorManager"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        LanguageManager = require("language/LanguageManager");
+        LanguageManager = require("language/LanguageManager"),
+        KeyEvent        = require("utils/KeyEvent");
     
     var langNames = {
         css:        {mode: "css",           langName: "CSS"},
@@ -928,6 +929,153 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
                     expect(result[0].selectionsToTrack[2]).toEqual(origSelections[2]);
                 });
+            });
+        });
+        
+        describe("Soft tabs", function () {
+            beforeEach(function () {
+                // Configure the editor's CM instance for 4-space soft tabs, regardless of prefs.
+                createTestEditor("", "unknown");
+                var instance = myEditor._codeMirror;
+                instance.setOption("indentWithTabs", false);
+                instance.setOption("indentUnit", 4);
+            });
+            
+            function checkSoftTab(startPos, dir, command, expectedEndPos, expectedText) {
+                var input, endPos;
+                expectedText = expectedText || myEditor.document.getText();
+
+                myEditor.setCursorPos(startPos);
+                
+                var result = myEditor._handleSoftTabNavigation(dir, command);
+                if (expectedEndPos === false) {
+                    expect(result).toEqual(false);
+                } else {
+                    expect(result).toEqual(true);
+                    expect(myEditor.getCursorPos()).toEqual(expectedEndPos);
+                    expect(myEditor.document.getText()).toEqual(expectedText);
+                }
+            }
+            
+            it("should move left by a soft tab if cursor is immediately after 1 indent level worth of spaces at beginning of line", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 4}, -1, "moveH", {line: 0, ch: 0});
+            });
+            it("should backspace by a soft tab if cursor is immediately after 1 indent level worth of spaces at beginning of line", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 4}, -1, "deleteH", {line: 0, ch: 0}, "content");
+            });
+            it("should move right by a soft tab if cursor is immediately before 1 indent level worth of spaces at beginning of line", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 0}, 1, "moveH", {line: 0, ch: 4});
+            });
+            it("should delete right by a soft tab if cursor is immediately before 1 indent level worth of spaces at beginning of line", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 0}, 1, "deleteH", {line: 0, ch: 0}, "content");
+            });
+            
+            it("should move left by a soft tab if cursor is immediately after 2 indent levels worth of spaces at beginning of line", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 8}, -1, "moveH", {line: 0, ch: 4});
+            });
+            it("should backspace by a soft tab if cursor is immediately after 2 indent levels worth of spaces at beginning of line", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 8}, -1, "deleteH", {line: 0, ch: 4}, "    content");
+            });
+            it("should move right by a soft tab if cursor is immediately before 2 indent levels worth of spaces at beginning of line", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 0}, 1, "moveH", {line: 0, ch: 4});
+            });
+            it("should delete right by a soft tab if cursor is immediately before 2 indent levels worth of spaces at beginning of line", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 0}, 1, "deleteH", {line: 0, ch: 0}, "    content");
+            });
+            it("should move left by a soft tab if cursor is exactly between 2 indent levels worth of spaces", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 4}, -1, "moveH", {line: 0, ch: 0});
+            });
+            it("should backspace by a soft tab if cursor is exactly between 2 indent levels worth of spaces", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 4}, -1, "deleteH", {line: 0, ch: 0}, "    content");
+            });
+            it("should move right by a soft tab if cursor is exactly between 2 indent levels worth of spaces", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 4}, 1, "moveH", {line: 0, ch: 8});
+            });
+            it("should delete right by a soft tab if cursor is exactly between 2 indent levels worth of spaces", function () {
+                myEditor.document.setText("        content");
+                checkSoftTab({line: 0, ch: 4}, 1, "deleteH", {line: 0, ch: 4}, "    content");
+            });
+
+            it("should move left to tab stop if cursor is 1 char after it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 5}, -1, "moveH", {line: 0, ch: 4});
+            });
+            it("should backspace to tab stop if cursor is 1 char after it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 5}, -1, "deleteH", {line: 0, ch: 4}, "       ");
+            });
+            it("should move right to tab stop if cursor is 1 char before it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 3}, 1, "moveH", {line: 0, ch: 4});
+            });
+            it("should delete right to tab stop if cursor is 1 char before it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 3}, 1, "deleteH", {line: 0, ch: 3}, "       ");
+            });
+            it("should move left to tab stop if cursor is 2 chars after it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 6}, -1, "moveH", {line: 0, ch: 4});
+            });
+            it("should backspace to tab stop if cursor is 2 chars after it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 6}, -1, "deleteH", {line: 0, ch: 4}, "      ");
+            });
+            it("should move right to tab stop if cursor is 2 chars before it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 2}, 1, "moveH", {line: 0, ch: 4});
+            });
+            it("should delete right to tab stop if cursor is 2 chars before it", function () {
+                myEditor.document.setText("        ");
+                checkSoftTab({line: 0, ch: 2}, 1, "deleteH", {line: 0, ch: 2}, "      ");
+            });
+
+            it("should move left to content if content reaches past previous tab stop", function () {
+                myEditor.document.setText("start   content");
+                checkSoftTab({line: 0, ch: 8}, -1, "moveH", {line: 0, ch: 5});
+            });
+            it("should backspace to content if content reaches past previous tab stop", function () {
+                myEditor.document.setText("start   content");
+                checkSoftTab({line: 0, ch: 8}, -1, "deleteH", {line: 0, ch: 5}, "startcontent");
+            });
+            it("should move right to content if content starts before next tab stop", function () {
+                myEditor.document.setText("start   content");
+                checkSoftTab({line: 0, ch: 5}, 1, "moveH", {line: 0, ch: 8});
+            });
+            it("should delete right to content if content starts before next tab stop", function () {
+                myEditor.document.setText("start   content");
+                checkSoftTab({line: 0, ch: 5}, 1, "deleteH", {line: 0, ch: 5}, "startcontent");
+            });
+            
+            it("should not handle soft tab if moving left at beginning of line", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 0}, -1, "moveH", false);
+            });
+            it("should not handle soft tab if moving right at end of line", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 11}, 1, "moveH", false);
+            });
+            it("should not handle soft tab if moving right at end of line would cause a jump past end of line", function () {
+                myEditor.document.setText("   four  ");
+                checkSoftTab({line: 0, ch: 8}, 1, "moveH", false);
+            });
+            it("should not handle soft tab if moving left immediately after content", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 5}, -1, "moveH", false);
+            });
+            it("should not handle soft tab if moving right immediately before content", function () {
+                myEditor.document.setText("    content");
+                checkSoftTab({line: 0, ch: 5}, 1, "moveH", false);
             });
         });
     });
