@@ -57,6 +57,8 @@ var fspath = require("path"),
  */
 if (process.platform === "darwin") {
     fsevents = require("fsevents");
+} else if (process.platform === "win32") {
+    fsevents = require("fsevents_win/fsevents_win");
 }
 
 var _domainManager,

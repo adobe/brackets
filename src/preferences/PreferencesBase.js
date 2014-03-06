@@ -67,7 +67,8 @@ define(function (require, exports, module) {
         globmatch         = require("thirdparty/globmatch");
     
     // CONSTANTS
-    var PREFERENCE_CHANGE = "change";
+    var PREFERENCE_CHANGE = "change",
+        SCOPEORDER_CHANGE = "scopeOrderChange";
     
     /*
      * Storages manage the loading and saving of preference data. 
@@ -143,6 +144,7 @@ define(function (require, exports, module) {
     function FileStorage(path, createIfNew) {
         this.path = path;
         this.createIfNew = createIfNew;
+        this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
     FileStorage.prototype = {
@@ -157,6 +159,7 @@ define(function (require, exports, module) {
             var result = $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
+            var self = this;
             
             if (path) {
                 var prefFile = FileSystem.getFileForPath(path);
@@ -169,6 +172,9 @@ define(function (require, exports, module) {
                         }
                         return;
                     }
+                    
+                    self._lineEndings = FileUtils.sniffLineEndings(text);
+                    
                     try {
                         result.resolve(JSON.parse(text));
                     } catch (e) {
@@ -195,7 +201,11 @@ define(function (require, exports, module) {
             
             if (path) {
                 try {
-                    prefFile.write(JSON.stringify(newData, null, 4), {}, function (err) {
+                    var text = JSON.stringify(newData, null, 4);
+                    
+                    // maintain the original line endings
+                    text = FileUtils.translateLineEndings(text, this._lineEndings);
+                    prefFile.write(text, {}, function (err) {
                         if (err) {
                             result.reject("Unable to save prefs at " + path + " " + err);
                         } else {
@@ -249,6 +259,7 @@ define(function (require, exports, module) {
         this.data = {};
         this._dirty = false;
         this._layers = [];
+        this._layerMap = {};
         this._exclusions = [];
     }
     
@@ -274,7 +285,7 @@ define(function (require, exports, module) {
                 });
             return result.promise();
         },
-        
+            
         /**
          * Saves the prefs for this `Scope`.
          * 
@@ -291,17 +302,58 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets the value for `id`.
+         * Sets the value for `id`. The value is set at the location given, or at the current
+         * location for the preference if no location is specified. If an invalid location is
+         * given, nothing will be set and no exception is thrown.
          * 
          * @param {string} id Key to set
          * @param {*} value Value for this key
+         * @param {Object=} context Optional additional information about the request (typically used for layers)
+         * @param {{layer: ?string, layerID: ?Object}=} location Optional location in which to set the value.
+         *                                                      If the object is empty, the value will be
+         *                                                      set at the Scope's base level.
+         * @return {boolean} true if the value was set
          */
-        set: function (id, value) {
-            // Scopes do not support changing settings on layers at this
-            // time. Ultimately, the need to do so will be based on
-            // UI.
+        set: function (id, value, context, location) {
+            if (!location) {
+                location = this.getPreferenceLocation(id, context);
+            }
+            if (location && location.layer) {
+                var layer = this._layerMap[location.layer];
+                if (layer) {
+                    if (this.data[layer.key] === undefined) {
+                        this.data[layer.key] = {};
+                    }
+                    
+                    var wasSet = layer.set(this.data[layer.key], id, value, context, location.layerID);
+                    this._dirty = this._dirty || wasSet;
+                    return wasSet;
+                } else {
+                    return false;
+                }
+            } else {
+                return this._performSet(id, value);
+            }
+        },
+        
+        /**
+         * @private
+         * 
+         * Performs the set operation on this Scope's data, deleting the given ID if
+         * the new value is undefined. The dirty flag will be set as well.
+         * 
+         * @param {string} id key to set or delete
+         * @param {*} value value for this key (undefined to delete)
+         * @return {boolean} always returns true
+         */
+        _performSet: function (id, value) {
             this._dirty = true;
-            this.data[id] = value;
+            if (value === undefined) {
+                delete this.data[id];
+            } else {
+                this.data[id] = value;
+            }
+            return true;
         },
         
         /**
@@ -331,8 +383,49 @@ define(function (require, exports, module) {
             }
             
             if (this._exclusions.indexOf(id) === -1) {
-                return this.data[id];
+                return data[id];
             }
+        },
+        
+        /**
+         * Get the location in this Scope (if any) where the given preference is set.
+         * 
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         * @return {{layer: ?string, layerID: ?object}|undefined} Object describing where the preferences came from. 
+         *                                              An empty object means that it was defined in the Scope's
+         *                                              base data. Undefined means the pref is not
+         *                                              defined in this Scope.
+         */
+        getPreferenceLocation: function (id, context) {
+            var layerCounter,
+                layers = this._layers,
+                layer,
+                data = this.data,
+                result;
+            
+            context = context || {};
+            
+            for (layerCounter = 0; layerCounter < layers.length; layerCounter++) {
+                layer = layers[layerCounter];
+                result = layer.getPreferenceLocation(data[layer.key], id, context);
+                if (result !== undefined) {
+                    return {
+                        layer: layer.key,
+                        layerID: result
+                    };
+                }
+            }
+            
+            if (this._exclusions.indexOf(id) === -1 && data[id] !== undefined) {
+                // The value is defined in this Scope, which means we need to return an
+                // empty object as a signal to the PreferencesSystem that this pref
+                // is defined in this Scope (in the base data)
+                return {};
+            }
+            
+            // return undefined when this Scope does not have the requested pref
+            return undefined;
         },
         
         /**
@@ -373,6 +466,7 @@ define(function (require, exports, module) {
          */
         addLayer: function (layer) {
             this._layers.push(layer);
+            this._layerMap[layer.key] = layer;
             this._exclusions.push(layer.key);
             $(this).trigger(PREFERENCE_CHANGE, {
                 ids: layer.getKeys(this.data[layer.key], {})
@@ -387,50 +481,35 @@ define(function (require, exports, module) {
          */
         fileChanged: function (filename) {
             this.storage.fileChanged(filename);
+        },
+        
+        /**
+         * Determines if there are likely to be any changes based on a change
+         * to the default filename used in lookups.
+         * 
+         * @param {string} filename New filename
+         * @param {string} oldFilename Old filename
+         * @return {Array.<string>} List of changed IDs
+         */
+        defaultFilenameChanged: function (filename, oldFilename) {
+            var changes = [],
+                data    = this.data;
+            
+            _.each(this._layers, function (layer) {
+                if (layer.defaultFilenameChanged && data[layer.key]) {
+                    var changesInLayer = layer.defaultFilenameChanged(data[layer.key],
+                                                                      filename,
+                                                                      oldFilename);
+                    if (changesInLayer) {
+                        changes.push(changesInLayer);
+                    }
+                }
+            });
+            return _.union.apply(null, changes);
         }
     });
     
     // Utility functions for the PathLayer
-    
-    /**
-     * @private
-     * 
-     * Finds the directory name of the given path. Ensures that the result always ends with a "/".
-     * 
-     * @param {string} filename Filename from which to extract the dirname
-     * @return {string} directory containing the file (ends with "/")
-     */
-    function _getDirName(filename) {
-        if (!filename) {
-            return "/";
-        }
-        
-        var rightMostSlash = filename.lastIndexOf("/");
-        return filename.substr(0, rightMostSlash + 1);
-    }
-    
-    /**
-     * @private
-     * 
-     *
-     * Computes filename as relative to the basePath. For example:
-     * basePath: /foo/bar/, filename: /foo/bar/baz.txt
-     * returns: baz.txt
-     * 
-     * The net effect is that the common prefix is returned. If basePath is not
-     * a prefix of filename, then undefined is returned.
-     * 
-     * @param {string} basePath Path against which we're computing the relative path
-     * @param {string} filename Full path to the file for which we are computing a relative path
-     * @return {string} relative path
-     */
-    function _getRelativeFilename(basePath, filename) {
-        if (!filename || filename.substr(0, basePath.length) !== basePath) {
-            return;
-        }
-        
-        return filename.substr(basePath.length);
-    }
     
     /**
      * @private
@@ -459,6 +538,116 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @constructor
+     * 
+     * Create a default project layer object that has a single property "key"
+     * with "project" as its value. 
+     *
+     */
+    function ProjectLayer() {
+        this.projectPath = null;
+    }
+
+    ProjectLayer.prototype = {
+        key: "project",
+
+        /**
+         * Retrieve the current value based on the current project path
+         * in the layer.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         */
+        get: function (data, id) {
+            if (!data || !this.projectPath) {
+                return;
+            }
+
+            if (data[this.projectPath] && data[this.projectPath][id]) {
+                return data[this.projectPath][id];
+            }
+            return;
+        },
+
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this project layer for the current project path.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @return {string} the Layer ID, in this case the current project path.
+         */
+        getPreferenceLocation: function (data, id) {
+            if (!data || !this.projectPath) {
+                return;
+            }
+
+            if (data[this.projectPath] && data[this.projectPath][id]) {
+                return this.projectPath;
+            }
+
+            return;
+        },
+
+        /**
+         * Sets the preference value in the given data structure for the layerID provided. If no
+         * layerID is provided, then the current project path is used. If a layerID is provided 
+         * and it does not exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} value new value to assign to the preference
+         * @param {Object} context Object with scope and layer key-value pairs (not yet used in project layer)
+         * @param {string=} layerID Optional: project path to be used for setting value
+         * @return {boolean} true if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (value === undefined) {
+                delete section[id];
+            } else {
+                section[id] = value;
+            }
+            return true;
+        },
+
+        /**
+         * Retrieves the keys provided by this layer object.
+         * 
+         * @param {Object} data the preference data from the Scope
+         */
+        getKeys: function (data) {
+            if (!data) {
+                return;
+            }
+
+            return _.union.apply(null, _.map(_.values(data), _.keys));
+        },
+
+        /**
+         * Set the project path to be used as the layer ID of this layer object.
+         * 
+         * @param {string} projectPath Path of the project root
+         */
+        setProjectPath: function (projectPath) {
+            this.projectPath = projectPath;
+        }
+    };
+    
+    /**
      * Provides layered preferences based on file globs, generally following the model provided
      * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
      * (switching to single line comments because the glob interferes with the multiline comment):
@@ -478,7 +667,7 @@ define(function (require, exports, module) {
      * @param {string} prefFilePath path to the preference file
      */
     function PathLayer(prefFilePath) {
-        this.prefFilePath = _getDirName(prefFilePath);
+        this.setPrefFilePath(prefFilePath);
     }
     
     PathLayer.prototype = {
@@ -494,23 +683,70 @@ define(function (require, exports, module) {
          * @param {Object} context Object with filename that will be compared to the globs
          */
         get: function (data, id, context) {
-            if (!data) {
-                return;
-            }
-            
-            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
-            
-            if (!relativeFilename) {
-                return;
-            }
-            
-            var glob = _findMatchingGlob(data, relativeFilename);
+            var glob = this.getPreferenceLocation(data, id, context);
             
             if (!glob) {
                 return;
             }
             
             return data[glob][id];
+        },
+        
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this path layer for the current path.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} context Object with filename that will be compared to the globs
+         * @return {string} the Layer ID, in this case the glob that matched
+         */
+        getPreferenceLocation: function (data, id, context) {
+            if (!data) {
+                return;
+            }
+            
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
+            if (!relativeFilename) {
+                return;
+            }
+            
+            return _findMatchingGlob(data, relativeFilename);
+        },
+        
+        /**
+         * Sets the preference value in the given data structure for the layerID provided. If no
+         * layerID is provided, then the current layer is used. If a layerID is provided and it
+         * does not exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} value new value to assign to the preference
+         * @param {Object} context Object with filename that will be compared to the globs
+         * @param {string=} layerID Optional: glob pattern for a specific section to set the value in
+         * @return {boolean} true if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id, context);
+            }
+            
+            if (!layerID) {
+                return false;
+            }
+            
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (value === undefined) {
+                delete section[id];
+            } else {
+                section[id] = value;
+            }
+            return true;
         },
         
         /**
@@ -526,7 +762,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = _getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
             
             if (relativeFilename) {
                 var glob = _findMatchingGlob(data, relativeFilename);
@@ -537,46 +773,48 @@ define(function (require, exports, module) {
                 }
             }
             return _.union.apply(null, _.map(_.values(data), _.keys));
-        }
+        },
         
-    };
-    
-    /**
-     * Helper object to add a new path-based Scope to the PreferencesSystem. When a path-based
-     * Scope will be added, its existence is first checked and *then* this PathScopeAdder will be
-     * used.
-     * 
-     * @param {string} filename Filename of the preferences file
-     * @param {string} scopeName Name of the new Scope to add
-     * @param {ScopeGenerator} scopeGenerator ScopeGenerator object that knows how to create the
-     *                      Scope with the correct kind of Storage object
-     * @param {string} before Name of the default Scope before which the new Scope should be added
-     */
-    function PathScopeAdder(filename, scopeName, scopeGenerator, before) {
-        this.filename = filename;
-        this.scopeName = scopeName;
-        this.scopeGenerator = scopeGenerator;
-        this.before = before;
-    }
-    
-    PathScopeAdder.prototype = {
         /**
-         * Adds the new Scope to the given PreferencesSystem.
+         * Changes the preference file path.
          * 
-         * @param {PreferencesSystem} pm PreferencesSystem to which the Scope will be added
-         * @param {string} before Name of the Scope before which the new Scope should be added
-         * @return {Promise} Promise resolved once the Scope is loaded
+         * @param {string} prefFilePath New path to the preferences file
          */
-        add: function (pm, before) {
-            var scope = this.scopeGenerator.getScopeForFile(this.filename);
-            if (scope) {
-                var pathLayer = new PathLayer(this.filename);
-                scope.addLayer(pathLayer);
-                return pm.addScope(this.scopeName, scope,
-                    {
-                        before: before
-                    });
+        setPrefFilePath: function (prefFilePath) {
+            if (!prefFilePath) {
+                this.prefFilePath = "/";
+            } else {
+                this.prefFilePath = FileUtils.getDirectoryPath(prefFilePath);
             }
+        },
+        
+        /**
+         * Determines if there are preference IDs that could change as a result of
+         * a change to the default filename.
+         * 
+         * @param {Object} data Data in the Scope
+         * @param {string} filename New filename
+         * @param {string} oldFilename Old filename
+         * @return {Array.<string>} list of preference IDs that could have changed
+         */
+        defaultFilenameChanged: function (data, filename, oldFilename) {
+            var newGlob = _findMatchingGlob(data,
+                              FileUtils.getRelativeFilename(this.prefFilePath, filename)),
+                oldGlob = _findMatchingGlob(data,
+                              FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
+            
+            
+            if (newGlob === oldGlob) {
+                return;
+            }
+            if (newGlob === undefined) {
+                return _.keys(data[oldGlob]);
+            }
+            if (oldGlob === undefined) {
+                return _.keys(data[newGlob]);
+            }
+            
+            return _.union(_.keys(data[oldGlob]), _.keys(data[newGlob]));
         }
     };
     
@@ -659,14 +897,26 @@ define(function (require, exports, module) {
         },
         
         /**
+         * Gets the location in which the value of a prefixed preference has been set.
+         * 
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         * @return {{scope: string, layer: ?string, layerID: ?object}} Object describing where the preferences came from
+         */
+        getPreferenceLocation: function (id, context) {
+            return this.base.getPreferenceLocation(this.prefix + id, context);
+        },
+        
+        /**
          * Sets the prefixed preference
          * 
-         * @param {string} scopeName Scope to set the preference in
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
+         * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
+         * @return {boolean} true if a value was set
          */
-        set: function (scopeName, id, value) {
-            return this.base.set(scopeName, this.prefix + id, value);
+        set: function (id, value, options) {
+            return this.base.set(this.prefix + id, value, options);
         },
         
         /**
@@ -781,16 +1031,32 @@ define(function (require, exports, module) {
         this._scopes["default"].load();
         
         this._defaultContext = {
-            scopeOrder: ["default"]
+            scopeOrder: ["default"],
+            _shadowScopeOrder: [{
+                id: "default",
+                scope: this._scopes["default"],
+                promise: (new $.Deferred()).resolve().promise()
+            }]
         };
         
         this._pendingScopes = {};
-        this._pendingEvents = {};
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
         
+        // The objects that define the different kinds of path-based Scope handlers.
+        // Examples could include the handler for .brackets.json files or an .editorconfig
+        // handler.
+        this._pathScopeDefinitions = {};
+        
+        // Names of the files that contain path scopes
+        this._pathScopeFilenames = [];
+        
+        // Keeps track of cached path scope objects.
         this._pathScopes = {};
+        
+        // Keeps track of change events that need to be sent when change events are resumed
+        this._changeEventQueue = null;
         
         var notifyPrefChange = function (id) {
             var pref = this._knownPrefs[id];
@@ -829,7 +1095,11 @@ define(function (require, exports, module) {
                 name: options.name,
                 description: options.description
             });
-            this.set("default", id, initial);
+            this.set(id, initial, {
+                location: {
+                    scope: "default"
+                }
+            });
             return pref;
         },
         
@@ -841,77 +1111,221 @@ define(function (require, exports, module) {
         getPreference: function (id) {
             return this._knownPrefs[id];
         },
+
+        /**
+         * @private
+         *
+         * Adds the scope before the scope specified by before argument.  This
+         * function must never be called directly. Use addScope to add scopes to
+         * PreferencesSystem, including from within its implementation.
+         * 
+         * @param {string} id Id of the scope to add
+         * @param {string} before Id of the scope to add it before
+         */
+        _pushToScopeOrder: function (id, before) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                index = _.findIndex(defaultScopeOrder, function (id) {
+                    return id === before;
+                });
+            if (index > -1) {
+                defaultScopeOrder.splice(index, 0, id);
+            } else {
+                // error
+                throw new Error("Internal error: scope " + before + " should be in the scope order");
+            }
+
+        },
+
+        /**
+         * @private
+         *
+         * Tries to add scope to the scopeOrder once it's resolved. It looks up
+         * context's _shadowScopeOrder to find an appropriate context to add it
+         * before.
+         *
+         * @param {Object} shadowEntry Shadow entry of the resolved scope
+         */
+        _tryAddToScopeOrder: function (shadowEntry) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                index = _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry === shadowEntry;
+                }),
+                $this = $(this),
+                done = false,
+                i = index + 1;
+            
+            // Find an appropriate scope of lower priority to add it before
+            while (i < shadowScopeOrder.length) {
+                if (shadowScopeOrder[i].promise.state() === "pending" ||
+                        shadowScopeOrder[i].promise.state() === "resolved") {
+                    break;
+                }
+                i++;
+            }
+            switch (shadowScopeOrder[i].promise.state()) {
+            case "pending":
+                // cannot decide now, lookup once pending promise is settled
+                shadowScopeOrder[i].promise.always(function () {
+                    this._tryAddToScopeOrder(shadowEntry);
+                }.bind(this));
+                break;
+            case "resolved":
+                this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: shadowEntry.id,
+                    action: "added"
+                });
+                this._triggerChange({
+                    ids: shadowEntry.scope.getKeys()
+                });
+                break;
+            default:
+                throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
+            }
+
+        },
         
         /**
          * @private
          * 
-         * Adds the new Scope to the scope order in the correct place.
-         * If the Scope before which this new Scope is being added does not
-         * yet exist, the Scope is held in a "pending scopes" list to be added
-         * once the before Scope is ready.
+         * Schedules the new Scope to be added the scope order in the specified
+         * location once the promise is resolved. Context's _shadowScopeOrder is
+         * used to keep track of the order in which the scope should appear. If
+         * the scope which should precede this scope fails to load, then
+         * _shadowScopeOrder will be searched for the next appropriate context
+         * (the first one which is pending or loaded that is before the failed
+         * scope). There's always the lowest-priority "default" scope which is
+         * loaded and added, it guarantees that a successfully loaded scope will
+         * always be added.
          * 
-         * Adding a Scope "before" another Scope means that the new Scope's preferences
-         * will take priority over the "before" Scope's preferences.
+         * Adding a Scope "before" another Scope means that the new Scope's
+         * preferences will take priority over the "before" Scope's preferences.
          * 
          * @param {string} id Name of the new Scope
+         * @param {Scope} scope The scope object to add
+         * @param {$.Promise} promise Scope's load promise
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
-        _addToScopeOrder: function (id, addBefore) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder;
-            
-            if (!addBefore) {
-                defaultScopeOrder.unshift(id);
-                this._processPendingEvents(id);
+        _addToScopeOrder: function (id, scope, promise, addBefore) {
+            var defaultScopeOrder = this._defaultContext.scopeOrder,
+                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                shadowEntry,
+                index,
+                isPending = false,
+                self = this;
+
+            $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
+                self._triggerChange(data);
+            }.bind(this));
+
+            index = _.findIndex(shadowScopeOrder, function (entry) {
+                return entry.id === id;
+            });
+
+            if (index > -1) {
+                shadowEntry = shadowScopeOrder[index];
             } else {
-                var addIndex = defaultScopeOrder.indexOf(addBefore);
-                if (addIndex > -1) {
-                    defaultScopeOrder.splice(addIndex, 0, id);
-                    this._processPendingEvents(id);
+                /* new scope is being added. */
+                shadowEntry = {
+                    id: id,
+                    promise: promise,
+                    scope: scope
+                };
+                if (!addBefore) {
+                    shadowScopeOrder.unshift(shadowEntry);
                 } else {
-                    var queue = this._pendingScopes[addBefore];
-                    if (!queue) {
-                        queue = [];
-                        this._pendingScopes[addBefore] = queue;
+                    index = _.findIndex(shadowScopeOrder, function (entry) {
+                        return entry.id === addBefore;
+                    });
+                    if (index > -1) {
+                        shadowScopeOrder.splice(index, 0, shadowEntry);
+                    } else {
+                        var queue = this._pendingScopes[addBefore];
+                        if (!queue) {
+                            queue = [];
+                            this._pendingScopes[addBefore] = queue;
+                        }
+                        queue.unshift(shadowEntry);
+                        isPending = true;
                     }
-                    queue.unshift(id);
                 }
             }
-            if (this._pendingScopes[id]) {
-                var pending = this._pendingScopes[id];
-                delete this._pendingScopes[id];
-                pending.forEach(function (scopeID) {
-                    this._addToScopeOrder(scopeID, id);
-                }.bind(this));
+            
+            if (!isPending) {
+                promise
+                    .then(function () {
+                        this._scopes[id] = scope;
+                        this._tryAddToScopeOrder(shadowEntry);
+                    }.bind(this))
+                    .fail(function (err) {
+                        // clean up all what's been done up to this point
+                        _.pull(shadowScopeOrder, shadowEntry);
+                    }.bind(this));
+                if (this._pendingScopes[id]) {
+                    var pending = this._pendingScopes[id];
+                    delete this._pendingScopes[id];
+                    pending.forEach(function (entry) {
+                        this._addToScopeOrder(entry.id, entry.scope, entry.promise, id);
+                    }.bind(this));
+                }
+            }
+        },
+        
+        /**
+         * Adds scope to the scope order by its id. The scope should be previously added to the preference system.
+         * 
+         * @param {string} id the scope id
+         * @param {string} before the id of the scope to add before
+         *
+         */
+        addToScopeOrder: function (id, addBefore) {
+            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+                index = _.findIndex(shadowScopeOrder, function (entry) {
+                    return entry.id === id;
+                }),
+                entry;
+            if (index > -1) {
+                entry = shadowScopeOrder[index];
+                this._addToScopeOrder(entry.id, entry.scope, entry.promise, addBefore);
+            }
+        },
+        
+        /**
+         * Removes a scope from the default scope order.
+         * 
+         * @param {string} id Name of the Scope to remove from the default scope order.
+         */
+        removeFromScopeOrder: function (id) {
+            var scope = this._scopes[id];
+            if (scope) {
+                _.pull(this._defaultContext.scopeOrder, id);
+                var $this = $(this);
+                $(scope).off(".prefsys");
+                $this.trigger(SCOPEORDER_CHANGE, {
+                    id: id,
+                    action: "removed"
+                });
+                this._triggerChange({
+                    ids: scope.getKeys()
+                });
             }
         },
         
         /**
          * @private
          * 
-         * When a Scope is loading and hasn't yet been added to the `scopeOrder`,
-         * we accumulate any change notifications that it sends and re-send them
-         * once the Scope has been added to `scopeOrder`. If the notifications were
-         * sent out before the Scope has been added, then listeners who request the
-         * changed values will actually get the old values.
+         * Normalizes the context to be one of:
          * 
-         * @param {string} id Name of the Scope that has been added.
+         * 1. a context object that was passed in
+         * 2. the default context
+         * 
+         * @param {Object} context Context that was passed in
+         * @return {{scopeOrder: string, filename: ?string}} context object
          */
-        _processPendingEvents: function (id) {
-            // Remove the preload listener and add the final listener
-            var $scope = $(this._scopes[id]);
-            $scope.off(".preload");
-            $scope.on(PREFERENCE_CHANGE, function (e, data) {
-                $(this).trigger(PREFERENCE_CHANGE, data);
-            }.bind(this));
-            
-            // Resend preference IDs from the preload events
-            if (this._pendingEvents[id]) {
-                var ids = _.union.apply(null, this._pendingEvents[id]);
-                delete this._pendingEvents[id];
-                $(this).trigger(PREFERENCE_CHANGE, {
-                    ids: ids
-                });
-            }
+        _getContext: function (context) {
+            context = context || this._defaultContext;
+            return context;
         },
         
         /**
@@ -919,39 +1333,29 @@ define(function (require, exports, module) {
          * is given. The new Scope is automatically loaded.
          * 
          * @param {string} id Name of the Scope
-         * @param {Scope|Storage} scope the Scope object itself. Optionally, can be given a Storage directly for convenience
+         * @param {Scope|Storage} scope the Scope object itself. Optionally, can be given a Storage directly for convenience.
          * @param {{before: string}} options optional behavior when adding (e.g. setting which scope this comes before)
          * @return {Promise} Promise that is resolved when the Scope is loaded. It is resolved
          *                   with id and scope.
          */
         addScope: function (id, scope, options) {
+            var promise;
             options = options || {};
             
             if (this._scopes[id]) {
                 throw new Error("Attempt to redefine preferences scope: " + id);
             }
             
-            // Check to see if "scope" might be a Storage instead
+            // Check to see if scope is a Storage that needs to be wrapped
             if (!scope.get) {
                 scope = new Scope(scope);
             }
             
-            // Change events from the Scope should propagate to listeners
-            $(scope).on(PREFERENCE_CHANGE + ".preload", function (e, data) {
-                if (!this._pendingEvents[id]) {
-                    this._pendingEvents[id] = [];
-                }
-                this._pendingEvents[id].push(data.ids);
-            }.bind(this));
+            promise = scope.load();
+
+            this._addToScopeOrder(id, scope, promise, options.before);
             
-            var deferred = $.Deferred();
-            
-            scope.load()
-                .then(function () {
-                    this._scopes[id] = scope;
-                    this._addToScopeOrder(id, options.before);
-                    deferred.resolve(id, scope);
-                }.bind(this))
+            promise
                 .fail(function (err) {
                     // With preferences, it is valid for there to be no file.
                     // It is not valid to have an unparseable file.
@@ -960,7 +1364,7 @@ define(function (require, exports, module) {
                     }
                 });
             
-            return deferred.promise();
+            return promise;
         },
         
         /**
@@ -971,17 +1375,32 @@ define(function (require, exports, module) {
          * @param {string} id Name of the Scope to remove
          */
         removeScope: function (id) {
-            var scope = this._scopes[id];
+            var scope = this._scopes[id],
+                shadowIndex;
             if (!scope) {
                 return;
             }
-            delete this._scopes[id];
-            _.pull(this._defaultContext.scopeOrder, id);
-            $(scope).off(PREFERENCE_CHANGE);
-            var keys = scope.getKeys();
-            $(this).trigger(PREFERENCE_CHANGE, {
-                ids: keys
+
+            this.removeFromScopeOrder(id);
+            shadowIndex = _.findIndex(this._defaultContext._shadowScopeOrder, function (entry) {
+                return entry.id === id;
             });
+            this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
+            delete this._scopes[id];
+        },
+        
+        /**
+         * @private
+         * 
+         * Retrieves the appropriate scopeOrder based on the given context.
+         * If the context contains a scopeOrder, that will be used. If not,
+         * the default scopeOrder is used.
+         * 
+         * @param {{scopeOrder: ?Array.<string>, filename: ?string} context 
+         * @return {Array.<string>} list of scopes in the correct order for traversal
+         */
+        _getScopeOrder: function (context) {
+            return context.scopeOrder || this._defaultContext.scopeOrder;
         },
         
         /**
@@ -989,42 +1408,101 @@ define(function (require, exports, module) {
          * change scope ordering or the reference filename for path-based scopes.
          * 
          * @param {string} id Name of the preference for which the value should be retrieved
-         * @param {?Object} context Optional context object to change the preference lookup
+         * @param {Object|string=} context Optional context object or name of context to change the preference lookup
          */
         get: function (id, context) {
             var scopeCounter;
             
-            context = context || this._defaultContext;
+            context = this._getContext(context);
             
-            var scopeOrder = context.scopeOrder || this._defaultContext.scopeOrder;
+            var scopeOrder = this._getScopeOrder(context);
             
             for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
                 var scope = this._scopes[scopeOrder[scopeCounter]];
-                var result = scope.get(id, context);
-                if (result !== undefined) {
-                    return result;
+                if (scope) {
+                    var result = scope.get(id, context);
+                    if (result !== undefined) {
+                        return result;
+                    }
                 }
             }
         },
         
         /**
-         * Sets a preference in the chosen Scope and notifies listeners that there may
-         * have been a change.
+         * Gets the location in which the value of a preference has been set.
          * 
-         * @param {string} scopeName Scope to set the preference in
+         * @param {string} id Name of the preference for which the value should be retrieved
+         * @param {Object=} context Optional context object to change the preference lookup
+         * @return {{scope: string, layer: ?string, layerID: ?object}} Object describing where the preferences came from
+         */
+        getPreferenceLocation: function (id, context) {
+            var scopeCounter,
+                scopeName;
+            
+            context = this._getContext(context);
+            
+            var scopeOrder = this._getScopeOrder(context);
+            
+            for (scopeCounter = 0; scopeCounter < scopeOrder.length; scopeCounter++) {
+                scopeName = scopeOrder[scopeCounter];
+                var scope = this._scopes[scopeName];
+                if (scope) {
+                    var result = scope.getPreferenceLocation(id, context);
+                    if (result !== undefined) {
+                        result.scope = scopeName;
+                        return result;
+                    }
+                }
+            }
+        },
+        
+        /**
+         * Sets a preference and notifies listeners that there may
+         * have been a change. By default, the preference is set in the same location in which
+         * it was defined except for the "default" scope. If the current value of the preference
+         * comes from the "default" scope, the new value will be set at the level just above
+         * default.
+         * 
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
+         * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
+         * @return {boolean} true if a value was set
          */
-        set: function (scopeName, id, value) {
-            var scope = this._scopes[scopeName];
+        set: function (id, value, options) {
+            options = options || {};
+            var context = this._getContext(options.context),
+                
+                // The case where the "default" scope was chosen specifically is special.
+                // Usually "default" would come up only when a preference did not have any
+                // user-set value, in which case we'd want to set the value in a different scope.
+                forceDefault = options.location && options.location.scope === "default" ? true : false,
+                location = options.location || this.getPreferenceLocation(id, context);
+            
+            if (!location || (location.scope === "default" && !forceDefault)) {
+                var scopeOrder = this._getScopeOrder(context);
+                
+                // The default scope for setting a preference is the lowest priority
+                // scope after "default".
+                if (scopeOrder.length > 1) {
+                    location = {
+                        scope: scopeOrder[scopeOrder.length - 2]
+                    };
+                } else {
+                    return false;
+                }
+            }
+            var scope = this._scopes[location.scope];
             if (!scope) {
-                throw new Error("Attempt to set preference in non-existent scope: " + scopeName);
+                return false;
             }
             
-            scope.set(id, value);
-            $(this).trigger(PREFERENCE_CHANGE, {
-                ids: [id]
-            });
+            var wasSet = scope.set(id, value, context, location);
+            if (wasSet) {
+                this._triggerChange({
+                    ids: [id]
+                });
+            }
+            return wasSet;
         },
         
         /**
@@ -1067,131 +1545,49 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Path Scopes provide special handling for scopes that are managed by a
-         * collection of files in the file tree. The idea is that files are
-         * searched for going up the file tree to the root.
+         * Sets the default filename used for computing preferences when there are PathLayers.
+         * This should be the filename of the file being edited.
          * 
-         * This function just sets up the path scopes. You need to call
-         * `setPathScopeContext` to activate the path scopes. If a path scope context
-         * is already set, the new path scopes will be activated automatically.
-         * 
-         * The `scopeGenerator` is an object that provides the following:
-         * * `before`: all scopes added will be before (higher precedence) this named scope
-         * * `checkExists`: takes an absolute filename and determines if there is a valid file there. Returns a promise resolving to a boolean.
-         * * `getScopeForFile`: Called after checkExists. Synchronously returns a Scope object for the given file. Only called where `checkExists` is true.
-         * 
-         * @param {string} preferencesFilename Name for the preferences files managed by this scopeGenerator (e.g. `.brackets.json`)
-         * @param {ScopeGenerator} scopeGenerator defines the behavior used to generate scopes for these files
-         * @return {Promise} promise resolved when the scopes have been added.
+         * @param {string} filename New filename used to resolve preferences
          */
-        addPathScopes: function (preferencesFilename, scopeGenerator) {
-            this._pathScopes[preferencesFilename] = scopeGenerator;
+        setDefaultFilename: function (filename) {
+            var oldFilename = this._defaultContext.filename;
+            if (oldFilename === filename) {
+                return;
+            }
             
-            if (this._defaultContext.filename) {
-                return this.setPathScopeContext(this._defaultContext.filename);
-            } else {
-                return new $.Deferred().resolve().promise();
+            var changes = [];
+            
+            _.each(this._scopes, function (scope) {
+                var changedInScope = scope.defaultFilenameChanged(filename, oldFilename);
+                if (changedInScope) {
+                    changes.push(changedInScope);
+                }
+            });
+            
+            this._defaultContext.filename = filename;
+            
+            changes = _.union.apply(null, changes);
+            if (changes.length > 0) {
+                this._triggerChange({
+                    ids: changes
+                });
             }
         },
         
         /**
-         * Sets the current path scope context. This causes a reloading of paths as needed.
-         * Paths that are common between the old and new context files are not reloaded.
-         * All path scopes are updated by this function.
+         * Augments the context object passed in with information from the default context.
+         * For example, if you want to create a context for a specific file while maintaining
+         * the default scopeOrder, you can pass in an object with just the filename and the
+         * scopeOrder will be added.
          * 
-         * Notifications are sent for any preferences that may have changed value as a result
-         * of this operation.
+         * *This method changes the object passed in.*
          * 
-         * @param {string} contextFilename New filename used to resolve preferences
-         * @return {Promise} resolved when the path scope context change is complete. Note that *this promise is resolved before the scopes are done loading*.
+         * @param {Object} context context object to augment
+         * @return {Object} the same context object that was passed in.
          */
-        setPathScopeContext: function (contextFilename) {
-            var defaultContext = this._defaultContext,
-                oldFilename = this._defaultContext.filename,
-                oldContext = {
-                    filename: oldFilename
-                },
-                oldParts = oldFilename ? oldFilename.split("/") : [],
-                parts = _.initial(contextFilename.split("/")),
-                loadingPromises = [],
-                self = this,
-                result = new $.Deferred(),
-                scopesToCheck = [],
-                scopeAdders = [],
-                notificationKeys = [];
-            
-            defaultContext.filename = contextFilename;
-            
-            // Loop over the path scopes
-            _.forIn(this._pathScopes, function (scopeGenerator, preferencesFilename) {
-                var lastSeen = scopeGenerator.before,
-                    counter,
-                    scopeNameToRemove;
-                
-                // First, look for how much is common with the old filename
-                for (counter = 0; counter < parts.length && counter < oldParts.length; counter++) {
-                    if (parts[counter] !== oldParts[counter]) {
-                        break;
-                    }
-                }
-                
-                // Remove all of the scopes that weren't the same in old and new
-                for (counter = counter + 1; counter < oldParts.length; counter++) {
-                    scopeNameToRemove = "path:" + _.first(oldParts, counter).join("/") + "/" + preferencesFilename;
-                    self.removeScope(scopeNameToRemove);
-                }
-                
-                // Now add new scopes as required
-                _.forEach(parts, function (part, i) {
-                    var prefDirectory, filename, scope, scopeName, pathLayer, pathLayerFilename;
-                    prefDirectory = _.first(parts, i + 1).join("/") + "/";
-                    filename = prefDirectory + preferencesFilename;
-                    scopeName = "path:" + filename;
-                    scope = self._scopes[scopeName];
-                    
-                    // Check to see if the scope already exists
-                    if (scope) {
-                        lastSeen = scopeName;
-                        // The old values could have changed, as well as the new values
-                        notificationKeys.push(scope.getKeys(oldContext));
-                        notificationKeys.push(scope.getKeys(defaultContext));
-                    } else {
-                        // New scope. First check to see if the file exists.
-                        scopesToCheck.unshift(scopeGenerator.checkExists(filename));
-                        
-                        // Keep a function closure for the scope that will be added
-                        // if checkExists is true. We store these so that we can
-                        // run them in order.
-                        scopeAdders.unshift(new PathScopeAdder(filename, scopeName, scopeGenerator, lastSeen));
-                    }
-                });
-            });
-            
-            // Notify listeners of all possible key changes for already loaded scopes
-            // New scopes will notify as soon as the data is loaded.
-            if (notificationKeys.length > 0) {
-                $(this).trigger(PREFERENCE_CHANGE, {
-                    ids: _.union.apply(null, notificationKeys)
-                });
-            }
-            
-            // When all of the scope checks are done, run through them in order
-            // and then call the adders for each file that exists.
-            $.when.apply(this, scopesToCheck).done(function () {
-                var i, before, scopeAdder;
-                for (i = 0; i < arguments.length; i++) {
-                    if (arguments[i]) {
-                        scopeAdder = scopeAdders[i];
-                        if (!before) {
-                            before = scopeAdder.before;
-                        }
-                        loadingPromises.push(scopeAdder.add(self, before));
-                    }
-                }
-                result.resolve();
-            });
-            
-            return result.promise();
+        buildContext: function (context) {
+            return _.defaults(context, this._defaultContext);
         },
         
         /**
@@ -1239,6 +1635,47 @@ define(function (require, exports, module) {
         },
         
         /**
+         * @private
+         * 
+         * Sends a change event to listeners. If change events have been paused (see
+         * pauseChangeEvents) then the IDs are queued up.
+         * 
+         * @param {{ids: Array.<string>}} data Message to send
+         */
+        _triggerChange: function (data) {
+            if (this._changeEventQueue) {
+                this._changeEventQueue = _.union(this._changeEventQueue, data.ids);
+            } else {
+                $(this).trigger(PREFERENCE_CHANGE, data);
+            }
+        },
+        
+        /**
+         * Turns off sending of change events, queueing them up for sending once sending is resumed.
+         * The events are compacted so that each preference that will be notified is only
+         * notified once. (For example, if `spaceUnits` is changed 5 times, only one change
+         * event will be sent upon resuming events.)
+         */
+        pauseChangeEvents: function () {
+            if (!this._changeEventQueue) {
+                this._changeEventQueue = [];
+            }
+        },
+        
+        /**
+         * Turns sending of events back on, sending any events that were queued while the
+         * events were paused.
+         */
+        resumeChangeEvents: function () {
+            if (this._changeEventQueue) {
+                $(this).trigger(PREFERENCE_CHANGE, {
+                    ids: this._changeEventQueue
+                });
+                this._changeEventQueue = null;
+            }
+        },
+        
+        /**
          * Tells the PreferencesSystem that the given file has been changed so that any
          * related Scopes can be reloaded.
          * 
@@ -1268,5 +1705,6 @@ define(function (require, exports, module) {
     exports.Scope              = Scope;
     exports.MemoryStorage      = MemoryStorage;
     exports.PathLayer          = PathLayer;
+    exports.ProjectLayer       = ProjectLayer;
     exports.FileStorage        = FileStorage;
 });

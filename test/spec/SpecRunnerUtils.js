@@ -501,6 +501,17 @@ define(function (require, exports, module) {
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
+            // Displays the primary console messages from the test window in the the
+            // test runner's console as well.
+            ["log", "info", "warn", "error"].forEach(function (method) {
+                var originalMethod = _testWindow.console[method];
+                _testWindow.console[method] = function () {
+                    var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
+                    console[method].apply(console, log);
+                    originalMethod.apply(_testWindow.console, arguments);
+                };
+            });
+            
             _testWindow.isBracketsTestWindow = true;
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
@@ -534,10 +545,17 @@ define(function (require, exports, module) {
             // Reconfigure the preferences manager so that the "user" scoped
             // preferences are empty and the tests will not reconfigure
             // the preferences of the user running the tests.
-            var pm = _testWindow.brackets.test.PreferencesManager._manager;
+            var pm = _testWindow.brackets.test.PreferencesManager._manager,
+                sm = _testWindow.brackets.test.PreferencesManager.stateManager;
             pm.removeScope("user");
-            pm._defaultContext.scopeOrder = ["default"];
-            pm.addScope("user", new PreferencesBase.MemoryStorage());
+            pm.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            });
+            
+            sm.removeScope("user");
+            sm.addScope("user", new PreferencesBase.MemoryStorage(), {
+                before: "default"
+            });
             
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
@@ -1041,7 +1059,7 @@ define(function (require, exports, module) {
         // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
         // you can't escape quotes in it.
         var i;
-        if (root instanceof $) {
+        if (root.jquery) {
             root = root.get(0);
         }
         if (!root) {

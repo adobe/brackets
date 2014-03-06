@@ -152,11 +152,18 @@ define(function (require, exports, module) {
             });
 
             it("should fail when file name contains special characters", function () {
-                var chars = "/?*:;{}<>\\";
+                var chars = "/?*:<>\\|\"";  // invalid characters on Windows
                 var i = 0;
-                var len = chars.length;
+                var len = 0;
                 var charAt, didCreate, gotError;
 
+                if (brackets.platform === "mac") {
+                    chars = "?*|:";
+                } else if (brackets.platform === "linux") {
+                    chars = "?*|/";
+                }
+                len = chars.length;
+                
                 function createFile() {
                     // skip rename
                     ProjectManager.createNewItem(tempDir, "file" + charAt + ".js", true)
@@ -462,14 +469,14 @@ define(function (require, exports, module) {
                 expect(shouldShow(makeEntry("Thumbs.db"))).toBe(false);
                 expect(shouldShow(makeEntry(".hg"))).toBe(false);
                 expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
-                expect(shouldShow(makeEntry(".gitignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitignore"))).toBe(true);
                 expect(shouldShow(makeEntry("foobar"))).toBe(true);
                 expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
                 expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
-                expect(shouldShow(makeEntry(".gitattributes"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitattributes"))).toBe(true);
                 expect(shouldShow(makeEntry("CVS"))).toBe(false);
-                expect(shouldShow(makeEntry(".cvsignore"))).toBe(false);
-                expect(shouldShow(makeEntry(".hgignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".cvsignore"))).toBe(true);
+                expect(shouldShow(makeEntry(".hgignore"))).toBe(true);
                 expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
                 
             });

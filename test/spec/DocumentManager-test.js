@@ -116,7 +116,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
                 runs(function () {
-                    expect(DocumentManager.getCurrentDocument()).not.toBe(null);
+                    expect(DocumentManager.getCurrentDocument()).toBeTruthy();
                     DocumentManager._clearCurrentDocument();
                     expect(DocumentManager.getCurrentDocument()).toBe(null);
                 });

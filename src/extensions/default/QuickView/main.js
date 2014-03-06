@@ -690,7 +690,7 @@ define(function (require, exports, module) {
                 hidePreview();
             }
             if (!doNotSave) {
-                prefs.set("user", "enabled", enabled);
+                prefs.set("enabled", enabled);
                 prefs.save();
             }
         }

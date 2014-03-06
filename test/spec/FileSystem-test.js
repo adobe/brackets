@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         MockFileSystemImpl  = require("./MockFileSystemImpl");
     
+    
     describe("FileSystem", function () {
         
         // Callback factories
@@ -264,6 +265,21 @@ define(function (require, exports, module) {
                     expectInvalidFile("/foo/../bar/../..");
                 });
             });
+            
+            it("should detect mistaken/invalid paths", function () {
+                // Not a full path
+                expectInvalidFile("");
+                expectInvalidFile("c:");
+                
+                // Windows-style \ path separators aren't permitted
+                expectInvalidFile("c:\\");
+                expectInvalidFile("c:\\foo");
+                expectInvalidFile("c:\\foo\\bar");
+                
+                // But proper paths ARE allowed to contain a \ (at least on Mac/Linux)
+                expectNormFile("/foo/one\\two", "/foo/one\\two");
+                expectNormDir("/foo/one\\two", "/foo/one\\two/");
+            });
         });
         
         describe("parent and name properties", function () {
@@ -283,7 +299,7 @@ define(function (require, exports, module) {
             });
             it("should not have a parentPath property if it is a root directory", function () {
                 var unixRootDir = fileSystem.getDirectoryForPath("/"),
-                    winRootDir = fileSystem.getDirectoryForPath("B:");
+                    winRootDir = fileSystem.getDirectoryForPath("B:/");
                 
                 expect(unixRootDir.parentPath).toBeNull();
                 expect(winRootDir.parentPath).toBeNull();
@@ -1045,6 +1061,36 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should verify blind writes", function () {
+                var file = fileSystem.getFileForPath(filename),
+                    cb1 = writeCallback(),
+                    cb2 = writeCallback(),
+                    newFileContent = "Computer programming is an exact science",
+                    checkedContent = file._contents = fileSystem._impl._model.readFile(filename);   // avoids having to use a callback
+                
+                // Make sure that cache matches so writes will proceed over blind write
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBe(checkedContent);
+                    expect(file._hash).toBeFalsy();
+                    expect(writeCalls).toBe(0);
+                    
+                    file.write(newFileContent, cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+
+                // confirm impl write and updated cache
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(cb1.stat).toBeTruthy();
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(newFileContent);
+                    expect(file._hash).toBeTruthy();
+                    expect(writeCalls).toBe(1);
+                });
+            });            
+            
             it("should persist data on write and update cached data", function () {
                 var file = fileSystem.getFileForPath(filename),
                     cb1 = readCallback(),
@@ -1311,6 +1357,8 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        
         describe("External change events", function () {
             var _model,
                 changedEntry,
@@ -1452,6 +1500,44 @@ define(function (require, exports, module) {
                     expect(removedEntries.length).toBe(1);
                     expect(addedEntries[0]).toBe(newfile);
                     expect(removedEntries[0]).toBe(oldfile);
+                });
+            });
+            
+            it("should fire change event after rapid delete-add pair", function () {
+                var dirname = "/subdir/",
+                    filename = "/subdir/file3.txt",
+                    dir,
+                    newfile;
+                
+                runs(function () {
+                    // Delay watcher change notifications so that the FS doesn't get a chance to
+                    // read the directory contents in between the deletion and the re-creation
+                    MockFileSystemImpl.when("change", "/subdir/", delay(100));
+                    
+                    dir = fileSystem.getDirectoryForPath(dirname);
+                    
+                    dir.getContents(function () {
+                        _model.unlink(filename);
+                    });
+                    
+                    // Normally we'd get a change event here, but due to our delay the FS doesn't
+                    // know of the change yet and thus has no reason to trigger an event
+                    expect(changeDone).toBe(false);
+                    
+                    dir.getContents(function () {
+                        _model.writeFile(filename, "new file content");
+                    });
+                });
+                
+                waitsFor(function () { return changeDone; }, "external change event");
+                
+                runs(function () {
+                    // We should still receive a change event, but the dir-contents diff shows no changes
+                    // since it didn't happen in between the delete and the create - so we expect the added
+                    // & removed lists to both be empty.
+                    expect(changedEntry).toBe(dir);
+                    expect(addedEntries.length).toBe(0);
+                    expect(removedEntries.length).toBe(0);
                 });
             });
         });

@@ -1,0 +1,10 @@
+{
+    "jslint.options": {
+    },
+    "path": {
+        "different-indent.js": {
+            "spaceUnits": 2,
+            "linting.collapsed": false
+        }
+    }
+}
