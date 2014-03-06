@@ -552,6 +552,8 @@ define(function (require, exports, module) {
                 dialog._close();
             }
             
+            // May already have a listener if refreshing panel that's already open; remove first to ensure we don't add multiple copies (#6923)
+            FileSystem.off("change", _fileSystemChangeHandler);
             FileSystem.on("change", _fileSystemChangeHandler);
         
         } else {
