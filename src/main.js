@@ -41,7 +41,7 @@ require.config({
         // The application shell implementation. Brackets-shell provides an
         // instance of brackets.app, it will be used and the default value
         // points to a void implementation. However, when running Brackets in a
-        // differet environment, use this to load your implementation. For the
+        // different environment, use this to load your implementation. For the
         // definition of the interface, see appshell.app namespace at
         // https://github.com/adobe/brackets-shell/blob/master/appshell/appshell_extensions.js
         // Change this value to load custom implementation to run brackets in
