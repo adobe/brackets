@@ -1089,7 +1089,7 @@ define(function (require, exports, module) {
                     expect(file._hash).toBeTruthy();
                     expect(writeCalls).toBe(1);
                 });
-            });            
+            });
             
             it("should persist data on write and update cached data", function () {
                 var file = fileSystem.getFileForPath(filename),
