@@ -44,8 +44,8 @@ define({
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Kesalahan membuka proyek",
     "OPEN_DIALOG_ERROR"                 : "Terjadi kesalahan saat menampilkan jendela buka berkas. (error {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Ada kesalahan saat akan membuka direktori <span class='dialog-filename'>{0}</span>. (error {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"      : "Kesalahan terjadi saat akan membaca isi dari direktori <span class='dialog-filename'>{0}</span>. (error {1})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Terjadi kesalahan saat akan membuka direktori <span class='dialog-filename'>{0}</span>. (error {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"      : "Terjadi kesalahan saat akan membaca isi dari direktori <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Gagal membuka berkas",
@@ -66,8 +66,8 @@ define({
     "ERROR_CREATING_FILE"               : "Terjadi kesalahan saat akan membuat berkas {0} <span class='dialog-filename'>{1}</span>. {2}",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} belum dijalankan di browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} menggunakan HTML, tapi sekarang dijalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan Application shell <b>github.com/adobe/brackets-shell</b> repo untuk menjalanakan {APP_NAME}.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} belum dapat dijalankan di browser.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} memang dibangun menggunakan HTML, tapi saat ini hanya bisa dijalankan sebagai aplikasi desktop, jadi anda dapat menggunakannya untuk mengedit file lokal. Gunakan repositori Application Shell di <b>github.com/adobe/brackets-shell</b> untuk menjalanakan {APP_NAME}.",
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Gagal Mendata Berkas",
@@ -200,9 +200,9 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Ekstensi tidak diijinkan",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Kesalahan",
-    "SINGLE_ERROR"                          : "1 {0} Kesalahan",
-    "MULTIPLE_ERRORS"                       : "{1} {0} Kesalahan",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} kesalahan",
+    "SINGLE_ERROR"                          : "1 kesalahan {0}",
+    "MULTIPLE_ERRORS"                       : "{1} kesalahan {0}",
     "NO_ERRORS"                             : "{0} Tidak ditemukan Kesalahan - kerja bagus!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Tidak ditemukan Kesalahan - kerja bagus!",
     "LINT_DISABLED"                         : "Linting tidak diijinkan",
@@ -311,17 +311,17 @@ define({
     "HELP_MENU"                           : "Bantuan",
     "CMD_CHECK_FOR_UPDATE"                : "Periksa Pembaruan",
     "CMD_HOW_TO_USE_BRACKETS"             : "Bagaimana menggunakan {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_FORUM"                           : "Forum {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Catatan Rilis",
     "CMD_REPORT_AN_ISSUE"                 : "Laporkan Isu",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Tampilkan Folder Ekstensi",
-    "CMD_TWITTER"                         : "{TWITTER_NAME} pada Twitter",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} di Twitter",
     "CMD_ABOUT"                           : "Tentang {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Buka Tentang Berkas",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Versi Experimen",
-    "DEVELOPMENT_BUILD"                    : "Versi Pengembangan",
+    "EXPERIMENTAL_BUILD"                   : "versi eksperimental",
+    "DEVELOPMENT_BUILD"                    : "versi pengembangan",
     "RELOAD_FROM_DISK"                     : "Muat Ulang",
     "KEEP_CHANGES_IN_EDITOR"               : "Simpan perubahan pada editor",
     "CLOSE_DONT_SAVE"                      : "Tutup (Jangan Disimpan)",
@@ -333,18 +333,18 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentasi dan kode sumber pada <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Dibuat menggunakan \u2764 dan JavaScript oleh:",
     "ABOUT_TEXT_LINE6"                     : "Banyak orang (Ada masalah untuk menampilkan daftarnya).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "Ada versi terbaru dari {APP_NAME} Klik disini untuk lebih detail.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Dokumentasi dan logo grafis Web Platform dirilis di bawah lisensi Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Ada versi terbaru dari {APP_NAME}. Klik disini untuk lebih detail.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Tersedia",
     "UPDATE_MESSAGE"                       : "Hai, ada update terbaru dari {APP_NAME}. Beberapa fitur terbaru:",
-    "GET_IT_NOW"                           : "Dapatkan Sekarang!",
+    "GET_IT_NOW"                           : "Dapatkan sekarang!",
     "PROJECT_SETTINGS_TITLE"               : "Pengaturan proyek untuk: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Url dari Live Preview",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Untuk menggunakan server lokal, masukkan url seperti contoh http://localhost:8000/",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Protokol {0} Tidak Didukung oleh Live Preview&mdash;gunakan http: atau https: .",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Untuk menggunakan server lokal, masukkan url seperti contoh berikut: http://localhost:8000/",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Protokol {0} tidak didukung oleh Live Preview&mdash;gunakan http: atau https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Url dasar tidak boleh ada kriteria pencarian seperti \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Url tidak boleh ada tanda atau simbol \"{0}\".",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Karakter Spesial Seperti '{0}' must be %-encoded.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Karakter spesial seperti '{0}' harus di-encode ke format %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Terjadi kegagalan membuka url",
 
     // CSS Quick Edit
@@ -412,7 +412,7 @@ define({
     "EXTENSION_MANAGER_REMOVE"             : "Hapus Ekstensi",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Gagal menghapus extensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "EXTENSION_MANAGER_UPDATE"             : "Update Ekstensi",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "MARKED_FOR_REMOVAL"                   : "Ditandai untuk dihapus",
     "UNDO_REMOVE"                          : "Batalkan",
     "MARKED_FOR_UPDATE"                    : "Ditandai untuk diupdate",
@@ -424,9 +424,9 @@ define({
     "UPDATE_AND_RELOAD"                    : "Update Ekstensi dan jalankan ulang",
     "PROCESSING_EXTENSIONS"                : "Memproses perubahan ekstensi\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Tidak dapat menghapus extensi {0} karena tidak terinstall.",
-    "NO_EXTENSIONS"                        : "Belum ada ekstensi yang diinstal.<br>Klik pada tab tersedia untuk mwnginstall Ekstensi.",
+    "NO_EXTENSIONS"                        : "Belum ada ekstensi yang diinstal.<br />Klik pada tab tersedia untuk menginstal ekstensi.",
     "NO_EXTENSION_MATCHES"                 : "Tidak ditemukan ekstensi yang sesuai dengan kriteria pencarian.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Hati-hati dalam menginstall ekstensi dari sumber yang tidak diketahui.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "Hati-hati ketika menginstal ekstensi dari sumber yang tidak dipercaya.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Terinstall",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Ditemukan",
     "EXTENSIONS_UPDATES_TITLE"             : "Update",
