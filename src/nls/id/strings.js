@@ -345,7 +345,7 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Url dasar tidak boleh ada kriteria pencarian seperti \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Url tidak boleh ada tanda atau simbol \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Karakter spesial seperti '{0}' harus di-encode ke format %.",
-    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Terjadi kegagalan membuka url",
+    "BASEURL_ERROR_UNKNOWN_ERROR"          : "Gagal membuka url",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Atribut Baru",
