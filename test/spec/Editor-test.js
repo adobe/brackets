@@ -941,20 +941,24 @@ define(function (require, exports, module) {
                 instance.setOption("indentUnit", 4);
             });
             
-            function checkSoftTab(startPos, dir, command, expectedEndPos, expectedText) {
+            function checkSoftTab(sel, dir, command, expectedSel, expectedText) {
                 var input, endPos;
                 expectedText = expectedText || myEditor.document.getText();
 
-                myEditor.setCursorPos(startPos);
-                
-                var result = myEditor._handleSoftTabNavigation(dir, command);
-                if (expectedEndPos === false) {
-                    expect(result).toEqual(false);
+                if (Array.isArray(sel)) {
+                    myEditor.setSelections(sel);
                 } else {
-                    expect(result).toEqual(true);
-                    expect(myEditor.getCursorPos()).toEqual(expectedEndPos);
-                    expect(myEditor.document.getText()).toEqual(expectedText);
+                    myEditor.setCursorPos(sel);
                 }
+                
+                myEditor._handleSoftTabNavigation(dir, command);
+
+                if (Array.isArray(expectedSel)) {
+                    expect(myEditor.getSelections()).toEqual(expectedSel);
+                } else {
+                    expect(myEditor.getCursorPos()).toEqual(expectedSel);
+                }
+                expect(myEditor.document.getText()).toEqual(expectedText);
             }
             
             it("should move left by a soft tab if cursor is immediately after 1 indent level worth of spaces at beginning of line", function () {
@@ -1042,31 +1046,260 @@ define(function (require, exports, module) {
 
             it("should not handle soft tab if moving left after non-whitespace content", function () {
                 myEditor.document.setText("start   content");
-                checkSoftTab({line: 0, ch: 8}, -1, "moveH", false);
+                checkSoftTab({line: 0, ch: 8}, -1, "moveH", {line: 0, ch: 7});
             });
             it("should not handle soft tab if moving right after non-whitespace content", function () {
                 myEditor.document.setText("start   content");
-                checkSoftTab({line: 0, ch: 5}, 1, "moveH", false);
+                checkSoftTab({line: 0, ch: 5}, 1, "moveH", {line: 0, ch: 6});
             });
             it("should not handle soft tab if moving left at beginning of line", function () {
-                myEditor.document.setText("    content");
-                checkSoftTab({line: 0, ch: 0}, -1, "moveH", false);
+                myEditor.document.setText("foo\n    content");
+                checkSoftTab({line: 1, ch: 0}, -1, "moveH", {line: 0, ch: 3});
             });
             it("should not handle soft tab if moving right at end of line", function () {
-                myEditor.document.setText("    content");
-                checkSoftTab({line: 0, ch: 11}, 1, "moveH", false);
+                myEditor.document.setText("    content\nfoo");
+                checkSoftTab({line: 0, ch: 11}, 1, "moveH", {line: 1, ch: 0});
             });
             it("should not handle soft tab if moving right at end of line would cause a jump past end of line", function () {
                 myEditor.document.setText("   four  ");
-                checkSoftTab({line: 0, ch: 8}, 1, "moveH", false);
+                checkSoftTab({line: 0, ch: 8}, 1, "moveH", {line: 0, ch: 9});
             });
-            it("should not handle soft tab if moving left immediately after content", function () {
-                myEditor.document.setText("    content");
-                checkSoftTab({line: 0, ch: 5}, -1, "moveH", false);
-            });
-            it("should not handle soft tab if moving right immediately before content", function () {
-                myEditor.document.setText("    content");
-                checkSoftTab({line: 0, ch: 5}, 1, "moveH", false);
+            
+            describe("with multiple selections", function () {
+                it("should move left over a soft tab from multiple aligned cursors", function () {
+                    myEditor.document.setText("    one\n    two\n    three\n");
+                    checkSoftTab([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                  {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
+                                 -1, "moveH",
+                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}]);
+                });
+                
+                it("should move right over a soft tab from multiple aligned cursors", function () {
+                    myEditor.document.setText("    one\n    two\n    three\n");
+                    checkSoftTab([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
+                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
+                                 1, "moveH",
+                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: false}]);
+                });
+                
+                it("should backspace over a soft tab from multiple aligned cursors", function () {
+                    myEditor.document.setText("    one\n    two\n    three\n");
+                    checkSoftTab([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
+                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                  {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
+                                 -1, "deleteH",
+                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
+                                "one\ntwo\nthree\n");
+                });
+
+                it("should delete right over a soft tab from multiple aligned cursors", function () {
+                    myEditor.document.setText("    one\n    two\n    three\n");
+                    checkSoftTab([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
+                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
+                                 1, "deleteH",
+                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
+                                "one\ntwo\nthree\n");
+                });
+                
+                it("should move left to next soft tab from multiple cursors at same distance from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "moveH",
+                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
+                });
+                
+                it("should move right to next soft tab from multiple cursors at same distance from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
+                                 1, "moveH",
+                                 [{start: {line: 0, ch: 8}, end: {line: 0, ch: 8}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
+                });
+                
+                it("should backspace to next soft tab from multiple cursors at same distance from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "deleteH",
+                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
+                                 "      one\n      two\n          three\n");
+                });
+
+                it("should delete right to next soft tab from multiple cursors at same distance from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
+                                 1, "deleteH",
+                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
+                                 "     one\n     two\n         three\n"
+                                );
+                });
+                
+                it("should do default move left from multiple cursors at different distances from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "moveH",
+                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
+                });
+                
+                it("should do default move right from multiple cursors at different distances from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 1, "moveH",
+                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 11}, end: {line: 2, ch: 11}, primary: true, reversed: false}]);
+                });
+                
+                it("should do default backspace from multiple cursors at different distances from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "deleteH",
+                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
+                                 "       one\n       two\n           three\n");
+                });
+
+                it("should do default delete right from multiple cursors at different distances from tab stops", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}],
+                                 1, "deleteH",
+                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
+                                 "       one\n       two\n           three\n"
+                                );
+                });
+                
+                it("should do default move left from multiple cursors if one is inside content", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
+                                  {start: {line: 1, ch: 9}, end: {line: 1, ch: 9}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "moveH",
+                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
+                });
+                
+                it("should do default move right from multiple cursors if one is inside content", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}}],
+                                 1, "moveH",
+                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}]);
+                });
+                
+                it("should do default backspace from multiple cursors if one is inside content", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 10}, end: {line: 0, ch: 10}},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "deleteH",
+                                 [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
+                                 "        oe\n       two\n           three\n");
+                });
+
+                it("should do default delete right from multiple cursors if one is inside content", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}}],
+                                 1, "deleteH",
+                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}],
+                                 "       one\n       two\n            thre\n"
+                                );
+                });
+
+                it("should collapse ranges and handle other consistent soft tabs when moving left", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 6}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "moveH",
+                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
+                });
+                
+                it("should collapse ranges and handle other consistent soft tabs when moving right", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 9}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
+                                 1, "moveH",
+                                 [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
+                });
+                
+                it("should delete ranges and do nothing with cursors when backspacing", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
+                                  {start: {line: 1, ch: 8}, end: {line: 1, ch: 10}},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                                 -1, "deleteH",
+                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}, primary: true, reversed: false}],
+                                 "        one\n        o\n            three\n");
+                });
+
+                it("should delete ranges and do nothing with cursors when deleting right", function () {
+                    myEditor.document.setText("        one\n        two\n            three\n");
+                    checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                  {start: {line: 2, ch: 14}, end: {line: 2, ch: 16}}],
+                                 1, "deleteH",
+                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}, primary: true, reversed: false}],
+                                 "        one\n        two\n            the\n"
+                                );
+                });
+
             });
         });
     });

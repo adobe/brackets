@@ -200,24 +200,16 @@ define(function (require, exports, module) {
             "Shift-Tab": "indentLess",
 
             "Left": function (instance) {
-                if (!self._handleSoftTabNavigation(-1, "moveH")) {
-                    CodeMirror.commands.goCharLeft(instance);
-                }
+                self._handleSoftTabNavigation(-1, "moveH");
             },
             "Right": function (instance) {
-                if (!self._handleSoftTabNavigation(1, "moveH")) {
-                    CodeMirror.commands.goCharRight(instance);
-                }
+                self._handleSoftTabNavigation(1, "moveH");
             },
             "Backspace": function (instance) {
-                if (!self._handleSoftTabNavigation(-1, "deleteH")) {
-                    CodeMirror.commands.delCharBefore(instance);
-                }
+                self._handleSoftTabNavigation(-1, "deleteH");
             },
             "Delete": function (instance) {
-                if (!self._handleSoftTabNavigation(1, "deleteH")) {
-                    CodeMirror.commands.delCharAfter(instance);
-                }
+                self._handleSoftTabNavigation(1, "deleteH");
             },
             "Esc": function (instance) {
                 if (self.getSelections().length > 1) {
@@ -450,62 +442,72 @@ define(function (require, exports, module) {
      * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
      * @param {!CodeMirror} instance CodeMirror instance
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
-     * @param {function} functionName name of the CodeMirror function to call
-     * @return {boolean} true if key was handled
+     * @param {string} functionName name of the CodeMirror function to call if we handle the key
      */
     Editor.prototype._handleSoftTabNavigation = function (direction, functionName) {
-        var handled = false,
-            instance = this._codeMirror;
+        var instance = this._codeMirror,
+            overallJump = null;
         
         if (!instance.getOption("indentWithTabs")) {
-            var indentUnit = instance.getOption("indentUnit"),
-                cursor     = this.getCursorPos(),
-                jump       = cursor.ch % indentUnit,
-                line       = instance.getLine(cursor.line);
-
-            // Don't do any soft tab handling if there are non-whitespace characters before the cursor.
-            if (line.substr(0, cursor.ch).search(/\S/) !== -1) {
-                return false;
-            }
+            var indentUnit = instance.getOption("indentUnit");
             
-            if (direction === 1) {
-                jump = indentUnit - jump;
-
-                if (cursor.ch + jump > line.length) { // Jump would go beyond current line
-                    return false;
-                }
-
-                if (line.substr(cursor.ch, jump).search(/\S/) === -1) {
-                    instance[functionName](jump, "char");
-                    handled = true;
-                }
-            } else {
-                // Quick exit if we are at the beginning of the line
-                if (cursor.ch === 0) {
-                    return false;
+            _.each(this.getSelections(), function (sel) {
+                if (CodeMirror.cmpPos(sel.start, sel.end) !== 0) {
+                    // This is a range - it will just collapse/be deleted regardless of the jump we set, so
+                    // we can just ignore it and continue. (We don't want to return false in this case since
+                    // we want to keep looking at other ranges.)
+                    return;
                 }
                 
-                // If we are on the tab boundary, jump by the full amount,
-                // but not beyond the start of the line.
-                if (jump === 0) {
-                    jump = indentUnit;
+                var cursor = sel.start,
+                    jump   = cursor.ch % indentUnit,
+                    line   = instance.getLine(cursor.line);
+
+                // Don't do any soft tab handling if there are non-whitespace characters before the cursor in
+                // any of the selections.
+                if (line.substr(0, cursor.ch).search(/\S/) !== -1) {
+                    jump = null;
+                } else if (direction === 1) { // right
+                    jump = indentUnit - jump;
+
+                    // Don't jump if it would take us past the end of the line, or if there are
+                    // non-whitespace characters within the jump distance.
+                    if (cursor.ch + jump > line.length || line.substr(cursor.ch, jump).search(/\S/) !== -1) {
+                        jump = null;
+                    }
+                } else { // left
+                    // If we are on the tab boundary, jump by the full amount,
+                    // but not beyond the start of the line.
+                    if (jump === 0) {
+                        jump = indentUnit;
+                    }
+                    if (cursor.ch - jump < 0) {
+                        jump = null;
+                    } else {
+                        // We're moving left, so negate the jump.
+                        jump = -jump;
+                    }
                 }
 
-                // Search backwards to the first non-space character
-                var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
-
-                if (offset !== -1) { // Adjust to jump to first non-space character
-                    jump -= offset;
+                // Did we calculate a jump, and is this jump value either the first one or 
+                // consistent with all the other jumps? If so, we're good. Otherwise, bail 
+                // out of the foreach, since as soon as we hit an inconsistent jump we don't
+                // have to look any further.
+                if (jump !== null &&
+                        (overallJump === null || overallJump === jump)) {
+                    overallJump = jump;
+                } else {
+                    overallJump = null;
+                    return false;
                 }
-
-                if (jump > 0) {
-                    instance[functionName](-jump, "char");
-                    handled = true;
-                }
-            }
+            });
         }
-
-        return handled;
+        
+        if (overallJump === null) {
+            // Just do the default move, which is one char in the given direction.
+            overallJump = direction;
+        }
+        instance[functionName](overallJump, "char");
     };
     
     /**
