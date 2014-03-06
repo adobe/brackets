@@ -98,6 +98,7 @@ define(function (require, exports, module) {
      * @param {!string} key A unique identifier
      */
     PreferenceStorage.prototype.remove = function (key) {
+        DeprecationWarning.deprecationWarning("remove is called to remove a preference '" + key + ",' use PreferencesManager.set (with value of undefined) instead.");
         // remove value from JSON storage
         delete this._json[key];
         _commit();
@@ -145,6 +146,8 @@ define(function (require, exports, module) {
      *  all existing preferences are deleted before writing new properties from the JSON object.
      */
     PreferenceStorage.prototype.setAllValues = function (obj, append) {
+        DeprecationWarning.deprecationWarning("setAllValues is called to set preferences '" + Object.keys(obj) + ",' use PreferencesManager.set (probably with doNotSave flag) instead.");
+
         var self = this,
             error = null;
         
