@@ -110,7 +110,7 @@ define({
     "FILE_DELETED_TITLE"                : "Berkas telah dihapus",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> Telah dirubah.<br /><br />Apakah anda akan menyimpan dan membatalkan perubahan?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> Telah dirubah, tapi belum disimpan pada {APP_NAME}.<br /><br />Versi yang mana yang ingin anda simpan?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> Telah dihapus di luar {APP_NAME}, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda akan menyimpan perubahan?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> Telah dihapus di luar {APP_NAME}, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda ingin menyimpan perubahan?",
 
     // Generic dialog/button labels
     "OK"                                : "Iya",
