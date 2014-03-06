@@ -372,7 +372,7 @@ define({
     "INVALID_ZIP_FILE"                     : "Bukan berkas zip yang valid.",
     "INVALID_PACKAGE_JSON"                 : "Berkas package.json tidak valid (ada kesalahan: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Berkas package.json tidak menyebutkan nama paket.",
-    "BAD_PACKAGE_NAME"                     : "{0} paket tidak valid.",
+    "BAD_PACKAGE_NAME"                     : "{0} memiliki nama paket yang tidak valid.",
     "MISSING_PACKAGE_VERSION"              : "package.json tidak menyebutkan versi paket.",
     "INVALID_VERSION_NUMBER"               : "Versi ({0}) tidak valid.",
     "INVALID_BRACKETS_VERSION"             : "Kompatibilitas {APP_NAME} dengan ({0}) tidak valid.",
