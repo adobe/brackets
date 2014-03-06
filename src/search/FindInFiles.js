@@ -103,8 +103,11 @@ define(function (require, exports, module) {
     /** @type {RegExp} The current search query regular expression */
     var currentQueryExpr = null;
     
-    /** @type {Array.<File>} An array of the files where it should look or null/empty to search the entire project */
+    /** @type {?FileSystemEntry} Root of subtree to search in, or single file to search in, or null to search entire project */
     var currentScope = null;
+    
+    /** @type {string} Compiled filter from FileFilters */
+    var currentFilter = null;
     
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
@@ -681,12 +684,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     * @param {!File} file File in question
-     * @param {?Entry} scope Search scope, or null if whole project
+     * Checks that the file matches the given subtree scope. To fully check whether the file
+     * should be in the search set, use _inSearchScope() instead - a supserset of this.
+     * 
+     * @param {!File} file
+     * @param {?FileSystemEntry} scope Search scope, or null if whole project
      * @return {boolean}
      */
-    function _inScope(file, scope) {
+    function _subtreeFilter(file, scope) {
         if (scope) {
             if (scope.isDirectory) {
                 // Dirs always have trailing slash, so we don't have to worry about being
@@ -698,6 +703,48 @@ define(function (require, exports, module) {
         }
         return true;
     }
+    
+    /**
+     * Filters out files that are known binary types (currently just image/audio; ideally we'd filter out ALL binary files).
+     * On Mac these would silently fail to be read, but on Windows we'd read the garbled content & try to search it.
+     * @param {File} file
+     * @return {boolean} True if the file's contents can be read as text
+     */
+    function _isReadableText(file) {
+        var language = LanguageManager.getLanguageForPath(file.fullPath);
+        return !language.isBinary();
+    }
+    
+    /**
+     * Checks that the file is eligible for inclusion in the search (matches the user's subtree scope and
+     * file exclusion filters, and isn't binary). Used when updating results incrementally - during the
+     * initial search, the filter and part of the scope are taken care of in bulk instead, so _subtreeFilter()
+     * is just called directly.
+     * @param {!File} file
+     * @return {boolean}
+     */
+    function _inSearchScope(file) {
+        if (currentScope) {
+            if (!_subtreeFilter(file, currentScope)) {
+                return false;
+            }
+        } else {
+            // Still need to make sure it's within project or working set
+            // In the initial search, this is covered by getAllFiles()
+            if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
+                var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
+                    return wsFile.fullPath === file.fullPath;
+                });
+                return inWorkingSet;
+            }
+        }
+        // In the initial search, this is passed as a getAllFiles() filter
+        if (!_isReadableText(file)) {
+            return false;
+        }
+        // In the initial search, this is covered by the filterFileList() pass
+        return FileFilters.filterPath(currentFilter, file.fullPath);
+    }
 
     /**
      * @private
@@ -708,7 +755,8 @@ define(function (require, exports, module) {
      *      A linked list as described in the Document constructor
      */
     function _documentChangeHandler(event, document, change) {
-        if (searchResultsPanel.isVisible() && _inScope(document.file, currentScope)) {
+        // Re-check the filtering that the initial search applied
+        if (_inSearchScope(document.file)) {
             var updateResults = _updateSearchResults(document, change, false);
             
             if (timeoutID) {
@@ -728,7 +776,7 @@ define(function (require, exports, module) {
     function _doSearchInOneFile(addMatches, file) {
         var result = new $.Deferred();
                     
-        if (!_inScope(file, currentScope)) {
+        if (!_subtreeFilter(file, currentScope)) {
             result.resolve();
         } else {
             DocumentManager.getDocumentText(file)
@@ -749,7 +797,7 @@ define(function (require, exports, module) {
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
      */
-    function _doSearch(query, userFilter) {
+    function _doSearch(query) {
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
@@ -762,20 +810,10 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        /**
-         * Filters out files that are known binary types (currently just image/audio; ideally we'd filter out ALL binary files).
-         * @param {FileSystemEntry} entry The entry to test
-         * @return {boolean} True if the entry's contents should be included in the file list
-         */
-        function fileFilter(entry) {
-            var language = LanguageManager.getLanguageForPath(entry.fullPath);
-            return !language.isBinary();
-        }
-        
-        ProjectManager.getAllFiles(fileFilter, true)
+        ProjectManager.getAllFiles(_isReadableText, true)
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
-                fileListResult = FileFilters.filterFileList(userFilter, fileListResult);
+                fileListResult = FileFilters.filterFileList(currentFilter, fileListResult);
                 
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
                 return Async.doInParallel(fileListResult, doSearch);
@@ -896,8 +934,8 @@ define(function (require, exports, module) {
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
-                        var userFilter = FileFilters.commitPicker(filterPicker);
-                        _doSearch(query, userFilter);
+                        currentFilter = FileFilters.commitPicker(filterPicker);
+                        _doSearch(query);
                     }
                 }
             })
@@ -1047,9 +1085,13 @@ define(function (require, exports, module) {
             
             // gather up added files
             var visitor = function (child) {
+                // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile) {
-                        addedFiles.push(child);
+                    if (child.isFile && !ProjectManager.isBinaryFile(child.name)) {
+                        // Re-check the filtering that the initial search applied
+                        if (_inSearchScope(child)) {
+                            addedFiles.push(child);
+                        }
                     }
                     return true;
                 }
@@ -1077,8 +1119,8 @@ define(function (require, exports, module) {
         var addPromise;
         if (entry.isDirectory) {
             if (!added || !removed) {
-                // If the added or removed sets are null, we should redo the
-                // search for the entire directory
+                // If the added or removed sets are null, must redo the search for the entire subtree - we
+                // don't know which child files/folders may have been added or removed.
                 _removeSearchResultsForEntry(entry);
                 
                 var deferred = $.Deferred();
