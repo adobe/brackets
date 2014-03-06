@@ -2201,7 +2201,7 @@ define(function (require, exports, module) {
                 
                 var expectedText = defaultContent.split("\n");
                 expectedText.splice(5, 2);
-                expect(myDocument.getText()).toEqual(expectedText.join("\n"));                
+                expect(myDocument.getText()).toEqual(expectedText.join("\n"));
             });
 
             it("should not delete an extra line after several whole lines that are selected", function () {
