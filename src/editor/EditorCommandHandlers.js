@@ -686,8 +686,7 @@ define(function (require, exports, module) {
         var doc = editor.document,
             from,
             to,
-            // We set expandEndAtStartOfLine so we delete the line at the end of a selection even if the selection ends at the first char.
-            lineSelections = editor.convertToLineSelections(editor.getSelections(), { expandEndAtStartOfLine: true }),
+            lineSelections = editor.convertToLineSelections(editor.getSelections()),
             edits = [];
         
         _.each(lineSelections, function (lineSel, index) {

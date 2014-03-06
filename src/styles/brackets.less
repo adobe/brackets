@@ -1185,6 +1185,26 @@ a, img {
     }
 }
 
+// File exclusion filter (used only in Find in Files search bar, for now)
+.filter-picker {
+    display: inline-block;
+    margin-left: 8px;
+    button {
+        margin-left: 8px;
+    }
+}
+
+// File exclusion filter editor dialog
+textarea.exclusions-editor {
+    display: block;
+    width: 547px;
+    height: 160px;
+    margin-top: 12px;
+    margin-bottom: 0;
+    .code-font();
+}
+
+
 // Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
 // blended on TOP of the selection color. The "current" search result is indicated by selection,
 // so we want the selection visible underneath the highlight. To do this, the highlight must be

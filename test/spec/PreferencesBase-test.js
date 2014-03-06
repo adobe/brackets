@@ -185,6 +185,39 @@ define(function (require, exports, module) {
                 
                 expect(layer.set(data, "spaceUnits", 13, {}, "**.md")).toBe(true);
             });
+
+            it("should not set the same value twice", function () {
+                var data = {
+                    "**.html": {
+                        spaceUnits: 2
+                    },
+                    "lib/*.js": {
+                        spaceUnits: 3
+                    }
+                };
+                
+                var originalData = _.clone(data, true);
+                
+                var layer = new PreferencesBase.PathLayer("/.brackets.json");
+                
+                expect(layer.set(data, "spaceUnits", 11, {
+                    filename: "/index.html"
+                })).toBe(true);
+
+                // Try to set the same value again.
+                expect(layer.set(data, "spaceUnits", 11, {
+                    filename: "/index.html"
+                })).toBe(false);
+
+                expect(data).toEqual({
+                    "**.html": {
+                        spaceUnits: 11
+                    },
+                    "lib/*.js": {
+                        spaceUnits: 3
+                    }
+                });
+            });
         });
         
         describe("Scope", function () {
@@ -202,6 +235,56 @@ define(function (require, exports, module) {
                 expect(scope.getKeys().sort()).toEqual(["spaceUnits", "useTabChar"].sort());
             });
             
+            it("should not set the same value twice", function () {
+                var data = {
+                    spaceUnits: 4,
+                    useTabChar: false
+                };
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                // MemoryStorage operates synchronously
+                scope.load();
+                
+                expect(scope.get("spaceUnits")).toBe(4);
+
+                expect(scope.set("spaceUnits", 12)).toBe(true);
+                expect(scope._dirty).toBe(true);
+
+                // Explicitly save it in order to clear dirty flag.
+                scope.save();
+                expect(scope._dirty).toBe(false);
+                
+                // Try to set the same value again and verify that the dirty flag is not set.
+                expect(scope.set("spaceUnits", 12)).toBe(false);
+                expect(scope.get("spaceUnits")).toBe(12);
+                expect(scope._dirty).toBe(false);
+            });
+            
+            it("should remove the preference when setting it with 'undefined' value", function () {
+                var data = {
+                    spaceUnits: 0,
+                    useTabChar: false
+                };
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                // MemoryStorage operates synchronously
+                scope.load();
+                
+                expect(scope.get("spaceUnits")).toBe(0);
+
+                // Remove 'spaceUnits' by calling set with 'undefined' second argument
+                expect(scope.set("spaceUnits")).toBe(true);
+                expect(scope._dirty).toBe(true);
+                expect(scope.getKeys()).toEqual(["useTabChar"]);
+
+                expect(scope.get("useTabChar")).toBe(false);
+                
+                // Remove 'useTabChar' by calling set with 'undefined' second argument
+                expect(scope.set("useTabChar")).toBe(true);
+                expect(scope._dirty).toBe(true);
+                expect(scope.getKeys()).toEqual([]);
+            });
+
             it("should look up a value with a path layer", function () {
                 var data = {
                     spaceUnits: 4,
