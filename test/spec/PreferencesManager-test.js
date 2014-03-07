@@ -154,6 +154,17 @@ define(function (require, exports, module) {
             });
         });
         
+        it("should correctly handle changes on objects", function () {
+            var foo = {
+                value: 42
+            };
+            PreferencesManager.set("foo", foo);
+            expect(foo.value).toBe(42);
+            foo.value = "!!!";
+            expect(foo.value).toBe("!!!");
+            var isDirty = PreferencesManager.set("foo", foo);
+            expect(isDirty).toBe(true);
+        });
         
         // Old tests follow
         it("should use default preferences", function () {
