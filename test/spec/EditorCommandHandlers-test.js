@@ -2185,9 +2185,35 @@ define(function (require, exports, module) {
                 var expectedText = defaultContent.split("\n").slice(3).join("\n");
                 expect(myDocument.getText()).toEqual(expectedText);
             });
+            
+            it("should not delete an extra line after a whole selected line", function () {
+                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n");
+                expectedText.splice(1, 1);
+                expect(myDocument.getText()).toEqual(expectedText.join("\n"));
+            });
 
-            it("should delete multiple lines ending at the bottom when selection spans them", function () {
+            it("should not delete an extra line at the end of the document after a whole selected line", function () {
                 myEditor.setSelection({line: 5, ch: 5}, {line: 7, ch: 0});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n");
+                expectedText.splice(5, 2);
+                expect(myDocument.getText()).toEqual(expectedText.join("\n"));
+            });
+
+            it("should not delete an extra line after several whole lines that are selected", function () {
+                myEditor.setSelection({line: 0, ch: 0}, {line: 3, ch: 0});
+                CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
+                
+                var expectedText = defaultContent.split("\n").slice(3).join("\n");
+                expect(myDocument.getText()).toEqual(expectedText);
+            });
+            
+            it("should delete multiple lines ending at the bottom when selection spans them", function () {
+                myEditor.setSelection({line: 5, ch: 5}, {line: 7, ch: 1});
                 CommandManager.execute(Commands.EDIT_DELETE_LINES, myEditor);
                 
                 var expectedText = defaultContent.split("\n").slice(0, 5).join("\n");

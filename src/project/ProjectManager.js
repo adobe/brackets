@@ -1083,6 +1083,7 @@ define(function (require, exports, module) {
 
                         _projectRoot = rootEntry;
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
+                        _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -1530,12 +1531,14 @@ define(function (require, exports, module) {
                 if (parent && (parent !== -1)) {
                     var methodName = (wasNodeOpen) ? "open_node" : "close_node";
                     var classToAdd = (wasNodeOpen) ? "jstree-open" : "jstree-closed";
-                    
+
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
                     parent.removeClass("jstree-leaf jstree-closed jstree-open")
                         .addClass(classToAdd);
                 }
+                
+                _redraw(true);
                 
                 result.reject();
             }

@@ -6,6 +6,7 @@
         "about_icon"                 : "styles/images/brackets_icon.svg",
         "update_info_url"            : "http://dev.brackets.io/updates/stable/",
         "how_to_use_url"             : "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
+        "glob_help_url"              : "https://github.com/adobe/brackets/wiki/Using-File-Filters",
         "forum_url"                  : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
         "release_notes_url"          : "https://github.com/adobe/brackets/wiki/Release-Notes",
         "report_issue_url"           : "https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue",

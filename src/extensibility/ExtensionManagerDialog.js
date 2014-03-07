@@ -296,7 +296,7 @@ define(function (require, exports, module) {
             $dlg.find(".nav-tabs a:first").tab("show");
         });
     
-        // Handle the install button.                
+        // Handle the install button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);
