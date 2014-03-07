@@ -557,8 +557,12 @@ define(function (require, exports, module) {
      * Called each time the search query field changes. Updates state.query (query will be falsy if the field
      * was blank OR contained a regexp with invalid syntax). Then calls updateResultSet(), and then jumps to
      * the first matching result, starting from the original cursor position.
+     * @param {!Editor} editor The editor we're searching in.
+     * @param {Object} state The current query state.
+     * @param {boolean} initial Whether this is the initial population of the query when the search bar opens.
+     *     In that case, we don't want to change the selection unnecessarily.
      */
-    function handleQueryChange(editor, state) {
+    function handleQueryChange(editor, state, initial) {
         state.query = parseQuery($("#find-what").val());
         updateResultSet(editor);
         
@@ -566,7 +570,7 @@ define(function (require, exports, module) {
             // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
             findNext(editor, false, true, state.searchStartPos);
-        } else {
+        } else if (!initial) {
             // Blank or invalid query: just jump back to initial pos
             editor._codeMirror.setCursor(state.searchStartPos);
         }
@@ -658,7 +662,7 @@ define(function (require, exports, module) {
             .get(0).select();
         _updateSearchBarFromPrefs();
         
-        handleQueryChange(editor, state);
+        handleQueryChange(editor, state, true);
     }
     
     /**
