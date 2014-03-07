@@ -245,7 +245,7 @@ define(function (require, exports, module) {
         var scrolledTop    = scrollTop / textHeight,
             scrolledBottom = (scrollTop + editorHeight) / textHeight;
         
-        // Adjust last line to round inward to show a whole lines.
+        // Adjust the last line to round inward to show a whole lines.
         var firstLine      = Math.ceil(scrolledTop),
             lastLine       = Math.floor(scrolledBottom) - 1;
         
@@ -267,10 +267,9 @@ define(function (require, exports, module) {
             paddingTop    = editor._getLineSpaceElement().offsetTop,
             editorHeight  = scrollInfo.clientHeight,
             scrollTop     = scrollInfo.top - paddingTop,
-            linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight),
-            inlinesHeight = 0;
+            removedScroll = paddingTop;
         
-        // Go through all the editors and reduce the scroll top and editor height to recalculate the lines in view 
+        // Go through all the editors and reduce the scroll top and editor height to properly calculate the lines in view 
         var line, coords;
         inlineEditors.forEach(function (inlineEditor) {
             line   = editor._getInlineWidgetLineNumber(inlineEditor);
@@ -278,14 +277,15 @@ define(function (require, exports, module) {
             
             if (coords.top < scrollInfo.top) {
                 scrollTop     -= inlineEditor.info.height;
-                linesInView    = _getLinesInView(textHeight, scrollTop, editorHeight);
-                inlinesHeight += inlineEditor.info.height;
+                removedScroll += inlineEditor.info.height;
             
             } else if (coords.top + inlineEditor.info.height < scrollInfo.top + editorHeight) {
                 editorHeight -= inlineEditor.info.height;
-                linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight);
             }
         });
+        
+        // Calculate the lines in view
+        var linesInView = _getLinesInView(textHeight, scrollTop, editorHeight);
         
         // If there is no selection move the cursor so that is always visible.
         if (!hasSelecction) {
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
         
         // Scroll and make it snap to lines
         var lines = linesInView.first + direction;
-        editor.setScrollPos(scrollInfo.left, (textHeight * lines) + paddingTop + inlinesHeight);
+        editor.setScrollPos(scrollInfo.left, (textHeight * lines) + removedScroll);
     }
     
     /** Scrolls one line up */
