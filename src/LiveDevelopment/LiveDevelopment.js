@@ -1258,17 +1258,22 @@ define(function LiveDevelopment(require, exports, module) {
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
         
         if (!wasRequested && isViewable) {
-            // TODO setStatus()?
+            // Update status
+            _setStatus(STATUS_CONNECTING);
 
-            // clear related docs
+            // clear live doc and related docs
             _closeDocuments();
 
-            // TODO change live doc
+            // create new live doc
             _createLiveDocumentForFrame(doc);
 
             // Navigate to the new page within this site. Agents must handle
             // frameNavigated event to clear any saved state.
-            Inspector.Page.navigate(docUrl);
+            Inspector.Page.navigate(docUrl).then(function () {
+                _setStatus(STATUS_ACTIVE);
+            }, function () {
+                _close(false, "closed_unknown_reason");
+            });
         } else if (wasRequested) {
             // Update highlight
             showHighlight();
