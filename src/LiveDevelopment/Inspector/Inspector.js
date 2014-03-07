@@ -214,7 +214,7 @@ define(function Inspector(require, exports, module) {
         var response    = JSON.parse(message.data),
             msgRecord   = _messageCallbacks[response.id],
             callback    = msgRecord && msgRecord.callback,
-            message     = (msgRecord && msgRecord.message) || "No message";
+            msgText     = (msgRecord && msgRecord.message) || "No message";
 
         if (msgRecord) {
             // Messages with an ID are a response to a command, fire callback
@@ -233,7 +233,7 @@ define(function Inspector(require, exports, module) {
         $exports.triggerHandler("message", [response]);
 
         if (response.error) {
-            $exports.triggerHandler("error", [response.error, message]);
+            $exports.triggerHandler("error", [response.error, msgText]);
         }
     }
 
