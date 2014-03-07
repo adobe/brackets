@@ -125,12 +125,16 @@ define(function (require, exports, module) {
     var dialog = null;
     
     /**
-     * FileSystem change event handler. Updates the search results based on a changed
-     * entry and optionally sets of added and removed child entries.
-     * 
-     * @type {function(FileSystemEntry, Array.<FileSystemEntry>=, Array.<FileSystemEntry>=)}
+     * Updates search results in response to FileSystem "change" event. (Declared here to appease JSLint)
+     * @type {Function}
      **/
     var _fileSystemChangeHandler;
+    
+    /**
+     * Updates the search results in response to (unsaved) text edits. (Declared here to appease JSLint)
+     * @type {Function}
+     **/
+    var _documentChangeHandler;
 
     /**
      * @private
@@ -184,6 +188,19 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    function _removeListeners() {
+        $(DocumentModule).off(".findInFiles");
+        FileSystem.off("change", _fileSystemChangeHandler);
+    }
+    function _addListeners() {
+        // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
+        _removeListeners();
+        
+        $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+        FileSystem.on("change", _fileSystemChangeHandler);
+    }
+    
     /**
      * @private
      * Hides the Search Results Panel
@@ -191,11 +208,10 @@ define(function (require, exports, module) {
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
-            $(DocumentModule).off(".findInFiles");
         }
-        
-        FileSystem.off("change", _fileSystemChangeHandler);
+        _removeListeners();
     }
+    
     
     /**
      * @private
@@ -555,8 +571,6 @@ define(function (require, exports, module) {
                 dialog._close();
             }
             
-            FileSystem.on("change", _fileSystemChangeHandler);
-        
         } else {
             _hideSearchResults();
 
@@ -748,13 +762,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Tries to update the search result on document changes
+     * Updates the search results in response to (unsaved) text edits
      * @param {$.Event} event
      * @param {Document} document
      * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
      *      A linked list as described in the Document constructor
      */
-    function _documentChangeHandler(event, document, change) {
+    _documentChangeHandler = function (event, document, change) {
         // Re-check the filtering that the initial search applied
         if (_inSearchScope(document.file)) {
             var updateResults = _updateSearchResults(document, change, false);
@@ -771,7 +785,7 @@ define(function (require, exports, module) {
                 }, UPDATE_TIMEOUT);
             }
         }
-    }
+    };
     
     function _doSearchInOneFile(addMatches, file) {
         var result = new $.Deferred();
@@ -824,7 +838,11 @@ define(function (require, exports, module) {
                 _showSearchResults();
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
-                $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                
+                // Listen for FS & Document changes to keep results up to date
+                if (!$.isEmptyObject(searchResults)) {
+                    _addListeners();
+                }
                 
                 exports._searchResults = searchResults;  // for unit tests
             })
@@ -1035,7 +1053,7 @@ define(function (require, exports, module) {
                     resultsChanged = true;
                 }
             });
-            
+
             // Restore the results if needed
             if (resultsChanged) {
                 _sortResultFiles();
@@ -1046,7 +1064,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Handle a FileSystem "change" event
+     * Updates search results in response to FileSystem "change" event
      * @param {$.Event} event
      * @param {FileSystemEntry} entry
      * @param {Array.<FileSystemEntry>=} added Added children
