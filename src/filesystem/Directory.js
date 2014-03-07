@@ -91,7 +91,7 @@ define(function (require, exports, module) {
                     child._clearCachedData(true);
                 });
             } else {
-                // Our _contents is cleared, but File objects that are our children may still exist.
+                // No cached _contents, but child entries may still exist.
                 // Scan the full index to catch all of them.
                 var dirPath = this.fullPath;
                 this._fileSystem._index.visitAll(function (entry) {
