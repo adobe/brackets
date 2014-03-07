@@ -407,7 +407,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
     
     /** Triggered by Inspector.error */
-    function _onError(event, error) {
+    function _onError(event, error, msgData) {
         var message;
         
         // Sometimes error.message is undefined
@@ -430,7 +430,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         // Show the message, but include the error object for further information (e.g. error code)
-        console.error(message, error);
+        console.error(message, error, msgData);
     }
     
     function _styleSheetAdded(event, url) {
@@ -1106,19 +1106,22 @@ define(function LiveDevelopment(require, exports, module) {
             }
         });
     }
+
+    function _createLiveDocumentForFrame(doc) {
+        // create live document
+        doc._ensureMasterEditor();
+        _liveDocument = _createDocument(doc, doc._masterEditor);
+        _server.add(_liveDocument);
+    }
     
     // helper function that actually does the launch once we are sure we have
     // a doc and the server for that doc is up and running.
     function _doLaunchAfterServerReady(initialDoc) {
         // update status
         _setStatus(STATUS_CONNECTING);
-        
-        // create live document
-        initialDoc._ensureMasterEditor();
-        _liveDocument = _createDocument(initialDoc, initialDoc._masterEditor);
+        _createLiveDocumentForFrame(initialDoc);
 
         // start listening for requests
-        _server.add(_liveDocument);
         _server.start();
 
         // Install a one-time event handler when connected to the launcher page
@@ -1255,9 +1258,17 @@ define(function LiveDevelopment(require, exports, module) {
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
         
         if (!wasRequested && isViewable) {
-            // TODO (jasonsanjose): optimize this by reusing the same connection
-            // no need to fully teardown.
-            close().done(open);
+            // TODO setStatus()?
+
+            // clear related docs
+            _closeDocuments();
+
+            // TODO change live doc
+            _createLiveDocumentForFrame(doc);
+
+            // Navigate to the new page within this site. Agents must handle
+            // frameNavigated event to clear any saved state.
+            Inspector.Page.navigate(docUrl);
         } else if (wasRequested) {
             // Update highlight
             showHighlight();

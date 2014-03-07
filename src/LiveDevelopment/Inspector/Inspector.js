@@ -88,8 +88,13 @@ define(function Inspector(require, exports, module) {
     // jQuery exports object for events
     var $exports = $(exports);
 
+    /**
+     * Map message IDs to the callback function and original JSON message
+     * @type {Object.<number, {callback: function, message: Object}}
+     */
+    var _messageCallbacks = {};
+
     var _messageId = 1; // id used for remote method calls, auto-incrementing
-    var _messageCallbacks = {}; // {id -> function} for remote method calls
     var _socket; // remote debugger WebSocket
     var _connectDeferred; // The deferred connect
 
@@ -125,7 +130,7 @@ define(function Inspector(require, exports, module) {
             return (new $.Deferred()).reject().promise();
         }
 
-        var id, callback, args, i, params = {}, promise;
+        var id, callback, args, i, params = {}, promise, msg;
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
@@ -144,7 +149,6 @@ define(function Inspector(require, exports, module) {
         }
 
         id = _messageId++;
-        _messageCallbacks[id] = callback;
 
         // verify the parameters against the method signature
         // this also constructs the params object of type {name -> value}
@@ -156,7 +160,10 @@ define(function Inspector(require, exports, module) {
             }
         }
 
-        _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+        // Store message callback and send message
+        msg = { method: method, id: id, params: params };
+        _messageCallbacks[id] = { callback: callback, message: msg };
+        _socket.send(JSON.stringify(msg));
 
         return promise;
     }
@@ -204,10 +211,12 @@ define(function Inspector(require, exports, module) {
      * @param {object} message
      */
     function _onMessage(message) {
-        var response = JSON.parse(message.data),
-            callback = _messageCallbacks[response.id];
+        var response    = JSON.parse(message.data),
+            msgRecord   = _messageCallbacks[response.id],
+            callback    = msgRecord && msgRecord.callback,
+            message     = (msgRecord && msgRecord.message) || "No message";
 
-        if (callback) {
+        if (msgRecord) {
             // Messages with an ID are a response to a command, fire callback
             callback(response.result, response.error);
             delete _messageCallbacks[response.id];
@@ -224,7 +233,7 @@ define(function Inspector(require, exports, module) {
         $exports.triggerHandler("message", [response]);
 
         if (response.error) {
-            $exports.triggerHandler("error", [response.error]);
+            $exports.triggerHandler("error", [response.error, message]);
         }
     }
 
