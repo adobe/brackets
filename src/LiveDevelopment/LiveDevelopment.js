@@ -817,7 +817,7 @@ define(function LiveDevelopment(require, exports, module) {
             });
         }
         
-        if (_isPromisePending(_openDeferred) {
+        if (_isPromisePending(_openDeferred)) {
             // Reject calls to open if requests are still pending
             _openDeferred.reject();
         }
