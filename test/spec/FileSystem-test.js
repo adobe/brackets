@@ -1251,7 +1251,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return fileChanged; });
                 
                 runs(function () {
-                    expect(file._contents).toBeTruthy();
+                    expect(file._contents).toBe(cb1.data);
                     fileChanged = false;
                     
                     // Next, invalidate the parent which should also cause the
