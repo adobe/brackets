@@ -1039,11 +1039,20 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {!string} The currently selected text, or "" if no selection. Includes \n if the
-     * selection spans multiple lines (does NOT reflect the Document's line-endings style).
+     * Returns the currently selected text, or "" if no selection. Includes \n if the
+     * selection spans multiple lines (does NOT reflect the Document's line-endings style). By
+     * default, returns only the contents of the primary selection, unless `allSelections` is true.
+     * @param {boolean=} allSelections Whether to return the contents of all selections instead
+     *     of just the primary selection. Default false.
+     * @return {!string} The selected text.
      */
-    Editor.prototype.getSelectedText = function () {
-        return this._codeMirror.getSelection();
+    Editor.prototype.getSelectedText = function (allSelections) {
+        if (allSelections) {
+            return this._codeMirror.getSelection();
+        } else {
+            var sel = this.getSelection();
+            return this.document.getRange(sel.start, sel.end);
+        }
     };
     
     /**
