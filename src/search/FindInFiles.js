@@ -42,14 +42,15 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash");
-    
-    var Async                 = require("utils/Async"),
+    var _                     = require("thirdparty/lodash"),
+        FileFilters           = require("search/FileFilters"),
+        Async                 = require("utils/Async"),
         Resizer               = require("utils/Resizer"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Strings               = require("strings"),
         StringUtils           = require("utils/StringUtils"),
+        PreferencesManager    = require("preferences/PreferencesManager"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
@@ -551,6 +552,8 @@ define(function (require, exports, module) {
                 dialog._close();
             }
             
+            // May already have a listener if refreshing panel that's already open; remove first to ensure we don't add multiple copies (#6923)
+            FileSystem.off("change", _fileSystemChangeHandler);
             FileSystem.on("change", _fileSystemChangeHandler);
         
         } else {
@@ -745,22 +748,10 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Used to filter out image files when building a list of file in which to
-     * search. Ideally this would filter out ALL binary files.
-     * @param {FileSystemEntry} entry The entry to test
-     * @return {boolean} Whether or not the entry's contents should be searched
-     */
-    function _findInFilesFilter(entry) {
-        var language = LanguageManager.getLanguageForPath(entry.fullPath);
-        return !language.isBinary();
-    }
-    
-    /**
-     * @private
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
      */
-    function _doSearch(query) {
+    function _doSearch(query, userFilter) {
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
@@ -773,8 +764,21 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        ProjectManager.getAllFiles(_findInFilesFilter, true)
+        /**
+         * Filters out files that are known binary types (currently just image/audio; ideally we'd filter out ALL binary files).
+         * @param {FileSystemEntry} entry The entry to test
+         * @return {boolean} True if the entry's contents should be included in the file list
+         */
+        function fileFilter(entry) {
+            var language = LanguageManager.getLanguageForPath(entry.fullPath);
+            return !language.isBinary();
+        }
+        
+        ProjectManager.getAllFiles(fileFilter, true)
             .then(function (fileListResult) {
+                // Filter out files/folders that match user's current exclusion filter
+                fileListResult = FileFilters.filterFileList(userFilter, fileListResult);
+                
                 var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
                 return Async.doInParallel(fileListResult, doSearch);
             })
@@ -785,6 +789,8 @@ define(function (require, exports, module) {
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
                 $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                
+                exports._searchResults = searchResults;  // for unit tests
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -823,12 +829,14 @@ define(function (require, exports, module) {
         if (this.closed) {
             return;
         }
-        
+        this.modalBar.close(true, !suppressAnimation);
+    };
+    
+    FindInFilesDialog.prototype._handleClose = function () {
         // Hide error popup, since it hangs down low enough to make the slide-out look awkward
         $(".modal-bar .error").hide();
         
         this.closed = true;
-        this.modalBar.close(true, !suppressAnimation);
         EditorManager.focusEditor();
         dialog = null;
     };
@@ -852,9 +860,18 @@ define(function (require, exports, module) {
         // (Any previous open FindInFiles bar instance was already handled by our caller)
         FindReplace._closeFindBar();
         
-        this.modalBar    = new ModalBar(dialogHTML, false);
+        this.modalBar    = new ModalBar(dialogHTML, true);
+        $(this.modalBar).on("close", this._handleClose.bind(this));
         
-        var $searchField = $("input#find-what");
+        // Custom closing behavior: if in the middle of executing search, blur shouldn't close ModalBar yet. And
+        // don't close bar when opening Edit Filter dialog either.
+        var self = this;
+        this.modalBar.isLockedOpen = function () {
+            return self.getDialogTextField().attr("disabled") || $(".modal.instance .exclusions-editor").length > 0;
+        };
+        
+        var $searchField = $("input#find-what"),
+            filterPicker;
         
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
@@ -881,17 +898,12 @@ define(function (require, exports, module) {
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
-                        _doSearch(query);
+                        var userFilter = FileFilters.commitPicker(filterPicker);
+                        _doSearch(query, userFilter);
                     }
                 }
             })
             .bind("input", handleQueryChange)
-            .blur(function () {
-                if (that.getDialogTextField().attr("disabled")) {
-                    return;
-                }
-                that._close();
-            })
             .focus();
         
         this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
@@ -900,6 +912,9 @@ define(function (require, exports, module) {
             
             handleQueryChange();  // re-validate regexp if needed
         });
+        
+        filterPicker = FileFilters.createFilterPicker();
+        this.modalBar.getRoot().find("#find-group").append(filterPicker);
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();
@@ -950,6 +965,7 @@ define(function (require, exports, module) {
         currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
+        exports._searchResults = null;  // for unit tests
                             
         dialog.showDialog(initialString, scope);
     }
@@ -1114,4 +1130,7 @@ define(function (require, exports, module) {
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
+    
+    // For unit testing - updated in _doSearch() when search complete
+    exports._searchResults = null;
 });
