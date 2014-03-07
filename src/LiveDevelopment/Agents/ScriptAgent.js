@@ -117,10 +117,25 @@ define(function ScriptAgent(require, exports, module) {
 
     }
 
-    /** Initialize the agent */
-    function load() {
+    function _reset() {
         _urlToScript = {};
         _idToScript = {};
+    }
+
+    /**
+     * @private
+     * WebInspector Event: Page.frameNavigated
+     * @param {jQuery.Event} event
+     * @param {frame: Frame} res
+     */
+    function _onFrameNavigated(event, res) {
+        // Clear maps when navigating to a new page
+        _reset();
+    }
+
+    /** Initialize the agent */
+    function load() {
+        _reset();
         _load = new $.Deferred();
 
         var enableResult = new $.Deferred();
@@ -131,6 +146,7 @@ define(function ScriptAgent(require, exports, module) {
             });
         });
 
+        $(Inspector.Page).on("frameNavigated.ScriptAgent", _onFrameNavigated);
         $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
         $(Inspector.Debugger)
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
@@ -143,6 +159,8 @@ define(function ScriptAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
+        _reset();
+        $(Inspector.Page).off(".ScriptAgent");
         $(DOMAgent).off(".ScriptAgent");
         $(Inspector.Debugger).off(".ScriptAgent");
         $(Inspector.DOM).off(".ScriptAgent");
