@@ -381,12 +381,12 @@ define(function (require, exports, module) {
                 layer = layers[layerCounter];
                 result = layer.get(data[layer.key], id, context);
                 if (result !== undefined) {
-                    return result;
+                    return _.cloneDeep(result);
                 }
             }
             
             if (this._exclusions.indexOf(id) === -1) {
-                return data[id];
+                return _.cloneDeep(data[id]);
             }
         },
         

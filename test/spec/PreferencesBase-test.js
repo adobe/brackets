@@ -282,6 +282,14 @@ define(function (require, exports, module) {
                 expect(foo.value).toBe("!!!");
                 expect(scope.set("foo", foo)).toBe(true);
                 expect(scope._dirty).toBe(true);
+                
+                var fooCopyFromPref = scope.get("foo");
+                expect(fooCopyFromPref.value).toBe("!!!");
+                
+                // Add 'bar' to our local copy and then 
+                // verify that our change is not in the pref.
+                fooCopyFromPref.bar = "'bar' should not be in pref";
+                expect(scope.get("foo").bar).toBe(undefined);
             });
 
             it("should remove the preference when setting it with 'undefined' value", function () {
