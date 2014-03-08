@@ -260,6 +260,30 @@ define(function (require, exports, module) {
                 expect(scope._dirty).toBe(false);
             });
             
+            it("should correctly handle changes on objects", function () {
+                var foo = {
+                    value: 42
+                };
+                
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage());
+                // MemoryStorage operates synchronously
+                scope.load();
+                
+                expect(scope.set("foo", foo)).toBe(true);
+                
+                expect(scope.get("foo").value).toBe(42);
+                expect(scope._dirty).toBe(true);
+
+                // Explicitly save it in order to clear dirty flag.
+                scope.save();
+                expect(scope._dirty).toBe(false);
+                                
+                foo.value = "!!!";
+                expect(foo.value).toBe("!!!");
+                expect(scope.set("foo", foo)).toBe(true);
+                expect(scope._dirty).toBe(true);
+            });
+
             it("should remove the preference when setting it with 'undefined' value", function () {
                 var data = {
                     spaceUnits: 0,
