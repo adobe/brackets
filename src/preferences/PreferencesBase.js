@@ -352,7 +352,7 @@ define(function (require, exports, module) {
                 if (value === undefined) {
                     delete this.data[id];
                 } else {
-                    this.data[id] = value;
+                    this.data[id] = _.cloneDeep(value);
                 }
                 return true;
             }
@@ -623,7 +623,7 @@ define(function (require, exports, module) {
                 if (value === undefined) {
                     delete section[id];
                 } else {
-                    section[id] = value;
+                    section[id] = _.cloneDeep(value);
                 }
                 return true;
             }
@@ -751,7 +751,7 @@ define(function (require, exports, module) {
                 if (value === undefined) {
                     delete section[id];
                 } else {
-                    section[id] = value;
+                    section[id] = _.cloneDeep(value);
                 }
                 return true;
             }
