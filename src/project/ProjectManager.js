@@ -75,6 +75,11 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager");
     
+    
+    // Define the preference to decide how to sort the Project Tree files
+    PreferencesManager.definePreference("sortDirsFirst", "boolean", false);
+    
+    
     /**
      * @private
      * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
@@ -82,14 +87,6 @@ define(function (require, exports, module) {
     var _fileSystemChange,
         _fileSystemRename;
 
-    /**
-     * @private
-     * File tree sorting for mac-specific sorting behavior
-     */
-    var _isMac          = brackets.platform === "mac",
-        _sortPrefixDir  = _isMac ? "" : "0",
-        _sortPrefixFile = _isMac ? "" : "1";
-    
     /**
      * @private
      * File and folder names which are not displayed or searched
@@ -691,13 +688,26 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Returns the prefix added to the filename used for sorting
+     * @param {boolean} isFolder
+     * @return {string}
+     */
+    function _getSortPrefix(isFolder) {
+        if (brackets.platform === "mac" && !PreferencesManager.get("sortDirsFirst")) {
+            return "";
+        }
+        return isFolder ? "0" : "1";
+    }
+    
+    /**
+     * @private
      * Generate a string suitable for sorting
      * @param {string} name
      * @param {boolean} isFolder
      * @return {string}
      */
     function _toCompareString(name, isFolder) {
-        return ((isFolder) ? _sortPrefixDir : _sortPrefixFile) + name;
+        return _getSortPrefix(isFolder) + name;
     }
     
     /**
@@ -1469,7 +1479,7 @@ define(function (require, exports, module) {
             if (typeof node === "string") {
                 node = {
                     data: node,
-                    metadata: { compareString: _sortPrefixFile + node }
+                    metadata: { compareString: _getSortPrefix(false) + node }
                 };
             }
             
@@ -2187,6 +2197,9 @@ define(function (require, exports, module) {
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
+    // Refresh the file tree when the sort pref changes
+    PreferencesManager.on("change", "sortDirsFirst", refreshFileTree);
+    
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
@@ -2195,7 +2208,7 @@ define(function (require, exports, module) {
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
-    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
+    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
     
     // Init invalid characters string 
     if (brackets.platform === "mac") {
