@@ -424,16 +424,17 @@ define(function (require, exports, module) {
         }
         
         if (insertTab) {
+            var ins = "";
             if (instance.getOption("indentWithTabs")) {
-                CodeMirror.commands.insertTab(instance);
+                ins = "\t";
             } else {
-                var i, ins = "", numSpaces = instance.getOption("indentUnit");
+                var i, numSpaces = instance.getOption("indentUnit");
                 numSpaces -= from.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
                 }
-                instance.replaceSelection(ins, "end");
             }
+            instance.replaceRange(ins, from);
         }
     };
     
