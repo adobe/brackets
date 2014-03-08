@@ -65,6 +65,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Virhe luodessa {0}a",
     "ERROR_CREATING_FILE"               : "Virhe yrittäessä luoda {0}a <span class='dialog-filename'>{1}</span>. {2}",
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Virhe luettaessa asetuksia",
+    "ERROR_PREFS_CORRUPT"               : "Asetustiedosto sisältää virheellistä JSON-koodia. Tiedosto avataan, jotta voit korjata rakenteen. Sinun tulee käynnistää {APP_NAME} uudelleen, jotta muutokset tulevat voimaan.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} ei toimi vielä selaimissa.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} on rakennettu HTML:llä, mutta nyt se toimii kuten työpöydän sovellus, jotta voit käyttää sitä muokataksesi paikallisia tiedostoja. Käytäthän sovelluksen ”shelliä” osoitteen <b>github.com/adobe/brackets-shell</b> repo:ssa suorittaaksesi {APP_NAME}in.",
@@ -73,21 +77,21 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Virhe tiedostojen indeksoinnissa",
     "ERROR_MAX_FILES"                   : "Suurin sallittu määrä tiedostoja on indeksoitu. Toiminnot, jotka etsivät tiedostoja indeksistä, voivat toimia virheellisesti.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistäessä selainta",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome -selainta ei löydy. Varmista, että se on asennettu.",
     "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe käynnistäessä selainta. (virhe {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Yhdistetään selaimeen",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi yhdistää, Chromen tarvitsee käynnistyä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Ei kyetty lataamaan reaaliaikaisen kehityksen sivua",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Jotta esikatselu voi yhdistää, Chromen on käynnistyttävä uudelleen etävirheenjäljitys käytössä.<br /><br />Haluatko käynnistää Chromen uudelleen ja aktivoida etävirheenjäljityksen?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Ei kyetty lataamaan esikatselun sivua",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Avaa HTML-tiedosto tai varmista, että projektissasi on index.html-tiedosto käynnistääksesi esikatselun.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Käynnistääksesi esikatselun palvelimella sijaitsevalla tiedostolla on tämän projektin URL-osoite määritettävä.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistäessä HTTP-palvelinta reaaliaikaisen kehityksen tiedostoille. Yritäthän uudelleen.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Virhe käynnistäessä HTTP-palvelinta esikatselun tiedostoille. Yritäthän uudelleen.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Tervetuloa esikatseluun!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Esikatselu yhdistää {APP_NAME}in selaimeesi. Se avaa HTML-tiedostosi esikatselun selaimessa ja päivittyy sitten välittömästi muokatessasi koodia.<br /><br />Tässä varhaisessa {APP_NAME}-versiossa esikatselu toimii vain <strong>Google Chrome</strong>-selaimella ja päivittyy reaaliaikaisesti muokatessasi <strong>CSS- tai HTML-tiedostoja</strong>. Muutokset JavaScript-tiedostoihin päivittyvät tallentaessasi ne.<br /><br />(Näet tämän viestin vain kerran.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja katso <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Saadaksesi lisätietoja katso <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Esikatselu",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Esikatselu: Yhdistetään\u2026",
@@ -166,7 +170,16 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Paina Ctrl/Cmd laajentaaksesi/pienentääksesi kaikki",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Virhe noudettaessa päivitystietoja",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Viimeisimpien päivitystietojen noutamisessa palvelimelta oli ongelma. Varmista olevasi yhteydessä verkkoon ja yritä uudelleen.",
-
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Sulje tiedostoja pois\u2026",
+    "EDIT_FILE_FILTER"                  : "Muokkaa\u2026",
+    "FILE_FILTER_DIALOG"                : "Muokkaa suodatinta",
+    "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>globs</a>eista. Syötä jokainen merkkijono uudelle riville.",
+    "FILE_FILTER_LIST_PREFIX"           : "paitsi",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
+    
+    
     /**
      * ProjectManager
      */
@@ -307,6 +320,8 @@ define({
     "CMD_NEXT_DOC"                        : "Seuraava dokumentti",
     "CMD_PREV_DOC"                        : "Edellinen dokumentti",
     "CMD_SHOW_IN_TREE"                    : "Näytä tiedostopuussa",
+    "CMD_SHOW_IN_EXPLORER"                : "Näytä Resurssienhallinnassa",
+    "CMD_SHOW_IN_FINDER"                  : "Näytä Finderissä",
     "CMD_SHOW_IN_OS"                      : "Näytä käyttöjärjestelmässä",
     
     // Help menu commands
@@ -372,7 +387,7 @@ define({
     "INSTALL_CANCELED"                     : "Asennus peruutettu.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
-    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json ei ole kelvollinen. (virhe: {0}).",
+    "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json on virheellinen. (virhe: {0}).",
     "MISSING_PACKAGE_NAME"                 : "Tiedostolle package.json ei ole määritelty paketin nimeä.",
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
     "MISSING_PACKAGE_VERSION"              : "Tiedostolle package.json ei ole määritelty paketin versiota.",
@@ -403,7 +418,7 @@ define({
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Tämän laajennuksen versio {0} vaatii uudemman {APP_NAME}-version, mutta voit asentaa aikaisemman version {1}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Tämän laajennuksen versio {0} toimii vain vanhemmilla {APP_NAME}-versioilla, mutta voit asentaa aikaisemman version {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Ei kuvausta",
-    "EXTENSION_MORE_INFO"                  : "Lisätietoja...",
+    "EXTENSION_MORE_INFO"                  : "Lisätietoja\u2026",
     "EXTENSION_ERROR"                      : "Laajennusvirhe",
     "EXTENSION_KEYWORDS"                   : "Avainsanat",
     "EXTENSION_INSTALLED"                  : "Asennettu",
@@ -420,7 +435,7 @@ define({
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
     "UNDO_UPDATE"                          : "Kumoa",
     "CHANGE_AND_RELOAD_TITLE"              : "Muuta laajennuksia",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Päivittääksesi tai poistaaksesi merkityt laajennukset {APP_NAME}in tarvitsee latautua uudelleen. Sinua muistutetaan tallentamattomien muutosten tallentamisesta.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Päivittääksesi tai poistaaksesi merkityt laajennukset {APP_NAME}in pitää latautua uudelleen. Sinua muistutetaan tallentamattomien muutosten tallentamisesta.",
     "REMOVE_AND_RELOAD"                    : "Poista laajennukset ja lataa uudelleen",
     "CHANGE_AND_RELOAD"                    : "Muuta laajennuksia ja lataa uudelleen",
     "UPDATE_AND_RELOAD"                    : "Päivitä laajennukset ja lataa uudelleen",
@@ -462,38 +477,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Peruuta",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Järjestelmän oletus",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "tšekki",
-    "LOCALE_DE"                                 : "saksa",
-    "LOCALE_EL"                                 : "kreikka",
-    "LOCALE_EN"                                 : "englanti",
-    "LOCALE_ES"                                 : "espanja",
-    "LOCALE_FI"                                 : "suomi",
-    "LOCALE_FR"                                 : "ranska",
-    "LOCALE_IT"                                 : "italia",
-    "LOCALE_JA"                                 : "japani",
-    "LOCALE_NB"                                 : "norja",
-    "LOCALE_NL"                                 : "hollanti",
-    "LOCALE_FA_IR"                              : "persia-farsi",
-    "LOCALE_PL"                                 : "puola",
-    "LOCALE_PT_BR"                              : "portugali, Brasilia",
-    "LOCALE_PT_PT"                              : "portugali",
-    "LOCALE_RO"                                 : "romania",
-    "LOCALE_RU"                                 : "venäjä",
-    "LOCALE_SK"                                 : "slovakia",
-    "LOCALE_SR"                                 : "serbia",
-    "LOCALE_SV"                                 : "ruotsi",
-    "LOCALE_TR"                                 : "turkki",
-    "LOCALE_ZH_CN"                              : "kiina, yksinkertaistettu",
-    "LOCALE_HU"                                 : "unkari",
-    "LOCALE_KO"                                 : "korea",
-    
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Edistyminen",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Siirrä valittua pistettä<br><kbd class='text'>Vaihto</kbd> Siirrä kymmenen yksikköä<br><kbd class='text'>Tab</kbd> Muuta pisteitä",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Lisää tai vähennä askelmia<br><kbd>←</kbd><kbd>→</kbd> ”Start” tai ”end”",
-    "INLINE_TIMING_EDITOR_INVALID"              : "Vanha arvo <code>{0}</code> ei ole kelvollinen, joten näytetty funktio vaihdettiin arvoksi <code>{1}</code>. Dokumentti päivitetään ensimmäisellä muokkauksella.",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Vanha arvo <code>{0}</code> on virheellinen, joten näytetty funktio muutettiin muotoon <code>{1}</code>. Dokumentti päivitetään ensimmäisellä muokkauksella.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nykyinen väri",
