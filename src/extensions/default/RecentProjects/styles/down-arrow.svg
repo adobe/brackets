@@ -1,10 +1,10 @@
 <svg
 xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink"
-width="6px" height="5px" viewBox="0 0 6 5">
+width="7px" height="5px" viewBox="0 0 7 5">
     <title>down-arrow.svg</title>
     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="down-arrow" transform="translate(-1.000000, -1.000000)">
+        <g id="down-arrow" transform="translate(0.000000, -1.000000)">
             <path d="M0,1 L3.5,6 L7,1 L0,1 L0,1 Z" opacity="0.48" fill="#000000"></path>
             <path d="M0,0 L3.5,5 L7,0 L0,0 L0,0 Z" fill="#758689"></path>
         </g>
