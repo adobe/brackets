@@ -144,22 +144,25 @@ define(function (require, exports, module) {
     }
     
     function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+        if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
+            // label already up-to-date
+            return;
+        }
+
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
-        
+
         if (!doNotAnimate) {
             AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
         }
     }
-    
-    function _updateEditorOverwriteMode() {
-        var editor = EditorManager.getActiveEditor();
-        
-        $(editor).off("overwriteToggle.statusbar", _updateOverwriteLabel);
-        $(editor).on("overwriteToggle.statusbar", function (event, editor, newstate) {
-            _updateOverwriteLabel(event, editor, newstate, true);
-            $(editor).on("overwriteToggle.statusbar", _updateOverwriteLabel);
-        });
-        editor.toggleOverwrite(null);
+
+    function _updateEditorOverwriteMode(event) {
+        var editor = EditorManager.getActiveEditor(),
+            newstate = !editor._codeMirror.state.overwrite;
+
+        // update label with no transition
+        _updateOverwriteLabel(event, editor, newstate, true);
+        editor.toggleOverwrite(newstate);
     }
     
     function _initOverwriteMode(currentEditor) {
