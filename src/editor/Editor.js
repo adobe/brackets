@@ -388,23 +388,23 @@ define(function (require, exports, module) {
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
-            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            smartIndent                 : currentOptions[SMART_INDENT],
-            indentWithTabs              : currentOptions[USE_TAB_CHAR],
-            tabSize                     : currentOptions[TAB_SIZE],
-            indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
-            lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
-            lineWrapping                : currentOptions[WORD_WRAP],
-            styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
-            coverGutterNextToScrollbar  : true,
-            matchBrackets               : true,
-            matchTags                   : { bothTags: true },
-            dragDrop                    : false,
-            extraKeys                   : codeMirrorKeyMap,
             autoCloseBrackets           : currentOptions[CLOSE_BRACKETS],
             autoCloseTags               : currentOptions[CLOSE_TAGS],
-            scrollPastEnd               : !range ? currentOptions[SCROLL_PAST_END] : false,
-            cursorScrollMargin          : 3
+            coverGutterNextToScrollbar  : true,
+            cursorScrollMargin          : 3,
+            dragDrop                    : false,
+            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            extraKeys                   : codeMirrorKeyMap,
+            indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
+            indentWithTabs              : currentOptions[USE_TAB_CHAR],
+            lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
+            lineWrapping                : currentOptions[WORD_WRAP],
+            matchBrackets               : true,
+            matchTags                   : { bothTags: true },
+            scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
+            smartIndent                 : currentOptions[SMART_INDENT],
+            styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
+            tabSize                     : currentOptions[TAB_SIZE]
         });
         
         // Can't get CodeMirror's focused state without searching for
