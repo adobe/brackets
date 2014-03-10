@@ -605,19 +605,22 @@ define(function (require, exports, module) {
                 it("should return empty string for a cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.getSelectedText()).toEqual("");
+                    expect(myEditor.getSelectedText(true)).toEqual("");
                 });
                 
                 it("should return the contents of a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 8}, {line: 0, ch: 14});
                     expect(myEditor.getSelectedText()).toEqual("line 0");
+                    expect(myEditor.getSelectedText(true)).toEqual("line 0");
                 });
                 
-                it("should return the primary selection by default", function () {
+                it("should return the primary selection by default, but concatenate contents if allSelections is true", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
                                                        ]);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
+                    expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
 
                 it("should return a primary selection other than the last", function () {
@@ -626,13 +629,6 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
                                                        ], 1);
                     expect(myEditor.getSelectedText()).toEqual("line 1");
-                });
-
-                it("should return the contents of a multiple selection separated by newlines if allSelections is true", function () {
-                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
-                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
-                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
-                                                       ]);
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
 
@@ -641,6 +637,7 @@ define(function (require, exports, module) {
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 14}, head: {line: 2, ch: 8}}
                                                        ]);
+                    expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
             });
