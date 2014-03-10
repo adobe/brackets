@@ -265,31 +265,40 @@ define(function (require, exports, module) {
                     value: 42
                 };
                 
-                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage());
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage()),
+                    pm = new PreferencesBase.PreferencesSystem();
+                
+                // Explicitly create a PreferencesSystem and add the scope object to it
+                // so that we can call set/get functions on the PreferencesSystem instead
+                // of calling directly on scope object. Note that calling 'get' function on 
+                // scope object will not clone a preference object as it does in 'get' function
+                // on PreferencesSystem object.
+                pm.addScope("test", scope);
+                
                 // MemoryStorage operates synchronously
                 scope.load();
                 
-                expect(scope.set("foo", foo)).toBe(true);
+                expect(pm.set("foo", foo)).toBe(true);
                 
-                expect(scope.get("foo").value).toBe(42);
+                expect(pm.get("foo").value).toBe(42);
                 expect(scope._dirty).toBe(true);
 
                 // Explicitly save it in order to clear dirty flag.
-                scope.save();
+                pm.save();
                 expect(scope._dirty).toBe(false);
                                 
                 foo.value = "!!!";
                 expect(foo.value).toBe("!!!");
-                expect(scope.set("foo", foo)).toBe(true);
+                expect(pm.set("foo", foo)).toBe(true);
                 expect(scope._dirty).toBe(true);
                 
-                var fooCopyFromPref = scope.get("foo");
+                var fooCopyFromPref = pm.get("foo");
                 expect(fooCopyFromPref.value).toBe("!!!");
                 
                 // Add 'bar' to our local copy and then 
                 // verify that our change is not in the pref.
                 fooCopyFromPref.bar = "'bar' should not be in pref";
-                expect(scope.get("foo").bar).toBe(undefined);
+                expect(pm.get("foo").bar).toBe(undefined);
             });
 
             it("should remove the preference when setting it with 'undefined' value", function () {

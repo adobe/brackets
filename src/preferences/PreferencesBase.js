@@ -381,12 +381,12 @@ define(function (require, exports, module) {
                 layer = layers[layerCounter];
                 result = layer.get(data[layer.key], id, context);
                 if (result !== undefined) {
-                    return _.cloneDeep(result);
+                    return result;
                 }
             }
             
             if (this._exclusions.indexOf(id) === -1) {
-                return _.cloneDeep(data[id]);
+                return data[id];
             }
         },
         
@@ -1431,7 +1431,7 @@ define(function (require, exports, module) {
                 if (scope) {
                     var result = scope.get(id, context);
                     if (result !== undefined) {
-                        return result;
+                        return _.cloneDeep(result);
                     }
                 }
             }
