@@ -89,6 +89,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * File tree sorting for mac-specific sorting behavior
+     */
+    var _sortPrefixDir,
+        _sortPrefixFile;
+    
+    /**
+     * @private
      * File and folder names which are not displayed or searched
      * TODO: We should add the rest of the file names that TAR excludes:
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
@@ -193,6 +200,17 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     var _allFilesCachePromise = null;
+    
+    
+    /**
+     * @private
+     * Generates the prefixes used for sorting the files in the project tree
+     */
+    function _generateSortPrefixes() {
+        var dirFirst    = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir  = dirFirst ? "0" : "";
+        _sortPrefixFile = dirFirst ? "1" : "";
+    }
     
     /**
      * @private
@@ -688,26 +706,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns the prefix added to the filename used for sorting
-     * @param {boolean} isFolder
-     * @return {string}
-     */
-    function _getSortPrefix(isFolder) {
-        if (PreferencesManager.get("sortDirectoriesFirst")) {
-            return isFolder ? "0" : "1";
-        }
-        return "";
-    }
-    
-    /**
-     * @private
      * Generate a string suitable for sorting
      * @param {string} name
      * @param {boolean} isFolder
      * @return {string}
      */
     function _toCompareString(name, isFolder) {
-        return _getSortPrefix(isFolder) + name;
+        return (isFolder ? _sortPrefixDir : _sortPrefixFile) + name;
     }
     
     /**
@@ -1479,7 +1484,7 @@ define(function (require, exports, module) {
             if (typeof node === "string") {
                 node = {
                     data: node,
-                    metadata: { compareString: _getSortPrefix(false) + node }
+                    metadata: { compareString: _sortPrefixFile + node }
                 };
             }
             
@@ -2125,6 +2130,8 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    
+    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -2197,8 +2204,12 @@ define(function (require, exports, module) {
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
-    // Refresh the file tree when the sort pref changes
-    PreferencesManager.on("change", "sortDirectoriesFirst", refreshFileTree);
+    // Initialize the sort prefixes and make sure to change them when the sort pref changes
+    _generateSortPrefixes();
+    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
+        _generateSortPrefixes();
+        refreshFileTree();
+    });
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
