@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     
     
     // Define the preference to decide how to sort the Project Tree files
-    PreferencesManager.definePreference("sortDirsFirst", "boolean", false);
+    PreferencesManager.definePreference("sortDirectoriesFirst", "boolean", brackets.platform !== "mac");
     
     
     /**
@@ -693,10 +693,10 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _getSortPrefix(isFolder) {
-        if (brackets.platform === "mac" && !PreferencesManager.get("sortDirsFirst")) {
-            return "";
+        if (PreferencesManager.get("sortDirectoriesFirst")) {
+            return isFolder ? "0" : "1";
         }
-        return isFolder ? "0" : "1";
+        return "";
     }
     
     /**
@@ -2198,7 +2198,7 @@ define(function (require, exports, module) {
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
     // Refresh the file tree when the sort pref changes
-    PreferencesManager.on("change", "sortDirsFirst", refreshFileTree);
+    PreferencesManager.on("change", "sortDirectoriesFirst", refreshFileTree);
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
