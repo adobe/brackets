@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+  
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true  , indent: 4, maxerr: 50 */
 /*global define, $ */
 
 /**
@@ -260,6 +260,10 @@ define(function (require, exports, module) {
             recursiveWatch = impl.recursiveWatch,
             commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
+        if (!impl.fileWatchingEnabled) {
+            return;
+        }
+        
         if (recursiveWatch) {
             if (entry !== watchedRoot.entry) {
                 // Watch and unwatch calls to children of the watched root are

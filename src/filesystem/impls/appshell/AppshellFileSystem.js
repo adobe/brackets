@@ -567,6 +567,14 @@ define(function (require, exports, module) {
         (appshell.platform === "win" && navigator.userAgent.indexOf("Windows NT 5.") === -1));
     
     /**
+     * Indicates whether or not watching is available for the selected platform
+     *
+     * @type {boolean}
+     */
+    exports.fileWatchingEnabled = (navigator.userAgent.indexOf("Windows NT 5.") === -1);
+        
+    
+    /**
      * Indicates whether or not the filesystem should expect and normalize UNC
      * paths. If set, then //server/directory/ is a normalized path; otherwise the
      * filesystem will normalize it to /server/directory. Currently, UNC path 
