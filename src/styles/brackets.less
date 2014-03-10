@@ -514,12 +514,33 @@ a, img {
 /* Project panel */
 
 #working-set-header {
+    position: relative;
     height: 19px;
     padding: 10px 0 9px 12px;
     background: #3C3F41;
     color: @project-panel-text-2;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
     overflow: hidden;
+}
+
+#working-set-option-btn {
+    position: absolute;
+    right: 4px;
+    top: 7px;
+    border: 1px solid transparent;
+    padding: 4px 6px;
+    .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
+    background-position:center;
+    opacity: 0.8;
+}
+
+#working-set-option-btn:hover {
+    
+    border-radius: 3px;
+    border: 1px solid #2d2f31;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+    text-decoration: none;
+    opacity: 1;
 }
 
 #sidebar {
@@ -1169,6 +1190,26 @@ a, img {
         border-radius: 0;
     }
 }
+
+// File exclusion filter (used only in Find in Files search bar, for now)
+.filter-picker {
+    display: inline-block;
+    margin-left: 8px;
+    button {
+        margin-left: 8px;
+    }
+}
+
+// File exclusion filter editor dialog
+textarea.exclusions-editor {
+    display: block;
+    width: 547px;
+    height: 160px;
+    margin-top: 12px;
+    margin-bottom: 0;
+    .code-font();
+}
+
 
 // Search result highlighting - CodeMirror highlighting is pretty constrained. Highlights are
 // blended on TOP of the selection color. The "current" search result is indicated by selection,

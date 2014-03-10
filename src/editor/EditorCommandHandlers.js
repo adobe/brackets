@@ -592,11 +592,21 @@ define(function (require, exports, module) {
         var from,
             to,
             sel = editor.getSelection(),
-            doc = editor.document;
-
+            doc = editor.document,
+            endLine;
+        
         from = {line: sel.start.line, ch: 0};
-        to = {line: sel.end.line + 1, ch: 0};
-        if (to.line === editor.getLastVisibleLine() + 1) {
+        
+        // endLine is the line after the last one we want to delete.
+        endLine = sel.end.line + 1;
+        if (sel.start.line < sel.end.line && sel.end.ch === 0) {
+            // The selection is more than one line and ends right at the beginning
+            // of a line. In this case, we don't want to delete that last line - we
+            // only want to delete the one before it.
+            endLine--;
+        }
+        
+        if (endLine === editor.getLastVisibleLine() + 1) {
             // Instead of deleting the newline after the last line, delete the newline
             // before the first line--unless this is the entire visible content of the editor,
             // in which case just delete the line content.
@@ -604,8 +614,9 @@ define(function (require, exports, module) {
                 from.line -= 1;
                 from.ch = doc.getLine(from.line).length;
             }
-            to.line -= 1;
-            to.ch = doc.getLine(to.line).length;
+            to = {line: endLine - 1, ch: doc.getLine(endLine - 1).length};
+        } else {
+            to = {line: endLine, ch: 0};
         }
         
         doc.replaceRange("", from, to);

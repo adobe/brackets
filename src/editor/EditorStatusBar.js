@@ -143,16 +143,26 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
-    function _updateOverwriteLabel(event, editor, newstate) {
+    function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+        if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
+            // label already up-to-date
+            return;
+        }
+
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
-        
-        AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        }
     }
-    
-    function _updateEditorOverwriteMode() {
-        var editor = EditorManager.getActiveEditor();
-        
-        editor.toggleOverwrite(null);
+
+    function _updateEditorOverwriteMode(event) {
+        var editor = EditorManager.getActiveEditor(),
+            newstate = !editor._codeMirror.state.overwrite;
+
+        // update label with no transition
+        _updateOverwriteLabel(event, editor, newstate, true);
+        editor.toggleOverwrite(newstate);
     }
     
     function _initOverwriteMode(currentEditor) {
