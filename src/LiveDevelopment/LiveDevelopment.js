@@ -155,7 +155,17 @@ define(function LiveDevelopment(require, exports, module) {
     /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
     var _relatedDocuments = {};
     
-    var _openDeferred;        // promise returned for each call to open()
+    /**
+     * Promise returned for each call to open()
+     * @type {jQuery.Deferred}
+     */
+    var _openDeferred;
+    
+    /**
+     * Promise returned for each call to close()
+     * @type {jQuery.Deferred}
+     */
+    var _closeDeferred;
 
     // Disallow re-entrancy of loadAgents()
     var _loadAgentsPromise;
@@ -165,6 +175,10 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
+
+    function _isPromisePending(promise) {
+        return promise && promise.state() === "pending";
+    }
     
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -754,7 +768,8 @@ define(function LiveDevelopment(require, exports, module) {
             closePromise = new $.Deferred().resolve();
         }
 
-        closePromise.done(function () {
+        // Disconnect WebSocket if connected
+        closePromise.always(function () {
             if (Inspector.connected()) {
                 Inspector.disconnect().always(deferred.resolve);
             } else {
@@ -770,10 +785,19 @@ define(function LiveDevelopment(require, exports, module) {
      * Close the connection and the associated window asynchronously
      * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
      * @param {?string} reason Optional string key suffix to display to user (see LIVE_DEV_* keys)
-     * @return {jQuery.Promise} Resolves once the connection is closed
+     * @return {jQuery.Promise} Always return a resolved promise once the connection is closed
      */
     function _close(doCloseWindow, reason) {
-        var deferred = $.Deferred();
+        if (_closeDeferred) {
+            return _closeDeferred;
+        } else {
+            _closeDeferred = new $.Deferred();
+            _closeDeferred.always(function () {
+                _closeDeferred = null;
+            });
+        }
+
+        var promise = _closeDeferred.promise();
 
         /*
          * Finish closing the live development connection, including setting
@@ -785,27 +809,29 @@ define(function LiveDevelopment(require, exports, module) {
             var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
             closeDeferred.done(function () {
                 _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-                deferred.resolve();
+                _closeDeferred.resolve();
             }).fail(function (err) {
                 if (err) {
                     reason +=  " (" + err + ")";
                 }
                 _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-                deferred.resolve();
+                _closeDeferred.resolve();
             });
         }
         
-        if (_openDeferred && _openDeferred.state() === "pending") {
+        if (_isPromisePending(_openDeferred)) {
             // Reject calls to open if requests are still pending
             _openDeferred.reject();
-        } else if (exports.status === STATUS_INACTIVE) {
+        }
+
+        if (exports.status === STATUS_INACTIVE) {
             // Ignore close if status is inactive
-            deferred.resolve();
+            _closeDeferred.resolve();
         } else {
-            _doInspectorDisconnect(doCloseWindow).done(cleanup);
+            _doInspectorDisconnect(doCloseWindow).always(cleanup);
         }
         
-        return deferred.promise();
+        return promise;
     }
 
     // WebInspector Event: Page.frameNavigated
@@ -1180,14 +1206,24 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {jQuery.Promise} Resolves once live preview is open
      */
     function open(restart) {
-        if (!restart) {
-            _openDeferred = new $.Deferred();
+        // If close() is still pending, wait for close to finish before opening
+        if (_isPromisePending(_closeDeferred)) {
+            return _closeDeferred.then(function () {
+                return open(restart);
+            });
         }
-        
-        // Cleanup deferred when finished
-        _openDeferred.always(function () {
-            _openDeferred = null;
-        });
+
+        if (!restart) {
+            // Return existing promise if it is still pending
+            if (_isPromisePending(_openDeferred)) {
+                return _openDeferred;
+            } else {
+                _openDeferred = new $.Deferred();
+                _openDeferred.always(function () {
+                    _openDeferred = null;
+                });
+            }
+        }
         
         // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
