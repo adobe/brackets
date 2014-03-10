@@ -791,11 +791,13 @@ define(function LiveDevelopment(require, exports, module) {
         if (_closeDeferred) {
             return _closeDeferred;
         } else {
-            _closeDeferred = $.Deferred();
+            _closeDeferred = new $.Deferred();
             _closeDeferred.always(function () {
                 _closeDeferred = null;
             });
         }
+
+        var promise = _closeDeferred.promise();
 
         /*
          * Finish closing the live development connection, including setting
@@ -829,7 +831,7 @@ define(function LiveDevelopment(require, exports, module) {
             _doInspectorDisconnect(doCloseWindow).always(cleanup);
         }
         
-        return _closeDeferred.promise();
+        return promise;
     }
 
     // WebInspector Event: Page.frameNavigated
