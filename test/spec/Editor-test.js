@@ -605,27 +605,40 @@ define(function (require, exports, module) {
                 it("should return empty string for a cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.getSelectedText()).toEqual("");
+                    expect(myEditor.getSelectedText(true)).toEqual("");
                 });
                 
                 it("should return the contents of a single selection", function () {
-                    myEditor._codeMirror.setSelection({line: 0, ch: 8}, {line: 0, ch: 12});
-                    expect(myEditor.getSelectedText()).toEqual("line");
+                    myEditor._codeMirror.setSelection({line: 0, ch: 8}, {line: 0, ch: 14});
+                    expect(myEditor.getSelectedText()).toEqual("line 0");
+                    expect(myEditor.getSelectedText(true)).toEqual("line 0");
                 });
                 
-                it("should return the contents of a multiple selection, separated by newlines", function () {
-                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 12}},
-                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 12}},
-                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 12}}
+                it("should return the primary selection by default, but concatenate contents if allSelections is true", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
+                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
+                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
                                                        ]);
-                    expect(myEditor.getSelectedText()).toEqual("line\nline\nline");
+                    expect(myEditor.getSelectedText()).toEqual("line 2");
+                    expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
+                });
+
+                it("should return a primary selection other than the last", function () {
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
+                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
+                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
+                                                       ], 1);
+                    expect(myEditor.getSelectedText()).toEqual("line 1");
+                    expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
 
                 it("should return the contents of a multiple selection when some selections are reversed", function () {
-                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 12}, head: {line: 0, ch: 8}},
-                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 12}},
-                                                        {anchor: {line: 2, ch: 12}, head: {line: 2, ch: 8}}
+                    myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 14}, head: {line: 0, ch: 8}},
+                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
+                                                        {anchor: {line: 2, ch: 14}, head: {line: 2, ch: 8}}
                                                        ]);
-                    expect(myEditor.getSelectedText()).toEqual("line\nline\nline");
+                    expect(myEditor.getSelectedText()).toEqual("line 2");
+                    expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
             });
             
