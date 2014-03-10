@@ -84,9 +84,6 @@ define(function (require, exports, module) {
     /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
     var closeFindInFilesBar;
     
-    /** @type {?String} The (localized) title attribute of the #find-counter, including the shortcut */
-    var showInListTitle;
-    
     function SearchState() {
         this.searchStartPos = null;
         this.query = null;
@@ -278,14 +275,10 @@ define(function (require, exports, module) {
             state = getSearchState(cm);
         
         function indicateHasMatches(numResults) {
-            if (!showInListTitle) {
-                showInListTitle = Strings.FIND_SHOW_IN_LIST + " (" + KeyBindingManager.formatKeyDescriptor("Alt-Enter") + ")";
-            }
-            
             // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
             var query = $("#find-what").val();
             ViewUtils.toggleClass($("#find-what, #find-counter"), "no-results", !state.foundAny && query);
-            $("#find-counter").attr("title", (state.foundAny && query) ? showInListTitle : "");
+            $("#find-counter").attr("title", (state.foundAny && query) ? Strings.FIND_SHOW_IN_LIST + " (" + KeyBindingManager.formatKeyDescriptor("Alt-Enter") + ")" : "");
             
             // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
             $("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
@@ -377,7 +370,9 @@ define(function (require, exports, module) {
             var query = $("#find-what").val();
             modalBar.close(true, true);
             CommandManager.execute(Commands.EDIT_FIND_IN_SUBTREE, DocumentManager.getCurrentDocument().file, query);
+            return true;
         }
+        return false;
     }
     
     

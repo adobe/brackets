@@ -925,8 +925,8 @@ define(function (require, exports, module) {
      * @private
      * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
      * a find operation across all files in the project.
-     * @param {?Entry=} scope  Project file/subfolder to search within; else searches whole project.
-    * @param {?string=} query - The query to search for; else asks for the query
+     * @param {Entry=} scope  Project file/subfolder to search within; else searches whole project.
+     * @param {string=} query The query to search for; else asks for the query
      */
     function _doFindInFiles(scope, query) {
         // If the scope is a file with a custom viewer, then we
@@ -980,12 +980,11 @@ define(function (require, exports, module) {
     
     /**
      * Search within the file/subtree defined by the sidebar selection
-     * @param {?Entry=} scope - Project file/subfolder to search within; else takes entry selected in file tree.
-     * @param {?string=} query - The query to search for; else asks for the query
+     * @param {Entry=} scope Project file/subfolder to search within; else takes entry selected in file tree.
+     * @param {string=} query The query to search for; else asks for the query
      */
     function _doFindInSubtree(scope, query) {
         scope = scope || ProjectManager.getSelectedItem();
-        query = query || undefined;
         _doFindInFiles(scope, query);
     }
     
