@@ -966,7 +966,8 @@ define(function (require, exports, module) {
         currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
-<<<<<<< HEAD
+
+        exports._searchResults = null;  // for unit tests
 
         if (query) {
             StatusBar.showBusyIndicator(true);
@@ -975,11 +976,6 @@ define(function (require, exports, module) {
         } else {
             dialog.showDialog(initialString, scope);
         }
-=======
-        exports._searchResults = null;  // for unit tests
-                            
-        dialog.showDialog(initialString, scope);
->>>>>>> upstream/master
     }
     
     /**
