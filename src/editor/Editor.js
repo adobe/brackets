@@ -66,6 +66,7 @@ define(function (require, exports, module) {
     
     var Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
+        PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
@@ -1282,25 +1283,32 @@ define(function (require, exports, module) {
             $(self).off(".msgbox");
         }
 
+        // PopUpManager.removePopUp() callback
         function _clearMessagePopover() {
             if (self._$messagePopover && self._$messagePopover.length > 0) {
-                self._$messagePopover.remove();
+                // self._$messagePopover.remove() is done by PopUpManager
                 self._$messagePopover = null;
             }
             _removeListeners();
         }
         
+        // PopUpManager.removePopUp() is called either directly by this closure, or by
+        // PopUpManager as a result of another popup being invoked.
+        function _removeMessagePopover() {
+            PopUpManager.removePopUp(self._$messagePopover);
+        }
+
         function _addListeners() {
             $(self)
-                .on("blur.msgbox",           _clearMessagePopover)
-                .on("change.msgbox",         _clearMessagePopover)
-                .on("cursorActivity.msgbox", _clearMessagePopover)
-                .on("update.msgbox",         _clearMessagePopover);
+                .on("blur.msgbox",           _removeMessagePopover)
+                .on("change.msgbox",         _removeMessagePopover)
+                .on("cursorActivity.msgbox", _removeMessagePopover)
+                .on("update.msgbox",         _removeMessagePopover);
         }
 
         // Only 1 message at a time
         if (this._$messagePopover) {
-            _clearMessagePopover();
+            _removeMessagePopover();
         }
         
         // Make sure cursor is in view
@@ -1357,6 +1365,7 @@ define(function (require, exports, module) {
         }
 
         // Add listeners
+        PopUpManager.addPopUp(this._$messagePopover, _clearMessagePopover, true);
         _addListeners();
 
         // Animate open
@@ -1367,11 +1376,11 @@ define(function (require, exports, module) {
 
                 // Don't add scroll listeners until open so we don't get event
                 // from scrolling cursor into view
-                $(self).on("scroll.msgbox", _clearMessagePopover);
+                $(self).on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
                 AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
-                    .done(_clearMessagePopover);
+                    .done(_removeMessagePopover);
             }
         });
     };
