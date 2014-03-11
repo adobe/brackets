@@ -188,11 +188,13 @@ define(function (require, exports, module) {
         }
     }
     
-    
+    /** Remove listeners that were tracking potential search result changes */
     function _removeListeners() {
         $(DocumentModule).off(".findInFiles");
         FileSystem.off("change", _fileSystemChangeHandler);
     }
+    
+    /** Add listeners to track events that might change the search result set */
     function _addListeners() {
         // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
         _removeListeners();
@@ -211,7 +213,6 @@ define(function (require, exports, module) {
         }
         _removeListeners();
     }
-    
     
     /**
      * @private
