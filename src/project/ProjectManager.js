@@ -994,7 +994,7 @@ define(function (require, exports, module) {
                     if (err !== FileSystemError.FILE_WATCHING_DISABLED) {
                         result.reject();
                     } else {
-                       result.resolve();
+                        result.resolve();
                     }
                 } else {
                     result.resolve();
