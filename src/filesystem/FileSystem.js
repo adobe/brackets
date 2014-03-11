@@ -720,7 +720,8 @@ define(function (require, exports, module) {
             if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
                 this._index.visitAll(function (entry) {
                     if (entry.fullPath.indexOf(directory.fullPath) === 0) {
-                        entry._clearCachedData();
+                        // Passing 'true' for a similar reason as in _unwatchEntry() - see #7150
+                        entry._clearCachedData(true);
                     }
                 }.bind(this));
                 
