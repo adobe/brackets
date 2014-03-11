@@ -86,6 +86,7 @@ define(function (require, exports, module) {
         STYLE_ACTIVE_LINE = "styleActiveLine",
         WORD_WRAP         = "wordWrap",
         CLOSE_TAGS        = "closeTags",
+        SOFT_TABS         = "softTabs",
         cmOptions         = {};
     
     // Mappings from Brackets preferences to CodeMirror options
@@ -108,6 +109,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
     PreferencesManager.definePreference(CLOSE_TAGS, "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(SOFT_TABS, "boolean", true);
     
     var editorOptions = [SMART_INDENT, USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
                           SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP, CLOSE_TAGS];
@@ -447,7 +449,7 @@ define(function (require, exports, module) {
         var instance = this._codeMirror,
             overallJump = null;
         
-        if (!instance.getOption("indentWithTabs")) {
+        if (!instance.getOption("indentWithTabs") && PreferencesManager.get(SOFT_TABS)) {
             var indentUnit = instance.getOption("indentUnit");
             
             _.each(this.getSelections(), function (sel) {
