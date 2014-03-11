@@ -41,10 +41,11 @@ define(function (require, exports, module) {
         "de": true,
         "el": true,
         "es": true,
-		"fa-ir": true,
+	"fa-ir": true,
         "fi": true,
         "fr": true,
         "hu": true,
+        "id": true,
         "it": true,
         "ja": true,
         "ko": true,
@@ -60,6 +61,5 @@ define(function (require, exports, module) {
         "sv": true,
         "tr": true,
         "zh-cn": true,
-        "id": true
     };
 });
