@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, window, jasmine, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,7 +32,8 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        MockFileSystemImpl  = require("./MockFileSystemImpl");
+        MockFileSystemImpl  = require("./MockFileSystemImpl"),
+        Async               = require("utils/Async");
     
     
     describe("FileSystem", function () {
@@ -1342,13 +1343,70 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should invalidate cached data after unwatch", function () {
+            it("should recursively invalidate cached data after unwatch", function () {
+                var file1       = fileSystem.getFileForPath("/file1.txt"),
+                    subdir      = fileSystem.getDirectoryForPath("/subdir"),
+                    file4       = fileSystem.getFileForPath("/subdir/file4.txt"),
+                    childSubdir = fileSystem.getDirectoryForPath("/subdir/child"),
+                    file5       = fileSystem.getFileForPath("/subdir/child/file5.txt"),
+                    entries     = [file1, subdir, file4, childSubdir, file5],
+                    unwatchCb   = errorCallback();
+                
+                runs(function () {
+                    var readAllPromise = Async.doInParallel(entries, function (entry) {
+                        // Confirm watched and no cached data yet
+                        expect(entry._isWatched()).toBe(true);
+                        expect(entry._contents).toBeFalsy();
+                        
+                        // Read contents
+                        var result = new $.Deferred(),
+                            cb = function (err, contents) {
+                                expect(err).toBeFalsy();
+                                result.resolve();
+                            };
+                        if (entry.isFile) {
+                            entry.read(cb);
+                        } else {
+                            entry.getContents(cb);
+                        }
+                        return result;
+                    });
+                        
+                    waitsForDone(readAllPromise);
+                });
+                runs(function () {
+                    // Confirm all entries now have cached data
+                    entries.forEach(function (entry) {
+                        expect(entry._contents).toBeTruthy();
+                    });
+                    
+                    // Unwatch and count how many visitAll() calls it took
+                    spyOn(fileSystem._index, "visitAll").andCallThrough();
+                    
+                    fileSystem.unwatch(fileSystem.getDirectoryForPath("/"), unwatchCb);
+                });
+                waitsFor(function () { return unwatchCb.wasCalled; });
+                
+                runs(function () {
+                    // Confirm visitAll() didn't traverse the whole index multiple times (#7150).
+                    // One call expected for _unwatchEntry() calling _clearCachedData(), one for unwatch() calling removeEntry().
+                    expect(fileSystem._index.visitAll.callCount).toBe(2);
+                    
+                    // Confirm all entries have become uncached
+                    entries.forEach(function (entry) {
+                        expect(entry._isWatched()).toBe(false);
+                        expect(entry._contents).toBeFalsy();
+                    });
+                });
+            });
+            
+            it("should invalidate cached data after unwatch, but allow read again", function () {
                 var file,
                     cb0 = readCallback(),
                     cb1 = errorCallback(),
                     cb2 = readCallback(),
                     savedHash;
-
+                
                 // confirm watched and empty cached data
                 runs(function () {
                     file = fileSystem.getFileForPath(filename);
@@ -1387,6 +1445,7 @@ define(function (require, exports, module) {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.data).toBe(cb0.data);
                     expect(file._isWatched()).toBe(false);
+                    expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeTruthy();
                     expect(readCalls).toBe(2);
                 });
