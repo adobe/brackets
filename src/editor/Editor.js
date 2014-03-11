@@ -375,66 +375,131 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Helper function for `_handleTabKey()` (case 2) - see comment in that function.
+     * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
+     *     The selections to indent.
+     */
+    Editor.prototype._addIndentAtEachSelection = function (selections) {
+        var instance = this._codeMirror,
+            usingTabs = instance.getOption("indentWithTabs"),
+            indentUnit = instance.getOption("indentUnit"),
+            edits = [];
+        
+        _.each(selections, function (sel) {
+            var indentStr = "", i, numSpaces;
+            if (usingTabs) {
+                indentStr = "\t";
+            } else {
+                numSpaces = indentUnit - (sel.start.ch % indentUnit);
+                for (i = 0; i < numSpaces; i++) {
+                    indentStr += " ";
+                }
+            }
+            edits.push({edit: {text: indentStr, start: sel.start}});
+        });
+        
+        this.document.doMultipleEdits(edits);
+    };
+    
+    /**
+     * @private
+     * Helper function for `_handleTabKey()` (case 3) - see comment in that function.
+     * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
+     *     The selections to indent.
+     */
+    Editor.prototype._autoIndentEachSelection = function (selections) {
+        // Capture all the line lengths, so we can tell if anything changed.
+        // Note that this function should only be called if all selections are within a single line.
+        var instance = this._codeMirror,
+            lineLengths = {};
+        _.each(selections, function (sel) {
+            lineLengths[sel.start.line] = instance.getLine(sel.start.line).length;
+        });
+        
+        // First, try to do a smart indent on all selections.
+        CodeMirror.commands.indentAuto(instance);
+        
+        // If there were no code or selection changes, then indent each selection one more indent.
+        var changed = false,
+            newSelections = this.getSelections();
+        if (newSelections.length === selections.length) {
+            _.each(selections, function (sel, index) {
+                var newSel = newSelections[index];
+                if (CodeMirror.cmpPos(sel.start, newSel.start) !== 0 ||
+                        CodeMirror.cmpPos(sel.end, newSel.end) !== 0 ||
+                        instance.getLine(sel.start.line).length !== lineLengths[sel.start.line]) {
+                    changed = true;
+                    // Bail - we don't need to look any further once we've found a change.
+                    return false;
+                }
+            });
+        } else {
+            changed = true;
+        }
+        
+        if (!changed) {
+            CodeMirror.commands.indentMore(instance);
+        }
+    };
+    
+    /**
+     * @private
      * Handle Tab key press.
      * @param {!CodeMirror} instance CodeMirror instance.
      */
     Editor.prototype._handleTabKey = function () {
         // Tab key handling is done as follows:
-        // 1. If the selection is before any text and the indentation is to the left of
-        //    the proper indentation then indent it to the proper place. Otherwise,
-        //    add another tab. In either case, move the insertion point to the
-        //    beginning of the text.
-        // 2. If the selection is multi-line, indent all the lines.
-        // 3. If the selection is after the first non-space character, and is an
-        //    insertion point, insert a tab character or the appropriate number
-        //    of spaces to pad to the nearest tab boundary.
-        var instance = this._codeMirror,
-            from = this.getCursorPos(false, "start"),
-            to = this.getCursorPos(false, "end"),
-            line = instance.getLine(from.line),
-            indentAuto = false,
-            insertTab = false;
+        // 1. If any of the selections are multiline, just add one indent level to the 
+        //    beginning of all lines that intersect any selection.
+        // 2. Otherwise, if any of the selections is a cursor or single-line range that 
+        //    ends at or after the first non-whitespace character in a line:
+        //    - if indentation is set to tabs, just insert a hard tab before each selection.
+        //    - if indentation is set to spaces, insert the appropriate number of spaces before
+        //      each selection to get to its next soft tab stop.
+        // 3. Otherwise (all selections are cursors or single-line, and are in the whitespace 
+        //    before their respective lines), try to autoindent each line based on the mode.
+        //    If none of the cursors moved and no space was added, then add one indent level
+        //    to the beginning of all lines.
         
-        if (from.line === to.line) {
-            if (line.search(/\S/) > to.ch || to.ch === 0) {
-                indentAuto = true;
-            }
-        }
+        // Note that in case 2, we do the "dumb" insertion even if the cursor is immediately
+        // before the first non-whitespace character in a line. It might seem more convenient
+        // to do autoindent in that case. However, the problem is if that line is already
+        // indented past its "proper" location. In that case, we don't want Tab to
+        // *outdent* the line. If we had more control over the autoindent algorithm or
+        // implemented it ourselves, we could handle that case separately.
 
-        if (indentAuto) {
-            var currentLength = line.length;
-            CodeMirror.commands.indentAuto(instance);
-            
-            // If the amount of whitespace and the cursor position didn't change, we must have
-            // already been at the correct indentation level as far as CM is concerned, so insert 
-            // another tab.
-            if (instance.getLine(from.line).length === currentLength) {
-                var newFrom = this.getCursorPos(false, "start"),
-                    newTo = this.getCursorPos(false, "end");
-                if (newFrom.line === from.line && newFrom.ch === from.ch &&
-                        newTo.line === to.line && newTo.ch === to.ch) {
-                    insertTab = true;
-                    to.ch = 0;
-                }
+        var instance = this._codeMirror,
+            selectionType = "indentAuto",
+            selections = this.getSelections();
+
+        _.each(selections, function (sel) {
+            if (sel.start.line !== sel.end.line) {
+                // Case 1 - we found a multiline selection. We can bail as soon as we find one of these.
+                selectionType = "indentAtBeginning";
+                return false;
+            } else if (sel.end.ch >= instance.getLine(sel.end.line).search(/\S/)) {
+                // Case 2 - we found a selection that ends at or after the first non-whitespace
+                // character on the line. We need to keep looking in case we find a later multiline
+                // selection though.
+                selectionType = "indentAtSelection";
             }
-        } else if (instance.somethingSelected() && from.line !== to.line) {
-            CodeMirror.commands.indentMore(instance);
-        } else {
-            insertTab = true;
-        }
+        });
         
-        if (insertTab) {
-            var ins = "";
-            if (instance.getOption("indentWithTabs")) {
-                ins = "\t";
-            } else {
-                var i, numSpaces = instance.getOption("indentUnit");
-                numSpaces -= from.ch % numSpaces;
-                for (i = 0; i < numSpaces; i++) {
-                    ins += " ";
-                }
-            }
-            instance.replaceRange(ins, from);
+        switch (selectionType) {
+        case "indentAtBeginning":
+            // Case 1
+            CodeMirror.commands.indentMore(instance);
+            break;
+                
+        case "indentAtSelection":
+            // Case 2
+            this._addIndentAtEachSelection(selections);
+            break;
+                
+        case "indentAuto":
+            // Case 3
+            this._autoIndentEachSelection(selections);
+            break;
         }
     };
     

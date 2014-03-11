@@ -1326,7 +1326,7 @@ define(function (require, exports, module) {
 
             it("should indent improperly indented line to proper level and move cursor to beginning of content if cursor is in whitespace before content - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "    if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
                     "}";
@@ -1342,7 +1342,7 @@ define(function (require, exports, module) {
 
             it("should indent improperly indented line to proper level and move cursor to beginning of content if cursor is in whitespace before content - tabs", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
                     "}";
@@ -1356,41 +1356,41 @@ define(function (require, exports, module) {
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
 
-            it("should indent improperly indented line to proper level and move cursor to beginning of content if cursor is immediately before content - spaces", function () {
+            it("should add one indent level (not autoindent) if cursor is immediately before content - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "        if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
                     "}";
                 makeEditor(content);
-                myEditor.setCursorPos({line: 2, ch: 4});
+                myEditor.setCursorPos({line: 1, ch: 8});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 12}, end: {line: 1, ch: 12}, reversed: false});
                 
                 var lines = content.split("\n");
-                lines[2] = "        indentme();";
+                lines[1] = "            if (bar) {";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
 
-            it("should indent improperly indented line to proper level and move cursor to beginning of content if cursor is immediately before content - tabs", function () {
+            it("should add one indent level (not autoindent) if cursor is immediately before content - tabs", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\t\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
                     "}";
                 makeEditor(content, true);
-                myEditor.setCursorPos({line: 2, ch: 1});
+                myEditor.setCursorPos({line: 1, ch: 2});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
                 
                 var lines = content.split("\n");
-                lines[2] = "\t\tindentme();";
+                lines[1] = "\t\t\tif (bar) {";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
             
             it("should move cursor and not indent further if cursor is in whitespace before properly indented line - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "    if (bar) {\n" +
                     "        indentme();\n" +
                     "    }\n" +
                     "}";
@@ -1403,7 +1403,7 @@ define(function (require, exports, module) {
 
             it("should move cursor and not indent further if cursor is in whitespace before properly indented line - tabs", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\tif (bar) {\n" +
                     "\t\tindentme();\n" +
                     "\t}\n" +
                     "}";
@@ -1416,7 +1416,7 @@ define(function (require, exports, module) {
 
             it("should add an indent level if cursor is immediately before content on properly indented line - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "    if (bar) {\n" +
                     "        indentme();\n" +
                     "    }\n" +
                     "}";
@@ -1432,7 +1432,7 @@ define(function (require, exports, module) {
 
             it("should add an indent level if cursor is immediately before content on properly indented line - tabs", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\tif (bar) {\n" +
                     "\t\tindentme();\n" +
                     "\t}\n" +
                     "}";
@@ -1448,7 +1448,7 @@ define(function (require, exports, module) {
             
             it("should add an indent level to each line (regardless of existing indentation) if selection spans multiple lines - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "    if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
                     "}",
@@ -1467,7 +1467,7 @@ define(function (require, exports, module) {
             
             it("should add an indent level to each line (regardless of existing indentation) if selection spans multiple lines - tabs", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
                     "}",
@@ -1486,7 +1486,7 @@ define(function (require, exports, module) {
             
             it("should add spaces to indent to the next soft tab stop if cursor is in the middle of a line after non-whitespace content - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "    if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
                     "}",
@@ -1503,7 +1503,7 @@ define(function (require, exports, module) {
             
             it("should insert a tab if cursor is in the middle of a line after non-whitespace content - tab", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
                     "}",
@@ -1520,7 +1520,7 @@ define(function (require, exports, module) {
             
             it("should add spaces to next soft tab before the beginning of the selection if it's a range in the middle of a line after non-whitespace content - spaces", function () {
                 var content = "function foo() {\n" +
-                    "    if (bar)\n" +
+                    "    if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
                     "}",
@@ -1537,7 +1537,7 @@ define(function (require, exports, module) {
             
             it("should add a tab before the beginning of the selection if it's a range in the middle of a line after non-whitespace content - tabs", function () {
                 var content = "function foo() {\n" +
-                    "\tif (bar)\n" +
+                    "\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
                     "}",
@@ -1552,6 +1552,267 @@ define(function (require, exports, module) {
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
 
+            describe("with multiple selections", function () {
+                // In some of these tests we force a selection other than the last to be primary if the last selection is the
+                // one that triggers the behavior - so our code can't just cheat and rely on the primary selection.
+
+                // Note that a side-effect of the way CM adds indent levels is that ends of ranges that are within the
+                // whitespace at the beginning of the line get pushed to the first non-whitespace character on the line,
+                // so in tests below that fall back to "add one indent level before each line", the selections might change
+                // more than you would expect by just adding a single indent level.
+                
+                it("should add one indent level before all selected lines if any of the selections is multiline - spaces", function () {
+                    var content = "function foo() {\n" +
+                        "    if (bar) {\n" +
+                        "    indentme();\n" +
+                        "    }\n" +
+                        "}",
+                        i;
+                    makeEditor(content);
+                    myEditor.setSelections([{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: true},
+                                            {start: {line: 2, ch: 6}, end: {line: 3, ch: 3}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 13}, end: {line: 0, ch: 13}, primary: true, reversed: false},
+                                                              {start: {line: 2, ch: 10}, end: {line: 3, ch: 8}, primary: false, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[0] = "    " + lines[0];
+                    lines[2] = "    " + lines[2];
+                    lines[3] = "    " + lines[3];
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should add one indent level before all selected lines if any of the selections is multiline - tabs", function () {
+                    var content = "function foo() {\n" +
+                        "\tif (bar) {\n" +
+                        "\tindentme();\n" +
+                        "\t}\n" +
+                        "}",
+                        i;
+                    makeEditor(content, true);
+                    myEditor.setSelections([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true},
+                                            {start: {line: 2, ch: 3}, end: {line: 3, ch: 1}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 7}, end: {line: 0, ch: 7}, primary: true, reversed: false},
+                                                              {start: {line: 2, ch: 4}, end: {line: 3, ch: 2}, primary: false, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[0] = "\t" + lines[0];
+                    lines[2] = "\t" + lines[2];
+                    lines[3] = "\t" + lines[3];
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+
+                it("should add spaces before each cursor to get to next tab stop if any selection is after first non-whitespace character in its line - spaces", function () {
+                    var content = "function foo() {\n" +
+                        "    if (bar) {\n" +
+                        "    indentme();\n" +
+                        "    }\n" +
+                        "}",
+                        i;
+                    makeEditor(content);
+                    myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 3}},
+                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
+                                            {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false},
+                                                              {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, primary: true, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[0] = "fun ction foo() {";
+                    lines[2] = "    in  dentme();";
+                    lines[3] = "      }";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should add a tab before each cursor if any selection is after first non-whitespace character in its line - tabs", function () {
+                    var content = "function foo() {\n" +
+                        "\tif (bar) {\n" +
+                        "\tindentme();\n" +
+                        "\t}\n" +
+                        "}",
+                        i;
+                    makeEditor(content, true);
+                    myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 3}},
+                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
+                                            {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                                                              {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: false, reversed: false},
+                                                              {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[0] = "fun\tction foo() {";
+                    lines[2] = "\tinden\ttme();";
+                    lines[3] = "\t\t}";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should add spaces before beginning of each range to get to next tab stop if any selection is after first non-whitespace character in its line - spaces", function () {
+                    var content = "function foo() {\n" +
+                        "    if (bar) {\n" +
+                        "    indentme();\n" +
+                        "    }\n" +
+                        "}",
+                        i;
+                    makeEditor(content);
+                    myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 6}},
+                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
+                                            {start: {line: 3, ch: 2}, end: {line: 3, ch: 4}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
+                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
+                                                              {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[0] = "fun ction foo() {";
+                    lines[2] = "    in  dentme();";
+                    lines[3] = "      }";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should add a tab before beginning of each range if any selection is after first non-whitespace character in its line - tabs", function () {
+                    var content = "function foo() {\n" +
+                        "\tif (bar) {\n" +
+                        "\tindentme();\n" +
+                        "\t}\n" +
+                        "}",
+                        i;
+                    makeEditor(content, true);
+                    myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 6}},
+                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
+                                            {start: {line: 3, ch: 1}, end: {line: 3, ch: 2}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
+                                                              {start: {line: 2, ch: 7}, end: {line: 2, ch: 10}, primary: false, reversed: false},
+                                                              {start: {line: 3, ch: 2}, end: {line: 3, ch: 3}, primary: true, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[0] = "fun\tction foo() {";
+                    lines[2] = "\tinden\ttme();";
+                    lines[3] = "\t\t}";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should add spaces before each cursor to get to next tab stop (not autoindent) if any selection is exactly before the first non-whitespace character on the line - spaces", function () {
+                    var content = "function foo() {\n" +
+                        "    if (bar) {\n" +
+                        "    indentme();\n" +
+                        "    }\n" +
+                        "}",
+                        i;
+                    makeEditor(content);
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true}, // should not move
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]); // should get indented and move
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: false},
+                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[1] = "        if (bar) {";
+                    lines[2] = "        indentme();";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should add a tab at each cursor (not autoindent) if any selection is exactly before the first non-whitespace character on the line - tabs", function () {
+                    var content = "function foo() {\n" +
+                        "\tif (bar) {\n" +
+                        "\tindentme();\n" +
+                        "\t}\n" +
+                        "}",
+                        i;
+                    makeEditor(content, true);
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true}, // should not move
+                                            {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}}]); // should get indented and move
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
+                                                              {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[1] = "\t\tif (bar) {";
+                    lines[2] = "\t\tindentme();";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+
+                it("should try to autoindent each line if all cursors are in start-of-line whitespace, and if at least one cursor changed position or indent was added, do nothing further - spaces", function () {
+                    var content = "function foo() {\n" +
+                        "    if (bar) {\n" +
+                        "    indentme();\n" +
+                        "    }\n" +
+                        "}",
+                        i;
+                    makeEditor(content);
+                    myEditor.setSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true}, // should not move
+                                            {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]); // should get indented and move
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true, reversed: false},
+                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[2] = "        indentme();";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should try to autoindent each line if all cursors are in start-of-line whitespace, and if at least one cursor changed position or indent was added, do nothing further - tabs", function () {
+                    var content = "function foo() {\n" +
+                        "\tif (bar) {\n" +
+                        "\tindentme();\n" +
+                        "\t}\n" +
+                        "}",
+                        i;
+                    makeEditor(content, true);
+                    myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true}, // should not move
+                                            {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}]); // should get indented and move
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true, reversed: false},
+                                                              {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[2] = "\t\tindentme();";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+
+                it("should try to autoindent each line if all cursors are in start-of-line whitespace, but if no cursors changed position or added indent, add an indent to the beginning of each line - spaces", function () {
+                    var content = "function foo() {\n" +
+                        "    if (bar) {\n" +
+                        "        indentme();\n" + // indent already correct
+                        "    }\n" +
+                        "}",
+                        i;
+                    makeEditor(content);
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                            {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
+                                                              {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[1] = "        if (bar) {";
+                    lines[2] = "            indentme();";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+                
+                it("should try to autoindent each line if all cursors are in start-of-line whitespace, but if no cursors changed position or added indent, add an indent to the beginning of each line - tabs", function () {
+                    var content = "function foo() {\n" +
+                        "\tif (bar) {\n" +
+                        "\t\tindentme();\n" + // indent already correct
+                        "\t}\n" +
+                        "}",
+                        i;
+                    makeEditor(content, true);
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                            {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]);
+                    myEditor._handleTabKey();
+                    expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                                                              {start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: true, reversed: false}]);
+
+                    var lines = content.split("\n");
+                    lines[1] = "\t\tif (bar) {";
+                    lines[2] = "\t\t\tindentme();";
+                    expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+                });
+            });
         });
     });
 });
