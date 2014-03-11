@@ -276,9 +276,11 @@ define(function (require, exports, module) {
         
         function indicateHasMatches(numResults) {
             // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
-            var query = $("#find-what").val();
+            var query           = $("#find-what").val(),
+                showInListTitle = Strings.FIND_SHOW_IN_LIST + " (" + KeyBindingManager.formatKeyDescriptor("Alt-Enter") + ")";
+            
             ViewUtils.toggleClass($("#find-what, #find-counter"), "no-results", !state.foundAny && query);
-            $("#find-counter").attr("title", (state.foundAny && query) ? Strings.FIND_SHOW_IN_LIST + " (" + KeyBindingManager.formatKeyDescriptor("Alt-Enter") + ")" : "");
+            $("#find-counter").attr("title", (state.foundAny && query) ? showInListTitle : "");
             
             // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
             $("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
@@ -370,9 +372,7 @@ define(function (require, exports, module) {
             var query = $("#find-what").val();
             modalBar.close(true, true);
             CommandManager.execute(Commands.EDIT_FIND_IN_SUBTREE, DocumentManager.getCurrentDocument().file, query);
-            return true;
         }
-        return false;
     }
     
     
