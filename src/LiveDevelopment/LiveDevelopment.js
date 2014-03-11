@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, open */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -104,12 +104,14 @@ define(function LiveDevelopment(require, exports, module) {
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
 
     // Agents
+    var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
+    
     var agents = {
         "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
         "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
         "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
         "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
-        "css"       : require("LiveDevelopment/Agents/CSSAgent"),
+        "css"       : CSSAgent,
         "script"    : require("LiveDevelopment/Agents/ScriptAgent"),
         "highlight" : require("LiveDevelopment/Agents/HighlightAgent"),
         "goto"      : require("LiveDevelopment/Agents/GotoAgent"),
@@ -147,15 +149,36 @@ define(function LiveDevelopment(require, exports, module) {
     // store the names (matching property names in the 'agent' object) of agents that we've loaded
     var _loadedAgentNames = [];
 
-    var _liveDocument;        // the document open for live editing.
-    var _relatedDocuments;    // CSS and JS documents that are used by the live HTML document
-    var _openDeferred;        // promise returned for each call to open()
+    /** @type {HTMLDocument} */
+    var _liveDocument;
+    
+    /** @type {Object.<string: {HTMLDocument|CSSDocument}>} */
+    var _relatedDocuments = {};
+    
+    /**
+     * Promise returned for each call to open()
+     * @type {jQuery.Deferred}
+     */
+    var _openDeferred;
+    
+    /**
+     * Promise returned for each call to close()
+     * @type {jQuery.Deferred}
+     */
+    var _closeDeferred;
+
+    // Disallow re-entrancy of loadAgents()
+    var _loadAgentsPromise;
     
     /**
      * Current live preview server
      * @type {BaseServer}
      */
     var _server;
+
+    function _isPromisePending(promise) {
+        return promise && promise.state() === "pending";
+    }
     
     function _isHtmlFileExt(ext) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
@@ -201,23 +224,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
         return getLiveDocForPath(editor.document.file.fullPath);
     }
-    
-    /**
-     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
-     * given file is no longer associated with the HTML document that is live (e.g.
-     * if the related file has been deleted on disk).
-     */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
-        var index = _relatedDocuments.indexOf(liveDoc);
-        
-        if (index !== -1) {
-            _relatedDocuments.splice(index, 1);
-            
-            if (_server) {
-                _server.remove(liveDoc);
-            }
-        }
-    }
 
     /**
      * @private
@@ -245,6 +251,38 @@ define(function LiveDevelopment(require, exports, module) {
                 liveDocument.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
             }
         });
+    }
+
+    /**
+     * @private
+     * Close a live document
+     */
+    function _closeDocument(liveDocument) {
+        _doClearErrors(liveDocument);
+        liveDocument.close();
+        
+        if (liveDocument.editor) {
+            $(liveDocument.editor).off(".livedev");
+        }
+        
+        $(liveDocument).off(".livedev");
+    }
+    
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        if (_relatedDocuments[liveDoc.doc.url]) {
+            delete _relatedDocuments[liveDoc.doc.url];
+        }
+            
+        if (_server) {
+            _server.remove(liveDoc);
+        }
+        
+        _closeDocument(liveDoc);
     }
 
     /**
@@ -307,21 +345,6 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * Close a live document
-     */
-    function _closeDocument(liveDocument) {
-        _doClearErrors(liveDocument);
-        liveDocument.close();
-        
-        if (liveDocument.editor) {
-            $(liveDocument.editor).off(".livedev");
-        }
-        
-        $(liveDocument).off(".livedev");
-    }
-
-    /**
-     * @private
      * Close all live documents
      */
     function _closeDocuments() {
@@ -330,13 +353,10 @@ define(function LiveDevelopment(require, exports, module) {
             _liveDocument = undefined;
         }
         
-        if (_relatedDocuments) {
-            _relatedDocuments.forEach(function (liveDoc) {
-                _closeDocument(liveDoc);
-            });
-            
-            _relatedDocuments = undefined;
-        }
+        Object.keys(_relatedDocuments).forEach(function (url) {
+            _closeDocument(_relatedDocuments[url]);
+            delete _relatedDocuments[url];
+        });
         
         // Clear all documents from request filtering
         if (_server) {
@@ -364,55 +384,6 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         return liveDocument;
-    }
-    
-    /**
-     * @private
-     * Populate array of related documents reported by the browser agent(s)
-     */
-    function _getRelatedDocuments() {
-        function createLiveStylesheet(url) {
-            var stylesheetDeferred  = $.Deferred(),
-                promise             = stylesheetDeferred.promise(),
-                path                = _server && _server.urlToPath(url);
-
-            // path may be null if loading an external stylesheet
-            if (path) {
-                DocumentManager.getDocumentForPath(path)
-                    .fail(function () {
-                        // A failure to open a related file is benign
-                        stylesheetDeferred.resolve();
-                    })
-                    .done(function (doc) {
-                        // CSSAgent includes containing HTMLDocument in list returned
-                        // from getStyleSheetURLS() (which could be useful for collecting
-                        // embedded style sheets) but we need to filter doc out here.
-                        if ((_classForDocument(doc) === CSSDocument) &&
-                                (!_liveDocument || (doc !== _liveDocument.doc))) {
-                            var liveDoc = _createDocument(doc);
-                            if (liveDoc) {
-                                _relatedDocuments.push(liveDoc);
-                                _server.add(liveDoc);
-                                
-                                $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
-                            }
-                        }
-                        stylesheetDeferred.resolve();
-                    });
-            } else {
-                stylesheetDeferred.resolve();
-            }
-
-            return promise;
-        }
-
-        // Gather related CSS documents.
-        // FUTURE: Gather related JS documents as well.
-        _relatedDocuments = [];
-        
-        return Async.doInParallel(agents.css.getStylesheetURLs(),
-                                  createLiveStylesheet,
-                                  false); // don't fail fast
     }
 
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
@@ -450,7 +421,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
     
     /** Triggered by Inspector.error */
-    function _onError(event, error) {
+    function _onError(event, error, msgData) {
         var message;
         
         // Sometimes error.message is undefined
@@ -473,8 +444,35 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         // Show the message, but include the error object for further information (e.g. error code)
-        console.error(message, error);
-        _setStatus(STATUS_ERROR);
+        console.error(message, error, msgData);
+    }
+    
+    function _styleSheetAdded(event, url) {
+        var path = _server && _server.urlToPath(url),
+            exists = !!_relatedDocuments[url];
+
+        // path may be null if loading an external stylesheet.
+        // Also, the stylesheet may already exist and be reported as added twice
+        // due to Chrome reporting added/removed events after incremental changes
+        // are pushed to the browser
+        if (!path || exists) {
+            return;
+        }
+
+        var docPromise = DocumentManager.getDocumentForPath(path);
+
+        docPromise.done(function (doc) {
+            if ((_classForDocument(doc) === CSSDocument) &&
+                    (!_liveDocument || (doc !== _liveDocument.doc))) {
+                var liveDoc = _createDocument(doc);
+                if (liveDoc) {
+                    _server.add(liveDoc);
+                    _relatedDocuments[doc.url] = liveDoc;
+
+                    $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
+                }
+            }
+        });
     }
 
     /** Unload the agents */
@@ -541,10 +539,17 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
+        // If we're already loading agents return same promise
+        if (_loadAgentsPromise) {
+            return _loadAgentsPromise;
+        }
+        
         var result = new $.Deferred(),
             promises = [],
             enableAgentsPromise,
             allAgentsPromise;
+
+        _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
 
@@ -563,30 +568,17 @@ define(function LiveDevelopment(require, exports, module) {
         allAgentsPromise = Async.withTimeout(allAgentsPromise, 10000);
 
         allAgentsPromise.done(function () {
-            // After (1) the interstitial page loads, (2) then browser navigation
-            // to the base URL is completed, and (3) the agents finish loading
-            // gather related documents and finally set status to STATUS_ACTIVE.
             var doc = (_liveDocument) ? _liveDocument.doc : null;
 
             if (doc) {
-                var status = STATUS_ACTIVE,
-                    relatedDocumentsPromise;
+                var status = STATUS_ACTIVE;
 
-                // Note: the following promise is never explicitly rejected, so there
-                // is no failure handler. If _getRelatedDocuments is changed so that rejection
-                // is possible, failure should be managed accordingly.
-                relatedDocumentsPromise = Async.withTimeout(_getRelatedDocuments(), 5000);
-
-                relatedDocumentsPromise
-                    .done(function () {
-                        if (_docIsOutOfSync(doc)) {
-                            status = STATUS_OUT_OF_SYNC;
-                        }
-                        _setStatus(status);
-
-                        result.resolve();
-                    })
-                    .fail(result.reject);
+                if (_docIsOutOfSync(doc)) {
+                    status = STATUS_OUT_OF_SYNC;
+                }
+                
+                _setStatus(status);
+                result.resolve();
             } else {
                 result.reject();
             }
@@ -594,21 +586,22 @@ define(function LiveDevelopment(require, exports, module) {
 
         allAgentsPromise.fail(result.reject);
         
-        // show error loading live dev dialog
-        result.fail(function () {
-            _setStatus(STATUS_ERROR);
+        _loadAgentsPromise
+            .fail(function () {
+                // show error loading live dev dialog
+                _setStatus(STATUS_ERROR);
 
-            Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
-                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
-                Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
-            );
-        });
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                    Strings.LIVE_DEV_LOADING_ERROR_MESSAGE
+                );
+            })
+            .always(function () {
+                _loadAgentsPromise = null;
+            });
 
-        // resolve/reject the open() promise after agents complete
-        result.then(_openDeferred.resolve, _openDeferred.reject);
-
-        return result.promise();
+        return _loadAgentsPromise;
     }
 
     /**
@@ -748,7 +741,12 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector.Page).off(".livedev");
         $(Inspector).off(".livedev");
 
-        unloadAgents();
+        // Wait if agents are loading
+        if (_loadAgentsPromise) {
+            _loadAgentsPromise.always(unloadAgents);
+        } else {
+            unloadAgents();
+        }
         
         // Close live documents 
         _closeDocuments();
@@ -770,7 +768,8 @@ define(function LiveDevelopment(require, exports, module) {
             closePromise = new $.Deferred().resolve();
         }
 
-        closePromise.done(function () {
+        // Disconnect WebSocket if connected
+        closePromise.always(function () {
             if (Inspector.connected()) {
                 Inspector.disconnect().always(deferred.resolve);
             } else {
@@ -786,10 +785,19 @@ define(function LiveDevelopment(require, exports, module) {
      * Close the connection and the associated window asynchronously
      * @param {boolean} doCloseWindow Use true to close the window/tab in the browser
      * @param {?string} reason Optional string key suffix to display to user (see LIVE_DEV_* keys)
-     * @return {jQuery.Promise} Resolves once the connection is closed
+     * @return {jQuery.Promise} Always return a resolved promise once the connection is closed
      */
     function _close(doCloseWindow, reason) {
-        var deferred = $.Deferred();
+        if (_closeDeferred) {
+            return _closeDeferred;
+        } else {
+            _closeDeferred = new $.Deferred();
+            _closeDeferred.always(function () {
+                _closeDeferred = null;
+            });
+        }
+
+        var promise = _closeDeferred.promise();
 
         /*
          * Finish closing the live development connection, including setting
@@ -801,30 +809,29 @@ define(function LiveDevelopment(require, exports, module) {
             var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
             closeDeferred.done(function () {
                 _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-                deferred.resolve();
+                _closeDeferred.resolve();
             }).fail(function (err) {
                 if (err) {
                     reason +=  " (" + err + ")";
                 }
                 _setStatus(STATUS_INACTIVE, reason || "explicit_close");
-                deferred.resolve();
+                _closeDeferred.resolve();
             });
         }
+        
+        if (_isPromisePending(_openDeferred)) {
+            // Reject calls to open if requests are still pending
+            _openDeferred.reject();
+        }
 
-        if (_openDeferred) {
-            _doInspectorDisconnect(doCloseWindow).done(cleanup);
-
-            if (_openDeferred.state() === "pending") {
-                _openDeferred.reject();
-            }
+        if (exports.status === STATUS_INACTIVE) {
+            // Ignore close if status is inactive
+            _closeDeferred.resolve();
         } else {
-            // Deferred may not be created yet
-            // We always close attempt to close the live dev connection on
-            // ProjectManager beforeProjectClose and beforeAppClose events
-            cleanup();
+            _doInspectorDisconnect(doCloseWindow).always(cleanup);
         }
         
-        return deferred.promise();
+        return promise;
     }
 
     // WebInspector Event: Page.frameNavigated
@@ -882,10 +889,16 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * Unload and reload agents
+     * @return {jQuery.Promise} Resolves once the agents are loaded
      */
     function reconnect() {
+        if (_loadAgentsPromise) {
+            // Agents are already loading, so don't unload
+            return _loadAgentsPromise;
+        }
+
         unloadAgents();
-        loadAgents();
+        return loadAgents();
     }
 
     /**
@@ -901,7 +914,7 @@ define(function LiveDevelopment(require, exports, module) {
      * Create a promise that resolves when the interstitial page has
      * finished loading.
      * 
-     * @return {jQuery.Promise}
+     * @return {jQuery.Promise} Resolves once page is loaded
      */
     function _waitForInterstitialPageLoad() {
         var deferred    = $.Deferred(),
@@ -950,10 +963,12 @@ define(function LiveDevelopment(require, exports, module) {
             // navigate to the page first before loading can complete.
             // To accomodate this, we load all agents and navigate in
             // parallel.
-            loadAgents();
+
+            // resolve/reject the open() promise after agents complete
+            loadAgents().then(_openDeferred.resolve, _openDeferred.reject);
 
             _getInitialDocFromCurrent().done(function (doc) {
-                if (doc) {
+                if (doc && _liveDocument && doc === _liveDocument.doc) {
                     // Navigate from interstitial to the document
                     // Fires a frameNavigated event
                     if (_server) {
@@ -1014,14 +1029,14 @@ define(function LiveDevelopment(require, exports, module) {
         var browserStarted  = false,
             retryCount      = 0;
         
-        // Open the live browser if the connection fails, retry 6 times
+        // Open the live browser if the connection fails, retry 3 times
         Inspector.connectToURL(launcherUrl).fail(function onConnectFail(err) {
             if (err === "CANCEL") {
                 _openDeferred.reject(err);
                 return;
             }
 
-            if (retryCount > 6) {
+            if (retryCount > 3) {
                 _setStatus(STATUS_ERROR);
 
                 var dialogPromise = Dialogs.showModalDialog(
@@ -1049,10 +1064,8 @@ define(function LiveDevelopment(require, exports, module) {
                         _close()
                             .done(function () {
                                 browserStarted = false;
-                                window.setTimeout(function () {
-                                    // After browser closes, try to open the interstitial page again
-                                    _openInterstitialPage();
-                                });
+                                // Continue to use _openDeferred
+                                open(true);
                             })
                             .fail(function (err) {
                                 // Report error?
@@ -1115,9 +1128,16 @@ define(function LiveDevelopment(require, exports, module) {
             if (exports.status !== STATUS_ERROR) {
                 window.setTimeout(function retryConnect() {
                     Inspector.connectToURL(launcherUrl).fail(onConnectFail);
-                }, 500);
+                }, 3000);
             }
         });
+    }
+
+    function _createLiveDocumentForFrame(doc) {
+        // create live document
+        doc._ensureMasterEditor();
+        _liveDocument = _createDocument(doc, doc._masterEditor);
+        _server.add(_liveDocument);
     }
     
     // helper function that actually does the launch once we are sure we have
@@ -1125,13 +1145,9 @@ define(function LiveDevelopment(require, exports, module) {
     function _doLaunchAfterServerReady(initialDoc) {
         // update status
         _setStatus(STATUS_CONNECTING);
-        
-        // create live document
-        initialDoc._ensureMasterEditor();
-        _liveDocument = _createDocument(initialDoc, initialDoc._masterEditor);
+        _createLiveDocumentForFrame(initialDoc);
 
         // start listening for requests
-        _server.add(_liveDocument);
         _server.start();
 
         // Install a one-time event handler when connected to the launcher page
@@ -1183,9 +1199,31 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
-    /** Open the Connection and go live */
-    function open() {
-        _openDeferred = new $.Deferred();
+    /**
+     * Open the Connection and go live
+     *
+     * @param {!boolean} restart  true if relaunching and _openDeferred already exists
+     * @return {jQuery.Promise} Resolves once live preview is open
+     */
+    function open(restart) {
+        // If close() is still pending, wait for close to finish before opening
+        if (_isPromisePending(_closeDeferred)) {
+            return _closeDeferred.then(function () {
+                return open(restart);
+            });
+        }
+
+        if (!restart) {
+            // Return existing promise if it is still pending
+            if (_isPromisePending(_openDeferred)) {
+                return _openDeferred;
+            } else {
+                _openDeferred = new $.Deferred();
+                _openDeferred.always(function () {
+                    _openDeferred = null;
+                });
+            }
+        }
         
         // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
@@ -1209,7 +1247,6 @@ define(function LiveDevelopment(require, exports, module) {
                 })
                 .fail(function () {
                     _showWrongDocError();
-                    _openDeferred.reject();
                 });
         });
 
@@ -1220,7 +1257,7 @@ define(function LiveDevelopment(require, exports, module) {
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
         
-        if (doc.updateHighlight) {
+        if (doc && doc.updateHighlight) {
             doc.updateHighlight();
         }
     }
@@ -1249,8 +1286,6 @@ define(function LiveDevelopment(require, exports, module) {
         if (!doc || !Inspector.connected()) {
             return;
         }
-
-        hideHighlight();
         
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
@@ -1259,9 +1294,25 @@ define(function LiveDevelopment(require, exports, module) {
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
         
         if (!wasRequested && isViewable) {
-            // TODO (jasonsanjose): optimize this by reusing the same connection
-            // no need to fully teardown.
-            close().done(open);
+            // Update status
+            _setStatus(STATUS_CONNECTING);
+
+            // clear live doc and related docs
+            _closeDocuments();
+
+            // create new live doc
+            _createLiveDocumentForFrame(doc);
+
+            // Navigate to the new page within this site. Agents must handle
+            // frameNavigated event to clear any saved state.
+            Inspector.Page.navigate(docUrl).then(function () {
+                _setStatus(STATUS_ACTIVE);
+            }, function () {
+                _close(false, "closed_unknown_reason");
+            });
+        } else if (wasRequested) {
+            // Update highlight
+            showHighlight();
         }
     }
 
@@ -1289,6 +1340,10 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (wasRequested) {
             // Unload and reload agents before reloading the page
+            // Some agents (e.g. DOMAgent and RemoteAgent) require us to
+            // navigate to the page first before loading can complete.
+            // To accomodate this, we load all agents (in reconnect())
+            // and navigate in parallel.
             reconnect();
 
             // Reload HTML page
@@ -1324,13 +1379,19 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
+        
         $(Inspector).on("error", _onError);
         $(Inspector.Inspector).on("detached", _onDetached);
+
+        // Only listen for styleSheetAdded
+        // We may get interim added/removed events when pushing incremental updates
+        $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
+        
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
         $(ProjectManager).on("beforeProjectClose beforeAppClose", close);
-
+        
         // Register user defined server provider
         LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
         LiveDevServerManager.registerServer({ create: _createFileServer }, 0);

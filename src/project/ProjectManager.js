@@ -75,6 +75,11 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager");
     
+    
+    // Define the preference to decide how to sort the Project Tree files
+    PreferencesManager.definePreference("sortDirectoriesFirst", "boolean", brackets.platform !== "mac");
+    
+    
     /**
      * @private
      * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
@@ -86,9 +91,8 @@ define(function (require, exports, module) {
      * @private
      * File tree sorting for mac-specific sorting behavior
      */
-    var _isMac          = brackets.platform === "mac",
-        _sortPrefixDir  = _isMac ? "" : "0",
-        _sortPrefixFile = _isMac ? "" : "1";
+    var _sortPrefixDir,
+        _sortPrefixFile;
     
     /**
      * @private
@@ -196,6 +200,17 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     var _allFilesCachePromise = null;
+    
+    
+    /**
+     * @private
+     * Generates the prefixes used for sorting the files in the project tree
+     */
+    function _generateSortPrefixes() {
+        var dirFirst    = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir  = dirFirst ? "0" : "";
+        _sortPrefixFile = dirFirst ? "1" : "";
+    }
     
     /**
      * @private
@@ -697,7 +712,7 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _toCompareString(name, isFolder) {
-        return ((isFolder) ? _sortPrefixDir : _sortPrefixFile) + name;
+        return (isFolder ? _sortPrefixDir : _sortPrefixFile) + name;
     }
     
     /**
@@ -1083,6 +1098,7 @@ define(function (require, exports, module) {
 
                         _projectRoot = rootEntry;
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
+                        _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -2114,6 +2130,8 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    
+    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -2186,6 +2204,13 @@ define(function (require, exports, module) {
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
+    // Initialize the sort prefixes and make sure to change them when the sort pref changes
+    _generateSortPrefixes();
+    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
+        _generateSortPrefixes();
+        refreshFileTree();
+    });
+    
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
@@ -2194,7 +2219,7 @@ define(function (require, exports, module) {
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
-    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
+    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
     
     // Init invalid characters string 
     if (brackets.platform === "mac") {

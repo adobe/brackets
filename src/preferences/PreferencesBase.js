@@ -344,16 +344,19 @@ define(function (require, exports, module) {
          * 
          * @param {string} id key to set or delete
          * @param {*} value value for this key (undefined to delete)
-         * @return {boolean} always returns true
+         * @return {boolean} true if the value was set.
          */
         _performSet: function (id, value) {
-            this._dirty = true;
-            if (value === undefined) {
-                delete this.data[id];
-            } else {
-                this.data[id] = value;
+            if (!_.isEqual(this.data[id], value)) {
+                this._dirty = true;
+                if (value === undefined) {
+                    delete this.data[id];
+                } else {
+                    this.data[id] = _.cloneDeep(value);
+                }
+                return true;
             }
-            return true;
+            return false;
         },
         
         /**
@@ -616,12 +619,15 @@ define(function (require, exports, module) {
             if (!section) {
                 data[layerID] = section = {};
             }
-            if (value === undefined) {
-                delete section[id];
-            } else {
-                section[id] = value;
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
+                    delete section[id];
+                } else {
+                    section[id] = _.cloneDeep(value);
+                }
+                return true;
             }
-            return true;
+            return false;
         },
 
         /**
@@ -741,12 +747,15 @@ define(function (require, exports, module) {
             if (!section) {
                 data[layerID] = section = {};
             }
-            if (value === undefined) {
-                delete section[id];
-            } else {
-                section[id] = value;
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
+                    delete section[id];
+                } else {
+                    section[id] = _.cloneDeep(value);
+                }
+                return true;
             }
-            return true;
+            return false;
         },
         
         /**
@@ -1422,7 +1431,7 @@ define(function (require, exports, module) {
                 if (scope) {
                     var result = scope.get(id, context);
                     if (result !== undefined) {
-                        return result;
+                        return _.cloneDeep(result);
                     }
                 }
             }
