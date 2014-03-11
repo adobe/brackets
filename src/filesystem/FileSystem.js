@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
-
+  
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
@@ -92,6 +92,7 @@ define(function (require, exports, module) {
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
+        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
@@ -260,6 +261,12 @@ define(function (require, exports, module) {
             recursiveWatch = impl.recursiveWatch,
             commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
+        if (!impl.fileWatchingEnabled) {
+            // Watching is not enabled so this call results in a no-op
+            callback(FileSystemError.FILE_WATCHING_DISABLED);
+            return;
+        }
+        
         if (recursiveWatch) {
             if (entry !== watchedRoot.entry) {
                 // Watch and unwatch calls to children of the watched root are
@@ -886,7 +893,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         if (!watchedRoot) {
-            callback("Root is not watched.");
+            callback(FileSystemError.ROOT_NOT_WATCHED);
             return;
         }
 
