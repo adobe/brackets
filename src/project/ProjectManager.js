@@ -992,6 +992,9 @@ define(function (require, exports, module) {
                 if (err) {
                     console.error("Error unwatching project root: ", _projectRoot.fullPath, err);
                     if (err !== FileSystemError.FILE_WATCHING_DISABLED) {
+                        // Treat a disabled error as a success so that downstream promise 
+                        //  holders don't mistakenly change the code to stop after unwatching 
+                        //  due to that condition.
                         result.reject();
                     } else {
                         result.resolve();
