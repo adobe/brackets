@@ -991,7 +991,11 @@ define(function (require, exports, module) {
             FileSystem.unwatch(_projectRoot, function (err) {
                 if (err) {
                     console.error("Error unwatching project root: ", _projectRoot.fullPath, err);
-                    result.reject();
+                    if (err !== FileSystemError.FILE_WATCHING_DISABLED) {
+                        result.reject();
+                    } else {
+                       result.resolve();
+                    }
                 } else {
                     result.resolve();
                 }

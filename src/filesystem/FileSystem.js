@@ -92,6 +92,7 @@ define(function (require, exports, module) {
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
+        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
@@ -262,7 +263,7 @@ define(function (require, exports, module) {
 
         if (!impl.fileWatchingEnabled) {
             // Watching is not enabled so this call results in a no-op
-            callback(null);
+            callback(FileSystemError.FILE_WATCHING_DISABLED);
             return;
         }
         
@@ -888,7 +889,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         if (!watchedRoot) {
-            callback("Root is not watched.");
+            callback(FileSystemError.ROOT_NOT_WATCHED);
             return;
         }
 
