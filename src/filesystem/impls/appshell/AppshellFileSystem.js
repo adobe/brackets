@@ -149,6 +149,13 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Determines if we're running on Windows XP
+     */
+    function _isRunningOnWindowsXP() {
+        return (navigator.userAgent.indexOf("Windows NT 5.") >= 0);
+    }
+    
+    /**
      * Convert a callback to one that transforms its first parameter from an
      * appshell error code to a FileSystemError string.
      * 
@@ -490,6 +497,10 @@ define(function (require, exports, module) {
     function initWatchers(changeCallback, offlineCallback) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
+        
+        if (_isRunningOnWindowsXP() && _offlineCallback) {
+            _offlineCallback();
+        }
     }
     
     /**
@@ -504,6 +515,10 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, callback) {
+        if (_isRunningOnWindowsXP()) {
+            callback(FileSystemError.PATH_WATCHING_NOT_SUPPORTED);
+            return;
+        }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
