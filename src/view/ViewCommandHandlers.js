@@ -219,8 +219,8 @@ define(function (require, exports, module) {
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
                 _removeDynamicFontSize();
-                _adjustFontSize(PreferencesManager.getViewState("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
+                _adjustFontSize(PreferencesManager.getViewState("fontSizeAdjustment"));
             }
             
         } else {
