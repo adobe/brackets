@@ -58,6 +58,8 @@ define(function (require, exports, module) {
         NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        PreferencesBase         = require("preferences/PreferencesBase"),
         NativeApp               = require("utils/NativeApp");
 
     // Load modules that self-register and just need to get included in the test-runner window
@@ -133,6 +135,18 @@ define(function (require, exports, module) {
     }
     
     function _documentReadyHandler() {
+        var pm = PreferencesManager._manager,
+            sm = PreferencesManager.stateManager;
+        pm.removeScope("user");
+        pm.addScope("user", new PreferencesBase.MemoryStorage(), {
+            before: "default"
+        });
+
+        sm.removeScope("user");
+        sm.addScope("user", new PreferencesBase.MemoryStorage(), {
+            before: "default"
+        });
+        
         if (brackets.app.showDeveloperTools) {
             $("#show-dev-tools").click(function () {
                 brackets.app.showDeveloperTools();
