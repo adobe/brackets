@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
+        PreferencesManager,  // loaded from brackets.test
         FileViewController,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
@@ -50,7 +51,9 @@ define(function (require, exports, module) {
         var OPEN_BRACKET  = 91,
             CLOSE_BRACKET = 93,
             SINGLE_QUOTE  = 39,
-            BACKSPACE     = 8;
+            BACKSPACE     =  8,
+            RIGHT_ARROW   = 36,
+            LEFT_ARROW    = 37;
         
         
         beforeFirst(function () {
@@ -64,6 +67,7 @@ define(function (require, exports, module) {
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 FileViewController  = testWindow.brackets.test.FileViewController;
+                PreferencesManager  = testWindow.brackets.test.PreferencesManager;
                    
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
@@ -76,6 +80,7 @@ define(function (require, exports, module) {
             EditorManager       = null;
             DocumentManager     = null;
             FileViewController  = null;
+            PreferencesManager  = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -164,7 +169,21 @@ define(function (require, exports, module) {
             });
         }
         
-        
+        function checkSoftTab(editor, startPos, keyCode, expectedEndPos) {
+            runs(function () {
+                var input;
+
+                expect(editor).toBeTruthy();
+                input = editor._codeMirror.getInputField();
+                editor.setCursorPos(startPos);
+                expect(editor.getCursorPos()).toEqual(startPos);
+
+                SpecRunnerUtils.simulateKeyEvent(keyCode, "keydown", input);
+
+                expect(editor.getCursorPos()).toEqual(expectedEndPos);
+            });
+        }
+
         // Helper functions to open editors / toggle options
         function openEditor(fullPath) {
             runs(function () {
@@ -455,6 +474,39 @@ define(function (require, exports, module) {
                     var editor = EditorManager.getCurrentFullEditor();
                     checkCloseBraces(editor, {line: 0, ch: 15}, null, SINGLE_QUOTE, "var myContent ='' \"This is awesome!\";");
                     checkCloseBraces(editor, {line: 1, ch: 7}, null, SINGLE_QUOTE, "// Yes, it is!");
+                });
+            });
+        });
+        
+        
+        describe("Toggle Soft Tab Preference", function () {
+            it("should use soft tabs by default", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkSoftTab(editor, {line: 4, ch: 0}, RIGHT_ARROW, {line: 4, ch: 4});
+                });
+            });
+            
+            it("should NOT use soft tabs when disabled", function () {
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    // Disable soft tabs
+                    PreferencesManager.set("softTabs", false);
+                    expect(PreferencesManager.get("softTabs")).toEqual(false);
+                });
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkSoftTab(editor, {line: 4, ch: 1}, LEFT_ARROW,  {line: 4, ch: 0});
+                });
+                
+                runs(function () {
+                    // Re-enable soft tabs
+                    PreferencesManager.set("softTabs", true);
+                    expect(PreferencesManager.get("softTabs")).toEqual(true);
                 });
             });
         });
