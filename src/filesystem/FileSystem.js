@@ -261,6 +261,8 @@ define(function (require, exports, module) {
             commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
         if (!impl.fileWatchingEnabled) {
+            // Watching is not enabled so this call results in a no-op
+            callback(null);
             return;
         }
         
