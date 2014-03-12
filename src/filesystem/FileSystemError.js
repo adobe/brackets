@@ -39,12 +39,12 @@ define(function (require, exports, module) {
         INVALID_PARAMS              : "InvalidParams",
         NOT_FOUND                   : "NotFound",
         NOT_READABLE                : "NotReadable",
+        NOT_SUPPORTED               : "NotSupported",
         NOT_WRITABLE                : "NotWritable",
         OUT_OF_SPACE                : "OutOfSpace",
         TOO_MANY_ENTRIES            : "TooManyEntries",
         ALREADY_EXISTS              : "AlreadyExists",
         CONTENTS_MODIFIED           : "ContentsModified",
-        PATH_WATCHING_NOT_SUPPORTED : "PathWatchingNotSupported",
         ROOT_NOT_WATCHED            : "RootNotBeingWatched"
         
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.

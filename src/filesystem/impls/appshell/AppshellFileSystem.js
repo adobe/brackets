@@ -46,6 +46,8 @@ define(function (require, exports, module) {
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
     
+    var _isRunningOnWindowsXP = navigator.userAgent.indexOf("Windows NT 5.") >= 0;
+    
     // If the connection closes, notify the FileSystem that watchers have gone offline.
     $(_nodeDomain.connection).on("close", function (event, promise) {
         if (_offlineCallback) {
@@ -146,13 +148,6 @@ define(function (require, exports, module) {
             return FileSystemError.ALREADY_EXISTS;
         }
         return FileSystemError.UNKNOWN;
-    }
-    
-    /**
-     * Determines if we're running on Windows XP
-     */
-    function _isRunningOnWindowsXP() {
-        return (navigator.userAgent.indexOf("Windows NT 5.") >= 0);
     }
     
     /**
@@ -492,13 +487,13 @@ define(function (require, exports, module) {
      * cleared when the offlineCallback is called.
      * 
      * @param {function(?string, FileSystemStats=)} changeCallback
-     * @param {function()=} callback
+     * @param {function()=} offlineCallback
      */
     function initWatchers(changeCallback, offlineCallback) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
         
-        if (_isRunningOnWindowsXP() && _offlineCallback) {
+        if (_isRunningOnWindowsXP && _offlineCallback) {
             _offlineCallback();
         }
     }
@@ -515,8 +510,8 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, callback) {
-        if (_isRunningOnWindowsXP()) {
-            callback(FileSystemError.PATH_WATCHING_NOT_SUPPORTED);
+        if (_isRunningOnWindowsXP) {
+            callback(FileSystemError.NOT_SUPPORTED);
             return;
         }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
