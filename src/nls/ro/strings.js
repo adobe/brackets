@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -36,6 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Fișierul nu poate fi citit.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Nu sunt permise modificări în directoriul curent.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Nu aveți destule drepturi pentru a face modificări.",
+    "CONTENTS_MODIFIED_ERR"             : "Fișierul a fost modificat din afara la {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Fișierul sau directoriul există deja.",
     "FILE"                              : "fișier",
     "DIRECTORY"                         : "directoriu",
@@ -59,7 +60,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Eroare la ștergerea fișierului",
     "ERROR_DELETING_FILE"               : "S-a produs o eroare la încercarea de a șterge fișierul <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Numele {0} e invalid",
-    "INVALID_FILENAME_MESSAGE"          : "Numele fișierului nu poate conține următoarele caractere: /?*:;{}<>\\| sau să fie un cuvânt rezervat de sistemul de operare.",
+    "INVALID_FILENAME_MESSAGE"          : "Numele fișierului nu poate conține următoarele caractere: {0} sau să fie un cuvânt rezervat de sistemul de operare.",
     "FILE_ALREADY_EXISTS"               : "Fișierul {0} <span class='dialog-filename'>{1}</span> există deja.",
     "ERROR_CREATING_FILE_TITLE"         : "Eroare la crearea fișierului {0}",
     "ERROR_CREATING_FILE"               : "S-a produs o eroare la încercarea de a crea fișierul {0} <span class='dialog-filename'>{1}</span>. {2}",
@@ -68,7 +69,7 @@ define({
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} nu a fost lansat pentru browser încă.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} e construit în HTML, dar acum rulează ca o aplicație desktop și poate fi folosit pentru a edita fișierele locale. Lansați interpretatorul de comenzi al aplicației din repozitoriul <b>github.com/adobe/brackets-shell</b> pentru a rula {APP_NAME}.",
 
-    // FileIndexManager error string
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Eroare la indexarea fișierelor",
     "ERROR_MAX_FILES"                   : "Ați atins numărul maxim de fișiere indexate. Acțiunile pentru căutarea fișierelor în index ar putea lucra incorect.",
 
@@ -76,7 +77,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Eroare la lansarea browser-ului",
     "ERROR_CANT_FIND_CHROME"            : "Browser-ul Google Chrome nu a putut fi găsit. Asigurați-vă că el este instalat.",
     "ERROR_LAUNCHING_BROWSER"           : "S-a produs o eroare la lansarea browser-ului. (eroare {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Eroare la lansarea Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectare la browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Pentru a lansa Live Preview Google Chrome trebuie să fie relansat cu opțiunea de depanarea la distanță activată.<br /><br />Doriți ca Google Chrome să fie relansat cu opțiunea de depanare la distanță activată?",
@@ -87,7 +88,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Bun venit la Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview conectează {APP_NAME} la browser-ul tău. El lansează o previzualizare a fișierului HTML, apoi, imediat, la editare codului actualizează previzualizarea.<br /><br />În această versiune timpurie {APP_NAME}, Live Preview funcționează doar cu <strong>Google Chrome</strong> și actualizează imediat <strong>fișierele CSS sau HTML</strong>. Schimbările în fișierele JavaScript sunt reîncărcate automat la salvare.<br /><br />(Veți vedea acest mesaj o singură dată.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pentru mai multe informații, vezi <a href='{0}' title='{0}'>Depanarea erorilor de conexiune în Live Development</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Conectare\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inițializare\u2026",
@@ -99,7 +100,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview a fost revocat din cauza că pagina a fost închisă în browser",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview a fost revocat din cauza că browser-ul a navigat spre o pagină care nu face parte din proiectul curent",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview a fost revocat dintr-un motiv necunoscut ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Salvare modificări",
     "SAVE_CLOSE_MESSAGE"                : "Doriți să salvați modificările făcute în documentul <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Doriți să salvați modificările din următoarele fișiere?",
@@ -107,25 +108,34 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmare ștergere dosar",
     "CONFIRM_FOLDER_DELETE"             : "Sunteți sigur că doriți să ștergeți dosarul <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fișier șters",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> a fost modificat pe disc.<br /><br />Doriți să salvați fișierul și să suprascrieți aceste modificări?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> a fost modificat pe disc, dar, deasemenea, are modificări nesalvate în {APP_NAME}.<br /><br />Care versiune doriți să o păstrați?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> a fost șters de pe disc, dar are modificări nesalvate în {APP_NAME}.<br /><br />Doriți să păstrați modificările?",
-    
+
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Revocare",
+    "DONT_SAVE"                         : "Nu salva",
+    "SAVE"                              : "Salvează",
+    "SAVE_AS"                           : "Salvează ca\u2026",
+    "SAVE_AND_OVERWRITE"                : "Suprascrie",
+    "DELETE"                            : "Șterge",
+    "BUTTON_YES"                        : "Da",
+    "BUTTON_NO"                         : "Nu",
+
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Folosiți sintaxa /re/ pentru căutarea cu expresii regulate",
     "FIND_RESULT_COUNT"                 : "{0} rezultate",
     "FIND_RESULT_COUNT_SINGLE"          : "1 rezultat",
     "FIND_NO_RESULTS"                   : "Niciun rezultat",
-    "WITH"                              : "Cu",
-    "BUTTON_YES"                        : "Da",
-    "BUTTON_NO"                         : "Nu",
-    "BUTTON_REPLACE_ALL"                : "Toate\u2026",
-    "BUTTON_STOP"                       : "Oprire",
-    "BUTTON_REPLACE"                    : "Înlocuire",
-            
+    "REPLACE_PLACEHOLDER"               : "Înlocuiește cu\u2026",
+    "BUTTON_REPLACE_ALL"                : "Tot\u2026",
+    "BUTTON_REPLACE"                    : "Înlocuiește",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Potrivirea următoare",
     "BUTTON_PREV_HINT"                  : "Potrivirea precedentă",
+    "BUTTON_CASESENSITIVE_HINT"         : "Potrivire litere",
+    "BUTTON_REGEXP_HINT"                : "Expresie regulată",
 
     "OPEN_FILE"                         : "Deschide un fișier",
     "SAVE_FILE_AS"                      : "Salvează fișierul",
@@ -135,10 +145,12 @@ define({
     "NO_UPDATE_TITLE"                   : "Aplicația e la zi!",
     "NO_UPDATE_MESSAGE"                 : "Utilizați ultima versiune {APP_NAME}.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Înlocuiește \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" cu \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" găsit",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
@@ -151,6 +163,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Peste ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd clic pentru a extinde/restrânge toate",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Eroare la primirea informațiilor despre actualizare",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "S-a produs o eroare la primirea informațiilor despre actualizare de la server. Asigurați-vă că sunteți conectat la internet și să mai încercați o dată.",
 
@@ -167,7 +180,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Spațiu",
-    
+
     /**
      * StatusBar strings
      */
@@ -184,19 +197,19 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tab-uri:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rând",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} rânduri",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensii dezactivate",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} erori",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} probleme",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Probleme de verificare",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} probleme",
     "SINGLE_ERROR"                          : "1 eroare {0}",
     "MULTIPLE_ERRORS"                       : "{1} erori {0}",
     "NO_ERRORS"                             : "Nicio eroare {0} - bine lucrat!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Nicio eroare găsită - bine lucrat!",
     "LINT_DISABLED"                         : "Verificarea codului e dezactivată",
     "NO_LINT_AVAILABLE"                     : "Verificarea codului e indisponibilă pentru {0}",
     "NOTHING_TO_LINT"                       : "Nimic de verificat",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -240,6 +253,7 @@ define({
     "CMD_SELECT_ALL"                      : "Selectează tot",
     "CMD_SELECT_LINE"                     : "Selectează rând",
     "CMD_FIND"                            : "Caută",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Caută\u2026",
     "CMD_FIND_IN_FILES"                   : "Caută în fișiere",
     "CMD_FIND_IN_SUBTREE"                 : "Caută în\u2026",
     "CMD_FIND_NEXT"                       : "Caută următorul",
@@ -257,7 +271,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Deschide rândul de mai jos",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Închide automat perechile de caractere",
     "CMD_SHOW_CODE_HINTS"                 : "Arată sugestiile de cod",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Vizualizare",
     "CMD_HIDE_SIDEBAR"                    : "Ascunde bara laterală",
@@ -292,7 +306,7 @@ define({
     "CMD_PREV_DOC"                        : "Documentul precedent",
     "CMD_SHOW_IN_TREE"                    : "Arată în arborele de fișiere",
     "CMD_SHOW_IN_OS"                      : "Arată în sistemul de operare",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Ajutor",
     "CMD_CHECK_FOR_UPDATE"                : "Verifică pentru actualizări",
@@ -303,15 +317,11 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Deschide dosarul cu extensii",
     "CMD_TWITTER"                         : "{TWITTER_NAME} în Twitter",
     "CMD_ABOUT"                           : "Despre {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Deschide fișierul cu preferințe",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versiune experimentală",
     "DEVELOPMENT_BUILD"                    : "Versiune în dezvoltare",
-    "OK"                                   : "Ok",
-    "DONT_SAVE"                            : "Nu salva",
-    "SAVE"                                 : "Salvează",
-    "CANCEL"                               : "Revocare",
-    "DELETE"                               : "Șterge",
     "RELOAD_FROM_DISK"                     : "Reîncarcă de pe disc",
     "KEEP_CHANGES_IN_EDITOR"               : "Păstrează modificările în editor",
     "CLOSE_DONT_SAVE"                      : "Închide (Nu salva)",
@@ -336,10 +346,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-ul de bază nu poate conține caracterul diez ca \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracterele speciale ca '{0}' trebuie să fie codificate cu %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Eroare necunoscută la analiza URL-ului de bază",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Regulă nouă",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Instalare",
     "UPDATE"                               : "Actualizare",
@@ -347,6 +357,7 @@ define({
     "OVERWRITE"                            : "Rescriere",
     "CANT_REMOVE_DEV"                      : "Extensiile din dosarul \"dev\" trebuie să fie șterse manual.",
     "CANT_UPDATE"                          : "Înnoirea nu e compatibilă cu versiunea curentă {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Extensiile din mapa \"dev\" nu pot fi înnoite automat.",
     "INSTALL_EXTENSION_TITLE"              : "Instalare extensie",
     "UPDATE_EXTENSION_TITLE"               : "Actualizare extensie",
     "INSTALL_EXTENSION_LABEL"              : "URL-ul extensiei",
@@ -406,11 +417,12 @@ define({
     "UNDO_REMOVE"                          : "Anulează",
     "MARKED_FOR_UPDATE"                    : "Marcată pentru actualizare",
     "UNDO_UPDATE"                          : "Refă",
-    "CHANGE_AND_QUIT_TITLE"                : "Modificare extensii",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Pentru a actualiza sau șterge extensiile marcate {APP_NAME} trebuie relansat. Veți fi solicitat pentru a salva schimbările.",
-    "REMOVE_AND_QUIT"                      : "Șterge extensiile și ieși",
-    "CHANGE_AND_QUIT"                      : "Modifică extensiile și ieși",
-    "UPDATE_AND_QUIT"                      : "Actualizează extensiile și ieși",
+    "CHANGE_AND_RELOAD_TITLE"              : "Modificare extensii",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Pentru a actualiza sau șterge extensiile marcate {APP_NAME} trebuie relansat. Veți fi solicitat pentru a salva schimbările.",
+    "REMOVE_AND_RELOAD"                    : "Șterge extensiile și repornește",
+    "CHANGE_AND_RELOAD"                    : "Modifică extensiile și repornește",
+    "UPDATE_AND_RELOAD"                    : "Actualizează extensiile și repornește",
+    "PROCESSING_EXTENSIONS"                : "Procesează modificările extensiilor\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Extensia {0} nu a putut fi ștearsă pentru că nu e instalată.",
     "NO_EXTENSIONS"                        : "Nicio extensie instalată.<br>Clic pe fila extensiilor disponibile pentru a instala una.",
     "NO_EXTENSION_MATCHES"                 : "Nicio extensie nu se potrivește căutării.",
@@ -418,11 +430,11 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Instalate",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibile",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizări",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Nicio potrivire disponibilă.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Nu există nicio regulă CSS care să se potrivească selecției.<br>Clic pe \"Regulă nouă\" pentru a crea una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Proiectul nu conține nicio foaie de stiluri.<br>Creați una pentru a adăuga reguli CSS.",
-    
+
     /**
      * Unit names
      */
@@ -433,6 +445,7 @@ define({
     "DEBUG_MENU"                                : "Depanare",
     "CMD_SHOW_DEV_TOOLS"                        : "Arată uneltele pentru dezvoltatori",
     "CMD_REFRESH_WINDOW"                        : "Reîncarcă {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reîncarcă fără extensii",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Deschide o fereastră nouă {APP_NAME}",
     "CMD_SWITCH_LANGUAGE"                       : "Modifică limba",
     "CMD_RUN_UNIT_TESTS"                        : "Rulează testele",
@@ -440,41 +453,19 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Activează opțiunea de depanare pentru Node",
     "CMD_LOG_NODE_STATE"                        : "Înregistrează statutul Node în consolă",
     "CMD_RESTART_NODE"                          : "Repornește Node",
-    
+
     "LANGUAGE_TITLE"                            : "Modificare Limbă",
     "LANGUAGE_MESSAGE"                          : "Limba:",
     "LANGUAGE_SUBMIT"                           : "Reîncarcă {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Revocare",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Limba implicită a sistemului",
-    
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Cehă",
-    "LOCALE_DE"                                 : "Germană",
-    "LOCALE_EN"                                 : "Engleză",
-    "LOCALE_ES"                                 : "Spaniolă",
-    "LOCALE_FA_IR"                              : "Persană (Farsi)",
-    "LOCALE_FI"                                 : "Finlandeză",
-    "LOCALE_FR"                                 : "Franceză",
-    "LOCALE_IT"                                 : "Italiană",
-    "LOCALE_JA"                                 : "Japoneză",
-    "LOCALE_NB"                                 : "Norvegiană",
-    "LOCALE_NL"                                 : "Olandeză",
-    "LOCALE_PL"                                 : "Poloneză",
-    "LOCALE_PT_BR"                              : "Portugheza braziliană",
-    "LOCALE_PT_PT"                              : "Portugheză",
-    "LOCALE_RO"                                 : "Română",
-    "LOCALE_RU"                                 : "Rusă",
-    "LOCALE_SK"                                 : "Slovacă",
-    "LOCALE_SR"                                 : "Sârbă",
-    "LOCALE_SV"                                 : "Suedeză",
-    "LOCALE_TR"                                 : "Turcă",
-    "LOCALE_ZH_CN"                              : "Chineza simplificată",
-    "LOCALE_HU"                                 : "Ungară",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Timp",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progres",
-    
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Mută punctul selectat<br><kbd class='text'>Shift</kbd> Mută cu zece unități<br><kbd class='text'>Tab</kbd> Comută punctele",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementează sau decrementează pașii<br><kbd>←</kbd><kbd>→</kbd> 'Început' or 'Sfâșit'",
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Culoarea curentă",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Culoarea originală",
@@ -483,21 +474,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Format HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (folosită {1} dată)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (folosită {1} ori)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Sari la definiție",
     "CMD_SHOW_PARAMETER_HINT"                   : "Arată sugestia parametrului",
     "NO_ARGUMENTS"                              : "<niciun parametru>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Activare Quick View",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proiecte recente",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Vezi mai mult"
 });

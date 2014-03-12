@@ -207,7 +207,9 @@ define(function (require, exports, module) {
         // Dialog tabs
         $dlg.find(".nav-tabs a")
             .on("click", function (event) {
+                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
                 $(this).tab("show");
+                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
             });
         
         // Update & hide/show the notification overlay on a tab's icon, based on its model's notifyCount
@@ -294,7 +296,7 @@ define(function (require, exports, module) {
             $dlg.find(".nav-tabs a:first").tab("show");
         });
     
-        // Handle the install button.                
+        // Handle the install button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);

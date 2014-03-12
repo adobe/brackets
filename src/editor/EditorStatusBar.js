@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
+        AnimationUtils      = require("utils/AnimationUtils"),
         EditorManager       = require("editor/EditorManager"),
         Editor              = require("editor/Editor").Editor,
         KeyEvent            = require("utils/KeyEvent"),
@@ -46,7 +47,8 @@ define(function (require, exports, module) {
         $fileInfo,
         $indentType,
         $indentWidthLabel,
-        $indentWidthInput;
+        $indentWidthInput,
+        $statusOverwrite;
     
     
     function _formatCountable(number, singularStr, pluralStr) {
@@ -141,6 +143,32 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
+    function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+        if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
+            // label already up-to-date
+            return;
+        }
+
+        $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
+
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        }
+    }
+
+    function _updateEditorOverwriteMode(event) {
+        var editor = EditorManager.getActiveEditor(),
+            newstate = !editor._codeMirror.state.overwrite;
+
+        // update label with no transition
+        _updateOverwriteLabel(event, editor, newstate, true);
+        editor.toggleOverwrite(newstate);
+    }
+    
+    function _initOverwriteMode(currentEditor) {
+        currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+    }
+    
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off(".statusbar");
@@ -162,6 +190,7 @@ define(function (require, exports, module) {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
+            $(current).on("overwriteToggle.statusbar", _updateOverwriteLabel);
             
             current.document.addRef();
             $(current.document).on("languageChanged.statusbar", function () { _updateLanguageInfo(current); });
@@ -169,6 +198,7 @@ define(function (require, exports, module) {
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);
             _updateFileInfo(current);
+            _initOverwriteMode(current);
             _updateIndentType();
             _updateIndentSize();
         }
@@ -181,6 +211,7 @@ define(function (require, exports, module) {
         $indentType         = $("#indent-type");
         $indentWidthLabel   = $("#indent-width-label");
         $indentWidthInput   = $("#indent-width-input");
+        $statusOverwrite    = $("#status-overwrite");
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -208,6 +239,8 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
+        $statusOverwrite.on("click", _updateEditorOverwriteMode);
+        
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
 

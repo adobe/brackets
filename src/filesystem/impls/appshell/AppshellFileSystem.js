@@ -46,6 +46,8 @@ define(function (require, exports, module) {
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
     
+    var _isRunningOnWindowsXP = navigator.userAgent.indexOf("Windows NT 5.") >= 0;
+    
     // If the connection closes, notify the FileSystem that watchers have gone offline.
     $(_nodeDomain.connection).on("close", function (event, promise) {
         if (_offlineCallback) {
@@ -390,7 +392,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, expectedHash : object=}} options
+     * @param {{encoding : string=, mode : number=, expectedHash : object=, expectedContents : string=}} options
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
@@ -422,12 +424,21 @@ define(function (require, exports, module) {
             
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
-                
-                // Temporary change for release 36: allow the blind write anyway. We're getting
-                // spurious cases where file modification times are being changed without actually
-                // changing the content and without sending us a file change notification.
-                // callback(FileSystemError.CONTENTS_MODIFIED);
-                // return;
+
+                if (options.hasOwnProperty("expectedContents")) {
+                    appshell.fs.readFile(path, encoding, function (_err, _data) {
+                        if (_err || _data !== options.expectedContents) {
+                            callback(FileSystemError.CONTENTS_MODIFIED);
+                            return;
+                        }
+                    
+                        _finishWrite(false);
+                    });
+                    return;
+                } else {
+                    callback(FileSystemError.CONTENTS_MODIFIED);
+                    return;
+                }
             }
             
             _finishWrite(false);
@@ -476,11 +487,15 @@ define(function (require, exports, module) {
      * cleared when the offlineCallback is called.
      * 
      * @param {function(?string, FileSystemStats=)} changeCallback
-     * @param {function()=} callback
+     * @param {function()=} offlineCallback
      */
     function initWatchers(changeCallback, offlineCallback) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
+        
+        if (_isRunningOnWindowsXP && _offlineCallback) {
+            _offlineCallback();
+        }
     }
     
     /**
@@ -495,6 +510,10 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, callback) {
+        if (_isRunningOnWindowsXP) {
+            callback(FileSystemError.NOT_SUPPORTED);
+            return;
+        }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
@@ -554,7 +573,7 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = appshell.platform === "mac" || appshell.platform === "win";
+    exports.recursiveWatch = (appshell.platform === "mac" || appshell.platform === "win");
     
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC

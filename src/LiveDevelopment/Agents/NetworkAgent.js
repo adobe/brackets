@@ -64,9 +64,14 @@ define(function NetworkAgent(require, exports, module) {
         _logURL(res.request.url);
     }
 
+    function _reset() {
+        _urlRequested = {};
+    }
+
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
+        _reset();
         _logURL(res.frame.url);
     }
     
@@ -86,8 +91,7 @@ define(function NetworkAgent(require, exports, module) {
 
     /** Unload the agent */
     function unload() {
-        _urlRequested = {};
-
+        _reset();
         $(Inspector.Page).off(".NetworkAgent");
         $(Inspector.Network).off(".NetworkAgent");
     }

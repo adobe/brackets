@@ -37,15 +37,16 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        KeyBindingManager       = require("command/KeyBindingManager"),
-        Strings                 = require("strings"),
-        ProjectManager          = require("project/ProjectManager"),
-        EditorManager           = require("editor/EditorManager"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        DocumentManager         = require("document/DocumentManager"),
-        AppInit                 = require("utils/AppInit");
+    var Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
+        Strings             = require("strings"),
+        ProjectManager      = require("project/ProjectManager"),
+        EditorManager       = require("editor/EditorManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        AppInit             = require("utils/AppInit");
+    
     
     /**
      * @const
@@ -79,18 +80,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = {};
-
-    /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _defaultPrefs = { fontSizeAdjustment: 0 };
-
-    /**
-     * @private
      * @type {boolean}
      */
     var _fontSizePrefsLoaded = false;
@@ -107,17 +96,14 @@ define(function (require, exports, module) {
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
-     * TODO: Remove the viewportTop hack and direclty use scrollPos.y once #3115 is fixed.
      * @param {string} fontSizeStyle A string with the font size and the size unit
      * @param {string} lineHeightStyle A string with the line height and a the size unit
      */
     function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
-        var editor      = EditorManager.getCurrentFullEditor(),
-            oldWidth    = editor._codeMirror.defaultCharWidth(),
-            oldHeight   = editor.getTextHeight(),
-            scrollPos   = editor.getScrollPos(),
-            viewportTop = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
-            scrollTop   = scrollPos.y - viewportTop;
+        var editor    = EditorManager.getCurrentFullEditor(),
+            oldWidth  = editor._codeMirror.defaultCharWidth(),
+            oldHeight = editor.getTextHeight(),
+            scrollPos = editor.getScrollPos();
         
         // It's necessary to inject a new rule to address all editors.
         _removeDynamicFontSize();
@@ -129,17 +115,17 @@ define(function (require, exports, module) {
         
         editor.refreshAll();
         
-        // Calculate the new scroll based on the old font sizes and scroll position
-        var newWidth    = editor._codeMirror.defaultCharWidth(),
-            newHeight   = editor.getTextHeight(),
-            deltaX      = scrollPos.x / oldWidth,
-            deltaY      = scrollTop / oldHeight,
-            scrollPosX  = scrollPos.x + Math.round(deltaX * (newWidth - oldWidth)),
-            scrollPosY  = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
-        
         // Scroll the document back to its original position, but not on the first load since the position
         // was saved with the new height and already been restored.
         if (_fontSizePrefsLoaded) {
+            // Calculate the new scroll based on the old font sizes and scroll position
+            var newWidth   = editor._codeMirror.defaultCharWidth(),
+                newHeight  = editor.getTextHeight(),
+                deltaX     = scrollPos.x / oldWidth,
+                deltaY     = scrollPos.y / oldHeight,
+                scrollPosX = scrollPos.x + Math.round(deltaX * (newWidth  - oldWidth)),
+                scrollPosY = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
+                
             editor.setScrollPos(scrollPosX, scrollPosY);
         }
     }
@@ -198,21 +184,21 @@ define(function (require, exports, module) {
     /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
         if (_adjustFontSize(1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") + 1);
+            PreferencesManager.setViewState("fontSizeAdjustment", PreferencesManager.getViewState("fontSizeAdjustment") + 1);
         }
     }
     
     /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
         if (_adjustFontSize(-1)) {
-            _prefs.setValue("fontSizeAdjustment", _prefs.getValue("fontSizeAdjustment") - 1);
+            PreferencesManager.setViewState("fontSizeAdjustment", PreferencesManager.getViewState("fontSizeAdjustment") - 1);
         }
     }
     
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _adjustFontSize(-_prefs.getValue("fontSizeAdjustment"));
-        _prefs.setValue("fontSizeAdjustment", 0);
+        _adjustFontSize(-PreferencesManager.getViewState("fontSizeAdjustment"));
+        PreferencesManager.setViewState("fontSizeAdjustment", 0);
     }
     
     
@@ -233,7 +219,7 @@ define(function (require, exports, module) {
             // Font Size preferences only need to be loaded one time
             if (!_fontSizePrefsLoaded) {
                 _removeDynamicFontSize();
-                _adjustFontSize(_prefs.getValue("fontSizeAdjustment"));
+                _adjustFontSize(PreferencesManager.getViewState("fontSizeAdjustment"));
                 _fontSizePrefsLoaded = true;
             }
             
@@ -253,19 +239,17 @@ define(function (require, exports, module) {
      * @param {number} textHeight
      * @param {number} scrollTop
      * @param {number} editorHeight
-     * @param {number} viewportFrom
      * @return {{first: number, last: number}}
      */
-    function _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom) {
+    function _getLinesInView(textHeight, scrollTop, editorHeight) {
         var scrolledTop    = scrollTop / textHeight,
             scrolledBottom = (scrollTop + editorHeight) / textHeight;
         
-        // Subtract a line from both for zero-based index. Also adjust last line
-        // to round inward to show a whole lines.
-        var firstLine      = Math.ceil(scrolledTop) - 1,
-            lastLine       = Math.floor(scrolledBottom) - 2;
+        // Adjust the last line to round inward to show a whole lines.
+        var firstLine      = Math.ceil(scrolledTop),
+            lastLine       = Math.floor(scrolledBottom) - 1;
         
-        return { first: viewportFrom + firstLine, last: viewportFrom + lastLine };
+        return { first: firstLine, last: lastLine };
     }
     
     /**
@@ -280,37 +264,28 @@ define(function (require, exports, module) {
             hasSelecction = editor.hasSelection(),
             inlineEditors = editor.getInlineWidgets(),
             scrollInfo    = editor._codeMirror.getScrollInfo(),
-            viewportFrom  = editor._codeMirror.getViewport().from,
             paddingTop    = editor._getLineSpaceElement().offsetTop,
-            viewportTop   = $(".CodeMirror-lines", editor.getRootElement()).parent().position().top,
-            editorHeight  = scrollInfo.clientHeight;
+            editorHeight  = scrollInfo.clientHeight,
+            scrollTop     = scrollInfo.top - paddingTop,
+            removedScroll = paddingTop;
         
-        // To make it snap better to lines and dont cover the cursor when the scroll is lower than the top padding,
-        // we make it start direclty from the top padding
-        var scrolledTop   = scrollInfo.top < paddingTop && direction > 0 ? paddingTop : scrollInfo.top;
-        
-        // CodeMirror has a strange behaviour when it comes to calculate the height of the not rendered lines,
-        // so instead, we calculate the amount of hidden rendered lines at top and add it to the first rendered line.
-        var scrollTop     = scrolledTop - viewportTop,
-            linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
-        
-        // Go through all the editors and reduce the scroll top and editor height to recalculate the lines in view 
-        var line, total;
+        // Go through all the editors and reduce the scroll top and editor height to properly calculate the lines in view 
+        var line, coords;
         inlineEditors.forEach(function (inlineEditor) {
-            line  = editor._getInlineWidgetLineNumber(inlineEditor);
-            total = inlineEditor.info.height / textHeight;
+            line   = editor._getInlineWidgetLineNumber(inlineEditor);
+            coords = editor._codeMirror.charCoords({line: line, ch: 0}, "local");
             
-            if (line >= viewportFrom) {
-                if (line < linesInView.first) {
-                    scrollTop   -= inlineEditor.info.height;
-                    linesInView  = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
-                
-                } else if (line + total < linesInView.last) {
-                    editorHeight -= inlineEditor.info.height;
-                    linesInView   = _getLinesInView(textHeight, scrollTop, editorHeight, viewportFrom);
-                }
+            if (coords.top < scrollInfo.top) {
+                scrollTop     -= inlineEditor.info.height;
+                removedScroll += inlineEditor.info.height;
+            
+            } else if (coords.top + inlineEditor.info.height < scrollInfo.top + editorHeight) {
+                editorHeight -= inlineEditor.info.height;
             }
         });
+        
+        // Calculate the lines in view
+        var linesInView = _getLinesInView(textHeight, scrollTop, editorHeight);
         
         // If there is no selection move the cursor so that is always visible.
         if (!hasSelecction) {
@@ -329,15 +304,9 @@ define(function (require, exports, module) {
             }
         }
         
-        // If there are inline editors just add/remove 1 line to the scroll top.
-        if (inlineEditors.length) {
-            editor.setScrollPos(scrollInfo.left, scrolledTop + (textHeight * direction));
-        
-        // If there arent, we can make it snap to the line.
-        } else {
-            var lines = linesInView.first - viewportFrom + direction + 1;
-            editor.setScrollPos(scrollInfo.left, viewportTop + (textHeight * lines));
-        }
+        // Scroll and make it snap to lines
+        var lines = linesInView.first + direction;
+        editor.setScrollPos(scrollInfo.left, (textHeight * lines) + removedScroll);
     }
     
     /** Scrolls one line up */
@@ -358,8 +327,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    // Initialize the PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module, _defaultPrefs);
+    // Initialize the default font size
+    PreferencesManager.stateManager.definePreference("fontSizeAdjustment", "number", 0);
+    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);

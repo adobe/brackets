@@ -65,11 +65,6 @@ define(function (require, exports, module) {
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
     var REPLACE_ALL_MAX     = 300;
     
-    var _prefs = PreferencesManager.getPreferenceStorage(module, {
-        caseSensitive: false,
-        regexp: false
-    });
-
     /** @type {!Panel} Panel that shows results of replaceAll action */
     var replaceAllPanel = null;
 
@@ -89,7 +84,6 @@ define(function (require, exports, module) {
     /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
     var closeFindInFilesBar;
     
-
     function SearchState() {
         this.searchStartPos = null;
         this.query = null;
@@ -106,16 +100,16 @@ define(function (require, exports, module) {
 
     function getSearchCursor(cm, query, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return cm.getSearchCursor(query, pos, !$("#find-case-sensitive").is(".active"));
+        return cm.getSearchCursor(query, pos, !PreferencesManager.getViewState("caseSensitive"));
     }
     
     function _updateSearchBarFromPrefs() {
-        $("#find-case-sensitive").toggleClass("active", _prefs.getValue("caseSensitive"));
-        $("#find-regexp").toggleClass("active",         _prefs.getValue("regexp"));
+        $("#find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
+        $("#find-regexp").toggleClass("active",         PreferencesManager.getViewState("regexp"));
     }
     function _updatePrefsFromSearchBar() {
-        _prefs.setValue("caseSensitive", $("#find-case-sensitive").is(".active"));
-        _prefs.setValue("regexp",        $("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("caseSensitive", $("#find-case-sensitive").is(".active"));
+        PreferencesManager.setViewState("regexp",        $("#find-regexp").is(".active"));
     }
     
     function parseQuery(query) {
@@ -140,16 +134,21 @@ define(function (require, exports, module) {
         }
     }
 
+    // NOTE: we can't just use the ordinary replace() function here because the string has been
+    // extracted from the original text and so might be missing some context that the regexp matched.
     function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2})/g, function (whole, dollars, index) {
+        replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
             var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1 && parsedIndex !== 0) {
-                return dollars.substr(1) + (match[parsedIndex] || "");
-            } else {
-                return whole;
+            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
+                if (index === "&") { // handle $&
+                    return dollars.substr(1) + (match[0] || "");
+                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
+                    return dollars.substr(1) + (match[parsedIndex] || "");
+                }
             }
+            return whole;
         });
-        replaceWith = replaceWith.replace(/\$\$/g, "$");
+        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
         return replaceWith;
     }
 
@@ -582,6 +581,7 @@ define(function (require, exports, module) {
         });
 
         replaceAllPanel.show();
+        $replaceAllTable.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     }
 
     /** Shows the Find-Replace search bar at top */
@@ -668,6 +668,10 @@ define(function (require, exports, module) {
         }
     }
 
+    PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
+    PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
+    PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
+    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);

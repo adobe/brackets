@@ -403,34 +403,31 @@ a:focus {
     margin: 0;
 }
 
-/* Stylesheet button & dropdown styles */
+/* DropdownButton widget */
 
-.stylesheet-button.btn-mini {
-    margin-left: 8px;
-    position: relative;
-    top: -1px;
+.btn-dropdown, .btn-dropdown.btn-mini {
+    position: relative;   // needed to position ::after arrow
+    padding-right: 24px;  // makes room for ::after arrow
 }
-
-.stylesheet-button.btn-mini.btn-dropdown {
-    padding-right: 24px;
-}
-
-.stylesheet-button.btn-dropdown::after {
+.btn-dropdown::after {
     content: "";
     display: block;
     height: 0px;
     width: 0px;
     position: absolute;
     right: 6px;
-    top: 7px;
+    top: 11px;
 
     /* dropdown triangle */
     border-top: 4px solid @tc-gray-component-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 }
+.btn-dropdown.btn-mini::after {
+    top: 7px;
+}
 
-.stylesheet-dropdown {
+.dropdownbutton-popup {
     &.dropdown-menu:focus {
         outline: none;
     }
@@ -449,24 +446,12 @@ a:focus {
         z-index: @z-index-brackets-stylesheet-menu;
     }
     
-    .stylesheet-link, .stylesheet-name {
-        white-space: nowrap;
-    }
-    
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
     }
     
     &.dropdown-menu .stylesheet-link {
         display: block;
-    }
-    
-    .stylesheet-name {
-        color: @tc-text;
-    }
-    
-    .stylesheet-dir {
-        color: @tc-quiet-text;
     }
     
     &.dropdown-menu a.selected {
@@ -479,6 +464,26 @@ a:focus {
     }
 }
 
+/* Inline editor stylesheet-picker DropdownButton */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    top: -1px;
+}
+
+.dropdownbutton-popup {
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    .stylesheet-name {
+        color: @tc-text;
+    }
+    
+    .stylesheet-dir {
+        color: @tc-quiet-text;
+    }
+}
 
 /* Dialog-related styles */
 
@@ -1110,6 +1115,7 @@ input[type="color"],
     }
 }
 
+
 /* Tables */
 
 .table, table {
@@ -1120,7 +1126,7 @@ input[type="color"],
         border-top: 1px solid transparent;
     }
     tbody th {
-        border-top: 1px solid transparent);
+        border-top: 1px solid transparent;
     }
     .right {
         text-align: right;

@@ -20,15 +20,19 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  */
+/*jslint regexp:true*/
 /*global module, require, process*/
 
 module.exports = function (grunt) {
     "use strict";
 
-    var build           = {},
-        child_process   = require("child_process"),
+    var child_process   = require("child_process"),
+        http            = require("http"),
+        https           = require("https"),
+        build           = {},
         path            = require("path"),
         q               = require("q"),
+        querystring     = require("querystring"),
         qexec           = q.denodeify(child_process.exec);
 
     function getGitInfo(cwd) {
@@ -117,6 +121,131 @@ module.exports = function (grunt) {
 
             done();
         });
+    });
+    
+    // task: cla-check-pull
+    grunt.registerTask("cla-check-pull", "Check if a given GitHub user has signed the CLA", function () {
+        var done    = this.async(),
+            body    = "",
+            options = {},
+            travis  = process.env.TRAVIS === "true",
+            pull    = travis ? process.env.TRAVIS_PULL_REQUEST : (grunt.option("pull") || false),
+            request;
+
+        pull = parseInt(pull, 10);
+        
+        if (isNaN(pull)) {
+            grunt.log.writeln(JSON.stringify(process.env));
+            
+            if (travis) {
+                // Kicked off a travis build without a pull request, skip CLA check
+                grunt.log.writeln("Travis build without pull request");
+                done();
+            } else {
+                // Grunt command-line option missing, fail CLA check
+                grunt.log.writeln("Missing pull request number. Use 'grunt cla-check-pull --pull=<NUMBER>'.");
+                done(false);
+            }
+            
+            return;
+        }
+        
+        options.host    = "api.github.com";
+        options.path    = "/repos/adobe/brackets/issues/" + pull;
+        options.method  = "GET";
+        options.headers = {
+            "User-Agent" : "Node.js"
+        };
+            
+        request = https.request(options, function (res) {
+            res.on("data", function (chunk) {
+                body += chunk;
+            });
+            
+            res.on("end", function () {
+                var json    = JSON.parse(body),
+                    login   = json.user && json.user.login;
+
+                if (login) {
+                    grunt.option("user", login);
+                    grunt.task.run("cla-check");
+
+                    done();
+                } else {
+                    grunt.log.writeln("Unexpected response from api.github.com");
+                    grunt.log.writeln("statusCode: " + res.statusCode);
+                    grunt.log.writeln("headers: " + JSON.stringify(res.headers));
+                    grunt.log.writeln("data: " + body);
+
+                    done(false);
+                }
+            });
+            
+            res.on("error", function (err) {
+                grunt.log.writeln(err);
+                done(false);
+            });
+        });
+        
+        request.end();
+    });
+
+    // task: cla-check
+    grunt.registerTask("cla-check", "Check if a given GitHub user has signed the CLA", function () {
+        var done    = this.async(),
+            user    = grunt.option("user") || "",
+            body    = "",
+            options = {},
+            postdata = querystring.stringify({contributor: user}),
+            request;
+        
+        if (!user) {
+            grunt.log.writeln("Missing user name. Use 'grunt cla-check --user=<GITHUB USER NAME>'.");
+            done(false);
+            return;
+        }
+
+        // Check CLA exceptions first
+        var exceptions = grunt.file.readJSON("tasks/cla-exceptions.json");
+
+        if (exceptions[user]) {
+            grunt.log.writeln(user + " exempt from the standard contributor license agreement");
+            done();
+            return;
+        }
+        
+        // Query dev.brackets.io for CLA status
+        options.host    = "dev.brackets.io";
+        options.path    = "/cla/brackets/check.cfm";
+        options.method  = "POST";
+        options.headers = {
+            "Content-Type"      : "application/x-www-form-urlencoded",
+            "Content-Length"    : postdata.length
+        };
+        
+        request = http.request(options, function (res) {
+            res.on("data", function (chunk) {
+                body += chunk;
+            });
+            
+            res.on("end", function () {
+                if (body.match(/.*REJECTED.*/)) {
+                    grunt.log.error(user + " has NOT submitted the contributor license agreement");
+                    done(false);
+                } else {
+                    grunt.log.writeln(user + " has submitted the contributor license agreement");
+                    done();
+                }
+            });
+            
+            res.on("error", function (err) {
+                grunt.log.writeln(err);
+                done(false);
+            });
+        });
+        
+        request.write(postdata);
+        request.end();
     });
     
     build.getGitInfo = getGitInfo;

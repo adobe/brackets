@@ -85,8 +85,8 @@ define(function (require, exports, module) {
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
-        function expectNoHints(provider) {
-            expect(provider.hasHints(testEditor, null)).toBe(false);
+        function expectNoHints(provider, implicitChar) {
+            expect(provider.hasHints(testEditor, implicitChar)).toBe(false);
         }
     
         function verifyAttrHints(hintList, expectedFirstHint) {
@@ -632,6 +632,26 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 // some-named-flow should not be in the hint list since it is inside HTML text
                 verifyAllValues(hintList, []);
+            });
+        });
+
+        describe("Should not invoke CSS hints on space key", function () {
+            beforeEach(function () {
+                setupTest(testContentHTML, "html");
+            });
+            
+            afterEach(function () {
+                tearDownTest();
+            });
+            
+            it("should not trigger CSS property name hints with space key", function () {
+                testEditor.setCursorPos({ line: 25, ch: 11 });    // after {
+                expectNoHints(CSSCodeHints.cssPropHintProvider, " ");
+            });
+
+            it("should not trigger CSS property value hints with space key", function () {
+                testEditor.setCursorPos({ line: 28, ch: 21 });    // after flow-from
+                expectNoHints(CSSCodeHints.cssPropHintProvider, " ");
             });
         });
     });

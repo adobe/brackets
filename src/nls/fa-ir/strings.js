@@ -37,6 +37,7 @@ define({
     "NOT_READABLE_ERR"                  : "فایل قابل خواندن نیست.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "دایرکتوری هدف قابل ویرایش نیست.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "دسترسی های تعریف شده برای شما اجازه تغییرات را نمی دهند.",
+    "CONTENTS_MODIFIED_ERR"             : "این فایل قبل خارج از محیط این نرم افزار ویرایش شده است.",
     "FILE_EXISTS_ERR"                   : "پرونده یا پوشه مد نظر موجود می باشد.",
     "FILE"                              : "پرونده",
     "DIRECTORY"                         : "پوشه",
@@ -60,7 +61,7 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "خطا در حذف پرونده",
     "ERROR_DELETING_FILE"               : "بروز خطا بهنگام تلاش برای جذف پرونده <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "مقدار وارد شده {0} معتبر نمی باشد",
-    "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: /?*:;{}<>\\| or use any system reserved words.",
+    "INVALID_FILENAME_MESSAGE"          : "نام پرونده نمی تواند شامل مقادیر زیر باشد: {0} or use any system reserved words.",
     "FILE_ALREADY_EXISTS"               : "پرونده ای با نام {0} <span class='dialog-filename'>{1}</span> وجود دارد.",
     "ERROR_CREATING_FILE_TITLE"         : "خطا در ایجاد {0}",
     "ERROR_CREATING_FILE"               : "بروز خطا بهنگام ایجاد {0} <span class='dialog-filename'>{1}</span>. {2}",
@@ -69,7 +70,7 @@ define({
     "ERROR_IN_BROWSER_TITLE"            : "!!! براکتس در مرورگرها اجرا نمی شود.",
     "ERROR_IN_BROWSER"                  : "براکتس با HTML ساخته شده, ولی هم اکنون بعنوان یک برنامه رومیزی(desktop) اجرا می شود و شما می توانید از آن جهت ویرایش پرونده های خود استفاده نمایید.",
 
-    // FileIndexManager error string
+    // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "خطا در فهرست بندی پرونده ها",
     "ERROR_MAX_FILES"                   : "مقدار پرونده های قابل فهرست بندی به حداکثر رسیده بهمین علیت عملگر بهنگام فهرست بندی با خطا مواجه می شود.",
 
@@ -94,11 +95,12 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "پیش نمایش زنده: درحال مقدار دهی اولیه\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "قطع اتصال از پیش نمایش زنده",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "پیش نمایش زنده: جهت قطع اتصال کلیک کنید (ذخیره پرونده ها جهت بروز رسانی)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "پیش نمایش زنده(به دلیل خطا در نحو بروزرسانی نشده است)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "پیش نمایش زنده لغو شد زیرا از برخی از ابزارهای توسعه مختص مرورگرتان استفاده کرده اید.",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "پیش نمایش زنده لغو شد زیرا پنجره یا زبانه مربوط به صفحه در مرورگر بسته شده.",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "پیش نمایش زنده لغو شد زیرا پنجره یا زبانه موجود در مرورگر آدرس دیگری را پیمایش کرده است.",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "پیش نمایش زنده بدلیل نامشخصی لغو شد ({0})",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "پیش نمایش زنده به دلیل نامشخصی لغو شد ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "ذخیره تغییرات",
     "SAVE_CLOSE_MESSAGE"                : "آیا مایلید تغییرات داده شده در سند ذخیره گردند <span class='dialog-filename'>{0}</span>?",
@@ -107,20 +109,34 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "تائید حذف",
     "CONFIRM_FOLDER_DELETE"             : "آیا مطمئنید می خواهید این پوشه حذف گردد <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "پرونده حذف گردید",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> تغییراتی بر روی دیسک انجام شده, ولی تغییرات بر روی براکتس ذخیره نگردیده.<br /><br />کدام نسخه را می خواهید نگه دارید?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> خارج از براکتس ویرایش شده.<br /><br />آیا می خواهید فایل را ذخیره و و تغییراتی را که دادید دوباره بر روی فایل ویرایش شده اعمال نمایید؟",
+	"EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> تغییراتی بر روی دیسک انجام شده, ولی تغییرات بر روی براکتس ذخیره نگردیده.<br /><br />کدام نسخه را می خواهید نگه دارید?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> برخی مقادیر از دیسک حذف شده, ولی تغییرات بر روی براکتس اعمال/ذخیره نشده.<br /><br />آیا می خواهید تغییرات را حفظ کنید?",
     
-    // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "برای جستجوی regexp از /re/ استفاده کنید",
-    "FIND_RESULT_COUNT"                 : "{0} نتایج",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 نتیجه",
-    "FIND_NO_RESULTS"                   : "بی نتیجه",
-    "WITH"                              : "با",
+	// Generic dialog/button labels
+    "OK"                                : "تائید",
+    "CANCEL"                            : "لغو",
+    "DONT_SAVE"                         : "ذخیره نکن",
+    "SAVE"                              : "ذخیره",
+    "SAVE_AS"                           : "ذخیره بعنوان\u2026",
+    "SAVE_AND_OVERWRITE"                : "ذخیره/دوباره نویسی فایل",
+    "DELETE"                            : "حذف",
     "BUTTON_YES"                        : "بله",
     "BUTTON_NO"                         : "خیر",
-    "BUTTON_REPLACE_ALL"                : "همه موارد\u2026",
-    "BUTTON_STOP"                       : "ایست",
+	
+    // Find, Replace, Find in Files
+    "FIND_RESULT_COUNT"                 : "{0} نتیجه",
+    "FIND_RESULT_COUNT_SINGLE"          : "1 نتیجه",
+    "FIND_NO_RESULTS"                   : "بدون نتیجه",
+    "REPLACE_PLACEHOLDER"               : "جایگزینی با\u2026",
+    "BUTTON_REPLACE_ALL"                : "همه\u2026",
     "BUTTON_REPLACE"                    : "جایگزینی",
+    "BUTTON_NEXT"                       : "\u25B6",
+    "BUTTON_PREV"                       : "\u25C0",
+    "BUTTON_NEXT_HINT"                  : "مورد بعدی",
+    "BUTTON_PREV_HINT"                  : "مورد قبلی",
+    "BUTTON_CASESENSITIVE_HINT"         : "مورد تطبیق یافته",
+    "BUTTON_REGEXP_HINT"                : "عبارت منظم",
 
     "OPEN_FILE"                         : "باز کردن پرونده",
     "SAVE_FILE_AS"                      : "ذخیره پرونده",
@@ -130,10 +146,12 @@ define({
     "NO_UPDATE_TITLE"                   : "بروز هستید!",
     "NO_UPDATE_MESSAGE"                 : "شما درحال استفاده از آخرین نسخه براکتس هستید.",
 
+	// Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "جستجو و جایگزینی \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" با \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+	// Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" پیدا شد",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} in {2} {3}",
@@ -146,12 +164,11 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "بیش تر از ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "پرونده: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "خط: {0}",
-
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "خطا در دریافت اطلاعات بروز رسانی",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "خطا بهنگام دریافت آخرین اطلاعات بروزرسانی از سرویس دهنده رخ داده. اطمینان حاصل کنید که به اینترنت متصلید و سپس دوباره تلاش کنید.",
-
-    /**
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "جهت بازکردن/بستن منوها کلید Ctrl/Cmd را گرفته و کلیک کنید.",
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "درحال بروزرسانی اطلاعات خطا",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "بروز خطا در هنگام دستیابی به آخرین اطلاعات بروزرسانی از سرویس دهنده. اطمینان حاصل کنید که به اینترنت متصل بوده و دوباره تلاش نمایید.",
+    
+	/**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "درحال بارگذاری\u2026",
@@ -175,12 +192,23 @@ define({
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} خط انتخاب شده",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "کلیک کنید تا به این فضاها منتقل شوید",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "کلیک کنید تا به این زبانه ها منتقل شوید",
-    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "جهت تغییر تعداد فضاهای خالی استفاده شده در هنگام فاصله دهی خطوط از چپ، کلیک کنید",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "کلیک کنید تا طول زبانه کاراکتر ها تغییر کند",
     "STATUSBAR_SPACES"                      : "فاصله",
     "STATUSBAR_TAB_SIZE"                    : "اندازه زبانه",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} خط",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} خط ها",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED"    : "غیرفعال سازی افزونه ها",
+	
+	// CodeInspection: errors/warnings
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} خطا",
+    "SINGLE_ERROR"                          : "1 {0} خطا",
+    "MULTIPLE_ERRORS"                       : "{1} {0} خطا",
+    "NO_ERRORS"                             : "هیچ خطایی یافت نشد {0} - کارت درسته!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "خطایی پیدا نشد - کارت درسته!",
+    "LINT_DISABLED"                         : "Linting غیرفعال شد",
+    "NO_LINT_AVAILABLE"                     : "linter برای {0} دردسترس نیست",
+    "NOTHING_TO_LINT"                       : "احتیاج به lint وجود ندارد",
 
     /**
      * Command Name Constants
@@ -193,9 +221,14 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "پوشه جدید",
     "CMD_FILE_OPEN"                       : "باز کردن\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "افزودن به محیط کاری",
+	"CMD_OPEN_DROPPED_FILES"              : "بازکردن فایل های درنظر گرفته نشده",
     "CMD_OPEN_FOLDER"                     : "باز کردن پوشه\u2026",
     "CMD_FILE_CLOSE"                      : "بستن",
     "CMD_FILE_CLOSE_ALL"                  : "بستن همه",
+	"CMD_FILE_CLOSE_LIST"                 : "بستن لیست",
+    "CMD_FILE_CLOSE_OTHERS"               : "بستن سایر موارد",
+    "CMD_FILE_CLOSE_ABOVE"                : "بستن موارد بالایی",
+    "CMD_FILE_CLOSE_BELOW"                : "بستن موارد پایینی",
     "CMD_FILE_SAVE"                       : "ذخیره",
     "CMD_FILE_SAVE_ALL"                   : "ذخیره همه",
     "CMD_FILE_SAVE_AS"                    : "ذخیره همه\u2026",
@@ -206,8 +239,8 @@ define({
     "CMD_INSTALL_EXTENSION"               : "نصب افزونه ها\u2026",
     "CMD_EXTENSION_MANAGER"               : "مدیریت افزونه ها\u2026",
     "CMD_FILE_REFRESH"                    : "تازه سازی درختی پرونده",
-    "CMD_QUIT"                            : "رها سازی",
-    // Used in native File menu on Windows
+    "CMD_QUIT"                            : "خروج",
+	// Used in native File menu on Windows
     "CMD_EXIT"                            : "خروج",
 
     // Edit menu commands
@@ -220,6 +253,7 @@ define({
     "CMD_SELECT_ALL"                      : "انتخاب همه",
     "CMD_SELECT_LINE"                     : "انتخاب خط",
     "CMD_FIND"                            : "جستجو",
+	"CMD_FIND_FIELD_PLACEHOLDER"          : "جستجو\u2026",
     "CMD_FIND_IN_FILES"                   : "جستجو در پرونده ها",
     "CMD_FIND_IN_SUBTREE"                 : "جستجو در\u2026",
     "CMD_FIND_NEXT"                       : "بعدی",
@@ -262,10 +296,12 @@ define({
     "CMD_QUICK_OPEN"                      : "باز کردن سریع",
     "CMD_GOTO_LINE"                       : "برو به خط",
     "CMD_GOTO_DEFINITION"                 : "تعریف جستجوی سریع",
+	"CMD_GOTO_FIRST_PROBLEM"              : "رجوء با اولین خطا/اخطار",
     "CMD_TOGGLE_QUICK_EDIT"               : "ویرایش سریع",
     "CMD_TOGGLE_QUICK_DOCS"               : "مستند گزاری سریع",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "تطبیق یافته قبلی",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "تطبیق یافته بعدی",
+	"CMD_CSS_QUICK_EDIT_NEW_RULE"         : "قاعده جدید",
     "CMD_NEXT_DOC"                        : "سند بعدی",
     "CMD_PREV_DOC"                        : "سند قبلی",
     "CMD_SHOW_IN_TREE"                    : "نمایش پرونده در میان پرونده های کاری",
@@ -281,21 +317,11 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "نمایش پوشه افزونه ها",
     "CMD_TWITTER"                         : "{TWITTER_NAME} در تویتر",
     "CMD_ABOUT"                           : "پیرامون براکتس",
-
-
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "بستن پنجره",
-    "CMD_ABORT_QUIT"                      : "لغو ترک",
-    "CMD_BEFORE_MENUPOPUP"                : "قبل از منوی Popup",
+	"CMD_OPEN_PREFERENCES"                : "بازکردن فایل تنظیمات",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "OK"                                   : "تائید",
-    "DONT_SAVE"                            : "ذخیره نکن",
-    "SAVE"                                 : "ذخیره",
-    "CANCEL"                               : "لغو",
-    "DELETE"                               : "حذف",
     "RELOAD_FROM_DISK"                     : "دوباره بارگذاری کن از دیسک",
     "KEEP_CHANGES_IN_EDITOR"               : "تغییرات در ویرایشگر را نگه دار",
     "CLOSE_DONT_SAVE"                      : "بستن(بدون ذخیره سازی)",
@@ -319,7 +345,10 @@ define({
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL اصلی نمی تواند شامل پارامترهای جستجو بمانند \"{0}\" باشد.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL اصلی نمی تواند hashes مشابه \"{0}\" داشته باشد.",
     "BASEURL_ERROR_INVALID_CHAR"           : "برخی کاراکتر های خاص شبیه '{0}' می بایست %-encoded.",
-    "BASEURL_ERROR_UNKOWN_ERROR"           : "خطای ناشناخته در URL اصلی/پایه",
+    "BASEURL_ERROR_UNKNOWN_ERROR"           : "خطای ناشناخته در URL اصلی/پایه",
+	
+	// CSS Quick Edit
+    "BUTTON_NEW_RULE"                      : "قائده جدید",
     
     // Extension Management strings
     "INSTALL"                              : "نصب",
@@ -328,7 +357,8 @@ define({
     "OVERWRITE"                            : "دوباره نویسی",
     "CANT_REMOVE_DEV"                      : "افزونه های موجود در پوشه \"dev\" می بایست بصورت دستی حذف گردند.",
     "CANT_UPDATE"                          : "بروز رسانی سازگار با این نسخه از براکتس نیست.",
-    "INSTALL_EXTENSION_TITLE"              : "نصب افزونه",
+    "CANT_UPDATE_DEV"                      : "افزونه موجود در پوشه \"dev\" قادر به بروزرسانی خودکار نیست.",
+	"INSTALL_EXTENSION_TITLE"              : "نصب افزونه",
     "UPDATE_EXTENSION_TITLE"               : "بروز رسانی افزونه",
     "INSTALL_EXTENSION_LABEL"              : "URL افزونه",
     "INSTALL_EXTENSION_HINT"               : "URL افزونه های دارای پرونده zip یا مخازن Github",
@@ -368,6 +398,8 @@ define({
     "EXTENSION_DATE"                       : "تاریخ",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "این افزونه احتیاج به نسخه جدیدی از براکتس دارد.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "نسخه فعلی این افزونه فقط با نسخه های قبلی براکتس سازگار است.",
+	"EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "نسخه {0} از این افزونه نیازمند نسخه جدیدی از {APP_NAME} می باشد. ولی شما می توانید یک نسخه پایین تر از {1} را نصب کنید.",
+    "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "نسخه {0} از این افزونه تنها با نسخه های قدیمی {APP_NAME} سازگار است. با این وجود شما می توانید از نسخه های پایین تر {1} استفاده کنید.",
     "EXTENSION_NO_DESCRIPTION"             : "بدون شرح",
     "EXTENSION_MORE_INFO"                  : "اطلاعات بیشتر...",
     "EXTENSION_ERROR"                      : "خطای افزونه",
@@ -385,11 +417,12 @@ define({
     "UNDO_REMOVE"                          : "Undo",
     "MARKED_FOR_UPDATE"                    : "انتخاب شده برای بروزرسانی",
     "UNDO_UPDATE"                          : "Undo",
-    "CHANGE_AND_QUIT_TITLE"                : "تغییر در افزونه ها",
-    "CHANGE_AND_QUIT_MESSAGE"              : "جهت بروزرسانی یا حذف افزونه ها می بایست براکتس را ترک و دوباره اجرا کنید. شما می بایست تغییرات ذخیره نشده را ذخیره نمایید.",
-    "REMOVE_AND_QUIT"                      : "حذف افزونه ها و ترک(خروج)",
-    "CHANGE_AND_QUIT"                      : "تغییر افزونه ها و ترک",
-    "UPDATE_AND_QUIT"                      : "بروزرسانی افزونه ها و ترک",
+	"CHANGE_AND_RELOAD_TITLE"              : "تغییر افزونه ها و بارگذاری مجدد",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "جهت بروزرسانی یا حذف افزونه های انتخاب شده براکتس احتیاج به بارگذاری مجدد دارد. تغییرات ذخیره نشده شما ذخیره خواهد شد.",
+    "REMOVE_AND_RELOAD"                    : "حذف افزونه ها و بارگذاری مجدد",
+    "CHANGE_AND_RELOAD"                    : "تغییر افزونه ها و بارگذاری مجدد",
+    "UPDATE_AND_RELOAD"                    : "بروزرسانی افزونه ها و بارگذاری مجدد",
+	"PROCESSING_EXTENSIONS"                : "درحال پردازش تغییرات\u2026",
     "EXTENSION_NOT_INSTALLED"              : "ناتوان در حذف افزونه {0} زیرا این افزونه بدرستی نصب نشده.",
     "NO_EXTENSIONS"                        : "هیچ افزونه ای نصب نشده.<br>جهت شروع بر روی زبانه در درسترس بالا کلیک کنید.",
     "NO_EXTENSION_MATCHES"                 : "هیچ افزونه ای منطبق با جستجوی شما پیدا نشد.",
@@ -397,7 +430,11 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "نصب شده",
     "EXTENSIONS_AVAILABLE_TITLE"           : "در دسترس",
     "EXTENSIONS_UPDATES_TITLE"             : "بروزرسانی ها",
-    
+
+	"INLINE_EDITOR_NO_MATCHES"             : "هیچ مورد سازگاری دردسترس نیست.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "هیچ قائده منطبقی برای CSSها نسبت به موردی که انتخاب کردید وجود ندارد.<br> از گزینه \"قائده جدید\" برای تغریف یک قائده جدید استفاده کنید.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "هیچ شیوه نامه ای-فایل CSS- در پروژه شما وجود ندارد.<br>جهت تعریف قوائد CSS ابتدا یک فایل شیوه نامه ایجاد کنید.",
+	
     /**
      * Unit names
      */
@@ -408,6 +445,7 @@ define({
     "DEBUG_MENU"                                : "خطا یابی",
     "CMD_SHOW_DEV_TOOLS"                        : "نمایش ابزار های توسعه دهندگان",
     "CMD_REFRESH_WINDOW"                        : "بارگذاری مجدد براکتس",
+	"CMD_RELOAD_WITHOUT_USER_EXTS"              : "بارگذاری مجدد براکتس بدون بارگذاری افزونه های کاربر",
     "CMD_NEW_BRACKETS_WINDOW"                   : "یک پنجره جدید از براکتس باز کنید",
     "CMD_SWITCH_LANGUAGE"                       : "انتخاب زبان",
     "CMD_RUN_UNIT_TESTS"                        : "برسی برای اجرا",
@@ -421,28 +459,12 @@ define({
     "LANGUAGE_SUBMIT"                           : "بارگذاری مجدد براکتس",
     "LANGUAGE_CANCEL"                           : "لغو",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "زبان پیش فرض",
-    
-    /**
-     * Locales
-     */
-    "LOCALE_CS"                                 : "Czech",
-    "LOCALE_DE"                                 : "German",
-    "LOCALE_EN"                                 : "English",
-    "LOCALE_ES"                                 : "Spanish",
-    "LOCALE_FI"                                 : "Finnish",
-    "LOCALE_FR"                                 : "French",
-    "LOCALE_IT"                                 : "Italian",
-    "LOCALE_JA"                                 : "Japanese",
-    "LOCALE_NB"                                 : "Norwegian",
-    "LOCALE_FA_IR"                              : "Persian-پارسی",
-    "LOCALE_PL"                                 : "Polish",
-    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                              : "Portuguese",
-    "LOCALE_RU"                                 : "Russian",
-    "LOCALE_SV"                                 : "Swedish",
-    "LOCALE_TR"                                 : "Turkish",
-    "LOCALE_ZH_CN"                              : "Chinese, simplified",
-    "LOCALE_HU"                                 : "Hungarian",
+
+	// extensions/default/InlineTimingFunctionEditor
+    "INLINE_TIMING_EDITOR_TIME"                 : "زمان",
+    "INLINE_TIMING_EDITOR_PROGRESSION"          : "پیشرفت",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "رنگ فعلی",
@@ -457,19 +479,16 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "پرش جهت تعریف",
     "CMD_SHOW_PARAMETER_HINT"                   : "نمایش پارامتر",
     "NO_ARGUMENTS"                              : "<بدون پارامتر>",
-
+    
     // extensions/default/JSLint
-    "CMD_JSLINT"                                : "فعال سازی JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "رجوء به اولی خطای JSLint",
-    "JSLINT_ERRORS"                             : "خطاهای JSLint",
-    "JSLINT_ERROR_INFORMATION"                  : "یک خطای JSLint",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} خطای JSLint",
-    "JSLINT_NO_ERRORS"                          : "JSLint بدون خطای - ایول!",
-    "JSLINT_DISABLED"                           : "JSLint یا نافعال است و یا برای پرونده فعلی کار نمی کند",
+    "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "نمایش سریع با اشاره",
+    "CMD_ENABLE_QUICK_VIEW"                     : "مشاهده سریع بهنگام اشاره با ماوس",
+    
+    // extensions/default/RecentProjects
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "پروژه های اخیر",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "بیشتر بخوانید"
+    "DOCS_MORE_LINK"                            : "بیشتر"
 });

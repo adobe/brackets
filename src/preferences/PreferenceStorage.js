@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     
     var _ = require("thirdparty/lodash");
     
-    var PreferencesManager = require("preferences/PreferencesManager");
+    var PreferencesManager = require("preferences/PreferencesManager"),
+        DeprecationWarning = require("utils/DeprecationWarning");
     
     /**
      * @private
@@ -97,6 +98,7 @@ define(function (require, exports, module) {
      * @param {!string} key A unique identifier
      */
     PreferenceStorage.prototype.remove = function (key) {
+        DeprecationWarning.deprecationWarning("remove is called to remove a preference '" + key + ",' use PreferencesManager.set (with value of undefined) instead.");
         // remove value from JSON storage
         delete this._json[key];
         _commit();
@@ -108,6 +110,7 @@ define(function (require, exports, module) {
      * @param {object} value A valid JSON value
      */
     PreferenceStorage.prototype.setValue = function (key, value) {
+        DeprecationWarning.deprecationWarning("setValue is called to set preference '" + key + ",' use PreferencesManager.set instead.");
         if (_validateJSONPair(key, value)) {
             this._json[key] = value;
             _commit();
@@ -120,6 +123,7 @@ define(function (require, exports, module) {
      * @return {object} Returns the value for the key or undefined.
      */
     PreferenceStorage.prototype.getValue = function (key) {
+        DeprecationWarning.deprecationWarning("getValue is called to get preference '" + key + ",' use PreferencesManager.get instead.");
         return this._json[key];
     };
     
@@ -142,6 +146,8 @@ define(function (require, exports, module) {
      *  all existing preferences are deleted before writing new properties from the JSON object.
      */
     PreferenceStorage.prototype.setAllValues = function (obj, append) {
+        DeprecationWarning.deprecationWarning("setAllValues is called to set preferences '" + Object.keys(obj) + ",' use PreferencesManager.set (probably with doNotSave flag) instead.");
+
         var self = this,
             error = null;
         
@@ -179,19 +185,25 @@ define(function (require, exports, module) {
     
     /**
      * Converts preferences to the new-style file-based preferences according to the
-     * rules. (See PreferencesManager.ConvertSettings for information about the rules).
+     * rules. (See PreferencesManager.ConvertPreferences for information about the rules).
      * 
      * @param {Object} rules Conversion rules.
      * @param {Array.<string>} convertedKeys List of keys that were previously converted 
      *                                      (will not be reconverted)
+     * @param {boolean=} isViewState If it is undefined or false, then the preferences
+     *      listed in 'rules' are those normal user-editable preferences. Otherwise,
+     *      they are view state settings.
+     * @param {function(string)=} prefCheckCallback Optional callback function that
+     *      examines each preference key for migration.
      * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
      *                      `complete` flag that denotes whether everything from this object 
      *                      was converted (making it safe to delete entirely).
      */
-    PreferenceStorage.prototype.convert = function (rules, convertedKeys) {
+    PreferenceStorage.prototype.convert = function (rules, convertedKeys, isViewState, prefCheckCallback) {
         var prefs = this._json,
             self = this,
             complete = true,
+            manager  = isViewState ? PreferencesManager.stateManager : PreferencesManager,
             deferred = new $.Deferred();
         
         if (!convertedKeys) {
@@ -204,6 +216,9 @@ define(function (require, exports, module) {
             }
             
             var rule = rules[key];
+            if (!rule && prefCheckCallback) {
+                rule = prefCheckCallback(key);
+            }
             if (!rule) {
                 console.warn("Preferences conversion for ", self._clientID, " has no rule for", key);
                 complete = false;
@@ -211,7 +226,16 @@ define(function (require, exports, module) {
                 var parts = rule.split(" ");
                 if (parts[0] === "user") {
                     var newKey = parts.length > 1 ? parts[1] : key;
-                    PreferencesManager.set(newKey, prefs[key]);
+                    var options = null;
+                    
+                    if (parts.length > 2 && parts[2].indexOf("/") !== -1) {
+                        var projectPath = rule.substr(rule.indexOf(parts[2]));
+                        options = { location: { scope: "user",
+                                                layer: "project",
+                                                layerID: projectPath } };
+                    }
+                    
+                    manager.set(newKey, prefs[key], options);
                     convertedKeys.push(key);
                 }
             } else {
@@ -220,7 +244,7 @@ define(function (require, exports, module) {
         });
         
         if (convertedKeys.length > 0) {
-            PreferencesManager.save().done(function () {
+            manager.save().done(function () {
                 _commit();
                 deferred.resolve(complete, convertedKeys);
             }).fail(function (error) {
