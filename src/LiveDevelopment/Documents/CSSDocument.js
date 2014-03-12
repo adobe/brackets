@@ -53,8 +53,7 @@ define(function CSSDocumentModule(require, exports, module) {
         CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        _               = require("thirdparty/lodash");
+        Inspector       = require("LiveDevelopment/Inspector/Inspector");
 
     /** Constructor
      *
