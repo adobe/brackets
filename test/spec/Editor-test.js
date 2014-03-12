@@ -1323,6 +1323,99 @@ define(function (require, exports, module) {
                 instance.setOption("indentWithTabs", useTabs);
                 instance.setOption("indentUnit", 4);
             }
+            
+            it("should indent and move cursor to correct position if at beginning of an empty line - spaces", function () {
+                var content = "function foo() {\n" +
+                    "    if (bar) {\n" +
+                    "\n" +
+                    "    }\n" +
+                    "}";
+                makeEditor(content);
+                myEditor.setCursorPos({line: 2, ch: 0});
+                myEditor._handleTabKey();
+                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                
+                var lines = content.split("\n");
+                lines[2] = "        ";
+                expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+            });
+
+            it("should indent and move cursor to correct position if at beginning of an empty line - tabs", function () {
+                var content = "function foo() {\n" +
+                    "\tif (bar) {\n" +
+                    "\n" +
+                    "\t}\n" +
+                    "}";
+                makeEditor(content, true);
+                myEditor.setCursorPos({line: 2, ch: 0});
+                myEditor._handleTabKey();
+                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                
+                var lines = content.split("\n");
+                lines[2] = "\t\t";
+                expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+            });
+            
+            it("should move cursor to end of whitespace (without adding more) if at beginning of a line with correct amount of whitespace - spaces", function () {
+                var content = "function foo() {\n" +
+                    "    if (bar) {\n" +
+                    "        \n" +
+                    "    }\n" +
+                    "}";
+                makeEditor(content);
+                myEditor.setCursorPos({line: 2, ch: 0});
+                myEditor._handleTabKey();
+                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
+                
+                expect(myEditor.document.getText()).toEqual(content);
+            });
+
+            it("should move cursor to end of whitespace (without adding more) if at beginning of a line with correct amount of whitespace - tabs", function () {
+                var content = "function foo() {\n" +
+                    "\tif (bar) {\n" +
+                    "\t\t\n" +
+                    "\t}\n" +
+                    "}";
+                makeEditor(content, true);
+                myEditor.setCursorPos({line: 2, ch: 0});
+                myEditor._handleTabKey();
+                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
+                expect(myEditor.document.getText()).toEqual(content);
+            });
+            
+            it("should add another indent whitespace if already past correct indent level on an all whitespace line - spaces", function () {
+                var content = "function foo() {\n" +
+                    "    if (bar) {\n" +
+                    "            \n" +
+                    "    }\n" +
+                    "}";
+                makeEditor(content);
+                myEditor.setCursorPos({line: 2, ch: 12});
+                myEditor._handleTabKey();
+                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 16}, end: {line: 2, ch: 16}, reversed: false});
+                
+                var lines = content.split("\n");
+                lines[2] = "    " + lines[2];
+                expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+
+            });
+            
+            it("should add another indent whitespace if already past correct indent level on an all whitespace line - tabs", function () {
+                var content = "function foo() {\n" +
+                    "\tif (bar) {\n" +
+                    "\t\t\t\n" +
+                    "\t}\n" +
+                    "}";
+                makeEditor(content, true);
+                myEditor.setCursorPos({line: 2, ch: 3});
+                myEditor._handleTabKey();
+                expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: false});
+                
+                var lines = content.split("\n");
+                lines[2] = "\t" + lines[2];
+                expect(myEditor.document.getText()).toEqual(lines.join("\n"));
+
+            });
 
             it("should indent improperly indented line to proper level and move cursor to beginning of content if cursor is in whitespace before content - spaces", function () {
                 var content = "function foo() {\n" +

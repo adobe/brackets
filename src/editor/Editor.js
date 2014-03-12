@@ -477,7 +477,7 @@ define(function (require, exports, module) {
                 // Case 1 - we found a multiline selection. We can bail as soon as we find one of these.
                 selectionType = "indentAtBeginning";
                 return false;
-            } else if (sel.end.ch >= instance.getLine(sel.end.line).search(/\S/)) {
+            } else if (sel.end.ch > 0 && sel.end.ch >= instance.getLine(sel.end.line).search(/\S/)) {
                 // Case 2 - we found a selection that ends at or after the first non-whitespace
                 // character on the line. We need to keep looking in case we find a later multiline
                 // selection though.
