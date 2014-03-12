@@ -215,10 +215,11 @@ define(function (require, exports, module) {
      * @return {boolean} true if the sort prefixes have changed
      */
     function _generateSortPrefixes() {
-        var previousDirFirst = _dirFirst;
-        _dirFirst    = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir  = _dirFirst ? "0" : "";
-        _sortPrefixFile = _dirFirst ? "1" : "";
+        var previousDirFirst  = _dirFirst;
+        _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir        = _dirFirst ? "0" : "";
+        _sortPrefixFile       = _dirFirst ? "1" : "";
+        
         return previousDirFirst !== _dirFirst;
     }
     
