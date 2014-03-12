@@ -71,20 +71,22 @@ define(function (require, exports, module) {
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
     }
 
-    function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
+    function _getIndentSize(editor) {
+//        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
+        return Editor.getUseTabChar() ? Editor.getTabSize() : editor.getSpaceUnits();
     }
     
-    function _updateIndentSize() {
-        var size = _getIndentSize();
+    function _updateIndentSize(editor) {
+        var size = _getIndentSize(editor);
         $indentWidthLabel.text(size);
         $indentWidthInput.val(size);
     }
     
     function _toggleIndentType() {
+        var current = EditorManager.getActiveEditor();
         Editor.setUseTabChar(!Editor.getUseTabChar());
         _updateIndentType();
-        _updateIndentSize();
+        _updateIndentSize(current);
     }
     
     function _updateCursorInfo(event, editor) {
@@ -115,7 +117,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function _changeIndentWidth(value) {
+    function _changeIndentWidth(editor, value) {
         $indentWidthLabel.removeClass("hidden");
         $indentWidthInput.addClass("hidden");
         
@@ -133,11 +135,12 @@ define(function (require, exports, module) {
         if (Editor.getUseTabChar()) {
             Editor.setTabSize(value);
         } else {
-            Editor.setSpaceUnits(value);
+//            Editor.setSpaceUnits(value);
+            editor.setSpaceUnits(value);
         }
 
         // update indicator
-        _updateIndentSize();
+        _updateIndentSize(editor);
 
         // column position may change when tab size changes
         _updateCursorInfo();
@@ -184,7 +187,7 @@ define(function (require, exports, module) {
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {
                 _updateIndentType();
-                _updateIndentSize();
+                _updateIndentSize(current);
             });
             $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
@@ -200,7 +203,7 @@ define(function (require, exports, module) {
             _updateFileInfo(current);
             _initOverwriteMode(current);
             _updateIndentType();
-            _updateIndentSize();
+            _updateIndentSize(current);
         }
     }
     
@@ -218,7 +221,8 @@ define(function (require, exports, module) {
         $indentWidthLabel
             .on("click", function () {
                 // update the input value before displaying
-                $indentWidthInput.val(_getIndentSize());
+                var current = EditorManager.getActiveEditor();
+                $indentWidthInput.val(_getIndentSize(current));
 
                 $indentWidthLabel.addClass("hidden");
                 $indentWidthInput.removeClass("hidden");
@@ -226,13 +230,13 @@ define(function (require, exports, module) {
         
                 $indentWidthInput
                     .on("blur", function () {
-                        _changeIndentWidth($indentWidthInput.val());
+                        _changeIndentWidth(current, $indentWidthInput.val());
                     })
                     .on("keyup", function (event) {
                         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                             $indentWidthInput.blur();
                         } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(false);
+                            _changeIndentWidth(current, false);
                         }
                     });
             });

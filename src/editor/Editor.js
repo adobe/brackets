@@ -1539,7 +1539,31 @@ define(function (require, exports, module) {
      * @return {*} current value of that pref
      */
     Editor.prototype._getOption = function (prefName) {
-        return PreferencesManager.get(prefName, this.document.file.fullPath);
+        var value;
+
+        // Call getter methods where appropriate for validation
+        switch (prefName) {
+
+        case SPACE_UNITS:
+            value = this.getSpaceUnits();
+            break;
+
+// TODO - convert Editor.get...() to Editor.prototype.get...()
+//        case SMART_INDENT:
+//        case USE_TAB_CHAR:
+//        case TAB_SIZE:
+//        case CLOSE_BRACKETS:
+//        case SHOW_LINE_NUMBERS:
+//        case STYLE_ACTIVE_LINE:
+//        case WORD_WRAP:
+//        case CLOSE_TAGS:
+
+        default:
+            value = PreferencesManager.get(prefName, this.document.file.fullPath);
+            break;
+        }
+        
+        return value;
     };
     
     /**
@@ -1630,13 +1654,19 @@ define(function (require, exports, module) {
      * Affects any editors that share the same preference location.
      * @param {number} value
      */
-    Editor.setSpaceUnits = function (value) {
+    Editor.prototype.setSpaceUnits = function (value) {
         PreferencesManager.set(SPACE_UNITS, value);
     };
     
     /** @type {number} Get indentation width */
-    Editor.getSpaceUnits = function () {
-        return PreferencesManager.get(SPACE_UNITS);
+    Editor.prototype.getSpaceUnits = function () {
+        var value = PreferencesManager.get(SPACE_UNITS, this.document.file.fullPath);
+
+// TODO:
+// 1. VALIDATE
+// 2. Run UNIT TESTS
+
+        return value;
     };
     
     /**

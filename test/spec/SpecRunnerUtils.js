@@ -405,7 +405,8 @@ define(function (require, exports, module) {
         // create Editor instance
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
         Editor.setUseTabChar(EDITOR_USE_TABS);
-        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+//        Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+        editor.setSpaceUnits(EDITOR_SPACE_UNITS);
         EditorManager._notifyActiveEditorChanged(editor);
         
         return editor;
