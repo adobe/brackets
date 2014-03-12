@@ -73,6 +73,7 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils"),
         Async              = require("utils/Async"),
         AnimationUtils     = require("utils/AnimationUtils"),
+        ValidationUtils    = require("utils/ValidationUtils"),
         _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
@@ -87,6 +88,11 @@ define(function (require, exports, module) {
         CLOSE_TAGS        = "closeTags",
         cmOptions         = {};
     
+    /** @type {number}  Constants: default preference values */
+    var DEFAULT_SPACE_UNITS     = 4,
+        DEFAULT_TAB_SIZE        = 4;
+
+    
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[SMART_INDENT]       = "smartIndent";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
@@ -100,8 +106,8 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(SMART_INDENT, "boolean", true);
     PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE, "number", 4);
-    PreferencesManager.definePreference(SPACE_UNITS, "number", 4);
+    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE);
+    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS);
     PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", false);
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
@@ -1661,11 +1667,9 @@ define(function (require, exports, module) {
     /** @type {number} Get indentation width */
     Editor.prototype.getSpaceUnits = function () {
         var value = PreferencesManager.get(SPACE_UNITS, this.document.file.fullPath);
-
-// TODO:
-// 1. VALIDATE
-// 2. Run UNIT TESTS
-
+        if (!ValidationUtils.isIntegerInRange(value, 0, null)) {
+            return DEFAULT_SPACE_UNITS;
+        }
         return value;
     };
     
