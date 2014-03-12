@@ -453,7 +453,7 @@ define(function (require, exports, module) {
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
                 if (key) {
-                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ScopeManager.handleFileChange([{from: cursor, to: cursor, text: [key]}]);
                     ignoreChange = true;
                 }
 

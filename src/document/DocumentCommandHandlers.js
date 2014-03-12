@@ -714,8 +714,7 @@ define(function (require, exports, module) {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
                     if (settings) {
-                        editor.setCursorPos(settings.cursorPos);
-                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setSelections(settings.selections);
                         editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
                     }
                 }
@@ -828,8 +827,7 @@ define(function (require, exports, module) {
             if (doc.isUntitled()) {
                 if (doc === activeDoc) {
                     settings = {
-                        selection: activeEditor.getSelection(),
-                        cursorPos: activeEditor.getCursorPos(),
+                        selections: activeEditor.getSelections(),
                         scrollPos: activeEditor.getScrollPos()
                     };
                 }
@@ -918,8 +916,7 @@ define(function (require, exports, module) {
             if (activeEditor) {
                 doc = activeEditor.document;
                 settings = {};
-                settings.selection = activeEditor.getSelection();
-                settings.cursorPos = activeEditor.getCursorPos();
+                settings.selections = activeEditor.getSelections();
                 settings.scrollPos = activeEditor.getScrollPos();
             }
         }
