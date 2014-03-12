@@ -875,6 +875,30 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+    
+    function _convertToCase(editor, toCase) {
+        var textTo;
+        
+        if (!editor || !toCase || toCase === "") {
+            return;
+        }
+        
+        if (toCase === "l") {
+            textTo = editor.getSelectedText().toLowerCase();
+        } else {
+            textTo = editor.getSelectedText().toUpperCase();
+        }
+        
+        editor._codeMirror.replaceSelection(textTo);
+    }
+    
+    function toUpperCase(editor) {
+        _convertToCase(editor || EditorManager.getFocusedEditor(), "u");
+    }
+    
+    function toLowerCase(editor) {
+        _convertToCase(editor || EditorManager.getFocusedEditor(), "l");
+    }
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,           Commands.EDIT_INDENT,           indentText);
@@ -888,6 +912,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_LINE_ABOVE,  Commands.EDIT_OPEN_LINE_ABOVE,  openLineAbove);
     CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,  Commands.EDIT_OPEN_LINE_BELOW,  openLineBelow);
     CommandManager.register(Strings.CMD_SELECT_LINE,      Commands.EDIT_SELECT_LINE,      selectLine);
+    CommandManager.register(Strings.CMD_TO_UPPER_CASE,    Commands.EDIT_TO_UPPER_CASE,    toUpperCase);
+    CommandManager.register(Strings.CMD_TO_LOWER_CASE,    Commands.EDIT_TO_LOWER_CASE,    toLowerCase);
 
     CommandManager.register(Strings.CMD_UNDO,             Commands.EDIT_UNDO,             handleUndo);
     CommandManager.register(Strings.CMD_REDO,             Commands.EDIT_REDO,             handleRedo);

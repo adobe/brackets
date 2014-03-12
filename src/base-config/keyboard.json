@@ -163,6 +163,12 @@
             "platform": "mac"
         }
     ],
+    "edit.toUpperCase": [
+        "Ctrl-U"
+    ],
+    "edit.toLowerCase": [
+        "Ctrl-I"
+    ],
     "view.hideSidebar":  [
         "Ctrl-Shift-H"
     ],

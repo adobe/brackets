@@ -68,6 +68,8 @@ define(function (require, exports, module) {
     exports.EDIT_PASTE                  = "edit.paste";                 // EditorCommandHandlers.js     ignoreCommand()
     exports.EDIT_SELECT_ALL             = "edit.selectAll";             // EditorCommandHandlers.js     _handleSelectAll()
     
+    exports.EDIT_TO_UPPER_CASE          = "edit.toUpperCase";           // EditorCommandHandlers.js     toUpperCase()
+    exports.EDIT_TO_LOWER_CASE          = "edit.toLowerCase";           // EditorCommandHandlers.js     toLowerCase()
     exports.EDIT_SELECT_LINE            = "edit.selectLine";            // EditorCommandHandlers.js     selectLine()
     exports.EDIT_FIND                   = "edit.find";                  // FindReplace.js               _launchFind()
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";           // FindInFiles.js               _doFindInFiles()
