@@ -44,7 +44,8 @@ define(function (require, exports, module) {
         TOO_MANY_ENTRIES            : "TooManyEntries",
         ALREADY_EXISTS              : "AlreadyExists",
         CONTENTS_MODIFIED           : "ContentsModified",
-        PATH_WATCHING_NOT_SUPPORTED : "PathWatchingNotSupported"
+        PATH_WATCHING_NOT_SUPPORTED : "PathWatchingNotSupported",
+        ROOT_NOT_WATCHED            : "RootNotBeingWatched"
         
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
