@@ -197,8 +197,8 @@ define(function (require, exports, module) {
      * @param {!$.Deferred} result Deferred to resolve with all functions found and the document
      */
     function _readFile(fileInfo, result) {
-        DocumentManager.getDocumentForPath(fileInfo.fullPath)
-            .done(function (doc) {
+        return DocumentManager.getDocumentForPath(fileInfo.fullPath)
+            .then(function (doc) {
                 var allFunctions = _findAllFunctionsInText(doc.getText());
                 
                 // Cache the result in the fileInfo object
@@ -206,10 +206,7 @@ define(function (require, exports, module) {
                 fileInfo.JSUtils.functions = allFunctions;
                 fileInfo.JSUtils.timestamp = doc.diskTimestamp;
                 
-                result.resolve({doc: doc, functions: allFunctions});
-            })
-            .fail(function (error) {
-                result.reject(error);
+                return {doc: doc, functions: allFunctions};
             });
     }
     
@@ -259,8 +256,7 @@ define(function (require, exports, module) {
      */
     function _getOffsetsForFunction(docEntries, functionName) {
         // Filter for documents that contain the named function
-        var result              = new $.Deferred(),
-            matchedDocuments    = [],
+        var matchedDocuments    = [],
             rangeResults        = [];
         
         docEntries.forEach(function (docEntry) {
@@ -273,30 +269,23 @@ define(function (require, exports, module) {
             }
         });
         
-        Async.doInParallel(matchedDocuments, function (docEntry) {
-            var doc         = docEntry.doc,
-                oneResult   = new $.Deferred();
+        return Async.doInParallel(matchedDocuments, function (docEntry) {
+            var doc         = docEntry.doc;
             
             // doc will be undefined if we hit the cache
             if (!doc) {
-                DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
-                    .done(function (fetchedDoc) {
+                return DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
+                    .then(function (fetchedDoc) {
                         _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
-                    })
-                    .always(function () {
-                        oneResult.resolve();
+                    }, function(){
+                        return; // SHOULD connvert a reject() into a resolve()
                     });
             } else {
-                _computeOffsets(doc, functionName, docEntry.functions, rangeResults);
-                oneResult.resolve();
+                return_computeOffsets(doc, functionName, docEntry.functions, rangeResults);
             }
-            
-            return oneResult.promise();
-        }).done(function () {
-            result.resolve(rangeResults);
+        }).then(function () {
+            return rangeResults;
         });
-        
-        return result.promise();
     }
     
     /**
@@ -307,22 +296,16 @@ define(function (require, exports, module) {
      *   contains a map of all function names from the document and each function's start offset. 
      */
     function _getFunctionsForFile(fileInfo) {
-        var result = new $.Deferred();
-            
-        _shouldGetFromCache(fileInfo)
-            .done(function (useCache) {
+        return _shouldGetFromCache(fileInfo)
+            .then(function (useCache) {
                 if (useCache) {
                     // Return cached data. doc property is undefined since we hit the cache.
                     // _getOffsets() will fetch the Document if necessary.
-                    result.resolve({/*doc: undefined,*/fileInfo: fileInfo, functions: fileInfo.JSUtils.functions});
+                    return {/*doc: undefined,*/fileInfo: fileInfo, functions: fileInfo.JSUtils.functions};
                 } else {
-                    _readFile(fileInfo, result);
+                    return _readFile(fileInfo, result);
                 }
-            }).fail(function (err) {
-                result.reject(err);
             });
-        
-        return result.promise();
     }
     
     /**
@@ -373,28 +356,23 @@ define(function (require, exports, module) {
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
-        var result          = new $.Deferred(),
-            jsFiles         = [],
+        var jsFiles         = [],
             docEntries      = [];
         
         if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
-                return FileUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js";
+                return $.promise(FileUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js");
             });
         } else {
             jsFiles = fileInfos;
         }
         
         // RegExp search (or cache lookup) for all functions in the project
-        _getFunctionsInFiles(jsFiles).done(function (docEntries) {
+        return _getFunctionsInFiles(jsFiles).done(function (docEntries) {
             // Compute offsets for all matched functions
-            _getOffsetsForFunction(docEntries, functionName).done(function (rangeResults) {
-                result.resolve(rangeResults);
-            });
+            return _getOffsetsForFunction(docEntries, functionName);
         });
-        
-        return result.promise();
     }
 
     /**
