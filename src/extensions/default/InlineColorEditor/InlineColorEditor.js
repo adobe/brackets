@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
-        this._origin = "*InlineColorEditor_" + (lastOriginId++);
+        this._origin = "+InlineColorEditor_" + (lastOriginId++);
 
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -141,6 +141,7 @@ define(function (require, exports, module) {
      * @param {!string} colorString
      */
     InlineColorEditor.prototype._handleColorChange = function (colorString) {
+        var self = this;
         if (colorString !== this._color) {
             var range = this.getCurrentRange();
             if (!range) {
@@ -149,13 +150,15 @@ define(function (require, exports, module) {
 
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
-                // Replace old color in code with the picker's color, and select it
-                this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(colorString, range.start, range.end, this._origin);
-                this._isOwnChange = false;
-                this.hostEditor.setSelection(range.start, {
-                    line: range.start.line,
-                    ch: range.start.ch + colorString.length
+                this.hostEditor.document.batchOperation(function () {
+                    // Replace old color in code with the picker's color, and select it
+                    self._isOwnChange = true;
+                    self.hostEditor.document.replaceRange(colorString, range.start, range.end, self._origin);
+                    self._isOwnChange = false;
+                    self.hostEditor.setSelection(range.start, {
+                        line: range.start.line,
+                        ch: range.start.ch + colorString.length
+                    });
                 });
             }
             

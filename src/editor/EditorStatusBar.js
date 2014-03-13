@@ -94,11 +94,14 @@ define(function (require, exports, module) {
         var cursor = editor.getCursorPos(true);
         
         var cursorStr = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1);
-        if (editor.hasSelection()) {
-            // Show info about selection size when one exists
-            var sel = editor.getSelection(),
-                selStr;
-            
+        
+        var sels = editor.getSelections(),
+            selStr = "";
+
+        if (sels.length > 1) {
+            selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
+        } else if (editor.hasSelection()) {
+            var sel = sels[0];
             if (sel.start.line !== sel.end.line) {
                 var lines = sel.end.line - sel.start.line + 1;
                 if (sel.end.ch === 0) {
@@ -109,10 +112,8 @@ define(function (require, exports, module) {
                 var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
                 selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
             }
-            $cursorInfo.text(cursorStr + selStr);
-        } else {
-            $cursorInfo.text(cursorStr);
         }
+        $cursorInfo.text(cursorStr + selStr);
     }
     
     function _changeIndentWidth(value) {
@@ -143,16 +144,26 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
-    function _updateOverwriteLabel(event, editor, newstate) {
+    function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+        if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
+            // label already up-to-date
+            return;
+        }
+
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
-        
-        AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        }
     }
-    
-    function _updateEditorOverwriteMode() {
-        var editor = EditorManager.getActiveEditor();
-        
-        editor.toggleOverwrite(null);
+
+    function _updateEditorOverwriteMode(event) {
+        var editor = EditorManager.getActiveEditor(),
+            newstate = !editor._codeMirror.state.overwrite;
+
+        // update label with no transition
+        _updateOverwriteLabel(event, editor, newstate, true);
+        editor.toggleOverwrite(newstate);
     }
     
     function _initOverwriteMode(currentEditor) {

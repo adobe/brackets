@@ -40,6 +40,7 @@ define(function (require, exports, module) {
 		"fa-ir": true,
         "fi": true,
         "fr": true,
+        "id": true,
         "it": true,
         "ja": true,
         "ko": true,

@@ -2,9 +2,9 @@
 
 1. Create a subfolder of the `nls` folder whose name is the language or locale you want to
    create a translation for.
-    * If you're creating a general translation for a language, just use its two-letter code 
+    * If you're creating a general translation for a language, just use its two-letter code
       (e.g. `en`, `de`).
-    * If you're creating a locale-specific translation for a particular country, add a hyphen 
+    * If you're creating a locale-specific translation for a particular country, add a hyphen
       and the country code in lowercase (e.g. `en-ca`, `en-gb`).
 2. Add an entry for your translation to the `module.exports` object in `nls/strings.js`.
 3. Edit the root `strings-app.js` file and add a new `LOCALE_`* entry for your language, as seen in
@@ -22,7 +22,7 @@ Localization is provided via the [require.js i18n plugin](http://requirejs.org/d
 ### Translating the Getting Started project
 
 When first installed, Brackets will open a Getting Started project that serves
-as an introduction to Brackets features. This project can be translated by 
+as an introduction to Brackets features. This project can be translated by
 providing a ``urls.js`` file that points to a localized directory under the
 ``samples`` folder at the root of the Brackets repository. See the French
 localization (`src/nls/fr/urls.js`) for an example.
@@ -71,6 +71,7 @@ The following languages have been contributed by the Brackets community:
 * Swedish (sv)
 * Turkish (tr)
 * Simplified Chinese (zh-cn)
+* Indonesia (id)
 
 These translations _can be directly modified_ through our normal pull request
 process.

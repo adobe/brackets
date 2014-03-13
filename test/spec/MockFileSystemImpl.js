@@ -162,7 +162,7 @@ define(function (require, exports, module) {
                 if (options.expectedContents !== _model.readFile(path)) {
                     cb(FileSystemError.CONTENTS_MODIFIED);
                     return;
-                } 
+                }
             } else {
                 cb(FileSystemError.CONTENTS_MODIFIED);
                 return;
