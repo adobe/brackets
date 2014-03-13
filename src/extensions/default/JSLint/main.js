@@ -37,7 +37,6 @@ define(function (require, exports, module) {
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings"),
-        ValidationUtils    = brackets.getModule("utils/ValidationUtils"),
         _                  = brackets.getModule("thirdparty/lodash");
     
     var prefs = PreferencesManager.getExtensionPrefs("jslint");

@@ -33,7 +33,7 @@ define(function (require, exports, module) {
      * Used to validate whether type of unknown value is an integer.
      * 
      * @param {*} value Value for which to validate its type
-     * @return true if value is an integer
+     * @return {boolean} true if value is an integer
      */
     function isInteger(value) {
         // Validate value is a number
@@ -61,9 +61,9 @@ define(function (require, exports, module) {
      * is it within the option lower and upper limits.
      * 
      * @param {*} value Value for which to validate its type
-     * @param {Number=} lowerLimit Optional lower limit (inclusive)
-     * @param {Number=} upperLimit Optional upper limit (inclusive)
-     * @return true if value is an interger, and optionally in specified range.
+     * @param {number=} lowerLimit Optional lower limit (inclusive)
+     * @param {number=} upperLimit Optional upper limit (inclusive)
+     * @return {boolean} true if value is an interger, and optionally in specified range.
      */
     function isIntegerInRange(value, lowerLimit, upperLimit) {
         // Validate value is an integer
