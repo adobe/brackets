@@ -67,7 +67,7 @@ define({
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
-    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencia no tiene el formato JSON válido. El archivo se abrira para que pueda correguir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
+    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrira para que pueda correguir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
     
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
@@ -174,7 +174,7 @@ define({
     // File exclusion filters
     "NO_FILE_FILTER"                    : "Excluir archivos\u2026",
     "EDIT_FILE_FILTER"                  : "Editar\u2026",
-    "FILE_FILTER_DIALOG"                : "Editar Filtro",
+    "FILE_FILTER_DIALOG"                : "Editar filtro",
     "FILE_FILTER_INSTRUCTIONS"          : "Excluir archivos y carpetas que coincidan con alguna de las siguientes cadenas / subcadenas o <a href='{0}' title='{0}'>globs</a>. Ingrese una cadena por línea.",
     "FILE_FILTER_LIST_PREFIX"           : "excepto",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "y {0} más",
