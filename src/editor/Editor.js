@@ -107,8 +107,16 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(SMART_INDENT, "boolean", true);
     PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE);
-    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS);
+    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
+        validator: function (value) {
+            return ValidationUtils.isIntegerInRange(value, 1, null);
+        }
+    });
+    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
+        validator: function (value) {
+            return ValidationUtils.isIntegerInRange(value, 0, null);
+        }
+    });
     PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", false);
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
@@ -1820,41 +1828,7 @@ define(function (require, exports, module) {
      * @return {*} current value of that pref
      */
     Editor.prototype._getOption = function (prefName) {
-        var value;
-
-        // Call getter methods where appropriate for validation
-        switch (prefName) {
-
-        case SMART_INDENT:
-            value = this.getSmartIndent();
-            break;
-        case USE_TAB_CHAR:
-            value = this.getUseTabChar();
-            break;
-        case TAB_SIZE:
-            value = this.getTabSize();
-            break;
-        case SPACE_UNITS:
-            value = this.getSpaceUnits();
-            break;
-        case CLOSE_BRACKETS:
-            value = this.getCloseBrackets();
-            break;
-        case SHOW_LINE_NUMBERS:
-            value = this.getShowLineNumbers();
-            break;
-        case STYLE_ACTIVE_LINE:
-            value = this.getShowActiveLine();
-            break;
-        case WORD_WRAP:
-            value = this.getWordWrap();
-            break;
-        default:
-            value = PreferencesManager.get(prefName, this.document.file.fullPath);
-            break;
-        }
-        
-        return value;
+        return PreferencesManager.get(prefName, this.document.file.fullPath);
     };
     
     /**
@@ -1923,7 +1897,7 @@ define(function (require, exports, module) {
     
     /** @type {boolean} Gets whether the current editor uses smart indenting */
     Editor.prototype.getSmartIndent = function () {
-        return !!PreferencesManager.get(SMART_INDENT, this.document.file.fullPath);
+        return PreferencesManager.get(SMART_INDENT, this.document.file.fullPath);
     };
     
     /**
@@ -1937,7 +1911,7 @@ define(function (require, exports, module) {
     
     /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
     Editor.prototype.getUseTabChar = function () {
-        return !!PreferencesManager.get(USE_TAB_CHAR, this.document.file.fullPath);
+        return PreferencesManager.get(USE_TAB_CHAR, this.document.file.fullPath);
     };
     
     /**
@@ -1951,11 +1925,7 @@ define(function (require, exports, module) {
     
     /** @type {number} Get tab character width  */
     Editor.prototype.getTabSize = function () {
-        var value = PreferencesManager.get(TAB_SIZE, this.document.file.fullPath);
-        if (!ValidationUtils.isIntegerInRange(value, 1, null)) {
-            return DEFAULT_TAB_SIZE;
-        }
-        return value;
+        return PreferencesManager.get(TAB_SIZE, this.document.file.fullPath);
     };
     
     /**
@@ -1969,11 +1939,7 @@ define(function (require, exports, module) {
     
     /** @type {number} Get indentation width */
     Editor.prototype.getSpaceUnits = function () {
-        var value = PreferencesManager.get(SPACE_UNITS, this.document.file.fullPath);
-        if (!ValidationUtils.isIntegerInRange(value, 0, null)) {
-            return DEFAULT_SPACE_UNITS;
-        }
-        return value;
+        return PreferencesManager.get(SPACE_UNITS, this.document.file.fullPath);
     };
     
     /**
@@ -1987,7 +1953,7 @@ define(function (require, exports, module) {
     
     /** @type {boolean} Gets whether the current editor uses auto close brackets */
     Editor.prototype.getCloseBrackets = function () {
-        return !!PreferencesManager.get(CLOSE_BRACKETS, this.document.file.fullPath);
+        return PreferencesManager.get(CLOSE_BRACKETS, this.document.file.fullPath);
     };
     
     /**
@@ -2001,7 +1967,7 @@ define(function (require, exports, module) {
     
     /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
     Editor.prototype.getShowLineNumbers = function () {
-        return !!PreferencesManager.get(SHOW_LINE_NUMBERS, this.document.file.fullPath);
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, this.document.file.fullPath);
     };
     
     /**
@@ -2015,7 +1981,7 @@ define(function (require, exports, module) {
     
     /** @type {boolean} Returns true if show active line is enabled for the current editor */
     Editor.prototype.getShowActiveLine = function () {
-        return !!PreferencesManager.get(STYLE_ACTIVE_LINE, this.document.file.fullPath);
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, this.document.file.fullPath);
     };
     
     /**
@@ -2029,7 +1995,7 @@ define(function (require, exports, module) {
     
     /** @type {boolean} Returns true if word wrap is enabled for the current editor */
     Editor.prototype.getWordWrap = function () {
-        return !!PreferencesManager.get(WORD_WRAP, this.document.file.fullPath);
+        return PreferencesManager.get(WORD_WRAP, this.document.file.fullPath);
     };
     
     // Set up listeners for preference changes

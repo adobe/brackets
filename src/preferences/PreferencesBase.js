@@ -1102,7 +1102,8 @@ define(function (require, exports, module) {
                 type: type,
                 initial: initial,
                 name: options.name,
-                description: options.description
+                description: options.description,
+                validator: options.validator
             });
             this.set(id, initial, {
                 location: {
@@ -1431,7 +1432,11 @@ define(function (require, exports, module) {
                 if (scope) {
                     var result = scope.get(id, context);
                     if (result !== undefined) {
-                        return _.cloneDeep(result);
+                        var pref = this.getPreference(id);
+                        var validator = pref && pref.validator;
+                        if (!validator || validator(result)) {
+                            return _.cloneDeep(result);
+                        }
                     }
                 }
             }
