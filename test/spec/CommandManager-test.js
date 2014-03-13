@@ -47,7 +47,7 @@ define(function (require, exports, module) {
             CommandManager._testRestore();
         });
         
-        it("register and get a command and validate parameters", function () {
+        it("register and get a command, unregister command, and validate parameters", function () {
             var command = CommandManager.register("test command", commandID, testCommandFn);
             expect(command).toBeTruthy();
             expect(command.getName()).toBe("test command");
@@ -58,6 +58,12 @@ define(function (require, exports, module) {
 
             // duplicate command
             expect(CommandManager.register("test command", commandID, testCommandFn)).toBeFalsy();
+
+            // unregister command
+            expect(CommandManager.unregister(commandID)).toBeTruthy();
+
+            // unregister command again
+            expect(CommandManager.unregister(commandID)).toBeFalsy();
 
             // missing arguments
             expect(CommandManager.register(null, "test-command-id2", testCommandFn)).toBe(null);

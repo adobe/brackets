@@ -193,6 +193,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Un-registers a command.
+     * @param {string} id - unique identifier for command.
+     *      Core commands in Brackets use a simple command title as an id, for example "open.file".
+     *      Extensions should use the following format: "author.myextension.mycommandname".
+     *      For example, "lschmitt.csswizard.format.css".
+     * @param {boolean} checked
+     */
+    function unregister(id) {
+        if (typeof _commands[id] === "undefined") {
+            console.error("Attempting to unregister a command that is not registered: " + id);
+            return false;
+        }
+        delete _commands[id];
+        return true;
+    }
+
+    /**
      * Registers a global internal only command.
      * @param {string} id - unique identifier for command.
      *      Core commands in Brackets use a simple command title as an id, for example "app.abort_quit".
@@ -280,6 +297,7 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.register            = register;
+    exports.unregister          = unregister;
     exports.registerInternal    = registerInternal;
     exports.execute             = execute;
     exports.get                 = get;
