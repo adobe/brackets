@@ -169,6 +169,10 @@ define(function (require, exports, module) {
      * @param {Object} liveDocument
      */
     BaseServer.prototype.add = function (liveDocument) {
+        if (!liveDocument) {
+            return;
+        }
+        
         // use the project relative path as a key to lookup requests
         var key = this._documentKey(liveDocument.doc.file.fullPath);
         
@@ -181,6 +185,10 @@ define(function (require, exports, module) {
      * @param {Object} liveDocument
      */
     BaseServer.prototype.remove = function (liveDocument) {
+        if (!liveDocument) {
+            return;
+        }
+        
         var key = this._liveDocuments[this._documentKey(liveDocument.doc.file.fullPath)];
         
         if (key) {

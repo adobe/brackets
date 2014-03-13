@@ -21,7 +21,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs */
 /*unittests: FileFilters*/
 
 define(function (require, exports, module) {
@@ -487,22 +487,52 @@ define(function (require, exports, module) {
                 });
             });
             
+            // This finishes async, since clickDialogButton() finishes async (dialogs close asynchronously)
+            function setExcludeCSSFiles() {
+                // Launch filter editor
+                $(".filter-picker button").click();
+
+                // Edit the filter & confirm changes
+                $(".modal.instance textarea").val("*.css");
+                SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+            }
+            
             it("should exclude files from search", function () {
                 openSearchBar();
                 runs(function () {
-                    // Launch filter editor
-                    $(".filter-picker button").click();
-                    
-                    // Edit the filter & confirm changes
-                    $(".modal.instance textarea").val("*.css");
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                    setExcludeCSSFiles();
                 });
-                // (dialogs close asynchronously)
                 runs(function () {
                     executeSearch("{1}");
                 });
                 runs(function () {
                     expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();  // *.css should have been excluded this time
+                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                });
+            });
+            
+            it("should respect filter when editing code", function () {
+                openSearchBar();
+                runs(function () {
+                    setExcludeCSSFiles();
+                });
+                runs(function () {
+                    executeSearch("{1}");
+                });
+                runs(function () {
+                    var promise = testWindow.brackets.test.DocumentManager.getDocumentForPath(testPath + "/test1.css");
+                    waitsForDone(promise);
+                    promise.done(function (doc) {
+                        // Modify line that contains potential search result
+                        expect(doc.getLine(5).indexOf("{1}")).not.toBe(-1);
+                        doc.replaceRange("X", {line: 5, ch: 0});
+                    });
+                });
+                runs(function () {
+                    waits(800);  // ensure _documentChangeHandler()'s timeout has time to run
+                });
+                runs(function () {
+                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();  // *.css should still be excluded
                     expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
                 });
             });

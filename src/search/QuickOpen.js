@@ -222,12 +222,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * Remembers the selection state in origDocPath that was present when showDialog() was called. Focusing on an
      * item can change the selection; we restore this original selection if the user presses Escape. Null if
      * no document was open when Quick Open was invoked.
-     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * @type {?Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>}
      */
-    QuickNavigateDialog.prototype._origSelection = null;
+    QuickNavigateDialog.prototype._origSelections = null;
     
     /**
      * @private
@@ -406,7 +406,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelection);
+                    self.close(self._origScrollPos, self._origSelections);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -462,11 +462,11 @@ define(function (require, exports, module) {
      * searching is done.
      * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
      *     position when closing the ModalBar.
-     * @param {{start: {line: number, ch: number}, end: {line: number, ch: number}} selection If specified,
-     *     restore the given selection when closing the ModalBar.
+     * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
+     *     selections If specified, restore the given selections when closing the ModalBar.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selection) {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -503,8 +503,8 @@ define(function (require, exports, module) {
             // `ModalBar.close()` (before the animation completes).
             // See description of `restoreScrollPos` in `ModalBar.close()`.
             var editor = EditorManager.getCurrentFullEditor();
-            if (selection) {
-                editor.setSelection(selection.start, selection.end);
+            if (selections) {
+                editor.setSelections(selections);
             }
             if (scrollPos) {
                 editor.setScrollPos(scrollPos.x, scrollPos.y);
@@ -816,10 +816,10 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            this._origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            this._origSelections = EditorManager.getCurrentFullEditor().getSelections();
             this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
-            this._origSelection = null;
+            this._origSelections = null;
             this._origScrollPos = null;
         }
 
