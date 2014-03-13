@@ -62,6 +62,22 @@ maxerr: 50, node: true */
     function cmdRaiseException(m) {
         throw new Error(m);
     }
+
+    /**
+     * @private
+     * Emit eventOne
+     */
+    function emitEventOne() {
+        _domainManager.emitEvent("test", "eventOne", ["foo", "bar"]);
+    }
+
+    /**
+     * @private
+     * Emit eventTwo
+     */
+    function emitEventTwo() {
+        _domainManager.emitEvent("test", "eventOne", ["foo", "bar"]);
+    }
     
     /**
      * Initializes the test domain with several test commands.
@@ -98,6 +114,36 @@ maxerr: 50, node: true */
             "raises a new exception with the specified message",
             [{name: "message", type: "string"}],
             [] // no return
+        );
+        _domainManager.registerEvent(
+            "test",
+            "eventOne",
+            [
+                {name: "argOne", type: "string"},
+                {name: "argTwo", type: "string"}
+            ]
+        );
+        _domainManager.registerEvent(
+            "test",
+            "eventTwo",
+            [
+                {name: "argOne", type: "boolean"},
+                {name: "argTwo", type: "boolean"}
+            ]
+        );
+        _domainManager.registerCommand(
+            "test",
+            "emitEventOne",
+            emitEventOne,
+            false,
+            "emit eventOne"
+        );
+        _domainManager.registerCommand(
+            "test",
+            "emitEventTwo",
+            emitEventTwo,
+            false,
+            "emit eventTwo"
         );
     }
     

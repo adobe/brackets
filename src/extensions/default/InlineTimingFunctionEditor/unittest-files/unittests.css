@@ -13,3 +13,21 @@
 .bar {
     transition: width 1s cubic-bezier(.86, .11, .18, .86) 0s, height 500ms cubic-bezier(.27, .75, .78, .14) 100ms;
 }
+
+.baz {
+    transition-timing-function: steps(4, end);
+    transition-timing-function: steps(12, start);
+    transition-timing-function: steps(24);
+    transition-timing-function: step-start;
+    transition-timing-function: step-end;
+}
+
+.qux {
+    transition-timing-function: cubic-bezier(-0.001, Infinity, 1.001, NaN);
+    transition-timing-function: cubic-bezier();
+}
+
+.quux {
+    transition-timing-function: steps(-5, s, 2, 3);
+    transition-timing-function: steps();
+}

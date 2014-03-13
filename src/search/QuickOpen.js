@@ -53,7 +53,10 @@ define(function (require, exports, module) {
         StringMatch         = require("utils/StringMatch"),
         ViewUtils           = require("utils/ViewUtils");
     
-
+    
+    /** @const {RegExp} The regular expression to check the cursor position */
+    var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
+    
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
 
@@ -74,7 +77,7 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      */
-    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions) {
+    function QuickOpenPlugin(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions, label) {
         this.name = name;
         this.languageIds = languageIds;
         this.done = done;
@@ -84,39 +87,41 @@ define(function (require, exports, module) {
         this.itemSelect = itemSelect;
         this.resultsFormatter = resultsFormatter;
         this.matcherOptions = matcherOptions;
+        this.label = label;
     }
     
     /**
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          languageIds:Array.<string>,
-     *          done: function(),
+     *          languageIds: Array.<string>,
+     *          done: ?function(),
      *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
      *          match: function(string):boolean,
-     *          itemFocus: function(?SearchResult|string),
-     *          itemSelect: funciton(?SearchResult|string),
-     *          resultsFormatter: ?function(SearchResult|string, string):string
-     *          matcherOptions: Object
+     *          itemFocus: ?function(?SearchResult|string),
+     *          itemSelect: function(?SearchResult|string),
+     *          resultsFormatter: ?function(SearchResult|string, string):string,
+     *          matcherOptions: ?Object,
+     *          label: ?string
      *        } pluginDef
      *
      * Parameter Documentation:
      *
      * name - plug-in name, **must be unique**
-     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. An empty array
-     *      indicates all language IDs.
-     * done - called when quick open is complete. Plug-in should clear its internal state.
-     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query.
+     * languageIds - language Ids array. Example: ["javascript", "css", "html"]. To allow any language, pass []. Required.
+     * done - called when quick open is complete. Plug-in should clear its internal state. Optional.
+     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query. Required.
      * match - takes a query string and returns true if this plug-in wants to provide
-     *      results for this query.
+     *      results for this query. Required.
      * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
-     *      The highlighted search result item (as returned by search()) is passed as an argument.
+     *      The highlighted search result item (as returned by search()) is passed as an argument. Optional.
      * itemSelect - performs an action when a result is chosen.
-     *      The selected search result item (as returned by search()) is passed as an argument.
-     * resultFormatter - takes a query string and an item string and returns 
-     *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     *      The selected search result item (as returned by search()) is passed as an argument. Required.
+     * resultsFormatter - takes a query string and an item string and returns 
+     *      a <LI> item to insert into the displayed search results. Optional.
      * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
-     *          for available options)
+     *          for available options). Optional.
+     * label - if provided, the label to show before the query field. Optional.
      *
      * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
      * cancels Quick Open (via Esc), those changes are automatically reverted.
@@ -140,7 +145,8 @@ define(function (require, exports, module) {
             pluginDef.itemFocus,
             pluginDef.itemSelect,
             pluginDef.resultsFormatter,
-            pluginDef.matcherOptions
+            pluginDef.matcherOptions,
+            pluginDef.label
         ));
     }
 
@@ -216,12 +222,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * Remembers the selection state in origDocPath that was present when showDialog() was called. Focusing on an
      * item can change the selection; we restore this original selection if the user presses Escape. Null if
      * no document was open when Quick Open was invoked.
-     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * @type {?Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>}
      */
-    QuickNavigateDialog.prototype._origSelection = null;
+    QuickNavigateDialog.prototype._origSelections = null;
     
     /**
      * @private
@@ -248,23 +254,28 @@ define(function (require, exports, module) {
      * is followed by a colon. Callers should explicitly test result with isNaN()
      * 
      * @param {string} query string to extract line number from
-     * @returns {number} line number. Returns NaN to indicate no line number was found
+     * @return {{query: string, local: boolean, line: number, ch: number}} An object with
+     *      the extracted line and column numbers, and two additional fields: query with the original position 
+     *      string and local indicating if the cursor position should be applied to the current file.
+     *      Or null if the query is invalid
      */
-    function extractLineNumber(query) {
-        // only match : at beginning of query for now
-        // TODO: match any location of : when QuickOpen._handleItemFocus() is modified to
-        // dynamic open files
-        if (query.indexOf(":") !== 0) {
-            return NaN;
+    function extractCursorPos(query) {
+        var regInfo = query.match(CURSOR_POS_EXP),
+            result;
+        
+        if (query.length <= 1 || !regInfo ||
+                (regInfo[1] && isNaN(regInfo[1])) ||
+                (regInfo[3] && isNaN(regInfo[3]))) {
+            
+            return null;
         }
-
-        var result = NaN;
-        var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
-        if (regInfo) {
-            result = regInfo[2] - 1;
-        }
-
-        return result;
+            
+        return {
+            query:  regInfo[0],
+            local:  query.indexOf(":") === 0,
+            line:   regInfo[1] - 1 || 0,
+            ch:     regInfo[3] - 1 || 0
+        };
     }
     
     /** Returns the last return value of _filterCallback(), which Smart Autocomplete helpfully caches */
@@ -309,18 +320,15 @@ define(function (require, exports, module) {
         }
         
         var selectedItem = domItemToSearchResult(selectedDOMItem),
-            doClose = true,
-            self = this;
+            doClose      = true,
+            self         = this,
+            query        = this.$searchField.val(),
+            cursorPos    = extractCursorPos(query);
 
         // Delegate to current plugin
         if (currentPlugin) {
             currentPlugin.itemSelect(selectedItem);
         } else {
-
-            // extract line number, if any
-            var query = this.$searchField.val(),
-                gotoLine = extractLineNumber(query);
-
             // Navigate to file and line number
             var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
@@ -333,16 +341,16 @@ define(function (require, exports, module) {
                 this.modalBar.prepareClose();
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
-                        if (!isNaN(gotoLine)) {
+                        if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
-                            editor.setCursorPos(gotoLine, 0, true);
+                            editor.setCursorPos(cursorPos.line, cursorPos.ch, true);
                         }
                     })
                     .always(function () {
                         self.close();
                     });
-            } else if (!isNaN(gotoLine)) {
-                EditorManager.getCurrentFullEditor().setCursorPos(gotoLine, 0, true);
+            } else if (cursorPos) {
+                EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
             }
         }
 
@@ -359,7 +367,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleItemFocus = function (e, selectedDOMItem) {
         var selectedItem = domItemToSearchResult(selectedDOMItem);
         
-        if (currentPlugin) {
+        if (currentPlugin && currentPlugin.itemFocus) {
             currentPlugin.itemFocus(selectedItem);
         }
         // TODO: Disable opening files on focus for now since this causes focus related bugs between 
@@ -398,7 +406,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelection);
+                    self.close(self._origScrollPos, self._origSelections);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -419,11 +427,11 @@ define(function (require, exports, module) {
             return true;
         }
         
-        var lineNum = extractLineNumber(query),
-            editor = EditorManager.getCurrentFullEditor();
+        var cursorPos = extractCursorPos(query),
+            editor    = EditorManager.getCurrentFullEditor();
         
         // We could just use 0 and lineCount() here, but in future we might want this logic to work for inline editors as well.
-        return (!isNaN(lineNum) && editor && lineNum >= editor.getFirstVisibleLine() && lineNum <= editor.getLastVisibleLine());
+        return (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine());
     };
     
     /**
@@ -454,11 +462,11 @@ define(function (require, exports, module) {
      * searching is done.
      * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
      *     position when closing the ModalBar.
-     * @param {{start: {line: number, ch: number}, end: {line: number, ch: number}} selection If specified,
-     *     restore the given selection when closing the ModalBar.
+     * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
+     *     selections If specified, restore the given selections when closing the ModalBar.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selection) {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -472,7 +480,9 @@ define(function (require, exports, module) {
         var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
-            plugin.done();
+            if (plugin.done) {
+                plugin.done();
+            }
         }
 
         // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
@@ -493,8 +503,8 @@ define(function (require, exports, module) {
             // `ModalBar.close()` (before the animation completes).
             // See description of `restoreScrollPos` in `ModalBar.close()`.
             var editor = EditorManager.getCurrentFullEditor();
-            if (selection) {
-                editor.setSelection(selection.start, selection.end);
+            if (selections) {
+                editor.setSelections(selections);
             }
             if (scrollPos) {
                 editor.setScrollPos(scrollPos.x, scrollPos.y);
@@ -540,6 +550,11 @@ define(function (require, exports, module) {
             return asyncResult.promise();
         }
         
+        var cursorPos = extractCursorPos(query);
+        if (cursorPos && !cursorPos.local && cursorPos.query !== "") {
+            query = query.replace(cursorPos.query, "");
+        }
+
         // First pass: filter based on search string; convert to SearchResults containing extra info
         // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
@@ -578,40 +593,41 @@ define(function (require, exports, module) {
             return getLastFilterResult();
         }
         
-        // Reflect current search mode in UI
-        this._updateDialogLabel(query);
-        
         // "Go to line" mode is special-cased
-        var gotoLine = extractLineNumber(query);
-        if (!isNaN(gotoLine)) {
-            var from = {line: gotoLine, ch: 0};
-            var to = {line: gotoLine, ch: 99999};
+        var cursorPos = extractCursorPos(query);
+        if (cursorPos && cursorPos.local) {
+            var from = {line: cursorPos.line, ch: cursorPos.ch},
+                to   = {line: cursorPos.line};
             
             EditorManager.getCurrentFullEditor().setSelection(from, to, true);
         }
         
         // Try to invoke a search plugin
-        var curDoc = DocumentManager.getCurrentDocument();
+        var curDoc = DocumentManager.getCurrentDocument(), languageId;
         if (curDoc) {
-            var languageId = curDoc.getLanguage().getId();
+            languageId = curDoc.getLanguage().getId();
+        }
 
-            var i;
-            for (i = 0; i < plugins.length; i++) {
-                var plugin = plugins[i];
-                var languageIdMatch = plugin.languageIds.indexOf(languageId) !== -1 || plugin.languageIds.length === 0;
-                if (languageIdMatch && plugin.match && plugin.match(query)) {
-                    currentPlugin = plugin;
-                    
-                    // Look up the StringMatcher for this plugin.
-                    var matcher = this._matchers[currentPlugin.name];
-                    if (!matcher) {
-                        matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
-                        this._matchers[currentPlugin.name] = matcher;
-                    }
-                    return plugin.search(query, matcher);
+        var i;
+        for (i = 0; i < plugins.length; i++) {
+            var plugin = plugins[i];
+            var languageIdMatch = plugin.languageIds.length === 0 || plugin.languageIds.indexOf(languageId) !== -1;
+            if (languageIdMatch && plugin.match && plugin.match(query)) {
+                currentPlugin = plugin;
+                
+                // Look up the StringMatcher for this plugin.
+                var matcher = this._matchers[currentPlugin.name];
+                if (!matcher) {
+                    matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
+                    this._matchers[currentPlugin.name] = matcher;
                 }
+                this._updateDialogLabel(plugin, query);
+                return plugin.search(query, matcher);
             }
         }
+        
+        // Reflect current search mode in UI
+        this._updateDialogLabel(null, query);
         
         // No matching plugin: use default file search mode
         currentPlugin = null;
@@ -728,29 +744,32 @@ define(function (require, exports, module) {
         // Kick smart-autocomplete to update (it only listens for keyboard events)
         // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
         $field.trigger("keyIn", [initialString]);
-        
-        this._updateDialogLabel(initialString);
     };
     
     /**
-     * Sets the dialog label based on the type of the given query.
+     * Sets the dialog label based on the current plugin (if any) and the current query.
+     * @param {Object} plugin The current Quick Open plugin, or none if there is none.
      * @param {string} query The user's current query.
      */
-    QuickNavigateDialog.prototype._updateDialogLabel = function (query) {
-        var prefix = (query.length > 0 ? query.charAt(0) : "");
-        
-        // Update the dialog label based on the current prefix.
+    QuickNavigateDialog.prototype._updateDialogLabel = function (plugin, query) {
         var dialogLabel = "";
-        switch (prefix) {
-        case ":":
-            dialogLabel = Strings.CMD_GOTO_LINE;
-            break;
-        case "@":
-            dialogLabel = Strings.CMD_GOTO_DEFINITION;
-            break;
-        default:
-            dialogLabel = Strings.CMD_QUICK_OPEN;
-            break;
+        if (plugin && plugin.label) {
+            dialogLabel = plugin.label;
+        } else {
+            var prefix = (query.length > 0 ? query.charAt(0) : "");
+            
+            // Update the dialog label based on the current prefix.
+            switch (prefix) {
+            case ":":
+                dialogLabel = Strings.CMD_GOTO_LINE + "\u2026";
+                break;
+            case "@":
+                dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
+                break;
+            default:
+                dialogLabel = "";
+                break;
+            }
         }
         $(".find-dialog-label", this.dialog).text(dialogLabel);
     };
@@ -797,15 +816,15 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            this._origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            this._origSelections = EditorManager.getCurrentFullEditor().getSelections();
             this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
-            this._origSelection = null;
+            this._origSelections = null;
             this._origScrollPos = null;
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span>: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
+        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 

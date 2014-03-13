@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -96,13 +96,26 @@
  *
  * If a mode is not shipped with our CodeMirror distribution, you need to first load it yourself.
  * If the mode is part of our CodeMirror distribution, it gets loaded automatically.
+ *
+ * You can also defines binary file types, i.e. Brackets supports image files by default, 
+ * such as *.jpg, *.png etc.
+ * Binary files do not require mode because modes are specific to CodeMirror, which
+ * only handles text based file types.
+ * To register a binary language the isBinary flag must be set, i.e.
+ *     LanguageManager.defineLanguage("audio", {
+ *         name: "Audio",
+ *         fileExtensions: ["mp3", "wav", "aif", "aiff", "ogg"],
+ *         isBinary: true    
+ *     }); 
+ * 
  */
 define(function (require, exports, module) {
     "use strict";
     
     
     // Dependencies
-    var Async                 = require("utils/Async"),
+    var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     
@@ -165,7 +178,8 @@ define(function (require, exports, module) {
      */
     function _setLanguageForMode(mode, language) {
         if (_modeToLanguageMap[mode]) {
-            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + ", won't register for " + language._name);
+            console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + " - cannot fully register language " + language._name +
+                         " using the same mode. Some features will treat all content with this mode as language " + _modeToLanguageMap[mode]._name);
             return;
         }
 
@@ -311,6 +325,9 @@ define(function (require, exports, module) {
     
     /** @type {{ prefix: string, suffix: string }} Block comment syntax */
     Language.prototype._blockCommentSyntax = null;
+    
+    /** @type {boolean} Whether or not the language is binary */
+    Language.prototype._isBinary = false;
     
     /**
      * Returns the identifier for this language.
@@ -635,6 +652,22 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Indicates whether or not the language is binary (e.g., image or audio).
+     * @return {boolean}
+     */
+    Language.prototype.isBinary = function () {
+        return this._isBinary;
+    };
+    
+    /**
+     * Sets whether or not the language is binary
+     * @param {!boolean} isBinary
+     */
+    Language.prototype._setBinary = function (isBinary) {
+        this._isBinary = isBinary;
+    };
+    
+    /**
      * Defines a language.
      *
      * @param {!string}               id                        Unique identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
@@ -670,48 +703,64 @@ define(function (require, exports, module) {
             i,
             l;
         
-        if (!language._setId(id) || !language._setName(name) ||
-                (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
-                (lineComment && !language.setLineCommentSyntax(lineComment))) {
-            result.reject();
-            return result.promise();
-        }
-        
-        // track languages that are currently loading
-        _pendingLanguages[id] = language;
-        
-        language._loadAndSetMode(definition.mode).done(function () {
-            // register language file extensions after mode has loaded
+        function _finishRegisteringLanguage() {
             if (fileExtensions) {
                 for (i = 0, l = fileExtensions.length; i < l; i++) {
                     language.addFileExtension(fileExtensions[i]);
                 }
             }
-            
             // register language file names after mode has loaded
             if (fileNames) {
                 for (i = 0, l = fileNames.length; i < l; i++) {
                     language.addFileName(fileNames[i]);
                 }
             }
-                
-            // globally associate mode to language
-            _setLanguageForMode(language.getMode(), language);
             
-            // finally, store language to _language map
+            language._setBinary(!!definition.isBinary);
+            
+            // store language to language map
             _languages[language.getId()] = language;
-            
-            // fire an event to notify DocumentManager of the new language
-            _triggerLanguageAdded(language);
+        }
+        
+        if (!language._setId(id) || !language._setName(name) ||
+                (blockComment && !language.setBlockCommentSyntax(blockComment[0], blockComment[1])) ||
+                (lineComment && !language.setLineCommentSyntax(lineComment))) {
+            result.reject();
+            return result.promise();
+        }
+
+        
+        if (definition.isBinary) {
+            // add file extensions and store language to language map
+            _finishRegisteringLanguage();
             
             result.resolve(language);
-        }).fail(function (error) {
-            console.error(error);
-            result.reject(error);
-        }).always(function () {
-            // delete from pending languages after success and failure
-            delete _pendingLanguages[id];
-        });
+            // Not notifying DocumentManager via event LanguageAdded, because DocumentManager
+            // does not care about binary files.
+        } else {
+            // track languages that are currently loading
+            _pendingLanguages[id] = language;
+            
+            language._loadAndSetMode(definition.mode).done(function () {
+  
+                // globally associate mode to language
+                _setLanguageForMode(language.getMode(), language);
+                
+                // add file extensions and store language to language map
+                _finishRegisteringLanguage();
+                
+                // fire an event to notify DocumentManager of the new language
+                _triggerLanguageAdded(language);
+                
+                result.resolve(language);
+            }).fail(function (error) {
+                console.error(error);
+                result.reject(error);
+            }).always(function () {
+                // delete from pending languages after success and failure
+                delete _pendingLanguages[id];
+            });
+        }
         
         return result.promise();
     }

@@ -103,6 +103,19 @@ define(function (require, exports, module) {
         // wrap with a timeout to indicate loadEventFired was not fired
         return Async.withTimeout(deferred.promise(), 2000);
     }
+
+    function waitForLiveDoc(path, callback) {
+        var liveDoc;
+
+        waitsFor(function () {
+            liveDoc = LiveDevelopment.getLiveDocForPath(path);
+            return !!liveDoc;
+        }, "Waiting for LiveDevelopment document", 10000);
+
+        runs(function () {
+            callback(liveDoc);
+        });
+    }
     
     function doOneTest(htmlFile, cssFile) {
         var localText,
@@ -129,10 +142,7 @@ define(function (require, exports, module) {
         });
 
         var liveDoc;
-        waitsFor(function () {
-            liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/" + cssFile);
-            return !!liveDoc;
-        }, "Waiting for LiveDevelopment document", 10000);
+        waitForLiveDoc(tempDir + "/" + cssFile, function (doc) { liveDoc = doc; });
         
         var doneSyncing = false;
         runs(function () {
@@ -273,7 +283,7 @@ define(function (require, exports, module) {
                 
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn("");
-                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () {});
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 InspectorModule.CSS = {
@@ -547,7 +557,7 @@ define(function (require, exports, module) {
         
             // copy files to temp directory
             runs(function () {
-                waitsForDone(SpecRunnerUtils.copy(testPath, tempDir), "copy temp files");
+                waitsForDone(SpecRunnerUtils.copyPath(testPath, tempDir), "copy temp files");
             });
             
             // open project
@@ -625,6 +635,9 @@ define(function (require, exports, module) {
                     localText = curDoc.getText();
                     localText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localText);
+
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
                 
                 runs(function () {
@@ -634,8 +647,9 @@ define(function (require, exports, module) {
                 openLiveDevelopmentAndWait();
                 
                 var liveDoc, doneSyncing = false;
+                waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
+
                 runs(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -670,6 +684,9 @@ define(function (require, exports, module) {
                     localCssText = curDoc.getText();
                     localCssText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localCssText);
+                    
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
                 
                 runs(function () {
@@ -708,13 +725,13 @@ define(function (require, exports, module) {
                 });
                 
                 // Grab the node that we've modified in Brackets. 
-                var updatedNode, doneSyncing = false;
+                var liveDoc, updatedNode, doneSyncing = false;
+                waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
+
                 runs(function () {
                     // Inpsector.Page.reload should not be called when saving an HTML file
                     expect(Inspector.Page.reload).not.toHaveBeenCalled();
-                    
                     updatedNode = DOMAgent.nodeAtLocation(501);
-                    var liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
@@ -786,8 +803,6 @@ define(function (require, exports, module) {
                     }, LiveDevelopmentModule.STATUS_SYNC_ERROR, 11);
                 });
 
-                waits(1000);
-
                 runs(function () {
                     // Undo syntax errors
                     _setTextAndCheckStatus(doc, function () {
@@ -808,6 +823,9 @@ define(function (require, exports, module) {
                     // Edit text
                     doc =  DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
+
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
 
                 runs(function () {
@@ -832,6 +850,9 @@ define(function (require, exports, module) {
                     doc = DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
                     
+                    // Document should not be marked dirty
+                    expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
+
                     // Save the document and see if "scanDocument" (which reparses the page) is called.
                     spyOn(testWindow.brackets.test.HTMLInstrumentation, "scanDocument").andCallThrough();
                     testWindow.$(DocumentManager).one("documentSaved", function (e, savedDoc) {
@@ -880,6 +901,9 @@ define(function (require, exports, module) {
                     // Edit a JavaScript doc
                     jsdoc.setText("window.onload = function () {document.getElementById('testId').style.backgroundColor = '#090'}");
                     
+                    // Make sure the live development dirty dot shows
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
+
                     // Save changes to the test file
                     loadEventPromise = saveAndWaitForLoadEvent(jsdoc);
                 });

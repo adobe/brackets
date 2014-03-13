@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -91,14 +91,14 @@ define(function (require, exports, module) {
      * Called any time inline is closed, whether manually or automatically.
      */
     InlineWidget.prototype.onClosed = function () {
-        // Does nothing in base implementation.
+        $(this).triggerHandler("close");
     };
 
     /**
      * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
      * focus or measuring content, which require htmlContent to be in the DOM tree.
-     * IMPORTANT: onAdded() must ensure that hostEditor.setInlineWidgetHeight() is called at least once in order
-     * to set the initial height of the widget and animate it open.
+     * IMPORTANT: onAdded() MUST be overridden to call hostEditor.setInlineWidgetHeight() at least once to
+     * set the initial height (required to animate it open). The widget will never open otherwise.
      */
     InlineWidget.prototype.onAdded = function () {
         $(this).triggerHandler("add");

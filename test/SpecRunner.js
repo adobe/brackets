@@ -28,11 +28,12 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"      : "../test",
-        "perf"      : "../test/perf",
-        "spec"      : "../test/spec",
-        "text"      : "thirdparty/text/text",
-        "i18n"      : "thirdparty/i18n/i18n"
+        "test"              : "../test",
+        "perf"              : "../test/perf",
+        "spec"              : "../test/spec",
+        "text"              : "thirdparty/text/text",
+        "i18n"              : "thirdparty/i18n/i18n",
+        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
     }
 });
 
@@ -54,6 +55,7 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
+        NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
         NativeApp               = require("utils/NativeApp");
@@ -77,6 +79,18 @@ define(function (require, exports, module) {
     // Load JUnitXMLReporter
     require("test/thirdparty/jasmine-reporters/jasmine.junit_reporter");
     
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
+
     var selectedSuites,
         params                  = new UrlParams(),
         reporter,
@@ -92,9 +106,6 @@ define(function (require, exports, module) {
      * for the installer in this run of Brackets.
      */
     var NODE_CONNECTION_TIMEOUT = 30000; // 30 seconds - TODO: share with StaticServer?
-
-    // Initialize the file system
-    FileSystem.init(require("filesystem/impls/appshell/AppshellFileSystem"));
     
     // parse URL parameters
     params.parse();
@@ -159,7 +170,12 @@ define(function (require, exports, module) {
         // check if the file already exists
         var file = FileSystem.getFileForPath(path);
         
-        file.exists(function (exists) {
+        file.exists(function (err, exists) {
+            if (err) {
+                _writeResults.reject(err);
+                return;
+            }
+            
             if (exists) {
                 // file exists, do not overwrite
                 _writeResults.reject();

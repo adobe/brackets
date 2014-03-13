@@ -29,7 +29,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, CodeMirror, $, Worker, setTimeout */
+/*global define, brackets, $, Worker, setTimeout */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
+        CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
@@ -201,12 +202,20 @@ define(function (require, exports, module) {
      * @return {boolean} true if excluded, false otherwise.
      */
     function isFileExcluded(file) {
+        if (file.name[0] === ".") {
+            return true;
+        }
+        
+        var languageID = LanguageManager.getLanguageForPath(file.fullPath).getId();
+        if (languageID !== HintUtils.LANGUAGE_ID) {
+            return true;
+        }
+        
         var excludes = preferences.getExcludedFiles();
-
         if (!excludes) {
             return false;
         }
-
+        
         return excludes.test(file.name);
     }
 
@@ -688,6 +697,11 @@ define(function (require, exports, module) {
          */
         function postMessage(msg) {
             addFilesPromise.done(function (ternWorker) {
+                // If an error came up during file handling, bail out now
+                if (!ternWorker) {
+                    return;
+                }
+                
                 if (config.debug) {
                     console.debug("Sending message", msg);
                 }
@@ -776,8 +790,8 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = name.substring(name.lastIndexOf("/"));
-                
+                var fileName = name.substring(name.lastIndexOf("/") + 1);
+
                 function _fileFilter(entry) {
                     return entry.name === fileName;
                 }
@@ -895,11 +909,8 @@ define(function (require, exports, module) {
             FileSystem.resolve(dir, function (err, directory) {
                 function visitor(entry) {
                     if (entry.isFile) {
-                        if (!isFileExcluded(entry) && entry.name.indexOf(".") !== 0) { // ignore .dotfiles
-                            var languageID = LanguageManager.getLanguageForPath(entry.fullPath).getId();
-                            if (languageID === HintUtils.LANGUAGE_ID) {
-                                addFilesToTern([entry.fullPath]);
-                            }
+                        if (!isFileExcluded(entry)) { // ignore .dotfiles and non-.js files
+                            addFilesToTern([entry.fullPath]);
                         }
                     } else {
                         return !isDirectoryExcluded(entry.fullPath) &&
@@ -1058,12 +1069,14 @@ define(function (require, exports, module) {
             deferredPreferences.done(function () {
                 FileSystem.resolve(dir, function (err, directory) {
                     if (err) {
+                        console.error("Error resolving", dir);
                         addFilesDeferred.resolveWith(null);
                         return;
                     }
                     
                     directory.getContents(function (err, contents) {
                         if (err) {
+                            console.error("Error getting contents for", directory);
                             addFilesDeferred.resolveWith(null);
                             return;
                         }
@@ -1136,6 +1149,11 @@ define(function (require, exports, module) {
         function closeWorker() {
             function terminateWorker() {
                 var worker = _ternWorker;
+                
+                // Worker can be null if an error condition came up previously
+                if (!worker) {
+                    return;
+                }
                 setTimeout(function () {
                     // give pending requests a chance to finish
                     worker.terminate();
@@ -1303,29 +1321,32 @@ define(function (require, exports, module) {
      *  Track the update area of the current document so we can tell if we can send
      *  partial updates to tern or not.
      *
-     * @param {{from: {line:number, ch: number}, to: {line:number, ch: number},
-     * text: Array<string>}} changeList - the document changes (since last change or cumlative?)
+     * @param {Array.<{from: {line:number, ch: number}, to: {line:number, ch: number},
+     *     text: Array<string>}>} changeList - the document changes from the current change event
      */
     function trackChange(changeList) {
-        var changed = documentChanges;
+        var changed = documentChanges, i;
         if (changed === null) {
-            documentChanges = changed = {from: changeList.from.line, to: changeList.from.line};
+            documentChanges = changed = {from: changeList[0].from.line, to: changeList[0].from.line};
             if (config.debug) {
                 console.debug("ScopeManager: document has changed");
             }
         }
 
-        var end = changeList.from.line + (changeList.text.length - 1);
-        if (changeList.from.line < changed.to) {
-            changed.to = changed.to - (changeList.to.line - end);
-        }
+        for (i = 0; i < changeList.length; i++) {
+            var thisChange = changeList[i],
+                end = thisChange.from.line + (thisChange.text.length - 1);
+            if (thisChange.from.line < changed.to) {
+                changed.to = changed.to - (thisChange.to.line - end);
+            }
 
-        if (end >= changed.to) {
-            changed.to = end + 1;
-        }
+            if (end >= changed.to) {
+                changed.to = end + 1;
+            }
 
-        if (changed.from > changeList.from.line) {
-            changed.from = changeList.from.line;
+            if (changed.from > thisChange.from.line) {
+                changed.from = thisChange.from.line;
+            }
         }
     }
 

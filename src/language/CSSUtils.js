@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, CodeMirror, _parseRuleList: true */
+/*global define, $, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
 // It was added to this list to prevent JSLint warning about being used before being defined.
@@ -34,7 +34,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async               = require("utils/Async"),
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
@@ -67,11 +68,11 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 1) {
+        if (!state.context) {
             return false;
         }
         
-        lastToken = state.stack[state.stack.length - 1];
+        lastToken = state.context.type;
         return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
     
@@ -83,28 +84,27 @@ define(function (require, exports, module) {
      */
     function _isInPropValue(ctx) {
         var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment" ||
-                ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
+        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
         }
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 2) {
+        if (!state.context || !state.context.prev) {
             return false;
         }
-        return ((state.stack[state.stack.length - 1] === "propertyValue" &&
-                    (state.stack[state.stack.length - 2] === "rule" || state.stack[state.stack.length - 2] === "block")) ||
-                    (state.stack[state.stack.length - 1] === "(" && (state.stack[state.stack.length - 2] === "propertyValue")));
+        return ((state.context.type === "prop" &&
+                    (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
+                    (state.context.type === "parens" && state.context.prev.type === "prop"));
     }
     
     /**
      * @private
-     * Checks if the current cursor position is inside an @import rule
+     * Checks if the current cursor position is inside an at-rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {boolean} true if the context is in property value
      */
-    function _isInImportRule(ctx) {
+    function _isInAtRule(ctx) {
         var state;
         if (!ctx || !ctx.token || !ctx.token.state) {
             return false;
@@ -112,10 +112,10 @@ define(function (require, exports, module) {
 
         state = ctx.token.state.localState || ctx.token.state;
         
-        if (!state.stack || state.stack.length < 1) {
+        if (!state.context) {
             return false;
         }
-        return (state.stack[0] === "@import");
+        return (state.context.type === "at");
     }
 
     /**
@@ -161,10 +161,9 @@ define(function (require, exports, module) {
     function _getPropNameStartingFromPropValue(ctx) {
         var ctxClone = $.extend({}, ctx);
         do {
-            // If we get a property name or "{" or ";" before getting a colon, then we don't 
+            // If we're no longer in the property value before seeing a colon, then we don't
             // have a valid property name. Just return an empty string.
-            if (ctxClone.token.type === "property" || ctxClone.token.type === "property error" ||
-                    ctxClone.token.string === "{" || ctxClone.token.string === ";") {
+            if (ctxClone.token.string !== ":" && !_isInPropValue(ctxClone)) {
                 return "";
             }
         } while (ctxClone.token.string !== ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone));
@@ -189,9 +188,7 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         while (ctx.token.string !== ":" && TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
-                    ctx.token.string === ":" || ctx.token.string === "{" ||
-                    ctx.token.string === ";") {
+            if (ctx.token.string === ":" || !_isInPropValue(ctx)) {
                 break;
             }
 
@@ -236,14 +233,11 @@ define(function (require, exports, module) {
             curValue,
             propValues = [];
         
-        while (ctx.token.string !== ";" && TokenUtils.moveNextToken(ctx)) {
+        while (ctx.token.string !== ";" && ctx.token.string !== "}" && TokenUtils.moveNextToken(ctx)) {
             if (ctx.token.string === ";" || ctx.token.string === "}") {
                 break;
             }
-            // If we're already in the next rule, then we don't want to add the last value
-            // since it is the property name of the next rule.
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag" ||
-                    ctx.token.string === ":") {
+            if (!_isInPropValue(ctx)) {
                 lastValue = "";
                 break;
             }
@@ -259,7 +253,11 @@ define(function (require, exports, module) {
                     lastValue += ctx.token.string;
                 } else if (lastValue && lastValue.match(/,$/)) {
                     propValues.push(lastValue);
-                    lastValue = "";
+                    if (ctx.token.string.length > 0) {
+                        lastValue = ctx.token.string;
+                    } else {
+                        lastValue = "";
+                    }
                 } else {
                     // e.g. "rgba(50" gets broken into 2 tokens
                     lastValue += ctx.token.string;
@@ -385,7 +383,7 @@ define(function (require, exports, module) {
             testToken = editor._codeMirror.getTokenAt(testPos, true);
 
         // Currently only support url. May be null if starting to type
-        if (ctx.token.className && ctx.token.className !== "string") {
+        if (ctx.token.type && ctx.token.type !== "string") {
             return createInfo();
         }
 
@@ -395,11 +393,11 @@ define(function (require, exports, module) {
         propValues[0] = backwardCtx.token.string;
 
         while (TokenUtils.movePrevToken(backwardCtx)) {
-            if (backwardCtx.token.className === "def" && backwardCtx.token.string === "@import") {
+            if (backwardCtx.token.type === "def" && backwardCtx.token.string === "@import") {
                 break;
             }
             
-            if (backwardCtx.token.className && backwardCtx.token.className !== "tag" && backwardCtx.token.string !== "url") {
+            if (backwardCtx.token.type && backwardCtx.token.type !== "tag" && backwardCtx.token.string !== "url") {
                 // Previous token may be white-space
                 // Otherwise, previous token may only be "url("
                 break;
@@ -409,7 +407,7 @@ define(function (require, exports, module) {
             offset += backwardCtx.token.string.length;
         }
         
-        if (backwardCtx.token.className !== "def" || backwardCtx.token.string !== "@import") {
+        if (backwardCtx.token.type !== "def" || backwardCtx.token.string !== "@import") {
             // Not in url
             return createInfo();
         }
@@ -433,7 +431,7 @@ define(function (require, exports, module) {
     /**
      * Returns a context info object for the given cursor position
      * @param {!Editor} editor
-     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
      * @return {{context: string,
      *           offset: number,
      *           name: string,
@@ -451,7 +449,7 @@ define(function (require, exports, module) {
             mode = editor.getModeForSelection();
         
         // Check if this is inside a style block or in a css/less document.
-        if (mode !== "css" && mode !== "text/x-scss" && mode !== "less") {
+        if (mode !== "css" && mode !== "text/x-scss" && mode !== "text/x-less") {
             return createInfo();
         }
 
@@ -481,7 +479,7 @@ define(function (require, exports, module) {
             return _getRuleInfoStartingFromPropValue(ctx, editor);
         }
 
-        if (_isInImportRule(ctx)) {
+        if (_isInAtRule(ctx)) {
             return _getImportUrlInfo(ctx, editor);
         }
         
@@ -631,7 +629,7 @@ define(function (require, exports, module) {
             while (token !== "," && token !== "{") {
                 currentSelector += token;
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    return false; // eof
                 }
             }
             
@@ -671,25 +669,34 @@ define(function (require, exports, module) {
                 currentSelector = "";
             }
             selectorStartChar = -1;
+
+            return true;
         }
         
         function _parseSelectorList() {
             selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
             selectorGroupStartChar = stream.start;
 
-            _parseSelector(stream.start);
+            if (!_parseSelector(stream.start)) {
+                return false;
+            }
+
             while (token === ",") {
                 if (!_nextTokenSkippingComments()) {
-                    break;
+                    return false; // eof
                 }
-                _parseSelector(stream.start);
+                if (!_parseSelector(stream.start)) {
+                    return false;
+                }
             }
+
+            return true;
         }
 
         function _parseDeclarationList() {
 
             var j;
-            declListStartLine = line;
+            declListStartLine = Math.min(line, lineCount - 1);
             declListStartChar = stream.start;
             
             // Extract the entire selector group we just saw.
@@ -773,10 +780,14 @@ define(function (require, exports, module) {
                 // Skip everything until the opening '{'
                 while (token !== "{") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
-                _nextTokenSkippingWhitespace();    // skip past '{', to next non-ws token
+
+                // skip past '{', to next non-ws token
+                if (!_nextTokenSkippingWhitespace()) {
+                    return; // eof
+                }
 
                 // Parse rules until we see '}'
                 _parseRuleList("}");
@@ -788,7 +799,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next ';'
                 while (token !== ";") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
                 
@@ -799,7 +810,7 @@ define(function (require, exports, module) {
                 // Skip everything until the next '}'
                 while (token !== "}") {
                     if (!_nextTokenSkippingComments()) {
-                        break;
+                        return; // eof
                     }
                 }
             }
@@ -807,7 +818,10 @@ define(function (require, exports, module) {
 
         // parse a style rule
         function _parseRule() {
-            _parseSelectorList();
+            if (!_parseSelectorList()) {
+                return false;
+            }
+
             _parseDeclarationList();
         }
         
@@ -1080,6 +1094,17 @@ define(function (require, exports, module) {
                     if (/[\{\}\;]/.test(ctx.token.string)) {
                         break;
                     }
+                    
+                    // Stop once we've reached a <style ...> tag
+                    if (ctx.token.string === "<style") {
+                        // Remove everything up to end-of-tag from selector
+                        var eotIndex = selector.indexOf(">");
+                        if (eotIndex !== -1) {
+                            selector = selector.substring(eotIndex + 1);
+                        }
+                        break;
+                    }
+                    
                     selector = ctx.token.string + selector;
                 }
                 if (!TokenUtils.movePrevToken(ctx)) {

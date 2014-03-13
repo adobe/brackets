@@ -32,6 +32,7 @@
     ::-webkit-scrollbar {
         width: 9px;
         height: 9px;
+        background-color: transparent;
     }
 
     ::-webkit-scrollbar-corner {
@@ -70,6 +71,8 @@
 }
 
 .platform-linux {
+    // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
+    
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
@@ -85,7 +88,7 @@
 
     ::-webkit-scrollbar-thumb {
         border-radius: 999px;
-        box-shadow: 0 0 0 4px @custom-scrollbar-thumb inset;
+        box-shadow: 0 0 0 4px @linux-scrollbar-thumb inset;
         border: 2px solid transparent;
     }
 
@@ -94,6 +97,38 @@
     }
 
     ::-webkit-scrollbar-thumb:window-inactive {
-        box-shadow: 0 0 0 5px @custom-scrollbar-thumb-inactive inset;
+        box-shadow: 0 0 0 5px @linux-scrollbar-thumb-inactive inset;
+    }
+}
+
+.platform-win {
+    // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
+    
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+        background-color: @win-scrollbar-track;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        box-shadow: 0 0 0 12px @win-scrollbar-thumb inset;
+    }
+    ::-webkit-scrollbar-thumb:hover,
+    ::-webkit-scrollbar-thumb:focus {
+        box-shadow: 0 0 0 12px @win-scrollbar-thumb-hover inset;
+    }
+    ::-webkit-scrollbar-thumb:active {
+        box-shadow: 0 0 0 12px @win-scrollbar-thumb-active inset;
+    }
+    
+    ::-webkit-scrollbar-thumb:vertical {
+        min-height: 20px;
+    }
+    ::-webkit-scrollbar-thumb:horizontal {
+        min-width: 20px;
+    }
+    
+    ::-webkit-scrollbar-corner {
+        background: none;
     }
 }

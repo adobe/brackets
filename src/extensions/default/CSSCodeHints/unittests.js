@@ -85,8 +85,8 @@ define(function (require, exports, module) {
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
-        function expectNoHints(provider) {
-            expect(provider.hasHints(testEditor, null)).toBe(false);
+        function expectNoHints(provider, implicitChar) {
+            expect(provider.hasHints(testEditor, implicitChar)).toBe(false);
         }
     
         function verifyAttrHints(hintList, expectedFirstHint) {
@@ -224,8 +224,8 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos({ line: 7, ch: 5 });   // cursor after 'bord'
                 selectHint(CSSCodeHints.cssPropHintProvider, "border");
-                expect(testDocument.getLine(7)).toBe(" border:");
-                expectCursorAt({ line: 7, ch: 8 });
+                expect(testDocument.getLine(7)).toBe(" border: ");
+                expectCursorAt({ line: 7, ch: 9 });
             });
             
             it("should not insert semicolon after prop-value selected", function () {
@@ -238,30 +238,30 @@ define(function (require, exports, module) {
             it("should insert prop-name directly after semicolon", function () {
                 testEditor.setCursorPos({ line: 10, ch: 19 });   // cursor after red;
                 selectHint(CSSCodeHints.cssPropHintProvider, "align-content");
-                expect(testDocument.getLine(10)).toBe(" border-color: red;align-content:");
+                expect(testDocument.getLine(10)).toBe(" border-color: red;align-content: ");
             });
             
             it("should insert nothing but the closure(semicolon) if prop-value is fully written", function () {
                 testDocument.replaceRange(";", { line: 15, ch: 13 }); // insert text ;
                 testEditor.setCursorPos({ line: 16, ch: 6 });   // cursor directly after color
                 selectHint(CSSCodeHints.cssPropHintProvider, "color");
-                expect(testDocument.getLine(16)).toBe(" color:");
-                expectCursorAt({ line: 16, ch: 7 });
+                expect(testDocument.getLine(16)).toBe(" color: ");
+                expectCursorAt({ line: 16, ch: 8 });
             });
             
             it("should insert prop-name before an existing one", function () {
                 testEditor.setCursorPos({ line: 10, ch: 1 });   // cursor before border-color:
                 selectHint(CSSCodeHints.cssPropHintProvider, "float");
-                expect(testDocument.getLine(10)).toBe(" float: border-color: red;");
-                expectCursorAt({ line: 10, ch: 7 });
+                expect(testDocument.getLine(10)).toBe(" float:  border-color: red;");
+                expectCursorAt({ line: 10, ch: 8 });
             });
-            
+
             it("should insert prop-name before an existing one when invoked with an implicit character", function () {
                 testDocument.replaceRange("f", { line: 10, ch: 1 }); // insert "f" before border-color:
                 testEditor.setCursorPos({ line: 10, ch: 2 });        // set cursor before border-color:
                 selectHint(CSSCodeHints.cssPropHintProvider, "float", "f");
-                expect(testDocument.getLine(10)).toBe(" float: border-color: red;");
-                expectCursorAt({ line: 10, ch: 7 });
+                expect(testDocument.getLine(10)).toBe(" float:  border-color: red;");
+                expectCursorAt({ line: 10, ch: 8 });
             });
             
             it("should replace the existing prop-value with the new selection", function () {
@@ -573,8 +573,8 @@ define(function (require, exports, module) {
             it("should list more than 1 value hint for flow-into", function () {
                 testEditor.setCursorPos({ line: 77, ch: 4 });
                 selectHint(CSSCodeHints.cssPropHintProvider, "flow-into");
-                expect(testDocument.getLine(77)).toBe("    flow-into:");
-                expectCursorAt({ line: 77, ch: 14 });
+                expect(testDocument.getLine(77)).toBe("    flow-into: ");
+                expectCursorAt({ line: 77, ch: 15 });
 
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "edge-code_now_shipping");  // first hint should be edge-code_now_shipping
@@ -632,6 +632,26 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 // some-named-flow should not be in the hint list since it is inside HTML text
                 verifyAllValues(hintList, []);
+            });
+        });
+
+        describe("Should not invoke CSS hints on space key", function () {
+            beforeEach(function () {
+                setupTest(testContentHTML, "html");
+            });
+            
+            afterEach(function () {
+                tearDownTest();
+            });
+            
+            it("should not trigger CSS property name hints with space key", function () {
+                testEditor.setCursorPos({ line: 25, ch: 11 });    // after {
+                expectNoHints(CSSCodeHints.cssPropHintProvider, " ");
+            });
+
+            it("should not trigger CSS property value hints with space key", function () {
+                testEditor.setCursorPos({ line: 28, ch: 21 });    // after flow-from
+                expectNoHints(CSSCodeHints.cssPropHintProvider, " ");
             });
         });
     });

@@ -23,28 +23,25 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window, Mustache */
+/*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
+        DropdownButton          = require("widgets/DropdownButton").DropdownButton,
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
         DocumentManager         = require("document/DocumentManager"),
-        DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
         ProjectManager          = require("project/ProjectManager"),
         HTMLUtils               = require("language/HTMLUtils"),
-        Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
-        PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings"),
+        ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
-
-    var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
     
     var _newRuleCmd,
         _newRuleHandlers = [];
@@ -102,19 +99,6 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Create the list of stylesheets in the dropdown menu.
-     * @return {string} The html content
-     */
-    function _renderList(cssFileInfos) {
-        var templateVars   = {
-                styleSheetList : cssFileInfos
-            };
-
-        return Mustache.render(StylesheetsMenuTemplate, templateVars);
-    }
-
-    /**
-     * @private
      * Add a new rule for the given selector to the given stylesheet, then add the rule to the
      * given inline editor.
      * @param {string} selectorName The selector to create a rule for.
@@ -143,6 +127,16 @@ define(function (require, exports, module) {
                 handlerInfo.handler();
             }
         }
+    }
+    
+    /** Item renderer for stylesheet-picker dropdown */
+    function _stylesheetListRenderer(item) {
+        var html = "<span class='stylesheet-name'>" + _.escape(item.name);
+        if (item.subDirStr.length) {
+            html += "<span class='stylesheet-dir'> — " + _.escape(item.subDirStr) + "</span>";
+        }
+        html += "</span>";
+        return html;
     }
     
     /**
@@ -178,99 +172,14 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             cssInlineEditor,
             cssFileInfos = [],
-            $newRuleButton,
-            $dropdown,
-            $dropdownItem,
-            dropdownEventHandler;
-
-        /**
-         * @private
-         * Close the dropdown externally to dropdown, which ultimately calls the
-         * _cleanupDropdown callback.
-         */
-        function _closeDropdown() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
-            }
-        }
-        
-        /**
-         * @private
-         * When editor scrolls, close dropdown
-         */
-        function _onScroll() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
-            }
-        }
-        
-        /**
-         * @private
-         * Remove the various event handlers that close the dropdown. This is called by the
-         * PopUpManager when the dropdown is closed.
-         */
-        function _cleanupDropdown() {
-            $("html").off("click", _closeDropdown);
-            $(hostEditor).off("scroll", _onScroll);
-            dropdownEventHandler = null;
-            $dropdown = null;
-    
-            EditorManager.focusEditor();
-        }
+            newRuleButton;
 
         /**
          * @private
          * Callback when item from dropdown list is selected
-         * @param {jQueryObject} $link  The `a` element selected with mouse or keyboard
          */
-        function _onSelect($link) {
-            var path  = $link.data("path");
-
-            if (path) {
-                _addRule(selectorName, cssInlineEditor, path);
-            }
-        }
-        
-        /**
-         * @private
-         * Show or hide the stylesheets dropdown.
-         */
-        function _showDropdown() {
-            Menus.closeAll();
-            
-            $dropdown = $(_renderList(cssFileInfos))
-                .appendTo($("body"));
-            
-            var toggleOffset   = $newRuleButton.offset(),
-                $window        = $(window),
-                posLeft        = toggleOffset.left,
-                posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
-                bottomOverhang = posTop  + $dropdown.height() - $window.height(),
-                rightOverhang  = posLeft + $dropdown.width()  - $window.width();
-            
-            if (bottomOverhang > 0) {
-                // Bottom is clipped, so move entire menu above button
-                posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
-            }
-            
-            if (rightOverhang > 0) {
-                // Right is clipped, so adjust left to fit menu in editor
-                posLeft = Math.max(0, posLeft - rightOverhang);
-            }
-            
-            $dropdown.css({
-                left: posLeft,
-                top: posTop
-            });
-            
-            $("html").on("click", _closeDropdown);
-            
-            dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
-            dropdownEventHandler.open();
-            
-            $dropdown.focus();
-            
-            $(hostEditor).on("scroll", _onScroll);
+        function _onDropdownSelect(event, fileInfo) {
+            _addRule(selectorName, cssInlineEditor, fileInfo.fullPath);
         }
         
         /**
@@ -292,7 +201,7 @@ define(function (require, exports, module) {
          * Update the enablement of associated menu commands.
          */
         function _updateCommands() {
-            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !$newRuleButton.hasClass("disabled"));
+            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !newRuleButton.$button.hasClass("disabled"));
         }
         
         /**
@@ -300,18 +209,15 @@ define(function (require, exports, module) {
          * Create a new rule on click.
          */
         function _handleNewRuleClick(e) {
-            if (!$newRuleButton.hasClass("disabled")) {
+            if (!newRuleButton.$button.hasClass("disabled")) {
                 if (cssFileInfos.length === 1) {
                     // Just go ahead and create the rule.
                     _addRule(selectorName, cssInlineEditor, cssFileInfos[0].fullPath);
-                } else if ($dropdown) {
-                    _closeDropdown();
                 } else {
-                    _showDropdown();
+                    // Although not attached to button click in 'dropdown mode', this handler can still be
+                    // invoked via the command shortcut. Just toggle dropdown open/closed in that case.
+                    newRuleButton.toggleDropdown();
                 }
-            }
-            if (e) {
-                e.stopPropagation();
             }
         }
         
@@ -329,51 +235,57 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * Helper function to add a sub-directory to string displayed in list
-         */
-        function _addSubDir(fileInfo) {
-            var dirSplit = fileInfo.fullPath.split("/"),
-                index = dirSplit.length - fileInfo.subDirCount - 2;
-            
-            fileInfo.subDirStr = dirSplit.slice(index, dirSplit.length - 1).join("/");
-            fileInfo.subDirCount++;
-        }
-        
-        /**
-         * @private
          * Prepare file list for display
          */
         function _prepFileList(fileInfos) {
-            var i,
-                done = false;
+            var i, j, firstDupeIndex,
+                displayPaths = [],
+                dupeList = [];
             
             // Add subdir field to each entry
             fileInfos.forEach(function (fileInfo) {
                 fileInfo.subDirStr = "";
-                fileInfo.subDirCount = 0;
             });
 
-            // Each pass through loop re-sorts and then adds a subdir to
-            // duplicates to try to differentiate. Loop until no dupes remain.
-            while (!done) {
-                // Done unless a dupe is found
-                done = true;
-                
-                // Sort by name
-                fileInfos.sort(_sortFileInfos);
-                
-                // For identical names, add a subdir
-                for (i = 1; i < fileInfos.length; i++) {
-                    if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
-                        // Duplicate found. Add a subdir to both.
-                        done = false;
-                        _addSubDir(fileInfos[i - 1]);
-                        _addSubDir(fileInfos[i]);
+            // Add directory path to files with the same name so they can be
+            // distinguished in list. Start with list sorted by name.
+            fileInfos.sort(_sortFileInfos);
+
+            // For identical names, add a subdir
+            for (i = 1; i < fileInfos.length; i++) {
+                if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
+                    // Duplicates found
+                    firstDupeIndex = i - 1;
+                    dupeList.push(fileInfos[i - 1]);
+                    dupeList.push(fileInfos[i]);
+
+                    // Lookahead for more dupes
+                    while (++i < fileInfos.length &&
+                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
+                        dupeList.push(fileInfos[i]);
                     }
+
+                    // Get minimum subdir to make each unique
+                    displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
+
+                    // Add a subdir to each dupe entry
+                    for (j = 0; j < displayPaths.length; j++) {
+                        fileInfos[firstDupeIndex + j].subDirStr = displayPaths[j];
+                    }
+
+                    // Release memory
+                    dupeList = [];
                 }
             }
             
+            // Sort by name again, so paths are sorted
+            fileInfos.sort(_sortFileInfos);
+
             return fileInfos;
+        }
+        
+        function _onHostEditorScroll() {
+            newRuleButton.closeDropdown();
         }
         
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
@@ -388,15 +300,22 @@ define(function (require, exports, module) {
                 $(cssInlineEditor).on("add", function () {
                     inlineEditorDeferred.resolve();
                 });
+                $(cssInlineEditor).on("close", function () {
+                    newRuleButton.closeDropdown();
+                    $(hostEditor).off("scroll", _onHostEditorScroll);
+                });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
-                    .text(Strings.BUTTON_NEW_RULE)
-                    .on("click", _handleNewRuleClick);
-                $header.append($newRuleButton);
+                newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, [], _stylesheetListRenderer); // actual item list populated later, below
+                newRuleButton.$button.addClass("disabled");  // disabled until list is known
+                newRuleButton.$button.addClass("btn-mini stylesheet-button");
+                $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 
+                $(hostEditor).on("scroll", _onHostEditorScroll);
+                
                 result.resolve(cssInlineEditor);
+                
 
                 // Now that dialog has been built, collect list of stylesheets
                 var stylesheetsPromise = _getCSSFilesInProject();
@@ -413,14 +332,21 @@ define(function (require, exports, module) {
                         // "New Rule" button is disabled by default and gets enabled
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
-                            $newRuleButton.removeClass("disabled");
+                            newRuleButton.$button.removeClass("disabled");
                             if (!rules.length) {
                                 // Force focus to the button so the user can create a new rule from the keyboard.
-                                $newRuleButton.focus();
+                                newRuleButton.$button.focus();
                             }
-                        }
-                        if (cssFileInfos.length > 1) {
-                            $newRuleButton.addClass("btn-dropdown");
+                            
+                            if (cssFileInfos.length === 1) {
+                                // Make it look & feel like a plain button in this case
+                                newRuleButton.$button.removeClass("btn-dropdown");
+                                newRuleButton.$button.on("click", _handleNewRuleClick);
+                            } else {
+                                // Fill out remaining dropdown attributes otherwise
+                                newRuleButton.items = cssFileInfos;
+                                $(newRuleButton).on("select", _onDropdownSelect);
+                            }
                         }
                         
                         _updateCommands();

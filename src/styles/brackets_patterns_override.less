@@ -147,6 +147,9 @@ a:focus {
     .box-flex(1);
     text-align: center;
 
+    // Ensure that it stays on top
+    z-index: @z-index-brackets-main-toolbar;
+
     .buttons,
     .bottom-buttons {
         text-align: center;
@@ -411,34 +414,31 @@ a:focus {
     margin: 0;
 }
 
-/* Stylesheet button & dropdown styles */
+/* DropdownButton widget */
 
-.stylesheet-button.btn-mini {
-    margin-left: 8px;
-    position: relative;
-    top: -1px;
+.btn-dropdown, .btn-dropdown.btn-mini {
+    position: relative;   // needed to position ::after arrow
+    padding-right: 24px;  // makes room for ::after arrow
 }
-
-.stylesheet-button.btn-mini.btn-dropdown {
-    padding-right: 24px;
-}
-
-.stylesheet-button.btn-dropdown::after {
+.btn-dropdown::after {
     content: "";
     display: block;
     height: 0px;
     width: 0px;
     position: absolute;
     right: 6px;
-    top: 7px;
+    top: 11px;
 
     /* dropdown triangle */
     border-top: 4px solid @tc-gray-component-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 }
+.btn-dropdown.btn-mini::after {
+    top: 7px;
+}
 
-.stylesheet-dropdown {
+.dropdownbutton-popup {
     &.dropdown-menu:focus {
         outline: none;
     }
@@ -457,24 +457,12 @@ a:focus {
         z-index: @z-index-brackets-stylesheet-menu;
     }
     
-    .stylesheet-link, .stylesheet-name {
-        white-space: nowrap;
-    }
-    
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
     }
     
     &.dropdown-menu .stylesheet-link {
         display: block;
-    }
-    
-    .stylesheet-name {
-        color: @tc-text;
-    }
-    
-    .stylesheet-dir {
-        color: @tc-quiet-text;
     }
     
     &.dropdown-menu a.selected {
@@ -487,6 +475,26 @@ a:focus {
     }
 }
 
+/* Inline editor stylesheet-picker DropdownButton */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    top: -1px;
+}
+
+.dropdownbutton-popup {
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    .stylesheet-name {
+        color: @tc-text;
+    }
+    
+    .stylesheet-dir {
+        color: @tc-quiet-text;
+    }
+}
 
 /* Dialog-related styles */
 
@@ -530,6 +538,20 @@ a:focus {
     background-color: @tc-gray-panel;
 }
 
+.modal-body.no-padding {
+    padding: 0;
+}
+
+.modal-body.no-padding td:first-child,
+.modal-body.no-padding th:first-child {
+    padding-left: 15px;
+}
+
+.modal-body.no-padding td:last-child,
+.modal-body.no-padding th:last-child {
+    padding-right: 15px;
+}
+
 .modal-body, .modal-header, .modal-footer {
     /* See styles/bootstrap/patterns.less .modal class.
        Pushing this value down to .modal-header and .modal-body
@@ -549,7 +571,7 @@ a:focus {
 .modal-footer .btn {
     float: none;
 }
-.modal-footer .btn.left {
+.modal-footer .left {
     float: left;
 
     /* Transfer the margin to the right of each left-aligned button, so the left side lines up properly
@@ -1071,8 +1093,8 @@ input[type="color"],
     }
 
     // Active and Disabled states
-    &.active,
-    &:active {
+    &.active:not([disabled]),
+    &:active:not([disabled]) {
         background-image: none;
         background-color: @tc-button-down-background;
         box-shadow: @tc-button-down-shadow;
@@ -1096,6 +1118,7 @@ input[type="color"],
             background-image: none;
             background-color: @tc-call-to-action-down;
             box-shadow: @tc-call-to-action-down-shadow;
+            color: @tc-call-to-action-text;
         }
 
         &:focus {
@@ -1127,6 +1150,7 @@ input[type="color"],
     }
 }
 
+
 /* Tables */
 
 .table, table {
@@ -1137,7 +1161,10 @@ input[type="color"],
         border-top: 1px solid transparent;
     }
     tbody th {
-        border-top: 1px solid transparent);
+        border-top: 1px solid transparent;
+    }
+    .right {
+        text-align: right;
     }
 }
 
@@ -1173,6 +1200,10 @@ code {
 
 label {
     font-size: @label-font-size;
+}
+
+label.inline {
+    display: inline;
 }
 
 /* Overriding Bootstrap's bold properties */

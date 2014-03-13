@@ -36,11 +36,9 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager");
+        EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager");
     
-    
-    /** @const @type {number} Height (and width) or scrollbar up/down arrow button on Win */
-    var WIN_ARROW_HT = 17;
     
     /** @type {?Editor} Editor the markers are currently shown for, or null if not shown */
     var editor;
@@ -55,28 +53,34 @@ define(function (require, exports, module) {
     var marks = [];
     
     
+    function _getScrollbar(editor) {
+        // Be sure to select only the direct descendant, not also elements within nested inline editors
+        return $(editor.getRootElement()).children(".CodeMirror-vscrollbar");
+    }
+    
     /** Measure scrollbar track */
     function _calcScaling() {
-        var rootElem = editor.getRootElement();
-        var $sb = $(".CodeMirror-vscrollbar", rootElem);
+        var $sb = _getScrollbar(editor);
         
         trackHt = $sb[0].offsetHeight;
         
         if (trackHt > 0) {
             // Scrollbar visible: determine offset of track from top of scrollbar
             if (brackets.platform === "win") {
-                trackOffset = WIN_ARROW_HT;  // Up arrow pushes down track
-            } else {
-                trackOffset = 0;             // No arrows
+                trackOffset = 0;  // Custom scrollbar CSS has no gap around the track
+            } else if (brackets.platform === "mac") {
+                trackOffset = 4;  // Native scrollbar has padding around the track
+            } else { //(Linux)
+                trackOffset = 2;  // Custom scrollbar CSS has assymmetrical gap; this approximates it
             }
+            trackHt -= trackOffset * 2;
             
         } else {
             // No scrollbar: use the height of the entire code content
-            trackHt = $(".CodeMirror-sizer", rootElem)[0].offsetHeight;
-            trackOffset = 0;
+            var codeContainer = $(editor.getRootElement()).find("> .CodeMirror-scroll > .CodeMirror-sizer > div > .CodeMirror-lines > div")[0];
+            trackHt = codeContainer.offsetHeight;
+            trackOffset = codeContainer.offsetTop;
         }
-        
-        trackHt -= trackOffset * 2;
     }
 
     /** Add all the given tickmarks to the DOM in a batch */
@@ -119,28 +123,27 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var rootElem = editor.getRootElement();
-            var $sb = $(".CodeMirror-vscrollbar", rootElem);
+            var $sb = _getScrollbar(editor);
             var $overlay = $("<div class='tickmark-track'></div>");
             $sb.parent().append($overlay);
             
             _calcScaling();
             
-            // Update tickmarks during window resize (whenever resizing has paused/stopped for > 1/3 sec)
-            $(window).on("resize.ScrollTrackMarkers", _.debounce(function () {
+            // Update tickmarks during editor resize (whenever resizing has paused/stopped for > 1/3 sec)
+            $(PanelManager).on("editorAreaResize.ScrollTrackMarkers", _.debounce(function () {
                 if (marks.length) {
                     _calcScaling();
                     $(".tickmark-track", editor.getRootElement()).empty();
                     _renderMarks(marks);
                 }
-            }), 300);
+            }, 300));
             
         } else {
             console.assert(editor === curEditor);
             $(".tickmark-track", curEditor.getRootElement()).remove();
             editor = null;
             marks = [];
-            $(window).off("resize.ScrollTrackMarkers");
+            $(PanelManager).off("editorAreaResize.ScrollTrackMarkers");
         }
     }
     

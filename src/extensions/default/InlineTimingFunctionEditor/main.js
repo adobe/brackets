@@ -53,7 +53,7 @@ define(function (require, exports, module) {
 
         InlineTimingFunctionEditor = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor,
         TimingFunctionUtils        = require("TimingFunctionUtils"),
-        Localized               = require("text!Localized.css");
+        Localized                  = require("text!Localized.css");
 
     
     // Functions
@@ -80,23 +80,24 @@ define(function (require, exports, module) {
         
         // code runs several matches complicated patterns, multiple times, so
         // first do a quick, simple check to see make sure we may have a match
-        if (!cursorLine.match(/cubic-bezier|linear|ease/)) {
+        if (!cursorLine.match(/cubic-bezier|linear|ease|step/)) {
             return null;
         }
 
-        currentMatch = TimingFunctionUtils.bezierCurveMatch(cursorLine, false);
+        currentMatch = TimingFunctionUtils.timingFunctionMatch(cursorLine, false);
         if (!currentMatch) {
             return null;
         }
         
         // check for subsequent matches, and use first match after pos
-        var lineOffset = 0;
-        while (pos.ch > (currentMatch.index + currentMatch[0].length + lineOffset)) {
-            var restOfLine = cursorLine.substring(currentMatch.index + currentMatch[0].length + lineOffset),
-                newMatch = TimingFunctionUtils.bezierCurveMatch(restOfLine, false);
+        var lineOffset = 0,
+            matchLength = ((currentMatch.originalString && currentMatch.originalString.length) || currentMatch[0].length);
+        while (pos.ch > (currentMatch.index + matchLength + lineOffset)) {
+            var restOfLine = cursorLine.substring(currentMatch.index + matchLength + lineOffset),
+                newMatch = TimingFunctionUtils.timingFunctionMatch(restOfLine, false);
 
             if (newMatch) {
-                lineOffset += (currentMatch.index + currentMatch[0].length);
+                lineOffset += (currentMatch.index + matchLength);
                 currentMatch = $.extend(true, [], newMatch);
             } else {
                 break;
@@ -106,7 +107,7 @@ define(function (require, exports, module) {
         currentMatch.lineOffset = lineOffset;
 
         startPos = {line: pos.line, ch: lineOffset + currentMatch.index};
-        endPos   = {line: pos.line, ch: lineOffset + currentMatch.index + currentMatch[0].length};
+        endPos   = {line: pos.line, ch: lineOffset + currentMatch.index + matchLength};
         
         startBookmark = cm.setBookmark(startPos);
         endBookmark   = cm.setBookmark(endPos);

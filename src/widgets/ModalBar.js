@@ -40,10 +40,16 @@ define(function (require, exports, module) {
      * @constructor
      *
      * Creates a modal bar whose contents are the given template.
+     * 
+     * Dispatches one event:
+     *  close - When the bar is closed, either via close() or via autoClose. After this event, the
+     *          bar may remain visible and in the DOM while its closing animation is playing. However,
+     *          by the time "close" is fired, the bar has been "popped out" of the layout and the
+     *          editor scroll position has already been restored.
+     * 
      * @param {string} template The HTML contents of the modal bar.
-     * @param {boolean} autoClose If true, then close the dialog if the user hits RETURN
-     *      in the first input field. Dispatches jQuery events for these cases:
-     *      "commit" on RETURN and "close" always. 
+     * @param {boolean} autoClose If true, then close the dialog if the user hits Esc
+     *      or if the bar loses focus.
      * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
      *      close it immediately.
      */
@@ -52,7 +58,7 @@ define(function (require, exports, module) {
             animate = true;
         }
         
-        this._handleInputKeydown = this._handleInputKeydown.bind(this);
+        this._handleKeydown = this._handleKeydown.bind(this);
         this._handleFocusChange = this._handleFocusChange.bind(this);
         
         this._$root = $("<div class='modal-bar'/>")
@@ -77,11 +83,12 @@ define(function (require, exports, module) {
         
         if (autoClose) {
             this._autoClose = true;
-            var $firstInput = this._getFirstInput()
-                .on("keydown", this._handleInputKeydown);
+            this._$root.on("keydown", this._handleKeydown);
             window.document.body.addEventListener("focusin", this._handleFocusChange, true);
                 
             // Set focus to the first input field, or the first button if there is no input field.
+            // TODO: remove this logic?
+            var $firstInput = $("input[type='text']", this._$root).first();
             if ($firstInput.length > 0) {
                 $firstInput.focus();
             } else {
@@ -113,11 +120,12 @@ define(function (require, exports, module) {
     ModalBar.prototype._autoClose = false;
     
     /**
-     * Returns a jQuery object for the first input field in the dialog. Will be 0-length if there is none.
+     * Allows client code to block autoClose from closing the ModalBar: if set, this function is called whenever
+     * autoClose would normally close the ModalBar. Returning true prevents the close from occurring. Programmatically
+     * calling close() will still close the bar, however.
+     * @type {?function():boolean}
      */
-    ModalBar.prototype._getFirstInput = function () {
-        return $("input[type='text']", this._$root).first();
-    };
+    ModalBar.prototype.isLockedOpen = null;
     
     /**
      * @return {number} Height of the modal bar in pixels, if open.
@@ -216,26 +224,27 @@ define(function (require, exports, module) {
     /**
      * If autoClose is set, handles the RETURN/ESC keys in the input field.
      */
-    ModalBar.prototype._handleInputKeydown = function (e) {
-        if (e.keyCode === KeyEvent.DOM_VK_RETURN || e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+    ModalBar.prototype._handleKeydown = function (e) {
+        if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             e.stopPropagation();
             e.preventDefault();
-            
-            var value = this._getFirstInput().val();
             this.close();
-            if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                $(this).triggerHandler("commit", [value]);
-            }
         }
     };
     
     /**
      * If autoClose is set, detects when something other than the modal bar is getting focus and
-     * dismisses the modal bar.
+     * dismisses the modal bar. DOM nodes with "attached-to" jQuery metadata referencing an element
+     * within the ModalBar are allowed to take focus without closing it.
      */
     ModalBar.prototype._handleFocusChange = function (e) {
-        if (!$.contains(this._$root.get(0), e.target)) {
-            var value = this._getFirstInput().val();
+        if (this.isLockedOpen && this.isLockedOpen()) {
+            return;
+        }
+        
+        var effectiveElem = $(e.target).data("attached-to") || e.target;
+        
+        if (!$.contains(this._$root.get(0), effectiveElem)) {
             this.close();
         }
     };

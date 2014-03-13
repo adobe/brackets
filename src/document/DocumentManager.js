@@ -112,12 +112,6 @@ define(function (require, exports, module) {
     var _currentDocument = null;
     
     /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = {};
-    
-    /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
      * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
@@ -497,7 +491,7 @@ define(function (require, exports, module) {
         _currentDocument = doc;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
-
+        
         PerfUtils.addMeasurement(perfTimerName);
     }
 
@@ -652,13 +646,15 @@ define(function (require, exports, module) {
      * if you are going to display its contents in a piece of UI - then you must addRef() the Document
      * and listen for changes on it. (Note: opening the Document in an Editor automatically manages
      * refs and listeners for that Editor UI).
+     * 
+     * If all you need is the Document's getText() value, use the faster getDocumentText() instead.
      *
      * @param {!string} fullPath
      * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileSystemError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var doc             = getOpenDocumentForPath(fullPath);
+        var doc = getOpenDocumentForPath(fullPath);
 
         if (doc) {
             // use existing document
@@ -765,7 +761,7 @@ define(function (require, exports, module) {
      * looks like /some-random-string/Untitled-counter.fileExt.
      *
      * @param {number} counter - used in the name of the new Document's File
-     * @param {string} fileExt - file extension of the new Document's File
+     * @param {string} fileExt - file extension of the new Document's File, including "."
      * @return {Document} - a new untitled Document
      */
     function createUntitledDocument(counter, fileExt) {
@@ -814,11 +810,14 @@ define(function (require, exports, module) {
      */
     function _savePreferences() {
         // save the working set file paths
-        var files       = [],
-            isActive    = false,
-            workingSet  = getWorkingSet(),
-            currentDoc  = getCurrentDocument(),
-            projectRoot = ProjectManager.getProjectRoot();
+        var files        = [],
+            isActive     = false,
+            workingSet   = getWorkingSet(),
+            currentDoc   = getCurrentDocument(),
+            projectRoot  = ProjectManager.getProjectRoot(),
+            context      = { location : { scope: "user",
+                                          layer: "project",
+                                          layerID: projectRoot.fullPath } };
 
         if (!projectRoot) {
             return;
@@ -841,8 +840,8 @@ define(function (require, exports, module) {
             }
         });
 
-        // append file root to make file list unique for each project
-        _prefs.setValue("files_" + projectRoot.fullPath, files);
+        // Writing out working set files using the project layer specified in 'context'.
+        PreferencesManager.setViewState("project.files", files, context);
     }
 
     /**
@@ -852,7 +851,11 @@ define(function (require, exports, module) {
     function _projectOpen(e) {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = _prefs.getValue("files_" + projectRoot.fullPath);
+            files = [],
+            context = { location : { scope: "user",
+                                     layer: "project" } };
+        
+        files = PreferencesManager.getViewState("project.files", context);
         
         console.assert(Object.keys(_openDocuments).length === 0);  // no files leftover from prev proj
 
@@ -990,6 +993,34 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSaved", doc);
         });
     
+    /**
+     * @private
+     * Examine each preference key for migration of the working set files.
+     * If the key has a prefix of "files_/", then it is a working set files 
+     * preference from old preference model.
+     *
+     * @param {string} key The key of the preference to be examined
+     *      for migration of working set files.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _checkPreferencePrefix(key) {
+        var pathPrefix = "files_";
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "files_".
+            var projectPath = key.substr(pathPrefix.length);
+            return "user project.files " + projectPath;
+        }
+        
+        return null;
+    }
+    
+    PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
+
+    // Handle file saves that may affect preferences
+    $(exports).on("documentSaved", function (e, doc) {
+        PreferencesManager.fileChanged(doc.file.fullPath);
+    });
+    
     // For unit tests and internal use only
     exports._clearCurrentDocument       = _clearCurrentDocument;
     
@@ -1021,9 +1052,6 @@ define(function (require, exports, module) {
     exports.notifyPathNameChanged       = notifyPathNameChanged;
     exports.notifyPathDeleted           = notifyPathDeleted;
 
-    // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(module);
-    
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
