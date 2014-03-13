@@ -58,16 +58,31 @@ define(function (require, exports, module) {
      * Show deprecation message with the call stack if it 
      * has never been displayed before.
      * @param {!string} message The deprecation message to be displayed.
+     * @param {boolean=} oncePerCaller If true, displays the message once for each unique call location.
+     *     If false (the default), only displays the message once no matter where it's called from.
      */
-    function deprecationWarning(message) {
+    function deprecationWarning(message, oncePerCall) {
+        // The true caller location is the fourth line in the stack trace:
+        // * 0 is the word "Error"
+        // * 1 is this function
+        // * 2 is the caller of this function (the one throwing the deprecation warning)
+        // * 3 is the actual caller of the deprecated function.
+        var stack = new Error().stack,
+            callerLocation = stack.split("\n")[3];
+        
         // If we have displayed this message before, then don't 
         // show it again.
-        if (!message || displayedWarnings[message]) {
+        if (!message ||
+                (!oncePerCall && displayedWarnings[message]) ||
+                (oncePerCall && displayedWarnings[message] && displayedWarnings[message][callerLocation])) {
             return;
         }
 
-        console.warn(message + "\n" + _trimStack(new Error().stack));
-        displayedWarnings[message] = true;
+        console.warn(message + "\n" + _trimStack(stack));
+        if (!displayedWarnings[message]) {
+            displayedWarnings[message] = {};
+        }
+        displayedWarnings[message][callerLocation] = true;
     }
 
     // Define public API
