@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         StringUtils                  = require("utils/StringUtils");
     
     /* StatusBar indicators */
-    var languageSelect, // this is a DropButton instance
+    var languageSelect, // this is a DropdownButton instance
         $cursorInfo,
         $fileInfo,
         $indentType,
@@ -64,10 +64,8 @@ define(function (require, exports, module) {
         
         // Ensure width isn't left locked by a previous click of the dropdown (which may not have resulted in a "change" event at the time)
         languageSelect.$button.css("width", "auto");
-        
         // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
         languageSelect.$button.prop("disabled", doc.isUntitled());
-        
         // Only show the current language (full list populated only when dropdown is opened)
         languageSelect.$button.text(lang.getName());
     }
@@ -212,9 +210,8 @@ define(function (require, exports, module) {
     /**
      * Setup and populate a custom <select> dropdown for switching the language
      * mode for the given document.
-     * @param {!Document} document The document for which to switch the language
      */
-    function _populateLanguageSelect(document) {
+    function _populateLanguageSelect() {
         // Lazy load the languages in the dropdown to avoid having to receive
         // updates from LanguageManager (not to mention unnecessary processing
         // since most users will not need to manually set the language).
@@ -227,8 +224,6 @@ define(function (require, exports, module) {
         
         languageSelect.items = languages;
         
-        languageSelect.$button.text(document.getLanguage().getName());
-
     }
     
     function _init() {
@@ -244,7 +239,6 @@ define(function (require, exports, module) {
             return item.getName();
         });
         
-        languageSelect.dropdownExtraClasses = "btn-status-bar";
         languageSelect.$button.addClass("btn-status-bar");
         $("#status-language").append(languageSelect.$button);
         
@@ -274,10 +268,6 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
-        languageSelect.$button.on("mousedown", function () {
-            _populateLanguageSelect(EditorManager.getActiveEditor().document);
-        });
-        
         // Language select change handler
         $(languageSelect).on("select", function (e, lang, index) {
             var document = EditorManager.getActiveEditor().document,
@@ -296,4 +286,5 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
+    AppInit.appReady(_populateLanguageSelect);
 });
