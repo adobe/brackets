@@ -89,8 +89,7 @@ define(function (require, exports, module) {
         
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
-            var indent = PreferencesManager.get("spaceUnits", fullPath);
-            options.indent = ValidationUtils.isIntegerInRange(indent, 0, null) ? indent : 4;
+            options.indent = PreferencesManager.get("spaceUnits", fullPath);
         }
         
         // If the user has not defined the environment, we use browser by default.
