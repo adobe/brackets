@@ -131,10 +131,11 @@ define(function (require, exports, module) {
             return;
         }
         
-        value = Math.max(Math.min(Math.floor(value), 10), 1);
         if (editor.getUseTabChar()) {
+            value = Math.max(Math.min(Math.floor(value), Editor.MAX_TAB_SIZE), Editor.MIN_TAB_SIZE);
             editor.setTabSize(value);
         } else {
+            value = Math.max(Math.min(Math.floor(value), Editor.MAX_SPACE_UNITS), Editor.MIN_SPACE_UNITS);
             editor.setSpaceUnits(value);
         }
 

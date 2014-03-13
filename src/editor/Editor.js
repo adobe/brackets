@@ -89,10 +89,13 @@ define(function (require, exports, module) {
         CLOSE_TAGS        = "closeTags",
         cmOptions         = {};
     
-    /** @type {number}  Constants: default preference values */
-    var DEFAULT_SPACE_UNITS     = 4,
-        DEFAULT_TAB_SIZE        = 4;
-
+    /** @type {number} Constants */
+    var MIN_SPACE_UNITS         =  0,
+        MIN_TAB_SIZE            =  1,
+        DEFAULT_SPACE_UNITS     =  4,
+        DEFAULT_TAB_SIZE        =  4,
+        MAX_SPACE_UNITS         = 10,
+        MAX_TAB_SIZE            = 10;
     
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[SMART_INDENT]       = "smartIndent";
@@ -109,12 +112,12 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
     PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
         validator: function (value) {
-            return ValidationUtils.isIntegerInRange(value, 1, null);
+            return ValidationUtils.isIntegerInRange(value, MIN_TAB_SIZE, MAX_TAB_SIZE);
         }
     });
     PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
         validator: function (value) {
-            return ValidationUtils.isIntegerInRange(value, 0, null);
+            return ValidationUtils.isIntegerInRange(value, MIN_SPACE_UNITS, MAX_SPACE_UNITS);
         }
     });
     PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", false);
@@ -1887,20 +1890,6 @@ define(function (require, exports, module) {
     // Global settings that affect Editor instances that share the same preference locations
 
     /**
-     * Sets whether to use smart indenting.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     */
-    Editor.prototype.setSmartIndent = function (value) {
-        PreferencesManager.set(SMART_INDENT, value);
-    };
-    
-    /** @type {boolean} Gets whether the current editor uses smart indenting */
-    Editor.prototype.getSmartIndent = function () {
-        return PreferencesManager.get(SMART_INDENT, this.document.file.fullPath);
-    };
-    
-    /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
@@ -2026,4 +2015,8 @@ define(function (require, exports, module) {
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
     exports.BOUNDARY_IGNORE_TOP     = BOUNDARY_IGNORE_TOP;
+    exports.MIN_SPACE_UNITS         = MIN_SPACE_UNITS;
+    exports.MAX_SPACE_UNITS         = MAX_SPACE_UNITS;
+    exports.MIN_TAB_SIZE            = MIN_TAB_SIZE;
+    exports.MAX_TAB_SIZE            = MAX_TAB_SIZE;
 });

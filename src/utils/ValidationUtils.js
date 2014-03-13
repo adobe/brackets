@@ -42,17 +42,12 @@ define(function (require, exports, module) {
         }
 
         // Validate number is an integer
-        if (value > 0) {
-            if (Math.floor(value) !== value) {
-                return false;
-            }
-        } else if (value < 0) {
-            if (Math.ceil(value) !== value) {
-                return false;
-            }
+        if (value > 0 && Math.floor(value) !== value) {
+            return false;
+        } else if (value < 0 && Math.ceil(value) !== value) {
+            return false;
         }
 
-        // Validate integer is in range
         return true;
     }
 
@@ -74,6 +69,7 @@ define(function (require, exports, module) {
         // Validate integer is in range
         var hasLowerLimt = (typeof (lowerLimit) === "number"),
             hasUpperLimt = (typeof (upperLimit) === "number");
+
         return ((!hasLowerLimt || value >= lowerLimit) && (!hasUpperLimt || value <= upperLimit));
     }
 
