@@ -481,7 +481,7 @@ define(function (require, exports, module) {
     /** Updates _viewStateCache from the given editor's actual current state */
     function _saveEditorViewState(editor) {
         _viewStateCache[editor.document.file.fullPath] = {
-            selection: editor.getSelection(),
+            selections: editor.getSelections(),
             scrollPos: editor.getScrollPos()
         };
     }
@@ -492,7 +492,12 @@ define(function (require, exports, module) {
         var viewState = _viewStateCache[editor.document.file.fullPath];
         if (viewState) {
             if (viewState.selection) {
+                // We no longer write out single-selection, but there might be some view state
+                // from an older version.
                 editor.setSelection(viewState.selection.start, viewState.selection.end);
+            }
+            if (viewState.selections) {
+                editor.setSelections(viewState.selections);
             }
             if (viewState.scrollPos) {
                 editor.setScrollPos(viewState.scrollPos.x, viewState.scrollPos.y);

@@ -201,15 +201,26 @@ define(function (require, exports, module) {
      */
     var _allFilesCachePromise = null;
     
+    /**
+     * @private
+     * @type {boolean}
+     * Current sort order for the tree, true if directories are first. This is
+     * initialized in _generateSortPrefixes.
+     */
+    var _dirFirst;
     
     /**
      * @private
      * Generates the prefixes used for sorting the files in the project tree
+     * @return {boolean} true if the sort prefixes have changed
      */
     function _generateSortPrefixes() {
-        var dirFirst    = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir  = dirFirst ? "0" : "";
-        _sortPrefixFile = dirFirst ? "1" : "";
+        var previousDirFirst  = _dirFirst;
+        _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir        = _dirFirst ? "0" : "";
+        _sortPrefixFile       = _dirFirst ? "1" : "";
+        
+        return previousDirFirst !== _dirFirst;
     }
     
     /**
@@ -2207,8 +2218,9 @@ define(function (require, exports, module) {
     // Initialize the sort prefixes and make sure to change them when the sort pref changes
     _generateSortPrefixes();
     PreferencesManager.on("change", "sortDirectoriesFirst", function () {
-        _generateSortPrefixes();
-        refreshFileTree();
+        if (_generateSortPrefixes()) {
+            refreshFileTree();
+        }
     });
     
     // Event Handlers

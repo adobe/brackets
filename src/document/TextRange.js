@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 /**
  */
@@ -161,10 +161,10 @@ define(function (require, exports, module) {
      */
     TextRange.prototype._applyChangesToRange = function (changeList) {
         var hasChanged = false, hasContentChanged = false;
-        var change;
-        for (change = changeList; change; change = change.next) {
+        var i;
+        for (i = 0; i < changeList.length; i++) {
             // Apply this step of the change list
-            var result = this._applySingleChangeToRange(change);
+            var result = this._applySingleChangeToRange(changeList[i]);
             hasChanged = hasChanged || result.hasChanged;
             hasContentChanged = hasContentChanged || result.hasContentChanged;
             
