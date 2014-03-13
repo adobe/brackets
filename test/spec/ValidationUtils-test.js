@@ -68,8 +68,8 @@ define(function (require, exports, module) {
         });
 
         it("should accept optional range limit of zero", function () {
-            expect(ValidationUtils.isIntegerInRange(2, 0, 10)).toBe(true);
-            expect(ValidationUtils.isIntegerInRange(-62, -100, 0)).toBe(true);
+            expect(ValidationUtils.isIntegerInRange(-2, 0, 10)).toBe(false);
+            expect(ValidationUtils.isIntegerInRange(62, -100, 0)).toBe(false);
         });
 
         it("should not accept integers out of range", function () {

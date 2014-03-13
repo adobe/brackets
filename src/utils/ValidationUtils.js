@@ -75,7 +75,9 @@ define(function (require, exports, module) {
         }
 
         // Validate integer is in range
-        return ((!lowerLimit || value >= lowerLimit) && (!upperLimit || value <= upperLimit));
+        var hasLowerLimt = (typeof (lowerLimit) === "number"),
+            hasUpperLimt = (typeof (upperLimit) === "number");
+        return ((!hasLowerLimt || value >= lowerLimit) && (!hasUpperLimt || value <= upperLimit));
     }
 
 
