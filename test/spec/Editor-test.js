@@ -294,7 +294,9 @@ define(function (require, exports, module) {
                 expect(myEditor.getColOffset({line: 5, ch: 4})).toBe(9);
                 
                 // Tab size 2
-                Editor.setTabSize(2);
+                var defaultTabSize = myEditor.getTabSize();
+                expect(defaultTabSize).toBe(4);
+                myEditor.setTabSize(2);
                 
                 expect(myEditor.getColOffset({line: 1, ch: 0})).toBe(0);  // first line is all spaces: should be unchanged
                 expect(myEditor.getColOffset({line: 1, ch: 1})).toBe(1);
@@ -312,7 +314,7 @@ define(function (require, exports, module) {
                 expect(myEditor.getColOffset({line: 5, ch: 4})).toBe(5);
                 
                 // Restore default
-                Editor.setTabSize(4);
+                myEditor.setTabSize(defaultTabSize);
             });
         });
         

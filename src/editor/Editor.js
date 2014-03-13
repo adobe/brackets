@@ -884,7 +884,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getColOffset = function (pos) {
         var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
-            tabSize = Editor.getTabSize(),
+            tabSize = this.getTabSize(),
             column  = 0,
             i;
 
@@ -1825,20 +1825,30 @@ define(function (require, exports, module) {
         // Call getter methods where appropriate for validation
         switch (prefName) {
 
+        case SMART_INDENT:
+            value = this.getSmartIndent();
+            break;
+        case USE_TAB_CHAR:
+            value = this.getUseTabChar();
+            break;
+        case TAB_SIZE:
+            value = this.getTabSize();
+            break;
         case SPACE_UNITS:
             value = this.getSpaceUnits();
             break;
-
-// TODO - convert Editor.get...() to Editor.prototype.get...()
-//        case SMART_INDENT:
-//        case USE_TAB_CHAR:
-//        case TAB_SIZE:
-//        case CLOSE_BRACKETS:
-//        case SHOW_LINE_NUMBERS:
-//        case STYLE_ACTIVE_LINE:
-//        case WORD_WRAP:
-//        case CLOSE_TAGS:
-
+        case CLOSE_BRACKETS:
+            value = this.getCloseBrackets();
+            break;
+        case SHOW_LINE_NUMBERS:
+            value = this.getShowLineNumbers();
+            break;
+        case STYLE_ACTIVE_LINE:
+            value = this.getShowActiveLine();
+            break;
+        case WORD_WRAP:
+            value = this.getWordWrap();
+            break;
         default:
             value = PreferencesManager.get(prefName, this.document.file.fullPath);
             break;
@@ -1903,17 +1913,31 @@ define(function (require, exports, module) {
     // Global settings that affect Editor instances that share the same preference locations
 
     /**
+     * Sets whether to use smart indenting.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.prototype.setSmartIndent = function (value) {
+        PreferencesManager.set(SMART_INDENT, value);
+    };
+    
+    /** @type {boolean} Gets whether the current editor uses smart indenting */
+    Editor.prototype.getSmartIndent = function () {
+        return !!PreferencesManager.get(SMART_INDENT, this.document.file.fullPath);
+    };
+    
+    /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
-    Editor.setUseTabChar = function (value) {
+    Editor.prototype.setUseTabChar = function (value) {
         PreferencesManager.set(USE_TAB_CHAR, value);
     };
     
     /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function () {
-        return PreferencesManager.get(USE_TAB_CHAR);
+    Editor.prototype.getUseTabChar = function () {
+        return !!PreferencesManager.get(USE_TAB_CHAR, this.document.file.fullPath);
     };
     
     /**
@@ -1921,13 +1945,17 @@ define(function (require, exports, module) {
      * Affects any editors that share the same preference location.
      * @param {number} value
      */
-    Editor.setTabSize = function (value) {
+    Editor.prototype.setTabSize = function (value) {
         PreferencesManager.set(TAB_SIZE, value);
     };
     
-    /** @type {number} Get indent unit  */
-    Editor.getTabSize = function () {
-        return PreferencesManager.get(TAB_SIZE);
+    /** @type {number} Get tab character width  */
+    Editor.prototype.getTabSize = function () {
+        var value = PreferencesManager.get(TAB_SIZE, this.document.file.fullPath);
+        if (!ValidationUtils.isIntegerInRange(value, 1, null)) {
+            return DEFAULT_TAB_SIZE;
+        }
+        return value;
     };
     
     /**
@@ -1953,13 +1981,13 @@ define(function (require, exports, module) {
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
-    Editor.setCloseBrackets = function (value) {
+    Editor.prototype.setCloseBrackets = function (value) {
         PreferencesManager.set(CLOSE_BRACKETS, value);
     };
     
     /** @type {boolean} Gets whether the current editor uses auto close brackets */
-    Editor.getCloseBrackets = function () {
-        return PreferencesManager.get(CLOSE_BRACKETS);
+    Editor.prototype.getCloseBrackets = function () {
+        return !!PreferencesManager.get(CLOSE_BRACKETS, this.document.file.fullPath);
     };
     
     /**
@@ -1967,13 +1995,13 @@ define(function (require, exports, module) {
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
-    Editor.setShowLineNumbers = function (value) {
+    Editor.prototype.setShowLineNumbers = function (value) {
         PreferencesManager.set(SHOW_LINE_NUMBERS, value);
     };
     
     /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
-    Editor.getShowLineNumbers = function () {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS);
+    Editor.prototype.getShowLineNumbers = function () {
+        return !!PreferencesManager.get(SHOW_LINE_NUMBERS, this.document.file.fullPath);
     };
     
     /**
@@ -1981,13 +2009,13 @@ define(function (require, exports, module) {
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
-    Editor.setShowActiveLine = function (value) {
+    Editor.prototype.setShowActiveLine = function (value) {
         PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
     /** @type {boolean} Returns true if show active line is enabled for the current editor */
-    Editor.getShowActiveLine = function () {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE);
+    Editor.prototype.getShowActiveLine = function () {
+        return !!PreferencesManager.get(STYLE_ACTIVE_LINE, this.document.file.fullPath);
     };
     
     /**
@@ -1995,13 +2023,13 @@ define(function (require, exports, module) {
      * Affects any editors that share the same preference location.
      * @param {boolean} value
      */
-    Editor.setWordWrap = function (value) {
+    Editor.prototype.setWordWrap = function (value) {
         PreferencesManager.set(WORD_WRAP, value);
     };
     
     /** @type {boolean} Returns true if word wrap is enabled for the current editor */
-    Editor.getWordWrap = function () {
-        return PreferencesManager.get(WORD_WRAP);
+    Editor.prototype.getWordWrap = function () {
+        return !!PreferencesManager.get(WORD_WRAP, this.document.file.fullPath);
     };
     
     // Set up listeners for preference changes

@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings"),
+        ValidationUtils    = brackets.getModule("utils/ValidationUtils"),
         _                  = brackets.getModule("thirdparty/lodash");
     
     var prefs = PreferencesManager.getExtensionPrefs("jslint");
@@ -88,9 +89,8 @@ define(function (require, exports, module) {
         
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
-//            options.indent = PreferencesManager.get("spaceUnits");
-            // Validation is editor-specific (editor.getSpaceUnits), so self validate
-            options.indent = PreferencesManager.get("spaceUnits", fullPath) || 4;
+            var indent = PreferencesManager.get("spaceUnits", fullPath);
+            options.indent = ValidationUtils.isIntegerInRange(indent, 0, null) ? indent : 4;
         }
         
         // If the user has not defined the environment, we use browser by default.

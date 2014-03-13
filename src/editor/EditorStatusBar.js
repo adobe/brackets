@@ -64,16 +64,15 @@ define(function (require, exports, module) {
         $fileInfo.text(_formatCountable(lines, Strings.STATUSBAR_LINE_COUNT_SINGULAR, Strings.STATUSBAR_LINE_COUNT_PLURAL));
     }
     
-    function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
+    function _updateIndentType(editor) {
+        var indentWithTabs = editor.getUseTabChar();
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
     }
 
     function _getIndentSize(editor) {
-//        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
-        return Editor.getUseTabChar() ? Editor.getTabSize() : editor.getSpaceUnits();
+        return editor.getUseTabChar() ? editor.getTabSize() : editor.getSpaceUnits();
     }
     
     function _updateIndentSize(editor) {
@@ -84,8 +83,8 @@ define(function (require, exports, module) {
     
     function _toggleIndentType() {
         var current = EditorManager.getActiveEditor();
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        _updateIndentType();
+        current.setUseTabChar(!current.getUseTabChar());
+        _updateIndentType(current);
         _updateIndentSize(current);
     }
     
@@ -133,10 +132,9 @@ define(function (require, exports, module) {
         }
         
         value = Math.max(Math.min(Math.floor(value), 10), 1);
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(value);
+        if (editor.getUseTabChar()) {
+            editor.setTabSize(value);
         } else {
-//            Editor.setSpaceUnits(value);
             editor.setSpaceUnits(value);
         }
 
@@ -187,7 +185,7 @@ define(function (require, exports, module) {
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {
-                _updateIndentType();
+                _updateIndentType(current);
                 _updateIndentSize(current);
             });
             $(current).on("change.statusbar", function () {
@@ -203,7 +201,7 @@ define(function (require, exports, module) {
             _updateLanguageInfo(current);
             _updateFileInfo(current);
             _initOverwriteMode(current);
-            _updateIndentType();
+            _updateIndentType(current);
             _updateIndentSize(current);
         }
     }

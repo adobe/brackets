@@ -34,7 +34,7 @@ define(function (require, exports, module) {
      * 
      * Used to validate type of unknown value passed it.
      * 
-     * @param {<unknown-type>} value Value for which to validate its type
+     * @param {*} value Value for which to validate its type
      * @return true if value is an integer
      */
     function isInteger(value) {
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * 
      * Used to validate type of unknown value passed it.
      * 
-     * @param {<unknown-type>} value Value for which to validate its type
+     * @param {*} value Value for which to validate its type
      * @param {Number=} lowerLimit Optional lower limit (inclusive)
      * @param {Number=} upperLimit Optional upper limit (inclusive)
      * @return true if value is an interger, and optionally in specified range.
