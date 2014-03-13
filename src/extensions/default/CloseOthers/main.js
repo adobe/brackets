@@ -41,9 +41,8 @@ define(function (require, exports, module) {
         closeBelow              = "file.close_below";
 
     // Global vars and preferences
-    var menuEntriesShown    = {},
-        menuItemsAdded      = { closeBelow: false, closeOthers: false, closeAbove: false },
-        prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
+    var prefs                   = PreferencesManager.getExtensionPrefs("closeOthers"),
+        menuEntriesShown        = {};
     
     prefs.definePreference("below",  "boolean", true);
     prefs.definePreference("others", "boolean", true);
@@ -153,7 +152,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Register the Commands and add the Menu Items if required on start up
+     * Register the Commands and add the Menu Items, if required
      */
     function initializeCommands() {
         var prefs = getPreferences();
