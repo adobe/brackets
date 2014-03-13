@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         PerfUtils            = brackets.getModule("utils/PerfUtils"),
         StringMatch          = brackets.getModule("utils/StringMatch"),
-        LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = require("HintUtils"),
@@ -301,8 +300,7 @@ define(function (require, exports, module) {
      * @return {boolean} - true if the document is a html file
      */
     function isHTMLFile(document) {
-        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
-        return languageID === "html";
+        return document.getLanguage().getId() === "html";
     }
     
     function isInlineScript(editor) {
@@ -579,7 +577,7 @@ define(function (require, exports, module) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
-            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+            if (editor && HintUtils.isSupportedLanguage(editor.document.getLanguage().getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
@@ -785,6 +783,16 @@ define(function (require, exports, module) {
         $(EditorManager)
             .on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
+        
+        $(DocumentManager)
+            .on("currentDocumentLanguageChanged", function (e) {
+                var activeEditor = EditorManager.getActiveEditor();
+                // if we're not in an inline editor, trigger reinstalling of the editor listeners
+                // on the same editor, otherwise do nothing
+                if (DocumentManager.getCurrentDocument() === activeEditor.document) {
+                    handleActiveEditorChange(e, activeEditor, activeEditor);
+                }
+            });
         
         $(ProjectManager).on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
