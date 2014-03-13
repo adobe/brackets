@@ -1847,8 +1847,7 @@ define(function (require, exports, module) {
                 // Do not apply this option to inline editors
                 return;
             } else if ((useTabChar && prefName === SPACE_UNITS) || (!useTabChar && prefName === TAB_SIZE)) {
-                // Set the CodeMirror option as long as it's not a change
-                // that is in conflict with the useTabChar setting.
+                // This change conflicts with the useTabChar setting, so do not change the CodeMirror option
                 return;
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
