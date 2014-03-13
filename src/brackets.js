@@ -51,6 +51,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
     require("thirdparty/CodeMirror2/addon/edit/closebrackets");
     require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/selection/active-line");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
