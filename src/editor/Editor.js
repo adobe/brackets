@@ -1833,6 +1833,7 @@ define(function (require, exports, module) {
         
         if (oldValue !== newValue) {
             this._currentOptions[prefName] = newValue;
+            var useTabChar = this._currentOptions[USE_TAB_CHAR];
             
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -1842,19 +1843,14 @@ define(function (require, exports, module) {
                                           );
             } else if (prefName === STYLE_ACTIVE_LINE) {
                 this._updateStyleActiveLine();
-            } else {
+            } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
+                // Do not apply this option to inline editors
+                return;
+            } else if ((useTabChar && prefName === SPACE_UNITS) || (!useTabChar && prefName === TAB_SIZE)) {
                 // Set the CodeMirror option as long as it's not a change
                 // that is in conflict with the useTabChar setting.
-                var useTabChar = this._currentOptions[USE_TAB_CHAR];
-                if ((useTabChar && prefName === SPACE_UNITS) ||
-                        (!useTabChar && prefName === TAB_SIZE)) {
-                    return;
-                }
-                // Do not apply this option to inline editors
-                if (prefName === SCROLL_PAST_END && this._visibleRange) {
-                    return;
-                }
-                
+                return;
+            } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
             
