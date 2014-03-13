@@ -239,6 +239,7 @@ define(function (require, exports, module) {
             return item.getName();
         });
         
+        languageSelect.dropdownExtraClasses = "dropdown-status-bar";
         languageSelect.$button.addClass("btn-status-bar");
         $("#status-language").append(languageSelect.$button);
         
