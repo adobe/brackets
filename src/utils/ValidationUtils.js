@@ -30,9 +30,7 @@ define(function (require, exports, module) {
 
     
     /**
-     * @private (but might be useful in a Validation module)
-     * 
-     * Used to validate type of unknown value passed it.
+     * Used to validate whether type of unknown value is an integer.
      * 
      * @param {*} value Value for which to validate its type
      * @return true if value is an integer
@@ -59,9 +57,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private (but might be useful in a Validation module)
-     * 
-     * Used to validate type of unknown value passed it.
+     * Used to validate whether type of unknown value is an integer, and, if so,
+     * is it within the option lower and upper limits.
      * 
      * @param {*} value Value for which to validate its type
      * @param {Number=} lowerLimit Optional lower limit (inclusive)

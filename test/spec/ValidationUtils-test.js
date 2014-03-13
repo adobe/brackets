@@ -37,13 +37,14 @@ define(function (require, exports, module) {
             expect(ValidationUtils.isInteger(+2)).toBe(true);
             expect(ValidationUtils.isInteger(-5)).toBe(true);
             expect(ValidationUtils.isInteger(3e07)).toBe(true);
+            expect(ValidationUtils.isInteger(5.28e04)).toBe(true);
         });
 
         it("should not accept non-numbers as integer", function () {
             expect(ValidationUtils.isInteger(NaN)).toBe(false);
             expect(ValidationUtils.isInteger(null)).toBe(false);
             expect(ValidationUtils.isInteger(undefined)).toBe(false);
-            expect(ValidationUtils.isInteger("str")).toBe(false);
+            expect(ValidationUtils.isInteger("4")).toBe(false);
             expect(ValidationUtils.isInteger(false)).toBe(false);
             expect(ValidationUtils.isInteger([0, 1, 2])).toBe(false);
             expect(ValidationUtils.isInteger({ch: 0, line: 0})).toBe(false);
@@ -53,11 +54,12 @@ define(function (require, exports, module) {
             expect(ValidationUtils.isInteger(-Infinity)).toBe(false);
             expect(ValidationUtils.isInteger(Math.PI)).toBe(false);
             expect(ValidationUtils.isInteger(0.375)).toBe(false);
+            expect(ValidationUtils.isInteger(5e-1)).toBe(false);
             expect(ValidationUtils.isInteger(3.29834e-02)).toBe(false);
         });
 
-        // ValidationUtils.isIntegerInRange() uses ValidationUtils.isInteger()
-        // to validate value, so no need to test non-integers
+        // ValidationUtils.isIntegerInRange() uses ValidationUtils.isInteger() to
+        // validate value which is tested above, so no need to test non-integers
         it("should accept integers in range", function () {
             // Range limits are optional
             expect(ValidationUtils.isIntegerInRange(1)).toBe(true);
@@ -67,8 +69,13 @@ define(function (require, exports, module) {
             expect(ValidationUtils.isIntegerInRange(13, -Infinity, Infinity)).toBe(true);
         });
 
+        // Range limits are optional, so they can be specified as null or undefined to
+        // indicate that end of range should not be enforced, so verify a value of 0
+        // (which evaluates to falsey) can be enforced.
         it("should accept optional range limit of zero", function () {
+            expect(ValidationUtils.isIntegerInRange(2, 0, 10)).toBe(true);
             expect(ValidationUtils.isIntegerInRange(-2, 0, 10)).toBe(false);
+            expect(ValidationUtils.isIntegerInRange(-62, -100, 0)).toBe(true);
             expect(ValidationUtils.isIntegerInRange(62, -100, 0)).toBe(false);
         });
 
