@@ -94,8 +94,6 @@ define(function (require, exports, module) {
      * @param {string} lineHeightStyle  A string with the line height and the size unit
      */
     function _addDynamicFontSize(fontSizeStyle, lineHeightStyle) {
-        // It's necessary to inject a new rule to address all editors.
-        _removeDynamicFontSize();
         var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
         style.html(".CodeMirror {" +
                    "font-size: "   + fontSizeStyle   + " !important;" +
@@ -114,11 +112,10 @@ define(function (require, exports, module) {
             oldWidth  = editor._codeMirror.defaultCharWidth(),
             scrollPos = editor.getScrollPos(),
             line      = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
-        console.log(line);
+        
+        _removeDynamicFontSize();
         if (fontSizeStyle && lineHeightStyle) {
             _addDynamicFontSize(fontSizeStyle, lineHeightStyle);
-        } else {
-            _removeDynamicFontSize();
         }
         editor.refreshAll();
         
@@ -127,7 +124,7 @@ define(function (require, exports, module) {
             deltaX     = scrollPos.x / oldWidth,
             scrollPosX = scrollPos.x + Math.round(deltaX * (newWidth  - oldWidth)),
             scrollPosY = editor._codeMirror.heightAtLine(line, "local");
-        console.log(scrollPosY);
+        
         editor.setScrollPos(scrollPosX, scrollPosY);
     }
     
@@ -199,8 +196,8 @@ define(function (require, exports, module) {
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
         _setSizeAndRestoreScroll();
-        PreferencesManager.setViewState("fontSizeStyle",   undefined);
-        PreferencesManager.setViewState("lineHeightStyle", undefined);
+        PreferencesManager.setViewState("fontSizeStyle");
+        PreferencesManager.setViewState("lineHeightStyle");
     }
     
     
@@ -233,6 +230,7 @@ define(function (require, exports, module) {
             lhStr = PreferencesManager.getViewState("lineHeightStyle");
         
         if (fsStr && lhStr) {
+            _removeDynamicFontSize();
             _addDynamicFontSize(fsStr, lhStr);
         }
     }
