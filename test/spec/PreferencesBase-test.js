@@ -1064,6 +1064,18 @@ define(function (require, exports, module) {
                 
                 expect(saveDone).toBe(true);
             });
+            
+            it("should support validator to ignore invalid values", function () {
+                var pm = new PreferencesBase.PreferencesSystem();
+                pm.definePreference("spaceUnits", "number", 4, {
+                    validator: function (value) {
+                        return (value >= 0 && value <= 10);
+                    }
+                });
+                
+                pm.set("spaceUnits", 12);               // out-of-range
+                expect(pm.get("spaceUnits")).toBe(4);   // expect default
+            });
         });
         
         describe("File Storage", function () {
