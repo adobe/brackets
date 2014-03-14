@@ -60,8 +60,17 @@ define(function (require, exports, module) {
      * @param {!string} message The deprecation message to be displayed.
      * @param {boolean=} oncePerCaller If true, displays the message once for each unique call location.
      *     If false (the default), only displays the message once no matter where it's called from.
+     *     Note that setting this to true can cause a slight performance hit (because it has to generate
+     *     a stack trace), so don't set this for functions that you expect to be called from performance-
+     *     sensitive code (e.g. tight loops).
      */
-    function deprecationWarning(message, oncePerCall) {
+    function deprecationWarning(message, oncePerCaller) {
+        // If oncePerCaller isn't set, then only show the message once no matter who calls it. 
+        if (!message || (!oncePerCaller && displayedWarnings[message])) {
+            return;
+        }
+
+        // Don't show the warning again if we've already gotten it from the current caller.
         // The true caller location is the fourth line in the stack trace:
         // * 0 is the word "Error"
         // * 1 is this function
@@ -69,15 +78,10 @@ define(function (require, exports, module) {
         // * 3 is the actual caller of the deprecated function.
         var stack = new Error().stack,
             callerLocation = stack.split("\n")[3];
-        
-        // If we have displayed this message before, then don't 
-        // show it again.
-        if (!message ||
-                (!oncePerCall && displayedWarnings[message]) ||
-                (oncePerCall && displayedWarnings[message] && displayedWarnings[message][callerLocation])) {
+        if (oncePerCaller && displayedWarnings[message] && displayedWarnings[message][callerLocation]) {
             return;
         }
-
+        
         console.warn(message + "\n" + _trimStack(stack));
         if (!displayedWarnings[message]) {
             displayedWarnings[message] = {};
