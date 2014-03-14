@@ -323,6 +323,23 @@ define(function (require, exports, module) {
         _scrollLine(1);
     }
     
+    /**
+     * @private
+     * Convert the old "fontSizeAdjustment" preference to the new view states.
+     *
+     * @param {string} key The key of the preference to be examined for migration
+     *      of old preferences. Not used since we only have one in this module.
+     * @param {string} value The value of "fontSizeAdjustment" preference
+     * @return {Object} - JSON object for the new view states equivalent to
+     *      the old "fontSizeAdjustment" preference.
+     */
+    function _convertToNewViewStates(key, value) {
+        var fontSize = 12 + value,
+            newRule = { "fontSizeStyle": fontSize + "px",
+                        "lineHeightStyle": Math.ceil(fontSize * LINE_HEIGHT) + "px" };
+        
+        return newRule;
+    }
     
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
@@ -331,9 +348,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    // Initialize the default font size
-    PreferencesManager.stateManager.definePreference("fontSizeAdjustment", "number", 0);
-    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true);
+    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewStates);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
