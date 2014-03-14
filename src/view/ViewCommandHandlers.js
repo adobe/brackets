@@ -318,7 +318,7 @@ define(function (require, exports, module) {
      * @return {Object} JSON object for the new view state equivalent to
      *      the old "fontSizeAdjustment" preference.
      */
-    function _convertToNewViewStates(key, value) {
+    function _convertToNewViewState(key, value) {
         return { "fontSizeStyle": (DEFAULT_FONT_SIZE + value) + "px" };
     }
     
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,     _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,   _handleScrollLineDown);
 
-    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewStates);
+    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
     // Update UI when opening or closing a document
     $(DocumentManager).on("currentDocumentChange", _updateUI);
