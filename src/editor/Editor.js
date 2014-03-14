@@ -86,6 +86,7 @@ define(function (require, exports, module) {
         STYLE_ACTIVE_LINE = "styleActiveLine",
         WORD_WRAP         = "wordWrap",
         CLOSE_TAGS        = "closeTags",
+        SCROLL_PAST_END   = "scrollPastEnd",
         cmOptions         = {};
     
     // Mappings from Brackets preferences to CodeMirror options
@@ -98,6 +99,7 @@ define(function (require, exports, module) {
     cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
+    cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     
     PreferencesManager.definePreference(SMART_INDENT, "boolean", true);
     PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
@@ -108,9 +110,9 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
     PreferencesManager.definePreference(CLOSE_TAGS, "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(SCROLL_PAST_END, "boolean", false);
     
-    var editorOptions = [SMART_INDENT, USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
-                          SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP, CLOSE_TAGS];
+    var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
     
@@ -231,22 +233,23 @@ define(function (require, exports, module) {
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
-            electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            smartIndent: currentOptions[SMART_INDENT],
-            indentWithTabs: currentOptions[USE_TAB_CHAR],
-            tabSize: currentOptions[TAB_SIZE],
-            indentUnit: currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
-            lineNumbers: currentOptions[SHOW_LINE_NUMBERS],
-            lineWrapping: currentOptions[WORD_WRAP],
-            styleActiveLine: currentOptions[STYLE_ACTIVE_LINE],
-            coverGutterNextToScrollbar: true,
-            matchBrackets: true,
-            matchTags: {bothTags: true},
-            dragDrop: false,
-            extraKeys: codeMirrorKeyMap,
-            autoCloseBrackets: currentOptions[CLOSE_BRACKETS],
-            autoCloseTags: currentOptions[CLOSE_TAGS],
-            cursorScrollMargin: 3
+            autoCloseBrackets           : currentOptions[CLOSE_BRACKETS],
+            autoCloseTags               : currentOptions[CLOSE_TAGS],
+            coverGutterNextToScrollbar  : true,
+            cursorScrollMargin          : 3,
+            dragDrop                    : false,
+            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            extraKeys                   : codeMirrorKeyMap,
+            indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
+            indentWithTabs              : currentOptions[USE_TAB_CHAR],
+            lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
+            lineWrapping                : currentOptions[WORD_WRAP],
+            matchBrackets               : true,
+            matchTags                   : { bothTags: true },
+            scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
+            smartIndent                 : currentOptions[SMART_INDENT],
+            styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
+            tabSize                     : currentOptions[TAB_SIZE]
         });
         
         // Can't get CodeMirror's focused state without searching for
@@ -1830,6 +1833,7 @@ define(function (require, exports, module) {
         
         if (oldValue !== newValue) {
             this._currentOptions[prefName] = newValue;
+            var useTabChar = this._currentOptions[USE_TAB_CHAR];
             
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -1839,15 +1843,13 @@ define(function (require, exports, module) {
                                           );
             } else if (prefName === STYLE_ACTIVE_LINE) {
                 this._updateStyleActiveLine();
+            } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
+                // Do not apply this option to inline editors
+                return;
+            } else if ((useTabChar && prefName === SPACE_UNITS) || (!useTabChar && prefName === TAB_SIZE)) {
+                // This change conflicts with the useTabChar setting, so do not change the CodeMirror option
+                return;
             } else {
-                // Set the CodeMirror option as long as it's not a change
-                // that is in conflict with the useTabChar setting.
-                var useTabChar = this._currentOptions[USE_TAB_CHAR];
-                if ((useTabChar && prefName === SPACE_UNITS) ||
-                        (!useTabChar && prefName === TAB_SIZE)) {
-                    return;
-                }
-                
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
             
