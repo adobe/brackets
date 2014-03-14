@@ -1432,8 +1432,8 @@ define(function (require, exports, module) {
                 if (scope) {
                     var result = scope.get(id, context);
                     if (result !== undefined) {
-                        var pref = this.getPreference(id);
-                        var validator = pref && pref.validator;
+                        var pref      = this.getPreference(id),
+                            validator = pref && pref.validator;
                         if (!validator || validator(result)) {
                             return _.cloneDeep(result);
                         }
@@ -1505,8 +1505,15 @@ define(function (require, exports, module) {
                     return false;
                 }
             }
+            
             var scope = this._scopes[location.scope];
             if (!scope) {
+                return false;
+            }
+            
+            var pref      = this.getPreference(id),
+                validator = pref && pref.validator;
+            if (validator && !validator(value)) {
                 return false;
             }
             

@@ -1073,8 +1073,8 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                pm.set("spaceUnits", 12);               // out-of-range
-                expect(pm.get("spaceUnits")).toBe(4);   // expect default
+                expect(pm.set("spaceUnits", 12)).toBe(false);  // fail: out-of-range
+                expect(pm.get("spaceUnits")).toBe(4);          // expect default
             });
         });
         
@@ -1136,6 +1136,23 @@ define(function (require, exports, module) {
                         scopeOrder: ["project"],
                         filename: "/foo.go"
                     })).toBe(7);
+                });
+            });
+            
+            it("can validate preferences loaded from disk", function () {
+                var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
+                var pm = new PreferencesBase.PreferencesSystem();
+                var projectScope = new PreferencesBase.Scope(filestorage);
+                waitsForDone(pm.addScope("project", projectScope));
+                runs(function () {
+                    projectScope.addLayer(new PreferencesBase.PathLayer("/"));
+                    pm.definePreference("spaceUnits", "number", 3, {
+                        validator: function (value) {
+                            return (value >= 0 && value <= 8);
+                        }
+                    });
+                    // Value on disk (9) is out-of-range, so expect default (3)
+                    expect(pm.get("spaceUnits")).toBe(3);
                 });
             });
             

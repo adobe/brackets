@@ -1893,9 +1893,10 @@ define(function (require, exports, module) {
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setUseTabChar = function (value) {
-        PreferencesManager.set(USE_TAB_CHAR, value);
+        return PreferencesManager.set(USE_TAB_CHAR, value);
     };
     
     /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
@@ -1907,9 +1908,10 @@ define(function (require, exports, module) {
      * Sets tab character width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setTabSize = function (value) {
-        PreferencesManager.set(TAB_SIZE, value);
+        return PreferencesManager.set(TAB_SIZE, value);
     };
     
     /** @type {number} Get tab character width  */
@@ -1921,9 +1923,10 @@ define(function (require, exports, module) {
      * Sets indentation width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setSpaceUnits = function (value) {
-        PreferencesManager.set(SPACE_UNITS, value);
+        return PreferencesManager.set(SPACE_UNITS, value);
     };
     
     /** @type {number} Get indentation width */
@@ -1935,9 +1938,10 @@ define(function (require, exports, module) {
      * Sets the auto close brackets.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setCloseBrackets = function (value) {
-        PreferencesManager.set(CLOSE_BRACKETS, value);
+        return PreferencesManager.set(CLOSE_BRACKETS, value);
     };
     
     /** @type {boolean} Gets whether the current editor uses auto close brackets */
@@ -1949,9 +1953,10 @@ define(function (require, exports, module) {
      * Sets show line numbers option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setShowLineNumbers = function (value) {
-        PreferencesManager.set(SHOW_LINE_NUMBERS, value);
+        return PreferencesManager.set(SHOW_LINE_NUMBERS, value);
     };
     
     /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
@@ -1963,9 +1968,10 @@ define(function (require, exports, module) {
      * Sets show active line option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setShowActiveLine = function (value) {
-        PreferencesManager.set(STYLE_ACTIVE_LINE, value);
+        return PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
     /** @type {boolean} Returns true if show active line is enabled for the current editor */
@@ -1977,9 +1983,10 @@ define(function (require, exports, module) {
      * Sets word wrap option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @return {boolean} true if value was set
      */
     Editor.prototype.setWordWrap = function (value) {
-        PreferencesManager.set(WORD_WRAP, value);
+        return PreferencesManager.set(WORD_WRAP, value);
     };
     
     /** @type {boolean} Returns true if word wrap is enabled for the current editor */
@@ -2015,8 +2022,4 @@ define(function (require, exports, module) {
     exports.Editor                  = Editor;
     exports.BOUNDARY_CHECK_NORMAL   = BOUNDARY_CHECK_NORMAL;
     exports.BOUNDARY_IGNORE_TOP     = BOUNDARY_IGNORE_TOP;
-    exports.MIN_SPACE_UNITS         = MIN_SPACE_UNITS;
-    exports.MAX_SPACE_UNITS         = MAX_SPACE_UNITS;
-    exports.MIN_TAB_SIZE            = MIN_TAB_SIZE;
-    exports.MAX_TAB_SIZE            = MAX_TAB_SIZE;
 });
