@@ -38,8 +38,7 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         StatusBar           = require("widgets/StatusBar"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        ValidationUtils     = require("utils/ValidationUtils");
+        StringUtils         = require("utils/StringUtils");
     
     /* StatusBar indicators */
     var $languageInfo,
