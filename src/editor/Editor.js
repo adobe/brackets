@@ -887,7 +887,9 @@ define(function (require, exports, module) {
                 if (tabSize === null) {
                     tabSize = Editor.getTabSize();
                 }
-                column += (tabSize - (column % tabSize));
+                if (tabSize > 0) {
+                    column += (tabSize - (column % tabSize));
+                }
             } else {
                 column++;
             }
