@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     var AppInit             = require("utils/AppInit"),
         AnimationUtils      = require("utils/AnimationUtils"),
         EditorManager       = require("editor/EditorManager"),
-        Editor              = require("editor/Editor").Editor,
+        Editor              = require("editor/Editor"),
         KeyEvent            = require("utils/KeyEvent"),
         StatusBar           = require("widgets/StatusBar"),
         Strings             = require("strings"),
@@ -128,16 +128,17 @@ define(function (require, exports, module) {
         // restore focus to the editor
         EditorManager.focusEditor();
         
-        if (!ValidationUtils.isInteger(value)) {
+        var valInt = parseInt(value, 10);
+        if (!ValidationUtils.isInteger(valInt)) {
             return;
         }
         
         if (editor.getUseTabChar()) {
-            value = Math.max(Math.min(Math.floor(value), Editor.MAX_TAB_SIZE), Editor.MIN_TAB_SIZE);
-            editor.setTabSize(value);
+            valInt = Math.max(Math.min(Math.floor(valInt), Editor.MAX_TAB_SIZE), Editor.MIN_TAB_SIZE);
+            editor.setTabSize(valInt);
         } else {
-            value = Math.max(Math.min(Math.floor(value), Editor.MAX_SPACE_UNITS), Editor.MIN_SPACE_UNITS);
-            editor.setSpaceUnits(value);
+            valInt = Math.max(Math.min(Math.floor(valInt), Editor.MAX_SPACE_UNITS), Editor.MIN_SPACE_UNITS);
+            editor.setSpaceUnits(valInt);
         }
 
         // update indicator
