@@ -56,7 +56,7 @@ define(function (require, exports, module) {
      * @const
      * @private
      * The smallest font size in pixels
-     * @type {int}
+     * @type {number}
      */
     var MIN_FONT_SIZE = 1;
     
@@ -64,17 +64,17 @@ define(function (require, exports, module) {
      * @const
      * @private
      * The largest font size in pixels
-     * @type {int}
+     * @type {number}
      */
     var MAX_FONT_SIZE = 72;
     
     /**
      * @const
      * @private
-     * The ratio of line-height to font-size when they use the same units
-     * @type {float}
+     * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSizeStyle
+     * @type {number}
      */
-    var LINE_HEIGHT = 1.25;
+    var DEFAULT_FONT_SIZE = 12;
     
     
     /**
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {number} adjustment Negative number to make the font smaller; positive number to make it bigger
+     * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
@@ -196,7 +196,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Restores the Font Size and Line Height using the saved strings
+     * Restores the font size using the saved style and migrates the old fontSizeAdjustment
+     * view state to the new fontSizeStyle, when required
      */
     function restoreFontSize() {
         var fsStyle      = PreferencesManager.getViewState("fontSizeStyle"),
@@ -208,7 +209,7 @@ define(function (require, exports, module) {
 
             if (!fsStyle) {
                 // Migrate the old view state to the new one.
-                fsStyle = (12 + fsAdjustment) + "px";
+                fsStyle = (DEFAULT_FONT_SIZE + fsAdjustment) + "px";
                 PreferencesManager.setViewState("fontSizeStyle", fsStyle);
             }
         }
@@ -309,16 +310,16 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Convert the old "fontSizeAdjustment" preference to the new view states.
+     * Convert the old "fontSizeAdjustment" preference to the new view state.
      *
-     * @param {string} key The key of the preference to be examined for migration
+     * @param {string} key  The key of the preference to be examined for migration
      *      of old preferences. Not used since we only have one in this module.
-     * @param {string} value The value of "fontSizeAdjustment" preference
-     * @return {Object} - JSON object for the new view states equivalent to
+     * @param {string} value  The value of "fontSizeAdjustment" preference
+     * @return {Object} JSON object for the new view state equivalent to
      *      the old "fontSizeAdjustment" preference.
      */
     function _convertToNewViewStates(key, value) {
-        return { "fontSizeStyle": (12 + value) + "px" };
+        return { "fontSizeStyle": (DEFAULT_FONT_SIZE + value) + "px" };
     }
     
     // Register command handlers
