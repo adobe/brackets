@@ -30,8 +30,6 @@
  *          Increase Font Size, Decrease Font Size, or Restore Font Size commands.
  *          The 2nd arg to the listener is the amount of the change. The 3rd arg
  *          is a string containing the new font size after applying the change.
- *          The 4th arg is a string containing the new line height after applying
- *          the change.
  */
 
 define(function (require, exports, module) {
@@ -91,13 +89,10 @@ define(function (require, exports, module) {
      * @private
      * Add the styles used to update the font size
      * @param {string} fontSizeStyle  A string with the font size and the size unit
-     * @param {string} lineHeightStyle  A string with the line height and the size unit
      */
-    function _addDynamicFontSize(fontSizeStyle, lineHeightStyle) {
+    function _addDynamicFontSize(fontSizeStyle) {
         var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
-        style.html(".CodeMirror {" +
-                   "font-size: "   + fontSizeStyle   + " !important;" +
-                   "line-height: " + lineHeightStyle + " !important;}");
+        style.html(".CodeMirror { font-size: " + fontSizeStyle   + " !important; }");
         $("head").append(style);
     }
     
@@ -105,17 +100,16 @@ define(function (require, exports, module) {
      * @private
      * Sets the font size and restores the scroll position as best as possible.
      * @param {string=} fontSizeStyle  A string with the font size and the size unit
-     * @param {string=} lineHeightStyle  A string with the line height and the size unit
      */
-    function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
+    function _setSizeAndRestoreScroll(fontSizeStyle) {
         var editor    = EditorManager.getCurrentFullEditor(),
             oldWidth  = editor._codeMirror.defaultCharWidth(),
             scrollPos = editor.getScrollPos(),
             line      = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
         
         _removeDynamicFontSize();
-        if (fontSizeStyle && lineHeightStyle) {
-            _addDynamicFontSize(fontSizeStyle, lineHeightStyle);
+        if (fontSizeStyle) {
+            _addDynamicFontSize(fontSizeStyle);
         }
         editor.refreshAll();
         
@@ -135,38 +129,20 @@ define(function (require, exports, module) {
      * @return {boolean} true if adjustment occurred, false if it did not occur 
      */
     function _adjustFontSize(adjustment) {
-        var fsStyle = $(".CodeMirror").css("font-size");
-        var lhStyle = $(".CodeMirror").css("line-height");
-
-        var validFont = /^[\d\.]+(px|em)$/;
+        var fsStyle   = $(".CodeMirror").css("font-size"),
+            validFont = /^[\d\.]+(px|em)$/;
         
-        // Make sure the font size and line height are expressed in terms
-        // we can handle (px or em). If not, simply bail.
-        if (fsStyle.search(validFont) === -1 || lhStyle.search(validFont) === -1) {
+        // Make sure that the font size is expressed in terms we can handle (px or em). If not, simply bail.
+        if (fsStyle.search(validFont) === -1) {
             return false;
         }
         
         // Guaranteed to work by the validation above.
-        var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length);
-        var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
-        var delta   = (fsUnits === "px") ? 1 : 0.1;
-        
-        var fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2));
-        var lhOld   = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
-        
-        var fsNew   = fsOld + (delta * adjustment);
-        var lhNew   = lhOld;
-        
-        if (fsUnits === lhUnits) {
-            lhNew = fsNew * LINE_HEIGHT;
-            if (lhUnits === "px") {
-                // Use integer px value to avoid rounding differences
-                lhNew = Math.ceil(lhNew);
-            }
-        }
-        
-        var fsStr   = fsNew + fsUnits;
-        var lhStr   = lhNew + lhUnits;
+        var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length),
+            delta   = fsUnits === "px" ? 1 : 0.1,
+            fsOld   = parseFloat(fsStyle.substring(0, fsStyle.length - 2)),
+            fsNew   = fsOld + (delta * adjustment),
+            fsStr   = fsNew + fsUnits;
 
         // Don't let the font size get too small or too large. The minimum font size is 1px or 0.1em
         // and the maximum font size is 72px or 7.2em depending on the unit used
@@ -174,12 +150,10 @@ define(function (require, exports, module) {
             return false;
         }
         
-        _setSizeAndRestoreScroll(fsStr, lhStr);
+        _setSizeAndRestoreScroll(fsStr);
+        PreferencesManager.setViewState("fontSizeStyle", fsStr);
         
-        PreferencesManager.setViewState("fontSizeStyle",   fsStr);
-        PreferencesManager.setViewState("lineHeightStyle", lhStr);
-        
-        $(exports).triggerHandler("fontSizeChange", [adjustment, fsStr, lhStr]);
+        $(exports).triggerHandler("fontSizeChange", [adjustment, fsStr]);
         return true;
     }
     
@@ -197,7 +171,6 @@ define(function (require, exports, module) {
     function _handleRestoreFontSize() {
         _setSizeAndRestoreScroll();
         PreferencesManager.setViewState("fontSizeStyle");
-        PreferencesManager.setViewState("lineHeightStyle");
     }
     
     
@@ -226,12 +199,23 @@ define(function (require, exports, module) {
      * Restores the Font Size and Line Height using the saved strings
      */
     function restoreFontSize() {
-        var fsStr = PreferencesManager.getViewState("fontSizeStyle"),
-            lhStr = PreferencesManager.getViewState("lineHeightStyle");
-        
-        if (fsStr && lhStr) {
+        var fsStyle      = PreferencesManager.getViewState("fontSizeStyle"),
+            fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
+
+        if (fsAdjustment) {
+            // Always remove the old view state even if we also have the new view state.
+            PreferencesManager.setViewState("fontSizeAdjustment");
+
+            if (!fsStyle) {
+                // Migrate the old view state to the new one.
+                fsStyle = (12 + fsAdjustment) + "px";
+                PreferencesManager.setViewState("fontSizeStyle", fsStyle);
+            }
+        }
+
+        if (fsStyle) {
             _removeDynamicFontSize();
-            _addDynamicFontSize(fsStr, lhStr);
+            _addDynamicFontSize(fsStyle);
         }
     }
     
@@ -334,11 +318,7 @@ define(function (require, exports, module) {
      *      the old "fontSizeAdjustment" preference.
      */
     function _convertToNewViewStates(key, value) {
-        var fontSize = 12 + value,
-            newRule = { "fontSizeStyle": fontSize + "px",
-                        "lineHeightStyle": Math.ceil(fontSize * LINE_HEIGHT) + "px" };
-        
-        return newRule;
+        return { "fontSizeStyle": (12 + value) + "px" };
     }
     
     // Register command handlers
