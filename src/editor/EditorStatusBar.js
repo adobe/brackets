@@ -50,19 +50,38 @@ define(function (require, exports, module) {
         $statusOverwrite;
     
     
+    /**
+     * Determine string based on count
+     * @param {number} number Count
+     * @param {string} singularStr Singular string
+     * @param {string} pluralStr Plural string
+     * @return {string} Proper string to use for count
+     */
     function _formatCountable(number, singularStr, pluralStr) {
         return StringUtils.format(number > 1 ? pluralStr : singularStr, number);
     }
     
+    /**
+     * Update file mode
+     * @param {Editor} editor Current editor
+     */
     function _updateLanguageInfo(editor) {
         $languageInfo.text(editor.document.getLanguage().getName());
     }
     
+    /**
+     * Update file information
+     * @param {Editor} editor Current editor
+     */
     function _updateFileInfo(editor) {
         var lines = editor.lineCount();
         $fileInfo.text(_formatCountable(lines, Strings.STATUSBAR_LINE_COUNT_SINGULAR, Strings.STATUSBAR_LINE_COUNT_PLURAL));
     }
     
+    /**
+     * Update indent type and size
+     * @param {Editor} editor Current editor
+     */
     function _updateIndentType(editor) {
         var indentWithTabs = editor.getUseTabChar();
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
@@ -70,16 +89,28 @@ define(function (require, exports, module) {
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
     }
 
+    /**
+     * Get indent size based on type
+     * @param {Editor} editor Current editor
+     * @return {number} Indent size
+     */
     function _getIndentSize(editor) {
         return editor.getUseTabChar() ? editor.getTabSize() : editor.getSpaceUnits();
     }
     
+    /**
+     * Update indent size
+     * @param {Editor} editor Current editor
+     */
     function _updateIndentSize(editor) {
         var size = _getIndentSize(editor);
         $indentWidthLabel.text(size);
         $indentWidthInput.val(size);
     }
     
+    /**
+     * Toggle indent type
+     */
     function _toggleIndentType() {
         var current = EditorManager.getActiveEditor();
         current.setUseTabChar(!current.getUseTabChar());
@@ -87,6 +118,11 @@ define(function (require, exports, module) {
         _updateIndentSize(current);
     }
     
+    /**
+     * Update cursor(s)/selection(s) information
+     * @param {Event} event (unused)
+     * @param {Editor} editor Current editor
+     */
     function _updateCursorInfo(event, editor) {
         editor = editor || EditorManager.getActiveEditor();
 
@@ -116,6 +152,11 @@ define(function (require, exports, module) {
         $cursorInfo.text(cursorStr + selStr);
     }
     
+    /**
+     * Change indent size
+     * @param {Editor} editor Current editor
+     * @param {string} value Size entered into status bar 
+     */
     function _changeIndentWidth(editor, value) {
         $indentWidthLabel.removeClass("hidden");
         $indentWidthInput.addClass("hidden");
@@ -144,6 +185,13 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
+    /**
+     * Update insert/overwrite label
+     * @param {Event} event (unused)
+     * @param {Editor} editor Current editor
+     * @param {string} newstate New overwrite state
+     * @param {boolean=} doNotAnimate True if state should not be animated
+     */
     function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
         if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
             // label already up-to-date
@@ -157,6 +205,10 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Update insert/overwrite indicator
+     * @param {Event} event (unused)
+     */
     function _updateEditorOverwriteMode(event) {
         var editor = EditorManager.getActiveEditor(),
             newstate = !editor._codeMirror.state.overwrite;
@@ -166,10 +218,20 @@ define(function (require, exports, module) {
         editor.toggleOverwrite(newstate);
     }
     
+    /**
+     * Initialize insert/overwrite indicator
+     * @param {Editor} currentEditor Current editor
+     */
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
     }
     
+    /**
+     * Handle active editor change event
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor 
+     */
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off(".statusbar");
@@ -205,6 +267,9 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Initialize
+     */
     function _init() {
         $languageInfo       = $("#status-language");
         $cursorInfo         = $("#status-cursor");
