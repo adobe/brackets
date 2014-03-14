@@ -189,7 +189,13 @@ define(function (require, exports, module) {
 
                     try {
                         var scanResult = provider.scanFile(fileText, file.fullPath);
-                        results.push({provider: provider, result: scanResult});
+                        if (scanResult && typeof scanResult.fail === "function") {
+                            scanResult.fail(function (err) {
+                                console.error("[CodeInspection] Provider " + provider.name + " failed with error: " + err);
+                                response.reject(err);
+                            });
+                        }
+                        results.push(scanResult);
                     } catch (err) {
                         console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
                         response.reject(err);
@@ -199,9 +205,17 @@ define(function (require, exports, module) {
                     PerfUtils.addMeasurement(perfTimerProvider);
                 });
 
-                PerfUtils.addMeasurement(perfTimerInspector);
+                $.when.apply($, results).done(function () {
+                    var i, results = [];
+                    for (i = 0; i < arguments.length; i++) {
+                        results.push({provider: providerList[i], result: arguments[i]});
+                    }
+                    
+                    PerfUtils.addMeasurement(perfTimerInspector);
 
-                response.resolve(results);
+                    response.resolve(results);
+                });
+
             })
             .fail(function (err) {
                 console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
