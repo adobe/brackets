@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * @private
      * Add the styles used to update the font size
      * @param {string} fontSizeStyle  A string with the font size and the size unit
-     * @param {string} lineHeightStyle  A string with the line height and a the size unit
+     * @param {string} lineHeightStyle  A string with the line height and the size unit
      */
     function _addDynamicFontSize(fontSizeStyle, lineHeightStyle) {
         // It's necessary to inject a new rule to address all editors.
@@ -106,26 +106,28 @@ define(function (require, exports, module) {
     /**
      * @private
      * Sets the font size and restores the scroll position as best as possible.
-     * @param {string} fontSizeStyle  A string with the font size and the size unit
-     * @param {string} lineHeightStyle  A string with the line height and a the size unit
+     * @param {string=} fontSizeStyle  A string with the font size and the size unit
+     * @param {string=} lineHeightStyle  A string with the line height and the size unit
      */
     function _setSizeAndRestoreScroll(fontSizeStyle, lineHeightStyle) {
         var editor    = EditorManager.getCurrentFullEditor(),
             oldWidth  = editor._codeMirror.defaultCharWidth(),
-            oldHeight = editor.getTextHeight(),
-            scrollPos = editor.getScrollPos();
-        
-        _addDynamicFontSize(fontSizeStyle, lineHeightStyle);
+            scrollPos = editor.getScrollPos(),
+            line      = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
+        console.log(line);
+        if (fontSizeStyle && lineHeightStyle) {
+            _addDynamicFontSize(fontSizeStyle, lineHeightStyle);
+        } else {
+            _removeDynamicFontSize();
+        }
         editor.refreshAll();
         
         // Calculate the new scroll based on the old font sizes and scroll position
         var newWidth   = editor._codeMirror.defaultCharWidth(),
-            newHeight  = editor.getTextHeight(),
             deltaX     = scrollPos.x / oldWidth,
-            deltaY     = scrollPos.y / oldHeight,
             scrollPosX = scrollPos.x + Math.round(deltaX * (newWidth  - oldWidth)),
-            scrollPosY = scrollPos.y + Math.round(deltaY * (newHeight - oldHeight));
-                
+            scrollPosY = editor._codeMirror.heightAtLine(line, "local");
+        console.log(scrollPosY);
         editor.setScrollPos(scrollPosX, scrollPosY);
     }
     
@@ -177,8 +179,8 @@ define(function (require, exports, module) {
         
         _setSizeAndRestoreScroll(fsStr, lhStr);
         
-        PreferencesManager.setViewState("fontSizeString",   fsStr);
-        PreferencesManager.setViewState("lineHeightString", lhStr);
+        PreferencesManager.setViewState("fontSizeStyle",   fsStr);
+        PreferencesManager.setViewState("lineHeightStyle", lhStr);
         
         $(exports).triggerHandler("fontSizeChange", [adjustment, fsStr, lhStr]);
         return true;
@@ -186,22 +188,19 @@ define(function (require, exports, module) {
     
     /** Increases the font size by 1 */
     function _handleIncreaseFontSize() {
-        if (_adjustFontSize(1)) {
-            PreferencesManager.setViewState("fontSizeAdjustment", PreferencesManager.getViewState("fontSizeAdjustment") + 1);
-        }
+        _adjustFontSize(1);
     }
     
     /** Decreases the font size by 1 */
     function _handleDecreaseFontSize() {
-        if (_adjustFontSize(-1)) {
-            PreferencesManager.setViewState("fontSizeAdjustment", PreferencesManager.getViewState("fontSizeAdjustment") - 1);
-        }
+        _adjustFontSize(-1);
     }
     
     /** Restores the font size to the original size */
     function _handleRestoreFontSize() {
-        _adjustFontSize(-PreferencesManager.getViewState("fontSizeAdjustment"));
-        PreferencesManager.setViewState("fontSizeAdjustment", 0);
+        _setSizeAndRestoreScroll();
+        PreferencesManager.setViewState("fontSizeStyle",   undefined);
+        PreferencesManager.setViewState("lineHeightStyle", undefined);
     }
     
     
@@ -230,8 +229,8 @@ define(function (require, exports, module) {
      * Restores the Font Size and Line Height using the saved strings
      */
     function restoreFontSize() {
-        var fsStr = PreferencesManager.getViewState("fontSizeString"),
-            lhStr = PreferencesManager.getViewState("lineHeightString");
+        var fsStr = PreferencesManager.getViewState("fontSizeStyle"),
+            lhStr = PreferencesManager.getViewState("lineHeightStyle");
         
         if (fsStr && lhStr) {
             _addDynamicFontSize(fsStr, lhStr);
