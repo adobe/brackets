@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         StatusBar           = require("widgets/StatusBar"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        ValidationUtils     = require("utils/ValidationUtils");
     
     /* StatusBar indicators */
     var $languageInfo,
@@ -127,7 +128,7 @@ define(function (require, exports, module) {
         // restore focus to the editor
         EditorManager.focusEditor();
         
-        if (!value || isNaN(value)) {
+        if (!ValidationUtils.isInteger(value)) {
             return;
         }
         

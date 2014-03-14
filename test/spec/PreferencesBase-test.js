@@ -1118,12 +1118,12 @@ define(function (require, exports, module) {
                 waitsForDone(pm.addScope("project", projectScope));
                 runs(function () {
                     projectScope.addLayer(new PreferencesBase.PathLayer("/"));
-                    expect(pm.get("spaceUnits")).toBe(92);
+                    expect(pm.get("spaceUnits")).toBe(9);
                     
                     expect(pm.get("spaceUnits", {
                         scopeOrder: ["project"],
                         filename: "/foo.go"
-                    })).toBe(27);
+                    })).toBe(7);
                 });
             });
             
@@ -1201,7 +1201,7 @@ define(function (require, exports, module) {
                     return changes.length > 0;
                 });
                 runs(function () {
-                    expect(pm.get("spaceUnits")).toBe(92);
+                    expect(pm.get("spaceUnits")).toBe(9);
                     expect(changes).toEqual([{
                         ids: ["spaceUnits"]
                     }]);
