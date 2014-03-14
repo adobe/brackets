@@ -458,6 +458,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
     
     /**
      * Unit names
