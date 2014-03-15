@@ -64,7 +64,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var AnimationUtils     = require("utils/AnimationUtils"),
+        Async              = require("utils/Async"),
+        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
@@ -72,45 +74,46 @@ define(function (require, exports, module) {
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ViewUtils          = require("utils/ViewUtils"),
-        Async              = require("utils/Async"),
-        AnimationUtils     = require("utils/AnimationUtils"),
         _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
-    var SMART_INDENT      = "smartIndent",
-        USE_TAB_CHAR      = "useTabChar",
-        TAB_SIZE          = "tabSize",
-        SPACE_UNITS       = "spaceUnits",
-        CLOSE_BRACKETS    = "closeBrackets",
-        SHOW_LINE_NUMBERS = "showLineNumbers",
-        STYLE_ACTIVE_LINE = "styleActiveLine",
-        WORD_WRAP         = "wordWrap",
+    var CLOSE_BRACKETS    = "closeBrackets",
         CLOSE_TAGS        = "closeTags",
         SCROLL_PAST_END   = "scrollPastEnd",
-        cmOptions         = {};
+        SHOW_LINE_NUMBERS = "showLineNumbers",
+        SMART_INDENT      = "smartIndent",
+        SOFT_TABS         = "softTabs",
+        SPACE_UNITS       = "spaceUnits",
+        STYLE_ACTIVE_LINE = "styleActiveLine",
+        TAB_SIZE          = "tabSize",
+        WORD_WRAP         = "wordWrap",
+        USE_TAB_CHAR      = "useTabChar";
+    
+    var cmOptions         = {};
     
     // Mappings from Brackets preferences to CodeMirror options
-    cmOptions[SMART_INDENT]       = "smartIndent";
-    cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
-    cmOptions[TAB_SIZE]           = "indentUnit";
-    cmOptions[SPACE_UNITS]        = "indentUnit";
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
-    cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
-    cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
-    cmOptions[WORD_WRAP]          = "lineWrapping";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
+    cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
+    cmOptions[SMART_INDENT]       = "smartIndent";
+    cmOptions[SPACE_UNITS]        = "indentUnit";
+    cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
+    cmOptions[TAB_SIZE]           = "indentUnit";
+    cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
+    cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(SMART_INDENT, "boolean", true);
-    PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE, "number", 4);
-    PreferencesManager.definePreference(SPACE_UNITS, "number", 4);
-    PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", false);
+    PreferencesManager.definePreference(CLOSE_BRACKETS,    "boolean", false);
+    PreferencesManager.definePreference(CLOSE_TAGS,        "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(SCROLL_PAST_END,   "boolean", false);
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
+    PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
+    PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
+    PreferencesManager.definePreference(SPACE_UNITS,       "number",  4);
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
-    PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
-    PreferencesManager.definePreference(CLOSE_TAGS, "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
-    PreferencesManager.definePreference(SCROLL_PAST_END, "boolean", false);
+    PreferencesManager.definePreference(TAB_SIZE,          "number",  4);
+    PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
+    PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
     
     var editorOptions = Object.keys(cmOptions);
 
@@ -516,7 +519,7 @@ define(function (require, exports, module) {
         var instance = this._codeMirror,
             overallJump = null;
         
-        if (!instance.getOption("indentWithTabs")) {
+        if (!instance.getOption("indentWithTabs") && PreferencesManager.get(SOFT_TABS)) {
             var indentUnit = instance.getOption("indentUnit");
             
             _.each(this.getSelections(), function (sel) {
