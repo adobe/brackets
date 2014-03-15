@@ -44,6 +44,19 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
+
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -87,6 +100,7 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
+        ViewCommandHandlers     = require("view/ViewCommandHandlers"),
         _                       = require("thirdparty/lodash");
         
     // Load modules that self-register and just need to get included in the main project
@@ -95,7 +109,6 @@ define(function (require, exports, module) {
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
@@ -208,6 +221,7 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 // Finish UI initialization
+                ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();

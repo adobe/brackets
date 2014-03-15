@@ -119,11 +119,17 @@ define(function main(require, exports, module) {
         }
     }
 
-    /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
+    /**
+     * Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status
+     *
+     * Stop Live Dev when in an active state (ACTIVE, OUT_OF_SYNC, SYNC_ERROR).
+     * Start Live Dev when in an inactive state (ERROR, INACTIVE).
+     * Do nothing when in a connecting state (CONNECTING, LOADING_AGENTS).
+     */
     function _handleGoLiveCommand() {
-        if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
+        if (LiveDevelopment.status >= LiveDevelopment.STATUS_ACTIVE) {
             LiveDevelopment.close();
-        } else {
+        } else if (LiveDevelopment.status <= LiveDevelopment.STATUS_INACTIVE) {
             if (!params.get("skipLiveDevelopmentInfo") && !PreferencesManager.getViewState("livedev.afterFirstLaunch")) {
                 PreferencesManager.setViewState("livedev.afterFirstLaunch", "true");
                 Dialogs.showModalDialog(

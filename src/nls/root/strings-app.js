@@ -36,6 +36,7 @@ define({
     "LOCALE_ES"                                 : "Español",
     "LOCALE_FI"                                 : "suomi",
     "LOCALE_FR"                                 : "Français",
+    "LOCALE_ID"                                 : "Indonesia",
     "LOCALE_IT"                                 : "italiano",
     "LOCALE_JA"                                 : "日本語",
     "LOCALE_NB"                                 : "norsk",
@@ -52,5 +53,5 @@ define({
     "LOCALE_TR"                                 : "Türkçe",
     "LOCALE_ZH_CN"                              : "简体中文",
     "LOCALE_HU"                                 : "Magyar",
-    "LOCALE_KO"                                 : "한국어",
+    "LOCALE_KO"                                 : "한국어"
 });
