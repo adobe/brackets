@@ -92,6 +92,7 @@ define(function (require, exports, module) {
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
+        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
@@ -350,7 +351,9 @@ define(function (require, exports, module) {
             // entries always return cached data if it exists!
             this._index.visitAll(function (child) {
                 if (child.fullPath.indexOf(entry.fullPath) === 0) {
-                    child._clearCachedData();
+                    // 'true' so entry doesn't try to clear its immediate childrens' caches too. That would be redundant
+                    // with the visitAll() here, and could be slow if we've already cleared its parent (#7150).
+                    child._clearCachedData(true);
                 }
             }.bind(this));
             
@@ -718,7 +721,8 @@ define(function (require, exports, module) {
             if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
                 this._index.visitAll(function (entry) {
                     if (entry.fullPath.indexOf(directory.fullPath) === 0) {
-                        entry._clearCachedData();
+                        // Passing 'true' for a similar reason as in _unwatchEntry() - see #7150
+                        entry._clearCachedData(true);
                     }
                 }.bind(this));
                 
@@ -773,7 +777,8 @@ define(function (require, exports, module) {
         if (!path) {
             // This is a "wholesale" change event; clear all caches
             this._index.visitAll(function (entry) {
-                entry._clearCachedData();
+                // Passing 'true' for a similar reason as in _unwatchEntry() - see #7150
+                entry._clearCachedData(true);
             });
             
             this._fireChangeEvent(null);
@@ -882,7 +887,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         if (!watchedRoot) {
-            callback("Root is not watched.");
+            callback(FileSystemError.ROOT_NOT_WATCHED);
             return;
         }
 
