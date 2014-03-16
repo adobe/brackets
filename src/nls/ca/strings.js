@@ -79,7 +79,7 @@ define({
     "ERROR_LAUNCHING_BROWSER"           : "Hi ha hagut un error al iniciar el navegador. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error durant el Desenvolupament a Temps Real",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connectant amb el navegador...",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connectant amb el navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per a poder iniciar el mode de Desenvolupament a Temps Real, Chrome s'ha d'iniciar habilitant la depuracio remota.<br /><br />Vols reiniciar Google Chrome y habilitar la depuració remota?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No es pot carregar la pàgina per al Desenvolupament a Temps Real",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Obre un arxiu HTML o assegura't de que hi hagi un index.html en el teu projecte per a poder iniciar el mode de Desenvolupament a Temps Real.",
@@ -419,11 +419,11 @@ define({
     "UNDO_REMOVE"                          : "Desfer",
     "MARKED_FOR_UPDATE"                    : "Marcada per a actualitzar",
     "UNDO_UPDATE"                          : "Desfer",
-    "CHANGE_AND_RELOAD_TITLE"                : "Canviar extensions",
-    "CHANGE_AND_RELOAD_MESSAGE"              : "Per a actualitzar o eliminar les extensions marcades, necessites reiniciar {APP_NAME}. Es demanarà confirmació Per a guardar els canvis pendents.",
-    "REMOVE_AND_RELOAD"                      : "Eliminar extensions i reiniciar",
-    "CHANGE_AND_RELOAD"                      : "Canviar extensions i reiniciar",
-    "UPDATE_AND_RELOAD"                      : "Actualitzar extensions i reiniciar",
+    "CHANGE_AND_RELOAD_TITLE"              : "Canviar extensions",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Per a actualitzar o eliminar les extensions marcades, necessites reiniciar {APP_NAME}. Es demanarà confirmació Per a guardar els canvis pendents.",
+    "REMOVE_AND_RELOAD"                    : "Eliminar extensions i reiniciar",
+    "CHANGE_AND_RELOAD"                    : "Canviar extensions i reiniciar",
+    "UPDATE_AND_RELOAD"                    : "Actualitzar extensions i reiniciar",
     "PROCESSING_EXTENSIONS"                : "Procesant els canvis en l'extensió\u2026",
     "EXTENSION_NOT_INSTALLED"              : "No es pot eliminar l'extensió {{0}} perquè no es troba instal·lada.",
     "NO_EXTENSIONS"                        : "Encara no hi ha cap extensió instal·lada.<br />Fes click a la pestanya Disponibles per a  començar.",
@@ -492,8 +492,8 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Temps",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progressió",
-    "BEZIER_EDITOR_INFO" : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Moure el punt seleccionat<br><kbd class='text'>Shift</kbd> Moure de 10 en 10<br><kbd class='text'>Tab</kbd> Canviar els punts",
-    "STEPS_EDITOR_INFO" : "<kbd>↑</kbd><kbd>↓</kbd> Incrementar o decrementar els pasos<br><kbd>←</kbd><kbd>→</kbd> 'Començar' o 'Finalitzar'",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Moure el punt seleccionat<br><kbd class='text'>Shift</kbd> Moure de 10 en 10<br><kbd class='text'>Tab</kbd> Canviar els punts",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementar o decrementar els pasos<br><kbd>←</kbd><kbd>→</kbd> 'Començar' o 'Finalitzar'",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
