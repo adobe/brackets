@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.hasSelection()).toBe(false);
                 });
                 
@@ -354,7 +354,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
                 
@@ -362,7 +362,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
             });
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "start")).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getCursorPos()).toEqual({line: 2, ch: 4});
                     expect(myEditor.getCursorPos(false, "start")).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "anchor")).toEqual({line: 2, ch: 1});
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
                 });
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
                 });
@@ -497,7 +497,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
                 });
                 
@@ -513,7 +513,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
                 });
                 
@@ -521,7 +521,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
                 });
                 
@@ -563,7 +563,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 1}, reversed: false, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
@@ -574,7 +574,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
@@ -585,7 +585,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 4}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: true, primary: false},
                                                         {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
@@ -595,7 +595,7 @@ define(function (require, exports, module) {
                 it("should properly reverse multiline selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 1, ch: 3}, head: {line: 0, ch: 5}},
                                                         {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
-                                                       ]);
+                                                       ], 1);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true, primary: false},
                                                         {start: {line: 3, ch: 1}, end: {line: 4, ch: 4}, reversed: true, primary: true}
                                                        ]);
@@ -619,7 +619,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
@@ -637,7 +637,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 14}, head: {line: 0, ch: 8}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
                                                         {anchor: {line: 2, ch: 14}, head: {line: 2, ch: 8}}
-                                                       ]);
+                                                       ], 2);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
@@ -665,7 +665,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
@@ -674,7 +674,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
@@ -703,7 +703,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ]);
+                                                       ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
@@ -715,7 +715,7 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
                                                         {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ]);
+                                                       ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},

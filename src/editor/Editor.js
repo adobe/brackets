@@ -1155,7 +1155,7 @@ define(function (require, exports, module) {
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
     Editor.prototype.setSelections = function (selections, center, centerOptions) {
-        var primIndex;
+        var primIndex = selections.length - 1;
         this._codeMirror.setSelections(_.map(selections, function (sel, index) {
             if (sel.primary) {
                 primIndex = index;
