@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, CodeMirror */
+/*global define, $, brackets */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     // Load brackets modules
-    var Async                   = require("utils/Async"),
+    var CodeMirror              = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         FileSystem              = require("filesystem/FileSystem"),

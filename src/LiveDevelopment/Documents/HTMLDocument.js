@@ -52,7 +52,8 @@ define(function HTMLDocumentModule(require, exports, module) {
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         PerfUtils           = require("utils/PerfUtils"),
         RemoteAgent         = require("LiveDevelopment/Agents/RemoteAgent"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        _                   = require("thirdparty/lodash");
 
     /**
      * Constructor
@@ -140,17 +141,24 @@ define(function HTMLDocumentModule(require, exports, module) {
     
     /** Update the highlight */
     HTMLDocument.prototype.updateHighlight = function () {
-        var codeMirror = this.editor._codeMirror;
+        var editor = this.editor,
+            codeMirror = editor._codeMirror,
+            ids = [];
         if (Inspector.config.highlight) {
-            var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
-                this.editor,
-                codeMirror.getCursor()
-            );
+            _.each(this.editor.getSelections(), function (sel) {
+                var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(
+                    editor,
+                    sel.reversed ? sel.end : sel.start
+                );
+                if (tagID !== -1) {
+                    ids.push(tagID);
+                }
+            });
             
-            if (tagID === -1) {
+            if (!ids.length) {
                 HighlightAgent.hide();
             } else {
-                HighlightAgent.domElement(tagID);
+                HighlightAgent.domElement(ids);
             }
         }
     };

@@ -120,6 +120,14 @@ define(function (require, exports, module) {
     ModalBar.prototype._autoClose = false;
     
     /**
+     * Allows client code to block autoClose from closing the ModalBar: if set, this function is called whenever
+     * autoClose would normally close the ModalBar. Returning true prevents the close from occurring. Programmatically
+     * calling close() will still close the bar, however.
+     * @type {?function():boolean}
+     */
+    ModalBar.prototype.isLockedOpen = null;
+    
+    /**
      * @return {number} Height of the modal bar in pixels, if open.
      */
     ModalBar.prototype.height = function () {
@@ -226,10 +234,17 @@ define(function (require, exports, module) {
     
     /**
      * If autoClose is set, detects when something other than the modal bar is getting focus and
-     * dismisses the modal bar.
+     * dismisses the modal bar. DOM nodes with "attached-to" jQuery metadata referencing an element
+     * within the ModalBar are allowed to take focus without closing it.
      */
     ModalBar.prototype._handleFocusChange = function (e) {
-        if (!$.contains(this._$root.get(0), e.target)) {
+        if (this.isLockedOpen && this.isLockedOpen()) {
+            return;
+        }
+        
+        var effectiveElem = $(e.target).data("attached-to") || e.target;
+        
+        if (!$.contains(this._$root.get(0), effectiveElem)) {
             this.close();
         }
     };

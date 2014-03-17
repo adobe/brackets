@@ -41,7 +41,9 @@
     <!-- Main UI: horizontal set of sidebar, main content vertical stack, and vertical toolbar -->
     <div class="main-view">
         <div id="sidebar" class="sidebar panel quiet-scrollbars horz-resizable right-resizer collapsible" data-minsize="0" data-forceleft=".content">
-            <div id="working-set-header">{{WORKING_FILES}}</div>
+            <div id="working-set-header">{{WORKING_FILES}}
+                <div id="working-set-option-btn"></div>
+            </div>
             <div id="open-files-container">
                 <!-- This will contain runtime-generated <li>'s for each file in the working set -->
                 <ul>
