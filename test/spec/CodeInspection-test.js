@@ -75,7 +75,7 @@ define(function (require, exports, module) {
             };
             spyOn(provider, "scanFileAsync").andCallThrough();
             
-            if (syncImpl === true) {
+            if (syncImpl) {
                 provider.scanFile = function () {
                     return result;
                 };

@@ -408,6 +408,10 @@ define(function (require, exports, module) {
      * Registering any provider for the "javascript" language automatically unregisters the built-in
      * Brackets JSLint provider. This is a temporary convenience until UI exists for disabling
      * registered providers.
+     * 
+     * If provider implements both scanFileAsync and scanFile functions for asynchronous and synchronous
+     * code inspection, respectively, the asynchronous version will take precedence and will be used to
+     * perform code inspection.
      *
      * @param {string} languageId
      * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}} provider
