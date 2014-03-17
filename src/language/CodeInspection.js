@@ -76,7 +76,8 @@ define(function (require, exports, module) {
      * Constants for the preferences defined in this file.
      */
     var PREF_ENABLED = "enabled",
-        PREF_COLLAPSED = "collapsed";
+        PREF_COLLAPSED = "collapsed",
+        PREF_ASYNC_TIMEOUT = "async_timeout";
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -201,7 +202,7 @@ define(function (require, exports, module) {
                     });
                     
                     if (provider.scanFileAsync) {
-                        setTimeout(function () { runPromise.resolve(null); }, 500);
+                        setTimeout(function () { runPromise.resolve(null); }, prefs.get(PREF_ASYNC_TIMEOUT));
                         provider.scanFileAsync(fileText, file.fullPath)
                             .then(function (scanResult) {
                                 PerfUtils.addMeasurement(perfTimerProvider);
@@ -540,7 +541,7 @@ define(function (require, exports, module) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 1000, "Number of milliseconds to wait for asynchronous code inspection provider results.");
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {

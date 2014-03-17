@@ -292,7 +292,7 @@ define(function (require, exports, module) {
             });
             
             it("should timeout on a provider that takes too long", function () {
-                var provider = createAsyncCodeInspector("javascript async linter with sync impl", failLintResult(), 1000, true),
+                var provider = createAsyncCodeInspector("javascript async linter with sync impl", failLintResult(), 1500, true),
                     result;
                 CodeInspection.register("javascript", provider);
                 
@@ -302,7 +302,7 @@ define(function (require, exports, module) {
                         result = r;
                     });
                     
-                    waitsForDone(promise, "file linting", 550);
+                    waitsForDone(promise, "file linting", 5000);
                 });
                 
                 runs(function () {
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
             
             it("should return results for 3 providers when 2 completes and 1 times out", function () {
                 var asyncProvider1 = createAsyncCodeInspector("javascript async linter 1", failLintResult(), 200, true),
-                    asyncProvider2 = createAsyncCodeInspector("javascript async linter 2", failLintResult(), 1000, false),
+                    asyncProvider2 = createAsyncCodeInspector("javascript async linter 2", failLintResult(), 1500, false),
                     syncProvider3 = createCodeInspector("javascript sync linter 3", failLintResult()),
                     result;
                 CodeInspection.register("javascript", asyncProvider1);
