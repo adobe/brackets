@@ -230,7 +230,7 @@ a:focus {
 @item-highlight-color: #e0f0fa;
 
 // Dropdown Menu Animation
-#project-dropdown.dropdown-menu {
+.dropdown-menu {
     -webkit-animation: dropdown 90ms cubic-bezier(0, .97, .2, .99) 1;
     -webkit-transform-origin: 0 0;
 }
@@ -238,6 +238,12 @@ a:focus {
 @-webkit-keyframes dropdown {
     0%   { opacity: 0.5; -webkit-transform: translate3d(0, 0, 0) scale(0.5); }
     100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+
+// Code hints don't need scaling navigation so we're removing it
+
+.codehint-menu.open .dropdown-menu {
+    -webkit-animation: none;
 }
 
 .toolbar .nav, .context-menu, .codehint-menu {
