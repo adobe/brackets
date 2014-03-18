@@ -60,6 +60,11 @@ define(function (require, exports, module) {
     // Predefined environments understood by JSLint.
     var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
     
+    // gets indentation size depending whether the tabs or spaces are used
+    function _getIndentSize() {
+        return PreferencesManager.get("useTabChar") ? PreferencesManager.get("tabSize") : PreferencesManager.get("spaceUnits");
+    }
+
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
@@ -88,7 +93,7 @@ define(function (require, exports, module) {
         
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
-            options.indent = PreferencesManager.get("spaceUnits");
+            options.indent = _getIndentSize();
         }
         
         // If the user has not defined the environment, we use browser by default.
