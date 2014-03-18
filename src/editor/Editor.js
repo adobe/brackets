@@ -884,13 +884,18 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getColOffset = function (pos) {
         var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
-            tabSize = Editor.getTabSize(),
+            tabSize = null,
             column  = 0,
             i;
 
         for (i = 0; i < line.length; i++) {
             if (line[i] === '\t') {
-                column += (tabSize - (column % tabSize));
+                if (tabSize === null) {
+                    tabSize = Editor.getTabSize();
+                }
+                if (tabSize > 0) {
+                    column += (tabSize - (column % tabSize));
+                }
             } else {
                 column++;
             }
