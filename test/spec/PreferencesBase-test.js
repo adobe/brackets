@@ -1073,7 +1073,10 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                expect(pm.set("spaceUnits", 12)).toBe(false);  // fail: out-of-range
+                expect(pm.set("spaceUnits", 12)).toBe(false);  // fail: out-of-range upper
+                expect(pm.get("spaceUnits")).toBe(4);          // expect default
+                
+                expect(pm.set("spaceUnits", -1)).toBe(false);  // fail: out-of-range lower
                 expect(pm.get("spaceUnits")).toBe(4);          // expect default
             });
         });
