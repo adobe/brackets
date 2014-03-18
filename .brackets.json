@@ -11,6 +11,9 @@
         "src/thirdparty/CodeMirror2/**/*.js": {
             "spaceUnits": 2,
             "linting.enabled": false
+        },
+        "*.jsx": {
+            "linting.enabled": false
         }
     },
     "spaceUnits": 4,
