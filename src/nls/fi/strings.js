@@ -179,7 +179,6 @@ define({
     "FILE_FILTER_LIST_PREFIX"           : "paitsi",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
     
-    
     /**
      * ProjectManager
      */
