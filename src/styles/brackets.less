@@ -990,7 +990,14 @@ a, img {
     .pagination-col {
         .flex-item(1, 0);
         min-width: 100px;
+        word-spacing: 0;
     }
+    .pagination-col > span:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    .pagination-col > span:active {
+        background-color: rgba(0, 0, 0, 0.12);
+    } 
     .replace-col {
         .flex-item(1, 0);
         min-width: 120px;
@@ -1001,22 +1008,31 @@ a, img {
     .next-page,
     .last-page {
         .jstree-sprite;
-        width: 6px;
+        width: 18px;
         display: inline-block;
-        margin: 0 2px;
-        background-position: 0px 4px;
+        margin: 0;
+        background-position: 7px 6px;
+        vertical-align: text-top;
+        border-radius: 3px;
     }
     .first-page {
-        background-position: 0px -80px;
+        background-position: 6px -78px;
         margin-left: 10px;
     }
     .prev-page {
-        background-position: 0px -24px;
+        background-position: 6px -22px;
+        margin-right: 5px;
+    }
+    .next-page {
+        margin-left: 5px;
     }
     .last-page {
-        background-position: 0px -52px;
+        background-position: 6px -50px;
     }
-    .disabled {
+    .disabled,
+    .disabled:hover,
+    .disabled:active {
+        background-color: transparent;
         opacity: 0.3;
     }
 }
