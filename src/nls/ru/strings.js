@@ -304,7 +304,7 @@ define({
     "CMD_NEXT_DOC"                        : "Следующий документ",
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве проекта",
-    "CMD_SHOW_IN_OS"                      : "Показать в оперативной системе",
+    "CMD_SHOW_IN_OS"                      : "Показать в операционной системе",
     
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
@@ -361,7 +361,7 @@ define({
     "UPDATE_EXTENSION_TITLE"               : "Обновление расширения",
     "INSTALL_EXTENSION_LABEL"              : "URL расширения",
     "INSTALL_EXTENSION_HINT"               : "URL zip-файла расширения или репозитория GitHub",
-    "INSTALLING_FROM"                      : "Установка расщирения с {0}\u2026",
+    "INSTALLING_FROM"                      : "Установка расширения с {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Установка завершена успешно!",
     "INSTALL_FAILED"                       : "Не удалось установить.",
     "CANCELING_INSTALL"                    : "Отмена\u2026",
