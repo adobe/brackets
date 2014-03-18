@@ -67,6 +67,7 @@ define(function (require, exports, module) {
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        DeprecationWarning = require("utils/DeprecationWarning"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
@@ -1894,6 +1895,147 @@ define(function (require, exports, module) {
     
     // Global settings that affect Editor instances that share the same preference locations
 
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets whether to use tab characters (vs. spaces) when inserting new text.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.setUseTabChar = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setUseTabChar was called, use Editor.prototype.setUseTabChar (on Editor instance) instead.");
+        PreferencesManager.set(USE_TAB_CHAR, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text
+     */
+    Editor.getUseTabChar = function () {
+        DeprecationWarning.deprecationWarning("Editor.getUseTabChar was called, use Editor.prototype.getUseTabChar (on Editor instance) instead.");
+        return PreferencesManager.get(USE_TAB_CHAR);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets tab character width.
+     * Affects any editors that share the same preference location.
+     * @param {number} value
+     */
+    Editor.setTabSize = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setTabSize was called, use Editor.prototype.setTabSize (on Editor instance) instead.");
+        PreferencesManager.set(TAB_SIZE, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {number} Get indent unit
+     */
+    Editor.getTabSize = function () {
+        DeprecationWarning.deprecationWarning("Editor.getTabSize was called, use Editor.prototype.getTabSize (on Editor instance) instead.");
+        return PreferencesManager.get(TAB_SIZE);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets indentation width.
+     * Affects any editors that share the same preference location.
+     * @param {number} value
+     */
+    Editor.setSpaceUnits = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setSpaceUnits was called, use Editor.prototype.setSpaceUnits (on Editor instance) instead.");
+        PreferencesManager.set(SPACE_UNITS, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {number} Get indentation width
+     */
+    Editor.getSpaceUnits = function () {
+        DeprecationWarning.deprecationWarning("Editor.getSpaceUnits was called, use Editor.prototype.getSpaceUnits (on Editor instance) instead.");
+        return PreferencesManager.get(SPACE_UNITS);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets the auto close brackets.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.setCloseBrackets = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setCloseBrackets was called, use Editor.prototype.setCloseBrackets (on Editor instance) instead.");
+        PreferencesManager.set(CLOSE_BRACKETS, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {boolean} Gets whether the current editor uses auto close brackets
+     */
+    Editor.getCloseBrackets = function () {
+        DeprecationWarning.deprecationWarning("Editor.getCloseBrackets was called, use Editor.prototype.getCloseBrackets (on Editor instance) instead.");
+        return PreferencesManager.get(CLOSE_BRACKETS);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets show line numbers option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.setShowLineNumbers = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setShowLineNumbers was called, use Editor.prototype.setShowLineNumbers (on Editor instance) instead.");
+        PreferencesManager.set(SHOW_LINE_NUMBERS, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {boolean} Returns true if show line numbers is enabled for the current editor
+     */
+    Editor.getShowLineNumbers = function () {
+        DeprecationWarning.deprecationWarning("Editor.getShowLineNumbers was called, use Editor.prototype.getShowLineNumbers (on Editor instance) instead.");
+        return PreferencesManager.get(SHOW_LINE_NUMBERS);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets show active line option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.setShowActiveLine = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setShowActiveLine was called, use Editor.prototype.setShowActiveLine (on Editor instance) instead.");
+        PreferencesManager.set(STYLE_ACTIVE_LINE, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {boolean} Returns true if show active line is enabled for the current editor
+     */
+    Editor.getShowActiveLine = function () {
+        DeprecationWarning.deprecationWarning("Editor.getShowActiveLine was called, use Editor.prototype.getShowActiveLine (on Editor instance) instead.");
+        return PreferencesManager.get(STYLE_ACTIVE_LINE);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * Sets word wrap option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     */
+    Editor.setWordWrap = function (value) {
+        DeprecationWarning.deprecationWarning("Editor.setWordWrap was called, use Editor.prototype.setWordWrap (on Editor instance) instead.");
+        PreferencesManager.set(WORD_WRAP, value);
+    };
+    
+    /**
+     * @deprecated Use Editor instance method instead
+     * @type {boolean} Returns true if word wrap is enabled for the current editor
+     */
+    Editor.getWordWrap = function () {
+        DeprecationWarning.deprecationWarning("Editor.getWordWrap was called, use Editor.prototype.getWordWrap (on Editor instance) instead.");
+        return PreferencesManager.get(WORD_WRAP);
+    };
+    
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
