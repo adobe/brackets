@@ -239,6 +239,10 @@ a:focus {
     0%   { opacity: 0.5; -webkit-transform: translate3d(0, 0, 0) scale(0.5); }
     100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
 }
+@keyframes dropdown {
+    0%   { opacity: 0.5; transform: translate3d(0, 0, 0) scale(0.5); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
 
 // Code hints don't need scaling navigation so we're removing it
 
@@ -615,10 +619,18 @@ a:focus {
     0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0); }
     100% { opacity: 0.4; -webkit-transform: translate3d(0, 0, 0); }
 }
+@keyframes backdrop {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0); }
+    100% { opacity: 0.4; transform: translate3d(0, 0, 0); }
+}
 
 @-webkit-keyframes modal {
     0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0) scale(0); }
     100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes modal {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0) scale(0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 
