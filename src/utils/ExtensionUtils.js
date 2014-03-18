@@ -88,7 +88,14 @@ define(function (require, exports, module) {
             options = {
                 filename: file,
                 paths:    [dir],
-                rootpath: dir
+                rootpath: dir,
+                currentFileInfo: {
+                    currentDirectory: dir,
+                    entryPath: dir,
+                    filename: url,
+                    rootFilename: url,
+                    rootpath: dir
+                }
             };
         }
         
