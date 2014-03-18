@@ -64,30 +64,33 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var AnimationUtils     = require("utils/AnimationUtils"),
+        Async              = require("utils/Async"),
+        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
-        ViewUtils          = require("utils/ViewUtils"),
-        Async              = require("utils/Async"),
-        AnimationUtils     = require("utils/AnimationUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
+        ViewUtils          = require("utils/ViewUtils"),
         _                  = require("thirdparty/lodash");
     
     /** Editor preferences */
-    var SMART_INDENT      = "smartIndent",
-        USE_TAB_CHAR      = "useTabChar",
-        TAB_SIZE          = "tabSize",
-        SPACE_UNITS       = "spaceUnits",
-        CLOSE_BRACKETS    = "closeBrackets",
-        SHOW_LINE_NUMBERS = "showLineNumbers",
-        STYLE_ACTIVE_LINE = "styleActiveLine",
-        WORD_WRAP         = "wordWrap",
+    var CLOSE_BRACKETS    = "closeBrackets",
         CLOSE_TAGS        = "closeTags",
-        cmOptions         = {};
+        SCROLL_PAST_END   = "scrollPastEnd",
+        SHOW_LINE_NUMBERS = "showLineNumbers",
+        SMART_INDENT      = "smartIndent",
+        SOFT_TABS         = "softTabs",
+        SPACE_UNITS       = "spaceUnits",
+        STYLE_ACTIVE_LINE = "styleActiveLine",
+        TAB_SIZE          = "tabSize",
+        WORD_WRAP         = "wordWrap",
+        USE_TAB_CHAR      = "useTabChar";
+    
+    var cmOptions         = {};
     
     /** @type {number} Constants */
     var MIN_SPACE_UNITS         =  0,
@@ -98,36 +101,38 @@ define(function (require, exports, module) {
         MAX_TAB_SIZE            = 10;
     
     // Mappings from Brackets preferences to CodeMirror options
-    cmOptions[SMART_INDENT]       = "smartIndent";
-    cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
-    cmOptions[TAB_SIZE]           = "indentUnit";
-    cmOptions[SPACE_UNITS]        = "indentUnit";
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
-    cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
-    cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
-    cmOptions[WORD_WRAP]          = "lineWrapping";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
+    cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
+    cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
+    cmOptions[SMART_INDENT]       = "smartIndent";
+    cmOptions[SPACE_UNITS]        = "indentUnit";
+    cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
+    cmOptions[TAB_SIZE]           = "indentUnit";
+    cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
+    cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(SMART_INDENT, "boolean", true);
-    PreferencesManager.definePreference(USE_TAB_CHAR, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
-        validator: function (value) {
-            return ValidationUtils.isIntegerInRange(value, MIN_TAB_SIZE, MAX_TAB_SIZE);
-        }
-    });
+    PreferencesManager.definePreference(CLOSE_BRACKETS,    "boolean", false);
+    PreferencesManager.definePreference(CLOSE_TAGS,        "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(SCROLL_PAST_END,   "boolean", false);
+    PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
+    PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
+    PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
     PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
         validator: function (value) {
             return ValidationUtils.isIntegerInRange(value, MIN_SPACE_UNITS, MAX_SPACE_UNITS);
         }
     });
-    PreferencesManager.definePreference(CLOSE_BRACKETS, "boolean", false);
-    PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
-    PreferencesManager.definePreference(WORD_WRAP, "boolean", true);
-    PreferencesManager.definePreference(CLOSE_TAGS, "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
+        validator: function (value) {
+            return ValidationUtils.isIntegerInRange(value, MIN_TAB_SIZE, MAX_TAB_SIZE);
+        }
+    });
+    PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
+    PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
     
-    var editorOptions = [SMART_INDENT, USE_TAB_CHAR, TAB_SIZE, SPACE_UNITS, CLOSE_BRACKETS,
-                          SHOW_LINE_NUMBERS, STYLE_ACTIVE_LINE, WORD_WRAP, CLOSE_TAGS];
+    var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
     
@@ -248,22 +253,23 @@ define(function (require, exports, module) {
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
-            electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            smartIndent: currentOptions[SMART_INDENT],
-            indentWithTabs: currentOptions[USE_TAB_CHAR],
-            tabSize: currentOptions[TAB_SIZE],
-            indentUnit: currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
-            lineNumbers: currentOptions[SHOW_LINE_NUMBERS],
-            lineWrapping: currentOptions[WORD_WRAP],
-            styleActiveLine: currentOptions[STYLE_ACTIVE_LINE],
-            coverGutterNextToScrollbar: true,
-            matchBrackets: true,
-            matchTags: {bothTags: true},
-            dragDrop: false,
-            extraKeys: codeMirrorKeyMap,
-            autoCloseBrackets: currentOptions[CLOSE_BRACKETS],
-            autoCloseTags: currentOptions[CLOSE_TAGS],
-            cursorScrollMargin: 3
+            autoCloseBrackets           : currentOptions[CLOSE_BRACKETS],
+            autoCloseTags               : currentOptions[CLOSE_TAGS],
+            coverGutterNextToScrollbar  : true,
+            cursorScrollMargin          : 3,
+            dragDrop                    : false,
+            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            extraKeys                   : codeMirrorKeyMap,
+            indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
+            indentWithTabs              : currentOptions[USE_TAB_CHAR],
+            lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
+            lineWrapping                : currentOptions[WORD_WRAP],
+            matchBrackets               : true,
+            matchTags                   : { bothTags: true },
+            scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
+            smartIndent                 : currentOptions[SMART_INDENT],
+            styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
+            tabSize                     : currentOptions[TAB_SIZE]
         });
         
         // Can't get CodeMirror's focused state without searching for
@@ -530,7 +536,7 @@ define(function (require, exports, module) {
         var instance = this._codeMirror,
             overallJump = null;
         
-        if (!instance.getOption("indentWithTabs")) {
+        if (!instance.getOption("indentWithTabs") && PreferencesManager.get(SOFT_TABS)) {
             var indentUnit = instance.getOption("indentUnit");
             
             _.each(this.getSelections(), function (sel) {
@@ -1166,7 +1172,7 @@ define(function (require, exports, module) {
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
     Editor.prototype.setSelections = function (selections, center, centerOptions) {
-        var primIndex;
+        var primIndex = selections.length - 1;
         this._codeMirror.setSelections(_.map(selections, function (sel, index) {
             if (sel.primary) {
                 primIndex = index;
@@ -1847,6 +1853,7 @@ define(function (require, exports, module) {
         
         if (oldValue !== newValue) {
             this._currentOptions[prefName] = newValue;
+            var useTabChar = this._currentOptions[USE_TAB_CHAR];
             
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -1856,15 +1863,13 @@ define(function (require, exports, module) {
                                           );
             } else if (prefName === STYLE_ACTIVE_LINE) {
                 this._updateStyleActiveLine();
+            } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
+                // Do not apply this option to inline editors
+                return;
+            } else if ((useTabChar && prefName === SPACE_UNITS) || (!useTabChar && prefName === TAB_SIZE)) {
+                // This change conflicts with the useTabChar setting, so do not change the CodeMirror option
+                return;
             } else {
-                // Set the CodeMirror option as long as it's not a change
-                // that is in conflict with the useTabChar setting.
-                var useTabChar = this._currentOptions[USE_TAB_CHAR];
-                if ((useTabChar && prefName === SPACE_UNITS) ||
-                        (!useTabChar && prefName === TAB_SIZE)) {
-                    return;
-                }
-                
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
             
