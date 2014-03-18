@@ -51,6 +51,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
     require("thirdparty/CodeMirror2/addon/edit/closebrackets");
     require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/selection/active-line");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
@@ -99,15 +100,28 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
+        DeprecationWarning      = require("utils/DeprecationWarning"),
+        ViewCommandHandlers     = require("view/ViewCommandHandlers"),
         _                       = require("thirdparty/lodash");
-        
+    
+    // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
+    // expose our required CodeMirror globally so as to avoid breaking extensions in the
+    // interim.
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+
+    Object.defineProperty(window, "CodeMirror", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror2/lib/codemirror") instead of global CodeMirror.', true);
+            return CodeMirror;
+        }
+    });
+    
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
@@ -220,6 +234,7 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 // Finish UI initialization
+                ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
