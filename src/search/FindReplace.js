@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         ViewUtils           = require("utils/ViewUtils"),
         _                   = require("thirdparty/lodash"),
-        CodeMirror          = require("thirdparty/CodeMirror2/lib/CodeMirror");
+        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
     var searchBarTemplate            = require("text!htmlContent/findreplace-bar.html"),
         searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
