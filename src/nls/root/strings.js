@@ -178,7 +178,6 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
-    
 
     /**
      * ProjectManager
@@ -458,6 +457,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
     
     /**
      * Unit names

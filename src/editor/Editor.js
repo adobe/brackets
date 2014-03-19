@@ -884,13 +884,18 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getColOffset = function (pos) {
         var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
-            tabSize = Editor.getTabSize(),
+            tabSize = null,
             column  = 0,
             i;
 
         for (i = 0; i < line.length; i++) {
             if (line[i] === '\t') {
-                column += (tabSize - (column % tabSize));
+                if (tabSize === null) {
+                    tabSize = Editor.getTabSize();
+                }
+                if (tabSize > 0) {
+                    column += (tabSize - (column % tabSize));
+                }
             } else {
                 column++;
             }
@@ -1136,9 +1141,11 @@ define(function (require, exports, module) {
      * @param {{line:number, ch:number}=} end If not specified, defaults to start.
      * @param {boolean} center true to center the viewport
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
+     * @param {?string} origin An optional string that describes what other selection or edit operations this
+     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
      */
-    Editor.prototype.setSelection = function (start, end, center, centerOptions) {
-        this.setSelections([{start: start, end: end || start}], center, centerOptions);
+    Editor.prototype.setSelection = function (start, end, center, centerOptions, origin) {
+        this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
     };
     
     /**
@@ -1153,15 +1160,20 @@ define(function (require, exports, module) {
      *      one selection has primary set to true. If none has primary set to true, the last one is primary.
      * @param {boolean} center true to center the viewport around the primary selection.
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
+     * @param {?string} origin An optional string that describes what other selection or edit operations this
+     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
      */
-    Editor.prototype.setSelections = function (selections, center, centerOptions) {
-        var primIndex = selections.length - 1;
+    Editor.prototype.setSelections = function (selections, center, centerOptions, origin) {
+        var primIndex = selections.length - 1, options;
+        if (origin) {
+            options = { origin: origin };
+        }
         this._codeMirror.setSelections(_.map(selections, function (sel, index) {
             if (sel.primary) {
                 primIndex = index;
             }
             return { anchor: sel.reversed ? sel.end : sel.start, head: sel.reversed ? sel.start : sel.end };
-        }), primIndex);
+        }), primIndex, options);
         if (center) {
             this.centerOnCursor(centerOptions);
         }
