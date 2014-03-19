@@ -79,7 +79,8 @@
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"]
+        "fileExtensions": ["json"],
+        "fileNames": [".jshintrc", ".bowerrc"]
     },
 
     "xml": {
@@ -165,7 +166,7 @@
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile"],
+        "fileNames": ["Gemfile", "Rakefile", "Guardfile"],
         "lineComment": ["#"]
     },
 
