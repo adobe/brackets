@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -132,11 +132,14 @@ define(function (require, exports, module) {
 
         describe("HTML Url Code Hints", function () {
 
-            // This MUST be the FIRST "test"
-            it("should setup before tests", function () {
+            beforeFirst(function () {
                 setupTests();
             });
             
+            afterLast(function () {
+                tearDownTests();
+            });
+
             it("should hint for href attribute", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 12, ch: 12 });
@@ -189,20 +192,18 @@ define(function (require, exports, module) {
                     verifyUrlHints(hintsObj.hints, expectedFirstItem);
                 });
             });
-            
-            // This MUST be the LAST "test"
-            it("should cleanup after tests", function () {
-                tearDownTests();
-            });
         });
         
         describe("CSS Url Code Hints", function () {
             
-            // This MUST be the FIRST "test"
-            it("should setup before tests", function () {
+            beforeFirst(function () {
                 setupTests();
             });
             
+            afterLast(function () {
+                tearDownTests();
+            });
+
             it("should hint for @import url()", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 4, ch: 12 });
@@ -271,11 +272,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     verifyUrlHints(hintsObj.hints);
                 });
-            });
-            
-            // This MUST be the LAST "test"
-            it("should cleanup after tests", function () {
-                tearDownTests();
             });
         });
             
