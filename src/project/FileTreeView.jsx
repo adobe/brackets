@@ -25,19 +25,38 @@ define(function (require, exports, module) {
     });
 
     DirectoryNode = React.createClass({
+        componentDidMount: function () {
+            this.props.directory.getContents(function (err, contents) {
+                if (!err) {
+                    this.state.setState({
+                        contents: contents
+                    });
+                }
+            });
+        },
         render: function () {
-        }
-    });
-    
-    FileTreeView = React.createClass({
-        render: function () {
-            var nodes = this.props.contents.map(function (entry) {
-                return this._formatEntry(entry);
-            }.bind(this));
+            var nodes;
+            if (this.state.contents) {
+                nodes = this.state.contents.map(function (entry) {
+                    return this._formatEntry(entry);
+                }.bind(this));
+            } else {
+                nodes = []
+            }
+            
+            var open = this.props.openPaths[this.props.directory.fullPath] ? "open" : "closed";
+            
             return (
-                <ul className="jstree-no-dots jstree-no-icons">
-                    {nodes}
-                </ul>
+                <li className={"jstree-" + open}>
+                    <ins className="jstree-icon">&nbsp;</ins>
+                    <a href="#">
+                        <ins class="jstree-icon">&nbsp;</ins>
+                        {this.props.directory.name}
+                    </a>
+                    <ul>
+                        {nodes}
+                    </ul>
+                </li>
             );
         },
         
@@ -60,5 +79,20 @@ define(function (require, exports, module) {
                 );
             }
         }
+    });
+    
+    FileTreeView = React.createClass({
+        render: function () {
+            return (
+                <ul className="jstree-no-dots jstree-no-icons">
+                    <DirectoryNode
+                        key={this.props.root.fullPath}
+                        directory={this.props.root}
+                        openPaths=this.props.openPaths>
+                    </DirectoryNode>
+                </ul>
+            );
+        }
+        
     });
 });
