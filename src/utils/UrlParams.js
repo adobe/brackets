@@ -55,7 +55,7 @@ define(function (require, exports, module) {
             queryString = url.substring(url.indexOf("?") + 1);
         }
         
-        queryString = queryString.replace(/\s*$/, "");
+        queryString = queryString.trimRight();
         
         if (queryString) {
             urlParams = queryString.split("&");
