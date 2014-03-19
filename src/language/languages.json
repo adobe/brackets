@@ -80,7 +80,7 @@
         "name": "JSON",
         "mode": ["javascript", "application/json"],
         "fileExtensions": ["json"],
-        "fileNames": [".jshintrc"]
+        "fileNames": [".jshintrc", ".bowerrc"]
     },
 
     "xml": {
