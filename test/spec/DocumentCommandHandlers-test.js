@@ -752,7 +752,10 @@ define(function (require, exports, module) {
         describe("Save As", function () {
             var filePath,
                 newFilename,
-                newFilePath;
+                newFilePath,
+                selections = [{start: {line: 0, ch: 1}, end: {line: 0, ch: 3}, primary: false, reversed: false},
+                              {start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true, reversed: false},
+                              {start: {line: 0, ch: 9}, end: {line: 0, ch: 12}, primary: false, reversed: true}];
             
             beforeEach(function () {
                 filePath    = testPath + "/test.js";
@@ -768,8 +771,10 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    var currentDocument = DocumentManager.getCurrentDocument();
+                    var currentDocument = DocumentManager.getCurrentDocument(),
+                        currentEditor = EditorManager.getActiveEditor();
                     expect(currentDocument.file.fullPath).toEqual(filePath);
+                    currentEditor.setSelections(selections);
                 });
 
                 runs(function () {
@@ -782,8 +787,10 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    var currentDocument = DocumentManager.getCurrentDocument();
+                    var currentDocument = DocumentManager.getCurrentDocument(),
+                        currentEditor = EditorManager.getActiveEditor();
                     expect(currentDocument.file.fullPath).toEqual(newFilePath);
+                    expect(currentEditor.getSelections()).toEqual(selections);
                 });
 
                 runs(function () {

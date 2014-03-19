@@ -93,8 +93,10 @@
     span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
     span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
 
-    .CodeMirror-cursor {
-        .code-cursor();
+    .CodeMirror-cursors {
+        .CodeMirror-cursor {
+            .code-cursor();
+        }
 
         /* Ensure the cursor shows up in front of code spans with a background color
          * (e.g. matchingbracket).
@@ -177,7 +179,7 @@
     other than a vanilla .CodeMirror)
  */
 .CodeMirror {
-    div.CodeMirror-cursor.CodeMirror-overwrite {
+    div.CodeMirror-overwrite div.CodeMirror-cursor {
         border-left: none !important;
         border-bottom: 1px solid black !important;
         width: 1.2ex;
@@ -193,10 +195,10 @@
         color: @accent-bracket !important;
     }
 
-    .CodeMirror .CodeMirror-cursor {
+    .CodeMirror .CodeMirror-cursors {
         visibility: hidden;
     }
-    .CodeMirror.CodeMirror-focused .CodeMirror-cursor {
+    .CodeMirror.CodeMirror-focused .CodeMirror-cursors {
         visibility: visible;
     }
     

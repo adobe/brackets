@@ -233,7 +233,7 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico"],
         "isBinary": true
     },
     

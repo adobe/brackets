@@ -75,6 +75,11 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager");
     
+    
+    // Define the preference to decide how to sort the Project Tree files
+    PreferencesManager.definePreference("sortDirectoriesFirst", "boolean", brackets.platform !== "mac");
+    
+    
     /**
      * @private
      * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
@@ -86,9 +91,8 @@ define(function (require, exports, module) {
      * @private
      * File tree sorting for mac-specific sorting behavior
      */
-    var _isMac          = brackets.platform === "mac",
-        _sortPrefixDir  = _isMac ? "" : "0",
-        _sortPrefixFile = _isMac ? "" : "1";
+    var _sortPrefixDir,
+        _sortPrefixFile;
     
     /**
      * @private
@@ -196,6 +200,28 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     var _allFilesCachePromise = null;
+    
+    /**
+     * @private
+     * @type {boolean}
+     * Current sort order for the tree, true if directories are first. This is
+     * initialized in _generateSortPrefixes.
+     */
+    var _dirFirst;
+    
+    /**
+     * @private
+     * Generates the prefixes used for sorting the files in the project tree
+     * @return {boolean} true if the sort prefixes have changed
+     */
+    function _generateSortPrefixes() {
+        var previousDirFirst  = _dirFirst;
+        _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir        = _dirFirst ? "0" : "";
+        _sortPrefixFile       = _dirFirst ? "1" : "";
+        
+        return previousDirFirst !== _dirFirst;
+    }
     
     /**
      * @private
@@ -697,7 +723,7 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _toCompareString(name, isFolder) {
-        return ((isFolder) ? _sortPrefixDir : _sortPrefixFile) + name;
+        return (isFolder ? _sortPrefixDir : _sortPrefixFile) + name;
     }
     
     /**
@@ -1083,6 +1109,7 @@ define(function (require, exports, module) {
 
                         _projectRoot = rootEntry;
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
+                        _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -1780,8 +1807,13 @@ define(function (require, exports, module) {
                 
                 // Since html_titles are enabled, we have to reset the text without markup.
                 // And we also need to explicitly escape all html-sensitive characters.
-                _projectTree.jstree("set_text", $selected, _.escape(entry.name));
+                var escapedName = _.escape(entry.name);
+                _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
+                var indexOfExtension = escapedName.lastIndexOf('.');
+                if (indexOfExtension > 0) {
+                    $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }
@@ -2114,6 +2146,8 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    
+    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -2186,6 +2220,14 @@ define(function (require, exports, module) {
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
+    // Initialize the sort prefixes and make sure to change them when the sort pref changes
+    _generateSortPrefixes();
+    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
+        if (_generateSortPrefixes()) {
+            refreshFileTree();
+        }
+    });
+    
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
@@ -2194,7 +2236,7 @@ define(function (require, exports, module) {
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
-    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
+    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
     
     // Init invalid characters string 
     if (brackets.platform === "mac") {

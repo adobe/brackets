@@ -1,0 +1,1 @@
+window.onload = function () {document.body.style.backgroundColor = '#090'}
