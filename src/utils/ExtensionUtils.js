@@ -88,15 +88,18 @@ define(function (require, exports, module) {
             options = {
                 filename: file,
                 paths:    [dir],
-                rootpath: dir,
-                currentFileInfo: {
+                rootpath: dir
+            };
+
+            if (url.indexOf("file://") === 0) {
+                options.currentFileInfo = {
                     currentDirectory: dir,
                     entryPath: dir,
                     filename: url,
                     rootFilename: url,
                     rootpath: dir
-                }
-            };
+                };
+            }
         }
         
         var parser = new less.Parser(options);
