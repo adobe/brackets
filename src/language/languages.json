@@ -79,7 +79,8 @@
     "json": {
         "name": "JSON",
         "mode": ["javascript", "application/json"],
-        "fileExtensions": ["json"]
+        "fileExtensions": ["json"],
+        "fileNames": [".jshintrc"]
     },
 
     "xml": {
