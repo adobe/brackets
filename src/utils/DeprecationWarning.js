@@ -58,16 +58,35 @@ define(function (require, exports, module) {
      * Show deprecation message with the call stack if it 
      * has never been displayed before.
      * @param {!string} message The deprecation message to be displayed.
+     * @param {boolean=} oncePerCaller If true, displays the message once for each unique call location.
+     *     If false (the default), only displays the message once no matter where it's called from.
+     *     Note that setting this to true can cause a slight performance hit (because it has to generate
+     *     a stack trace), so don't set this for functions that you expect to be called from performance-
+     *     sensitive code (e.g. tight loops).
      */
-    function deprecationWarning(message) {
-        // If we have displayed this message before, then don't 
-        // show it again.
-        if (!message || displayedWarnings[message]) {
+    function deprecationWarning(message, oncePerCaller) {
+        // If oncePerCaller isn't set, then only show the message once no matter who calls it. 
+        if (!message || (!oncePerCaller && displayedWarnings[message])) {
             return;
         }
 
-        console.warn(message + "\n" + _trimStack(new Error().stack));
-        displayedWarnings[message] = true;
+        // Don't show the warning again if we've already gotten it from the current caller.
+        // The true caller location is the fourth line in the stack trace:
+        // * 0 is the word "Error"
+        // * 1 is this function
+        // * 2 is the caller of this function (the one throwing the deprecation warning)
+        // * 3 is the actual caller of the deprecated function.
+        var stack = new Error().stack,
+            callerLocation = stack.split("\n")[3];
+        if (oncePerCaller && displayedWarnings[message] && displayedWarnings[message][callerLocation]) {
+            return;
+        }
+        
+        console.warn(message + "\n" + _trimStack(stack));
+        if (!displayedWarnings[message]) {
+            displayedWarnings[message] = {};
+        }
+        displayedWarnings[message][callerLocation] = true;
     }
 
     // Define public API
