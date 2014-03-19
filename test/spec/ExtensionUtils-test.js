@@ -111,8 +111,7 @@ define(function (require, exports, module) {
                     waitsForFail(promise, "loadStyleSheet: " + path);
                 });
             });
-            
-            // putting everything LESS related in 1 test so it runs faster
+
             it("should attach LESS style sheets", function () {
                 var promise, result;
                 
@@ -138,7 +137,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            // putting everything LESS related in 1 test so it runs faster
             it("should attach LESS style sheets using absolute url", function () {
                 var promise, result;
 
