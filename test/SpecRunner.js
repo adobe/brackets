@@ -28,12 +28,13 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"              : "../test",
-        "perf"              : "../test/perf",
-        "spec"              : "../test/spec",
-        "text"              : "thirdparty/text/text",
-        "i18n"              : "thirdparty/i18n/i18n",
-        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+        "test"                          : "../test",
+        "perf"                          : "../test/perf",
+        "spec"                          : "../test/spec",
+        "text"                          : "thirdparty/text/text",
+        "i18n"                          : "thirdparty/i18n/i18n",
+        "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
     }
 });
 
@@ -58,7 +59,6 @@ define(function (require, exports, module) {
         NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
         PreferencesBase         = require("preferences/PreferencesBase"),
         NativeApp               = require("utils/NativeApp");
 
@@ -147,18 +147,6 @@ define(function (require, exports, module) {
     }
     
     function _documentReadyHandler() {
-        var pm = PreferencesManager._manager,
-            sm = PreferencesManager.stateManager;
-        pm.removeScope("user");
-        pm.addScope("user", new PreferencesBase.MemoryStorage(), {
-            before: "default"
-        });
-
-        sm.removeScope("user");
-        sm.addScope("user", new PreferencesBase.MemoryStorage(), {
-            before: "default"
-        });
-        
         if (brackets.app.showDeveloperTools) {
             $("#show-dev-tools").click(function () {
                 brackets.app.showDeveloperTools();
