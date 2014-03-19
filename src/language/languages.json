@@ -165,7 +165,7 @@
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile"],
+        "fileNames": ["Gemfile", "Rakefile", "Guardfile"],
         "lineComment": ["#"]
     },
 
