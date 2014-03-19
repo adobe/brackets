@@ -329,7 +329,7 @@ define(function (require, exports, module) {
             // Updates the z-index of the modal dialog and the backdrop
             .css("z-index", zIndex + 1)
             .next()
-            .css("z-index", zIndex)
+            .css("z-index", zIndex);
         
         zIndex += 2;
         
