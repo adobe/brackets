@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define, brackets, $ */
 
 /**
  *  Utilities functions related to color matching
@@ -258,15 +258,18 @@ define(function (require, exports, module) {
             return;
         }
         
+        $(editor.hint[0]).removeClass("fadeout");
         if (show) {
             editor.hintShown = true;
             editor.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
             editor.hint.css("display", "block");
         } else if (editor.hintShown) {
+            editor.hintShown = false;
             AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
                 .done(function () {
-                    editor.hint.css("display", "none");
-                    editor.hintShown = false;
+                    if (!editor.hintShown) {
+                        editor.hint.css("display", "none");
+                    }
                 });
         } else {
             editor.hint.css("display", "none");
