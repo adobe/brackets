@@ -6,7 +6,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    FileNode = React.createClass({
+    var React = require("react");
+    
+    var FileNode = React.createClass({
         render: function () {
             var i = entry.name.lastIndexOf("."),
                 name = entry.name.substring(0, i),
@@ -24,15 +26,18 @@ define(function (require, exports, module) {
         }
     });
 
-    DirectoryNode = React.createClass({
+    var DirectoryNode = React.createClass({
         componentDidMount: function () {
-            this.props.directory.getContents(function (err, contents) {
-                if (!err) {
-                    this.state.setState({
-                        contents: contents
-                    });
-                }
-            });
+            var open = this.props.openPaths[this.props.directory.fullPath] ? "open" : "closed";
+            if (open) {
+                this.props.directory.getContents(function (err, contents) {
+                    if (!err) {
+                        this.state.setState({
+                            contents: contents
+                        });
+                    }
+                });
+            }
         },
         render: function () {
             var nodes;
@@ -81,18 +86,29 @@ define(function (require, exports, module) {
         }
     });
     
-    FileTreeView = React.createClass({
+    var FileTreeView = React.createClass({
         render: function () {
             return (
                 <ul className="jstree-no-dots jstree-no-icons">
                     <DirectoryNode
                         key={this.props.root.fullPath}
                         directory={this.props.root}
-                        openPaths=this.props.openPaths>
+                        openPaths={this.props.openPaths}>
                     </DirectoryNode>
                 </ul>
             );
         }
         
     });
+    
+    function render(element, root, openPaths) {
+        React.renderComponent(
+            <FileTreeView
+                root={root}
+                openPaths={openPaths}/>,
+            element
+        )
+    }
+    
+    exports.render = render;
 });

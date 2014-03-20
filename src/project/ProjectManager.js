@@ -73,7 +73,8 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Async               = require("utils/Async"),
         FileSyncManager     = require("project/FileSyncManager"),
-        EditorManager       = require("editor/EditorManager");
+        EditorManager       = require("editor/EditorManager"),
+        FileTreeView        = require("jsx!project/FileTreeView");
     
     
     // Define the preference to decide how to sort the Project Tree files
@@ -524,7 +525,11 @@ define(function (require, exports, module) {
     }, function (a, b) {
         return $(a).data("compareString") + ":" + $(b).data("compareString");
     });
-
+    
+    function _newrenderTree() {
+        FileTreeView.render($projectTreeContainer[0], _projectRoot, []);
+    }
+    
     /**
      * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI

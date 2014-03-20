@@ -12,6 +12,10 @@
             "spaceUnits": 2,
             "linting.enabled": false
         },
+        "src/thirdparty/jsx.js": {
+            "spaceUnits": 2,
+            "linting.enabled": false
+        },
         "*.jsx": {
             "linting.enabled": false
         }
