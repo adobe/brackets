@@ -327,7 +327,7 @@ define({
     "CMD_PREV_DOC"                        : "上一个文件",
     "CMD_SHOW_IN_TREE"                    : "在侧边栏显示",
     "CMD_SHOW_IN_EXPLORER"                : "在资源管理器中显示",
-    "CMD_SHOW_IN_FINDER"                  : "在查找中显示",
+    "CMD_SHOW_IN_FINDER"                  : "在 Finder 中显示",
     "CMD_SHOW_IN_OS"                      : "打开文件所在目录",
     
     // Help menu commands
@@ -361,7 +361,7 @@ define({
     "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
     "UPDATE_MESSAGE"                       : "有一个新版本的 {APP_NAME}. 增加了一些功能:",
     "GET_IT_NOW"                           : "马上获取!",
-    "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
+    "PROJECT_SETTINGS_TITLE"               : "项目设置: {0}",
     "PROJECT_SETTING_BASE_URL"             : "实时预览的根目录地址",
     "PROJECT_SETTING_BASE_URL_HINT"        : "使用本地服务器, 并指定一个URL. 例如: http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "实时预览不支持此协议 {0} &mdash;请使用 http: 或 https: .",
