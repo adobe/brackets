@@ -826,7 +826,11 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        ProjectManager.getAllFiles(_isReadableText, true)
+        var _filterFiles = function (file) {
+            return FileFilters.filterPath(currentFilter, file.fullPath) && _isReadableText(file);
+        };
+
+        ProjectManager.getAllFiles(_filterFiles, true)
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(currentFilter, fileListResult);

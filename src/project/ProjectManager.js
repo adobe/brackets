@@ -1956,6 +1956,43 @@ define(function (require, exports, module) {
         
         return _allFilesCachePromise;
     }
+
+    function _getFilteredFilesCache(filter) {
+        if (!_allFilesCachePromise) {
+            var deferred = new $.Deferred(),
+                allFiles = [],
+                allFilesVisitor = function (entry) {
+                    if (shouldShow(entry)) {
+                        if (entry.isFile && !isBinaryFile(entry.name)) {
+                            allFiles.push(entry);
+                        }
+                        return true;
+                    }
+                    return false;
+                };
+
+            var _combinedFilter = function (entry) {
+                if (filter(entry)) {
+                    return allFilesVisitor(entry);
+                }
+
+                return false;
+            };
+
+            _allFilesCachePromise = deferred.promise();
+
+            getProjectRoot().visit(_combinedFilter, function (err) {
+                if (err) {
+                    deferred.reject();
+                    _allFilesCachePromise = null;
+                } else {
+                    deferred.resolve(allFiles);
+                }
+            });
+        }
+
+        return _allFilesCachePromise;
+    }
     
     /**
      * Returns an Array of all files for this project, optionally including
@@ -1981,7 +2018,7 @@ define(function (require, exports, module) {
         var filteredFilesDeferred = new $.Deferred();
         
         // First gather all files in project proper
-        _getAllFilesCache().done(function (result) {
+        _getFilteredFilesCache(filter).done(function (result) {
             // Add working set entries, if requested
             if (includeWorkingSet) {
                 DocumentManager.getWorkingSet().forEach(function (file) {
@@ -1992,9 +2029,9 @@ define(function (require, exports, module) {
             }
             
             // Filter list, if requested
-            if (filter) {
-                result = result.filter(filter);
-            }
+//            if (filter) {
+//                result = result.filter(filter);
+//            }
             
             // If a done handler attached to the returned filtered files promise
             // throws an exception that isn't handled here then it will leave
