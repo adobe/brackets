@@ -287,9 +287,11 @@ define(function (require, exports, module) {
      * Registers a new jump-to-definition provider. When jump-to-definition is invoked each
      * registered provider is asked if it wants to provide jump-to-definition results, given
      * the current editor and cursor location. 
+     * 
      * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
-     * The provider returns a promise that will be resolved with jump-to-definition results, or
-     * returns null to indicate the provider doesn't want to respond to this case.
+     * The provider returns a promise that is resolved whenever it's done handling the operation,
+     * or returns null to indicate the provider doesn't want to respond to this case. It is entirely
+     * up to the provider to open the file containing the definition, select the appropriate text, etc.
      */
     function registerJumpToDefProvider(provider) {
         _jumpToDefProviders.push(provider);
@@ -953,8 +955,8 @@ define(function (require, exports, module) {
     
     /**
      * Asynchronously asks providers to handle jump-to-definition.
-     * @return {!Promise} null if no appropriate provider exists. Else, returns a promise
-     *  which is resolved by adjusting the editor selection to the requested definition.
+     * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
+     *      provider responded or the provider that responded failed.
      */
     function _doJumpToDef() {
         var providers = _jumpToDefProviders;
@@ -962,15 +964,16 @@ define(function (require, exports, module) {
             i,
             result = new $.Deferred();
         
-        if (_currentEditor) {
-            // main editor has focus
+        var editor = getActiveEditor();
+        if (editor) {
+            var pos = editor.getCursorPos();
 
             PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
             
             // Run through providers until one responds
             for (i = 0; i < providers.length && !promise; i++) {
                 var provider = providers[i];
-                promise = provider();
+                promise = provider(editor, pos);
             }
 
             // Will one of them will provide a result?
