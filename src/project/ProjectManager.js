@@ -670,9 +670,20 @@ define(function (require, exports, module) {
             // install scroller shadows
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
-            _projectTree
-                .off("click.jstree", "li > ins")
-                .on("click.jstree", "li > ins", function (event) {
+            var findEventHandler = function (type, namespace, selector) {
+                var events        = $._data(_projectTree[0], "events"),
+                    eventsForType = events ? events[type] : null,
+                    event         = eventsForType ? _.find(eventsForType, function (e) {
+                                        return e.namespace === namespace && e.selector === selector;
+                                    }) : null,
+                    eventHandler  = event ? event.handler : null;
+                if (!eventHandler) {
+                    console.error(type + "." + namespace + " " + selector + " handler not found!");
+                }
+                return eventHandler;
+            };
+            var createCustomHandler = function(originalHandler) {
+                return function (event) {
                     var $node = $(event.target).parent("li");
                     if (event.ctrlKey || event.metaKey) {
                         if (event.altKey) {
@@ -692,8 +703,17 @@ define(function (require, exports, module) {
                         }
                     }
                     // original behaviour
-                    _projectTree.jstree("toggle_node", $node);
-                })
+                    originalHandler.apply(this, arguments);
+                };
+            };
+            var originalHrefHandler = findEventHandler("click", "jstree", "a");
+            var originalInsHandler = findEventHandler("click", "jstree", "li > ins");
+
+            _projectTree
+                .off("click.jstree", "a")
+                .on("click.jstree", "a", createCustomHandler(originalHrefHandler))
+                .off("click.jstree", "li > ins")
+                .on("click.jstree", "li > ins", createCustomHandler(originalInsHandler))
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
