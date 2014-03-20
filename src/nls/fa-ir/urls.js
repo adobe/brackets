@@ -26,5 +26,5 @@
 
 define({
     // Relative to the samples folder     
-    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.fa",
+    "WEB_PLATFORM_DOCS_LICENSE" : "http://creativecommons.org/licenses/by/3.0/deed.fa"
 });

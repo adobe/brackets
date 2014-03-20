@@ -170,7 +170,7 @@ define(function (require, exports, module) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         promise.fail(function (err) {
-            expect("[" + operationName + "] promise rejected with: " + err).toBe(null);
+            expect("[" + operationName + "] promise rejected with: " + err).toBe("(expected resolved instead)");
         });
         waitsFor(function () {
             return promise.state() === "resolved";
@@ -187,6 +187,9 @@ define(function (require, exports, module) {
     window.waitsForFail = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
+        promise.done(function (result) {
+            expect("[" + operationName + "] promise resolved with: " + result).toBe("(expected rejected instead)");
+        });
         waitsFor(function () {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);

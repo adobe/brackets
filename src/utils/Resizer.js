@@ -130,7 +130,7 @@ define(function (require, exports, module) {
      *  - panelExpanded: When the panel gets expanded (or shown). Passed the initial size.
      *      May occur without any resize events.
      *
-     * @param {!DOMNode} element DOM element which should be made resizable.
+     * @param {!DOMNode} element DOM element which should be made resizable. Must have an id attribute.
      * @param {!string} direction Direction of the resize action: one of the DIRECTION_* constants.
      * @param {!string} position Which side of the element can be dragged: one of the POSITION_* constants
      *                          (TOP/BOTTOM for vertical resizing or LEFT/RIGHT for horizontal).
@@ -159,6 +159,11 @@ define(function (require, exports, module) {
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
+        if (!elementID) {
+            console.error("Resizable panels must have a DOM id to use as a preferences key:", element);
+            return;
+        }
+        
         if (minSize === undefined) {
             minSize = DEFAULT_MIN_SIZE;
         }

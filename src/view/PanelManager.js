@@ -186,7 +186,7 @@ define(function (require, exports, module) {
      * Creates a new panel beneath the editor area and above the status bar footer. Panel is initially invisible.
      * 
      * @param {!string} id  Unique id for this panel. Use package-style naming, e.g. "myextension.feature.panelname"
-     * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet.
+     * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet. Must have an id.
      * @param {number=} minSize  Minimum height of panel in px.
      * @return {!Panel}
      */
