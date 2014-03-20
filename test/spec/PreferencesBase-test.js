@@ -278,7 +278,7 @@ define(function (require, exports, module) {
                 // MemoryStorage operates synchronously
                 scope.load();
                 
-                expect(pm.set("foo", foo)).toBe(true);
+                expect(pm.set("foo", foo).stored).toBe(true);
                 
                 expect(pm.get("foo").value).toBe(42);
                 expect(scope._dirty).toBe(true);
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
                                 
                 foo.value = "!!!";
                 expect(foo.value).toBe("!!!");
-                expect(pm.set("foo", foo)).toBe(true);
+                expect(pm.set("foo", foo).stored).toBe(true);
                 expect(scope._dirty).toBe(true);
                 
                 var fooCopyFromPref = pm.get("foo");
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
                     location: {
                         scope: "nonscope"
                     }
-                })).toBe(false);
+                }).stored).toBe(false);
             });
             
             it("supports nested scopes", function () {
@@ -894,20 +894,20 @@ define(function (require, exports, module) {
                     location: {
                         scope: "doesNotExist"
                     }
-                })).toBe(false);
+                }).stored).toBe(false);
                 expect(pm.get("spaceUnits")).toBe(4);
                 expect(changes).toBe(0);
                 expect(pm.getPreferenceLocation("spaceUnits")).toEqual({
                     scope: "default"
                 });
                 
-                expect(pm.set("spaceUnits", 6)).toBe(true);
+                expect(pm.set("spaceUnits", 6).stored).toBe(true);
                 expect(user.data).toEqual({
                     spaceUnits: 6
                 });
                 expect(changes).toBe(1);
                 
-                expect(pm.set("spaceUnits", 7)).toBe(true);
+                expect(pm.set("spaceUnits", 7).stored).toBe(true);
                 expect(user.data).toEqual({
                     spaceUnits: 7
                 });
@@ -917,7 +917,7 @@ define(function (require, exports, module) {
                     location: {
                         scope: "session"
                     }
-                })).toBe(true);
+                }).stored).toBe(true);
                 expect(user.data).toEqual({
                     spaceUnits: 7
                 });
@@ -926,7 +926,7 @@ define(function (require, exports, module) {
                 });
                 expect(changes).toBe(3);
                 
-                expect(pm.set("spaceUnits", 9)).toBe(true);
+                expect(pm.set("spaceUnits", 9).stored).toBe(true);
                 expect(changes).toBe(4);
                 expect(session.data).toEqual({
                     spaceUnits: 9
@@ -936,7 +936,7 @@ define(function (require, exports, module) {
                     location: {
                         scope: "session"
                     }
-                })).toBe(true);
+                }).stored).toBe(true);
                 expect(changes).toBe(5);
                 expect(session.data.spaceUnits).toBeUndefined();
                 expect(pm.get("spaceUnits")).toBe(7);
@@ -945,7 +945,7 @@ define(function (require, exports, module) {
                 pm.setDefaultFilename("/index.html");
                 expect(changes).toBe(6);
                 expect(pm.get("spaceUnits")).toBe(2);
-                expect(pm.set("spaceUnits", 10)).toBe(true);
+                expect(pm.set("spaceUnits", 10).stored).toBe(true);
                 expect(changes).toBe(7);
                 expect(project.data.path["**.html"].spaceUnits).toBe(10);
                 
@@ -957,11 +957,11 @@ define(function (require, exports, module) {
                     location: {
                         scope: "project"
                     }
-                })).toBe(true);
+                }).stored).toBe(true);
                 expect(pm.getPreferenceLocation("spaceUnits")).toEqual({
                     scope: "project"
                 });
-                expect(pm.set("spaceUnits", 12)).toBe(true);
+                expect(pm.set("spaceUnits", 12).stored).toBe(true);
                 expect(project.data.spaceUnits).toBe(12);
                 
                 expect(pm.set("spaceUnits", 13, {
@@ -970,7 +970,7 @@ define(function (require, exports, module) {
                         layer: "path",
                         layerID: "**.js"
                     }
-                })).toBe(true);
+                }).stored).toBe(true);
                 expect(pm.getPreferenceLocation("spaceUnits")).toEqual({
                     scope: "project"
                 });
@@ -1067,17 +1067,18 @@ define(function (require, exports, module) {
             
             it("should support validator to ignore invalid values", function () {
                 var pm = new PreferencesBase.PreferencesSystem();
+                pm.addScope("user", new PreferencesBase.MemoryStorage());
                 pm.definePreference("spaceUnits", "number", 4, {
                     validator: function (value) {
                         return (value >= 0 && value <= 10);
                     }
                 });
+
+                expect(pm.set("spaceUnits", 12).valid).toBe(false); // fail: out-of-range upper
+                expect(pm.get("spaceUnits")).toBe(4);               // expect default
                 
-                expect(pm.set("spaceUnits", 12)).toBe(false);  // fail: out-of-range upper
-                expect(pm.get("spaceUnits")).toBe(4);          // expect default
-                
-                expect(pm.set("spaceUnits", -1)).toBe(false);  // fail: out-of-range lower
-                expect(pm.get("spaceUnits")).toBe(4);          // expect default
+                expect(pm.set("spaceUnits", -1).valid).toBe(false); // fail: out-of-range lower
+                expect(pm.get("spaceUnits")).toBe(4);               // expect default
             });
         });
         
