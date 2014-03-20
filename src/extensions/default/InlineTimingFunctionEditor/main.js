@@ -65,7 +65,7 @@ define(function (require, exports, module) {
      *
      * @param {Editor} hostEditor
      * @param {{line:Number, ch:Number}} pos
-     * @return {?{color:String, start:TextMarker, end:TextMarker}}
+     * @return {timingFunction:{?string}, reason:{?string}, start:{?TextMarker}, end:{?TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
         var cursorLine, sel, startPos, endPos, startBookmark, endBookmark, currentMatch,
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
 
         sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
-            return null;
+            return {timingFunction: null, reason: null};
         }
         
         cursorLine = hostEditor.document.getLine(pos.line);
@@ -81,12 +81,12 @@ define(function (require, exports, module) {
         // code runs several matches complicated patterns, multiple times, so
         // first do a quick, simple check to see make sure we may have a match
         if (!cursorLine.match(/cubic-bezier|linear|ease|step/)) {
-            return null;
+            return {timingFunction: null, reason: null};
         }
 
         currentMatch = TimingFunctionUtils.timingFunctionMatch(cursorLine, false);
         if (!currentMatch) {
-            return null;
+            return {timingFunction: null, reason: Strings.ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX};
         }
         
         // check for subsequent matches, and use first match after pos
@@ -129,16 +129,17 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} hostEditor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
-     *      no color at pos.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if timing function with invalid syntax is detected at pos, or
+     *         null if there's no timing function at pos.
      */
     function inlineTimingFunctionEditorProvider(hostEditor, pos) {
         var context = prepareEditorForProvider(hostEditor, pos),
             inlineTimingFunctionEditor,
             result;
         
-        if (!context) {
-            return null;
+        if (!context.timingFunction) {
+            return context.reason || null;
         } else {
             inlineTimingFunctionEditor = new InlineTimingFunctionEditor(context.timingFunction, context.start, context.end);
             inlineTimingFunctionEditor.load(hostEditor);
@@ -162,8 +163,6 @@ define(function (require, exports, module) {
 
     init();
 
-    // for use by other InlineColorEditors
-    exports.prepareEditorForProvider = prepareEditorForProvider;
     
     // for unit tests only
     exports.inlineTimingFunctionEditorProvider = inlineTimingFunctionEditorProvider;

@@ -1084,7 +1084,7 @@ define(function (require, exports, module) {
             };
 
             if (!isUpdating) {
-                PreferencesManager.projectLayer.setProjectPath(rootPath);
+                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
             }
             
             // restore project tree state from last time this project was open
@@ -1807,8 +1807,13 @@ define(function (require, exports, module) {
                 
                 // Since html_titles are enabled, we have to reset the text without markup.
                 // And we also need to explicitly escape all html-sensitive characters.
-                _projectTree.jstree("set_text", $selected, _.escape(entry.name));
+                var escapedName = _.escape(entry.name);
+                _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
+                var indexOfExtension = escapedName.lastIndexOf('.');
+                if (indexOfExtension > 0) {
+                    $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }

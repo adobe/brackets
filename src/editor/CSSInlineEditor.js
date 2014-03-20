@@ -54,11 +54,14 @@ define(function (require, exports, module) {
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
      * @param {!Editor} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {selectorName: {string}, reason: {string}}
      * @private
      */
     function _getSelectorName(editor, pos) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
-            selectorName = "";
+            selectorName = "",
+            reason;
         
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
@@ -85,16 +88,27 @@ define(function (require, exports, module) {
                 if (selectorName === ".") {
                     selectorName = "";
                 }
+                
+                if (selectorName === "") {
+                    reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
+                }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
                 var trimmedVal = tagInfo.attr.value.trim();
                 if (trimmedVal) {
                     selectorName = "#" + trimmedVal;
+                } else {
+                    reason = Strings.ERROR_CSSQUICKEDIT_IDNOTFOUND;
                 }
+            } else {
+                reason = Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR;
             }
         }
         
-        return selectorName;
+        return {
+            selectorName: selectorName,
+            reason:       reason
+        };
     }
 
     /**
@@ -146,8 +160,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr, or
+     *         null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
@@ -164,10 +179,12 @@ define(function (require, exports, module) {
         
         // Always use the selection start for determining selector name. The pos
         // parameter is usually the selection end.
-        var selectorName = _getSelectorName(hostEditor, sel.start);
-        if (selectorName === "") {
-            return null;
+        var selectorResult = _getSelectorName(hostEditor, sel.start);
+        if (selectorResult.selectorName === "") {
+            return selectorResult.reason || null;
         }
+        
+        var selectorName = selectorResult.selectorName;
 
         var result = new $.Deferred(),
             cssInlineEditor,

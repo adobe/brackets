@@ -41,15 +41,19 @@ define(function (require, exports, module) {
         closeBelow              = "file.close_below";
 
     // Global vars and preferences
-    var commandsRegistered  = false,
-        menuEntriesShown    = {},
-        prefs               = PreferencesManager.getExtensionPrefs("closeOthers");
-    prefs.definePreference("below", "boolean", true);
+    var prefs                   = PreferencesManager.getExtensionPrefs("closeOthers"),
+        menuEntriesShown        = {};
+    
+    prefs.definePreference("below",  "boolean", true);
     prefs.definePreference("others", "boolean", true);
-    prefs.definePreference("above", "boolean", true);
-
+    prefs.definePreference("above",  "boolean", true);
+    
+    
+    /**
+     * Handle the different Close Other commands
+     * @param {string} mode
+     */
     function handleClose(mode) {
-
         var targetIndex = DocumentManager.findInWorkingSet(DocumentManager.getCurrentDocument().file.fullPath),
             workingSet  = DocumentManager.getWorkingSet().slice(0),
             start       = (mode === closeBelow) ? (targetIndex + 1) : 0,
@@ -68,8 +72,11 @@ define(function (require, exports, module) {
         
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
     }
-
-    function _contextMenuOpenHandler() {
+    
+    /**
+     * Enable/Disable the menu items depending on which document is selected in the working set
+     */
+    function contextMenuOpenHandler() {
         var doc = DocumentManager.getCurrentDocument();
         
         if (doc) {
@@ -95,56 +102,89 @@ define(function (require, exports, module) {
             }
         }
     }
-
-    function prefChangeHandler() {
-        // it's senseless to look prefs up for the current file, instead look them up for
+    
+    
+    /**
+     * Returns the preferences used to add/remove the menu items
+     * @return {{closeBelow: boolean, closeOthers: boolean, closeAbove: boolean}}
+     */
+    function getPreferences() {
+        // It's senseless to look prefs up for the current file, instead look them up for
         // the current project (or globally)
-        var prefCloseBelow  = prefs.get("below", PreferencesManager.CURRENT_PROJECT),
-            prefCloseOthers = prefs.get("others", PreferencesManager.CURRENT_PROJECT),
-            prefCloseAbove  = prefs.get("above", PreferencesManager.CURRENT_PROJECT);
+        return {
+            closeBelow  : prefs.get("below",  PreferencesManager.CURRENT_PROJECT),
+            closeOthers : prefs.get("others", PreferencesManager.CURRENT_PROJECT),
+            closeAbove  : prefs.get("above",  PreferencesManager.CURRENT_PROJECT)
+        };
+    }
+    
+    /**
+     * When the preferences changed, add/remove the required menu items
+     */
+    function prefChangeHandler() {
+        var prefs = getPreferences();
         
-        if (!commandsRegistered && (prefCloseBelow || prefCloseOthers || prefCloseAbove)) {
-            CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
-                handleClose(closeBelow);
-            });
-            CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
-                handleClose(closeOthers);
-            });
-            CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
-                handleClose(closeAbove);
-            });
-            commandsRegistered = true;
-        }
-        
-        if (prefCloseBelow !== menuEntriesShown.closeBelow) {
-            if (prefCloseBelow) {
+        if (prefs.closeBelow !== menuEntriesShown.closeBelow) {
+            if (prefs.closeBelow) {
                 workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
                 workingSetCmenu.removeMenuItem(closeBelow);
             }
         }
-        if (prefCloseOthers !== menuEntriesShown.closeOthers) {
-            if (prefCloseOthers) {
+        
+        if (prefs.closeOthers !== menuEntriesShown.closeOthers) {
+            if (prefs.closeOthers) {
                 workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
                 workingSetCmenu.removeMenuItem(closeOthers);
             }
         }
-        if (prefCloseAbove !== menuEntriesShown.closeAbove) {
-            if (prefCloseAbove) {
+        
+        if (prefs.closeAbove !== menuEntriesShown.closeAbove) {
+            if (prefs.closeAbove) {
                 workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
             } else {
                 workingSetCmenu.removeMenuItem(closeAbove);
             }
         }
-        menuEntriesShown = {"closeBelow": prefCloseBelow, "closeOthers": prefCloseOthers, "closeAbove": prefCloseAbove};
+        
+        menuEntriesShown = prefs;
+    }
+    
+    /**
+     * Register the Commands and add the Menu Items, if required
+     */
+    function initializeCommands() {
+        var prefs = getPreferences();
+        
+        CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
+            handleClose(closeBelow);
+        });
+        CommandManager.register(Strings.CMD_FILE_CLOSE_OTHERS, closeOthers, function () {
+            handleClose(closeOthers);
+        });
+        CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
+            handleClose(closeAbove);
+        });
+        
+        if (prefs.closeBelow) {
+            workingSetCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
+        }
+        if (prefs.closeOthers) {
+            workingSetCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
+        }
+        if (prefs.closeAbove) {
+            workingSetCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
+        }
+        menuEntriesShown = prefs;
     }
 
+    
     // Initialize using the prefs
-    prefChangeHandler();
+    initializeCommands();
 
     // Add a context menu open handler
-    $(workingSetCmenu).on("beforeContextMenuOpen", _contextMenuOpenHandler);
+    $(workingSetCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
 
     prefs.on("change", prefChangeHandler);
 });
