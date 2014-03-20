@@ -363,12 +363,34 @@ define(function (require, exports, module) {
         });
         return $customViewer;
     }
-    
+
+    /*
+     * Updates the URL with an ID tag at the end to force the file to be reloaded.
+     *
+     * This will is called by EditorManager when an file displayed by image viewer changes 
+     * on disk, to force a reload of a file.  
+     * CEF caches files loaded via the file-protocol and doesn't honor the 
+     * files modification date to determin wether it is stale.
+     */
+    function refresh() {
+        var noCacheUrl = $("#img-preview").attr("src"),
+            now = new Date().valueOf();
+
+        if (noCacheUrl.indexOf("#") > 0) {
+            noCacheUrl = noCacheUrl.replace(/#\d+/, "#" + now);
+        } else {
+            noCacheUrl = noCacheUrl + "#" + now;
+        }
+        $("#img-preview").attr("src", noCacheUrl);
+    }
+
     EditorManager.registerCustomViewer("image", {
         render: render,
-        onRemove: onRemove
+        onRemove: onRemove,
+        refresh: refresh
     });
-    
+
     exports.render              = render;
     exports.onRemove            = onRemove;
+    exports.refresh             = refresh;
 });
