@@ -1059,18 +1059,27 @@ define(function (require, exports, module) {
         function _isCursor(selection) {
             return selection.start.line === selection.end.line && selection.start.ch === selection.end.ch;
         }
-        
+
         editor = editor || EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
-        
+
+        //Get the cursors (no-text selections) and ranges (text selections).
+        var _selections = _.groupBy(editor.getSelections(), function (selection) { return _isCursor(selection) ? "cursors" : "ranges"; });
+
         // Convert all cursors to line selections.
-        var _cursors = _.pluck(editor.convertToLineSelections(_.filter(editor.getSelections(), _isCursor), {expandEndAtStartOfLine: true, mergeAdjacent: false}), "selectionForEdit");
-        var _ranges = _.reject(editor.getSelections(), _isCursor);
-        var _selections = _cursors.concat(_ranges);
-        editor.setSelections(_selections);
-        
+        var _convertedCursors = _.pluck(editor.convertToLineSelections(_selections.cursors, {expandEndAtStartOfLine: true, mergeAdjacent: false}), "selectionForEdit");
+
+        // Concat old ranges and new cursor selections.
+        var _newSelections = _convertedCursors;
+        if (_selections.ranges) {
+            _newSelections = _newSelections.concat(_selections.ranges);
+        }
+
+        // Set the new selections.
+        editor.setSelections(_newSelections);
+
         // Since the shell needs to perform the actual cut to clipboard, and the cursors now have been
         // transformed to line selections, the command can be ignored in order for the native shell to do the cutting.
         return ignoreCommand();
