@@ -61,8 +61,11 @@ define(function (require, exports, module) {
     var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
     
     // gets indentation size depending whether the tabs or spaces are used
-    function _getIndentSize() {
-        return PreferencesManager.get("useTabChar") ? PreferencesManager.get("tabSize") : PreferencesManager.get("spaceUnits");
+    function _getIndentSize(fullPath) {
+        return PreferencesManager.get(
+            PreferencesManager.get("useTabChar", fullPath) ? "tabSize" : "spaceUnits",
+            fullPath
+        );
     }
 
     /**
@@ -93,7 +96,7 @@ define(function (require, exports, module) {
         
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
-            options.indent = _getIndentSize();
+            options.indent = _getIndentSize(fullPath);
         }
         
         // If the user has not defined the environment, we use browser by default.
