@@ -527,7 +527,6 @@ a, img {
     position: absolute;
     right: 4px;
     top: 7px;
-    border: 1px solid transparent;
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/topcoat-settings-13.svg");
     background-position:center;
@@ -535,11 +534,6 @@ a, img {
 }
 
 #working-set-option-btn:hover {
-    
-    border-radius: 3px;
-    border: 1px solid #2d2f31;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
-    text-decoration: none;
     opacity: 1;
 }
 
@@ -558,7 +552,7 @@ a, img {
 }
 
 #project-files-header {
-    border-top: 1px solid #56595a;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     padding: 8px 0 9px 12px;
     font-size: 13px;
     color: @project-panel-text-2;
@@ -619,13 +613,17 @@ a, img {
 }
 
 .sidebar-selection {
-    background: url("images/active_back.png") no-repeat top right;
+    background: @tc-sidebar-selection;
+    border-top: 1px solid @tc-sidebar-selection-shadow;
+    border-bottom: 1px solid @tc-sidebar-selection-highlight;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
-    background: url("images/active_back.png");
+    background: @tc-sidebar-selection;
+    border-top: 1px solid @tc-sidebar-selection-shadow;
+    border-bottom: 1px solid @tc-sidebar-selection-highlight;
     width: 9px; /* quiet scrollbar width */
     height: 22px;
     position: fixed;
@@ -638,7 +636,7 @@ a, img {
 
     border-top: @sidebar-triangle-size solid transparent;
     border-bottom: (@sidebar-triangle-size - 1) solid transparent;
-    border-left: @sidebar-triangle-size solid #2D2E30;
+    border-left: @sidebar-triangle-size solid @tc-sidebar-selection;
 
     display: block;
     position: absolute;
@@ -710,50 +708,56 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
+    -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px rgba(0, 0, 0, 0.36));
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
+    -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.36));
 }
 
-/** Classes for icons from bracketSprites.png
+/** Unicode Icon container
 */
-.bracket-sprite {
-    background-image: url("images/close_btn.svg");
-    background-repeat: no-repeat;
-    background-color: transparent;
-    vertical-align: middle;
-    width: 15px;
+.unicode-icon-container {
+    display: inline-block;
+    width: 16px;
     height: 16px;
+    font-size: 20px;
+    line-height: 15px;
+    text-align: center;
 }
 
-
 .file-status-icon {
-    margin: 2px 0 0 8px;
-    .bracket-sprite;
-    display: inline-block;
+    margin: 0 0 0 8px;
     position: absolute;
-    left: 0px;
-    top: 1px;
+    left: 0;
+    top: 0;
 
-    &.dirty {
-        background-position: -30px 1px;
+    &.dirty:before,
+    &.can-close:before {
+        .unicode-icon-container;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    &.dirty:before {
+        content: "\2022";
+        line-height: 1em;
+    }
+    
+    &.can-close:before {
+        content: "\00D7";
+        line-height: 1.1em;
+    }
+    
+    &.can-close:hover:before {
+        color: rgba(255, 255, 255, 0.7);
     }
 
-    &.can-close {
-        background-position: 0 0;
-    }
-
-    &.can-close:hover {
-        background-position: -15px 0;
-    }
-
-    &.can-close:active {
-        background-position: -15px 0;
-        opacity: @tc-icon-down;
+    &.can-close:active:before {
+        color: rgba(255, 255, 255, 0.3);
     }
 }
 
@@ -803,10 +807,11 @@ a, img {
             cursor: pointer;
 
             .dirty-indicator {
-                .bracket-sprite;
-                display: inline-block;
-                background-position: -32px 2px;
-                padding-top: 5px;
+                .unicode-icon-container;
+                color: @tc-quiet-text;
+                overflow: hidden;
+                position: relative;
+                top: 1px;
             }
 
             .line-number {
@@ -985,7 +990,14 @@ a, img {
     .pagination-col {
         .flex-item(1, 0);
         min-width: 100px;
+        word-spacing: 0;
     }
+    .pagination-col > span:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    .pagination-col > span:active {
+        background-color: rgba(0, 0, 0, 0.12);
+    } 
     .replace-col {
         .flex-item(1, 0);
         min-width: 120px;
@@ -996,22 +1008,31 @@ a, img {
     .next-page,
     .last-page {
         .jstree-sprite;
-        width: 6px;
+        width: 18px;
         display: inline-block;
-        margin: 0 2px;
-        background-position: 0px 4px;
+        margin: 0;
+        background-position: 7px 6px;
+        vertical-align: text-top;
+        border-radius: 3px;
     }
     .first-page {
-        background-position: 0px -80px;
+        background-position: 6px -78px;
         margin-left: 10px;
     }
     .prev-page {
-        background-position: 0px -24px;
+        background-position: 6px -22px;
+        margin-right: 5px;
+    }
+    .next-page {
+        margin-left: 5px;
     }
     .last-page {
-        background-position: 0px -52px;
+        background-position: 6px -50px;
     }
-    .disabled {
+    .disabled,
+    .disabled:hover,
+    .disabled:active {
+        background-color: transparent;
         opacity: 0.3;
     }
 }
@@ -1079,8 +1100,8 @@ a, img {
         position: relative;
         top: -3px;
         &.no-results {
-            border: 1px solid #bc0023;
-            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 0, 120, 0.5);
+            border: 1px solid @tc-gray-component-error-border;
+            box-shadow: @tc-input-inner-shadow, @tc-input-error-glow;
         }
     }
 
@@ -1271,13 +1292,17 @@ textarea.exclusions-editor {
 }
 
 .smart_autocomplete_container {
-
     // the borders show up even if the container is empty, must set height to zero using JS.
     border: 1px solid @tc-gray-panel-border;
-
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
     box-shadow: @tc-normal-shadow-bottom;
+    opacity: 0;
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 0, 1);
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
 
     // so that border won't show when height is 0.
     box-sizing: border-box;
@@ -1316,6 +1341,15 @@ textarea.exclusions-editor {
             background-color: @tc-highlight;
         }
     }
+}
+
+@-webkit-keyframes autocomplete {
+    0%   { opacity: 0.6; -webkit-transform: translate3d(0, 0, 0) scale(0.6); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes autocomplete {
+    0%   { opacity: 0.6; transform: translate3d(0, 0, 0) scale(0.6); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 .quicksearch-pathmatch,
