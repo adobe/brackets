@@ -2043,7 +2043,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setUseTabChar = function (value) {
-        return PreferencesManager.set(USE_TAB_CHAR, value);
+        return PreferencesManager.set(USE_TAB_CHAR, value).valid;
     };
     
     /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
@@ -2058,7 +2058,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setTabSize = function (value) {
-        return PreferencesManager.set(TAB_SIZE, value);
+        return PreferencesManager.set(TAB_SIZE, value).valid;
     };
     
     /** @type {number} Get tab character width  */
@@ -2073,7 +2073,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setSpaceUnits = function (value) {
-        return PreferencesManager.set(SPACE_UNITS, value);
+        return PreferencesManager.set(SPACE_UNITS, value).valid;
     };
     
     /** @type {number} Get indentation width */
@@ -2088,7 +2088,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setCloseBrackets = function (value) {
-        return PreferencesManager.set(CLOSE_BRACKETS, value);
+        return PreferencesManager.set(CLOSE_BRACKETS, value).valid;
     };
     
     /** @type {boolean} Gets whether the current editor uses auto close brackets */
@@ -2103,7 +2103,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setShowLineNumbers = function (value) {
-        return PreferencesManager.set(SHOW_LINE_NUMBERS, value);
+        return PreferencesManager.set(SHOW_LINE_NUMBERS, value).valid;
     };
     
     /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
@@ -2118,7 +2118,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setShowActiveLine = function (value) {
-        return PreferencesManager.set(STYLE_ACTIVE_LINE, value);
+        return PreferencesManager.set(STYLE_ACTIVE_LINE, value).valid;
     };
     
     /** @type {boolean} Returns true if show active line is enabled for the current editor */
@@ -2133,7 +2133,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if value was set
      */
     Editor.prototype.setWordWrap = function (value) {
-        return PreferencesManager.set(WORD_WRAP, value);
+        return PreferencesManager.set(WORD_WRAP, value).valid;
     };
     
     /** @type {boolean} Returns true if word wrap is enabled for the current editor */
