@@ -1217,10 +1217,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise.then(function (data) {
                         expect(data).toEqual({});
-                    })
-                        .fail(function (error) {
-                            expect("There should have been no error").toEqual("");
-                        });
+                    });
                 });
             });
         });

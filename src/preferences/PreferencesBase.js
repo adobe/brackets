@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                     self._lineEndings = FileUtils.sniffLineEndings(text);
                     
                     // If the file is empty, turn it into an empty object
-                    if (/^\w*$/.test(text)) {
+                    if (/^\s*$/.test(text)) {
                         result.resolve({});
                     } else {
                         try {
