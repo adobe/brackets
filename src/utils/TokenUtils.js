@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 /**
  * Functions for iterating through tokens in the current editor buffer. Useful for doing
@@ -32,6 +32,8 @@
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
     
    /**
      * Creates a context object for the given editor and position, suitable for passing to the

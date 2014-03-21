@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, less */
+/*global define, $, brackets, less, PathUtils */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
@@ -90,6 +90,16 @@ define(function (require, exports, module) {
                 paths:    [dir],
                 rootpath: dir
             };
+
+            if (PathUtils.isAbsoluteUrl(url)) {
+                options.currentFileInfo = {
+                    currentDirectory: dir,
+                    entryPath: dir,
+                    filename: url,
+                    rootFilename: url,
+                    rootpath: dir
+                };
+            }
         }
         
         var parser = new less.Parser(options);
@@ -151,7 +161,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
      **/
     function loadFile(module, path) {
-        var url     = getModuleUrl(module, path),
+        var url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path),
             promise = $.get(url);
 
         return promise;

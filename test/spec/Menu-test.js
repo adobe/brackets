@@ -283,6 +283,24 @@ define(function (require, exports, module) {
                 $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
             });
+            it("check for context menu to have the right status", function () {
+                var cmenu = Menus.registerContextMenu("test-cmenu55");
+                CommandManager.register("Brackets Test Command Custom 55", "Menu-test.command55", function () {});
+                var menuItem = cmenu.addMenuItem("Menu-test.command55");
+
+                cmenu.open({pageX: 0, pageY: 0});
+                
+                // verify dropdown is open
+                var isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(true);
+
+                // verify close event
+                cmenu.close();
+
+                // verify all dropdowns are closed
+                isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(false);
+            });
         });
     });
 
@@ -1035,6 +1053,25 @@ define(function (require, exports, module) {
                 // verify all dropdowns are closed
                 $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
+            });
+            
+            it("check for context menu to have the right status", function () {
+                var cmenu = Menus.registerContextMenu("test-cmenu55");
+                CommandManager.register("Brackets Test Command Custom 55", "Menu-test.command55", function () {});
+                var menuItem = cmenu.addMenuItem("Menu-test.command55");
+
+                cmenu.open({pageX: 0, pageY: 0});
+                
+                // verify dropdown is open
+                var isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(true);
+
+                // verify close event
+                cmenu.close();
+
+                // verify all dropdowns are closed
+                isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(false);
             });
         });
     });
