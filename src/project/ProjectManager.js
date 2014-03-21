@@ -1811,22 +1811,12 @@ define(function (require, exports, module) {
                 _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
 
-                var indexOfExtension = escapedName.lastIndexOf("."),
-                    language = LanguageManager.getLanguageForPath(entry.name);
-                if (language) {
-                    language.getFileExtensions().forEach(function (ext) {
-                        ext = "." + ext;
-                        if (escapedName.match(ext + "$")) {
-                            var io = escapedName.lastIndexOf(ext);
-                            if (io < indexOfExtension) {
-                                indexOfExtension = io;
-                            }
-                        }
-                    });
-                }
-
-                if (indexOfExtension > 0) {
-                    $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                var extension = FileUtils.getSmartFileExtension(entry.name);
+                if (extension) {
+                    var indexOfExtension = escapedName.length - extension.length - 1;
+                    if (indexOfExtension > 0) {
+                        $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                    }
                 }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
