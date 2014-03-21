@@ -38,9 +38,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    // Load compatibility shims--these need to load early, be careful moving this
-    require("utils/Compatibility");
-
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");

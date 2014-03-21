@@ -50,9 +50,12 @@ require.config({
     locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
 
-define(function (require, exports, module) {
+define(function (require) {
     "use strict";
-    
-    // Load the brackets module. This is a self-running module that loads and runs the entire application.
-    require("brackets");
+
+    // Load compatibility shims--these need to load early, be careful moving this
+    require(["utils/Compatibility"], function () {
+        // Load the brackets module. This is a self-running module that loads and runs the entire application.
+        require(["brackets"]);
+    });
 });
