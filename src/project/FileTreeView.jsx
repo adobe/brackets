@@ -10,7 +10,8 @@ define(function (require, exports, module) {
     
     var FileNode = React.createClass({
         render: function () {
-            var i = entry.name.lastIndexOf("."),
+            var entry = this.props.file,
+                i = entry.name.lastIndexOf("."),
                 name = entry.name.substring(0, i),
                 extension;
             
@@ -27,16 +28,19 @@ define(function (require, exports, module) {
     });
 
     var DirectoryNode = React.createClass({
+        getInitialState: function () {
+            return {};
+        },
         componentDidMount: function () {
-            var open = this.props.openPaths[this.props.directory.fullPath] ? "open" : "closed";
+            var open = this.props.open;
             if (open) {
                 this.props.directory.getContents(function (err, contents) {
                     if (!err) {
-                        this.state.setState({
+                        this.setState({
                             contents: contents
                         });
                     }
-                });
+                }.bind(this));
             }
         },
         render: function () {
@@ -49,13 +53,13 @@ define(function (require, exports, module) {
                 nodes = []
             }
             
-            var open = this.props.openPaths[this.props.directory.fullPath] ? "open" : "closed";
+            var open = this.props.open;
             
             return (
                 <li className={"jstree-" + open}>
                     <ins className="jstree-icon">&nbsp;</ins>
                     <a href="#">
-                        <ins class="jstree-icon">&nbsp;</ins>
+                        <ins className="jstree-icon">&nbsp;</ins>
                         {this.props.directory.name}
                     </a>
                     <ul>
@@ -72,15 +76,14 @@ define(function (require, exports, module) {
                     <DirectoryNode
                         key={entry.fullPath}
                         open={open}
-                        directory={entry}>
-                    </DirectoryNode>
+                        openPaths={this.props.openPaths}
+                        directory={entry}/>
                 );
             } else {
                 return (
-                    <FileNode>
+                    <FileNode
                         key={entry.fullPath}
-                        file={entry}
-                    </FileNode>
+                        file={entry}/>
                 );
             }
         }
@@ -93,8 +96,8 @@ define(function (require, exports, module) {
                     <DirectoryNode
                         key={this.props.root.fullPath}
                         directory={this.props.root}
-                        openPaths={this.props.openPaths}>
-                    </DirectoryNode>
+                        open={true}
+                        openPaths={this.props.openPaths}/>
                 </ul>
             );
         }

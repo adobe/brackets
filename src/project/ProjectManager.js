@@ -526,8 +526,9 @@ define(function (require, exports, module) {
         return $(a).data("compareString") + ":" + $(b).data("compareString");
     });
     
-    function _newrenderTree() {
-        FileTreeView.render($projectTreeContainer[0], _projectRoot, []);
+    function _renderTree() {
+        FileTreeView.render($projectTreeContainer[0], _projectRoot, {});
+        return new $.Deferred().resolve();
     }
     
     /**
@@ -537,7 +538,7 @@ define(function (require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    function _renderTree(treeDataProvider) {
+    function _oldrenderTree(treeDataProvider) {
         var result = new $.Deferred();
 
         // For #1542, make sure the tree is scrolled to the top before refreshing.
