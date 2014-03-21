@@ -120,13 +120,6 @@
         "lineComment": ["//"]
     },
 
-    "clike": {
-        "name": "clike",
-        "mode": "clike",
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//", "#"]
-    },
-
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
@@ -138,7 +131,9 @@
     "scala": {
         "name": "Scala",
         "mode": ["clike", "text/x-scala"],
-        "fileExtensions": ["scala", "sbt"]
+        "fileExtensions": ["scala", "sbt"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "coffeescript": {
@@ -241,6 +236,13 @@
     "audio": {
         "name": "Audio",
         "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
+        "isBinary": true
+    },
+    
+    "binary": {
+        "name": "Other Binary",
+        "fileExtensions": ["svgz", "jsz", "zip", "gz", "htmz", "htmlz", "rar", "tar", "exe", "bin", "dll", "pdb", "lib", "obj", "so", "a", "dylib",
+                           "pdf", "psd", "ai", "tif", "tiff", "mpg", "mpeg", "avi", "flv", "mp4", "ttf", "otf", "woff"],
         "isBinary": true
     }
 }

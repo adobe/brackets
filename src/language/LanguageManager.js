@@ -770,11 +770,11 @@ define(function (require, exports, module) {
     _patchCodeMirror();
     
     // Define a custom MIME mode here instead of putting it directly into languages.json
-    // because JSON files must not contain regular expressions. Also, all other modes so
+    // because JSON files can't contain regular expressions. Also, all other modes so
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
+        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
                        "mode": null}]
     });
  
