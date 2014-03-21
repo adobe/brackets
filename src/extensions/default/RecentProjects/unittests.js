@@ -65,45 +65,11 @@ define(function (require, exports, module) {
 			waitsFor(function () { return flag; });
 		}
 
-		/*
-		 * This function helps to resolve an issue with sending Keyboard Events in Webkit
-		 */
-		function sendKeyEvent(window, k) {
-			var oEvent = window.document.createEvent('KeyboardEvent');
-
-			// Chromium Hack
-			Object.defineProperty(oEvent, 'keyCode', {
-				get : function () {
-					return this.keyCodeVal;
-				}
-			});
-
-			Object.defineProperty(oEvent, 'which', {
-				get : function () {
-					return this.keyCodeVal;
-				}
-			});
-
-			if (oEvent.initKeyboardEvent) {
-				oEvent.initKeyboardEvent("keydown", true, true, window.document.defaultView, false, false, false, false, k, k);
-			} else {
-				oEvent.initKeyEvent("keydown", true, true, window.document.defaultView, false, false, false, false, k, 0);
-			}
-
-			oEvent.keyCodeVal = k;
-
-			if (oEvent.keyCode !== k) {
-				alert("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
-			}
-
-			window.document.dispatchEvent(oEvent);
-		}
-
 		function setupRecentProjectsSpy(howManyProjects) {
 			spyOn(PreferencesManager, "getViewState").andCallFake(function (prefId) {
 				if (prefId === "recentProjects") {
-					// return 5 recent projects
-					return _.map([1, 2, 3, 4, 5], function (num) { return extensionPath + "/Test-Project-" + num; });
+					// return howManyProjects recent projects
+					return _.map(_.range(1, howManyProjects + 1), function (num) { return extensionPath + "/Test-Project-" + num; });
 				} else {
 					return [];
 				}
@@ -145,8 +111,9 @@ define(function (require, exports, module) {
 				});
 
 				runs(function () {
-					sendKeyEvent(testWindow, KeyEvent.DOM_VK_DOWN);
-					sendKeyEvent(testWindow, KeyEvent.DOM_VK_DELETE);
+                    var $dropDown = $("#project-dropdown");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keydown", $dropDown[0]);
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DELETE, "keydown", $dropDown[0]);
 				});
 
 				runs(function () {
