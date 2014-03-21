@@ -292,8 +292,10 @@ a:focus {
 
     // Menu dropdown appearance
     .dropdown-menu {
-        top: 34px; // Offset from top of menubar item
+        // Offset for better alignment with button
+        top: 34px;
         margin-top: 0;
+        margin-left: 1px;
         
         // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
         // the menu item label and keyboard shortcut. This takes away the "gotta get narrower" pressure.
