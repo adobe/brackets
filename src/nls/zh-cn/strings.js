@@ -216,10 +216,10 @@ define({
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTI"              : "检查问题",
-    "SINGLE_ERROR"                          : "1个 {0} 错误",
-    "MULTIPLE_ERRORS"                       : "{1}个 {0} 错误",
-    "NO_ERRORS"                             : "未发现 {0} 错误 - 骚年加油!",
-    "NO_ERRORS_MULTIPLE_PROVIDER"           : "未发现错误 - 骚年加油!",
+    "SINGLE_ERROR"                          : "1个 {0} 问题",
+    "MULTIPLE_ERRORS"                       : "{1}个 {0} 问题",
+    "NO_ERRORS"                             : "未发现 {0} 问题 - 加油!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "未发现问题 - 加油!",
     "LINT_DISABLED"                         : "JSLint 已被禁用或者无法在此文件工作.",
     "NO_LINT_AVAILABLE"                     : "{0} 没有可用检查器",
     "NOTHING_TO_LINT"                       : "没有可检查文件",
@@ -470,7 +470,7 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "调试",
     "CMD_SHOW_DEV_TOOLS"                        : "显示开发人员工具",
-    "CMD_REFRESH_WINDOW"                        : "刷新 {APP_NAME}",
+    "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
     "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
     "CMD_SWITCH_LANGUAGE"                       : "选择语言",
