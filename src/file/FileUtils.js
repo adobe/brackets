@@ -332,17 +332,16 @@ define(function (require, exports, module) {
             parts.shift();
         }
 
-        // test all other parts of the baseName
-        while (parts.length > 1) {
-            var ext = parts.join(".");
-            if (LanguageManager.getLanguageForExtension(ext)) {
-                return ext;
+        var extension = [parts.pop()], // last part is always an extension
+            i = parts.length;
+        while (i--) {
+            if (LanguageManager.getLanguageForExtension(parts[i])) {
+                extension.unshift(parts[i]);
             } else {
-                parts.shift();
+                break;
             }
         }
-
-        return parts[0] || "";
+        return extension.join(".");
     }
 
     /**

@@ -158,6 +158,12 @@ define(function (require, exports, module) {
                 expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/jaz.scss.erb")).toBe("scss.erb");
                 expect(FileUtils.getSmartFileExtension("foo/bar/baz/.jaz.js.erb")).toBe("js.erb");
             });
+
+            it("should return the extension combined from other known extensions", function () {
+                expect(FileUtils.getSmartFileExtension("foo.bar.php.js")).toBe("php.js");
+                expect(FileUtils.getSmartFileExtension("foo.bar.php.html.js")).toBe("php.html.js");
+                expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
+            });
         });
     });
 });
