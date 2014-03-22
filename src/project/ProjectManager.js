@@ -77,8 +77,12 @@ define(function (require, exports, module) {
         FileTreeView        = require("jsx!project/FileTreeView");
     
     
-    // Define the preference to decide how to sort the Project Tree files
-    PreferencesManager.definePreference("sortDirectoriesFirst", "boolean", brackets.platform !== "mac");
+    /**
+     * Name of the preferences for sorting directories first
+     * 
+     * @type {string}
+     */
+    var SORT_DIRECTORIES_FIRST = "sortDirectoriesFirst";
     
     
     /**
@@ -201,28 +205,6 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     var _allFilesCachePromise = null;
-    
-    /**
-     * @private
-     * @type {boolean}
-     * Current sort order for the tree, true if directories are first. This is
-     * initialized in _generateSortPrefixes.
-     */
-    var _dirFirst;
-    
-    /**
-     * @private
-     * Generates the prefixes used for sorting the files in the project tree
-     * @return {boolean} true if the sort prefixes have changed
-     */
-    function _generateSortPrefixes() {
-        var previousDirFirst  = _dirFirst;
-        _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
-        _sortPrefixDir        = _dirFirst ? "0" : "";
-        _sortPrefixFile       = _dirFirst ? "1" : "";
-        
-        return previousDirFirst !== _dirFirst;
-    }
     
     /**
      * @private
@@ -514,22 +496,6 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * A memoized comparator of DOM nodes for use with jsTree
-     * @private
-     * @param {Node} First DOM node
-     * @param {Node} Second DOM node
-     * @return {number} Comparator value
-     */
-    var _projectTreeSortComparator = _.memoize(function (a, b) {
-        var a1 = $(a).data("compareString"),
-            b1 = $(b).data("compareString");
-        
-        return FileUtils.compareFilenames(a1, b1, false);
-    }, function (a, b) {
-        return $(a).data("compareString") + ":" + $(b).data("compareString");
-    });
-    
     var openPaths = {};
     
     function _togglePath(path, open) {
@@ -542,7 +508,6 @@ define(function (require, exports, module) {
     }
     
     function _setSelected(path) {
-        console.log("selected changed to ", path);
         var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
 
         openResult.done(function () {
@@ -557,12 +522,12 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument(),
             selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
         
-        console.log("rendering with selected", selected);
         FileTreeView.render($projectTreeContainer[0], _projectRoot, {
             openPaths: openPaths,
             selected: selected,
             togglePath: _togglePath,
-            setSelected: _setSelected
+            setSelected: _setSelected,
+            dirsFirst: PreferencesManager.get(SORT_DIRECTORIES_FIRST)
         });
         return new $.Deferred().resolve();
     }
@@ -2262,14 +2227,6 @@ define(function (require, exports, module) {
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
-    // Initialize the sort prefixes and make sure to change them when the sort pref changes
-    _generateSortPrefixes();
-    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
-        if (_generateSortPrefixes()) {
-            refreshFileTree();
-        }
-    });
-    
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
     $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
@@ -2288,6 +2245,12 @@ define(function (require, exports, module) {
     } else {
         _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
     }
+    
+    // Define the preference to decide how to sort the Project Tree files
+    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
+        .on("change", function () {
+            _renderTree();
+        });
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;

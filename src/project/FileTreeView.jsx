@@ -6,7 +6,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var React = require("react");
+    var React = require("react"),
+        _ = require("thirdparty/lodash"),
+        FileUtils = require("file/FileUtils");
     
     var FileNode = React.createClass({
         handleClick: function () {
@@ -73,7 +75,17 @@ define(function (require, exports, module) {
         render: function () {
             var nodes;
             if (this.state.contents) {
-                nodes = this.state.contents.map(function (entry) {
+                var dirsFirst = this.props.dirsFirst;
+                nodes = _(this.state.contents).clone().sort(function (a, b) {
+                    if (dirsFirst) {
+                        if (a.isDirectory && !b.isDirectory) {
+                            return -1;
+                        } else if (!a.isDirectory && b.isDirectory) {
+                            return 1;
+                        }
+                    }
+                    return FileUtils.compareFilenames(a.name, b.name, false);
+                }).map(function (entry) {
                     return this._formatEntry(entry);
                 }.bind(this));
             } else {
@@ -141,7 +153,8 @@ define(function (require, exports, module) {
                         selected={this.props.selected}
                         setSelected={this.props.setSelected}
                         togglePath={this.props.togglePath}
-                        openPaths={this.props.openPaths}/>
+                        openPaths={this.props.openPaths}
+                        dirsFirst={this.props.dirsFirst}/>
                 </ul>
             );
         }
@@ -157,7 +170,8 @@ define(function (require, exports, module) {
                 openPaths={props.openPaths}
                 selected={props.selected}
                 togglePath={props.togglePath}
-                setSelected={props.setSelected}/>,
+                setSelected={props.setSelected}
+                dirsFirst={props.dirsFirst}/>,
             element
         )
     }
