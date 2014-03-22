@@ -9,10 +9,17 @@ define(function (require, exports, module) {
     var React = require("react");
     
     var FileNode = React.createClass({
+        handleClick: function () {
+            console.log("file clicked");
+            if (this.props.setSelected) {
+                this.props.setSelected(this.props.file.fullPath);
+            }
+            return false;
+        },
         render: function () {
             var entry = this.props.file,
                 i = entry.name.lastIndexOf("."),
-                name = entry.name.substring(0, i),
+                name = entry.name.substr(0, i > -1 ? i : entry.name.length),
                 extension;
             
             if (i > -1) {
@@ -20,9 +27,16 @@ define(function (require, exports, module) {
                     <span className="extension">{entry.name.substring(i)}</span>
                 );
             }
-                
+            
+            var fileClasses = "";
+            if (this.props.selected) {
+                fileClasses = "jstree-clicked jstree-hovered";
+            }
             return (
-                <li className="jstree-leaf">{name}{extension}</li>
+                <li className="jstree-leaf" onClick={this.handleClick}>
+                    <ins className="jstree-icon">&nbsp;</ins>
+                    <a href="#" className={fileClasses}>{name}{extension}</a>
+                </li>
             );
         }
     });
@@ -31,17 +45,30 @@ define(function (require, exports, module) {
         getInitialState: function () {
             return {};
         },
+        loadContents: function () {
+            this.props.directory.getContents(function (err, contents) {
+                if (!err) {
+                    this.setState({
+                        contents: contents
+                    });
+                }
+            }.bind(this));
+        },
         componentDidMount: function () {
             var open = this.props.open;
             if (open) {
-                this.props.directory.getContents(function (err, contents) {
-                    if (!err) {
-                        this.setState({
-                            contents: contents
-                        });
-                    }
-                }.bind(this));
+                this.loadContents();
             }
+        },
+        handleClick: function () {
+            if (this.props.togglePath) {
+                var newOpen = !this.props.open;
+                if (newOpen && !this.state.contents) {
+                    this.loadContents();
+                }
+                this.props.togglePath(this.props.directory.fullPath, !this.props.open);
+            }
+            return false;
         },
         render: function () {
             var nodes;
@@ -53,10 +80,16 @@ define(function (require, exports, module) {
                 nodes = []
             }
             
-            var open = this.props.open;
+            if (this.props.skipRoot) {
+                return (
+                    <div>{nodes}</div>
+                );
+            }
+            
+            var open = this.props.open ? "open" : "closed";
             
             return (
-                <li className={"jstree-" + open}>
+                <li className={"jstree-" + open} onClick={this.handleClick}>
                     <ins className="jstree-icon">&nbsp;</ins>
                     <a href="#">
                         <ins className="jstree-icon">&nbsp;</ins>
@@ -77,12 +110,19 @@ define(function (require, exports, module) {
                         key={entry.fullPath}
                         open={open}
                         openPaths={this.props.openPaths}
+                        callbacks={this.props.callbacks}
+                        selected={this.props.selected}
+                        setSelected={this.props.setSelected}
+                        togglePath={this.props.togglePath}
                         directory={entry}/>
                 );
             } else {
                 return (
                     <FileNode
                         key={entry.fullPath}
+                        callbacks={this.props.callbacks}
+                        selected={this.props.selected === entry.fullPath}
+                        setSelected={this.props.setSelected}
                         file={entry}/>
                 );
             }
@@ -97,6 +137,10 @@ define(function (require, exports, module) {
                         key={this.props.root.fullPath}
                         directory={this.props.root}
                         open={true}
+                        skipRoot={true}
+                        selected={this.props.selected}
+                        setSelected={this.props.setSelected}
+                        togglePath={this.props.togglePath}
                         openPaths={this.props.openPaths}/>
                 </ul>
             );
@@ -104,11 +148,16 @@ define(function (require, exports, module) {
         
     });
     
-    function render(element, root, openPaths) {
+    function render(element, root, props) {
+        $(element).addClass("jstree jstree-brackets");
+        $(element).css("overflow", "auto");
         React.renderComponent(
             <FileTreeView
                 root={root}
-                openPaths={openPaths}/>,
+                openPaths={props.openPaths}
+                selected={props.selected}
+                togglePath={props.togglePath}
+                setSelected={props.setSelected}/>,
             element
         )
     }

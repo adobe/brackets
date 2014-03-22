@@ -290,6 +290,10 @@ define(function (require, exports, module) {
     }
     
     function _documentSelectionFocusChange() {
+        _renderTree();
+    }
+    
+    function _olddocumentSelectionFocusChange() {
         var curFile = EditorManager.getCurrentlyViewedPath();
         if (curFile && _hasFileSelectionFocus()) {
             var nodeFound = $("#project-files-container li").is(function (index) {
@@ -526,8 +530,40 @@ define(function (require, exports, module) {
         return $(a).data("compareString") + ":" + $(b).data("compareString");
     });
     
+    var openPaths = {};
+    
+    function _togglePath(path, open) {
+        if (open) {
+            openPaths[path] = true;
+        } else {
+            delete openPaths[path];
+        }
+        _renderTree();
+    }
+    
+    function _setSelected(path) {
+        console.log("selected changed to ", path);
+        var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
+
+        openResult.done(function () {
+            _renderTree();
+        });
+    }
+    
     function _renderTree() {
-        FileTreeView.render($projectTreeContainer[0], _projectRoot, {});
+        if (!_projectRoot) {
+            return;
+        }
+        var curDoc = DocumentManager.getCurrentDocument(),
+            selected = curDoc && curDoc.file ? curDoc.file.fullPath : "";
+        
+        console.log("rendering with selected", selected);
+        FileTreeView.render($projectTreeContainer[0], _projectRoot, {
+            openPaths: openPaths,
+            selected: selected,
+            togglePath: _togglePath,
+            setSelected: _setSelected
+        });
         return new $.Deferred().resolve();
     }
     
