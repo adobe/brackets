@@ -158,8 +158,6 @@ define(function (require, exports, module) {
         var x                   = Math.round(e.offsetX * 100 / _scale),
             y                   = Math.round(e.offsetY * 100 / _scale),
             $target             = $(e.target),
-            targetPos           = $target.position(),
-            tipPos              = $("#img-tip").position(),
             imagePos            = $("#img-preview").position(),
             scaleDivPos         = $("#img-scale").position(),
             left                = e.offsetX + imagePos.left,
@@ -176,32 +174,10 @@ define(function (require, exports, module) {
             tipMinusOffsetX2    = -90;    // for 4-digit image width 
         
         // Adjust left, top, x and y based on which element contains the cursor.
-        // Return if the target element is no longer available as in the case of
-        // a vertical guide that has its left equals to zero.
-        if ($target.is(".img-guide")) {
-            if ($target.is("#vert-guide")) {
-                if (targetPos.left === 0) {
-                    return;
-                }
-                left = targetPos.left;
-                x = Math.round((left - imagePos.left) * 100 / _scale);
-            } else {
-                if (targetPos.top === 0) {
-                    return;
-                }
-                top = targetPos.top;
-                y = Math.round((top - imagePos.top) * 100 / _scale);
-            }
-        } else if (!$target.is("#img-preview")) {
+        if (!$target.is("#img-preview")) {
             if ($target.is("#img-scale")) {
                 left = scaleDivPos.left + e.offsetX;
                 top = scaleDivPos.top + e.offsetY;
-                x = Math.round((left - imagePos.left) * 100 / _scale);
-                y = Math.round((top - imagePos.top) * 100 / _scale);
-            } else if (tipPos.left && tipPos.top) {
-                // Cursor must be inside the image tip.
-                left = tipPos.left + e.offsetX;
-                top = tipPos.top + e.offsetY;
                 x = Math.round((left - imagePos.left) * 100 / _scale);
                 y = Math.round((top - imagePos.top) * 100 / _scale);
             } else {
@@ -249,7 +225,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Show image coordinates under the mouse cursor
+     * Hide image coordinates info tip
      *
      * @param {MouseEvent} e mouse leave event
      */
@@ -281,18 +257,18 @@ define(function (require, exports, module) {
     }
 
     
-    /** 
+    /**
      * sign off listeners when editor manager closes
      * the image viewer
      */
     function onRemove() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
-        $("#img").off("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
-                 .off("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
+        $("#img").off("mousemove", "#img-preview, #img-scale", _showImageTip)
+                 .off("mouseleave", "#img-preview, #img-scale", _hideImageTip);
     }
 
-    /** 
+    /**
      * Perform decorations on the view that require loading the image in the browser,
      * i.e. getting actual and natural width and height andplacing the scale sticker
      * @param {!string} fullPath Path to the image file
@@ -346,8 +322,8 @@ define(function (require, exports, module) {
 
             $("#img-tip").hide();
             $(".img-guide").hide();
-            $("#img").on("mousemove", "#img-preview, #img-scale, #img-tip, .img-guide", _showImageTip)
-                     .on("mouseleave", "#img-preview, #img-scale, #img-tip, .img-guide", _hideImageTip);
+            $("#img").on("mousemove", "#img-preview, #img-scale", _showImageTip)
+                     .on("mouseleave", "#img-preview, #img-scale", _hideImageTip);
 
             _updateScale($(this).width());
 
@@ -369,6 +345,6 @@ define(function (require, exports, module) {
         onRemove: onRemove
     });
     
-    exports.render              = render;
-    exports.onRemove            = onRemove;
+    exports.render   = render;
+    exports.onRemove = onRemove;
 });
