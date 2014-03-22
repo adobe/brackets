@@ -28,12 +28,13 @@
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"              : "../test",
-        "perf"              : "../test/perf",
-        "spec"              : "../test/spec",
-        "text"              : "thirdparty/text/text",
-        "i18n"              : "thirdparty/i18n/i18n",
-        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+        "test"                          : "../test",
+        "perf"                          : "../test/perf",
+        "spec"                          : "../test/spec",
+        "text"                          : "thirdparty/text/text",
+        "i18n"                          : "thirdparty/i18n/i18n",
+        "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
     }
 });
 
@@ -58,6 +59,7 @@ define(function (require, exports, module) {
         NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
         ColorUtils              = require("utils/ColorUtils"),
+        PreferencesBase         = require("preferences/PreferencesBase"),
         NativeApp               = require("utils/NativeApp");
 
     // Load modules that self-register and just need to get included in the test-runner window

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define, brackets, $ */
 
 /**
  *  Utilities functions related to color matching
@@ -248,28 +248,34 @@ define(function (require, exports, module) {
     /**
      * Show, hide or update the hint text
      * 
-     * @param {(BezierCurveEditor|StepEditor)} editor BezierCurveEditor or StepsEditor where the hint should be changed
+     * @param {object} hint Editor.hint object of the current InlineTimingFunctionEditor
      * @param {boolean} show Whether the hint should be shown or hidden
      * @param {string=} documentCode The invalid code from the document (can be omitted when hiding)
      * @param {string=} editorCode The valid code that is shown in the Inline Editor (can be omitted when hiding)
      */
-    function showHideHint(editor, show, documentCode, editorCode) {
-        if (!editor.hint) {
+    function showHideHint(hint, show, documentCode, editorCode) {
+        if (!hint || !hint.elem) {
             return;
         }
         
         if (show) {
-            editor.hintShown = true;
-            editor.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
-            editor.hint.css("display", "block");
-        } else if (editor.hintShown) {
-            AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
+            hint.shown = true;
+            hint.animationInProgress = false;
+            hint.elem.removeClass("fadeout");
+            hint.elem.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
+            hint.elem.css("display", "block");
+        } else if (hint.shown) {
+            hint.animationInProgress = true;
+            AnimationUtils.animateUsingClass(hint.elem[0], "fadeout")
                 .done(function () {
-                    editor.hint.css("display", "none");
-                    editor.hintShown = false;
+                    if (hint.animationInProgress) { // do this only if the animation was not cancelled
+                        hint.elem.hide();
+                    }
+                    hint.shown = false;
+                    hint.animationInProgress = false;
                 });
         } else {
-            editor.hint.css("display", "none");
+            hint.elem.hide();
         }
     }
 

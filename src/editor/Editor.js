@@ -69,6 +69,7 @@ define(function (require, exports, module) {
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
+        PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
@@ -198,6 +199,7 @@ define(function (require, exports, module) {
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
         this._inlineWidgets = [];
+        this._$messagePopover = null;
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -811,7 +813,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.on("blur", function () {
             self._focused = false;
-            // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
+            $(self).triggerHandler("blur", [self]);
         });
 
         this._codeMirror.on("update", function (instance) {
@@ -884,13 +886,18 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getColOffset = function (pos) {
         var line    = this._codeMirror.getRange({line: pos.line, ch: 0}, pos),
-            tabSize = Editor.getTabSize(),
+            tabSize = null,
             column  = 0,
             i;
 
         for (i = 0; i < line.length; i++) {
             if (line[i] === '\t') {
-                column += (tabSize - (column % tabSize));
+                if (tabSize === null) {
+                    tabSize = Editor.getTabSize();
+                }
+                if (tabSize > 0) {
+                    column += (tabSize - (column % tabSize));
+                }
             } else {
                 column++;
             }
@@ -1136,9 +1143,11 @@ define(function (require, exports, module) {
      * @param {{line:number, ch:number}=} end If not specified, defaults to start.
      * @param {boolean} center true to center the viewport
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
+     * @param {?string} origin An optional string that describes what other selection or edit operations this
+     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
      */
-    Editor.prototype.setSelection = function (start, end, center, centerOptions) {
-        this.setSelections([{start: start, end: end || start}], center, centerOptions);
+    Editor.prototype.setSelection = function (start, end, center, centerOptions, origin) {
+        this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
     };
     
     /**
@@ -1153,15 +1162,20 @@ define(function (require, exports, module) {
      *      one selection has primary set to true. If none has primary set to true, the last one is primary.
      * @param {boolean} center true to center the viewport around the primary selection.
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
+     * @param {?string} origin An optional string that describes what other selection or edit operations this
+     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
      */
-    Editor.prototype.setSelections = function (selections, center, centerOptions) {
-        var primIndex = selections.length - 1;
+    Editor.prototype.setSelections = function (selections, center, centerOptions, origin) {
+        var primIndex = selections.length - 1, options;
+        if (origin) {
+            options = { origin: origin };
+        }
         this._codeMirror.setSelections(_.map(selections, function (sel, index) {
             if (sel.primary) {
                 primIndex = index;
             }
             return { anchor: sel.reversed ? sel.end : sel.start, head: sel.reversed ? sel.start : sel.end };
-        }), primIndex);
+        }), primIndex, options);
         if (center) {
             this.centerOnCursor(centerOptions);
         }
@@ -1506,6 +1520,126 @@ define(function (require, exports, module) {
         return this._inlineWidgets;
     };
 
+    /**
+     * Display temporary popover message at current cursor position. Display message above
+     * cursor if space allows, otherwise below.
+     *
+     * @param {string} errorMsg Error message to display
+     */
+    Editor.prototype.displayErrorMessageAtCursor = function (errorMsg) {
+        var arrowBelow, cursorPos, cursorCoord, popoverRect,
+            top, left, clip, arrowLeft,
+            self = this,
+            $editorHolder = $("#editor-holder"),
+            POPOVER_MARGIN = 10,
+            POPOVER_ARROW_HALF_WIDTH = 10;
+
+        function _removeListeners() {
+            $(self).off(".msgbox");
+        }
+
+        // PopUpManager.removePopUp() callback
+        function _clearMessagePopover() {
+            if (self._$messagePopover && self._$messagePopover.length > 0) {
+                // self._$messagePopover.remove() is done by PopUpManager
+                self._$messagePopover = null;
+            }
+            _removeListeners();
+        }
+        
+        // PopUpManager.removePopUp() is called either directly by this closure, or by
+        // PopUpManager as a result of another popup being invoked.
+        function _removeMessagePopover() {
+            PopUpManager.removePopUp(self._$messagePopover);
+        }
+
+        function _addListeners() {
+            $(self)
+                .on("blur.msgbox",           _removeMessagePopover)
+                .on("change.msgbox",         _removeMessagePopover)
+                .on("cursorActivity.msgbox", _removeMessagePopover)
+                .on("update.msgbox",         _removeMessagePopover);
+        }
+
+        // Only 1 message at a time
+        if (this._$messagePopover) {
+            _removeMessagePopover();
+        }
+        
+        // Make sure cursor is in view
+        cursorPos = this.getCursorPos();
+        this._codeMirror.scrollIntoView(cursorPos);
+        
+        // Determine if arrow is above or below
+        cursorCoord = this._codeMirror.charCoords(cursorPos);
+        
+        // Assume popover height is max of 2 lines
+        arrowBelow = (cursorCoord.top > 100);
+        
+        // Text is dynamic, so build popover first so we can measure final width
+        this._$messagePopover = $("<div/>").addClass("popover-message").appendTo($("body"));
+        if (!arrowBelow) {
+            $("<div/>").addClass("arrowAbove").appendTo(this._$messagePopover);
+        }
+        $("<div/>").addClass("text").appendTo(this._$messagePopover).html(errorMsg);
+        if (arrowBelow) {
+            $("<div/>").addClass("arrowBelow").appendTo(this._$messagePopover);
+        }
+        
+        // Estimate where to position popover.
+        top = (arrowBelow) ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
+                           : cursorCoord.bottom + POPOVER_MARGIN;
+        left = cursorCoord.left - (this._$messagePopover.width() / 2);
+        
+        popoverRect = {
+            top:    top,
+            left:   left,
+            height: this._$messagePopover.height(),
+            width:  this._$messagePopover.width()
+        };
+        
+        // See if popover is clipped on any side
+        clip = ViewUtils.getElementClipSize($editorHolder, popoverRect);
+
+        // Prevent horizontal clipping
+        if (clip.left > 0) {
+            left += clip.left;
+        } else if (clip.right > 0) {
+            left -= clip.right;
+        }
+        
+        // Popover text and arrow are positioned individually
+        this._$messagePopover.css({"top": top, "left": left});
+        
+        // Position popover arrow exactly centered over/under cursor
+        arrowLeft = cursorCoord.left - left - POPOVER_ARROW_HALF_WIDTH;
+        if (arrowBelow) {
+            this._$messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
+        } else {
+            this._$messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
+        }
+
+        // Add listeners
+        PopUpManager.addPopUp(this._$messagePopover, _clearMessagePopover, true);
+        _addListeners();
+
+        // Animate open
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
+            // Make sure we still have a popover
+            if (self._$messagePopover && self._$messagePopover.length > 0) {
+                self._$messagePopover.addClass("open");
+
+                // Don't add scroll listeners until open so we don't get event
+                // from scrolling cursor into view
+                $(self).on("scroll.msgbox", _removeMessagePopover);
+
+                // Animate closed -- which includes delay to show message
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
+                    .done(_removeMessagePopover);
+            }
+        });
+    };
+    
     /**
      * Returns the offset of the top of the virtual scroll area relative to the browser window (not the editor
      * itself). Mainly useful for calculations related to scrollIntoView(), where you're starting with the

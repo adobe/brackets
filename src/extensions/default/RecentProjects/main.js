@@ -114,7 +114,7 @@ define(function (require, exports, module) {
      * Create the "delete" button that shows up when you hover over a project.
      */
     function renderDelete() {
-        return $("<div id='recent-folder-delete' class='trash-icon'></div>")
+        return $("<div id='recent-folder-delete' class='trash-icon'>&times;</div>")
             .mouseup(function (e) {
                 // Don't let the click bubble upward.
                 e.stopPropagation();
@@ -458,7 +458,7 @@ define(function (require, exports, module) {
 
     AppInit.htmlReady(function () {
         $("#project-title")
-            .wrap("<div id='project-dropdown-toggle'></div>")
+            .wrap("<div id='project-dropdown-toggle' class='btn-alt-quiet'></div>")
             .after("<span class='dropdown-arrow'></span>");
 
         var cmenuAdapter = {
