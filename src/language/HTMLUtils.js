@@ -484,7 +484,8 @@ define(function (require, exports, module) {
             currentBlock = null,
             inBlock = false,
             outerMode = editor._codeMirror.getMode(),
-            tokenModeName;
+            tokenModeName,
+            previousMode;
         
         while (TokenUtils.moveNextToken(ctx, false)) {
             tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
@@ -493,10 +494,8 @@ define(function (require, exports, module) {
                     // Handle empty blocks
                     currentBlock.end = currentBlock.start;
                 }
-                // Check for end of this block which normally is the </style> tag
-                // with tokenModeName in "xml". If we encounter embedded php code, we
-                // will get "clike" tokenModeName and we need to skip all of them.
-                if (tokenModeName !== "clike" && tokenModeName !== modeName) {
+                // Check for end of this block
+                if (tokenModeName === previousMode) {
                     // currentBlock.end is already set to pos of the last token by now
                     currentBlock.text = editor.document.getRange(currentBlock.start, currentBlock.end);
                     inBlock = false;
@@ -511,6 +510,8 @@ define(function (require, exports, module) {
                     };
                     blocks.push(currentBlock);
                     inBlock = true;
+                } else {
+                    previousMode = tokenModeName;
                 }
                 // else, random token: ignore
             }
