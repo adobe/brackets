@@ -121,15 +121,11 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
     PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
     PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
-        validator: function (value) {
-            return ValidationUtils.isIntegerInRange(value, MIN_SPACE_UNITS, MAX_SPACE_UNITS);
-        }
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
     });
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
     PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
-        validator: function (value) {
-            return ValidationUtils.isIntegerInRange(value, MIN_TAB_SIZE, MAX_TAB_SIZE);
-        }
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
     PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
