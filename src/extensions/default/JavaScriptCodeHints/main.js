@@ -453,7 +453,7 @@ define(function (require, exports, module) {
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
                 if (key) {
-                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ScopeManager.handleFileChange([{from: cursor, to: cursor, text: [key]}]);
                     ignoreChange = true;
                 }
 
@@ -632,7 +632,7 @@ define(function (require, exports, module) {
 
                         
             // Only provide jump-to-definition results when cursor is in JavaScript content
-            if (session.editor.getModeForSelection() !== "javascript") {
+            if (!session || session.editor.getModeForSelection() !== "javascript") {
                 return null;
             }
 

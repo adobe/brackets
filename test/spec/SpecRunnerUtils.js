@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         PanelManager        = require("view/PanelManager"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesBase     = require("preferences/PreferencesBase");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         EDITOR_USE_TABS         = false,
@@ -50,9 +51,12 @@ define(function (require, exports, module) {
         _testSuites             = {},
         _testWindow,
         _doLoadExtensions,
-        nfs,
         _rootSuite              = { id: "__brackets__" },
         _unitTestReporter;
+    
+    function _getFileSystem() {
+        return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
+    }
     
     /**
      * Delete a path
@@ -62,7 +66,7 @@ define(function (require, exports, module) {
      */
     function deletePath(fullPath, silent) {
         var result = new $.Deferred();
-        FileSystem.resolve(fullPath, function (err, item) {
+        _getFileSystem().resolve(fullPath, function (err, item) {
             if (!err) {
                 item.unlink(function (err) {
                     if (!err) {
@@ -143,7 +147,7 @@ define(function (require, exports, module) {
     function resolveNativeFileSystemPath(path) {
         var result = new $.Deferred();
         
-        FileSystem.resolve(path, function (err, item) {
+        _getFileSystem().resolve(path, function (err, item) {
             if (!err) {
                 result.resolve(item);
             } else {
@@ -227,7 +231,7 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred();
 
         runs(function () {
-            var dir = FileSystem.getDirectoryForPath(getTempDirectory()).create(function (err) {
+            var dir = _getFileSystem().getDirectoryForPath(getTempDirectory()).create(function (err) {
                 if (err && err !== FileSystemError.ALREADY_EXISTS) {
                     deferred.reject(err);
                 } else {
@@ -251,7 +255,7 @@ define(function (require, exports, module) {
         promise = Async.doSequentially(folders, function (folder) {
             var deferred = new $.Deferred();
             
-            FileSystem.resolve(folder, function (err, entry) {
+            _getFileSystem().resolve(folder, function (err, entry) {
                 if (!err) {
                     // Change permissions if the directory exists
                     chmod(folder, "777").then(deferred.resolve, deferred.reject);
@@ -317,7 +321,7 @@ define(function (require, exports, module) {
             content     = options.content || "";
         
         // Use unique filename to avoid collissions in open documents list
-        var dummyFile = FileSystem.getFileForPath(filename);
+        var dummyFile = _getFileSystem().getFileForPath(filename);
         var docToShim = new DocumentManager.Document(dummyFile, new Date(), content);
         
         // Prevent adding doc to working set
@@ -490,12 +494,26 @@ define(function (require, exports, module) {
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
             
+            // signals that main.js should configure RequireJS for tests
+            params.put("testEnvironment", true);
+            
             // option to launch test window with either native or HTML menus
             if (options && options.hasOwnProperty("hasNativeMenus")) {
                 params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
             }
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            // Displays the primary console messages from the test window in the the
+            // test runner's console as well.
+            ["log", "info", "warn", "error"].forEach(function (method) {
+                var originalMethod = _testWindow.console[method];
+                _testWindow.console[method] = function () {
+                    var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
+                    console[method].apply(console, log);
+                    originalMethod.apply(_testWindow.console, arguments);
+                };
+            });
             
             _testWindow.isBracketsTestWindow = true;
             
@@ -740,9 +758,12 @@ define(function (require, exports, module) {
      */
     function createTextFile(path, text, fileSystem) {
         var deferred = new $.Deferred(),
-            file = fileSystem.getFileForPath(path);
+            file = fileSystem.getFileForPath(path),
+            options = {
+                blind: true // overwriting previous files is OK
+            };
         
-        file.write(text, function (err) {
+        file.write(text, options, function (err) {
             if (!err) {
                 deferred.resolve(file);
             } else {
@@ -782,7 +803,7 @@ define(function (require, exports, module) {
                 }
                 
                 // create the new File
-                createTextFile(destination, text, FileSystem).done(function (entry) {
+                createTextFile(destination, text, _getFileSystem()).done(function (entry) {
                     deferred.resolve(entry, offsets, text);
                 }).fail(function (err) {
                     deferred.reject(err);
@@ -819,7 +840,7 @@ define(function (require, exports, module) {
         var parseOffsets    = options.parseOffsets || false,
             removePrefix    = options.removePrefix || true,
             deferred        = new $.Deferred(),
-            destDir         = FileSystem.getDirectoryForPath(destination);
+            destDir         = _getFileSystem().getDirectoryForPath(destination);
         
         // create the destination folder
         destDir.create(function (err) {
@@ -1026,7 +1047,7 @@ define(function (require, exports, module) {
         // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
         // you can't escape quotes in it.
         var i;
-        if (root instanceof $) {
+        if (root.jquery) {
             root = root.get(0);
         }
         if (!root) {

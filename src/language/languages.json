@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "asp", "master","cshtml","vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -57,7 +57,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -80,13 +80,13 @@
         "name": "JSON",
         "mode": ["javascript", "application/json"],
         "fileExtensions": ["json"],
-        "lineComment": ["//"]
+        "fileNames": [".jshintrc", ".bowerrc"]
     },
 
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xul", "xbl", "mathml", "config"],
+        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -130,7 +130,9 @@
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
-        "fileExtensions": ["java"]
+        "fileExtensions": ["java"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "scala": {
@@ -142,7 +144,7 @@
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee", "cf", "cson"],
+        "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
         "fileNames": ["Cakefile"]
     },
 
@@ -156,26 +158,31 @@
     "perl": {
         "name": "Perl",
         "mode": "perl",
-        "fileExtensions": ["pl", "pm"]
+        "fileExtensions": ["pl", "pm"],
+        "lineComment": ["#"]
     },
 
     "ruby": {
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile"]
+        "fileNames": ["Gemfile", "Rakefile", "Guardfile"],
+        "lineComment": ["#"]
     },
 
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"]
+        "fileExtensions": ["py", "pyw", "wsgi"],
+        "lineComment": ["#"]
     },
 
     "sass": {
         "name": "SASS",
         "mode": "sass",
-        "fileExtensions": ["sass"]
+        "fileExtensions": ["sass"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "lua": {
@@ -199,19 +206,23 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"]
+        "fileExtensions": ["md", "markdown"],
+        "blockComment": ["<!--", "-->"]
     },
 
     "yaml": {
         "name": "YAML",
         "mode": "yaml",
-        "fileExtensions": ["yaml", "yml"]
+        "fileExtensions": ["yaml", "yml"],
+        "lineComment": ["#"]
     },
 
     "hx": {
         "name": "Haxe",
         "mode": "haxe",
-        "fileExtensions": ["hx"]
+        "fileExtensions": ["hx"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "bash": {
@@ -223,7 +234,13 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico"],
+        "isBinary": true
+    },
+    
+    "audio": {
+        "name": "Audio",
+        "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
         "isBinary": true
     }
 }

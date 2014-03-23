@@ -1,22 +1,22 @@
 /**
- * All selectors descend from .timing-function-editor to constrain styles to this extension
+ * All BezierCurveEditor selectors descend from .bezier-curve-editor to constrain styles to this extension
  */
-.timing-function-editor * {
+.bezier-curve-editor * {
     margin: 0;
 }
 
-.timing-function-editor {
+.bezier-curve-editor {
     position: relative;
     height: 300px;
     margin: 0 25px;
 }
 
-.timing-function-editor:focus {
+.bezier-curve-editor:focus {
     outline: none;
 }
 
-.timing-function-editor .cubic-bezier {
-    background: url(grid.png) 0px -75px repeat;
+.bezier-curve-editor .cubic-bezier {
+    background: url(grid.png) 0px -75px repeat-x;
     border-left: 1px solid #bbb;
     border-right: 1px solid #bbb;
     background-size: 15px 450px;
@@ -28,7 +28,7 @@
     z-index: 2;
 }
 
-.timing-function-editor:after {
+.bezier-curve-editor:after {
     content: "";
     display: block;
     height: 300px;
@@ -41,7 +41,7 @@
     z-index: 1;
 }
 
-.timing-function-editor .coordinate-plane {
+.bezier-curve-editor .coordinate-plane {
     position: relative;
     left: 0;
     line-height: 0;
@@ -52,8 +52,8 @@
     box-sizing: content-box;
 }
 
-.timing-function-editor .coordinate-plane:before,
-.timing-function-editor .coordinate-plane:after {
+.bezier-curve-editor .coordinate-plane:before,
+.bezier-curve-editor .coordinate-plane:after {
     position: absolute;
     bottom: 0%;
     left: 0;
@@ -68,7 +68,7 @@
     line-height: 1;
 }
 
-.timing-function-editor .coordinate-plane:before {
+.bezier-curve-editor .coordinate-plane:before {
     border-bottom: 1px solid transparent;
        -moz-transform: rotate(-90deg);
         -ms-transform: rotate(-90deg);
@@ -83,12 +83,12 @@
     white-space: nowrap;
 }
 
-.timing-function-editor .coordinate-plane:after {
+.bezier-curve-editor .coordinate-plane:after {
     margin-bottom: -1.5em;
     white-space: nowrap;
 }
 
-.timing-function-editor .control-point {
+.bezier-curve-editor .control-point {
     background: -webkit-linear-gradient(270deg, rgb(249, 249, 249) 50%, rgb(237, 237, 237) 50%);
     position: absolute;
     z-index: 2;
@@ -102,12 +102,12 @@
     border-radius: 8px;
 }
 
-.timing-function-editor .control-point:focus {
+.bezier-curve-editor .control-point:focus {
     border: 1px solid #0940fd !important;
     box-shadow: 0 0 0 2px #6fb5f1;
 }
 
-.timing-function-editor .P0, .timing-function-editor .P3 {
+.bezier-curve-editor .P0, .bezier-curve-editor .P3 {
     background: #1461FC;
     border-radius: 0;
     border: none;
@@ -116,22 +116,22 @@
     z-index: 1;
 }
 
-.timing-function-editor .P1, .timing-function-editor .P2 {
+.bezier-curve-editor .P1, .bezier-curve-editor .P2 {
     cursor: pointer;
     z-index: 100;
 }
 
-.timing-function-editor .P0 {
+.bezier-curve-editor .P0 {
     left: 2px;
     top: 151px;
 }
 
-.timing-function-editor .P3 {
+.bezier-curve-editor .P3 {
     right: -7px;
     top: 1px;
 }
 
-.timing-function-editor canvas.curve {
+.bezier-curve-editor canvas.curve {
     position: absolute;
     z-index: 1;
     top: -75px;
@@ -140,4 +140,162 @@
     -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
+}
+
+.bezier-curve-editor .info {
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    left: 170px;
+    width: 400px;
+
+    font-family: SourceSansPro;
+    font-size: 11px;
+    line-height: 1.9 !important;
+}
+
+
+/**
+ * All StepEditor selectors descend from .step-editor to constrain styles to this extension
+ */
+.step-editor * {
+    margin: 0;
+}
+
+.step-editor {
+    position: relative;
+    height: 190px;
+    margin: 0 25px;
+}
+
+.step-editor:focus, .step-editor canvas.steps:focus {
+    outline: none;
+}
+
+.step-editor .steps-func {
+    height: 179px;
+    width: 179px;
+    margin: 0 0 0 17px;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+}
+
+.step-editor:after {
+    content: "";
+    display: block;
+    height: 179px;
+    width: 179px;
+    margin: 0 0 0 25px;
+    background-position: 2px 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+.step-editor .coordinate-plane {
+    position: relative;
+    left: 0;
+    line-height: 0;
+    top: 0;
+    width: 179px;
+    height: 179px;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+.step-editor .coordinate-plane:before,
+.step-editor .coordinate-plane:after {
+    position: absolute;
+    bottom: 0%;
+    left: 0;
+    width: 100%;
+    padding: .3em .5em;
+    
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    color: #454545;
+    font-size: 75%;
+    line-height: 1;
+}
+
+.step-editor .coordinate-plane:before {
+    border-bottom: 1px solid transparent;
+       -moz-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+         -o-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+            transform: rotate(-90deg);
+       -moz-transform-origin: top left;
+        -ms-transform-origin: top left;
+         -o-transform-origin: top left;
+    -webkit-transform-origin: top left;
+            transform-origin: top left;
+    white-space: nowrap;
+}
+
+.step-editor .coordinate-plane:after {
+    margin-left: 15px;
+    white-space: nowrap;
+}
+
+.step-editor canvas.steps {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.step-editor .info {
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    left: 180px;
+    width: 400px;
+
+    font-family: SourceSansPro;
+    font-size: 11px;
+    line-height: 1.9 !important;
+}
+
+.bezier-curve-editor kbd,
+.step-editor kbd {
+    font-size: 15px;
+    font-weight: bold;
+    color: #454545;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin: 0 2px 2px 0;
+    padding: 0 3px 2px;
+    border-radius: 2px;
+    vertical-align: top;
+    line-height: 1;
+}
+
+.bezier-curve-editor kbd.text,
+.step-editor kbd.text {
+    font-size: 10px;
+    font-family: SourceSansPro;
+    font-weight: normal;
+    padding: 4px 4px;
+}
+
+.bezier-curve-editor .info .hint,
+.step-editor .info .hint {
+    margin-top: 25px;
+    font-size: 13px;
+    display: none;
+    opacity: 1;
+}
+
+.bezier-curve-editor .info .hint.fadeout,
+.step-editor .info .hint.fadeout {
+    transition: opacity 0.6s ease-in 0.1s;
+    opacity: 0;
 }

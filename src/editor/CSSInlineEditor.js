@@ -23,30 +23,25 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window, Mustache */
+/*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
+        DropdownButton          = require("widgets/DropdownButton").DropdownButton,
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
         DocumentManager         = require("document/DocumentManager"),
-        DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
-        PanelManager            = require("view/PanelManager"),
         ProjectManager          = require("project/ProjectManager"),
         HTMLUtils               = require("language/HTMLUtils"),
-        Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
-        PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings"),
         ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
-
-    var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
     
     var _newRuleCmd,
         _newRuleHandlers = [];
@@ -59,11 +54,14 @@ define(function (require, exports, module) {
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
      * @param {!Editor} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {selectorName: {string}, reason: {string}}
      * @private
      */
     function _getSelectorName(editor, pos) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
-            selectorName = "";
+            selectorName = "",
+            reason;
         
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
@@ -90,29 +88,27 @@ define(function (require, exports, module) {
                 if (selectorName === ".") {
                     selectorName = "";
                 }
+                
+                if (selectorName === "") {
+                    reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
+                }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
                 var trimmedVal = tagInfo.attr.value.trim();
                 if (trimmedVal) {
                     selectorName = "#" + trimmedVal;
+                } else {
+                    reason = Strings.ERROR_CSSQUICKEDIT_IDNOTFOUND;
                 }
+            } else {
+                reason = Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR;
             }
         }
         
-        return selectorName;
-    }
-
-    /**
-     * @private
-     * Create the list of stylesheets in the dropdown menu.
-     * @return {string} The html content
-     */
-    function _renderList(cssFileInfos) {
-        var templateVars   = {
-                styleSheetList : cssFileInfos
-            };
-
-        return Mustache.render(StylesheetsMenuTemplate, templateVars);
+        return {
+            selectorName: selectorName,
+            reason:       reason
+        };
     }
 
     /**
@@ -147,6 +143,16 @@ define(function (require, exports, module) {
         }
     }
     
+    /** Item renderer for stylesheet-picker dropdown */
+    function _stylesheetListRenderer(item) {
+        var html = "<span class='stylesheet-name'>" + _.escape(item.name);
+        if (item.subDirStr.length) {
+            html += "<span class='stylesheet-dir'> — " + _.escape(item.subDirStr) + "</span>";
+        }
+        html += "</span>";
+        return html;
+    }
+    
     /**
      * This function is registered with EditManager as an inline editor provider. It creates a CSSInlineEditor
      * when cursor is on an HTML tag name, class attribute, or id attribute, find associated
@@ -154,8 +160,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr, or
+     *         null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
@@ -172,111 +179,24 @@ define(function (require, exports, module) {
         
         // Always use the selection start for determining selector name. The pos
         // parameter is usually the selection end.
-        var selectorName = _getSelectorName(hostEditor, sel.start);
-        if (selectorName === "") {
-            return null;
+        var selectorResult = _getSelectorName(hostEditor, sel.start);
+        if (selectorResult.selectorName === "") {
+            return selectorResult.reason || null;
         }
+        
+        var selectorName = selectorResult.selectorName;
 
         var result = new $.Deferred(),
             cssInlineEditor,
             cssFileInfos = [],
-            $newRuleButton,
-            $dropdown,
-            $dropdownItem,
-            dropdownEventHandler;
-
-        /**
-         * @private
-         * Close the dropdown externally to dropdown, which ultimately calls the
-         * _cleanupDropdown callback.
-         */
-        function _closeDropdown() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
-            }
-        }
-        
-        /**
-         * @private
-         * Handle click
-         */
-        function _onClickOutside(event) {
-            var $container = $(event.target).closest(".stylesheet-dropdown");
-
-            // If click is outside dropdown list, then close dropdown list
-            if ($container.length === 0 || $container[0] !== $dropdown[0]) {
-                _closeDropdown();
-            }
-        }
-        
-        /**
-         * @private
-         * Remove the various event handlers that close the dropdown. This is called by the
-         * PopUpManager when the dropdown is closed.
-         */
-        function _cleanupDropdown() {
-            window.document.body.removeEventListener("click", _onClickOutside, true);
-            $(hostEditor).off("scroll", _closeDropdown);
-            $(PanelManager).off("editorAreaResize", _closeDropdown);
-            dropdownEventHandler = null;
-            $dropdown = null;
-    
-            EditorManager.focusEditor();
-        }
+            newRuleButton;
 
         /**
          * @private
          * Callback when item from dropdown list is selected
-         * @param {jQueryObject} $link  The `a` element selected with mouse or keyboard
          */
-        function _onSelect($link) {
-            var path  = $link.data("path");
-
-            if (path) {
-                _addRule(selectorName, cssInlineEditor, path);
-            }
-        }
-        
-        /**
-         * @private
-         * Show or hide the stylesheets dropdown.
-         */
-        function _showDropdown() {
-            Menus.closeAll();
-            
-            $dropdown = $(_renderList(cssFileInfos))
-                .appendTo($("body"));
-            
-            var toggleOffset   = $newRuleButton.offset(),
-                $window        = $(window),
-                posLeft        = toggleOffset.left,
-                posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
-                bottomOverhang = posTop  + $dropdown.height() - $window.height(),
-                rightOverhang  = posLeft + $dropdown.width()  - $window.width();
-            
-            if (bottomOverhang > 0) {
-                // Bottom is clipped, so move entire menu above button
-                posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
-            }
-            
-            if (rightOverhang > 0) {
-                // Right is clipped, so adjust left to fit menu in editor
-                posLeft = Math.max(0, posLeft - rightOverhang);
-            }
-            
-            $dropdown.css({
-                left: posLeft,
-                top: posTop
-            });
-            
-            dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
-            dropdownEventHandler.open();
-            
-            $dropdown.focus();
-            
-            window.document.body.addEventListener("click", _onClickOutside, true);
-            $(hostEditor).on("scroll", _closeDropdown);
-            $(PanelManager).on("editorAreaResize", _closeDropdown);
+        function _onDropdownSelect(event, fileInfo) {
+            _addRule(selectorName, cssInlineEditor, fileInfo.fullPath);
         }
         
         /**
@@ -298,7 +218,7 @@ define(function (require, exports, module) {
          * Update the enablement of associated menu commands.
          */
         function _updateCommands() {
-            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !$newRuleButton.hasClass("disabled"));
+            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !newRuleButton.$button.hasClass("disabled"));
         }
         
         /**
@@ -306,18 +226,15 @@ define(function (require, exports, module) {
          * Create a new rule on click.
          */
         function _handleNewRuleClick(e) {
-            if (!$newRuleButton.hasClass("disabled")) {
+            if (!newRuleButton.$button.hasClass("disabled")) {
                 if (cssFileInfos.length === 1) {
                     // Just go ahead and create the rule.
                     _addRule(selectorName, cssInlineEditor, cssFileInfos[0].fullPath);
-                } else if ($dropdown) {
-                    _closeDropdown();
                 } else {
-                    _showDropdown();
+                    // Although not attached to button click in 'dropdown mode', this handler can still be
+                    // invoked via the command shortcut. Just toggle dropdown open/closed in that case.
+                    newRuleButton.toggleDropdown();
                 }
-            }
-            if (e) {
-                e.stopPropagation();
             }
         }
         
@@ -384,6 +301,10 @@ define(function (require, exports, module) {
             return fileInfos;
         }
         
+        function _onHostEditorScroll() {
+            newRuleButton.closeDropdown();
+        }
+        
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
@@ -397,17 +318,21 @@ define(function (require, exports, module) {
                     inlineEditorDeferred.resolve();
                 });
                 $(cssInlineEditor).on("close", function () {
-                    _closeDropdown();
+                    newRuleButton.closeDropdown();
+                    $(hostEditor).off("scroll", _onHostEditorScroll);
                 });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
-                    .text(Strings.BUTTON_NEW_RULE)
-                    .on("click", _handleNewRuleClick);
-                $header.append($newRuleButton);
+                newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, [], _stylesheetListRenderer); // actual item list populated later, below
+                newRuleButton.$button.addClass("disabled");  // disabled until list is known
+                newRuleButton.$button.addClass("btn-mini stylesheet-button");
+                $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 
+                $(hostEditor).on("scroll", _onHostEditorScroll);
+                
                 result.resolve(cssInlineEditor);
+                
 
                 // Now that dialog has been built, collect list of stylesheets
                 var stylesheetsPromise = _getCSSFilesInProject();
@@ -424,14 +349,21 @@ define(function (require, exports, module) {
                         // "New Rule" button is disabled by default and gets enabled
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
-                            $newRuleButton.removeClass("disabled");
+                            newRuleButton.$button.removeClass("disabled");
                             if (!rules.length) {
                                 // Force focus to the button so the user can create a new rule from the keyboard.
-                                $newRuleButton.focus();
+                                newRuleButton.$button.focus();
                             }
-                        }
-                        if (cssFileInfos.length > 1) {
-                            $newRuleButton.addClass("btn-dropdown");
+                            
+                            if (cssFileInfos.length === 1) {
+                                // Make it look & feel like a plain button in this case
+                                newRuleButton.$button.removeClass("btn-dropdown");
+                                newRuleButton.$button.on("click", _handleNewRuleClick);
+                            } else {
+                                // Fill out remaining dropdown attributes otherwise
+                                newRuleButton.items = cssFileInfos;
+                                $(newRuleButton).on("select", _onDropdownSelect);
+                            }
                         }
                         
                         _updateCommands();

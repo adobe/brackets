@@ -22,8 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, waitsForDone, spyOn, jasmine, beforeFirst, afterLast */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, runs, $, waitsForDone, spyOn, jasmine, beforeFirst, afterLast, brackets */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -55,6 +54,7 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            testWindow.brackets.config.extension_listing_url = brackets.config.extension_listing_url;
             runs(function () {
                 if (dialog) {
                     dialog._close();
@@ -95,6 +95,30 @@ define(function (require, exports, module) {
             dialog._installer = installer;
             return installer;
         }
+        
+        describe("with Browse Extensions enabled", function () {
+            it("should open the extension list wiki page when the user clicks on the Browse Extensions button", function () {
+                // Set the extension_listing_url in the configuration so that the button will
+                // show up.
+                var extensionListingURL = "https://github.com/adobe/brackets/wiki/Brackets-Extensions";
+                testWindow.brackets.config.extension_listing_url = extensionListingURL;
+                
+                dialog = new testWindow.brackets.test.InstallExtensionDialog._Dialog();
+                dialog.show()
+                    .always(function () {
+                        closed = true;
+                    });
+                
+                fields = {
+                    $browseExtensionsButton: dialog.$browseExtensionsButton
+                };
+                
+                var NativeApp = testWindow.brackets.getModule("utils/NativeApp");
+                spyOn(NativeApp, "openURLInDefaultBrowser");
+                fields.$browseExtensionsButton.click();
+                expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith(extensionListingURL);
+            });
+        });
         
         describe("when user-initiated", function () {
     
@@ -663,11 +687,8 @@ define(function (require, exports, module) {
             });
             
             
-            it("should open the extension list wiki page when the user clicks on the Browse Extensions button", function () {
-                var NativeApp = testWindow.brackets.getModule("utils/NativeApp");
-                spyOn(NativeApp, "openURLInDefaultBrowser");
-                fields.$browseExtensionsButton.click();
-                expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/adobe/brackets/wiki/Brackets-Extensions");
+            it("should not display the Browse Extensions button in the default configuration", function () {
+                expect(fields.$browseExtensionsButton.length).toBe(0);
             });
             
             it("should display a warning message if the extension is already installed", function () {

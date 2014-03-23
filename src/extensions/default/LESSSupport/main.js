@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     
     LanguageManager.defineLanguage("less", {
         name: "LESS",
-        mode: "less",
+        mode: ["css", "text/x-less"],
         fileExtensions: ["less"],
         blockComment: ["/*", "*/"],
         lineComment: ["//"]

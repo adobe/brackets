@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
+        AnimationUtils      = require("utils/AnimationUtils"),
         EditorManager       = require("editor/EditorManager"),
         Editor              = require("editor/Editor").Editor,
         KeyEvent            = require("utils/KeyEvent"),
@@ -46,7 +47,8 @@ define(function (require, exports, module) {
         $fileInfo,
         $indentType,
         $indentWidthLabel,
-        $indentWidthInput;
+        $indentWidthInput,
+        $statusOverwrite;
     
     
     function _formatCountable(number, singularStr, pluralStr) {
@@ -92,11 +94,14 @@ define(function (require, exports, module) {
         var cursor = editor.getCursorPos(true);
         
         var cursorStr = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1);
-        if (editor.hasSelection()) {
-            // Show info about selection size when one exists
-            var sel = editor.getSelection(),
-                selStr;
-            
+        
+        var sels = editor.getSelections(),
+            selStr = "";
+
+        if (sels.length > 1) {
+            selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
+        } else if (editor.hasSelection()) {
+            var sel = sels[0];
             if (sel.start.line !== sel.end.line) {
                 var lines = sel.end.line - sel.start.line + 1;
                 if (sel.end.ch === 0) {
@@ -107,10 +112,8 @@ define(function (require, exports, module) {
                 var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
                 selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
             }
-            $cursorInfo.text(cursorStr + selStr);
-        } else {
-            $cursorInfo.text(cursorStr);
         }
+        $cursorInfo.text(cursorStr + selStr);
     }
     
     function _changeIndentWidth(value) {
@@ -141,6 +144,32 @@ define(function (require, exports, module) {
         _updateCursorInfo();
     }
     
+    function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+        if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
+            // label already up-to-date
+            return;
+        }
+
+        $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
+
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        }
+    }
+
+    function _updateEditorOverwriteMode(event) {
+        var editor = EditorManager.getActiveEditor(),
+            newstate = !editor._codeMirror.state.overwrite;
+
+        // update label with no transition
+        _updateOverwriteLabel(event, editor, newstate, true);
+        editor.toggleOverwrite(newstate);
+    }
+    
+    function _initOverwriteMode(currentEditor) {
+        currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
+    }
+    
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off(".statusbar");
@@ -154,10 +183,15 @@ define(function (require, exports, module) {
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
+            $(current).on("optionChange.statusbar", function () {
+                _updateIndentType();
+                _updateIndentSize();
+            });
             $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
+            $(current).on("overwriteToggle.statusbar", _updateOverwriteLabel);
             
             current.document.addRef();
             $(current.document).on("languageChanged.statusbar", function () { _updateLanguageInfo(current); });
@@ -165,6 +199,7 @@ define(function (require, exports, module) {
             _updateCursorInfo(null, current);
             _updateLanguageInfo(current);
             _updateFileInfo(current);
+            _initOverwriteMode(current);
             _updateIndentType();
             _updateIndentSize();
         }
@@ -177,6 +212,7 @@ define(function (require, exports, module) {
         $indentType         = $("#indent-type");
         $indentWidthLabel   = $("#indent-width-label");
         $indentWidthInput   = $("#indent-width-input");
+        $statusOverwrite    = $("#status-overwrite");
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
@@ -204,6 +240,8 @@ define(function (require, exports, module) {
 
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
+        $statusOverwrite.on("click", _updateEditorOverwriteMode);
+        
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     }
 

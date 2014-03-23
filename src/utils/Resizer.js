@@ -62,13 +62,9 @@ define(function (require, exports, module) {
     var AppInit                 = require("utils/AppInit"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
-    /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = null;
-	
     var $mainView;
+    
+    var isResizing = false;
     
     /**
      * Shows a resizable element.
@@ -155,7 +151,7 @@ define(function (require, exports, module) {
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
             elementID           = $element.attr("id"),
-            elementPrefs        = _prefs.getValue(elementID) || {},
+            elementPrefs        = PreferencesManager.getViewState(elementID) || {},
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
@@ -220,7 +216,7 @@ define(function (require, exports, module) {
             adjustSibling(elementSize);
             
             $element.trigger("panelExpanded", [elementSize]);
-            _prefs.setValue(elementID, elementPrefs);
+            PreferencesManager.setViewState(elementID, elementPrefs, null, isResizing);
         });
                       
         $element.data("hide", function () {
@@ -242,7 +238,7 @@ define(function (require, exports, module) {
             adjustSibling(0);
             
             $element.trigger("panelCollapsed", [elementSize]);
-            _prefs.setValue(elementID, elementPrefs);
+            PreferencesManager.setViewState(elementID, elementPrefs, null, isResizing);
         });
         
         // If the resizer is positioned right or bottom of the panel, we need to listen to
@@ -261,9 +257,9 @@ define(function (require, exports, module) {
                 newSize         = startSize,
                 previousSize    = startSize,
                 baseSize        = 0,
-                isMouseDown     = true,
                 resizeStarted   = false;
             
+            isResizing = true;
             $body.append($resizeShield);
                         
             if ($resizableElement.length) {
@@ -279,7 +275,7 @@ define(function (require, exports, module) {
             function doRedraw() {
                 // only run this if the mouse is down so we don't constantly loop even
                 // after we're done resizing.
-                if (!isMouseDown) {
+                if (!isResizing) {
                     return;
                 }
                 
@@ -353,7 +349,7 @@ define(function (require, exports, module) {
             }
             
             function endResize(e) {
-                if (isMouseDown) {
+                if (isResizing) {
                     
                     var elementSize	= elementSizeFunction.apply($element);
                     if ($element.is(":visible")) {
@@ -361,11 +357,11 @@ define(function (require, exports, module) {
                         if ($resizableElement.length) {
                             elementPrefs.contentSize = contentSizeFunction.apply($resizableElement);
                         }
-                        _prefs.setValue(elementID, elementPrefs);
+                        PreferencesManager.setViewState(elementID, elementPrefs);
                         repositionResizer(elementSize);
                     }
 
-                    isMouseDown = false;
+                    isResizing = false;
                     
                     if (resizeStarted) {
                         $element.trigger("panelResizeEnd", [elementSize]);
@@ -407,9 +403,6 @@ define(function (require, exports, module) {
         }
     }
 	
-    // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module);
-    
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
@@ -446,6 +439,24 @@ define(function (require, exports, module) {
             }
         });
     });
+    
+    /**
+     * @private
+     * Examine each preference key for migration of any panel state.
+     *
+     * @param {string} key The key of the preference to be examined
+     *      for migration of panel states.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _isPanelPreferences(key) {
+        if (key) {
+            return "user";
+        }
+        
+        return null;
+    }
+    
+    PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
     
     exports.makeResizable   = makeResizable;
     exports.toggle          = toggle;

@@ -29,8 +29,7 @@ define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
+    var DocumentManager     = brackets.getModule("document/DocumentManager"),
         Editor              = brackets.getModule("editor/Editor").Editor,
         EditorManager       = brackets.getModule("editor/EditorManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
@@ -171,10 +170,23 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should not hint in query part of url ", function () {
+            it("should not hint in query part of url", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 18, ch: 31 });
                     expectNoHints(UrlCodeHints.hintProvider);
+                });
+            });
+            
+            it("should hint up 1 folder for '../'", function () {
+                runs(function () {
+                    testEditor.setCursorPos({ line: 19, ch: 14 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    var expectedFirstItem = (brackets.platform === "mac") ? "../data.json" : "../testfiles/";
+                    verifyUrlHints(hintsObj.hints, expectedFirstItem);
                 });
             });
             
@@ -267,6 +279,79 @@ define(function (require, exports, module) {
             });
         });
             
+        describe("Project root relative Url Code Hints", function () {
+
+            var testWindow,
+                brackets,
+                workingSet = [],
+                CodeHintManager,
+                CommandManager,
+                Commands,
+                DocumentManager,
+                EditorManager;
+
+            it("should hint site root '/'", function () {
+                runs(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                        testWindow      = w;
+                        brackets        = testWindow.brackets;
+                        CodeHintManager = brackets.test.CodeHintManager;
+                        CommandManager  = brackets.test.CommandManager;
+                        Commands        = brackets.test.Commands;
+                        DocumentManager = brackets.test.DocumentManager;
+                        EditorManager   = brackets.test.EditorManager;
+                    });
+                });
+
+                runs(function () {
+                    SpecRunnerUtils.loadProjectInTestWindow(extensionPath);
+                });
+
+                runs(function () {
+                    workingSet.push(testHtmlPath);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "openProjectFiles");
+                });
+
+                runs(function () {
+                    DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
+                        testDocument = doc;
+                    });
+                });
+
+                waitsFor(function () {
+                    return (testDocument);
+                }, "Unable to open test document", 2000);
+
+                runs(function () {
+                    DocumentManager.setCurrentDocument(testDocument);
+                    testEditor = EditorManager.getCurrentFullEditor();
+                    testEditor.setCursorPos({ line: 20, ch: 12 });
+                    CommandManager.execute(Commands.SHOW_CODE_HINTS);
+                });
+
+                runs(function () {
+                    var hintList = CodeHintManager._getCodeHintList();
+                    expect(hintList).toBeTruthy();
+                    expect(hintList.hints).toBeTruthy();
+                    expect(hintList.hints).toContain("/testfiles/");
+                });
+
+                // cleanup
+                runs(function () {
+                    testEditor       = null;
+                    testDocument     = null;
+                    testWindow       = null;
+                    brackets         = null;
+                    CodeHintManager  = null;
+                    CommandManager   = null;
+                    Commands         = null;
+                    DocumentManager  = null;
+                    EditorManager    = null;
+                    SpecRunnerUtils.closeTestWindow();
+                });
+            });
+        });
+        
         describe("Url Insertion", function () {
 
             // These tests edit doc, so we need to setup/tear-down for each test

@@ -28,7 +28,8 @@ define(function (require, exports, module) {
     "use strict";
     
     var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
-        TimingFunctionEditor = require("TimingFunctionEditor").TimingFunctionEditor,
+        BezierCurveEditor    = require("BezierCurveEditor").BezierCurveEditor,
+        StepEditor           = require("StepEditor").StepEditor,
         TimingFunctionUtils  = require("TimingFunctionUtils");
         
 
@@ -36,7 +37,7 @@ define(function (require, exports, module) {
     var lastOriginId = 1;
     
     /**
-     * Constructor for inline widget containing a TimingFunctionEditor control
+     * Constructor for inline widget containing a BezierCurveEditor control
      *
      * @param {!RegExpMatch} timingFunction  RegExp match object of initially selected timingFunction
      * @param {!CodeMirror.Bookmark} startBookmark
@@ -60,7 +61,7 @@ define(function (require, exports, module) {
     InlineTimingFunctionEditor.prototype.constructor = InlineTimingFunctionEditor;
     InlineTimingFunctionEditor.prototype.parentClass = InlineWidget.prototype;
     
-    /** @type {!TimingFunctionEditor} TimingFunctionEditor instance */
+    /** @type {!BezierCurveEditor} BezierCurveEditor instance */
     InlineTimingFunctionEditor.prototype.timingFunctionEditor = null;
     
     /** @type {!string} Current value of the timing function editor control */
@@ -120,17 +121,19 @@ define(function (require, exports, module) {
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),
-            matches = TimingFunctionUtils.bezierCurveMatch(line.substr(start.ch), true);
+            matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true),
+            originalLength;
 
         // No longer have a match
         if (!matches) {
             return null;
         }
         
+        originalLength = ((matches.originalString && matches.originalString.length) || matches[0].length);
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
         // the matched length here.
-        if (end.ch === undefined || (end.ch - start.ch) !== matches[0].length) {
-            end.ch = start.ch + matches[0].length;
+        if (end.ch === undefined || (end.ch - start.ch) !== originalLength) {
+            end.ch = start.ch + originalLength;
             this._endBookmark.clear();
             this._endBookmark = this.hostEditor._codeMirror.setBookmark(end);
         }
@@ -142,7 +145,8 @@ define(function (require, exports, module) {
             return {
                 start: start,
                 end:   end,
-                match: matches
+                match: matches,
+                originalLength: originalLength
             };
         }
     };
@@ -152,7 +156,7 @@ define(function (require, exports, module) {
      * @param {!string} timingFunctionString
      */
     InlineTimingFunctionEditor.prototype._handleTimingFunctionChange = function (timingFunctionString) {
-        var timingFunctionMatch = TimingFunctionUtils.bezierCurveMatch(timingFunctionString, true);
+        var timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
         if (timingFunctionMatch !== this._timingFunction) {
             var range = this.getCurrentRange();
             if (!range) {
@@ -182,9 +186,14 @@ define(function (require, exports, module) {
     InlineTimingFunctionEditor.prototype.load = function (hostEditor) {
         InlineTimingFunctionEditor.prototype.parentClass.load.apply(this, arguments);
         
-        // Create timing function editor control
-        var swatchInfo = null;
-        this.timingFunctionEditor = new TimingFunctionEditor(this.$htmlContent, this._timingFunction, this._handleTimingFunctionChange, swatchInfo);
+        // Create appropriate timing function editor control
+        if (this._timingFunction.isBezier) {
+            this.timingFunctionEditor = new BezierCurveEditor(this.$htmlContent, this._timingFunction, this._handleTimingFunctionChange);
+        } else if (this._timingFunction.isStep) {
+            this.timingFunctionEditor = new StepEditor(this.$htmlContent, this._timingFunction, this._handleTimingFunctionChange);
+        } else {
+            window.console.log("InlineTimingFunctionEditor.load tried to load an unkown timing function type");
+        }
     };
 
     /**

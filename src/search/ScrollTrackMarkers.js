@@ -36,11 +36,9 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager");
+        EditorManager       = require("editor/EditorManager"),
+        PanelManager        = require("view/PanelManager");
     
-    
-    /** @const @type {number} Height (and width) or scrollbar up/down arrow button on Win */
-    var WIN_ARROW_HT = 17;
     
     /** @type {?Editor} Editor the markers are currently shown for, or null if not shown */
     var editor;
@@ -69,9 +67,11 @@ define(function (require, exports, module) {
         if (trackHt > 0) {
             // Scrollbar visible: determine offset of track from top of scrollbar
             if (brackets.platform === "win") {
-                trackOffset = WIN_ARROW_HT;  // Up arrow pushes down track
-            } else {
-                trackOffset = 0;             // No arrows
+                trackOffset = 0;  // Custom scrollbar CSS has no gap around the track
+            } else if (brackets.platform === "mac") {
+                trackOffset = 4;  // Native scrollbar has padding around the track
+            } else { //(Linux)
+                trackOffset = 2;  // Custom scrollbar CSS has assymmetrical gap; this approximates it
             }
             trackHt -= trackOffset * 2;
             
@@ -129,8 +129,8 @@ define(function (require, exports, module) {
             
             _calcScaling();
             
-            // Update tickmarks during window resize (whenever resizing has paused/stopped for > 1/3 sec)
-            $(window).on("resize.ScrollTrackMarkers", _.debounce(function () {
+            // Update tickmarks during editor resize (whenever resizing has paused/stopped for > 1/3 sec)
+            $(PanelManager).on("editorAreaResize.ScrollTrackMarkers", _.debounce(function () {
                 if (marks.length) {
                     _calcScaling();
                     $(".tickmark-track", editor.getRootElement()).empty();
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
             $(".tickmark-track", curEditor.getRootElement()).remove();
             editor = null;
             marks = [];
-            $(window).off("resize.ScrollTrackMarkers");
+            $(PanelManager).off("editorAreaResize.ScrollTrackMarkers");
         }
     }
     
