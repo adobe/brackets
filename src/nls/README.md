@@ -14,7 +14,7 @@
    see strings in context.
 6. Add this comment ``/* Last translated for SHA_of_root_strings.js */`` at the end 
    of your `strings.js` and replace `SHA_of_root_strings.js` with the actual SHA. You can 
-   copy the actual SHA in this [histroy page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
+   copy the actual SHA in this [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
    by hovering on the one you used for this translation and click on Copy SHA button.
 7. Edit this file and update the list of languages below!
 
