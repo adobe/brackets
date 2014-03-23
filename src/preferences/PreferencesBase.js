@@ -175,10 +175,15 @@ define(function (require, exports, module) {
                     
                     self._lineEndings = FileUtils.sniffLineEndings(text);
                     
-                    try {
-                        result.resolve(JSON.parse(text));
-                    } catch (e) {
-                        result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                    // If the file is empty, turn it into an empty object
+                    if (/^\s*$/.test(text)) {
+                        result.resolve({});
+                    } else {
+                        try {
+                            result.resolve(JSON.parse(text));
+                        } catch (e) {
+                            result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                        }
                     }
                 });
             } else {

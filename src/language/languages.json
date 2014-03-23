@@ -57,7 +57,7 @@
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
-        "fileExtensions": ["js", "jsx", "js.erb", "jsm"],
+        "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -144,7 +144,7 @@
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
-        "fileExtensions": ["coffee", "cf", "cson"],
+        "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
         "fileNames": ["Cakefile"]
     },
 

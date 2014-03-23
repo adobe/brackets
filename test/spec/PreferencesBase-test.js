@@ -1083,8 +1083,9 @@ define(function (require, exports, module) {
         });
         
         describe("File Storage", function () {
-            var settingsFile = FileSystem.getFileForPath(testPath + "/.brackets.json"),
-                newSettingsFile = FileSystem.getFileForPath(testPath + "/new.prefs"),
+            var settingsFile      = FileSystem.getFileForPath(testPath + "/.brackets.json"),
+                newSettingsFile   = FileSystem.getFileForPath(testPath + "/new.prefs"),
+                emptySettingsFile = FileSystem.getFileForPath(testPath + "/empty.json"),
                 filestorage,
                 originalText;
             
@@ -1238,6 +1239,18 @@ define(function (require, exports, module) {
                     expect(changes).toEqual([{
                         ids: ["spaceUnits"]
                     }]);
+                });
+            });
+            
+            it("is fine with empty preferences files", function () {
+                var filestorage = new PreferencesBase.FileStorage(emptySettingsFile.fullPath),
+                    promise = filestorage.load();
+                
+                waitsForDone(promise, "loading empty JSON file");
+                runs(function () {
+                    promise.then(function (data) {
+                        expect(data).toEqual({});
+                    });
                 });
             });
         });
