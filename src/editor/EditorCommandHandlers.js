@@ -563,7 +563,7 @@ define(function (require, exports, module) {
             }
             if (!edit) {
                 // Even if we didn't want to do an edit, we still need to track the selection.
-                edit = {selection: [sel]};
+                edit = {selection: lineSel.selectionsToTrack};
             }
             edits.push(edit);
         });
