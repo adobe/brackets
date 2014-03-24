@@ -670,7 +670,50 @@ define(function (require, exports, module) {
             // install scroller shadows
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
+            var findEventHandler = function (type, namespace, selector) {
+                var events        = $._data(_projectTree[0], "events"),
+                    eventsForType = events ? events[type] : null,
+                    event         = eventsForType ? _.find(eventsForType, function (e) {
+                                        return e.namespace === namespace && e.selector === selector;
+                                    }) : null,
+                    eventHandler  = event ? event.handler : null;
+                if (!eventHandler) {
+                    console.error(type + "." + namespace + " " + selector + " handler not found!");
+                }
+                return eventHandler;
+            };
+            var createCustomHandler = function(originalHandler) {
+                return function (event) {
+                    var $node = $(event.target).parent("li"),
+                        methodName;
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.altKey) {
+                            // collapse subtree
+                            // note: expanding using open_all is a bad idea due to poor performance
+                            methodName = $node.is(".jstree-open") ? "close_all" : "open_node";
+                            _projectTree.jstree(methodName, $node);
+                            return;
+                        } else {
+                            // toggle siblings
+                            methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
+                            $node.parent().children("li").each(function () {
+                                _projectTree.jstree(methodName, $(this));
+                            });
+                            return;
+                        }
+                    }
+                    // original behaviour
+                    originalHandler.apply(this, arguments);
+                };
+            };
+            var originalHrefHandler = findEventHandler("click", "jstree", "a");
+            var originalInsHandler = findEventHandler("click", "jstree", "li > ins");
+
             _projectTree
+                .off("click.jstree", "a")
+                .on("click.jstree", "a", createCustomHandler(originalHrefHandler))
+                .off("click.jstree", "li > ins")
+                .on("click.jstree", "li > ins", createCustomHandler(originalInsHandler))
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
