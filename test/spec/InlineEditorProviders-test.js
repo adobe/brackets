@@ -297,6 +297,21 @@ define(function (require, exports, module) {
             });
 
 
+            it("should open a type selector and show correct range including the embedded php", function () {
+                initInlineTest("test1.php", 1);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+                    
+                    // verify cursor position and displayed range in inline editor
+                    expect(inlinePos).toEqual(infos["test1.php"].offsets[0]);
+                    expect(inlineWidget.editor).toHaveInlineEditorRange(toRange(4, 8));
+                    
+                    inlineWidget = null;
+                });
+            });
+            
             it("should open a type selector on opening tag", function () {
                 initInlineTest("test1.html", 0);
                 
