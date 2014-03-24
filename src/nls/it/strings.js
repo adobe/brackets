@@ -104,7 +104,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Vuoi cambiare le modifiche apportate al file <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vuoi cambiare le modifiche apportate ai seguenti file?",
     "EXT_MODIFIED_TITLE"                : "Modifiche esterne",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confermi la cancellazione",
+    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confermi l'eliminazione",
     "CONFIRM_FOLDER_DELETE"             : "Sei sicuro di eliminare la cartella <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Eliminato",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> è stato modificato sul disco.<br /><br />Vuoi salvare il file e sovrascrivere le modifiche?",
@@ -267,7 +267,7 @@ define({
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
     "CMD_OPEN_LINE_BELOW"               : "Apri linea sotto",
-    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi tag doppi automaticamente",
+    "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi parentesi automaticamente",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
     
     // View menu commands
@@ -303,7 +303,7 @@ define({
     "CMD_NEXT_DOC"                      : "Documento successivo",
     "CMD_PREV_DOC"                      : "Documento precedente",
     "CMD_SHOW_IN_TREE"                  : "Mostra nell'albero dei file",
-    "CMD_SHOW_IN_OS"                    : "Mostra nel OS",
+    "CMD_SHOW_IN_OS"                    : "Mostra nel SO",
     
     // Help menu commands
     "HELP_MENU"                         : "Aiuto",
