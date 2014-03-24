@@ -260,18 +260,20 @@ function RemoteFunctions(experimental) {
             };
             
             var animateStartValues = {
+                "background-color": "rgba(0, 162, 255, 0.5)",
                 "opacity": 0
             };
             
             var animateEndValues = {
+                "background-color": "rgba(0, 162, 255, 0)",
                 "opacity": 1
             };
             
             var transitionValues = {
-                "-webkit-transition-property": "opacity",
-                "-webkit-transition-duration": "0.3s",
-                "transition-property": "opacity",
-                "transition-duration": "0.3s"
+                "-webkit-transition-property": "opacity, background-color",
+                "-webkit-transition-duration": "300ms, 2.3s",
+                "transition-property": "opacity, background-color",
+                "transition-duration": "300ms, 2.3s"
             };
             
             function _setStyleValues(styleValues, obj) {
