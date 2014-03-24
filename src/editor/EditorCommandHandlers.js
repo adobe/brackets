@@ -979,13 +979,21 @@ define(function (require, exports, module) {
             var origSels = editor.getSelections(),
                 newSels = [];
             _.each(origSels, function (sel) {
-                var pos;
+                var pos, colOffset;
                 if ((dir === -1 && sel.start.line > editor.getFirstVisibleLine()) || (dir === 1 && sel.end.line < editor.getLastVisibleLine())) {
                     // Add a new cursor on the next line up/down. It's okay if it overlaps another selection, because CM
                     // will take care of throwing it away in that case. It will also take care of clipping the char position
                     // to the end of the new line if the line is shorter.
                     pos = _.clone(dir === -1 ? sel.start : sel.end);
+
+                    // get sel column of current selection
+                    colOffset = editor.getColOffset(pos);
+
                     pos.line += dir;
+
+                    // translate column to ch in line of new selection
+                    pos.ch = editor.getPosOffset(pos.line, colOffset);
+
 
                     // If this is the primary selection, we want the new cursor we're adding to become the
                     // primary selection.

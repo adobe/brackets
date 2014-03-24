@@ -906,6 +906,34 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns the string-based pos for a given display column (zero-based) in given line. Differs from column
+     * only when the line contains preceding \t chars. Result depends on the current tab size setting.
+     * @param {number} lineNum Line number
+     * @param {number} colum Display column number
+     * @return {number}
+     */
+    Editor.prototype.getPosOffset = function (lineNum, column) {
+        var line    = this._codeMirror.getLine(lineNum),
+            tabSize = null,
+            iCol    = 0,
+            i;
+
+        for (i = 0; iCol < column; i++) {
+            if (line[i] === '\t') {
+                if (tabSize === null) {
+                    tabSize = Editor.getTabSize();
+                }
+                if (tabSize > 0) {
+                    iCol += (tabSize - (iCol % tabSize));
+                }
+            } else {
+                iCol++;
+            }
+        }
+        return i;
+    };
+    
+    /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line  The 0 based line number.
      * @param {number} ch  The 0 based character position; treated as 0 if unspecified.
