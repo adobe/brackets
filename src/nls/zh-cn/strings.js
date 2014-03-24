@@ -520,4 +520,4 @@ define({
     "DOCS_MORE_LINK"                            : "更多信息"
 });
 
-/* Last translated for e75f4445924300006a109433be338688c71ce998 */
+/* Last translated for cd86e0f9f9edddef58f88e921388902570783fd8 */
