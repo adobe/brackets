@@ -77,7 +77,7 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "索引文件错误",
     "ERROR_MAX_FILES"                   : "索引的文件过多, 请减少索引的文件.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "启动浏览器失败",
     "ERROR_CANT_FIND_CHROME"            : "没有找到 Google Chrome 浏览器, 请确定您已安装了 Chrome 浏览器.",
     "ERROR_LAUNCHING_BROWSER"           : "启动浏览器的时候出现一个错误. (错误 {0})",
@@ -85,13 +85,13 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在连接浏览器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "要使用实时预览, 需要重启 Chrome 并打开远程调试功能.<br /><br />你确定重新启动 Chrome 浏览器, 并且打开远程调试功能吗?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "无法加载实时开发页面.",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "无法加载实时预览页面.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "打开一个 HTML 文件或确认项目中包含 index.html 文件以启动实时预览.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "实时预览需要一个服务端, 您需要为这个项目指定一个基本 URL 地址. (如http://127.0.0.1/)",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动 HTTP 服务器时出现错误, 请再试一次.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "试图启动实时预览 HTTP 服务器时出现错误, 请再试一次.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} 将通过实时预览连接至你的浏览器. 你的 HTML 文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览.<br /><br />目前版本的 {APP_NAME} 实时预览只能运行于 <strong>Google Chrome</strong> 浏览器更新实时编辑时的 <strong>CSS 和 HTML 文件</strong>. 当你保存了 JavaScript 文件, 实时预览将在浏览器中重新加载他们.<br /><br />(此消息仅会出现一次.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息, 请参考<a href='{0}' title='{0}'>实时预览在线错误信息</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息, 请参考<a href='{0}' title='{0}'>实时预览连接错误信息</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中\u2026",
@@ -428,7 +428,7 @@ define({
     "EXTENSION_ERROR"                      : "扩展错误",
     "EXTENSION_KEYWORDS"                   : "关键词",
     "EXTENSION_INSTALLED"                  : "已安装",
-    "EXTENSION_UPDATE_INSTALLED"           : "此扩展的更新已下载, 将在退出 {APP_NAME} 时安装.",
+    "EXTENSION_UPDATE_INSTALLED"           : "此扩展的更新已下载, 将在重启 {APP_NAME} 后安装.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "搜索",
     "EXTENSION_MORE_INFO_LINK"             : "更多",
     "BROWSE_EXTENSIONS"                    : "浏览扩展",
@@ -519,3 +519,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "更多信息"
 });
+
+/* Last translated for e75f4445924300006a109433be338688c71ce998 */
