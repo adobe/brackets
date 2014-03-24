@@ -787,6 +787,26 @@ define(function (require, exports, module) {
                 expectSelection(barExpectedMatches[0]);
             });
             
+            it("should use empty initial query for single cursor selection", function () {
+                myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
+                twCommandManager.execute(Commands.EDIT_FIND);
+                expect(getSearchField().val()).toEqual("");
+            });
+            
+            it("should use empty initial query for multiple cursor selection", function () {
+                myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
+                                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
+                twCommandManager.execute(Commands.EDIT_FIND);
+                expect(getSearchField().val()).toEqual("");
+            });
+            
+            it("should get single selection as initial query", function () {
+                myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                                      {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
+                twCommandManager.execute(Commands.EDIT_FIND);
+                expect(getSearchField().val()).toEqual("require");
+            });
+            
             it("should get primary selection as initial query", function () {
                 myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}, primary: true},
                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 1}}]);
