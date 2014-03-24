@@ -684,18 +684,18 @@ define(function (require, exports, module) {
             };
             var createCustomHandler = function(originalHandler) {
                 return function (event) {
-                    var $node = $(event.target).parent("li");
+                    var $node = $(event.target).parent("li"),
+                        methodName;
                     if (event.ctrlKey || event.metaKey) {
                         if (event.altKey) {
                             // collapse subtree
                             // note: expanding using open_all is a bad idea due to poor performance
-                            if ($node.is(".jstree-open")) {
-                                _projectTree.jstree("close_all", $node);
-                                return;
-                            }
+                            methodName = $node.is(".jstree-open") ? "close_all" : "open_node";
+                            _projectTree.jstree(methodName, $node);
+                            return;
                         } else {
                             // toggle siblings
-                            var methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
+                            methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
                             $node.parent().children("li").each(function () {
                                 _projectTree.jstree(methodName, $(this));
                             });
