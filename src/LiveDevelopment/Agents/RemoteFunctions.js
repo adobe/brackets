@@ -255,6 +255,7 @@ function RemoteFunctions(experimental) {
                 "border-style": "solid",
                 "border-width": "1px",
                 "border-color": "#00a2ff",
+                "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
             
