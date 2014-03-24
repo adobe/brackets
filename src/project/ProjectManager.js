@@ -1853,9 +1853,13 @@ define(function (require, exports, module) {
                 var escapedName = _.escape(entry.name);
                 _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
-                var indexOfExtension = escapedName.lastIndexOf('.');
-                if (indexOfExtension > 0) {
-                    $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+
+                var extension = FileUtils.getSmartFileExtension(entry.name);
+                if (extension) {
+                    var indexOfExtension = escapedName.length - extension.length - 1;
+                    if (indexOfExtension > 0) {
+                        $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                    }
                 }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
