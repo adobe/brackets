@@ -181,6 +181,34 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("cakefile.doesNotExist")).toBe(unknown);
                 expect(LanguageManager.getLanguageForPath("Something.cakefile")).toBe(unknown);
             });
+            
+            it("should remove file extensions and add to new languages", function () {
+                var html    = LanguageManager.getLanguage("html"),
+                    ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(html);
+                
+                html.removeFileExtension("html");
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(unknown);
+                
+                ruby.addFileExtension("html");
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(ruby);
+            });
+            
+            it("should remove file names and add to new languages", function () {
+                var coffee  = LanguageManager.getLanguage("coffeescript"),
+                    html    = LanguageManager.getLanguage("html"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(coffee);
+                
+                coffee.removeFileName("Cakefile");
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(unknown);
+                
+                html.addFileName("Cakefile");
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(html);
+            });
         });
 
         describe("defineLanguage", function () {

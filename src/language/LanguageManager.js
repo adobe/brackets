@@ -468,7 +468,6 @@ define(function (require, exports, module) {
     /**
      * Adds a file extension to this language.
      * @param {!string} extension A file extension used by this language
-     * @return {boolean} Whether adding the file extension was successful or not
      */
     Language.prototype.addFileExtension = function (extension) {
         // Remove a leading dot if present
@@ -494,9 +493,31 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Unregisters a file extension from this language.
+     * @param {!string} extension File extension to stop using for this language
+     */
+    Language.prototype.removeFileExtension = function (extension) {
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
+        var index = this._fileExtensions.indexOf(extension);
+        if (index !== -1) {
+            this._fileExtensions.splice(index, 1);
+            
+            delete _fileExtensionToLanguageMap[extension];
+            
+            this._wasModified();
+        }
+    };
+
+    /**
      * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
      * @param {!string} extension An extensionless file name used by this language
-     * @return {boolean} Whether adding the file name was successful or not
      */
     Language.prototype.addFileName = function (name) {
         // Make checks below case-INsensitive
@@ -514,7 +535,24 @@ define(function (require, exports, module) {
             
             this._wasModified();
         }
-        return true;
+    };
+
+    /**
+     * Unregisters a file name from this language.
+     * @param {!string} extension An extensionless file name used by this language
+     */
+    Language.prototype.removeFileName = function (name) {
+        // Make checks below case-INsensitive
+        name = name.toLowerCase();
+        
+        var index = this._fileNames.indexOf(name);
+        if (index !== -1) {
+            this._fileNames.splice(index, 1);
+            
+            delete _fileNameToLanguageMap[name];
+            
+            this._wasModified();
+        }
     };
 
     /**
@@ -795,6 +833,10 @@ define(function (require, exports, module) {
         // When the CSSInlineEditor and the hint providers are no longer based on modes, this can be changed.
         // But for now, we need to associate this madeup "html" mode with our HTML language object.
         _setLanguageForMode("html", html);
+        
+        // Similarly, the php mode uses clike internally for the PHP parts
+        var php = getLanguage("php");
+        php._setLanguageForMode("clike", php);
         
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
