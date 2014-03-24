@@ -30,14 +30,19 @@ define(function (require, exports, module) {
                 );
             }
             
-            var fileClasses = "";
+            var fileClasses = "",
+                triangle;
             if (this.props.selected) {
-                fileClasses = "jstree-clicked jstree-hovered";
+                fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
+                triangle=(
+                    <div className="sidebar-selection-triangle triangle-visible"/>
+                );
             }
             return (
                 <li className="jstree-leaf" onClick={this.handleClick}>
                     <ins className="jstree-icon">&nbsp;</ins>
                     <a href="#" className={fileClasses}>{name}{extension}</a>
+                    {triangle}
                 </li>
             );
         }
