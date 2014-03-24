@@ -64,9 +64,14 @@ define(function HTMLDocumentModule(require, exports, module) {
         var self = this;
 
         this.doc = doc;
+        
+        // HACK: if no editor provided, use the document's master editor.
+        // (Is this really a hack?)
         if (!editor) {
-            return;
+            doc._ensureMasterEditor();
+            editor = doc._masterEditor;
         }
+        
         this.editor = editor;
         this._instrumentationEnabled = false;
         

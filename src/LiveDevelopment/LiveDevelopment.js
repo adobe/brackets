@@ -104,12 +104,13 @@ define(function LiveDevelopment(require, exports, module) {
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
 
     // Agents
-    var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
+    var CSSAgent = require("LiveDevelopment/Agents/CSSAgent"),
+        NetworkAgent = require("LiveDevelopment/Agents/NetworkAgent");
     
     var agents = {
         "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
         "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
-        "network"   : require("LiveDevelopment/Agents/NetworkAgent"),
+        "network"   : NetworkAgent,
         "dom"       : require("LiveDevelopment/Agents/DOMAgent"),
         "css"       : CSSAgent,
         "script"    : require("LiveDevelopment/Agents/ScriptAgent"),
@@ -184,6 +185,11 @@ define(function LiveDevelopment(require, exports, module) {
         return (FileUtils.isStaticHtmlFileExt(ext) ||
                 (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
     }
+    
+    function _isHtmlTemplateFileExt(path) {
+        // HACK
+        return FileUtils.getFileExtension(path) === "tmpl";
+    }
 
     /** Get the current document from the document manager
      * _adds extension, url and root to the document
@@ -203,7 +209,7 @@ define(function LiveDevelopment(require, exports, module) {
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (_isHtmlFileExt(doc.file.fullPath)) {
+        if (_isHtmlFileExt(doc.file.fullPath) || _isHtmlTemplateFileExt(doc.file.fullPath)) {
             return HTMLDocument;
         }
 
@@ -447,7 +453,7 @@ define(function LiveDevelopment(require, exports, module) {
         console.error(message, error, msgData);
     }
     
-    function _styleSheetAdded(event, url) {
+    function _handleRequestedDoc(url, type, callback) {
         var path = _server && _server.urlToPath(url),
             exists = !!_relatedDocuments[url];
 
@@ -462,17 +468,35 @@ define(function LiveDevelopment(require, exports, module) {
         var docPromise = DocumentManager.getDocumentForPath(path);
 
         docPromise.done(function (doc) {
-            if ((_classForDocument(doc) === CSSDocument) &&
+            if ((_classForDocument(doc) === type) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 var liveDoc = _createDocument(doc);
                 if (liveDoc) {
-                    _server.add(liveDoc);
+                    // HACK STUPID
+                    if (callback) {
+                        callback(liveDoc);
+                    } else {
+                        _server.add(liveDoc);
+                    }
                     _relatedDocuments[doc.url] = liveDoc;
 
                     $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
                 }
             }
         });
+    }
+    
+    function _styleSheetAdded(event, url) {
+        _handleRequestedDoc(url, CSSDocument);
+    }
+    
+    function _urlRequested(event, url) {
+        _handleRequestedDoc(url, HTMLDocument);
+    }
+    
+    function _handleNeedLiveDocument(event, path, callback) {
+        // TODO: should map extensions to doc types
+        _handleRequestedDoc(_server && _server.pathToUrl(path), HTMLDocument, callback);
     }
 
     /** Unload the agents */
@@ -753,6 +777,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         if (_server) {
             // Stop listening for requests when disconnected
+            $(_server).off(".livedev");
             _server.stop();
 
             // Dispose server
@@ -1162,6 +1187,7 @@ define(function LiveDevelopment(require, exports, module) {
             showBaseUrlPrompt = false;
         
         _server = LiveDevServerManager.getServer(doc.file.fullPath);
+        $(_server).on("needLiveDocument.livedev", _handleNeedLiveDocument);
 
         // Optionally prompt for a base URL if no server was found but the
         // file is a known server file extension
@@ -1386,6 +1412,7 @@ define(function LiveDevelopment(require, exports, module) {
         // Only listen for styleSheetAdded
         // We may get interim added/removed events when pushing incremental updates
         $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
+        $(NetworkAgent).on("request.livedev", _urlRequested);
         
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
             .on("documentSaved", _onDocumentSaved)

@@ -55,7 +55,9 @@ define(function NetworkAgent(require, exports, module) {
     }
 
     function _logURL(url) {
-        _urlRequested[_urlWithoutQueryString(url)] = true;
+        url = _urlWithoutQueryString(url);
+        $(exports).trigger("request", [url]);
+        _urlRequested[url] = true;
     }
 
     // WebInspector Event: Network.requestWillBeSent

@@ -145,7 +145,8 @@
         
         function rewrite(req, res, next) {
             var location = {pathname: parse(req).pathname},
-                hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
+                // HACK: request filtering for all files for now
+                hasListener = true, // _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
                 requestId = _filterRequestCounter++,
                 timeoutId;
             

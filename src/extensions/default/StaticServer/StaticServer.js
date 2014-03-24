@@ -204,17 +204,30 @@ define(function (require, exports, module) {
     StaticServer.prototype._onRequestFilter = function (event, request) {
         var key             = request.location.pathname,
             liveDocument    = this._liveDocuments[key],
-            response;
+            self = this;
+        
+        function respond(response) {
+            response.id = request.id;
+            self._send(request.location, response);
+        }
         
         // send instrumented response or null to fallback to static file
         if (liveDocument && liveDocument.getResponseData) {
-            response = liveDocument.getResponseData();
+            respond(liveDocument.getResponseData());
         } else {
-            response = {};
+            // Ask LiveDevelopment if we need a live document for this file.
+            // TODO: dumb to send a callback with the event...
+            $(this).trigger("needLiveDocument", [key, function (liveDoc) {
+                if (liveDoc) {
+                    self.add(liveDoc);
+                }
+                if (liveDoc && liveDoc.getResponseData) {
+                    respond(liveDoc.getResponseData());
+                } else {
+                    respond({});
+                }
+            }]);
         }
-        response.id = request.id;
-        
-        this._send(request.location, response);
     };
     
     /**

@@ -526,11 +526,11 @@ function RemoteFunctions(experimental) {
 
     /**
      * @private
-     * Find the first matching element with the specified data-brackets-id
+     * Find the all matching elements with the specified data-brackets-id
      * @param {string} id
      * @return {Element}
      */
-    DOMEditHandler.prototype._queryBracketsID = function (id) {
+    DOMEditHandler.prototype._getAllNodesWithBracketsID = function (id) {
         if (!id) {
             return null;
         }
@@ -540,7 +540,25 @@ function RemoteFunctions(experimental) {
         }
         
         var results = this.htmlDocument.querySelectorAll("[data-brackets-id='" + id + "']");
-        return results && results[0];
+        // TODO don't know that this is necessary, but I suspect this isn't a real array        
+        return Array.prototype.slice.call(results);
+    };
+    
+    DOMEditHandler.prototype._getNodeInParentWithBracketsID = function (id, parent) {
+        if (!id || !parent) {
+            return null;
+        }
+        
+        var candidates = this._getAllNodesWithBracketsID(id),
+            result;
+        candidates.forEach(function (candidate) {
+            if (candidate.parentNode === parent) {
+                result = candidate;
+                return false;
+            }
+        });
+        
+        return result;
     };
     
     /**
@@ -551,8 +569,8 @@ function RemoteFunctions(experimental) {
      * @param {Object} edit
      */
     DOMEditHandler.prototype._insertChildNode = function (targetElement, childElement, edit) {
-        var before = this._queryBracketsID(edit.beforeID),
-            after  = this._queryBracketsID(edit.afterID);
+        var before = this._getNodeInParentWithBracketsID(edit.beforeID, targetElement),
+            after  = this._getNodeInParentWithBracketsID(edit.afterID, targetElement);
         
         if (edit.firstChild) {
             before = targetElement.firstChild;
@@ -621,9 +639,9 @@ function RemoteFunctions(experimental) {
             return node;
         }
         
-        var start           = (edit.afterID)  ? this._queryBracketsID(edit.afterID)  : null,
+        var start           = (edit.afterID)  ? this._getNodeInParentWithBracketsID(edit.afterID, targetElement)  : null,
             startMissing    = edit.afterID && !start,
-            end             = (edit.beforeID) ? this._queryBracketsID(edit.beforeID) : null,
+            end             = (edit.beforeID) ? this._getNodeInParentWithBracketsID(edit.beforeID, targetElement) : null,
             endMissing      = edit.beforeID && !end,
             moveNext        = start && nextIgnoringHighlights(start),
             current         = moveNext || (end && prevIgnoringHighlights(end)) || lastChildIgnoringHighlights(targetElement),
@@ -674,7 +692,7 @@ function RemoteFunctions(experimental) {
      */
     DOMEditHandler.prototype.apply = function (edits) {
         var targetID,
-            targetElement,
+            targetElements,
             childElement,
             self = this;
         
@@ -685,69 +703,73 @@ function RemoteFunctions(experimental) {
             
             if (edit.type === "rememberNodes") {
                 edit.tagIDs.forEach(function (tagID) {
-                    var node = self._queryBracketsID(tagID);
-                    self.rememberedNodes[tagID] = node;
-                    node.remove();
+                    var nodes = self._getAllNodesWithBracketsID(tagID);
+                    self.rememberedNodes[tagID] = nodes;
+                    nodes.forEach(function (node) {
+                        node.remove();
+                    });
                 });
                 return;
             }
             
             targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
-            targetElement = self._queryBracketsID(targetID);
+            targetElements = self._getAllNodesWithBracketsID(targetID);
             
-            if (!targetElement && !editIsSpecialTag) {
-                console.error("data-brackets-id=" + targetID + " not found");
-                return;
-            }
-            
-            switch (edit.type) {
-            case "attrChange":
-            case "attrAdd":
-                targetElement.setAttribute(edit.attribute, self._parseEntities(edit.value));
-                break;
-            case "attrDelete":
-                targetElement.removeAttribute(edit.attribute);
-                break;
-            case "elementDelete":
-                targetElement.remove();
-                break;
-            case "elementInsert":
-                childElement = null;
-                if (editIsSpecialTag) {
-                    // If we already have one of these elements (which we should), then
-                    // just copy the attributes and set the ID.
-                    childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
-                    if (!childElement) {
-                        // Treat this as a normal insertion.
-                        editIsSpecialTag = false;
+            targetElements.forEach(function (targetElement) {
+                if (!targetElement && !editIsSpecialTag) {
+                    console.error("data-brackets-id=" + targetID + " not found");
+                    return;
+                }
+
+                switch (edit.type) {
+                case "attrChange":
+                case "attrAdd":
+                    targetElement.setAttribute(edit.attribute, self._parseEntities(edit.value));
+                    break;
+                case "attrDelete":
+                    targetElement.removeAttribute(edit.attribute);
+                    break;
+                case "elementDelete":
+                    targetElement.remove();
+                    break;
+                case "elementInsert":
+                    childElement = null;
+                    if (editIsSpecialTag) {
+                        // If we already have one of these elements (which we should), then
+                        // just copy the attributes and set the ID.
+                        childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
+                        if (!childElement) {
+                            // Treat this as a normal insertion.
+                            editIsSpecialTag = false;
+                        }
                     }
-                }
-                if (!editIsSpecialTag) {
-                    childElement = self.htmlDocument.createElement(edit.tag);
-                }
-                
-                Object.keys(edit.attributes).forEach(function (attr) {
-                    childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
-                });
-                childElement.setAttribute("data-brackets-id", edit.tagID);
-                
-                if (!editIsSpecialTag) {
+                    if (!editIsSpecialTag) {
+                        childElement = self.htmlDocument.createElement(edit.tag);
+                    }
+
+                    Object.keys(edit.attributes).forEach(function (attr) {
+                        childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
+                    });
+                    childElement.setAttribute("data-brackets-id", edit.tagID);
+
+                    if (!editIsSpecialTag) {
+                        self._insertChildNode(targetElement, childElement, edit);
+                    }
+                    break;
+                case "elementMove":
+                    childElement = self._getNodeInParentWithBracketsID(edit.tagID, targetElement);
                     self._insertChildNode(targetElement, childElement, edit);
+                    break;
+                case "textInsert":
+                    var textElement = self.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : self._parseEntities(edit.content));
+                    self._insertChildNode(targetElement, textElement, edit);
+                    break;
+                case "textReplace":
+                case "textDelete":
+                    self._textReplace(targetElement, edit);
+                    break;
                 }
-                break;
-            case "elementMove":
-                childElement = self._queryBracketsID(edit.tagID);
-                self._insertChildNode(targetElement, childElement, edit);
-                break;
-            case "textInsert":
-                var textElement = self.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : self._parseEntities(edit.content));
-                self._insertChildNode(targetElement, textElement, edit);
-                break;
-            case "textReplace":
-            case "textDelete":
-                self._textReplace(targetElement, edit);
-                break;
-            }
+            });
         });
         
         this.rememberedNodes = {};
