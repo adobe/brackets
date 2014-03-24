@@ -37,9 +37,6 @@
  * And the text field is:
  *      input
  *      input.no-results
- * 
- * BUGS to verify:
- * #1855, #1384
  */
 define(function (require, exports, module) {
     "use strict";
@@ -60,10 +57,11 @@ define(function (require, exports, module) {
      * 
      * @param {!function(*, string):string} options.formatter
      *          Converts one result object to a string of HTML text. Passed the item and the current query.
-     * @param {!function(*, string):void} options.onCommit
+     * @param {!function(?*, string):void} options.onCommit
      *          Called when an item is selected by clicking or pressing Enter. Passed the item and the current
      *          query. If the current result list is not up to date with the query text at the time Enter is
-     *          pressed, waits until it is before running this callback. The popup remains open after this event.
+     *          pressed, waits until it is before running this callback. If Enter pressed with no results, passed
+     *          null. The popup remains open after this event.
      * @param {!function(*, string):void} options.onHighlight
      *          Called when an item is highlighted via the arrow keys. Passed the item and the current query.
      *          Always called once with the top item in the result list, each time the list is updated (because
@@ -132,6 +130,7 @@ define(function (require, exports, module) {
     QuickSearchField.prototype._handleKeyDown = function (event) {
         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
             if (this._displayedQuery === this.$input.val()) {
+                event.preventDefault();  // prevents keyup from going to someone else after we close
                 this._doCommit();
             } else {
                 // Once the current wait resolves, _render() will run the commit
@@ -163,10 +162,12 @@ define(function (require, exports, module) {
         }
     };
     QuickSearchField.prototype._doCommit = function (clickedIndex) {
+        var item;
         if (this._displayedResults && this._displayedResults.length) {
             var committedIndex = clickedIndex !== undefined ? clickedIndex : (this._highlightIndex || 0);
-            this.options.onCommit(this._displayedResults[committedIndex], this._displayedQuery);
+            item = this._displayedResults[committedIndex];
         }
+        this.options.onCommit(item, this._displayedQuery);
     };
     QuickSearchField.prototype._updateHighlight = function () {
         var $items = this._$dropdown.find("li");
@@ -233,8 +234,6 @@ define(function (require, exports, module) {
         }
         this._$dropdown.html(htmlContent);
     };
-//    QuickSearchField.prototype._setExtraDropdownCSS = function (cssProps) {
-//    };
     
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
@@ -275,11 +274,10 @@ define(function (require, exports, module) {
     
     /**
      * Programmatically changes the search text and updates the results.
-     * FIXME: is this needed if we listen for "input" events?
      */
     QuickSearchField.prototype.setText = function (value) {
         this.$input.val(value);
-        this.updateResults();
+        this.updateResults();  // programmatic changes don't trigger "input" event
     };
     
     /**

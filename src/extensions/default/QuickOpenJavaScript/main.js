@@ -111,10 +111,7 @@ define(function (require, exports, module) {
      */
     function match(query) {
         // only match @ at beginning of query for now
-        // TODO: match any location of @ when QuickOpen._handleItemFocus() is modified to
-        // dynamic open files
-        //if (query.indexOf("@") !== -1) {
-        if (query.indexOf("@") === 0) {
+        if (query[0] === "@") {
             return true;
         }
     }
@@ -124,8 +121,8 @@ define(function (require, exports, module) {
      * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
      */
-    function itemFocus(selectedItem, query) {
-        if (!selectedItem || query.length < 2) {
+    function itemFocus(selectedItem, query, force) {
+        if (!selectedItem || (query.length < 2 && !force)) {
             return;
         }
         var fileLocation = selectedItem.fileLocation;
@@ -136,7 +133,7 @@ define(function (require, exports, module) {
     }
 
     function itemSelect(selectedItem, query) {
-        itemFocus(selectedItem, query);
+        itemFocus(selectedItem, query, true);
     }
 
 
