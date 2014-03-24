@@ -160,24 +160,48 @@ define(function (require, exports, module) {
      * @private
      * Finds an inline widget provider from the given list that can offer a widget for the current cursor
      * position, and once the widget has been created inserts it into the editor.
+     *
      * @param {!Editor} editor The host editor
-     * @param {!Array.<{priority:number, provider:function(!Editor, !{line:number, ch:number}):?$.Promise}>} prioritized providers
+     * @param {Array.<{priority:number, provider:function(...)}>} providers 
+     *      prioritized list of providers
+     * @param {string=} defaultErrorMsg Default error message to display if no initial provider found
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected if no inline providers have offered one.
      */
-    function _openInlineWidget(editor, providers) {
+    function _openInlineWidget(editor, providers, defaultErrorMsg) {
         PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
         
         // Run through inline-editor providers until one responds
         var pos = editor.getCursorPos(),
             inlinePromise,
             i,
-            result = new $.Deferred();
+            result = new $.Deferred(),
+            errorMsg,
+            providerRet;
         
+        // Query each provider in priority order. Provider may return:
+        // 1. `null` to indicate it does not apply to current cursor position
+        // 2. promise that should resolve to an InlineWidget
+        // 3. string which indicates provider does apply to current cursor position,
+        //    but reason it could not create InlineWidget
+        //
+        // Keep looping until a provider is found. If a provider is not found,
+        // display highest priority error message that was found, otherwise display
+        // default error message
         for (i = 0; i < providers.length && !inlinePromise; i++) {
             var provider = providers[i].provider;
-            inlinePromise = provider(editor, pos);
+            providerRet = provider(editor, pos);
+            if (providerRet) {
+                if (providerRet.hasOwnProperty("done")) {
+                    inlinePromise = providerRet;
+                } else if (!errorMsg && typeof (providerRet) === "string") {
+                    errorMsg = providerRet;
+                }
+            }
         }
+
+        // Use default error message if none other provided
+        errorMsg = errorMsg || defaultErrorMsg;
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
@@ -189,11 +213,13 @@ define(function (require, exports, module) {
             }).fail(function () {
                 // terminate timer that was started above
                 PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                editor.displayErrorMessageAtCursor(errorMsg);
                 result.reject();
             });
         } else {
             // terminate timer that was started above
             PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+            editor.displayErrorMessageAtCursor(errorMsg);
             result.reject();
         }
         
@@ -649,7 +675,7 @@ define(function (require, exports, module) {
      * Closes the customViewer currently displayed, shows the NoEditor view
      * and notifies the ProjectManager to update the file selection
      */
-    function closeCustomViewer() {
+    function _closeCustomViewer() {
         _removeCustomViewer();
         _setCurrentlyViewedPath();
         _showNoEditor();
@@ -660,7 +686,7 @@ define(function (require, exports, module) {
      * @param {!Object} provider  custom view provider
      * @param {!string} fullPath  path to the file displayed in the custom view
      */
-    function showCustomViewer(provider, fullPath) {
+    function _showCustomViewer(provider, fullPath) {
         // Don't show the same custom view again if file path
         // and view provider are still the same.
         if (_currentlyViewedPath === fullPath &&
@@ -918,12 +944,14 @@ define(function (require, exports, module) {
     /**
      * Closes any focused inline widget. Else, asynchronously asks providers to create one.
      *
-     * @param {Array.<{priority:number, provider:function(...)}>} prioritized providers
+     * @param {Array.<{priority:number, provider:function(...)}>} providers 
+     *   prioritized list of providers
+     * @param {string=} errorMsg Error message to display if no initial provider found
      * @return {!Promise} A promise resolved with true if an inline widget is opened or false
      *   when closed. Rejected if there is neither an existing widget to close nor a provider
      *   willing to create a widget (or if no editor is open).
      */
-    function _toggleInlineWidget(providers) {
+    function _toggleInlineWidget(providers, errorMsg) {
         var result = new $.Deferred();
         
         if (_currentEditor) {
@@ -939,7 +967,7 @@ define(function (require, exports, module) {
                 });
             } else {
                 // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor, providers).done(function () {
+                _openInlineWidget(_currentEditor, providers, errorMsg).done(function () {
                     result.resolve(true);
                 }).fail(function () {
                     result.reject();
@@ -1008,10 +1036,10 @@ define(function (require, exports, module) {
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, function () {
-        return _toggleInlineWidget(_inlineEditProviders);
+        return _toggleInlineWidget(_inlineEditProviders, Strings.ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND);
     });
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_DOCS, Commands.TOGGLE_QUICK_DOCS, function () {
-        return _toggleInlineWidget(_inlineDocsProviders);
+        return _toggleInlineWidget(_inlineDocsProviders, Strings.ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND);
     });
     CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
 
@@ -1034,6 +1062,10 @@ define(function (require, exports, module) {
     exports._resetViewStates              = _resetViewStates;
     exports._doShow                       = _doShow;
     exports._notifyActiveEditorChanged    = _notifyActiveEditorChanged;
+    exports._showCustomViewer             = _showCustomViewer;
+    exports._closeCustomViewer            = _closeCustomViewer;
+    
+    
     
     exports.REFRESH_FORCE = REFRESH_FORCE;
     exports.REFRESH_SKIP  = REFRESH_SKIP;
@@ -1053,10 +1085,8 @@ define(function (require, exports, module) {
     exports.registerJumpToDefProvider     = registerJumpToDefProvider;
     exports.getInlineEditors              = getInlineEditors;
     exports.closeInlineWidget             = closeInlineWidget;
-    exports.showCustomViewer              = showCustomViewer;
     exports.registerCustomViewer          = registerCustomViewer;
     exports.getCustomViewerForPath        = getCustomViewerForPath;
     exports.notifyPathDeleted             = notifyPathDeleted;
-    exports.closeCustomViewer             = closeCustomViewer;
     exports.showingCustomViewerForPath    = showingCustomViewerForPath;
 });

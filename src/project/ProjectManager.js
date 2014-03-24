@@ -1084,7 +1084,7 @@ define(function (require, exports, module) {
             };
 
             if (!isUpdating) {
-                PreferencesManager.projectLayer.setProjectPath(rootPath);
+                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
             }
             
             // restore project tree state from last time this project was open

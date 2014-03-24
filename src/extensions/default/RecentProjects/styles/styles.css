@@ -50,6 +50,11 @@
 /* TODO: style the dropdown content */
 #project-dropdown.dropdown-menu {
     position: absolute;
+    
+    /* offset for better alignment with the button */
+    margin-top: -1px;
+    margin-left: 1px;
+    
     display: block;
     max-width: none;
     z-index: 100;
