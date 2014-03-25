@@ -309,7 +309,7 @@ define({
     "HELP_MENU"                         : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
-    "CMD_FORUM"                         : "Forum di{APP_NAME}",
+    "CMD_FORUM"                         : "Forum di {APP_NAME}",
     "CMD_RELEASE_NOTES"                 : "Note del lancio",
     "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
