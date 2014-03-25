@@ -197,6 +197,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Resolves a language to a file extension
+     * @param {!string} extension Extension that language should be resolved for
+     * @return {?Language} The language for the provided extension or null if none exists
+     */
+    function getLanguageForExtension(extension) {
+        return _fileExtensionToLanguageMap[extension.toLowerCase()];
+    }
+
+    /**
      * Resolves a file path to a Language object.
      * @param {!string} path Path to the file to find a language for
      * @return {Language} The language for the provided file type or the fallback language
@@ -804,5 +813,6 @@ define(function (require, exports, module) {
     exports.ready                   = _ready;
     exports.defineLanguage          = defineLanguage;
     exports.getLanguage             = getLanguage;
+    exports.getLanguageForExtension = getLanguageForExtension;
     exports.getLanguageForPath      = getLanguageForPath;
 });
