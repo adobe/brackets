@@ -36,7 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "无法读取该文件。",
     "NO_MODIFICATION_ALLOWED_ERR"       : "无法修改此目录。",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有做出修改的权限。",
-    "CONTENTS_MODIFIED_ERR"             : "文件已在 {APP_NAME} 外被修改。",
+    "CONTENTS_MODIFIED_ERR"             : "该文件已在 {APP_NAME} 外被修改。",
     "FILE_EXISTS_ERR"                   : "文件/目录名已存在。",
     "FILE"                              : "文件",
     "DIRECTORY"                         : "目录",
@@ -69,6 +69,10 @@ define({
     "ERROR_PREFS_CORRUPT_TITLE"         : "读取配置文件时出现错误",
     "ERROR_PREFS_CORRUPT"               : "你的配置文件不是合法的 JSON 格式，将打开此文件方便你修正格式错误。你需要重新启动 {APP_NAME} 让改动生效。",
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "读取配置文件错误",
+    "ERROR_PREFS_CORRUPT"               : "您的配置文件不是有效的 JSON 格式. 即将打开配置文件以便您修正. 为使更改生效, 您需要重启 {APP_NAME}.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂时无法运行在浏览器窗口中。",
     "ERROR_IN_BROWSER"                  : "虽然 {APP_NAME} 使用 HTML 构建，但是它需要作为桌面程序运行，以便修改本地文件。请前往 <b>github.com/adobe/brackets-shell</b> 下载对应系统的应用程序外壳来运行 {APP_NAME}。",
@@ -84,7 +88,7 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览出现错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在连接浏览器",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "要使用实时预览功能，需要重启 Chrome 并打开远程调试功能。<br /><br />你确定重新启动 Chrome 浏览器，并打开远程调试功能吗？",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "要使用实时预览功能，需要重启 Chrome 浏览器并打开远程调试功能。<br /><br />你确定重新启动 Chrome 浏览器，并且打开远程调试功能吗？",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "无法加载实时预览页面。",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "请打开一个 HTML 文件，或者确认项目中包含 index.html 文件以启动实时预览。",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "要使用服务端文件开启实时预览, 您需要为此项目指定一个根 URL。",
@@ -166,8 +170,8 @@ define({
     "FIND_IN_FILES_MATCHES"             : "个匹配",
     "FIND_IN_FILES_MORE_THAN"           : "超过 ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "按下 Ctrl/Cmd 键并点击来展开/收起全部",
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "按下 Ctrl/Cmd 键并点击，以展开/折叠全部结果",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "获取更新信息失败",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的更新信息。请确认你的电脑已经连接互联网, 然后再次尝试！",
     
@@ -189,6 +193,14 @@ define({
 
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "当前光标位置没有提供快速文档功能",
+
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "排除搜索文件\u2026",
+    "EDIT_FILE_FILTER"                  : "编辑\u2026",
+    "FILE_FILTER_DIALOG"                : "编辑过滤规则",
+    "FILE_FILTER_INSTRUCTIONS"          : "根据下列匹配规则排除文件或文件夹, 匹配规则可以是文件名或其子串, 或使用 <a href='{0}' title='{0}'>globs</a>. 每行输入一条规则.",
+    "FILE_FILTER_LIST_PREFIX"           : "除了",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "及另外 {0} 类",
 
     /**
      * ProjectManager
@@ -226,12 +238,12 @@ define({
     "STATUSBAR_OVERWRITE"                   : "改写",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 个错误",
-    "SINGLE_ERROR"                          : "1 {0} 个错误",
-    "MULTIPLE_ERRORS"                       : "{1} {0} 个错误",
-    "NO_ERRORS"                             : "JSLint 未发现 {0} 错误 - 干的漂亮!",
-    "NO_ERRORS_MULTIPLE_PROVIDER"           : "JSLint 未发现错误 - 干的漂亮!",
-    "LINT_DISABLED"                         : "JSLint 已禁用",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 个问题",
+    "SINGLE_ERROR"                          : "1 个 {0} 问题",
+    "MULTIPLE_ERRORS"                       : "{1} 个 {0} 问题",
+    "NO_ERRORS"                             : "未发现 {0} 问题 - 干的漂亮!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "未发现问题 - 干的漂亮!",
+    "LINT_DISABLED"                         : "JJSLint 已禁用或者无法在此文件上工作",
     "NO_LINT_AVAILABLE"                     : "{0} 没有可用检查器",
     "NOTHING_TO_LINT"                       : "没有可检查的文件",
     
@@ -278,18 +290,18 @@ define({
     "CMD_PASTE"                           : "粘贴",
     "CMD_SELECT_ALL"                      : "全选",
     "CMD_SELECT_LINE"                     : "选中当前行",
-    "CMD_SPLIT_SEL_INTO_LINES"            : "将当前选区分割成行",
-    "CMD_ADD_NEXT_LINE_TO_SEL"            : "选中下一行",
-    "CMD_ADD_PREV_LINE_TO_SEL"            : "选中上一行",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "将选中内容拆分至多行",
+    "CMD_ADD_NEXT_LINE_TO_SEL"            : "将下一行添加至选中区域",
+    "CMD_ADD_PREV_LINE_TO_SEL"            : "将上一行添加至选中区域",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "查找\u2026",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
     "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
-    "CMD_FIND_ALL_AND_SELECT"             : "全部查找并选中",
-    "CMD_ADD_NEXT_MATCH"                  : "选择下一个匹配项",
-    "CMD_SKIP_CURRENT_MATCH"              : "跳过本项，选择下一个匹配项",
+    "CMD_FIND_ALL_AND_SELECT"             : "查找全部并选中",
+    "CMD_ADD_NEXT_MATCH"                  : "将下一项匹配添加至选中区域",
+    "CMD_SKIP_CURRENT_MATCH"              : "跳过并添加下一项匹配",
     "CMD_REPLACE"                         : "替换",
     "CMD_INDENT"                          : "增加缩进",
     "CMD_UNINDENT"                        : "减少缩进",
@@ -351,7 +363,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
     "CMD_TWITTER"                         : "{TWITTER_NAME} 的 Twitter (推特需要翻墙)",
     "CMD_ABOUT"                           : "关于 {APP_TITLE}",
-    "CMD_OPEN_PREFERENCES"                : "打开首选项文件",
+    "CMD_OPEN_PREFERENCES"                : "打开配置文件",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "体验版",
@@ -369,15 +381,15 @@ define({
     "ABOUT_TEXT_LINE6"                     : "有相当多的人参与其中，但现在有一些问题导致无法加载，你可以在GitHub上看到。",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs and the Web Platform graphical logo are licensed under a Creative Commons Attribution license, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "有一个新版本的 {APP_NAME}！点此查看详情。",
-    "UPDATE_AVAILABLE_TITLE"               : "有可用更新",
-    "UPDATE_MESSAGE"                       : "有一个新版本的 {APP_NAME}。其中增加的一些功能是：",
-    "GET_IT_NOW"                           : "马上获取：",
-    "PROJECT_SETTINGS_TITLE"               : "{0} 的项目设置：",
+    "UPDATE_AVAILABLE_TITLE"               : "可用的更新",
+    "UPDATE_MESSAGE"                       : "有一个新版本的 {APP_NAME}。增加了一些功能：",
+    "GET_IT_NOW"                           : "马上获取！",
+    "PROJECT_SETTINGS_TITLE"               : "项目设置：{0}",
     "PROJECT_SETTING_BASE_URL"             : "实时预览的根 URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "要使用本地服务器, 你需要指定 URL。例如: http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "使用本地服务器需要指定一个 URL。例如: http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "实时预览不支持此协议 {0} &mdash; 请使用 http: 或 https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "地址不能包含查询参数，如 \"{0}\".",
-    "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含 # 符号，如 \"{0}\".",
+    "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含#（hash）符号，如 \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须是以 % 开头编码的字符。",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "根 URL 解析时出现未知错误",
     
@@ -391,7 +403,7 @@ define({
     "OVERWRITE"                            : "覆盖",
     "CANT_REMOVE_DEV"                      : "\"dev\" 文件夹中的扩展必须手动删除。",
     "CANT_UPDATE"                          : "升级后的版本与当前版本的 {APP_NAME} 不兼容。",
-    "CANT_UPDATE_DEV"                      : " \"dev\" 文件夹中的扩展不能自动更新。",
+    "CANT_UPDATE_DEV"                      : " \"dev\" 文件夹中的扩展无法自动更新。",
     "INSTALL_EXTENSION_TITLE"              : "安装扩展",
     "UPDATE_EXTENSION_TITLE"               : "升级扩展",
     "INSTALL_EXTENSION_LABEL"              : "扩展包的 URL",
@@ -452,10 +464,10 @@ define({
     "MARKED_FOR_UPDATE"                    : "标记为升级",
     "UNDO_UPDATE"                          : "撤销",
     "CHANGE_AND_QUIT_TITLE"                : "扩展更改",
-    "CHANGE_AND_QUIT_MESSAGE"              : "安装或移除已标记的扩展，需要退出并重启 {APP_NAME}，你会收到保存尚未保存改动的提示。",
-    "REMOVE_AND_RELOAD"                    : "移除扩展并重新载入",
-    "CHANGE_AND_RELOAD"                    : "改动扩展并重新载入",
-    "UPDATE_AND_RELOAD"                    : "更新扩展并重新载入",
+    "CHANGE_AND_QUIT_MESSAGE"              : "安装或移除已标记的扩展，需要退出并重启 {APP_NAME}，请保存尚未保存的改动。",
+    "REMOVE_AND_RELOAD"                    : "移除扩展并重启",
+    "CHANGE_AND_RELOAD"                    : "改动扩展并重启",
+    "UPDATE_AND_RELOAD"                    : "更新扩展并重启",
     "PROCESSING_EXTENSIONS"                : "正在处理扩展改动\u2026",
     "EXTENSION_NOT_INSTALLED"              : "无法移除扩展 {0} ，该扩展尚未安装。",
     "NO_EXTENSIONS"                        : "没有安装任何扩展。<br>可以从点击上面的“可获取”标签项开始。",
@@ -472,6 +484,9 @@ define({
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "最大",
     
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "最大化",
+
     /**
      * Unit names
      */
@@ -481,9 +496,11 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "调试",
     "CMD_SHOW_DEV_TOOLS"                        : "显示开发人员工具",
+    "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
     "CMD_REFRESH_WINDOW"                        : "重新载入程序并加载插件",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "重新载入程序而不加载插件",
-    "CMD_NEW_BRACKETS_WINDOW"                   : "打开 {APP_NAME} 新窗口",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
     "CMD_SWITCH_LANGUAGE"                       : "切换语言",
     "CMD_RUN_UNIT_TESTS"                        : "运行测试",
     "CMD_SHOW_PERF_DATA"                        : "显示性能数据",
@@ -500,10 +517,9 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "时间",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "进度",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>移动选中的点<br><kbd class='text'>Shift</kbd>移动十个单位<br><kbd class='text'>Tab</kbd>切换点",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd>增加或减少步进<br><kbd>←</kbd><kbd>→</kbd> '开始' 或 '结束'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "原值 <code>{0}</code> 不合法，所以当前显示的函数变为 <code>{1}</code>。文档会在首次编辑时得到更新。",
-    
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>移动选中点<br><kbd class='text'>Shift</kbd>一次移动十个单位<br><kbd class='text'>Tab</kbd>切换点",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd>增加或减少步进<br><kbd>←</kbd><kbd>→</kbd> 切换 '开始' 或 '结束' 点",
+    "INLINE_TIMING_EDITOR_INVALID"              : "原值 <code>{0}</code> 无效，当前显示函数已变为 <code>{1}</code>。文档会在首次编辑时更新。",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
@@ -531,3 +547,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "更多信息"
 });
+
+/* Last translated for cd86e0f9f9edddef58f88e921388902570783fd8 */
