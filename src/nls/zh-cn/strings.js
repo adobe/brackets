@@ -470,9 +470,6 @@ define({
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "您的项目中没有样式表文件。<br>请至少建立一个这样的文件用于添加 CSS 规则。",
     
     // Custom Viewers
-    "IMAGE_VIEWER_LARGEST_ICON"            : "最大",
-    
-    // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "最大化",
 
     /**
@@ -486,8 +483,6 @@ define({
     "CMD_SHOW_DEV_TOOLS"                        : "显示开发人员工具",
     "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
-    "CMD_REFRESH_WINDOW"                        : "重新载入程序并加载插件",
-    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "重新载入程序而不加载插件",
     "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
     "CMD_SWITCH_LANGUAGE"                       : "切换语言",
     "CMD_RUN_UNIT_TESTS"                        : "运行测试",
