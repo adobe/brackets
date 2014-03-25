@@ -183,10 +183,12 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates a new panel beneath the editor area and above the status bar footer. Panel is initially invisible.
+     * Creates a new resizabel panel beneath the editor area and above the status bar footer. Panel is initially invisible.
+     * The panel's size & visibility are automatically saved & restored as a view-state preference.
      * 
      * @param {!string} id  Unique id for this panel. Use package-style naming, e.g. "myextension.feature.panelname"
-     * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet. Must have an id.
+     * @param {!jQueryObject} $panel  DOM content to use as the panel. Need not be in the document yet. Must have an id
+     *      attribute, for use as a preferences key.
      * @param {number=} minSize  Minimum height of panel in px.
      * @return {!Panel}
      */
