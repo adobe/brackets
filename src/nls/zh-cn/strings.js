@@ -69,10 +69,6 @@ define({
     "ERROR_PREFS_CORRUPT_TITLE"         : "读取配置文件时出现错误",
     "ERROR_PREFS_CORRUPT"               : "你的配置文件不是合法的 JSON 格式，将打开此文件方便你修正格式错误。你需要重新启动 {APP_NAME} 让改动生效。",
 
-    // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "读取配置文件错误",
-    "ERROR_PREFS_CORRUPT"               : "您的配置文件不是有效的 JSON 格式. 即将打开配置文件以便您修正. 为使更改生效, 您需要重启 {APP_NAME}.",
-
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂时无法运行在浏览器窗口中。",
     "ERROR_IN_BROWSER"                  : "虽然 {APP_NAME} 使用 HTML 构建，但是它需要作为桌面程序运行，以便修改本地文件。请前往 <b>github.com/adobe/brackets-shell</b> 下载对应系统的应用程序外壳来运行 {APP_NAME}。",
@@ -176,12 +172,12 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的更新信息。请确认你的电脑已经连接互联网, 然后再次尝试！",
     
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "排除文件\u2026",
+    "NO_FILE_FILTER"                    : "排除搜索文件\u2026",
     "EDIT_FILE_FILTER"                  : "编辑\u2026",
-    "FILE_FILTER_DIALOG"                : "编辑过滤",
-    "FILE_FILTER_INSTRUCTIONS"          : "排除任何满足下列字符串或<a href='{0}' title='{0}'>通配符</a>的文件和文件夹，每行写一个字符串。",
-    "FILE_FILTER_LIST_PREFIX"           : "除",
-    "FILE_FILTER_CLIPPED_SUFFIX"        : "以及 {0}",
+    "FILE_FILTER_DIALOG"                : "编辑过滤规则",
+    "FILE_FILTER_INSTRUCTIONS"          : "根据下列匹配规则排除文件或文件夹, 匹配规则可以是文件名或其子串, 或使用 <a href='{0}' title='{0}'>globs（通配符）</a>，每行输入一条规则。",
+    "FILE_FILTER_LIST_PREFIX"           : "除了",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "及另外 {0} 类",
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "当前光标位置没有提供快速编辑功能",
@@ -193,14 +189,6 @@ define({
 
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "当前光标位置没有提供快速文档功能",
-
-    // File exclusion filters
-    "NO_FILE_FILTER"                    : "排除搜索文件\u2026",
-    "EDIT_FILE_FILTER"                  : "编辑\u2026",
-    "FILE_FILTER_DIALOG"                : "编辑过滤规则",
-    "FILE_FILTER_INSTRUCTIONS"          : "根据下列匹配规则排除文件或文件夹, 匹配规则可以是文件名或其子串, 或使用 <a href='{0}' title='{0}'>globs</a>. 每行输入一条规则.",
-    "FILE_FILTER_LIST_PREFIX"           : "除了",
-    "FILE_FILTER_CLIPPED_SUFFIX"        : "及另外 {0} 类",
 
     /**
      * ProjectManager
