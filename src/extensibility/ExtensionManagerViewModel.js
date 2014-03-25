@@ -366,6 +366,13 @@ define(function (require, exports, module) {
      */
     function InstalledViewModel() {
         ExtensionManagerViewModel.call(this);
+
+        // when registry is downloaded, sort extensions again - those with updates will be before others
+        var self = this;
+        $(ExtensionManager).on("registryDownload", function () {
+            self._sortFullSet();
+            self._setInitialFilter();
+        });
     }
     
     InstalledViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
@@ -405,17 +412,22 @@ define(function (require, exports, module) {
         var self = this;
         
         this.sortedFullSet = this.sortedFullSet.sort(function (key1, key2) {
+            // before sorting by name, put first extensions that have updates
+            var ua1 = self.extensions[key1].installInfo.updateAvailable,
+                ua2 = self.extensions[key2].installInfo.updateAvailable;
+
+            if (ua1 && !ua2) {
+                return -1;
+            } else if (!ua1 && ua2) {
+                return 1;
+            }
+
             var metadata1 = self.extensions[key1].installInfo.metadata,
                 metadata2 = self.extensions[key2].installInfo.metadata,
                 id1 = (metadata1.title || metadata1.name).toLowerCase(),
                 id2 = (metadata2.title || metadata2.name).toLowerCase();
-            if (id1 < id2) {
-                return -1;
-            } else if (id1 === id2) {
-                return 0;
-            } else {
-                return 1;
-            }
+
+            return id1.localeCompare(id2);
         });
     };
     
@@ -427,7 +439,7 @@ define(function (require, exports, module) {
         var self = this;
         this.notifyCount = 0;
         this.sortedFullSet.forEach(function (key) {
-            if (self.extensions[key].installInfo.updateAvailable) {
+            if (self.extensions[key].installInfo.updateCompatible) {
                 self.notifyCount++;
             }
         });

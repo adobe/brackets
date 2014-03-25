@@ -39,7 +39,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils        = require("file/FileUtils"),
+    var _                = require("thirdparty/lodash"),
+        FileUtils        = require("file/FileUtils"),
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
@@ -105,13 +106,28 @@ define(function (require, exports, module) {
         }
         
         entry.installInfo.owner = entry.registryInfo.owner;
-        if (entry.installInfo.metadata && entry.installInfo.metadata.version && semver.lt(entry.installInfo.metadata.version, entry.registryInfo.metadata.version)) {
+
+        // Assume false
+        entry.installInfo.updateAvailable   = false;
+        entry.registryInfo.updateAvailable  = false;
+        entry.installInfo.updateCompatible  = false;
+        entry.registryInfo.updateCompatible = false;
+
+        var currentVersion = entry.installInfo.metadata ? entry.installInfo.metadata.version : null;
+        if (currentVersion && semver.lt(currentVersion, entry.registryInfo.metadata.version)) {
             // Note: available update may still be incompatible; we check for this when rendering the Update button in ExtensionManagerView._renderItem()
-            entry.registryInfo.updateAvailable = true;
-            entry.installInfo.updateAvailable = true;
-        } else {
-            entry.installInfo.updateAvailable = false;
-            entry.registryInfo.updateAvailable = false;
+            entry.registryInfo.updateAvailable  = true;
+            entry.installInfo.updateAvailable   = true;
+            // Calculate updateCompatible to check if there's an update for current version of Brackets
+            var lastCompatibleVersionInfo = _.findLast(entry.registryInfo.versions, function (versionInfo) {
+                return semver.satisfies(brackets.metadata.apiVersion, versionInfo.brackets);
+            });
+            if (lastCompatibleVersionInfo && lastCompatibleVersionInfo.version && semver.lt(currentVersion, lastCompatibleVersionInfo.version)) {
+                entry.installInfo.updateCompatible        = true;
+                entry.registryInfo.updateCompatible       = true;
+                entry.installInfo.lastCompatibleVersion   = lastCompatibleVersionInfo.version;
+                entry.registryInfo.lastCompatibleVersion  = lastCompatibleVersionInfo.version;
+            }
         }
 
         $(exports).triggerHandler("registryUpdate", [id]);
@@ -160,6 +176,7 @@ define(function (require, exports, module) {
                     extensions[id].registryInfo = data[id];
                     synchronizeEntry(id);
                 });
+                $(exports).triggerHandler("registryDownload");
                 result.resolve();
             })
             .fail(function () {
@@ -506,39 +523,92 @@ define(function (require, exports, module) {
         );
     }
     
+    /**
+     * Gets an array of extensions that are currently installed and can be updated to a new version
+     * @return {Array} array of objects with properies id,installVersion,registryVersion
+     *                 where id = extensionId
+     *                       installVersion = currently installed version of extension
+     *                       registryVersion = latest version compatible with current Brackets
+     */
+    function getAvailableUpdates() {
+        var result = [];
+        Object.keys(extensions).forEach(function (extensionId) {
+            var extensionInfo = extensions[extensionId];
+            // skip extensions that are not installed or are not in the registry
+            if (!extensionInfo.installInfo || !extensionInfo.registryInfo) {
+                return;
+            }
+            if (extensionInfo.registryInfo.updateCompatible) {
+                result.push({
+                    id: extensionId,
+                    installVersion: extensionInfo.installInfo.metadata.version,
+                    registryVersion: extensionInfo.registryInfo.lastCompatibleVersion
+                });
+            }
+        });
+        return result;
+    }
+
+    /**
+     * Takes array returned from getAvailableUpdates() as an input and removes those entries
+     * that are no longer current - when currently installed version of an extension
+     * is equal or newer than registryVersion returned by getAvailableUpdates().
+     * This function is designed to work without the necessity to download extension registry
+     * @param {Array} previous output of getAvailableUpdates()
+     * @param {Array} filtered input as function description
+     */
+    function cleanAvailableUpdates(updates) {
+        return updates.reduce(function (arr, updateInfo) {
+            var extDefinition = extensions[updateInfo.id];
+            if (!extDefinition || !extDefinition.installInfo) {
+                // extension has been uninstalled in the meantime
+                return arr;
+            }
+
+            var installedVersion = extDefinition.installInfo.metadata.version;
+            if (semver.lt(installedVersion, updateInfo.registryVersion)) {
+                arr.push(updateInfo);
+            }
+
+            return arr;
+        }, []);
+    }
+
     // Listen to extension load and loadFailed events
     $(ExtensionLoader)
         .on("load", _handleExtensionLoad)
         .on("loadFailed", _handleExtensionLoad);
 
     // Public exports
-    exports.downloadRegistry = downloadRegistry;
-    exports.getCompatibilityInfo = getCompatibilityInfo;
-    exports.getExtensionURL = getExtensionURL;
-    exports.remove = remove;
-    exports.update = update;
-    exports.extensions = extensions;
-    exports.cleanupUpdates = cleanupUpdates;
-    exports.markForRemoval = markForRemoval;
-    exports.isMarkedForRemoval = isMarkedForRemoval;
-    exports.unmarkAllForRemoval = unmarkAllForRemoval;
-    exports.hasExtensionsToRemove = hasExtensionsToRemove;
-    exports.updateFromDownload = updateFromDownload;
-    exports.removeUpdate = removeUpdate;
-    exports.isMarkedForUpdate = isMarkedForUpdate;
-    exports.hasExtensionsToUpdate = hasExtensionsToUpdate;
-    exports.removeMarkedExtensions = removeMarkedExtensions;
-    exports.updateExtensions = updateExtensions;
+    exports.downloadRegistry        = downloadRegistry;
+    exports.getCompatibilityInfo    = getCompatibilityInfo;
+    exports.getExtensionURL         = getExtensionURL;
+    exports.remove                  = remove;
+    exports.update                  = update;
+    exports.extensions              = extensions;
+    exports.cleanupUpdates          = cleanupUpdates;
+    exports.markForRemoval          = markForRemoval;
+    exports.isMarkedForRemoval      = isMarkedForRemoval;
+    exports.unmarkAllForRemoval     = unmarkAllForRemoval;
+    exports.hasExtensionsToRemove   = hasExtensionsToRemove;
+    exports.updateFromDownload      = updateFromDownload;
+    exports.removeUpdate            = removeUpdate;
+    exports.isMarkedForUpdate       = isMarkedForUpdate;
+    exports.hasExtensionsToUpdate   = hasExtensionsToUpdate;
+    exports.removeMarkedExtensions  = removeMarkedExtensions;
+    exports.updateExtensions        = updateExtensions;
+    exports.getAvailableUpdates     = getAvailableUpdates;
+    exports.cleanAvailableUpdates   = cleanAvailableUpdates;
     
-    exports.ENABLED = ENABLED;
-    exports.START_FAILED = START_FAILED;
+    exports.ENABLED       = ENABLED;
+    exports.START_FAILED  = START_FAILED;
     
-    exports.LOCATION_DEFAULT = LOCATION_DEFAULT;
-    exports.LOCATION_DEV = LOCATION_DEV;
-    exports.LOCATION_USER = LOCATION_USER;
-    exports.LOCATION_UNKNOWN = LOCATION_UNKNOWN;
+    exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;
+    exports.LOCATION_DEV      = LOCATION_DEV;
+    exports.LOCATION_USER     = LOCATION_USER;
+    exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
 
     // For unit testing only
-    exports._reset = _reset;
-    exports._setExtensions = _setExtensions;
+    exports._reset          = _reset;
+    exports._setExtensions  = _setExtensions;
 });
