@@ -376,7 +376,7 @@ define(function (require, exports, module) {
         $("html").on("mousedown", ".no-focus", function (e) {
             // Text fields should always be focusable.
             var $target = $(e.target),
-                isTextField =
+                isFormElement =
                     $target.is("input[type=text]") ||
                     $target.is("input[type=number]") ||
                     $target.is("input[type=password]") ||
@@ -384,7 +384,7 @@ define(function (require, exports, module) {
                     $target.is("textarea") ||
                     $target.is("select");
     
-            if (!isTextField) {
+            if (!isFormElement) {
                 e.preventDefault();
             }
         });

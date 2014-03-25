@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         languageSelect.$button.css("width", "auto");
         // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
         languageSelect.$button.prop("disabled", doc.isUntitled());
-        // Only show the current language (full list populated only when dropdown is opened)
+        // Show the current language as button title
         languageSelect.$button.text(lang.getName());
     }
     
@@ -219,19 +219,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Setup and populate a custom <select> dropdown for switching the language
-     * mode for the given document.
+     * Populate the languageSelect DropdownButton's menu with all registered Languages
      */
-    function _populateLanguageSelect() {
-        // Lazy load the languages in the dropdown to avoid having to receive
-        // updates from LanguageManager (not to mention unnecessary processing
-        // since most users will not need to manually set the language).
-        var languages = _.values(LanguageManager.getLanguages());
+    function _populateLanguageDropdown() {
+        // Get all non-binary languages
+        var languages = _.values(LanguageManager.getLanguages()).filter(function (language) {
+            return !language.isBinary();
+        });
         
         // sort dropdown alphabetically
         languages.sort(function (a, b) {
-                return a.getName().toLowerCase().localeCompare(b.getName().toLowerCase());
-            });
+            return a.getName().toLowerCase().localeCompare(b.getName().toLowerCase());
+        });
         
         languageSelect.items = languages;
         
@@ -247,7 +246,18 @@ define(function (require, exports, module) {
         $statusOverwrite    = $("#status-overwrite");
         
         languageSelect      = new DropdownButton("", [], function (item, index) {
-            return item.getName();
+            var document = EditorManager.getActiveEditor().document,
+                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath),
+                html = _.escape(item.getName());
+            
+            // Show indicators for currently selected & default languages for the current file
+            if (item === defaultLang) {
+                html += " <span class='default-language'>" + Strings.STATUSBAR_DEFAULT_LANG + "</span>";
+            }
+            if (item === document.getLanguage()) {
+                html = "<span class='checked-language'></span>" + html;
+            }
+            return html;
         });
         
         languageSelect.dropdownExtraClasses = "dropdown-status-bar";
@@ -298,5 +308,5 @@ define(function (require, exports, module) {
     $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
-    AppInit.appReady(_populateLanguageSelect);
+    AppInit.appReady(_populateLanguageDropdown);
 });

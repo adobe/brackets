@@ -462,13 +462,22 @@ a:focus {
     &.dropdown-menu a:not(.selected):hover {
         background: none;
     }
-    
-    &.dropdown-status-bar {
-        height: auto;
-        max-height: 80%;
-    }
-    
+}
 
+/* Status bar language picker's DropdownButton */
+.dropdownbutton-popup.dropdown-status-bar {
+    height: auto;
+    max-height: 80%;
+    
+    li a .default-language {
+        font-style: italic;
+        color: @tc-quiet-text;
+    }
+    li a .checked-language::before {
+        content: "✓";
+        margin-left: -11px;
+        margin-right: 3px;
+    }
 }
 
 /* Inline editor stylesheet-picker DropdownButton */

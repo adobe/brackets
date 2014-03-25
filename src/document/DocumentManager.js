@@ -477,7 +477,7 @@ define(function (require, exports, module) {
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
         if (_currentDocument) {
-            $(_currentDocument).off("languageChanged");
+            $(_currentDocument).off("languageChanged.DocumentManager");
         }
 
         // If file is untitled or otherwise not within project tree, add it to
@@ -491,11 +491,13 @@ define(function (require, exports, module) {
             _markMostRecent(doc);
         }
         
-        // Make it the current document
-        _currentDocument = doc;
-        $(_currentDocument).on("languageChanged", function (data) {
+        // Proxy this doc's languageChange events as long as it's current
+        $(_currentDocument).on("languageChanged.DocumentManager", function (data) {
             $(exports).trigger("currentDocumentLanguageChanged", data);
         });
+        
+        // Make it the current document
+        _currentDocument = doc;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
         
