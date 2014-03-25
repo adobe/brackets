@@ -1283,11 +1283,11 @@ define(function (require, exports, module) {
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
         // Prefer selected sidebar item (which could be a folder)
-        var entry = ProjectManager.getSelectedItem();
+        var entry = ProjectManager.getContext();
         if (!entry) {
             // Else use current file (not selected in ProjectManager if not visible in tree or working set)
             var doc = DocumentManager.getCurrentDocument();
-            entry = doc && doc.file;
+            entry = doc && doc.file && doc.file.fullPath;
         }
         if (entry) {
             ProjectManager.renameItemInline(entry);

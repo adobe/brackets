@@ -496,7 +496,10 @@ define(function (require, exports, module) {
         }
     }
 
-    var openPaths = {};
+    var openPaths = {},
+        fileContext = null,
+        rename = null,
+        _renderTree;
     
     function _togglePath(path, open) {
         if (open) {
@@ -508,6 +511,7 @@ define(function (require, exports, module) {
     }
     
     function _setSelected(path) {
+        fileContext = null;
         var openResult = FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
 
         openResult.done(function () {
@@ -515,7 +519,16 @@ define(function (require, exports, module) {
         });
     }
     
-    function _renderTree() {
+    function _setContext(path) {
+        fileContext = path;
+        _renderTree();
+    }
+    
+    function getContext() {
+        return fileContext;
+    }
+    
+    _renderTree = function () {
         if (!_projectRoot) {
             return;
         }
@@ -525,12 +538,15 @@ define(function (require, exports, module) {
         FileTreeView.render($projectTreeContainer[0], _projectRoot, {
             openPaths: openPaths,
             selected: selected,
-            togglePath: _togglePath,
             setSelected: _setSelected,
+            context: fileContext,
+            setContext: _setContext,
+            togglePath: _togglePath,
+            rename: rename,
             dirsFirst: PreferencesManager.get(SORT_DIRECTORIES_FIRST)
         });
         return new $.Deferred().resolve();
-    }
+    };
     
     /**
      * @private
@@ -1743,12 +1759,27 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    function renameItemInline(entry) {
+        rename = {
+            path: entry,
+            cancel: _cancelRename
+        };
+        fileContext = entry;
+        _renderTree();
+    }
+    
+    function _cancelRename() {
+        fileContext = null;
+        rename = null;
+        _renderTree();
+    }
+    
     /**
      * Initiates a rename of the selected item in the project tree, showing an inline editor
      * for input. Silently no-ops if the entry lies outside the tree or doesn't exist.
      * @param {!(File|Directory)} entry File or Directory to rename
      */
-    function renameItemInline(entry) {
+    function oldrenameItemInline(entry) {
         // First make sure the item in the tree is visible - jsTree's rename API doesn't do anything to ensure inline input is visible
         showInTree(entry)
             .done(function ($selected) {
@@ -2262,6 +2293,7 @@ define(function (require, exports, module) {
     exports.isBinaryFile             = isBinaryFile;
     exports.openProject              = openProject;
     exports.getSelectedItem          = getSelectedItem;
+    exports.getContext               = getContext;
     exports.getInitialProjectPath    = getInitialProjectPath;
     exports.isWelcomeProjectPath     = isWelcomeProjectPath;
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;

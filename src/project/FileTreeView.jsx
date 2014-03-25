@@ -11,12 +11,18 @@ define(function (require, exports, module) {
         FileUtils = require("file/FileUtils");
     
     var FileNode = React.createClass({
-        handleClick: function () {
-            console.log("file clicked");
+        handleClick: function (e) {
+            console.log("file clicked", e, e.button);
             if (this.props.setSelected) {
                 this.props.setSelected(this.props.file.fullPath);
             }
             return false;
+        },
+        handleMouseDown: function (e) {
+            if (e.button === 2 && this.props.setContext) {
+                this.props.setContext(this.props.file.fullPath);
+            }
+            return true;
         },
         render: function () {
             var entry = this.props.file,
@@ -34,10 +40,29 @@ define(function (require, exports, module) {
             if (this.props.selected) {
                 fileClasses = "jstree-clicked jstree-hovered sidebar-selection";
             }
+            if (this.props.context) {
+                fileClasses += " sidebar-context";
+            }
             return (
-                <li className="jstree-leaf" onClick={this.handleClick}>
+                <li className="jstree-leaf" onClick={this.handleClick} onMouseDown={this.handleMouseDown}>
                     <ins className="jstree-icon">&nbsp;</ins>
                     <a href="#" className={fileClasses}>{name}{extension}</a>
+                </li>
+            );
+        }
+    });
+
+    var FileRename = React.createClass({
+        handleKeyDown: function (e) {
+            if (e.keyCode === 27) {
+                this.props.cancel();
+            }
+        },
+        render: function () {
+            return (
+                <li className="jstree-leaf">
+                    <ins className="jstree-icon">&nbsp;</ins>
+                    <input className="sidebar-context jstree-clicked" type="text" defaultValue={this.props.file.name} autoFocus={true} onKeyDown={this.handleKeyDown}/>
                 </li>
             );
         }
@@ -122,19 +147,30 @@ define(function (require, exports, module) {
                         key={entry.fullPath}
                         open={open}
                         openPaths={this.props.openPaths}
-                        callbacks={this.props.callbacks}
                         selected={this.props.selected}
                         setSelected={this.props.setSelected}
+                        context={this.props.context}
+                        setContext={this.props.setContext}
+                        rename={this.props.rename}
                         togglePath={this.props.togglePath}
                         directory={entry}/>
                 );
             } else {
+                if (this.props.rename && this.props.context === entry.fullPath) {
+                    return (
+                        <FileRename
+                            key={entry.fullPath}
+                            cancel={this.props.rename.cancel}
+                            file={entry}/>
+                    );
+                }
                 return (
                     <FileNode
                         key={entry.fullPath}
-                        callbacks={this.props.callbacks}
                         selected={this.props.selected === entry.fullPath}
                         setSelected={this.props.setSelected}
+                        context={this.props.context === entry.fullPath}
+                        setContext={this.props.setContext}
                         file={entry}/>
                 );
             }
@@ -152,6 +188,9 @@ define(function (require, exports, module) {
                         skipRoot={true}
                         selected={this.props.selected}
                         setSelected={this.props.setSelected}
+                        context={this.props.context}
+                        setContext={this.props.setContext}
+                        rename={this.props.rename}
                         togglePath={this.props.togglePath}
                         openPaths={this.props.openPaths}
                         dirsFirst={this.props.dirsFirst}/>
@@ -171,6 +210,9 @@ define(function (require, exports, module) {
                 selected={props.selected}
                 togglePath={props.togglePath}
                 setSelected={props.setSelected}
+                setContext={props.setContext}
+                context={props.context}
+                rename={props.rename}
                 dirsFirst={props.dirsFirst}/>,
             element
         )
