@@ -183,7 +183,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates a new resizabel panel beneath the editor area and above the status bar footer. Panel is initially invisible.
+     * Creates a new resizable panel beneath the editor area and above the status bar footer. Panel is initially invisible.
      * The panel's size & visibility are automatically saved & restored as a view-state preference.
      * 
      * @param {!string} id  Unique id for this panel. Use package-style naming, e.g. "myextension.feature.panelname"
