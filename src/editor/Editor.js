@@ -909,10 +909,10 @@ define(function (require, exports, module) {
      * Returns the string-based pos for a given display column (zero-based) in given line. Differs from column
      * only when the line contains preceding \t chars. Result depends on the current tab size setting.
      * @param {number} lineNum Line number
-     * @param {number} colum Display column number
+     * @param {number} column Display column number
      * @return {number}
      */
-    Editor.prototype.getPosOffset = function (lineNum, column) {
+    Editor.prototype.getCharIndexForColumn = function (lineNum, column) {
         var line    = this._codeMirror.getLine(lineNum),
             tabSize = null,
             iCol    = 0,

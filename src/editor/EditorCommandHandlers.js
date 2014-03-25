@@ -992,7 +992,7 @@ define(function (require, exports, module) {
                     pos.line += dir;
 
                     // translate column to ch in line of new selection
-                    pos.ch = editor.getPosOffset(pos.line, colOffset);
+                    pos.ch = editor.getCharIndexForColumn(pos.line, colOffset);
 
 
                     // If this is the primary selection, we want the new cursor we're adding to become the
