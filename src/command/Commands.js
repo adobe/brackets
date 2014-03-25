@@ -91,7 +91,7 @@ define(function (require, exports, module) {
     exports.EDIT_LINE_DOWN              = "edit.lineDown";              // EditorCommandHandlers.js     moveLineDown()
     exports.EDIT_OPEN_LINE_ABOVE        = "edit.openLineAbove";         // EditorCommandHandlers.js     openLineAbove()
     exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";         // EditorCommandHandlers.js     openLineBelow()
-    exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";     // EditorOptionHandlers.js      _toggleCloseBrackets()
+    exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";     // EditorOptionHandlers.js      _getToggler()
     exports.SHOW_CODE_HINTS             = "edit.showCodeHints";         // CodeHintManager.js           _startNewSession()
 
     // VIEW
@@ -102,9 +102,9 @@ define(function (require, exports, module) {
     exports.VIEW_SCROLL_LINE_UP         = "view.scrollLineUp";          // ViewCommandHandlers.js       _handleScrollLineUp()
     exports.VIEW_SCROLL_LINE_DOWN       = "view.scrollLineDown";        // ViewCommandHandlers.js       _handleScrollLineDown()
     exports.VIEW_TOGGLE_INSPECTION      = "view.toggleCodeInspection";  // CodeInspection.js            toggleEnabled()
-    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";     // EditorOptionHandlers.js      _toggleLineNumbers()
-    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _toggleActiveLine()
-    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _toggleWordWrap()
+    exports.TOGGLE_LINE_NUMBERS         = "view.toggleLineNumbers";     // EditorOptionHandlers.js      _getToggler()
+    exports.TOGGLE_ACTIVE_LINE          = "view.toggleActiveLine";      // EditorOptionHandlers.js      _getToggler()
+    exports.TOGGLE_WORD_WRAP            = "view.toggleWordWrap";        // EditorOptionHandlers.js      _getToggler()
     exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded"; // WorkingSetSort.js            _handleSortWorkingSetByAdded()
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
     exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
