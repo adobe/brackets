@@ -35,6 +35,9 @@ define(function (require, exports, module) {
     
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
+    /** exclude .git files from warnings as they appear and disappear very quickly and pollute the console */
+    var warningBlacklist = /\/\.git\//;
+
     /**
      * Callback to notify FileSystem of watcher changes
      * @type {?function(string, FileSystemStats=)}
@@ -91,7 +94,9 @@ define(function (require, exports, module) {
                         if (needsStats) {
                             exports.stat(path, function (err, stats) {
                                 if (err) {
-                                    console.warn("Unable to stat changed path: ", path, err);
+                                    if (!warningBlacklist.test(path)) {
+                                        console.warn("Unable to stat changed path: ", path, err);
+                                    }
                                     return;
                                 }
                                 _changeCallback(path, stats);
