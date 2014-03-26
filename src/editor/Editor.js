@@ -1528,11 +1528,12 @@ define(function (require, exports, module) {
      */
     Editor.prototype.displayErrorMessageAtCursor = function (errorMsg) {
         var arrowBelow, cursorPos, cursorCoord, popoverRect,
-            top, left, clip, arrowLeft,
+            top, left, clip, arrowCenter, arrowLeft,
             self = this,
             $editorHolder = $("#editor-holder"),
             POPOVER_MARGIN = 10,
-            POPOVER_ARROW_HALF_WIDTH = 10;
+            POPOVER_ARROW_HALF_WIDTH = 10,
+            POPOVER_ARROW_HALF_BASE = POPOVER_ARROW_HALF_WIDTH + 3; // 3 is border radius
 
         function _removeListeners() {
             $(self).off(".msgbox");
@@ -1611,8 +1612,14 @@ define(function (require, exports, module) {
         // Popover text and arrow are positioned individually
         this._$messagePopover.css({"top": top, "left": left});
         
-        // Position popover arrow exactly centered over/under cursor
-        arrowLeft = cursorCoord.left - left - POPOVER_ARROW_HALF_WIDTH;
+        // Position popover arrow centered over/under cursor...
+        arrowCenter = cursorCoord.left - left;
+
+        // ... but don't let it slide off text box
+        arrowCenter = Math.min(popoverRect.width - POPOVER_ARROW_HALF_BASE,
+                               Math.max(arrowCenter, POPOVER_ARROW_HALF_BASE));
+
+        arrowLeft = arrowCenter - POPOVER_ARROW_HALF_WIDTH;
         if (arrowBelow) {
             this._$messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
         } else {

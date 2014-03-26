@@ -127,7 +127,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Read the contents of a Directory. 
+     * Read the contents of a Directory. If this Directory is under a watch root,
+     * the listing will exclude any items filtered out by the watch root's filter
+     * function.
      *
      * @param {Directory} directory Directory whose contents you want to get
      * @param {function (?string, Array.<FileSystemEntry>=, Array.<FileSystemStats>=, Object.<string, string>=)} callback
