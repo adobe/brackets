@@ -1474,6 +1474,12 @@ define(function (require, exports, module) {
                     Menus.removeMenu(key);
                 });
                 
+                // If there's a fragment in both URLs, setting location.href won't actually reload
+                var fragment = href.indexOf("#");
+                if (fragment !== -1) {
+                    href = href.substr(0, fragment);
+                }
+                
                 window.location.href = href;
             });
         }).fail(function () {
