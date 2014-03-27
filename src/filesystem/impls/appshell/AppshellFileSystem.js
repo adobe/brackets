@@ -35,10 +35,27 @@ define(function (require, exports, module) {
     
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
     
-    var _changeCallback,            // Callback to notify FileSystem of watcher changes
-        _offlineCallback,           // Callback to notify FileSystem that watchers are offline
-        _changeTimeout,             // Timeout used to batch up file watcher changes
-        _pendingChanges = {};       // Pending file watcher changes
+    /**
+     * Callback to notify FileSystem of watcher changes
+     * @type {?function(string, FileSystemStats=)}
+     */
+    var _changeCallback;
+    
+    /**
+     * Callback to notify FileSystem if watchers stop working entirely
+     * @type {?function()}
+     */
+    var _offlineCallback;
+    
+    /** Timeout used to batch up file watcher changes (setTimeout() return value) */
+    var _changeTimeout;
+    
+    /**
+     * Pending file watcher changes - map from fullPath to flag indicating whether we need to pass stats
+     * to _changeCallback() for this path.
+     * @type {!Object.<string, boolean>}
+     */
+    var _pendingChanges = {};
     
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
@@ -47,6 +64,7 @@ define(function (require, exports, module) {
         _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
     
     var _isRunningOnWindowsXP = navigator.userAgent.indexOf("Windows NT 5.") >= 0;
+    
     
     // If the connection closes, notify the FileSystem that watchers have gone offline.
     $(_nodeDomain.connection).on("close", function (event, promise) {
@@ -105,7 +123,7 @@ define(function (require, exports, module) {
         if (event === "change") {
             // Only register change events if filename is passed
             if (filename) {
-                // an existing file was created; stats are needed
+                // an existing file was modified; stats are needed
                 change = path + filename;
                 _enqueueChange(change, true);
             }
