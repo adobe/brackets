@@ -2028,7 +2028,7 @@ define(function (require, exports, module) {
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setUseTabChar = function (value, fullPath) {
@@ -2037,7 +2037,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {boolean} Gets whether the specified or current file uses tab characters (vs. spaces) when inserting new text
+     * Gets whether the specified or current file uses tab characters (vs. spaces) when inserting new text
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
      */
     Editor.getUseTabChar = function (fullPath) {
         return PreferencesManager.get(USE_TAB_CHAR, fullPath);
@@ -2047,7 +2049,7 @@ define(function (require, exports, module) {
      * Sets tab character width.
      * Affects any editors that share the same preference location.
      * @param {number} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setTabSize = function (value, fullPath) {
@@ -2056,7 +2058,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {number} Get indent unit
+     * Get indent unit
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {number}
      */
     Editor.getTabSize = function (fullPath) {
         return PreferencesManager.get(TAB_SIZE, fullPath);
@@ -2066,7 +2070,7 @@ define(function (require, exports, module) {
      * Sets indentation width.
      * Affects any editors that share the same preference location.
      * @param {number} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setSpaceUnits = function (value, fullPath) {
@@ -2075,7 +2079,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {number} Get indentation width
+     * Get indentation width
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {number}
      */
     Editor.getSpaceUnits = function (fullPath) {
         return PreferencesManager.get(SPACE_UNITS, fullPath);
@@ -2085,7 +2091,7 @@ define(function (require, exports, module) {
      * Sets the auto close brackets.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setCloseBrackets = function (value, fullPath) {
@@ -2094,7 +2100,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {boolean} Gets whether the specified or current file uses auto close brackets
+     * Gets whether the specified or current file uses auto close brackets
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
      */
     Editor.getCloseBrackets = function (fullPath) {
         return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
@@ -2104,7 +2112,7 @@ define(function (require, exports, module) {
      * Sets show line numbers option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setShowLineNumbers = function (value, fullPath) {
@@ -2113,7 +2121,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {boolean} Returns true if show line numbers is enabled for the specified or current file
+     * Returns true if show line numbers is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
      */
     Editor.getShowLineNumbers = function (fullPath) {
         return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
@@ -2123,7 +2133,7 @@ define(function (require, exports, module) {
      * Sets show active line option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setShowActiveLine = function (value, fullPath) {
@@ -2131,7 +2141,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {boolean} Returns true if show active line is enabled for the specified or current file
+     * Returns true if show active line is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
      */
     Editor.getShowActiveLine = function (fullPath) {
         return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
@@ -2141,7 +2153,7 @@ define(function (require, exports, module) {
      * Sets word wrap option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @param {string=} fullPath
+     * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
     Editor.setWordWrap = function (value, fullPath) {
@@ -2150,7 +2162,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @type {boolean} Returns true if word wrap is enabled for the specified or current file
+     * Returns true if word wrap is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
      */
     Editor.getWordWrap = function (fullPath) {
         return PreferencesManager.get(WORD_WRAP, fullPath);

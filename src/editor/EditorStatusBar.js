@@ -34,8 +34,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         AnimationUtils      = require("utils/AnimationUtils"),
-        Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
+        Editor              = require("editor/Editor").Editor,
         KeyEvent            = require("utils/KeyEvent"),
         StatusBar           = require("widgets/StatusBar"),
         Strings             = require("strings"),
