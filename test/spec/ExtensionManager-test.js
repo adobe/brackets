@@ -1497,7 +1497,7 @@ define(function (require, exports, module) {
                         });
 
                         afterLast(function () {
-                            testWindow     = null;
+                            testWindow = null;
                             SpecRunnerUtils.closeTestWindow();
 
                             brackets.config.extension_registry = originalRegistry;
@@ -1622,19 +1622,6 @@ define(function (require, exports, module) {
                             openDialog();
                             fakeLoadDeferred.resolve();
                             expect($(".registry", $dlg).length).toBe(1);
-                        });
-                    });
-
-                    it("should not close the dialog when the user hit the enter key", function () {
-                        runs(function () {
-                            setRegistryURL("");
-                            openDialog();
-                            fakeLoadDeferred.resolve();
-
-                            $(".search", $dlg).focus();
-                            SpecRunnerUtils.simulateKeyEvent(13, "keypress", $("<body>")[0]);
-
-                            expect($dlg.is(":visible")).toBe(true);
                         });
                     });
                 });
