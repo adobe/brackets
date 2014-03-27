@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         AnimationUtils      = require("utils/AnimationUtils"),
+        Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
         KeyEvent            = require("utils/KeyEvent"),
         StatusBar           = require("widgets/StatusBar"),
@@ -80,10 +81,10 @@ define(function (require, exports, module) {
     
     /**
      * Update indent type and size
-     * @param {Editor} editor Current editor
+     * @param {string} fullPath Path to file in current editor
      */
-    function _updateIndentType(editor) {
-        var indentWithTabs = editor.getUseTabChar();
+    function _updateIndentType(fullPath) {
+        var indentWithTabs = Editor.getUseTabChar(fullPath);
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
@@ -91,19 +92,19 @@ define(function (require, exports, module) {
 
     /**
      * Get indent size based on type
-     * @param {Editor} editor Current editor
+     * @param {string} fullPath Path to file in current editor
      * @return {number} Indent size
      */
-    function _getIndentSize(editor) {
-        return editor.getUseTabChar() ? editor.getTabSize() : editor.getSpaceUnits();
+    function _getIndentSize(fullPath) {
+        return Editor.getUseTabChar(fullPath) ? Editor.getTabSize(fullPath) : Editor.getSpaceUnits(fullPath);
     }
     
     /**
      * Update indent size
-     * @param {Editor} editor Current editor
+     * @param {string} fullPath Path to file in current editor
      */
-    function _updateIndentSize(editor) {
-        var size = _getIndentSize(editor);
+    function _updateIndentSize(fullPath) {
+        var size = _getIndentSize(fullPath);
         $indentWidthLabel.text(size);
         $indentWidthInput.val(size);
     }
@@ -112,10 +113,12 @@ define(function (require, exports, module) {
      * Toggle indent type
      */
     function _toggleIndentType() {
-        var current = EditorManager.getActiveEditor();
-        current.setUseTabChar(!current.getUseTabChar());
-        _updateIndentType(current);
-        _updateIndentSize(current);
+        var current = EditorManager.getActiveEditor(),
+			fullPath = current && current.document.file.fullPath;
+
+		Editor.setUseTabChar(!Editor.getUseTabChar(fullPath), fullPath);
+        _updateIndentType(fullPath);
+        _updateIndentSize(fullPath);
     }
     
     /**
@@ -154,10 +157,10 @@ define(function (require, exports, module) {
     
     /**
      * Change indent size
-     * @param {Editor} editor Current editor
+     * @param {string} fullPath Path to file in current editor
      * @param {string} value Size entered into status bar 
      */
-    function _changeIndentWidth(editor, value) {
+    function _changeIndentWidth(fullPath, value) {
         $indentWidthLabel.removeClass("hidden");
         $indentWidthInput.addClass("hidden");
         
@@ -168,18 +171,18 @@ define(function (require, exports, module) {
         EditorManager.focusEditor();
         
         var valInt = parseInt(value, 10);
-        if (editor.getUseTabChar()) {
-            if (!editor.setTabSize(valInt)) {
+        if (Editor.getUseTabChar(fullPath)) {
+            if (!Editor.setTabSize(valInt, fullPath)) {
                 return;     // validation failed
             }
         } else {
-            if (!editor.setSpaceUnits(valInt)) {
+            if (!Editor.setSpaceUnits(valInt, fullPath)) {
                 return;     // validation failed
             }
         }
 
         // update indicator
-        _updateIndentSize(editor);
+        _updateIndentSize(fullPath);
 
         // column position may change when tab size changes
         _updateCursorInfo();
@@ -242,12 +245,13 @@ define(function (require, exports, module) {
         if (!current) {
             StatusBar.hide();  // calls resizeEditor() if needed
         } else {
+			var fullPath = current.document.file.fullPath;
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {
-                _updateIndentType(current);
-                _updateIndentSize(current);
+                _updateIndentType(fullPath);
+                _updateIndentSize(fullPath);
             });
             $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
@@ -262,8 +266,8 @@ define(function (require, exports, module) {
             _updateLanguageInfo(current);
             _updateFileInfo(current);
             _initOverwriteMode(current);
-            _updateIndentType(current);
-            _updateIndentSize(current);
+            _updateIndentType(fullPath);
+            _updateIndentSize(fullPath);
         }
     }
     

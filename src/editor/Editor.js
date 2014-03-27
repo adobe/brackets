@@ -67,7 +67,6 @@ define(function (require, exports, module) {
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
-        DeprecationWarning = require("utils/DeprecationWarning"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
@@ -2026,250 +2025,137 @@ define(function (require, exports, module) {
     // Global settings that affect Editor instances that share the same preference locations
 
     /**
-     * @deprecated Use Editor instance method instead
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.setUseTabChar = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setUseTabChar was called, use Editor.prototype.setUseTabChar (on Editor instance) instead.");
-        PreferencesManager.set(USE_TAB_CHAR, value);
+    Editor.setUseTabChar = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(USE_TAB_CHAR, value, options);
     };
     
     /**
-     * @deprecated Use Editor instance method instead
-     * @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text
+     * @type {boolean} Gets whether the specified or current file uses tab characters (vs. spaces) when inserting new text
      */
-    Editor.getUseTabChar = function () {
-        DeprecationWarning.deprecationWarning("Editor.getUseTabChar was called, use Editor.prototype.getUseTabChar (on Editor instance) instead.");
-        return PreferencesManager.get(USE_TAB_CHAR);
+    Editor.getUseTabChar = function (fullPath) {
+        return PreferencesManager.get(USE_TAB_CHAR, fullPath);
     };
     
     /**
-     * @deprecated Use Editor instance method instead
      * Sets tab character width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.setTabSize = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setTabSize was called, use Editor.prototype.setTabSize (on Editor instance) instead.");
-        PreferencesManager.set(TAB_SIZE, value);
+    Editor.setTabSize = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(TAB_SIZE, value, options);
     };
     
     /**
-     * @deprecated Use Editor instance method instead
      * @type {number} Get indent unit
      */
-    Editor.getTabSize = function () {
-        DeprecationWarning.deprecationWarning("Editor.getTabSize was called, use Editor.prototype.getTabSize (on Editor instance) instead.");
-        return PreferencesManager.get(TAB_SIZE);
+    Editor.getTabSize = function (fullPath) {
+        return PreferencesManager.get(TAB_SIZE, fullPath);
     };
     
     /**
-     * @deprecated Use Editor instance method instead
      * Sets indentation width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.setSpaceUnits = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setSpaceUnits was called, use Editor.prototype.setSpaceUnits (on Editor instance) instead.");
-        PreferencesManager.set(SPACE_UNITS, value);
+    Editor.setSpaceUnits = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(SPACE_UNITS, value, options);
     };
     
     /**
-     * @deprecated Use Editor instance method instead
      * @type {number} Get indentation width
      */
-    Editor.getSpaceUnits = function () {
-        DeprecationWarning.deprecationWarning("Editor.getSpaceUnits was called, use Editor.prototype.getSpaceUnits (on Editor instance) instead.");
-        return PreferencesManager.get(SPACE_UNITS);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * Sets the auto close brackets.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     */
-    Editor.setCloseBrackets = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setCloseBrackets was called, use Editor.prototype.setCloseBrackets (on Editor instance) instead.");
-        PreferencesManager.set(CLOSE_BRACKETS, value);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * @type {boolean} Gets whether the current editor uses auto close brackets
-     */
-    Editor.getCloseBrackets = function () {
-        DeprecationWarning.deprecationWarning("Editor.getCloseBrackets was called, use Editor.prototype.getCloseBrackets (on Editor instance) instead.");
-        return PreferencesManager.get(CLOSE_BRACKETS);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * Sets show line numbers option.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     */
-    Editor.setShowLineNumbers = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setShowLineNumbers was called, use Editor.prototype.setShowLineNumbers (on Editor instance) instead.");
-        PreferencesManager.set(SHOW_LINE_NUMBERS, value);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * @type {boolean} Returns true if show line numbers is enabled for the current editor
-     */
-    Editor.getShowLineNumbers = function () {
-        DeprecationWarning.deprecationWarning("Editor.getShowLineNumbers was called, use Editor.prototype.getShowLineNumbers (on Editor instance) instead.");
-        return PreferencesManager.get(SHOW_LINE_NUMBERS);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * Sets show active line option.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     */
-    Editor.setShowActiveLine = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setShowActiveLine was called, use Editor.prototype.setShowActiveLine (on Editor instance) instead.");
-        PreferencesManager.set(STYLE_ACTIVE_LINE, value);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * @type {boolean} Returns true if show active line is enabled for the current editor
-     */
-    Editor.getShowActiveLine = function () {
-        DeprecationWarning.deprecationWarning("Editor.getShowActiveLine was called, use Editor.prototype.getShowActiveLine (on Editor instance) instead.");
-        return PreferencesManager.get(STYLE_ACTIVE_LINE);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * Sets word wrap option.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     */
-    Editor.setWordWrap = function (value) {
-        DeprecationWarning.deprecationWarning("Editor.setWordWrap was called, use Editor.prototype.setWordWrap (on Editor instance) instead.");
-        PreferencesManager.set(WORD_WRAP, value);
-    };
-    
-    /**
-     * @deprecated Use Editor instance method instead
-     * @type {boolean} Returns true if word wrap is enabled for the current editor
-     */
-    Editor.getWordWrap = function () {
-        DeprecationWarning.deprecationWarning("Editor.getWordWrap was called, use Editor.prototype.getWordWrap (on Editor instance) instead.");
-        return PreferencesManager.get(WORD_WRAP);
-    };
-    
-    
-    /**
-     * Sets whether to use tab characters (vs. spaces) when inserting new text.
-     * Affects any editors that share the same preference location.
-     * @param {boolean} value
-     * @return {boolean} true if value was set
-     */
-    Editor.prototype.setUseTabChar = function (value) {
-        return PreferencesManager.set(USE_TAB_CHAR, value).valid;
-    };
-    
-    /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
-    Editor.prototype.getUseTabChar = function () {
-        return PreferencesManager.get(USE_TAB_CHAR, this.document.file.fullPath);
-    };
-    
-    /**
-     * Sets tab character width.
-     * Affects any editors that share the same preference location.
-     * @param {number} value
-     * @return {boolean} true if value was set
-     */
-    Editor.prototype.setTabSize = function (value) {
-        return PreferencesManager.set(TAB_SIZE, value).valid;
-    };
-    
-    /** @type {number} Get tab character width  */
-    Editor.prototype.getTabSize = function () {
-        return PreferencesManager.get(TAB_SIZE, this.document.file.fullPath);
-    };
-    
-    /**
-     * Sets indentation width.
-     * Affects any editors that share the same preference location.
-     * @param {number} value
-     * @return {boolean} true if value was set
-     */
-    Editor.prototype.setSpaceUnits = function (value) {
-        return PreferencesManager.set(SPACE_UNITS, value).valid;
-    };
-    
-    /** @type {number} Get indentation width */
-    Editor.prototype.getSpaceUnits = function () {
-        return PreferencesManager.get(SPACE_UNITS, this.document.file.fullPath);
+    Editor.getSpaceUnits = function (fullPath) {
+        return PreferencesManager.get(SPACE_UNITS, fullPath);
     };
     
     /**
      * Sets the auto close brackets.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @return {boolean} true if value was set
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.prototype.setCloseBrackets = function (value) {
-        return PreferencesManager.set(CLOSE_BRACKETS, value).valid;
+    Editor.setCloseBrackets = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(CLOSE_BRACKETS, value, options);
     };
     
-    /** @type {boolean} Gets whether the current editor uses auto close brackets */
-    Editor.prototype.getCloseBrackets = function () {
-        return PreferencesManager.get(CLOSE_BRACKETS, this.document.file.fullPath);
+    /**
+     * @type {boolean} Gets whether the specified or current file uses auto close brackets
+     */
+    Editor.getCloseBrackets = function (fullPath) {
+        return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
     };
     
     /**
      * Sets show line numbers option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @return {boolean} true if value was set
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.prototype.setShowLineNumbers = function (value) {
-        return PreferencesManager.set(SHOW_LINE_NUMBERS, value).valid;
+    Editor.setShowLineNumbers = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(SHOW_LINE_NUMBERS, value, options);
     };
     
-    /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
-    Editor.prototype.getShowLineNumbers = function () {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS, this.document.file.fullPath);
+    /**
+     * @type {boolean} Returns true if show line numbers is enabled for the specified or current file
+     */
+    Editor.getShowLineNumbers = function (fullPath) {
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
     };
     
     /**
      * Sets show active line option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @return {boolean} true if value was set
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.prototype.setShowActiveLine = function (value) {
-        return PreferencesManager.set(STYLE_ACTIVE_LINE, value).valid;
+    Editor.setShowActiveLine = function (value, fullPath) {
+        return PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
-    /** @type {boolean} Returns true if show active line is enabled for the current editor */
-    Editor.prototype.getShowActiveLine = function () {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE, this.document.file.fullPath);
+    /**
+     * @type {boolean} Returns true if show active line is enabled for the specified or current file
+     */
+    Editor.getShowActiveLine = function (fullPath) {
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
     };
     
     /**
      * Sets word wrap option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
-     * @return {boolean} true if value was set
+     * @param {string=} fullPath
+     * @return {boolean} true if value was valid
      */
-    Editor.prototype.setWordWrap = function (value) {
-        return PreferencesManager.set(WORD_WRAP, value).valid;
+    Editor.setWordWrap = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(WORD_WRAP, value, options);
     };
     
-    /** @type {boolean} Returns true if word wrap is enabled for the current editor */
-    Editor.prototype.getWordWrap = function () {
-        return PreferencesManager.get(WORD_WRAP, this.document.file.fullPath);
+    /**
+     * @type {boolean} Returns true if word wrap is enabled for the specified or current file
+     */
+    Editor.getWordWrap = function (fullPath) {
+        return PreferencesManager.get(WORD_WRAP, fullPath);
     };
+    
     
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
