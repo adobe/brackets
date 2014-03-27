@@ -1075,8 +1075,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,        Commands.EDIT_OPEN_LINE_BELOW,        openLineBelow);
     CommandManager.register(Strings.CMD_SELECT_LINE,            Commands.EDIT_SELECT_LINE,            selectLine);
     CommandManager.register(Strings.CMD_SPLIT_SEL_INTO_LINES,   Commands.EDIT_SPLIT_SEL_INTO_LINES,   splitSelIntoLines);
-    CommandManager.register(Strings.CMD_ADD_NEXT_LINE_TO_SEL,   Commands.EDIT_ADD_NEXT_LINE_TO_SEL,   addNextLineToSelection);
-    CommandManager.register(Strings.CMD_ADD_PREV_LINE_TO_SEL,   Commands.EDIT_ADD_PREV_LINE_TO_SEL,   addPrevLineToSelection);
+    CommandManager.register(Strings.CMD_ADD_CUR_TO_NEXT_LINE,   Commands.EDIT_ADD_CUR_TO_NEXT_LINE,   addNextLineToSelection);
+    CommandManager.register(Strings.CMD_ADD_CUR_TO_PREV_LINE,   Commands.EDIT_ADD_CUR_TO_PREV_LINE,   addPrevLineToSelection);
 
     CommandManager.register(Strings.CMD_UNDO,                   Commands.EDIT_UNDO,                   handleUndo);
     CommandManager.register(Strings.CMD_REDO,                   Commands.EDIT_REDO,                   handleRedo);

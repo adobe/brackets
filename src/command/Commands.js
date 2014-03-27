@@ -70,8 +70,8 @@ define(function (require, exports, module) {
     
     exports.EDIT_SELECT_LINE            = "edit.selectLine";            // EditorCommandHandlers.js     selectLine()
     exports.EDIT_SPLIT_SEL_INTO_LINES   = "edit.splitSelIntoLines";     // EditorCommandHandlers.js     splitSelIntoLines()
-    exports.EDIT_ADD_NEXT_LINE_TO_SEL   = "edit.addNextLineToSel";      // EditorCommandHandlers.js     addNextLineToSel()
-    exports.EDIT_ADD_PREV_LINE_TO_SEL   = "edit.addPrevLineToSel";      // EditorCommandHandlers.js     addPrevLineToSel()
+    exports.EDIT_ADD_CUR_TO_NEXT_LINE   = "edit.addNextLineToSel";      // EditorCommandHandlers.js     addNextLineToSel()
+    exports.EDIT_ADD_CUR_TO_PREV_LINE   = "edit.addPrevLineToSel";      // EditorCommandHandlers.js     addPrevLineToSel()
     exports.EDIT_FIND                   = "edit.find";                  // FindReplace.js               _launchFind()
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";           // FindInFiles.js               _doFindInFiles()
     exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";         // FindInFiles.js               _doFindInSubtree()
