@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets, setTimeout */
+/*global define, $, Mustache, brackets */
 
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      */
     var PREF_ENABLED = "enabled",
         PREF_COLLAPSED = "collapsed",
-        PREF_ASYNC_TIMEOUT = "async_timeout";
+        PREF_ASYNC_TIMEOUT = "asyncTimeout";
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):Object}>}}
+     * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>}}
      */
     var _providers = {};
 
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} provider
+     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
         return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
@@ -161,20 +161,13 @@ define(function (require, exports, module) {
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file if currently open.
      * 
-     * If a provider implements scanFileAsync, then it will be used to scan the file. Otherwise, scanFile,
-     * a synchronous version of the function will be used. Provider must never reject a promise and resolve it
-     * with null in case the results cannot be retrieved for whatever reason.
-     * 
-     * A code inspection provider's scanFileAsync must return a {$.Promise} object which must be resolved with
-     * ?{errors:!Array, aborted:boolean}}.
-     * 
      * The Promise yields an array of provider-result pair objects (the result is the return value of the
      * provider's scanFile() - see register() for details). The result object may be null if there were no
      * errors from that provider.
      * If there are no providers registered for this file, the Promise yields null instead.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param {?Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
+     * @param {?Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
      * @return {$.Promise} a jQuery promise that will be resolved with ?Array.<{provider:Object, result: ?{errors:!Array, aborted:boolean}}>
      */
     function inspectFile(file, providerList) {
@@ -197,12 +190,12 @@ define(function (require, exports, module) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
                         runPromise = new $.Deferred();
                     
-                    runPromise.then(function (scanResult) {
+                    runPromise.done(function (scanResult) {
                         results.push({provider: provider, result: scanResult});
                     });
                     
                     if (provider.scanFileAsync) {
-                        setTimeout(function () { runPromise.resolve(null); }, prefs.get(PREF_ASYNC_TIMEOUT));
+                        window.setTimeout(function () { runPromise.resolve(null); }, prefs.get(PREF_ASYNC_TIMEOUT));
                         provider.scanFileAsync(fileText, file.fullPath)
                             .then(function (scanResult) {
                                 PerfUtils.addMeasurement(perfTimerProvider);
@@ -245,7 +238,7 @@ define(function (require, exports, module) {
      * change based on the number of problems reported and how many provider reported problems.
      * 
      * @param {Number} numProblems - total number of problems across all providers
-     * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):Object}>} providersReportingProblems - providers that reported problems
+     * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
     function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
@@ -414,8 +407,12 @@ define(function (require, exports, module) {
      * code inspection, respectively, the asynchronous version will take precedence and will be used to
      * perform code inspection.
      *
+     * A code inspection provider's scanFileAsync must return a {$.Promise} object which must be
+     * resolved with ?{errors:!Array, aborted:boolean}}. Provider must never reject a promise and
+     * resolve it with null in case the results cannot be retrieved for whatever reason.
+     *
      * @param {string} languageId
-     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}} provider
+     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
