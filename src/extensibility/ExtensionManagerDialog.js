@@ -267,8 +267,8 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
-            // don't close the dialog if the user press the enter key
+
+            // don't close the dialog if the user hits the enter key
             $search.on("focus", function (e) {
                 $primaryButton.removeClass("primary");
             }).on("blur", function (e) {

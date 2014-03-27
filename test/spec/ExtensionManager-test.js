@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach,
+/*global afterLast, define, describe, it, xit, expect, beforeEach, beforeFirst, afterEach,
 waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
@@ -1470,7 +1470,81 @@ define(function (require, exports, module) {
                             expect(file.unlink).toHaveBeenCalled();
                         });
                     });
-                    
+
+                    describe("Extension Manager Dialog", function () {
+                        var testWindow, _$, dialog, $dlg, originalRegistry;
+
+                        afterEach(function () {
+                            runs(function () {
+                                dialog.close();
+                                waitsForDone(dialog.getPromise(), "ExtensionManagerDialog.close");
+                            });
+
+                            runs(function () {
+                                brackets.config.extension_registry = originalRegistry;
+                                dialog = null;
+                                $dlg = null;
+                            });
+                        });
+
+                        beforeFirst(function () {
+                            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                                testWindow = w;
+
+                                // Load module instances from brackets.test
+                                _$ = testWindow.$;
+                            });
+                        });
+
+                        afterLast(function () {
+                            testWindow     = null;
+                            SpecRunnerUtils.closeTestWindow();
+
+                            brackets.config.extension_registry = originalRegistry;
+                        });
+
+                        function openDialog() {
+                            // this command is synchronous
+                            testWindow.executeCommand(Commands.FILE_EXTENSION_MANAGER)
+                                .done(function (dialogResult) {
+                                    dialog = dialogResult;
+                                    $dlg = dialog.getElement();
+                                });
+                        }
+
+                        function setRegistryURL(url) {
+                            originalRegistry = brackets.config.extension_registry;
+                            brackets.config.extension_registry = url;
+                        }
+
+                        it("should not close the dialog when the user hits the enter key", function () {
+                            runs(function () {
+                                var testFolder = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/");
+
+                                var localRegistry = "file://" + testFolder + "/mockRegistry.json";
+                                setRegistryURL(localRegistry);
+                                openDialog();
+
+                                var loaded;
+                                setTimeout(function () {
+                                    loaded = true;
+                                }, 1500);
+
+                                waitsFor(function () { return loaded; }, "Wait for Dialog fully loaded", 2000);
+                            });
+
+                            runs(function () {
+                                var $searchInput = _$(".search", $dlg);
+                                $searchInput.focus();
+
+                                SpecRunnerUtils.simulateKeyEvent(13, "keydown", $searchInput[0]);
+                            });
+
+                            runs(function () {
+                                expect($dlg.is(":visible")).toBe(true);
+                            });
+                        });
+                    });
                 });
                 
                 describe("initialization", function () {
