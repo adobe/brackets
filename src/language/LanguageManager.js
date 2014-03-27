@@ -466,10 +466,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds a file extension to this language.
-     * @param {!string} extension A file extension used by this language
+     * Adds one or more file extensions to this language.
+     * @param {!string|Array.<string>>} extension A file extension (or array thereof) used by this language
      */
     Language.prototype.addFileExtension = function (extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(this._addFileExtension.bind(this));
+        } else {
+            this._addFileExtension(extension);
+        }
+    };
+    Language.prototype._addFileExtension = function (extension) {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -493,10 +500,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Unregisters a file extension from this language.
-     * @param {!string} extension File extension to stop using for this language
+     * Unregisters one or more file extensions from this language.
+     * @param {!string|Array.<string>} extension File extension (or array thereof) to stop using for this language
      */
     Language.prototype.removeFileExtension = function (extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(this._removeFileExtension.bind(this));
+        } else {
+            this._removeFileExtension(extension);
+        }
+    };
+    Language.prototype._removeFileExtension = function (extension) {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -516,10 +530,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
-     * @param {!string} extension An extensionless file name used by this language
+     * Adds one or more file names to the language which is used to match files that don't have extensions like "Makefile" for example.
+     * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
      */
     Language.prototype.addFileName = function (name) {
+        if (Array.isArray(name)) {
+            name.forEach(this._addFileName.bind(this));
+        } else {
+            this._addFileName(name);
+        }
+    };
+    Language.prototype._addFileName = function (name) {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
         
@@ -538,10 +559,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Unregisters a file name from this language.
-     * @param {!string} extension An extensionless file name used by this language
+     * Unregisters one or more file names from this language.
+     * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
      */
     Language.prototype.removeFileName = function (name) {
+        if (Array.isArray(name)) {
+            name.forEach(this._removeFileName.bind(this));
+        } else {
+            this._removeFileName(name);
+        }
+    };
+    Language.prototype._removeFileName = function (name) {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
         
