@@ -111,9 +111,9 @@ define(function (require, exports, module) {
 				});
 
 				runs(function () {
-                    var $dropDown = $("#project-dropdown");
-                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keydown", $dropDown[0]);
-                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DELETE, "keydown", $dropDown[0]);
+					var $dropDown = $("#project-dropdown");
+					SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keydown", $dropDown[0]);
+					SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DELETE, "keydown", $dropDown[0]);
 				});
 
 				runs(function () {
