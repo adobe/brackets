@@ -290,7 +290,7 @@ define(function (require, exports, module) {
                 });
                 
             });
-            
+
             it("should timeout on a provider that takes too long", function () {
                 var provider = createAsyncCodeInspector("javascript async linter with sync impl", failLintResult(), 1500, true),
                     result;
@@ -415,6 +415,44 @@ define(function (require, exports, module) {
                     expect($("#problems-panel").is(":visible")).toBe(true);
                     var $statusBar = $("#status-inspection");
                     expect($statusBar.is(":visible")).toBe(true);
+                });
+            });
+
+            it("should show only warnings for the current file", function () {
+                CodeInspection.toggleEnabled(false);
+ 
+                var firstTime = true,
+                    deferred1 = new $.Deferred(),
+                    deferred2 = new $.Deferred();
+ 
+                var asyncProvider = {
+                    name: "Test Async Linter",
+                    scanFileAsync: function () {
+                        if (firstTime) {
+                            firstTime = false;
+                            return deferred1.promise();
+                        } else {
+                            return deferred2.promise();
+                        }
+                    }
+                };
+
+                CodeInspection.register("javascript", asyncProvider);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js", "errors.js"], "open test files"));
+
+                runs(function () {
+                    CodeInspection.toggleEnabled(true);
+                });
+                // Close the file which was started to lint
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
+
+                    // let the linter finish
+                    deferred1.resolve(failLintResult());
+                    expect($("#problems-panel").is(":visible")).toBe(false);
+                    deferred2.resolve(successfulLintResult());
+                    expect($("#problems-panel").is(":visible")).toBe(false);
                 });
             });
 
