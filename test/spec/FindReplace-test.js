@@ -29,9 +29,9 @@ define(function (require, exports, module) {
     'use strict';
     
     var Commands              = require("command/Commands"),
+        FindReplace           = require("search/FindReplace"),
         KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        FindReplace           = require("search/FindReplace");
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils");
 
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
@@ -550,6 +550,20 @@ define(function (require, exports, module) {
                 // wraparound
                 twCommandManager.execute(Commands.EDIT_FIND_NEXT);
                 expectSelection(capitalFooSelections[0]);
+            });
+            
+            it("should have a scroll track marker for every match", function () {
+                twCommandManager.execute(Commands.EDIT_FIND);
+
+                enterSearchText("foo");
+                expectHighlightedMatches(fooExpectedMatches);
+
+                var marks = testWindow.brackets.test.ScrollTrackMarkers._getMarks();
+                expect(marks.length).toEqual(fooExpectedMatches.length);
+
+                marks.forEach(function (mark, index) {
+                    expect(mark.line).toEqual(fooExpectedMatches[index].start.line);
+                });
             });
             
             it("toggling case-sensitive option should update results immediately", function () {
