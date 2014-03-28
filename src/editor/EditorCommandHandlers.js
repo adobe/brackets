@@ -973,7 +973,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor The editor to operate on.
      * @param {number} dir The direction to add - 1 is down, -1 is up.
      */
-    function addLineToSelection(editor, dir) {
+    function addCursorToSelection(editor, dir) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
             var origSels = editor.getSelections(),
@@ -1011,8 +1011,8 @@ define(function (require, exports, module) {
      * Adds a cursor on the previous line before each selected range to the selection.
      * @param {!Editor} editor The editor to operate on.
      */
-    function addPrevLineToSelection(editor) {
-        addLineToSelection(editor, -1);
+    function addCursorToPrevLine(editor) {
+        addCursorToSelection(editor, -1);
     }
     
     /**
@@ -1020,8 +1020,8 @@ define(function (require, exports, module) {
      * Adds a cursor on the next line after each selected range to the selection.
      * @param {!Editor} editor The editor to operate on.
      */
-    function addNextLineToSelection(editor) {
-        addLineToSelection(editor, 1);
+    function addCursorToNextLine(editor) {
+        addCursorToSelection(editor, 1);
     }
 
     function handleUndoRedo(operation) {
@@ -1083,8 +1083,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,        Commands.EDIT_OPEN_LINE_BELOW,        openLineBelow);
     CommandManager.register(Strings.CMD_SELECT_LINE,            Commands.EDIT_SELECT_LINE,            selectLine);
     CommandManager.register(Strings.CMD_SPLIT_SEL_INTO_LINES,   Commands.EDIT_SPLIT_SEL_INTO_LINES,   splitSelIntoLines);
-    CommandManager.register(Strings.CMD_ADD_NEXT_LINE_TO_SEL,   Commands.EDIT_ADD_NEXT_LINE_TO_SEL,   addNextLineToSelection);
-    CommandManager.register(Strings.CMD_ADD_PREV_LINE_TO_SEL,   Commands.EDIT_ADD_PREV_LINE_TO_SEL,   addPrevLineToSelection);
+    CommandManager.register(Strings.CMD_ADD_CUR_TO_NEXT_LINE,   Commands.EDIT_ADD_CUR_TO_NEXT_LINE,   addCursorToNextLine);
+    CommandManager.register(Strings.CMD_ADD_CUR_TO_PREV_LINE,   Commands.EDIT_ADD_CUR_TO_PREV_LINE,   addCursorToPrevLine);
 
     CommandManager.register(Strings.CMD_UNDO,                   Commands.EDIT_UNDO,                   handleUndo);
     CommandManager.register(Strings.CMD_REDO,                   Commands.EDIT_REDO,                   handleRedo);
