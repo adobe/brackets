@@ -3384,14 +3384,14 @@ define(function (require, exports, module) {
 
             it("should add a cursor on the next line before a single cursor in same visual position", function () {
                 myEditor.setSelection({line: 1, ch: 8}, {line: 1, ch: 8});
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch:  8}, end: {line: 1, ch:  8}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true,  reversed: false}]);
             });
 
             it("should add a cursor on the previous line before a single cursor selection in same visual position", function () {
                 myEditor.setSelection({line: 2, ch: 12}, {line: 2, ch: 12});
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch:  8}, end: {line: 1, ch:  8}, primary: true,  reversed: false},
                                   {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: false, reversed: false}]);
             });
