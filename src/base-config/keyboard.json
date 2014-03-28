@@ -68,13 +68,13 @@
     "edit.splitSelIntoLines": [
         "Ctrl-Alt-L"
     ],
-    "edit.addPrevLineToSel": [
+    "edit.addCursorToPrevLine": [
         {
             "key": "Shift-Alt-Up",
             "displayKey": "Shift-Alt-↑"
         }
     ],
-    "edit.addNextLineToSel": [
+    "edit.addCursorToNextLine": [
         {
             "key": "Shift-Alt-Down",
             "displayKey": "Shift-Alt-↓"
