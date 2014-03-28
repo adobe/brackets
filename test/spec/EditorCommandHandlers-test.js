@@ -630,6 +630,62 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
             });
         });
+        describe("Line comment in languages with no given line comment prefix", function () {
+            beforeEach(function () {
+                setupFullEditor(null, "unknown");
+            });
+
+            it("should properly restore the cursor", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 4});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 4}});
+            });
+
+            it("should properly restore the range selection", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 6});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 6}});
+            });
+
+            it("should properly restore the cursors", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: true}]);
+            });
+
+            it("should properly restore the range selections", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}},
+                                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}}]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}, reversed: false, primary: false},
+                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, reversed: false, primary: true}]);
+            });
+
+            it("should properly restore primary/reversed range selections", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true}]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: true},
+                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true, primary: false}]);
+            });
+        });
             
         describe("Block comment/uncomment", function () {
             beforeEach(setupFullEditor);
