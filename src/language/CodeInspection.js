@@ -150,8 +150,42 @@ define(function (require, exports, module) {
      * @param {!string} filePath
      * @return ?{Array.<{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
-    function getProvidersForPath(filePath) {
-        return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+    function _getProvidersForPath(filePath) {
+        
+        var language = LanguageManager.getLanguageForPath(filePath).getId(),
+            langPref,
+            preferredProviderNames,
+            installedProviders = _providers[language],
+            providers;
+
+        langPref = prefs.get("providers." + language);
+        if (langPref && installedProviders) {
+            if (langPref.prefer) {
+                var preferredProviders;
+                preferredProviderNames = langPref.prefer.split(/\s*,\s*/);
+                preferredProviders = _.reduce(preferredProviderNames, function (result, key) {
+                    var idx = -1;
+                    idx = _.findIndex(installedProviders, function (elem) { return elem.name === key; });
+                    if (idx > -1) {
+                        result.push(installedProviders[idx]);
+                    }
+                    return result;
+                }, []);
+                if (langPref.preferredOnly) {
+                    providers = preferredProviders;
+                } else {
+                    providers = _.union(preferredProviders, installedProviders);
+                }
+            } else {
+                providers = installedProviders;
+            }
+            if (langPref.firstOnly === true) { // implies suppressing others
+                return providers.slice(0, 1);
+            }
+            return providers;
+        } else {
+            return installedProviders;
+        }
     }
 
     /**
@@ -173,7 +207,7 @@ define(function (require, exports, module) {
         var response = new $.Deferred(),
             results = [];
 
-        providerList = (providerList || getProvidersForPath(file.fullPath)) || [];
+        providerList = (providerList || _getProvidersForPath(file.fullPath)) || [];
 
         if (!providerList.length) {
             response.resolve(null);
@@ -268,7 +302,7 @@ define(function (require, exports, module) {
         }
 
         var currentDoc = DocumentManager.getCurrentDocument(),
-            providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath);
+            providerList = currentDoc && _getProvidersForPath(currentDoc.file.fullPath);
 
         if (providerList && providerList.length) {
             var numProblems = 0;
@@ -572,11 +606,12 @@ define(function (require, exports, module) {
 
     // Testing
     exports._unregisterAll = _unregisterAll;
+    exports._getProvidersForPath = _getProvidersForPath;
 
     // Public API
     exports.register       = register;
     exports.Type           = Type;
     exports.toggleEnabled  = toggleEnabled;
     exports.inspectFile    = inspectFile;
-    exports.requestRun    = run;
+    exports.requestRun     = run;
 });

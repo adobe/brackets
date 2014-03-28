@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         StringUtils      = require("utils/StringUtils"),
-        Strings;
+        Strings,
+        _                = require("thirdparty/lodash");
 
     describe("Code Inspection", function () {
         this.category = "integration";
@@ -42,7 +43,8 @@ define(function (require, exports, module) {
             CodeInspection,
             CommandManager,
             Commands  = require("command/Commands"),
-            EditorManager;
+            EditorManager,
+            PreferencesManager;
 
         var toggleJSLintResults = function (visible) {
             $("#status-inspection").triggerHandler("click");
@@ -89,6 +91,7 @@ define(function (require, exports, module) {
                     CommandManager = brackets.test.CommandManager;
                     EditorManager = brackets.test.EditorManager;
                     CodeInspection = brackets.test.CodeInspection;
+                    PreferencesManager = brackets.test.PreferencesManager;
                     CodeInspection.toggleEnabled(true);
                 });
             });
@@ -248,6 +251,68 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(expectedResult).toBeNull();
+                });
+            });
+            
+            it("should use preferences for providers lookup", function () {
+                var pref,
+                    pm = PreferencesManager.getExtensionPrefs("linting"),
+                    codeInspector1 = createCodeInspector("html1", failLintResult),
+                    codeInspector2 = createCodeInspector("html2", successfulLintResult),
+                    codeInspector3 = createCodeInspector("html3", successfulLintResult),
+                    codeInspector4 = createCodeInspector("html4", successfulLintResult),
+                    codeInspector5 = createCodeInspector("html5", failLintResult);
+                
+                CodeInspection.register("html", codeInspector1);
+                CodeInspection.register("html", codeInspector2);
+                CodeInspection.register("html", codeInspector3);
+                CodeInspection.register("html", codeInspector4);
+                CodeInspection.register("html", codeInspector5);
+                
+                runs(function () {
+                    var providers;
+                    
+                    pref = {
+                        prefer: "html3, html4"
+                    };
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("my/index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, 'name')).toEqual(["html3", "html4", "html1", "html2", "html5"]);
+
+                    pref = {
+                        prefer: "html5,       html6"
+                    };
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, 'name')).toEqual(["html5", "html1", "html2", "html3", "html4"]);
+
+                    pref.firstOnly = true;
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, 'name')).toEqual(["html5"]);
+
+                    pref.prefer = " html19, html100  ";
+                    pref.firstOnly = true;
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, 'name')).toEqual(["html1"]);
+
+                    pref.prefer = "html2,    html1";
+                    pref.preferredOnly = true;
+                    pref.firstOnly = false;
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("c:/temp/another.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, 'name')).toEqual(["html2", "html1"]);
+                    
+                    pm.set("providers.html", undefined);
+                    providers = CodeInspection._getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, 'name')).toEqual(["html1", "html2", "html3", "html4", "html5"]);
                 });
             });
         });
