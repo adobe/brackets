@@ -475,11 +475,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds a file extension to this language.
-     * @param {!string} extension A file extension used by this language
-     * @return {boolean} Whether adding the file extension was successful or not
+     * Adds one or more file extensions to this language.
+     * @param {!string|Array.<string>} extension A file extension (or array thereof) used by this language
      */
     Language.prototype.addFileExtension = function (extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(this._addFileExtension.bind(this));
+        } else {
+            this._addFileExtension(extension);
+        }
+    };
+    Language.prototype._addFileExtension = function (extension) {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -503,11 +509,47 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
-     * @param {!string} extension An extensionless file name used by this language
-     * @return {boolean} Whether adding the file name was successful or not
+     * Unregisters one or more file extensions from this language.
+     * @param {!string|Array.<string>} extension File extension (or array thereof) to stop using for this language
+     */
+    Language.prototype.removeFileExtension = function (extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(this._removeFileExtension.bind(this));
+        } else {
+            this._removeFileExtension(extension);
+        }
+    };
+    Language.prototype._removeFileExtension = function (extension) {
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
+        var index = this._fileExtensions.indexOf(extension);
+        if (index !== -1) {
+            this._fileExtensions.splice(index, 1);
+            
+            delete _fileExtensionToLanguageMap[extension];
+            
+            this._wasModified();
+        }
+    };
+
+    /**
+     * Adds one or more file names to the language which is used to match files that don't have extensions like "Makefile" for example.
+     * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
      */
     Language.prototype.addFileName = function (name) {
+        if (Array.isArray(name)) {
+            name.forEach(this._addFileName.bind(this));
+        } else {
+            this._addFileName(name);
+        }
+    };
+    Language.prototype._addFileName = function (name) {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
         
@@ -523,7 +565,31 @@ define(function (require, exports, module) {
             
             this._wasModified();
         }
-        return true;
+    };
+
+    /**
+     * Unregisters one or more file names from this language.
+     * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
+     */
+    Language.prototype.removeFileName = function (name) {
+        if (Array.isArray(name)) {
+            name.forEach(this._removeFileName.bind(this));
+        } else {
+            this._removeFileName(name);
+        }
+    };
+    Language.prototype._removeFileName = function (name) {
+        // Make checks below case-INsensitive
+        name = name.toLowerCase();
+        
+        var index = this._fileNames.indexOf(name);
+        if (index !== -1) {
+            this._fileNames.splice(index, 1);
+            
+            delete _fileNameToLanguageMap[name];
+            
+            this._wasModified();
+        }
     };
 
     /**
@@ -779,11 +845,11 @@ define(function (require, exports, module) {
     _patchCodeMirror();
     
     // Define a custom MIME mode here instead of putting it directly into languages.json
-    // because JSON files must not contain regular expressions. Also, all other modes so
+    // because JSON files can't contain regular expressions. Also, all other modes so
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
+        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
                        "mode": null}]
     });
  
@@ -804,6 +870,10 @@ define(function (require, exports, module) {
         // When the CSSInlineEditor and the hint providers are no longer based on modes, this can be changed.
         // But for now, we need to associate this madeup "html" mode with our HTML language object.
         _setLanguageForMode("html", html);
+        
+        // Similarly, the php mode uses clike internally for the PHP parts
+        var php = getLanguage("php");
+        php._setLanguageForMode("clike", php);
         
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
