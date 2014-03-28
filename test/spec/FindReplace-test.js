@@ -1107,6 +1107,36 @@ define(function (require, exports, module) {
                     expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
+
+            it("should find and skip then replace string", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText("foo");
+                    enterReplaceText("bar");
+                    
+                    expectSelection(fooExpectedMatches[0]);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    // Skip first
+                    expect(tw$("#find-next").is(":enabled")).toBe(true);
+                    tw$("#find-next").click();
+                    
+                    expectSelection(fooExpectedMatches[1]);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+
+                    // Replace second
+                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+                    tw$("#replace-yes").click();
+                    
+                    expectSelection(fooExpectedMatches[2]);
+                    
+                    myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
+                    expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
+                    
+                    myEditor.setSelection(fooExpectedMatches[1].start, fooExpectedMatches[1].end);
+                    expect(/bar/i.test(myEditor.getSelectedText())).toBe(true);
+                });
+            });
             
             it("should use replace keyboard shortcut for single Replace while search bar open", function () {
                 runs(function () {
