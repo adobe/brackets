@@ -467,7 +467,7 @@ define(function (require, exports, module) {
 
     /**
      * Adds one or more file extensions to this language.
-     * @param {!string|Array.<string>>} extension A file extension (or array thereof) used by this language
+     * @param {!string|Array.<string>} extension A file extension (or array thereof) used by this language
      */
     Language.prototype.addFileExtension = function (extension) {
         if (Array.isArray(extension)) {

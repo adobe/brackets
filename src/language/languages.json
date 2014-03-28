@@ -243,8 +243,9 @@
     
     "binary": {
         "name": "Other Binary",
-        "fileExtensions": ["svgz", "jsz", "zip", "gz", "htmz", "htmlz", "rar", "tar", "exe", "bin", "dll", "pdb", "lib", "obj", "so", "a", "dylib",
-                           "pdf", "psd", "ai", "tif", "tiff", "mpg", "mpeg", "avi", "flv", "mp4", "ttf", "otf", "woff"],
+        "fileExtensions": ["svgz", "jsz", "zip", "gz", "htmz", "htmlz", "rar", "tar", "exe", "bin", "dll", "pdb", "lib", "obj", "o", "so", "a", "dylib", "node",
+                           "pdf", "psd", "ai", "tif", "tiff", "mpg", "mpeg", "avi", "flv", "mp4", "swf", "ttf", "otf", "woff", "eot",
+                           "doc", "docx", "xls", "xlsx", "ppt", "pptx", "sqlite"],
         "isBinary": true
     }
 }
