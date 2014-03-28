@@ -65,6 +65,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Chyba při tvorbě souboru",
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
 
+    // Řetězce chyb nastavení aplikace
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
+    "ERROR_PREFS_CORRUPT"               : "Soubor s nastavením není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. Pro uložení změn budete muset restartovat aplikaci {APP_NAME}.",
+
     // Řetězce chyb aplikace
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v <b>github.com/adobe/brackets-shell</b> repo pro spuštění {APP_NAME}.",
@@ -153,8 +157,17 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/zbalení všeho",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
+
+    // Filtry vyloučení souborů
+    "NO_FILE_FILTER"                    : "Vyloučit soubory\u2026",
+    "EDIT_FILE_FILTER"                  : "Upravit\u2026",
+    "FILE_FILTER_DIALOG"                : "Upravit filtr",
+    "FILE_FILTER_INSTRUCTIONS"          : "Vyloučit soubory a složky, které obsahují jakýkoliv z následujících řetězců / podřetězců nebo <a href='{0}' title='{0}'>vzorků</a>. Vložte každý řetězec na nový řádek.",
+    "FILE_FILTER_LIST_PREFIX"           : "mimo",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "a {0} více",
 
     /**
      * Správce projektu
@@ -187,6 +200,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázány",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",
@@ -295,6 +310,8 @@ define({
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
+    "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v Exploreru",
+    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
 
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
@@ -461,6 +478,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Posunout vybraný bod <br><kbd class='text'>Shift</kbd> Posunout o deset jednotek",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Zvýšení nebo snížení kroků<br><kbd>←</kbd><kbd>→</kbd> 'Start' nebo 'End'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Stará hodnota <code>{0}</code> není platná, proto zobrazená funkce byla změněna na <code>{1}</code>. Dokument bude aktualizován při první úpravě.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",

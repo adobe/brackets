@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -297,6 +297,21 @@ define(function (require, exports, module) {
             });
 
 
+            it("should open a type selector and show correct range including the embedded php", function () {
+                initInlineTest("test1.php", 1);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+                    
+                    // verify cursor position and displayed range in inline editor
+                    expect(inlinePos).toEqual(infos["test1.php"].offsets[0]);
+                    expect(inlineWidget.editor).toHaveInlineEditorRange(toRange(4, 8));
+                    
+                    inlineWidget = null;
+                });
+            });
+            
             it("should open a type selector on opening tag", function () {
                 initInlineTest("test1.html", 0);
                 
@@ -580,7 +595,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should scroll cursor into view and position message popover inside right edge of window", function () {
+            it("should scroll cursor into view and position message popover inside right edge of window", function () {
                 var $popover, scrollPos, editor,
                     openFile = "test1.html";
 
