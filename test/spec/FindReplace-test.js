@@ -1287,6 +1287,40 @@ define(function (require, exports, module) {
 
         
         describe("Search -> Replace All", function () {
+            it("should find and replace all", function () {
+                runs(function () {
+                    var searchText  = "require",
+                        replaceText = "brackets.getModule";
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
+                    tw$("#replace-all").click();
+                    tw$(".replace-checked").click();
+
+                    myEditor.setSelection({line: 1, ch: 17}, {line: 1, ch: 17 + replaceText.length});
+                    expect(myEditor.getSelectedText()).toBe(replaceText);
+
+                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
+                    //       but not first instance of "require" in text
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                                          {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START + replaceText.length});
+                    expect(myEditor.getSelectedText()).toBe(replaceText);
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
+                                          {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START + replaceText.length});
+                    expect(myEditor.getSelectedText()).toBe(replaceText);
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START},
+                                          {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START + replaceText.length});
+                    expect(myEditor.getSelectedText()).toBe(replaceText);
+                });
+            });
+
             it("should find all regexps and replace them with $n", function () {
                 runs(function () {
                     twCommandManager.execute(Commands.EDIT_REPLACE);
