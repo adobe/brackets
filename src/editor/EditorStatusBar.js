@@ -114,9 +114,9 @@ define(function (require, exports, module) {
      */
     function _toggleIndentType() {
         var current = EditorManager.getActiveEditor(),
-			fullPath = current && current.document.file.fullPath;
+            fullPath = current && current.document.file.fullPath;
 
-		Editor.setUseTabChar(!Editor.getUseTabChar(fullPath), fullPath);
+        Editor.setUseTabChar(!Editor.getUseTabChar(fullPath), fullPath);
         _updateIndentType(fullPath);
         _updateIndentSize(fullPath);
     }
@@ -245,7 +245,7 @@ define(function (require, exports, module) {
         if (!current) {
             StatusBar.hide();  // calls resizeEditor() if needed
         } else {
-			var fullPath = current.document.file.fullPath;
+            var fullPath = current.document.file.fullPath;
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
