@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      *
      * @param hostEditor {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {functionName: {string}, reason: {string}}
+     * @return {functionName: string, reason: string}
      */
     function _getFunctionName(hostEditor, pos) {
         var token = hostEditor._codeMirror.getTokenAt(pos, true);
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
      * @param {!string} functionName
      * @return {?$.Promise} synchronously resolved with an InlineWidget, or
      *         {string} if js other than function is detected at pos, or
-     *         null if we're not going to provide anything.
+     *         null if we're not ready to provide anything.
      */
     function _createInlineEditor(hostEditor, functionName) {
         // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.

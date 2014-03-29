@@ -164,7 +164,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor The host editor
      * @param {Array.<{priority:number, provider:function(...)}>} providers 
      *      prioritized list of providers
-     * @param {string=} defaultErrorMsg Default error message to display if no initial provider found
+     * @param {string=} defaultErrorMsg Default message to display if no providers return non-null
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected if no inline providers have offered one.
      */
@@ -279,10 +279,10 @@ define(function (require, exports, module) {
      * An optional priority parameter is used to give providers with higher priority an opportunity
      * to provide an inline editor before providers with lower priority.
      * 
-     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?($.Promise|string)} provider
      * @param {number=} priority 
-     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
-     * to indicate the provider doesn't want to respond to this case.
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
+     * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
      */
     function registerInlineEditProvider(provider, priority) {
         if (priority === undefined) {
@@ -297,10 +297,10 @@ define(function (require, exports, module) {
      * An optional priority parameter is used to give providers with higher priority an opportunity
      * to provide an inline editor before providers with lower priority.
      * 
-     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?($.Promise|string)} provider
      * @param {number=} priority 
-     * The provider returns a promise that will be resolved with an InlineWidget, or returns null
-     * to indicate the provider doesn't want to respond to this case.
+     * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
+     * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
      */
     function registerInlineDocsProvider(provider, priority) {
         if (priority === undefined) {
@@ -946,7 +946,7 @@ define(function (require, exports, module) {
      *
      * @param {Array.<{priority:number, provider:function(...)}>} providers 
      *   prioritized list of providers
-     * @param {string=} errorMsg Error message to display if no initial provider found
+     * @param {string=} errorMsg Default message to display if no providers return non-null
      * @return {!Promise} A promise resolved with true if an inline widget is opened or false
      *   when closed. Rejected if there is neither an existing widget to close nor a provider
      *   willing to create a widget (or if no editor is open).

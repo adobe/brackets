@@ -162,7 +162,7 @@ define(function (require, exports, module) {
      * @param {!{line:Number, ch:Number}} pos
      * @return {?$.Promise} synchronously resolved with an InlineWidget, or
      *         {string} if pos is in tag but not in tag name, class attr, or id attr, or
-     *         null if we're not going to provide anything.
+     *         null if we're not even close to a context where we could provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
