@@ -40,8 +40,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
         StringUtils              = require("utils/StringUtils"),
-        Editor                   = require("editor/Editor"),
-        ProjectManager           = require("project/ProjectManager");
+        Editor                   = require("editor/Editor");
                     
     
     describe("DocumentCommandHandlers", function () {
@@ -609,7 +608,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe("({0}) - " + brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files - " + brackets.config.app_title);
                 });
             });
 
@@ -625,7 +624,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe("({0}) - " + brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("(DocumentCommandHandlers-test-files) - " + brackets.config.app_title);
                 });
             });
         });
@@ -931,8 +930,8 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                     
                     // verify no dot in titlebar
-                    var expectedTitleClean = (brackets.platform !== "mac" ? ("test.js — ({0}) - {1}") : ("test.js - ({0}) - {1}"));
-                    var expectedTitle = StringUtils.format(expectedTitleClean, ProjectManager.getProjectRoot().name, brackets.config.app_title);
+                    var expectedTitleClean = (brackets.platform !== "mac" ? ("test.js — (DocumentCommandHandlers-test-files) - {0}") : ("test.js - (DocumentCommandHandlers-test-files) - {0}"));
+                    var expectedTitle = StringUtils.format(expectedTitleClean, brackets.config.app_title);
                     expect(testWindow.document.title).toBe(expectedTitle);
                 });
             });
@@ -948,8 +947,8 @@ define(function (require, exports, module) {
                     expect(doc.isDirty).toBe(true);
                     
                     // verify dot in titlebar
-                    var expectedTitleDirty = (brackets.platform !== "mac" ? ("• test.js — ({0}) - {1}") : ("• test.js - ({0}) - {1}"));
-                    var expectedTitle = StringUtils.format(expectedTitleDirty, ProjectManager.getProjectRoot().name, brackets.config.app_title);
+                    var expectedTitleDirty = (brackets.platform !== "mac" ? ("• test.js — (DocumentCommandHandlers-test-files) - {0}") : ("• test.js - (DocumentCommandHandlers-test-files) - {0}"));
+                    var expectedTitle = StringUtils.format(expectedTitleDirty, brackets.config.app_title);
                     expect(testWindow.document.title).toBe(expectedTitle);
                 });
             });
