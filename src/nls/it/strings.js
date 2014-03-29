@@ -183,10 +183,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Linea {0}, Colonna {1}",
-    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selected {0} column",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Selezionata {0} colonna",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selezionate {0} colonne",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selezionata {0} linea",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selezionate {0} linee",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clicca per passare alla indentazione a spazi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clicca per passare alla indentazione a tabulazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l'indentazione",
@@ -516,3 +516,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
+
+/* Last translated for 6FD7CEBAEAAC6CAF9FE6611E56F5CDAA008D4791 */
