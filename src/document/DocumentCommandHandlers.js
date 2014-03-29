@@ -71,11 +71,11 @@ define(function (require, exports, module) {
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
     /** @type {string} The current project name; displayed in window title. Set to app_title to avoid split-second display of null */
-    var _projectName = brackets.config.app_title;
+    var _projectName = null;
     /** @type {string} String template for window title when no file is open. Use emdash on mac only. */
-    var WINDOW_TITLE_STRING_INIT = (brackets.platform !== "mac") ? "({0}) - {1}" : "({0}) \u2014 {1}";
+    var WINDOW_TITLE_STRING_NO_DOC = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
     /** @type {string} String template for window title. */
-    var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
+    var WINDOW_TITLE_STRING_DOC = (brackets.platform !== "mac") ? "{0} ({1}) - {2}" : "{0} \u2014 {2}";
     
     /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
     var _$titleContainerToolbar = null;
