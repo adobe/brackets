@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -41,10 +41,20 @@ define(function (require, exports, module) {
         
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
+            testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
             testWindow,
             testDocument,
             testEditor,
             hintsObj;
+        
+        // IMPORTANT: By default, Mac sorts folder contents differently from other OS's,
+        // so the files and folders in the "testfiles" and "subfolder" folder are named
+        // strategically so that they sort the same on all OS's (i.e. folders are listed
+        // first, and then files), but this is not true for UrlCodeHints folder.
+        var testfilesDirHints       = [ "subfolder/", "test.html"],
+            subfolderDirHints       = [ "chevron.png", "test.css", "test.js"],
+            UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../testfiles/", "../unittests.js"],
+            UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../unittests.js"];
         
         /**
          * Returns an Editor suitable for use in isolation, given a Document.
@@ -56,9 +66,9 @@ define(function (require, exports, module) {
             return SpecRunnerUtils.createMockEditorForDocument(doc);
         }
 
-        function setupTests() {
+        function setupTests(testFilePath) {
             runs(function () {
-                DocumentManager.getDocumentForPath(testHtmlPath).done(function (doc) {
+                DocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
                     testDocument = doc;
                 });
             });
@@ -83,6 +93,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
+                hintsObj = null;
             });
         }
         
@@ -117,26 +128,21 @@ define(function (require, exports, module) {
             expect(provider.hasHints(testEditor, null)).toBeFalsy();
         }
         
-        // Expect hintList to contain folder and file names, starting with given value.
-        // If unspecified, expects the default unfiltered list.
-        function verifyUrlHints(hintList, expectedFirstHint) {
-            if (!expectedFirstHint) {
-                // IMPORTANT: Mac and Windows sort folder contents differently,
-                // so the files and folders in the "testfiles" folder are named
-                // strategically so that they sort the same on both Mac and Windows
-                // (i.e. folders are listed first, and then files).
-                expectedFirstHint = "subfolder/";
-            }
-            expect(hintList[0]).toBe(expectedFirstHint);
+        // Expect hintList to contain folder and file names.
+        function verifyUrlHints(hintList, expectedHints) {
+            expect(hintList).toEqual(expectedHints);
         }
 
         describe("HTML Url Code Hints", function () {
 
-            // This MUST be the FIRST "test"
-            it("should setup before tests", function () {
-                setupTests();
+            beforeFirst(function () {
+                setupTests(testHtmlPath);
             });
             
+            afterLast(function () {
+                tearDownTests();
+            });
+
             it("should hint for href attribute", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 12, ch: 12 });
@@ -147,7 +153,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    verifyUrlHints(hintsObj.hints);
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
 
@@ -159,7 +165,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    verifyUrlHints(hintsObj.hints);
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
             
@@ -185,24 +191,22 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    var expectedFirstItem = (brackets.platform === "mac") ? "../data.json" : "../testfiles/";
-                    verifyUrlHints(hintsObj.hints, expectedFirstItem);
+                    var expectedHints = (brackets.platform === "mac") ? UrlCodeHintsDirHintsMac : UrlCodeHintsDirHints;
+                    verifyUrlHints(hintsObj.hints, expectedHints);
                 });
-            });
-            
-            // This MUST be the LAST "test"
-            it("should cleanup after tests", function () {
-                tearDownTests();
             });
         });
         
         describe("CSS Url Code Hints", function () {
             
-            // This MUST be the FIRST "test"
-            it("should setup before tests", function () {
-                setupTests();
+            beforeFirst(function () {
+                setupTests(testHtmlPath);
             });
             
+            afterLast(function () {
+                tearDownTests();
+            });
+
             it("should hint for @import url()", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 4, ch: 12 });
@@ -211,7 +215,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    verifyUrlHints(hintsObj.hints);
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
 
@@ -223,7 +227,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    verifyUrlHints(hintsObj.hints);
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
 
@@ -235,7 +239,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    verifyUrlHints(hintsObj.hints);
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
             
@@ -247,7 +251,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    verifyUrlHints(hintsObj.hints);
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
 
@@ -256,10 +260,6 @@ define(function (require, exports, module) {
                     testEditor.setCursorPos({ line: 4, ch: 15 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
-                
-                runs(function () {
-                    verifyUrlHints(hintsObj.hints);
-                });
             });
 
             it("should not hint for background-image outside of url()", function () {
@@ -267,18 +267,32 @@ define(function (require, exports, module) {
                     testEditor.setCursorPos({ line: 9, ch: 20 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
-                
-                runs(function () {
-                    verifyUrlHints(hintsObj.hints);
-                });
-            });
-            
-            // This MUST be the LAST "test"
-            it("should cleanup after tests", function () {
-                tearDownTests();
             });
         });
-            
+
+        describe("Url Code Hints in a subfolder", function () {
+
+            beforeFirst(function () {
+                setupTests(testCssPath);
+            });
+
+            afterLast(function () {
+                tearDownTests();
+            });
+
+            it("should hint for background-image: url()", function () {
+                runs(function () {
+                    testEditor.setCursorPos({ line: 3, ch: 26 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints, subfolderDirHints);
+                });
+            });
+        });
+
         describe("Project root relative Url Code Hints", function () {
 
             var testWindow,
@@ -356,7 +370,7 @@ define(function (require, exports, module) {
 
             // These tests edit doc, so we need to setup/tear-down for each test
             beforeEach(function () {
-                setupTests();
+                setupTests(testHtmlPath);
             });
             
             afterEach(function () {

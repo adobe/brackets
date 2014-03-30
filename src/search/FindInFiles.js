@@ -751,7 +751,9 @@ define(function (require, exports, module) {
                 var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
                     return wsFile.fullPath === file.fullPath;
                 });
-                return inWorkingSet;
+                if (!inWorkingSet) {
+                    return false;
+                }
             }
         }
         // In the initial search, this is passed as a getAllFiles() filter

@@ -184,6 +184,17 @@ define({
      */
     "PREF_DESC_ASYNC_TIMEOUT"    : "Number of milliseconds to wait for asynchronous code inspection provider results.",
 
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit provider found for current cursor position",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: place cursor in class name",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: place cursor in id name",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag name, class name, or id name",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: invalid syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: place cursor in function name",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs provider found for current cursor position",
+
     /**
      * ProjectManager
      */
@@ -275,8 +286,8 @@ define({
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
-    "CMD_ADD_NEXT_LINE_TO_SEL"            : "Add Next Line to Selection",
-    "CMD_ADD_PREV_LINE_TO_SEL"            : "Add Previous Line to Selection",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
@@ -341,9 +352,9 @@ define({
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_SUPPORT"                         : "Support for Using {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_GET_INVOLVED"                    : "Hacking on Brackets",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -464,6 +475,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
     
     /**
      * Unit names
