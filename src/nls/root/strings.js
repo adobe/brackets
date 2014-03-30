@@ -179,6 +179,10 @@ define({
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
     
+    /*
+     * Preference desriptions
+     */
+    "PREF_DESC_ASYNC_TIMEOUT"    : "Number of milliseconds to wait for asynchronous code inspection provider results.",
 
     /**
      * ProjectManager
@@ -224,6 +228,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**

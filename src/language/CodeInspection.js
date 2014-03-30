@@ -195,15 +195,28 @@ define(function (require, exports, module) {
                     });
                     
                     if (provider.scanFileAsync) {
-                        window.setTimeout(function () { runPromise.resolve(null); }, prefs.get(PREF_ASYNC_TIMEOUT));
+                        window.setTimeout(function () {
+                            // timeout error
+                            var errTimeout = {
+                                pos: { line: -1, col: 0},
+                                message: StringUtils.format(Strings.LINTER_TIMED_OUT, provider.name, prefs.get(PREF_ASYNC_TIMEOUT)),
+                                type: Type.ERROR
+                            };
+                            runPromise.resolve({errors: [errTimeout]});
+                        }, prefs.get(PREF_ASYNC_TIMEOUT));
                         provider.scanFileAsync(fileText, file.fullPath)
-                            .then(function (scanResult) {
+                            .done(function (scanResult) {
                                 PerfUtils.addMeasurement(perfTimerProvider);
                                 runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
+                                var errError = {
+                                    pos: {line: -1, col: 0},
+                                    message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
+                                    type: Type.ERROR
+                                };
                                 console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
-                                runPromise.resolve(null);
+                                runPromise.resolve({errors: [errError]});
                             });
                     } else {
                         try {
@@ -211,8 +224,14 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
+                            var errorMessage = (err.message) ? err.message : err;
+                            var errError = {
+                                pos: {line: -1, col: 0},
+                                message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
+                                type: Type.ERROR
+                            };
                             console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
-                            runPromise.resolve(null);
+                            runPromise.resolve({errors: [errError]});
                         }
                     }
                     return runPromise.promise();
@@ -538,7 +557,7 @@ define(function (require, exports, module) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 1000, "Number of milliseconds to wait for asynchronous code inspection provider results.");
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 1000, Strings.PREF_DESC_ASYNC_TIMEOUT);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -601,7 +620,8 @@ define(function (require, exports, module) {
     });
 
     // Testing
-    exports._unregisterAll = _unregisterAll;
+    exports._unregisterAll      = _unregisterAll;
+    exports._PREF_ASYNC_TIMEOUT  = PREF_ASYNC_TIMEOUT;
 
     // Public API
     exports.register       = register;
