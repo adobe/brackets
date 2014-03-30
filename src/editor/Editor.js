@@ -100,7 +100,7 @@ define(function (require, exports, module) {
     cmOptions[SMART_INDENT]       = "smartIndent";
     cmOptions[SPACE_UNITS]        = "indentUnit";
     cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
-    cmOptions[TAB_SIZE]           = "indentUnit";
+    cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
