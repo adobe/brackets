@@ -861,6 +861,31 @@ define(function (require, exports, module) {
                         .toBe(StringUtils.format(Strings.LINTER_FAILED, providerName, new Error(errorMessage)));
                 });
             });
+            
+            it("should keep the order as per registration", function () {
+                var asyncProvider1 = createAsyncCodeInspector("javascript async linter 1", failLintResult(), 400, true),
+                    asyncProvider2 = createAsyncCodeInspector("javascript async linter 2", failLintResult(), 300, false),
+                    syncProvider3 = createCodeInspector("javascript sync linter 3", failLintResult()),
+                    registrationOrder = [asyncProvider1, asyncProvider2, syncProvider3],
+                    i,
+                    expected = "";
+                
+                for (i = 0; i < registrationOrder.length; i++) {
+                    CodeInspection.register("javascript", registrationOrder[i]);
+                    expected += registrationOrder[i].name + " " + "(1) ";
+                }
+                
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+                
+                waits(410);
+
+                runs(function () {
+                    expect($("#problems-panel .inspector-section").text().trim().replace(/\s+/g, " "))
+                        // actual string expected:
+                        //.toBe("javascript async linter 1 (1) javascript async linter 2 (1) javascript sync linter 3 (1)");
+                        .toBe(expected.trim());
+                });
+            });
         });
         
         describe("Code Inspector Registration", function () {

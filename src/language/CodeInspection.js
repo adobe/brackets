@@ -324,7 +324,13 @@ define(function (require, exports, module) {
                 if (currentDoc !== DocumentManager.getCurrentDocument()) {
                     return;
                 }
-
+                
+                // sync async may have pushed results in different order, restore the original order
+                results.sort(function (a, b) {
+                    // actual provider list may have changed in the process, but we don't care
+                    return _.indexOf(providerList, a.provider) - _.indexOf(providerList, b.provider);
+                });
+                
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
 
