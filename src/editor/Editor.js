@@ -74,6 +74,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
+        ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         _                  = require("thirdparty/lodash");
     
@@ -91,6 +92,14 @@ define(function (require, exports, module) {
         USE_TAB_CHAR      = "useTabChar";
     
     var cmOptions         = {};
+    
+    /** @type {number} Constants */
+    var MIN_SPACE_UNITS         =  0,
+        MIN_TAB_SIZE            =  1,
+        DEFAULT_SPACE_UNITS     =  4,
+        DEFAULT_TAB_SIZE        =  4,
+        MAX_SPACE_UNITS         = 10,
+        MAX_TAB_SIZE            = 10;
     
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
@@ -110,9 +119,13 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
     PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
-    PreferencesManager.definePreference(SPACE_UNITS,       "number",  4);
+    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
+    });
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE,          "number",  4);
+    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
+    });
     PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
     
@@ -2050,99 +2063,148 @@ define(function (require, exports, module) {
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setUseTabChar = function (value) {
-        PreferencesManager.set(USE_TAB_CHAR, value);
+    Editor.setUseTabChar = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(USE_TAB_CHAR, value, options);
     };
     
-    /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function () {
-        return PreferencesManager.get(USE_TAB_CHAR);
+    /**
+     * Gets whether the specified or current file uses tab characters (vs. spaces) when inserting new text
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getUseTabChar = function (fullPath) {
+        return PreferencesManager.get(USE_TAB_CHAR, fullPath);
     };
     
     /**
      * Sets tab character width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setTabSize = function (value) {
-        PreferencesManager.set(TAB_SIZE, value);
+    Editor.setTabSize = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(TAB_SIZE, value, options);
     };
     
-    /** @type {number} Get indent unit  */
-    Editor.getTabSize = function () {
-        return PreferencesManager.get(TAB_SIZE);
+    /**
+     * Get indent unit
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {number}
+     */
+    Editor.getTabSize = function (fullPath) {
+        return PreferencesManager.get(TAB_SIZE, fullPath);
     };
     
     /**
      * Sets indentation width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setSpaceUnits = function (value) {
-        PreferencesManager.set(SPACE_UNITS, value);
+    Editor.setSpaceUnits = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(SPACE_UNITS, value, options);
     };
     
-    /** @type {number} Get indentation width */
-    Editor.getSpaceUnits = function () {
-        return PreferencesManager.get(SPACE_UNITS);
+    /**
+     * Get indentation width
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {number}
+     */
+    Editor.getSpaceUnits = function (fullPath) {
+        return PreferencesManager.get(SPACE_UNITS, fullPath);
     };
     
     /**
      * Sets the auto close brackets.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setCloseBrackets = function (value) {
-        PreferencesManager.set(CLOSE_BRACKETS, value);
+    Editor.setCloseBrackets = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(CLOSE_BRACKETS, value, options);
     };
     
-    /** @type {boolean} Gets whether the current editor uses auto close brackets */
-    Editor.getCloseBrackets = function () {
-        return PreferencesManager.get(CLOSE_BRACKETS);
+    /**
+     * Gets whether the specified or current file uses auto close brackets
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getCloseBrackets = function (fullPath) {
+        return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
     };
     
     /**
      * Sets show line numbers option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setShowLineNumbers = function (value) {
-        PreferencesManager.set(SHOW_LINE_NUMBERS, value);
+    Editor.setShowLineNumbers = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(SHOW_LINE_NUMBERS, value, options);
     };
     
-    /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
-    Editor.getShowLineNumbers = function () {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS);
+    /**
+     * Returns true if show line numbers is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getShowLineNumbers = function (fullPath) {
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
     };
     
     /**
      * Sets show active line option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setShowActiveLine = function (value) {
-        PreferencesManager.set(STYLE_ACTIVE_LINE, value);
+    Editor.setShowActiveLine = function (value, fullPath) {
+        return PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
-    /** @type {boolean} Returns true if show active line is enabled for the current editor */
-    Editor.getShowActiveLine = function () {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE);
+    /**
+     * Returns true if show active line is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getShowActiveLine = function (fullPath) {
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
     };
     
     /**
      * Sets word wrap option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setWordWrap = function (value) {
-        PreferencesManager.set(WORD_WRAP, value);
+    Editor.setWordWrap = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(WORD_WRAP, value, options);
     };
     
-    /** @type {boolean} Returns true if word wrap is enabled for the current editor */
-    Editor.getWordWrap = function () {
-        return PreferencesManager.get(WORD_WRAP);
+    /**
+     * Returns true if word wrap is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getWordWrap = function (fullPath) {
+        return PreferencesManager.get(WORD_WRAP, fullPath);
     };
+    
     
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
