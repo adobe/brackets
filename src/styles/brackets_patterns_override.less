@@ -664,6 +664,10 @@ a:focus {
     margin-left: 10px;
 }
 
+.dialog-message select {
+    margin-left: 10px;
+}
+
 .dialog-list {
     list-style: none;
     margin: 5px 0 20px 10px;
@@ -709,6 +713,19 @@ a[href^="http"] {
             // Enable text selection
             cursor: auto;
             .user-select(text);
+            
+            h3 {
+                font-weight: normal;
+                margin: 0 0 10px;
+            }
+            
+            ul {
+                margin-bottom: 0 0 20px;
+                
+                > li {
+                    margin-bottom: 10px;
+                }
+            }
         }
     }
 }
@@ -1250,6 +1267,7 @@ b,
 strong,
 dt,
 .label {
+    color: @tc-text;
     font-weight: @font-weight-semibold;
 }
 
