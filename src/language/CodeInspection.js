@@ -130,6 +130,15 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _hasErrors;
+    
+    /**
+     * Promise of the returned by the last call to inspectFile or null if linting is disabled. Used to prevent any stale promises
+     * to cause updates of the UI.
+     *
+     * @private
+     * @type {$.Promise}
+     */
+    var _currentPromise = null;
 
     /**
      * Enable or disable the "Go to First Error" command
@@ -302,6 +311,7 @@ define(function (require, exports, module) {
     function run() {
         if (!_enabled) {
             _hasErrors = false;
+            _currentPromise = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
@@ -319,9 +329,9 @@ define(function (require, exports, module) {
             var providersReportingProblems = [];
 
             // run all the providers registered for this file type
-            inspectFile(currentDoc.file, providerList).then(function (results) {
-                // check if current document wasn't changed while inspectFile was running
-                if (currentDoc !== DocumentManager.getCurrentDocument()) {
+            (_currentPromise = inspectFile(currentDoc.file, providerList)).then(function (results) {
+                // check if promise has not changed while inspectFile was running
+                if (this !== _currentPromise) {
                     return;
                 }
                 
@@ -408,6 +418,7 @@ define(function (require, exports, module) {
         } else {
             // No provider for current file
             _hasErrors = false;
+            _currentPromise = null;
             Resizer.hide($problemsPanel);
             var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
             if (language) {
