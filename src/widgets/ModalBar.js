@@ -219,7 +219,6 @@ define(function (require, exports, module) {
         // If someone hasn't already called `prepareClose()` to pop the ModalBar out of the flow
         // and resize the editor, then do that here.
         if (!this._$root.hasClass("popout")) {
-            console.log("ModalBar restoring pos");
             this.prepareClose(restoreScrollPos);
         }
 

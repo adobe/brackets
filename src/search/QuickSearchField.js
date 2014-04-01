@@ -56,7 +56,8 @@ define(function (require, exports, module) {
      *          the provider yields a null error string, input is not decorated.
      * 
      * @param {!function(*, string):string} options.formatter
-     *          Converts one result object to a string of HTML text. Passed the item and the current query.
+     *          Converts one result object to a string of HTML text. Passed the item and the current query. The
+     *          outermost element must be <li>. The ".highlight" class can be ignored as it is applied automatically.
      * @param {!function(?*, string):void} options.onCommit
      *          Called when an item is selected by clicking or pressing Enter. Passed the item and the current
      *          query. If the current result list is not up to date with the query text at the time Enter is
@@ -66,7 +67,6 @@ define(function (require, exports, module) {
      *          Called when an item is highlighted via the arrow keys. Passed the item and the current query.
      *          Always called once with the top item in the result list, each time the list is updated (because
      *          the top item is always initially highlighted).
-     *          TODO: only if query not blank - fix IN THE HANDLER by no-oping if query.length===1 !!!
      * @param {?number} options.maxResults
      *          Maximum number of items from resultProvider() to display in the popup.
      * @param {?number} options.verticalAdjust
@@ -77,6 +77,8 @@ define(function (require, exports, module) {
     function QuickSearchField($input, options) {
         this.$input = $input;
         this.options = options;
+        
+        options.maxResults = options.maxResults || 10;
         
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
@@ -90,34 +92,37 @@ define(function (require, exports, module) {
     /** @type {!Object} */
     QuickSearchField.prototype.options = null;
     
-    /** @type {?$.Promise} */
+    /** @type {?$.Promise} Promise corresponding to latest resultProvider call. Any earlier promises ignored */
     QuickSearchField.prototype._pending = null;
     
-    /** @type {boolean} */
+    /** @type {boolean} True if Enter already pressed & just waiting for results to arrive before committing */
     QuickSearchField.prototype._commitPending = false;
     
-    /** @type {?string} */
+    /** @type {?string} Value of $input corresponding to the _displayedResults list */
     QuickSearchField.prototype._displayedQuery = null;
     
-    /** @type {?Array.<*>} */
+    /** @type {?Array.<*>}  Latest resultProvider result */
     QuickSearchField.prototype._displayedResults = null;
     
     /** @type {?number} */
     QuickSearchField.prototype._highlightIndex = null;
     
-    /** @type {?jQueryObject} */
+    /** @type {?jQueryObject} Dropdown's <ol>, while open; null while closed */
     QuickSearchField.prototype._$dropdown = null;
     
     /** @type {!jQueryObject} */
-    QuickSearchField.prototype.$input = null;  // TODO: _ prefix?
+    QuickSearchField.prototype.$input = null;
     
-    /**
-     */
+    
+    /** When text field changes, update results list */
     QuickSearchField.prototype._handleInput = function () {
         this._pending = null;  // immediately invalidate any previous Promise
         
         var valueAtEvent = this.$input.val();
         var self = this;
+        // The timeout lets us skip over a backlog of multiple keyboard events when the provider is responding
+        // so slowly that JS execution can't keep up. All the remaining input events are serviced before the
+        // first timeout runs; then all the queued-up timeouts run in a row. All except the last one can no-op.
         setTimeout(function () {
             if (self.$input.val() === valueAtEvent) {
                 self.updateResults();
@@ -125,10 +130,11 @@ define(function (require, exports, module) {
         }, 0);
     };
     
-    /**
-     */
+    /** Handle special keys: Enter, Up/Down */
     QuickSearchField.prototype._handleKeyDown = function (event) {
         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
+            // Enter should always act on the latest results. If input has changed and we're still waiting for
+            // new results, just flag the 'commit' for later
             if (this._displayedQuery === this.$input.val()) {
                 event.preventDefault();  // prevents keyup from going to someone else after we close
                 this._doCommit();
@@ -138,7 +144,7 @@ define(function (require, exports, module) {
             }
         } else if (event.keyCode === KeyEvent.DOM_VK_DOWN) {
             // Highlight changes are always done synchronously on the currently shown result list. If the list
-            // later changes, the highlight is reset
+            // later changes, the highlight is reset to the top
             if (this._displayedResults && this._displayedResults.length) {
                 if (this._highlightIndex === null || this._highlightIndex === this._displayedResults.length - 1) {
                     this._highlightIndex = 0;
@@ -161,19 +167,24 @@ define(function (require, exports, module) {
             event.preventDefault(); // treated as End key otherwise
         }
     };
-    QuickSearchField.prototype._doCommit = function (clickedIndex) {
+    
+    /** Call onCommit() immediately */
+    QuickSearchField.prototype._doCommit = function (index) {
         var item;
         if (this._displayedResults && this._displayedResults.length) {
-            var committedIndex = clickedIndex !== undefined ? clickedIndex : (this._highlightIndex || 0);
+            var committedIndex = index !== undefined ? index : (this._highlightIndex || 0);
             item = this._displayedResults[committedIndex];
         }
         this.options.onCommit(item, this._displayedQuery);
     };
+    
+    /** Update display to reflect value of _highlightIndex, & call onHighlight() */
     QuickSearchField.prototype._updateHighlight = function () {
         var $items = this._$dropdown.find("li");
         $items.removeClass("highlight");
         if (this._highlightIndex !== null) {
             $items.eq(this._highlightIndex).addClass("highlight");
+            
             this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val());
         }
     };
@@ -188,6 +199,8 @@ define(function (require, exports, module) {
         var query = this.$input.val();
         var results = this.options.resultProvider(query);
         if (results.done && results.fail) {
+            // Provider returned an async result - mark it as the latest Promise and if it's still latest when
+            // it resolves, render the results then
             this._pending = results;
             var self = this;
             this._pending.done(function (realResults) {
@@ -203,17 +216,24 @@ define(function (require, exports, module) {
                 }
             });
         } else {
+            // Synchronous result - render immediately
             this._render(results, query);
         }
     };
     
-    QuickSearchField.prototype._$dropdown = null;
+    
+    /** Close dropdown result list if visible */
     QuickSearchField.prototype._closeDropdown = function () {
         if (this._$dropdown) {
             this._$dropdown.remove();
             this._$dropdown = null;
         }
     };
+    
+    /**
+     * Open dropdown result list & populate with the given content
+     * @param {!string} htmlContent
+     */
     QuickSearchField.prototype._openDropdown = function (htmlContent) {
         if (!this._$dropdown) {
             var self = this;
@@ -235,18 +255,23 @@ define(function (require, exports, module) {
         this._$dropdown.html(htmlContent);
     };
     
+    /**
+     * Given finished provider result, format it into HTML and show in dropdown, and update "no-results" style.
+     * If an Enter key commit was pending from earlier, process it now.
+     * @param {!Array.<*>} results
+     * @param {!string} query
+     */
     QuickSearchField.prototype._render = function (results, query) {
         this._displayedQuery = query;
         this._displayedResults = results;
         this._highlightIndex = 0;
         // TODO: fixup to match prev value's item if possible?
-        // (Sublime moves arrowed highlight to stay on same item as list is filters, as long as it's
-        // still visible; then jumps back to top when not. Do we need a equals(*, *):boolean to track this?)
         
         if (results.error || results.length === 0) {
             this._closeDropdown();
             this.$input.addClass("no-results");
         } else if (results.hasOwnProperty("error")) {
+            // Error present but falsy - no results to show, but don't decorate with error style
             this._closeDropdown();
             this.$input.removeClass("no-results");
         } else {
@@ -261,31 +286,24 @@ define(function (require, exports, module) {
             this._openDropdown(html);
             
             // Highlight top item and trigger highlight callback
-            // TODO: if we had equals(), could avoid running callback when topmost item is same as before
-            // (though master doesn't do this either)
             this._updateHighlight();
         }
         
+        // If Enter key was pressed earlier, handle it now that we've gotten results back
         if (this._commitPending) {
             this._commitPending = false;
             this._doCommit();
         }
     };
     
+    
     /**
      * Programmatically changes the search text and updates the results.
+     * @param {!string} value
      */
     QuickSearchField.prototype.setText = function (value) {
         this.$input.val(value);
         this.updateResults();  // programmatic changes don't trigger "input" event
-    };
-    
-    /**
-     * Returns the currently highlighted item. Returns null if there is no result popup open (i.e. no text has
-     * been entered yet; the provider returned zero results; or one of those was previously true and we are
-     * still waiting for the provider to return newer results).
-     */
-    QuickSearchField.prototype.getSelectedItem = function () {
     };
     
     /**
