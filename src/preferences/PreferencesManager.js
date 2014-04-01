@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        return FileUtils.getRelativeFilename(projectDirectory, filename) ? true : false;
+        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
     
     /**
