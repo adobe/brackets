@@ -237,7 +237,7 @@ define({
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
+	"CMD_EXTENSION_MANAGER": "Le gestionnaire d’extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
@@ -391,7 +391,7 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
-	"EXTENSION_MANAGER_TITLE": "Le gestionnaire d'extensions",
+	"EXTENSION_MANAGER_TITLE": "Le gestionnaire d’extensions",
 	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
 	"INSTALL_FROM_URL": "Installer à partir de l’URL\u2026",
 	"EXTENSION_AUTHOR": "Auteur",
