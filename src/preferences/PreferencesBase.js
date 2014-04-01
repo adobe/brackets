@@ -175,10 +175,15 @@ define(function (require, exports, module) {
                     
                     self._lineEndings = FileUtils.sniffLineEndings(text);
                     
-                    try {
-                        result.resolve(JSON.parse(text));
-                    } catch (e) {
-                        result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                    // If the file is empty, turn it into an empty object
+                    if (/^\s*$/.test(text)) {
+                        result.resolve({});
+                    } else {
+                        try {
+                            result.resolve(JSON.parse(text));
+                        } catch (e) {
+                            result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                        }
                     }
                 });
             } else {
@@ -1102,7 +1107,8 @@ define(function (require, exports, module) {
                 type: type,
                 initial: initial,
                 name: options.name,
-                description: options.description
+                description: options.description,
+                validator: options.validator
             });
             this.set(id, initial, {
                 location: {
@@ -1431,7 +1437,11 @@ define(function (require, exports, module) {
                 if (scope) {
                     var result = scope.get(id, context);
                     if (result !== undefined) {
-                        return _.cloneDeep(result);
+                        var pref      = this.getPreference(id),
+                            validator = pref && pref.validator;
+                        if (!validator || validator(result)) {
+                            return _.cloneDeep(result);
+                        }
                     }
                 }
             }
@@ -1475,7 +1485,8 @@ define(function (require, exports, module) {
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
          * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
-         * @return {boolean} true if a value was set
+         * @return {valid:  {boolean}, true if no validator specified or if value is valid
+         *          stored: {boolean}} true if a value was stored
          */
         set: function (id, value, options) {
             options = options || {};
@@ -1497,12 +1508,19 @@ define(function (require, exports, module) {
                         scope: scopeOrder[scopeOrder.length - 2]
                     };
                 } else {
-                    return false;
+                    return { valid: true, stored: false };
                 }
             }
+            
             var scope = this._scopes[location.scope];
             if (!scope) {
-                return false;
+                return { valid: true, stored: false };
+            }
+            
+            var pref      = this.getPreference(id),
+                validator = pref && pref.validator;
+            if (validator && !validator(value)) {
+                return { valid: false, stored: false };
             }
             
             var wasSet = scope.set(id, value, context, location);
@@ -1511,7 +1529,7 @@ define(function (require, exports, module) {
                     ids: [id]
                 });
             }
-            return wasSet;
+            return { valid: true, stored: wasSet };
         },
         
         /**

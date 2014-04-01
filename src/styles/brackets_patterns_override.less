@@ -233,6 +233,8 @@ a:focus {
 .dropdown-menu {
     .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99), 0, 1);
     -webkit-transform-origin: 0 0;
+    border: none;
+    border-radius: @tc-control-border-radius;
 }
 
 @-webkit-keyframes dropdown {
@@ -290,7 +292,8 @@ a:focus {
 
     // Menu dropdown appearance
     .dropdown-menu {
-        top: 34px; // Offset from top of menubar item
+        // Offset for better alignment with button
+        top: 34px;
         margin-top: 0;
         
         // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
@@ -661,6 +664,10 @@ a:focus {
     margin-left: 10px;
 }
 
+.dialog-message select {
+    margin-left: 10px;
+}
+
 .dialog-list {
     list-style: none;
     margin: 5px 0 20px 10px;
@@ -706,6 +713,19 @@ a[href^="http"] {
             // Enable text selection
             cursor: auto;
             .user-select(text);
+            
+            h3 {
+                font-weight: normal;
+                margin: 0 0 10px;
+            }
+            
+            ul {
+                margin-bottom: 0 0 20px;
+                
+                > li {
+                    margin-bottom: 10px;
+                }
+            }
         }
     }
 }
@@ -790,7 +810,7 @@ a[href^="http"] {
             
             > li {
                 position: relative;  // for positioning .notification icon
-                > .notification {
+                .notification {
                     display: none;  // hidden by default
                     background-color: #91CC41;
                     color: white;
@@ -1141,6 +1161,23 @@ input[type="color"],
             outline: none;
         }
     }
+    
+    // Update Button Type
+    &.update {
+        background-color: #91cc41;
+        border-color: #65a015;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.27);
+        color: #fff;
+        font-weight: @font-weight-semibold;
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.24);
+        
+        &:active {
+            background-color: #82b839;
+            border-color: #5b8028;
+            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+            color: #fff;
+        }
+    }
 
     // Button Sizes
     &.large {
@@ -1247,6 +1284,7 @@ b,
 strong,
 dt,
 .label {
+    color: @tc-text;
     font-weight: @font-weight-semibold;
 }
 

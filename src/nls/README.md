@@ -12,7 +12,11 @@
 4. Copy the root `strings.js` file into your subfolder and start translating!
 5. Use the [UI walkthrough steps](https://github.com/adobe/brackets/wiki/Localization-Tests) to
    see strings in context.
-6. Edit this file and update the list of languages below!
+6. Add this comment ``/* Last translated for SHA_of_root_strings.js */`` at the end 
+   of your `strings.js` and replace `SHA_of_root_strings.js` with the actual SHA. You can 
+   copy the actual SHA in this [history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
+   by hovering on the one you used for this translation and click on Copy SHA button.
+7. Edit this file and update the list of languages below!
 
 Strings not specified in a given locale will fall back to the general language (without hyphen)
 first, and then will fall back to the English string from `nls/root/strings.js`.
@@ -74,7 +78,10 @@ The following languages have been contributed by the Brackets community:
 * Indonesia (id)
 
 These translations _can be directly modified_ through our normal pull request
-process.
+process. Make sure that you also update the comment on the last line with the 
+correct SHA of `strings.js` from root directory, which you used for your translation.
+If the SHA comment is missing, then add one with the correct SHA. See step 6 in 
+__How to add translations for a *new* locale__ section for adding a new one.
 
 In the future, Adobe may begin maintaining some of these languages too, at which
 point the process will switch to the one above. But until then, please _do not
