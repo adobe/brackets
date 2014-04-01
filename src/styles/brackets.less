@@ -1292,16 +1292,15 @@ textarea.exclusions-editor {
 }
 
 .quick-search-container {
-    // the borders show up even if the container is empty, must set height to zero using JS.
+    border: 1px solid @tc-gray-panel-border;
+    box-sizing: border-box;  // lets QuickSearchField size the width more nicely
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
     box-shadow: @tc-normal-shadow-bottom;
     opacity: 0;
     
-    // Need this for border-radius because there are no borders
-    overflow: hidden;
-    
-    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 190ms, 1);
+    // Animation delayed to avoid overlapping with modal-bar slide in, which would make it stuttery
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 66ms, 1);
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     -webkit-transform-origin: 0 0;

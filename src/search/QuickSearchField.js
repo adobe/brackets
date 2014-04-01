@@ -242,7 +242,7 @@ define(function (require, exports, module) {
                     position: "absolute",
                     top: this._dropdownTop,
                     left: this.$input.offset().left,
-                    width: this.$input.width()
+                    width: this.$input.outerWidth()
                 })
                 .click(function (event) {
                     // Unlike the Enter key, where we wait to catch up with typing, clicking commits immediately
