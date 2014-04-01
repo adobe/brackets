@@ -115,9 +115,9 @@ define(function (require, exports, module) {
         /**
          * MemoryStorage is not stored in a file, so fileChanged is ignored.
          * 
-         * @param {string} filename File that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
+        fileChanged: function (filePath) {
         }
     };
     
@@ -241,10 +241,10 @@ define(function (require, exports, module) {
         /**
          * If the filename matches this Storage's path, a changed message is triggered.
          * 
-         * @param {string} filename File that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
-            if (filename === this.path) {
+        fileChanged: function (filePath) {
+            if (filePath === this.path) {
                 $(this).trigger("changed");
             }
         }
@@ -485,10 +485,10 @@ define(function (require, exports, module) {
          * Tells the Scope that the given file has been changed so that the
          * Storage can be reloaded if needed.
          * 
-         * @param {string} filename Name of the file that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
-            this.storage.fileChanged(filename);
+        fileChanged: function (filePath) {
+            this.storage.fileChanged(filePath);
         },
         
         /**
@@ -1693,11 +1693,11 @@ define(function (require, exports, module) {
          * Tells the PreferencesSystem that the given file has been changed so that any
          * related Scopes can be reloaded.
          * 
-         * @param {string} filename Name of the file that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
+        fileChanged: function (filePath) {
             _.forEach(this._scopes, function (scope) {
-                scope.fileChanged(filename);
+                scope.fileChanged(filePath);
             });
         },
         
