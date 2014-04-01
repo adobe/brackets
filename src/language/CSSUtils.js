@@ -153,13 +153,74 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Scan backwards to check for any prefix if the current context is property name.
+     * If the current context is in a prefix (either 'meta' or '-'), then scan forwards 
+     * to collect the entire property name. Return the name of the property in the CSS 
+     * context info object if there is one that seems to be valid. Return an empty context
+     * info when we find an invalid one.
+     *
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx  context
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean}} A CSS context info object.
+     */
+    function _getPropNameInfo(ctx) {
+        var propName = "",
+            offset = TokenUtils.offsetInToken(ctx),
+            tokenString = ctx.token.string,
+            excludedCharacters = [";", "{", "}"];
+        
+        if (ctx.token.type === "property" || ctx.token.type === "property error" ||
+                ctx.token.type === "tag") {
+            propName = tokenString;
+            if (TokenUtils.movePrevToken(ctx) && ctx.token.string.trim() !== "" &&
+                    excludedCharacters.indexOf(ctx.token.string) === -1) {
+                propName = ctx.token.string + tokenString;
+                offset += ctx.token.string.length;
+            }
+        } else if (ctx.token.type === "meta" || tokenString === "-") {
+            propName = tokenString;
+            if (TokenUtils.moveNextToken(ctx) &&
+                    (ctx.token.type === "property" || ctx.token.type === "property error" ||
+                    ctx.token.type === "tag")) {
+                propName += ctx.token.string;
+            }
+        } else if (tokenString.trim() !== "" && excludedCharacters.indexOf(tokenString) === -1) {
+            // We're not inside the property name context.
+            return createInfo();
+        } else {
+            var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                testToken = ctx.editor.getTokenAt(testPos, true);
+
+            if (testToken.type === "property" || testToken.type === "property error" ||
+                    testToken.type === "tag") {
+                propName = testToken.string;
+                offset = 0;
+            }
+        }
+
+        // If we're in the property name context but not in an existing property name, 
+        // then reset offset to zero.
+        if (propName === "") {
+            offset = 0;
+        }
+
+        return createInfo(PROP_NAME, offset, propName);
+    }
+    
+    /**
+     * @private
      * Scans backwards from the current context and returns the name of the property if there is 
      * a valid one. 
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {string} the property name of the current rule.
      */
     function _getPropNameStartingFromPropValue(ctx) {
-        var ctxClone = $.extend({}, ctx);
+        var ctxClone = $.extend({}, ctx),
+            propName = "";
         do {
             // If we're no longer in the property value before seeing a colon, then we don't
             // have a valid property name. Just return an empty string.
@@ -170,10 +231,13 @@ define(function (require, exports, module) {
         
         if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
                 (ctxClone.token.type === "property" || ctxClone.token.type === "property error")) {
-            return ctxClone.token.string;
+            propName = ctxClone.token.string;
+            if (TokenUtils.movePrevToken(ctxClone) && ctxClone.token.type === "meta") {
+                propName = ctxClone.token.string + propName;
+            }
         }
         
-        return "";
+        return propName;
     }
     
     /**
@@ -454,25 +518,7 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
-                propName = ctx.token.string;
-            } else {
-                var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-                    testToken = editor._codeMirror.getTokenAt(testPos, true);
-                
-                if (testToken.type === "property" || testToken.type === "property error" || testToken.type === "tag") {
-                    propName = testToken.string;
-                    offset = 0;
-                }
-            }
-            
-            // If we're in property name context but not in an existing property name, 
-            // then reset offset to zero.
-            if (propName === "") {
-                offset = 0;
-            }
-            
-            return createInfo(PROP_NAME, offset, propName);
+            return _getPropNameInfo(ctx, editor);
         }
         
         if (_isInPropValue(ctx)) {
