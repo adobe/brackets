@@ -2100,6 +2100,29 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should return unprefixed PROP_NAME", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[111]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_NAME,
+                    name: "transform",
+                    offset: 1,
+                    index: -1,
+                    values: [],
+                    isNewItem: false
+                });
+            });
+
+            it("should return prefixed PROP_NAME when inside a prefixed property name", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[110]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_NAME,
+                    name: "-webkit-transform",
+                    offset: 1,
+                    index: -1,
+                    values: [],
+                    isNewItem: false
+                });
+            });
         });
         
         describe("quoting", function () {
