@@ -443,9 +443,8 @@ define(function (require, exports, module) {
      * code inspection, respectively, the asynchronous version will take precedence and will be used to
      * perform code inspection.
      *
-     * A code inspection provider's scanFileAsync must return a {$.Promise} object which must be
-     * resolved with ?{errors:!Array, aborted:boolean}}. Provider must never reject a promise and
-     * resolve it with null in case the results cannot be retrieved for whatever reason.
+     * A code inspection provider's scanFileAsync must return a {$.Promise} object which should be
+     * resolved with ?{errors:!Array, aborted:boolean}}.
      *
      * @param {string} languageId
      * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
