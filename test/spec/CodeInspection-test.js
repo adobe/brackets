@@ -278,7 +278,7 @@ define(function (require, exports, module) {
                     pm.set("providers.html", pref);
                     providers = CodeInspection._getProvidersForPath("my/index.html");
                     expect(providers).toNotBe(null);
-                    expect(_.pluck(providers, 'name')).toEqual(["html3", "html4", "html1", "html2", "html5"]);
+                    expect(_.pluck(providers, "name")).toEqual(["html3", "html4", "html1", "html2", "html5"]);
 
                     pref = {
                         prefer: "html5,       html6"
@@ -286,20 +286,20 @@ define(function (require, exports, module) {
                     pm.set("providers.html", pref);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
-                    expect(_.pluck(providers, 'name')).toEqual(["html5", "html1", "html2", "html3", "html4"]);
+                    expect(_.pluck(providers, "name")).toEqual(["html5", "html1", "html2", "html3", "html4"]);
 
                     pref.firstOnly = true;
                     pm.set("providers.html", pref);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
-                    expect(_.pluck(providers, 'name')).toEqual(["html5"]);
+                    expect(_.pluck(providers, "name")).toEqual(["html5"]);
 
                     pref.prefer = " html19, html100  ";
                     pref.firstOnly = true;
                     pm.set("providers.html", pref);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
-                    expect(_.pluck(providers, 'name')).toEqual(["html1"]);
+                    expect(_.pluck(providers, "name")).toEqual(["html1"]);
                     
                     pref.preferredOnly = true;
                     pm.set("providers.html", pref);
@@ -312,12 +312,19 @@ define(function (require, exports, module) {
                     pm.set("providers.html", pref);
                     providers = CodeInspection._getProvidersForPath("c:/temp/another.html");
                     expect(providers).toNotBe(null);
-                    expect(_.pluck(providers, 'name')).toEqual(["html2", "html1"]);
+                    expect(_.pluck(providers, "name")).toEqual(["html2", "html1"]);
+                    
+                    delete pref.prefer;
+                    pref.preferredOnly = false;
+                    pref.firstOnly = true;
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("test/index.html");
+                    expect(_.pluck(providers, "name")).toEqual(["html1"]);
                     
                     pm.set("providers.html", undefined);
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
-                    expect(_.pluck(providers, 'name')).toEqual(["html1", "html2", "html3", "html4", "html5"]);
+                    expect(_.pluck(providers, "name")).toEqual(["html1", "html2", "html3", "html4", "html5"]);
                 });
             });
         });
