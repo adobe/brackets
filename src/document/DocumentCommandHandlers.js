@@ -705,7 +705,7 @@ define(function (require, exports, module) {
             saveAsDefaultPath,
             defaultName,
             result = new $.Deferred();
-        
+
         function _doSaveAfterSaveDialog(path) {
             var newFile;
             
@@ -803,7 +803,19 @@ define(function (require, exports, module) {
             FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
                 if (!err) {
                     if (selectedPath) {
-                        _doSaveAfterSaveDialog(selectedPath);
+                        //Get only the filename (without the final slash) and not the rest of the path 
+                        var filename = selectedPath.substr(selectedPath.lastIndexOf("/") + 1);
+                        //Validation for file name path only on a Mac
+                        if (new RegExp("[/?*|:]+").test(filename) && brackets.platform === "mac") {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                StringUtils.format(Strings.INVALID_FILENAME_TITLE, Strings.FILE),
+                                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, "/?*|:")
+                            );
+                            result.reject();
+                        } else {
+                            _doSaveAfterSaveDialog(selectedPath);
+                        }
                     } else {
                         result.reject(USER_CANCELED);
                     }
