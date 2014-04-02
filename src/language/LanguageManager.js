@@ -117,6 +117,7 @@ define(function (require, exports, module) {
     var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
+        DocumentManager       = require("document/DocumentManager"),
         _defaultLanguagesJSON = require("text!language/languages.json");
     
     
@@ -199,13 +200,25 @@ define(function (require, exports, module) {
     /**
      * Resolves a file path to a Language object.
      * @param {!string} path Path to the file to find a language for
+     * @param {?boolean} checkDocument If the document should be consulted for a language
+     *
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForPath(path) {
+    function getLanguageForPath(path, checkDocument) {
         var fileName = FileUtils.getBaseName(path).toLowerCase(),
             language = _fileNameToLanguageMap[fileName],
             extension,
-            parts;
+            parts,
+            doc;
+        
+        if (checkDocument === undefined) {
+            checkDocument = true;
+        }
+        
+        // if there's an open document, return language associated with it as it could be overriden.
+        if (checkDocument && (doc = DocumentManager.getOpenDocumentForPath(path))) {
+            return doc.getLanguage();
+        }
 
         // If no language was found for the file name, use the file extension instead
         if (!language) {

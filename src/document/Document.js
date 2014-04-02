@@ -684,7 +684,7 @@ define(function (require, exports, module) {
             return;
         }
         var oldLanguage = this.language;
-        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath, false);
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
         }

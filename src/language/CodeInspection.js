@@ -155,24 +155,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns a list of provider for given document, if available. The language to return
-     * providers for is identified as follows: first, the language of the
-     * document is checked, if it is not defined, then the decision is made depending on the file
-     * extension.
-     *
-     * @param {!Document} doc
-     * @return ?{Array.<{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} provider
-     */
-    function getProvidersForDocument(doc) {
-        var lang = (doc.getLanguage() && doc.getLanguage().getId());
-        if (lang) {
-            return _providers[lang];
-        } else {
-            return getProvidersForPath(doc.file.fullPath);
-        }
-    }
-    
-    /**
      * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
@@ -286,7 +268,7 @@ define(function (require, exports, module) {
         }
 
         var currentDoc = DocumentManager.getCurrentDocument(),
-            providerList = currentDoc && getProvidersForDocument(currentDoc);
+            providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath, true);
 
         if (providerList && providerList.length) {
             var numProblems = 0;

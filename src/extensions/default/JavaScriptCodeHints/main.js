@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager      = brackets.getModule("document/DocumentManager"),
         Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
+        LanguageManager      = brackets.getModule("language/LanguageManager"),
         Menus                = brackets.getModule("command/Menus"),
         AppInit              = brackets.getModule("utils/AppInit"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
@@ -300,7 +301,7 @@ define(function (require, exports, module) {
      * @return {boolean} - true if the document is a html file
      */
     function isHTMLFile(document) {
-        return document.getLanguage().getId() === "html";
+        return LanguageManager.getLanguageForPath(document.file.fullPath).getId() === "html";
     }
     
     function isInlineScript(editor) {
@@ -577,7 +578,7 @@ define(function (require, exports, module) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
-            if (editor && HintUtils.isSupportedLanguage(editor.document.getLanguage().getId())) {
+            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
