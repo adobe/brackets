@@ -75,21 +75,21 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
-                selectorName = "." +
-                    attributeValue.substring(
-                        startIndex === -1 ? 0 : startIndex + 1,
-                        endIndex === -1 ? attributeValue.length : endIndex
-                    );
-                
-                // If the insertion point is surrounded by space, selectorName is "."
-                // Check for that here
-                if (selectorName === ".") {
-                    selectorName = "";
-                }
-                
-                if (selectorName === "") {
+                if (attributeValue.trim()) {
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
+                    selectorName = "." +
+                        attributeValue.substring(
+                            startIndex === -1 ? 0 : startIndex + 1,
+                            endIndex === -1 ? attributeValue.length : endIndex
+                        );
+
+                    // If the insertion point is surrounded by space between two classnames, selectorName is "."
+                    if (selectorName === ".") {
+                        selectorName = "";
+                        reason = Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES;
+                    }
+                } else {
                     reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
                 }
             } else if (tagInfo.attr.name === "id") {

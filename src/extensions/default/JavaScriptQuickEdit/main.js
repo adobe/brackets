@@ -41,7 +41,7 @@ define(function (require, exports, module) {
      * Return the token string that is at the specified position.
      *
      * @param hostEditor {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
+     * @param {!{line:number, ch:number}} pos
      * @return {functionName: string, reason: string}
      */
     function _getFunctionName(hostEditor, pos) {
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
      * and shows (one/all of them) in an inline editor.
      *
      * @param {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
+     * @param {!{line:number, ch:number}} pos
      * @return {$.Promise} a promise that will be resolved with an InlineWidget
      *      or null if we're not going to provide anything.
      */
