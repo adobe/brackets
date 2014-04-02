@@ -1,0 +1,28 @@
+======string
+<div class="control-group">
+    <label class="control-label" for="{{key}}">{{title}}</label>
+    <div class="controls">
+        <input type="text" name="{{key}}" value="{{value}}">
+    </div>
+</div>
+======boolean
+<div class="control-group">
+    <label class="control-label" for="{{key}}">{{title}}</label>
+    <div class="controls">
+        <input type="checkbox" name="{{key}}" {{#value}}checked{{/value}}>
+    </div>
+</div>
+======number
+<div class="control-group">
+    <label class="control-label" for="{{key}}">{{title}}</label>
+    <div class="controls">
+        <input type="text" name="{{key}}" value="{{value}}">
+    </div>
+</div>
+======other
+<div class="control-group">
+    <label class="control-label" for="{{key}}">{{title}}</label>
+    <div class="controls">
+        Type not supported
+    </div>
+</div>

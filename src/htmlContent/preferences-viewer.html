@@ -1,0 +1,42 @@
+ <div id="preferences-viewer">
+    <div class="preferences-viewer-header">
+        <h1 class="dialog-title">{{Strings.SETTINGS}}</h1>
+    </div>
+    <div class="preferences-viewer-body row-fluid">
+        <div class="tabbable tabs-left span3">
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#main">Main</a>
+                </li>
+                {{#Extensions}}
+                <li>
+                    <a href="#settings-dialog-{{id}}">{{title}}</a>
+                </li>
+                {{/Extensions}}
+            </ul>
+        </div>
+        <form class="form-horizontal">
+            <div class="tab-content span9">
+                <div class="tab-pane active" id="main">
+                    {{#MainPrefs}}
+                        {{{getPrefTemplate}}}
+                    {{/MainPrefs}}
+                </div>
+                {{#Extensions}}
+                <div class="tab-pane" id="settings-dialog-{{id}}">
+                    {{#removed}}
+                        {{Strings.EXTENSION_WAS_REMOVED}}
+                    {{/removed}}
+                    {{#prefs}}
+                        {{{getPrefTemplate}}}
+                    {{/prefs}}
+                </div>
+                {{/Extensions}}
+            </div>
+        </form>
+    </div>
+    <div class="preferences-viewer-footer">
+        <button class="dialog-button btn" data-button-id="cancel">{{Strings.CANCEL}}</button>
+        <button class="dialog-button btn primary" data-button-id="ok">{{Strings.OK}}</button>
+    </div>
+</div>

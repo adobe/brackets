@@ -1527,3 +1527,43 @@ label input {
         transform: scale(1);
     }
 }
+
+#preferences-viewer {
+    overflow: hidden;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    .flex-box(column);
+    .preferences-viewer-header {
+        .flex-item(0, 0);
+        height: 50px;
+        border-bottom: 1px solid @bc-grey;
+    }
+    .preferences-viewer-footer {
+        .flex-item(0, 0);
+        height: 50px;
+        border-top: 1px solid @bc-grey;
+    }
+    .preferences-viewer-body {
+        .flex-item(1, 1);
+        min-height: 50px;
+        position: relative;
+        .tabs-left {
+            position: absolute;
+            left: 0;
+            height: 100%;
+            .nav-tabs {
+                text-align: right;
+                width: 100%;
+            }
+        }
+        .tab-content {
+            position: absolute;
+            right: 0;
+            height: 100%;
+            overflow-y: scroll;
+        }
+    }
+}

@@ -259,6 +259,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_SETTINGS"                        : "Settings\u2026",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
     "CMD_FILE_DELETE"                     : "Delete",
@@ -381,6 +382,10 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     
+    // Settings dialog
+    "SETTINGS"                             : "Settings",
+    "EXTENSION_WAS_REMOVED"                : "Extension was removed but might have left some settings behind.",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
     
