@@ -113,7 +113,19 @@ define(function (require, exports, module) {
                     var $this = $(this),
                         val = $this.val(),
                         valid = pref.validator(val);
+
+                    var msg = "Value invalid!";
+                    if (typeof valid !== "boolean") {
+                        msg = valid;
+                        valid = false;
+                    }
+
                     $this.toggleClass("validation-error", !valid);
+                    if (valid) {
+                        $this.removeAttr("title");
+                    } else {
+                        $this.attr("title", msg);
+                    }
                 });
             }
 
