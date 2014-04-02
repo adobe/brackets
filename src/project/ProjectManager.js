@@ -30,7 +30,8 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
+ *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
@@ -159,6 +160,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @see getProjectRoot()
+     * @type {Directory}
      */
     var _projectRoot = null;
 
@@ -674,15 +676,15 @@ define(function (require, exports, module) {
                 var events        = $._data(_projectTree[0], "events"),
                     eventsForType = events ? events[type] : null,
                     event         = eventsForType ? _.find(eventsForType, function (e) {
-                                        return e.namespace === namespace && e.selector === selector;
-                                    }) : null,
+                        return e.namespace === namespace && e.selector === selector;
+                    }) : null,
                     eventHandler  = event ? event.handler : null;
                 if (!eventHandler) {
                     console.error(type + "." + namespace + " " + selector + " handler not found!");
                 }
                 return eventHandler;
             };
-            var createCustomHandler = function(originalHandler) {
+            var createCustomHandler = function (originalHandler) {
                 return function (event) {
                     var $node = $(event.target).parent("li"),
                         methodName;
@@ -1102,8 +1104,9 @@ define(function (require, exports, module) {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
+            
+            // About to close current project (if any)
             if (_projectRoot) {
-                // close current project
                 $(exports).triggerHandler("beforeProjectClose", _projectRoot);
             }
             
@@ -1111,6 +1114,11 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
+                // Done closing old project (if any)
+                if (_projectRoot) {
+                    $(exports).triggerHandler("projectClose", _projectRoot);
+                }
+                
                 startLoad.resolve();
             });
         }
