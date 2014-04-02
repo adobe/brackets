@@ -93,6 +93,46 @@ define(function (require, exports, module) {
         })), "title");
     }
 
+    function attachEvents($view) {
+        // activate tabs
+        $view.find(".nav-tabs a").on("click", function (e) {
+            e.preventDefault();
+            $(this).tab("show");
+        });
+
+        // set values and attach validators
+        $view.find("*[name]").each(function () {
+            var $this = $(this),
+                key = $this.attr("name"),
+                value = PreferencesManager.get(key);
+
+            var pref = PreferencesManager.getPreference(key);
+            $this.off("change.validator").removeClass("validation-error");
+            if (pref.validator) {
+                $this.on("change.validator", function () {
+                    var $this = $(this),
+                        val = $this.val(),
+                        valid = pref.validator(val);
+                    $this.toggleClass("validation-error", !valid);
+                });
+            }
+
+            if ($this.attr("type") === "checkbox") {
+                $this.prop("checked", value);
+            } else {
+                $this.val(value);
+            }
+        });
+
+        $view.find("button[data-button-id='save']").on("click", function (id) {
+            alert("save!");
+        });
+
+        $view.find("button[data-button-id='cancel']").on("click", function (id) {
+            alert("cancel!");
+        });
+    }
+
     function renderView() {
         var parts = SettingsDialogTemplateParts.split("======").reduce(function (obj, part) {
             if (part.trim().length === 0) {
@@ -116,42 +156,14 @@ define(function (require, exports, module) {
                 if (!template) { template = parts.other; }
                 return Mustache.render(template, {
                     key: this.fullKey,
-                    title: this.key,
-                    value: PreferencesManager.get(this.fullKey)
+                    title: this.key
                 });
             }
         };
 
         var compiledTemplate = Mustache.render(SettingsDialogTemplate, templateVars);
         var $view = $(compiledTemplate);
-
-        // activate tabs
-        $view.find(".nav-tabs a").on("click", function (e) {
-            e.preventDefault();
-            $(this).tab("show");
-        });
-
-        /*
-        dialog.getElement().find("*[name]").each(function () {
-            var $this = $(this),
-                key = $this.attr("name"),
-                value = PreferencesManager.get(key);
-            if ($this.attr("type") === "checkbox") {
-                $this.prop("checked", value);
-            } else {
-                $this.val(value);
-            }
-        });
-        */
-
-        /*
-        dialog.done(function (id) {
-            if (id === Dialogs.DIALOG_BTN_OK) {
-                console.error("TODO: restart brackets to apply changes?");
-            }
-        });
-        */
-
+        attachEvents($view);
         return $view;
     }
 
