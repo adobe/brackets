@@ -300,6 +300,11 @@ define(function (require, exports, module) {
                     providers = CodeInspection._getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, 'name')).toEqual(["html1"]);
+                    
+                    pref.preferredOnly = true;
+                    pm.set("providers.html", pref);
+                    providers = CodeInspection._getProvidersForPath("test.html");
+                    expect(providers).toEqual([]);
 
                     pref.prefer = "html2,    html1";
                     pref.preferredOnly = true;
