@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var _                   = require("thirdparty/lodash"),
+        ProjectManager      = require("project/ProjectManager"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Dialogs             = require("widgets/Dialogs"),
         DropdownButton      = require("widgets/DropdownButton").DropdownButton,
@@ -56,44 +57,6 @@ define(function (require, exports, module) {
      */
     function setLastFilter(filter) {
         PreferencesManager.setViewState("search.exclusions", filter);
-    }
-    
-    
-    /**
-     * Opens a dialog box to edit the given filter. When editing is finished, the value of getLastFilter() changes to
-     * reflect the edits. If the dialog was canceled, the preference is left unchanged.
-     * @param {!Array.<string>} filter
-     * @return {!$.Promise} Dialog box promise
-     */
-    function editFilter(filter) {
-        var lastFocus = window.document.activeElement;
-        
-        var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url) +
-            "<textarea class='exclusions-editor'></textarea>";
-        var buttons = [
-            { className : Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL, text: Strings.CANCEL },
-            { className : Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK, text: Strings.OK }
-        ];
-        var dialog = Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_INFO, Strings.FILE_FILTER_DIALOG, html, buttons);
-        
-        dialog.getElement().find(".exclusions-editor").val(filter.join("\n")).focus();
-        
-        dialog.done(function (buttonId) {
-            if (buttonId === Dialogs.DIALOG_BTN_OK) {
-                var newFilter = dialog.getElement().find(".exclusions-editor").val().split("\n");
-                
-                // Remove blank lines
-                newFilter = newFilter.filter(function (glob) {
-                    return glob.trim().length;
-                });
-                
-                // Update saved filter preference
-                setLastFilter(newFilter);
-            }
-            lastFocus.focus();  // restore focus to old pos
-        });
-        
-        return dialog.getPromise();
     }
     
     
@@ -154,6 +117,109 @@ define(function (require, exports, module) {
     
     
     /**
+     * Returns false if the given path matches any of the exclusion globs in the given filter. Returns true
+     * if the path does not match any of the globs. If filtering many paths at once, use filterFileList()
+     * for much better performance.
+     * 
+     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
+     * @param {!string} fullPath
+     * @return {boolean}
+     */
+    function filterPath(compiledFilter, fullPath) {
+        if (!compiledFilter) {
+            return true;
+        }
+        
+        var re = new RegExp(compiledFilter);
+        return !fullPath.match(re);
+    }
+    
+    /**
+     * Returns a copy of 'files' filtered to just those that don't match any of the exclusion globs in the filter.
+     * 
+     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
+     * @param {!Array.<File>} files
+     * @return {!Array.<File>}
+     */
+    function filterFileList(compiledFilter, files) {
+        if (!compiledFilter) {
+            return files;
+        }
+        
+        var re = new RegExp(compiledFilter);
+        return files.filter(function (f) {
+            return !f.fullPath.match(re);
+        });
+    }
+    
+    
+    /**
+     * Opens a dialog box to edit the given filter. When editing is finished, the value of getLastFilter() changes to
+     * reflect the edits. If the dialog was canceled, the preference is left unchanged.
+     * @param {!Array.<string>} filter
+     * @param {?{label:string, promise:$.Promise}} context Info on which files the filter will be applied to. If specified,
+     *          editing UI will indicate how many files are excluded by the filter. Label should be of the form "in ..."
+     * @return {!$.Promise} Dialog box promise
+     */
+    function editFilter(filter, context) {
+        var lastFocus = window.document.activeElement;
+        
+        var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url) +
+            "<textarea class='exclusions-editor'></textarea><div class='exclusions-filecount'>" + Strings.FILTER_COUNTING_FILES + "</div>";
+        var buttons = [
+            { className : Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL, text: Strings.CANCEL },
+            { className : Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK, text: Strings.OK }
+        ];
+        var dialog = Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_INFO, Strings.FILE_FILTER_DIALOG, html, buttons);
+        
+        var $editField = dialog.getElement().find(".exclusions-editor");
+        $editField.val(filter.join("\n")).focus();
+        
+        function getValue() {
+            var newFilter = $editField.val().split("\n");
+
+            // Remove blank lines
+            return newFilter.filter(function (glob) {
+                return glob.trim().length;
+            });
+        }
+        
+        dialog.done(function (buttonId) {
+            if (buttonId === Dialogs.DIALOG_BTN_OK) {
+                // Update saved filter preference
+                setLastFilter(getValue());
+            }
+            lastFocus.focus();  // restore focus to old pos
+        });
+        
+        
+        // Code to update the file count readout at bottom of dialog (if context provided)
+        var $fileCount = dialog.getElement().find(".exclusions-filecount");
+        
+        function updateFileCount() {
+            context.promise.done(function (files) {
+                var filter = getValue();
+                if (filter.length) {
+                    var filtered = filterFileList(compile(getValue()), files);
+                    $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT, filtered.length, files.length, context.label));
+                } else {
+                    $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, files.length, context.label));
+                }
+            });
+        }
+        
+        if (context) {
+            $editField.on("input", _.debounce(updateFileCount, 400));
+            updateFileCount();
+        } else {
+            $fileCount.hide();
+        }
+        
+        return dialog.getPromise();
+    }
+    
+    
+    /**
      * Marks the filter picker's currently selected item as most-recently used, and returns the corresponding
      * 'compiled' filter object ready for use with filterPath().
      * @param {!jQueryObject} picker UI returned from createFilterPicker()
@@ -170,9 +236,10 @@ define(function (require, exports, module) {
      * client should call commitDropdown() when the UI containing the filter picker is confirmed (which updates the MRU
      * order) and then use the returned filter object as needed.
      * 
+     * @param {?{label:string, promise:$.Promise}} context Info on files filter will apply to - see editFilter()
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
-    function createFilterPicker() {
+    function createFilterPicker(contextPromise) {
         var $picker = $("<div class='filter-picker'><span class='filter-label'></span><button class='btn no-focus'></button></div>"),
             $button = $picker.find("button");
         
@@ -208,7 +275,7 @@ define(function (require, exports, module) {
         updatePicker();
         
         $button.click(function () {
-            editFilter(getLastFilter())
+            editFilter(getLastFilter(), contextPromise)
                 .done(function (buttonId) {
                     if (buttonId === Dialogs.DIALOG_BTN_OK) {
                         updatePicker();
@@ -217,43 +284,6 @@ define(function (require, exports, module) {
         });
         
         return $picker;
-    }
-    
-    
-    /**
-     * Returns false if the given path matches any of the exclusion globs in the given filter. Returns true
-     * if the path does not match any of the globs. If filtering many paths at once, use filterFileList()
-     * for much better performance.
-     * 
-     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
-     * @param {!string} fullPath
-     * @return {boolean}
-     */
-    function filterPath(compiledFilter, fullPath) {
-        if (!compiledFilter) {
-            return true;
-        }
-        
-        var re = new RegExp(compiledFilter);
-        return !fullPath.match(re);
-    }
-    
-    /**
-     * Returns a copy of 'files' filtered to just those that don't match any of the exclusion globs in the filter.
-     * 
-     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
-     * @param {!Array.<File>} files
-     * @return {!Array.<File>}
-     */
-    function filterFileList(compiledFilter, files) {
-        if (!compiledFilter) {
-            return files;
-        }
-        
-        var re = new RegExp(compiledFilter);
-        return files.filter(function (f) {
-            return !f.fullPath.match(re);
-        });
     }
     
     

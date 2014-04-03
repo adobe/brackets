@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -175,9 +176,12 @@ define({
     "NO_FILE_FILTER"                    : "Exclude files\u2026",
     "EDIT_FILE_FILTER"                  : "Edit\u2026",
     "FILE_FILTER_DIALOG"                : "Edit Filter",
-    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+    "FILTER_COUNTING_FILES"             : "Counting files\u2026",
+    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit provider found for current cursor position",
