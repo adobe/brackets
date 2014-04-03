@@ -97,7 +97,7 @@ define(function (require, exports, module) {
     * @param {!Editor} editor
     * @param {!{line:number, ch:number}} pos
     * @param {boolean=} trimWhitespace Ignore whitepace surrounding css value; optional
-    * @return {!start: {line:number, ch:number}, end: {line:number, ch:number}}
+    * @return {{!start: {line:number, ch:number}, end: {line:number, ch:number}}}
     */
     function _getRangeForCSSValueAt(editor, pos, trimWhitespace) {
         // TODO: support multi-line values
@@ -149,7 +149,6 @@ define(function (require, exports, module) {
     */
     function _constructModel(e) {
         var editor      = e.target,
-            doc         = editor.document,
             selection   = editor.getSelection(),
             info,
             selector,

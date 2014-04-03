@@ -52,7 +52,7 @@ define(function (require, exports, module) {
 
           @throws {TypeError} if input is falsy or not object
           @param {!Object} obj Object literal with key/value pairs
-          @param {boolean=} silent set to false to avoid triggering "change" event
+          @param {boolean=} silent set true to avoid triggering "change" event
         */
         var _set = function (obj, silent) {
             var hasChanged = false,
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
                 }
             }
 
-            if (silent !== true && hasChanged) {
+            if (!silent && hasChanged) {
                 $(this).triggerHandler("change", [_props]);
             }
         };
