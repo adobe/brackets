@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var PreferencesBase = require("./PreferencesBase"),
+        ProjectManager  = require("project/ProjectManager"),
         Async           = require("utils/Async"),
     
         // The SETTINGS_FILENAME is used with a preceding "." within user projects
@@ -103,6 +104,7 @@ define(function (require, exports, module) {
                 });
         });
 
+    
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesSystem();
@@ -111,6 +113,18 @@ define(function (require, exports, module) {
     var stateProjectLayer = new PreferencesBase.ProjectLayer();
     smUserScope.addLayer(stateProjectLayer);
     var smUserScopeLoading = stateManager.addScope("user", smUserScope);
+    
+    
+    // Listen for times where we might be unwatching a root that contains one of the user-level prefs files,
+    // and force a re-read of the file in order to ensure we can write to it later (see #7300).
+    $(ProjectManager).on("projectClose", function (event, rootDir) {
+        var prefsDir = brackets.app.getApplicationSupportDirectory() + "/";
+        if (prefsDir.indexOf(rootDir.fullPath) === 0) {
+            manager.fileChanged(userPrefFile);
+            stateManager.fileChanged(userStateFile);
+        }
+    });
+    
     
     // Semi-Public API. Use this at your own risk. The public API is in PreferencesManager.
     exports.manager             = manager;
