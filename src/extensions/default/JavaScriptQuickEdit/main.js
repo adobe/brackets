@@ -188,7 +188,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!{line:number, ch:number}} pos
      * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     *      or null if we're not ready to provide anything.
      */
     function javaScriptFunctionProvider(hostEditor, pos) {
         // Only provide a JavaScript editor when cursor is in JavaScript content
