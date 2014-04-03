@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         /** @type {Interval} result of setInterval() */
         _syncInterval,
 
-        /** @type {number} number of attepts to reconnect after an error */
+        /** @type {number} number of attempts to reconnect after an error */
         _retryCount = 5,
 
         /** @type {Object} misc storage; used in reconnect scenario */
