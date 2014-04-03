@@ -156,13 +156,13 @@ define(function (require, exports, module) {
     /**
       @private
       Handle failed promises for eval() calls to the inspected page.
-      If the error is likely because a method was missing, attempt to reconnect.
-      It might happen because of a page refresh
+      Promises can fail if the user manually refreshes the page or navigates
+      because the injected editor files will be lost.
 
       @param {Object=} result promise result
     */
     function _whenRemoteCallFailed(result) {
-        if (result && result.description && /Cannot call method/.test(result.description)) {
+        if (result) {
             return _reconnect();
         } else {
             _cache.model = undefined;
