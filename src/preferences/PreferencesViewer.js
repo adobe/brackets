@@ -57,14 +57,13 @@ define(function (require, exports, module) {
                 return key.indexOf(ext.id + ".") === 0;
             });
             // assign preference to appropriate extension or global
+            pref.fullKey = key;
             if (!ext) {
                 pref.key = key;
-                pref.fullKey = key;
                 mainPrefs.push(pref);
             } else {
                 ext.prefs = ext.prefs || [];
                 pref.key = key.substring(ext.id.length + 1);
-                pref.fullKey = key;
                 ext.prefs.push(pref);
             }
         });
@@ -168,7 +167,8 @@ define(function (require, exports, module) {
                 if (!template) { template = parts.other; }
                 return Mustache.render(template, {
                     key: this.fullKey,
-                    title: this.key
+                    name: this.name || this.key,
+                    description: this.description || ""
                 });
             }
         };

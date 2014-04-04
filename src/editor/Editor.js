@@ -126,7 +126,10 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
-    PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
+    PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false, {
+        name: "Use TAB character",
+        description: "Decides whether \\t character or spaces are used on pressing Tab key"
+    });
     PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
     
     var editorOptions = Object.keys(cmOptions);
