@@ -1,4 +1,4 @@
-// css-shapes-editor 0.5.1
+// css-shapes-editor 0.5.2
 //
 // Editor for CSS Shapes in the browser.
 //
@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// build: 2014-04-03
+// build: 2014-04-04
 
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
@@ -1265,6 +1265,10 @@ define('Editor',['eve', 'CSSUtils', 'snap'], function(eve, CSSUtils, Snap){
             // make sure editor is the top-most thing on the page
             // see http://softwareas.com/whats-the-maximum-z-index
             this.holder.style.zIndex = 2147483647;
+
+            // prevents text selection when doing dbl click
+            this.holder.style.webkitUserSelect = "none";
+            this.holder.style.userSelect = "none";
 
             this.holder.setAttribute('data-role', 'shape-editor');
 
