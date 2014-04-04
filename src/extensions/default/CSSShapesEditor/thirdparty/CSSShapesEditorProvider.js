@@ -55,7 +55,7 @@
         throw new Error("Missing CSSShapesEditor");
     }
 
-    var _onKeypress;
+    var _onKeydown;
 
     function Provider() {}
 
@@ -76,12 +76,30 @@
             options.defaultRefBox = "margin-box";
         }
 
-        // declared here to intentionally encapsulate scope
-        // exposed outside, but still private to the module, for use by removeEventHandler
-        _onKeypress = function (e) {
-            // T key toggles rotate/scale editor just for polygon editor
-            if (e.keyCode === 116 && scope.inst.type === "polygon") {
+        /*
+          @private
+          Handle keydown events when a polygon editor is active.
+          Declared globally within module so it can be removed by Provider.remove()
+          Defined here so it can access scope.inst
+
+          Ctrl+T toggles the free transform editor (scale/rotate)
+          Esc key turns off free transform editor; quietly ignored if editor was never turned on.
+
+          @param {Event} e keydown event
+        */
+        _onKeydown = function (e) {
+            // only handle cases for polygon editors
+            if (scope.inst.type !== "polygon") {
+                return;
+            }
+            // Ctrl+T toggles rotate/scale editor
+            if (e.ctrlKey && e.keyIdentifier === "U+0054") {
                 scope.inst.toggleFreeTransform();
+            }
+
+            // escape key turns off rotate/scale editor
+            if (e.keyCode === 27) {
+                scope.inst.turnOffFreeTransform();
             }
         };
 
@@ -92,7 +110,7 @@
             }
         });
 
-        document.addEventListener("keypress", _onKeypress);
+        document.addEventListener("keydown", _onKeydown);
     };
 
     Provider.prototype.update = function (model) {
@@ -119,7 +137,7 @@
         this.inst.remove();
         this.inst = null;
         this.callback = undefined;
-        document.removeEventListener("keypress", _onKeypress);
+        document.removeEventListener("keydown", _onKeydown);
     };
 
     var properties = ["shape-inside", "-webkit-shape-inside", "shape-outside", "-webkit-shape-outside", "clip-path", "-webkit-clip-path"];
