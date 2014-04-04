@@ -157,14 +157,14 @@ define(function (require, exports, module) {
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }
-        if (brackets.config.support_url) {
-            menu.addMenuItem(Commands.HELP_SUPPORT);
+        if (brackets.config.forum_url) {
+            menu.addMenuItem(Commands.HELP_FORUM);
         }
         if (brackets.config.release_notes_url) {
             menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
         }
-        if (brackets.config.get_involved_url) {
-            menu.addMenuItem(Commands.HELP_GET_INVOLVED);
+        if (brackets.config.report_issue_url) {
+            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
         }
 
         menu.addMenuDivider();

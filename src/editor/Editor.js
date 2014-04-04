@@ -109,7 +109,7 @@ define(function (require, exports, module) {
     cmOptions[SMART_INDENT]       = "smartIndent";
     cmOptions[SPACE_UNITS]        = "indentUnit";
     cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
-    cmOptions[TAB_SIZE]           = "indentUnit";
+    cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
@@ -2018,7 +2018,6 @@ define(function (require, exports, module) {
         
         if (oldValue !== newValue) {
             this._currentOptions[prefName] = newValue;
-            var useTabChar = this._currentOptions[USE_TAB_CHAR];
             
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -2030,9 +2029,6 @@ define(function (require, exports, module) {
                 this._updateStyleActiveLine();
             } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
                 // Do not apply this option to inline editors
-                return;
-            } else if ((useTabChar && prefName === SPACE_UNITS) || (!useTabChar && prefName === TAB_SIZE)) {
-                // This change conflicts with the useTabChar setting, so do not change the CodeMirror option
                 return;
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
