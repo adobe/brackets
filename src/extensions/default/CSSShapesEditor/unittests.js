@@ -92,12 +92,12 @@ define(function (require, exports, module) {
                 expect(scope.onChange).toHaveBeenCalled();
             });
 
-            it("should not thow change event when updated with duplicate", function () {
+            it("should not throw change event when updated with duplicate", function () {
                 model.set({"key": "value"});
                 expect(scope.onChange).not.toHaveBeenCalled();
             });
 
-            it("should not thow change event on setter if asked to be silent", function () {
+            it("should not throw change event on setter if asked to be silent", function () {
                 var silent = true;
                 model.set({"other": "value"}, silent);
 

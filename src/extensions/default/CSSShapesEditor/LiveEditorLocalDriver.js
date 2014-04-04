@@ -193,7 +193,6 @@ define(function (require, exports, module) {
       Attempt to get the model from the page in LivePreview.
     */
     function _onSyncTick() {
-        console.log("SYNC");
         var expr = _namespace + ".getModel()";
         _call(expr).then(_whenGetRemoteModel).fail(_whenRemoteCallFailed);
     }
@@ -233,7 +232,6 @@ define(function (require, exports, module) {
             }
         }
 
-        console.log("SETUP", attr.selector, model.get("value"));
         var expr = _namespace + ".setup(" + JSON.stringify(attr) + ")";
 
         return _call(expr)
@@ -271,12 +269,9 @@ define(function (require, exports, module) {
 
         // Asking to update a different element / property? Setup a new editor
         if (attr.selector !== _model.selector || attr.property !== _model.property) {
-            console.log("Updating for a different editor");
-
             return _remove().then(function () { return _setup(model); });
         }
 
-        console.log("UPDATE", attr.selector, JSON.stringify(attr));
         var expr = _namespace + ".update(" + JSON.stringify(attr) + ")";
         return _call(expr).fail(_whenRemoteCallFailed);
     }
@@ -303,7 +298,6 @@ define(function (require, exports, module) {
         }
 
         if (_retryCount === 0) {
-            console.log("Gave up reconnecting");
             return deferred.reject();
         }
 

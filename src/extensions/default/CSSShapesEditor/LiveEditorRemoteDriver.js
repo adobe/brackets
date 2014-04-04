@@ -38,7 +38,7 @@
           Will be updated by _setup() and _onValueChange()
           Will be synced to Brackets via _getModel() to update text in code editor.
 
-          @example {selector: 'body', property: 'shape-inside', value: 'circle()' }
+          @example {selector: "body", property: "shape-inside", value: "circle()" }
         */
         _model = null,
         /** @type {RegEx} regular expression for shape values with no coordinates **/
@@ -72,9 +72,9 @@
         //
         // @example:
         // circle(50%) === circle(  50%  )
-        test = document.createElement('div');
-        test.style.position = 'absolute';
-        test.style.display = 'none';
+        test = document.createElement("div");
+        test.style.position = "absolute";
+        test.style.display = "none";
         test.style[property] = value;
         document.body.appendChild(test);
 
@@ -115,7 +115,6 @@
         }
 
         if (!_providers[model.property]) {
-            console.log("No editor provided for property: " + model.property);
             return;
         }
 
@@ -124,20 +123,17 @@
         _target = document.querySelector(model.selector);
 
         if (!_target) {
-            console.log("No element matching selector: " + model.selector);
             return;
         }
 
         // Naively checks if the given css value exists on the element matched by the selector
         //
-        // Migitates problem scenarios:
+        // Mitigates problem scenarios:
         // - selector is found in media query which does not match current page view
         // - multiple duplicate selectors in the origin stylesheet, but not editing the one which applies last on the page
         if (!_hasPropertyValue(_target, model.property, model.value)) {
-            // @see getMatchedStylesForNode
-            console.log('Style mismatch!');
-            console.log('expected: ' + model.value);
-            console.log('actual: ' + window.getComputedStyle(_target, null)[model.property]);
+            // TODO: try handling this with Inspector.getMatchedStylesForNode() in LiveEditorLocalDriver
+            console.log("Style mismatch. Expected:\n" + model.value + "\n\nFound:\n"+ window.getComputedStyle(_target, null)[model.property]);
             _remove();
             return;
         }
@@ -163,7 +159,7 @@
       @param {!string} value
     */
     function _onValueChange(value) {
-        if (!_target || !value || typeof value !== 'string') {
+        if (!_target || !value || typeof value !== "string") {
             return;
         }
 
@@ -191,7 +187,7 @@
             _activeEditor = undefined;
         }
 
-        _target.style[_model.property] = '';
+        _target.style[_model.property] = "";
         _model = null;
     }
 
