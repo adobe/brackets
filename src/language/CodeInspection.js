@@ -233,7 +233,6 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
-                            var errorMessage = (err.message) ? err.message : err;
                             var errError = {
                                 pos: {line: -1, col: 0},
                                 message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -248,6 +247,10 @@ define(function (require, exports, module) {
                 }, false);
                 
                 masterPromise.then(function () {
+                    // sync async may have pushed results in different order, restore the original order
+                    results.sort(function (a, b) {
+                        return providerList.indexOf(a.provider) - providerList.indexOf(b.provider);
+                    });
                     PerfUtils.addMeasurement(perfTimerInspector);
                     response.resolve(results);
                 });
@@ -334,12 +337,6 @@ define(function (require, exports, module) {
                 if (this !== _currentPromise) {
                     return;
                 }
-                
-                // sync async may have pushed results in different order, restore the original order
-                results.sort(function (a, b) {
-                    // actual provider list may have changed in the process, but we don't care
-                    return _.indexOf(providerList, a.provider) - _.indexOf(providerList, b.provider);
-                });
                 
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
@@ -573,7 +570,7 @@ define(function (require, exports, module) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 1000, Strings.PREF_DESC_ASYNC_TIMEOUT);
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -636,13 +633,13 @@ define(function (require, exports, module) {
     });
 
     // Testing
-    exports._unregisterAll      = _unregisterAll;
-    exports._PREF_ASYNC_TIMEOUT  = PREF_ASYNC_TIMEOUT;
+    exports._unregisterAll          = _unregisterAll;
+    exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
 
     // Public API
     exports.register       = register;
     exports.Type           = Type;
     exports.toggleEnabled  = toggleEnabled;
     exports.inspectFile    = inspectFile;
-    exports.requestRun    = run;
+    exports.requestRun     = run;
 });

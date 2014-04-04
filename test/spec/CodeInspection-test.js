@@ -122,6 +122,11 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testFolder);
             });
         });
+        
+        beforeEach(function () {
+            // this is to make the tests run faster
+            prefs.set(CodeInspection._PREF_ASYNC_TIMEOUT, 500);
+        });
 
         afterEach(function () {
             testWindow.closeAllFiles();
@@ -360,9 +365,10 @@ define(function (require, exports, module) {
             });
             
             it("should return results for 3 providers when 2 completes and 1 times out", function () {
-                var asyncProvider1 = createAsyncCodeInspector("javascript async linter 1", failLintResult(), 200, true),
-                    asyncProvider2 = createAsyncCodeInspector("javascript async linter 2", failLintResult(), 1500, false),
-                    syncProvider3 = createCodeInspector("javascript sync linter 3", failLintResult()),
+                var timeout         = prefs.get(CodeInspection._PREF_ASYNC_TIMEOUT),
+                    asyncProvider1  = createAsyncCodeInspector("javascript async linter 1", failLintResult(), 200, true),
+                    asyncProvider2  = createAsyncCodeInspector("javascript async linter 2", failLintResult(), timeout + 10, false),
+                    syncProvider3   = createCodeInspector("javascript sync linter 3", failLintResult()),
                     result;
                 CodeInspection.register("javascript", asyncProvider1);
                 CodeInspection.register("javascript", asyncProvider2);
@@ -374,7 +380,7 @@ define(function (require, exports, module) {
                         result = r;
                     });
                     
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting", timeout + 10);
                 });
                 
                 runs(function () {
@@ -447,11 +453,11 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     CodeInspection.toggleEnabled(true);
+                    CommandManager.execute(Commands.FILE_CLOSE);
                 });
+                
                 // Close the file which was started to lint
                 runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
-
                     // let the linter finish
                     deferred1.resolve(failLintResult());
                     expect($("#problems-panel").is(":visible")).toBe(false);
@@ -766,7 +772,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should report an async linter which has timeout", function () {
+            it("should report an async linter which has timed out", function () {
                 var codeInspectorToTimeout = createAsyncCodeInspector("SlowAsyncLinter", {
                     errors: [
                         {
@@ -780,13 +786,13 @@ define(function (require, exports, module) {
                             type: CodeInspection.Type.WARNING
                         }
                     ]
-                }, 4000, false);
+                }, prefs.get(CodeInspection._PREF_ASYNC_TIMEOUT) + 10, false);
                 
                 CodeInspection.register("javascript", codeInspectorToTimeout);
                 
                 waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
-                waits(prefs.get(CodeInspection._PREF_ASYNC_TIMEOUT) + 10);
+                waits(prefs.get(CodeInspection._PREF_ASYNC_TIMEOUT) + 20);
                 
                 runs(function () {
                     var $problemsPanel = $("#problems-panel");
@@ -804,7 +810,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should report a buggy async linter", function () {
+            it("should report an async linter which throws an exception", function () {
                 var errorMessage = "I'm full of bugs on purpose",
                     providerName = "Buggy Async Linter",
                     buggyAsyncProvider = {
@@ -834,7 +840,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should report a buggy sync linter", function () {
+            it("should report a sync linter which throws an exception", function () {
                 var errorMessage = "I'm synchronous, but still full of bugs",
                     providerName = "Buggy Sync Linter",
                     buggySyncProvider = {
