@@ -328,19 +328,8 @@ define(function (require, exports, module) {
             });
 
             it("should not match commented-out shape-inside property", function () {
-                constructModelAtPos(2, 27);
+                constructModelAtPos(2, 20);
                 expect(main.model.get("property")).not.toBe("shape-inside");
-            });
-
-            it("should not match non-functional value", function () {
-                constructModelAtPos(3, 27);
-                expect(main.model.get("value")).not.toBe("circle");
-                expect(main.model.get("value")).toBe(null);
-            });
-
-            it("should not match polygon-like value", function () {
-                constructModelAtPos(4, 27);
-                expect(main.model.get("value")).not.toBe("fake-polygon()");
             });
         });
 
