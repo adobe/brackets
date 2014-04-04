@@ -314,12 +314,14 @@ define(function (require, exports, module) {
                 calledFns = {};
             });
             
-            function makeFn(id, resolveNow) {
+            function makeFn(id, resolveNow, rejectNow) {
                 var result = new $.Deferred();
                 return {
                     fn: function () {
                         calledFns[id] = true;
-                        if (resolveNow) {
+                        if (rejectNow) {
+                            result.reject();
+                        } else if (resolveNow) {
                             result.resolve();
                         }
                         return result.promise();
@@ -436,6 +438,63 @@ define(function (require, exports, module) {
                 queue.add(fnInfo2.fn);
                 expect(calledFns.two).toBe(true);
     
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
+            });
+            
+            it("should execute the second function if the first function is rejected", function () {
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two");
+                
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
+                
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBeUndefined();
+                
+                fnInfo1.deferred.reject();
+                expect(calledFns.two).toBe(true);
+                
+                fnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
+            });
+            
+            it("should execute the third function after first and second functions are rejected", function () {
+                var fnInfo1 = makeFn("one"),
+                    fnInfo2 = makeFn("two"),
+                    fnInfo3 = makeFn("three");
+                
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
+                
+                queue.add(fnInfo2.fn);
+                queue.add(fnInfo3.fn);
+                expect(calledFns.two).toBeUndefined();
+                expect(calledFns.three).toBeUndefined();
+                
+                fnInfo1.deferred.reject();
+                expect(calledFns.two).toBe(true);
+                
+                fnInfo2.deferred.reject();
+                expect(calledFns.three).toBe(true);
+                
+                fnInfo3.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
+            });
+            
+            it("should execute the second function after the already-rejected first function is added to the queue", function () {
+                var fnInfo1 = makeFn("one", false, true),
+                    fnInfo2 = makeFn("two");
+                
+                queue.add(fnInfo1.fn);
+                expect(calledFns.one).toBe(true);
+                
+                queue.add(fnInfo2.fn);
+                expect(calledFns.two).toBe(true);
+                
                 fnInfo2.deferred.resolve();
                 expect(queue._queue.length).toBe(0);
                 expect(queue._curPromise).toBe(null);
