@@ -349,7 +349,7 @@ define({
     "CMD_SUPPORT"                         : "Support for Using {APP_NAME}",
     "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_GET_INVOLVED"                    : "Hacking on Brackets",
+    "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
