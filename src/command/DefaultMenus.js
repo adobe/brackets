@@ -160,6 +160,9 @@ define(function (require, exports, module) {
         if (brackets.config.support_url) {
             menu.addMenuItem(Commands.HELP_SUPPORT);
         }
+        if (brackets.config.suggest_feature_url) {
+            menu.addMenuItem(Commands.HELP_SUGGEST);
+        }
         if (brackets.config.release_notes_url) {
             menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
         }

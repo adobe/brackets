@@ -347,6 +347,7 @@ define({
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_SUPPORT"                         : "Support for Using {APP_NAME}",
+    "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Hacking on Brackets",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
