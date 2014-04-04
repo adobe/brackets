@@ -10,7 +10,7 @@
                 </li>
                 {{#Extensions}}
                 <li>
-                    <a href="#settings-dialog-{{id}}">{{title}}</a>
+                    <a href="#settings-dialog-{{id}}">{{name}}</a>
                 </li>
                 {{/Extensions}}
             </ul>
@@ -18,18 +18,34 @@
         <form class="form-horizontal">
             <div class="tab-content span9">
                 <div class="tab-pane active" id="main">
-                    {{#MainPrefs}}
+                    {{#MainPrefs.groups}}
+                        <fieldset>
+                            <label>{{name}}</label>
+                            {{#preferences}}
+                                {{{getPrefTemplate}}}
+                            {{/preferences}}
+                        </fieldset>
+                    {{/MainPrefs.groups}}
+                    {{#MainPrefs.preferences}}
                         {{{getPrefTemplate}}}
-                    {{/MainPrefs}}
+                    {{/MainPrefs.preferences}}
                 </div>
                 {{#Extensions}}
                 <div class="tab-pane" id="settings-dialog-{{id}}">
                     {{#removed}}
                         {{Strings.EXTENSION_WAS_REMOVED}}
                     {{/removed}}
-                    {{#prefs}}
+                    {{#prefsObj.groups}}
+                        <fieldset>
+                            <label>{{name}}</label>
+                            {{#preferences}}
+                                {{{getPrefTemplate}}}
+                            {{/preferences}}
+                        </fieldset>
+                    {{/prefsObj.groups}}
+                    {{#prefsObj.preferences}}
                         {{{getPrefTemplate}}}
-                    {{/prefs}}
+                    {{/prefsObj.preferences}}
                 </div>
                 {{/Extensions}}
             </div>

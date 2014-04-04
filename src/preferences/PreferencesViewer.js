@@ -47,8 +47,19 @@ define(function (require, exports, module) {
     function initVars() {
         // get all extensions that called getExtensionPrefs
         extensions = PreferencesManager.getExtensions();
+
         // setup an array for brackets preferences
-        mainPrefs = [];
+        mainPrefs = {preferences: [], groups: {}};
+        function pushToPrefObj(what, which) {
+            var group = what.group;
+            if (group) {
+                if (!which.groups[group]) { which.groups[group] = []; }
+                which.groups[group].push(what);
+            } else {
+                which.preferences.push(what);
+            }
+        }
+
         // iterate all defined preferences
         PreferencesManager.getKnownPreferences().forEach(function (key) {
             var pref = PreferencesManager.getPreference(key);
@@ -60,36 +71,48 @@ define(function (require, exports, module) {
             pref.fullKey = key;
             if (!ext) {
                 pref.key = key;
-                mainPrefs.push(pref);
+                pushToPrefObj(pref, mainPrefs);
             } else {
-                ext.prefs = ext.prefs || [];
+                ext.prefsObj = ext.prefsObj || {preferences: [], groups: {}};
                 pref.key = key.substring(ext.id.length + 1);
-                ext.prefs.push(pref);
+                pushToPrefObj(pref, ext.prefsObj);
             }
         });
-        // sort extensions by title and mark those who have been uninstalled
+
+        // prepare for Mustache
+        var convertGroup = function (group, groupName) {
+            return { name: groupName, preferences: group };
+        };
+        mainPrefs.groups = _.map(mainPrefs.groups, convertGroup);
+        _.each(extensions, function (ext) {
+            if (ext.prefsObj) {
+                ext.prefsObj.groups = _.map(ext.prefsObj.groups, convertGroup);
+            }
+        });
+
+        // sort extensions by name and mark those who have been uninstalled
         extensions = _.sortBy(_.compact(_.map(extensions, function (extensionInfo, id) {
             if (extensionInfo.active) {
 
-                if (!extensionInfo.prefs || extensionInfo.prefs.length === 0) {
+                if (!extensionInfo.prefsObj) {
                     return;
                 }
                 return {
                     id: id,
-                    title: extensionInfo.title || id,
-                    prefs: extensionInfo.prefs
+                    name: extensionInfo.name || id,
+                    prefsObj: extensionInfo.prefsObj
                 };
 
             } else {
 
                 return {
                     id: id,
-                    title: extensionInfo.title || id,
+                    name: extensionInfo.name || id,
                     removed: true
                 };
 
             }
-        })), "title");
+        })), "name");
     }
 
     function attachEvents($view) {

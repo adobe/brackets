@@ -124,11 +124,15 @@ define(function (require, exports, module) {
     });
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
     PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
-        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE),
+        name: "Tab size",
+        description: "Configurable Tab size",
+        group: "Editor.js"
     });
     PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false, {
-        name: "Use TAB character",
-        description: "Decides whether \\t character or spaces are used on pressing Tab key"
+        name: "Use Tab character",
+        description: "Decides whether \\t character or spaces are used on pressing Tab key",
+        group: "Editor.js"
     });
     PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
     

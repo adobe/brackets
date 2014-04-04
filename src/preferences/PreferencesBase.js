@@ -1108,6 +1108,7 @@ define(function (require, exports, module) {
                 initial: initial,
                 name: options.name,
                 description: options.description,
+                group: options.group,
                 validator: options.validator
             });
             this.set(id, initial, {
