@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         });
 
         $view.find("button[data-button-id='cancel']").on("click", function (id) {
-            alert("cancel!");
+            EditorManager._closeCustomViewer();
         });
     }
 
