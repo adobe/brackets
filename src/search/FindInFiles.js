@@ -349,7 +349,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Shows the results in a table and adds the necessary event listeners
-     * @param {?Object} zeroFiles The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
+     * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
      */
     function _showSearchResults(zeroFilesToken) {
         if (!$.isEmptyObject(searchResults)) {

@@ -121,7 +121,7 @@ define(function (require, exports, module) {
      * if the path does not match any of the globs. If filtering many paths at once, use filterFileList()
      * for much better performance.
      * 
-     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
+     * @param {?string} compiledFilter  'Compiled' filter object as returned by compile(), or null to no-op
      * @param {!string} fullPath
      * @return {boolean}
      */
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
     /**
      * Returns a copy of 'files' filtered to just those that don't match any of the exclusion globs in the filter.
      * 
-     * @param {!string} compiledFilter  'Compiled' filter object as returned by compile()
+     * @param {?string} compiledFilter  'Compiled' filter object as returned by compile(), or null to no-op
      * @param {!Array.<File>} files
      * @return {!Array.<File>}
      */
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
             context.promise.done(function (files) {
                 var filter = getValue();
                 if (filter.length) {
-                    var filtered = filterFileList(compile(getValue()), files);
+                    var filtered = filterFileList(compile(filter), files);
                     $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT, filtered.length, files.length, context.label));
                 } else {
                     $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, files.length, context.label));
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
      * @param {?{label:string, promise:$.Promise}} context Info on files filter will apply to - see editFilter()
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
-    function createFilterPicker(contextPromise) {
+    function createFilterPicker(context) {
         var $picker = $("<div class='filter-picker'><span class='filter-label'></span><button class='btn no-focus'></button></div>"),
             $button = $picker.find("button");
         
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
         updatePicker();
         
         $button.click(function () {
-            editFilter(getLastFilter(), contextPromise)
+            editFilter(getLastFilter(), context)
                 .done(function (buttonId) {
                     if (buttonId === Dialogs.DIALOG_BTN_OK) {
                         updatePicker();

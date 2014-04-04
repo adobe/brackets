@@ -1210,8 +1210,9 @@ a, img {
 // File exclusion filter editor dialog
 textarea.exclusions-editor {
     display: block;
-    width: 547px;
+    width: 100%;
     height: 160px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
     margin-top: 12px;
     margin-bottom: 0;
     .code-font();
@@ -1219,8 +1220,7 @@ textarea.exclusions-editor {
 .exclusions-filecount {
     margin: 12px 0 -20px 0;
     padding: 4px 6px;
-    background-color: @tc-warning-background;
-    border: 1px solid @bc-yellow;
+    background-color: @tc-highlight;
     border-radius: @tc-control-border-radius;
 }
 
