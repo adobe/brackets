@@ -169,7 +169,14 @@ define(function (require, exports, module) {
             return;
         }
 
-        range = _getRangeForCSSValueAt(editor, selection.start, true);
+        // TODO: remove _getRangeForCSSValueAt after CSSInfo.range is merged https://github.com/adobe/brackets/pull/7390
+        range = info.range || _getRangeForCSSValueAt(editor, selection.start, true);
+
+        // TODO: support multi-line values when we can handle line breaks.
+        if (info.range && (info.range.start.line !== info.range.end.line)) {
+            model.reset();
+            return;
+        }
 
         model.set({
             selector: selector,
