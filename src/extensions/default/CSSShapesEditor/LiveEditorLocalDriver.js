@@ -158,7 +158,7 @@ define(function (require, exports, module) {
     * Promises can fail if the user manually refreshes the page or navigates
     * because the injected editor files will be lost.
     *
-    * @param {Object=} result promise result
+    * @param {$.Promise=} result promise result
     */
     function _whenRemoteCallFailed(result) {
         if (result) {

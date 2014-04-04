@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         Model               = require("Model"),
         LiveEditorDriver    = require("LiveEditorLocalDriver");
 
-    // Update if you add editors for new properties
+    // TODO: Keep this list up to date with newly added/supported properties
     var SUPPORTED_PROPS = ["shape-inside", "-webkit-shape-inside", "shape-outside", "-webkit-shape-outside"];
 
     // Intentional bias towards only -webkit-clip-path (prefixed),

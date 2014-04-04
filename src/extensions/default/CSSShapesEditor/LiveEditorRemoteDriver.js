@@ -51,7 +51,7 @@
      *
      * @param {!HTMLElement} element
      * @param {!string} property CSS property
-     * @param {!string} valuem CSS property value
+     * @param {!string} value CSS property value
      *
      * @return {boolean}
      */
