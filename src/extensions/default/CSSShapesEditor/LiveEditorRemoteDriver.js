@@ -21,12 +21,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, browser: true */
-/*global _onValueChange: false, _remove: false */
+/*global _onValueChange: false, remove: false */
 
 (function () {
     "use strict";
 
-        /** @type {Object} Object literal with available editors for given properties. @see _registerProvider() */
+        /** @type {Object} Object literal with available editors for given properties. @see registerProvider() */
     var _providers = {},
         /** @type {CSSShapesEditor} current active editor for model.property */
         _activeEditor,
@@ -35,8 +35,8 @@
         /**
           @type {Object} Object literal with selector, CSS property and value.
 
-          Will be updated by _setup() and _onValueChange()
-          Will be synced to Brackets via _getModel() to update text in code editor.
+          Will be updated by setup() and _onValueChange()
+          Will be synced to Brackets via getModel() to update text in code editor.
 
           @example {selector: "body", property: "shape-inside", value: "circle()" }
         */
@@ -45,16 +45,16 @@
         _emptyShapeRE = /(polygon|circle|rectangle|ellipse)\(\s*\)/i;
 
     /**
-      @private
-      Returns true if the element's computed style
-      contains the provided property/value CSS rule.
-
-      @param {!HTMLElement} element
-      @param {!string} property CSS property
-      @param {!string} valuem CSS property value
-
-      @return {boolean}
-    */
+     * @private
+     * Returns true if the element's computed style
+     * contains the provided property/value CSS rule.
+     *
+     * @param {!HTMLElement} element
+     * @param {!string} property CSS property
+     * @param {!string} valuem CSS property value
+     *
+     * @return {boolean}
+     */
     function _hasPropertyValue(element, property, value) {
         var result = false,
             style,
@@ -91,25 +91,25 @@
         return result;
     }
 
-    /*
-      Setup an editor for a specific CSS property of an element using data in model.
-      Editors must be registered with _registerProvider()
-
-      @throws {TypeError} if input model is falsy or does not contain property
-
-      @param {!Object} model object literal with data:
-          {
-              // selector to match an element for editing
-              selector: {string},
-
-              // CSS property to edit
-              property: {string},
-
-              // Initial value for editor
-              value: {string}
-          }
-    */
-    function _setup(model) {
+    /**
+     * Setup an editor for a specific CSS property of an element using data in model.
+     * Editors must be registered with registerProvider()
+     *
+     * @throws {TypeError} if input model is falsy or does not contain property
+     *
+     * @param {!Object} model object literal with data:
+     *   {
+     *       // selector to match an element for editing
+     *       selector: {string},
+     *
+     *       // CSS property to edit
+     *       property: {string},
+     *
+     *       // Initial value for editor
+     *       value: {string}
+     *   }
+     */
+    function setup(model) {
         if (!model || !model.property) {
             throw new TypeError("Invalid input model or missing property.");
         }
@@ -133,8 +133,8 @@
         // - multiple duplicate selectors in the origin stylesheet, but not editing the one which applies last on the page
         if (!_hasPropertyValue(_target, model.property, model.value)) {
             // TODO: try handling this with Inspector.getMatchedStylesForNode() in LiveEditorLocalDriver
-            console.log("Style mismatch. Expected:\n" + model.value + "\n\nFound:\n"+ window.getComputedStyle(_target, null)[model.property]);
-            _remove();
+            console.log("Style mismatch. Expected:\n" + model.value + "\n\nFound:\n" + window.getComputedStyle(_target, null)[model.property]);
+            remove();
             return;
         }
 
@@ -151,13 +151,13 @@
         _activeEditor.onValueChange(_onValueChange);
     }
 
-    /*
-      Handler for value "change" events from the live editor which was setup on the page.
-      Cache the value into the local model, which will be polled for by LiveEditorLocalDriver
-      to sync with Brackets editor
-
-      @param {!string} value
-    */
+    /**
+     * Handler for value "change" events from the live editor which was setup on the page.
+     * Cache the value into the local model, which will be polled for by LiveEditorLocalDriver
+     * to sync with Brackets editor
+     *
+     * @param {!string} value
+     */
     function _onValueChange(value) {
         if (!_target || !value || typeof value !== "string") {
             return;
@@ -179,9 +179,9 @@
     }
 
     /**
-      Remove the live editor.
-    */
-    function _remove() {
+     * Remove the live editor.
+     */
+    function remove() {
         if (_activeEditor) {
             _activeEditor.remove();
             _activeEditor = undefined;
@@ -192,58 +192,59 @@
     }
 
     /**
-      Update the live editor with the given data.
-      @param {!Object} model Object literal with CSS property, value, selector.
-    */
-    function _update(model) {
+     * Update the live editor with the given data.
+     * @param {!Object} model Object literal with CSS property, value, selector.
+     */
+    function update(model) {
         _activeEditor.update(model);
     }
 
     /**
-      Expose the cached model data updated after live editor "change" events.
-      LiveEditorLocalDriver polls this to sync model with Brackets editor
-    */
-    function _getModel() {
+     * Expose the cached model data updated after live editor "change" events.
+     * LiveEditorLocalDriver polls this to sync model with Brackets editor
+     * @return {string}
+     */
+    function getModel() {
         return JSON.stringify(_model);
     }
 
     /*
-      Register an editor for the given CSS property.
-      This allows support for custom editors for any CSS property.
-
-      Editor will be invoked if the given property
-      matches model.property in _LD_CSS_EDITOR.setup(model).
-
-      @param {!string} property CSS property
-      @param {!Object} editor Editor for the property.
-
-      Provided editors MUST implement the follwing interface:
-      {
-          // turn on editor on specified target HTMLElement.
-          // picks-up necessary args from model
-          setup: function (target, model) {},
-
-          // update the editor state given the provided model
-          update: function (model) {},
-
-          // turn off the editor and remove any scaffolding
-          remove: function () {},
-
-          // sets a callback to be called with the new value
-          onValueChange: function (callback) {}
-      }
-    */
-    function _registerProvider(property, editor) {
+     * Register an editor for the given CSS property.
+     * This allows support for custom editors for any CSS property.
+     *
+     * Editor will be invoked if the given property
+     * matches model.property in _LD_CSS_EDITOR.setup(model).
+     *
+     * @param {!string} property CSS property
+     * @param {!Object} editor Editor for the property.
+     *
+     * Provided editors MUST implement the follwing interface:
+     * {
+     *   // turn on editor on specified target HTMLElement.
+     *   // picks-up necessary args from model
+     *   setup: function (target, model) {},
+     *
+     *   // update the editor state given the provided model
+     *   update: function (model) {},
+     *
+     *   // turn off the editor and remove any scaffolding
+     *   remove: function () {},
+     *
+     *   // sets a callback to be called with the new value
+     *   onValueChange: function (callback) {}
+     * }
+     */
+    function registerProvider(property, editor) {
         // TODO: check for interface conformity
         _providers[property] = editor;
     }
 
     window._LD_CSS_EDITOR = {
-        setup:              _setup,
-        remove:             _remove,
-        update:             _update,
-        getModel:           _getModel,
-        registerProvider:   _registerProvider
+        setup:              setup,
+        remove:             remove,
+        update:             update,
+        getModel:           getModel,
+        registerProvider:   registerProvider
     };
 
 }());

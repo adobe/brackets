@@ -29,14 +29,14 @@ define(function (require, exports, module) {
     var _ = brackets.getModule("thirdparty/lodash");
 
     /**
-      @constructor
-      Lightweight model to set and get data from.
-
-      Dispatches events on change and reset, if not explicitly asked to be silent:
-        change -- when the properties in the model are changed with the setter.
-
-      @param {Object=} properties Object literal with key/values to store as default; optional
-    */
+     * @constructor
+     * Lightweight model to set and get data from.
+     *
+     * Dispatches events on change and reset, if not explicitly asked to be silent:
+     *   change -- when the properties in the model are changed with the setter.
+     *
+     * @param {Object=} properties Object literal with key/values to store as default; optional
+     */
     function Model(properties) {
 
         if (!(this instanceof Model)) {
@@ -48,12 +48,12 @@ define(function (require, exports, module) {
             _events = {};
 
         /**
-          Sets or updates properties on the model.
-
-          @throws {TypeError} if input is falsy or not object
-          @param {!Object} obj Object literal with key/value pairs
-          @param {boolean=} silent set true to avoid triggering "change" event
-        */
+         * Sets or updates properties on the model.
+         *
+         * @throws {TypeError} if input is falsy or not object
+         * @param {!Object} obj Object literal with key/value pairs
+         * @param {boolean=} silent set true to avoid triggering "change" event
+         */
         var _set = function (obj, silent) {
             var hasChanged = false,
                 k;
@@ -84,18 +84,18 @@ define(function (require, exports, module) {
             set: _set,
 
             /**
-              Get a property value from the model
-              @param {!string} key
-              @return {undefined|*}
-            */
+             * Get a property value from the model
+             * @param {!string} key
+             * @return {undefined|*}
+             */
             get: function (key) {
                 return _props[key];
             },
 
             /**
-              Reset the model to its initial contents
-              @param {boolean=} silent; if true, will not trigger "change" event
-            */
+             * Reset the model to its initial contents
+             * @param {boolean=} silent; if true, will not trigger "change" event
+             */
             reset: function (silent) {
 
                 // assign a clone of the initial properties
