@@ -14,8 +14,7 @@
         },
         "src/thirdparty/globmatch.js": {
             "spaceUnits": 2,
-            "linting.enabled": false,
-            "brackets-git.defaultRemotes./Users/dangoor/projects/brackets/": "origin"
+            "linting.enabled": false
         }
     },
     "spaceUnits": 4,
