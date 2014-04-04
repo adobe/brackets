@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
+        rangesTestCss              = require("text!spec/CSSUtils-test-files/ranges.css"),
         simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
     
     /**
@@ -2152,6 +2153,7 @@ define(function (require, exports, module) {
             });
             
         });
+
         
         describe("invalid contexts", function () {
             
@@ -2189,6 +2191,37 @@ define(function (require, exports, module) {
 
             it("should return empty context for comment in declaration", function () {
                 expectEmptyInfo(80);
+            });
+        });
+    });
+    
+    // These are tests related to Shapes editor requirements for determining the start/end range of a css property
+    describe("CSS Context Info Ranges", function () {
+
+        describe("ranging for getInfoAtPos results", function () {
+            var testEditor,
+                result;
+            
+            beforeEach(function () {
+                var mock = SpecRunnerUtils.createMockEditor(rangesTestCss, "css");
+                testEditor = mock.editor;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testEditor.document);
+                testEditor = null;
+            });
+
+            it("should return the range of the current prop", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 20, line: 4});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 3
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 6
+                });
             });
         });
     });
