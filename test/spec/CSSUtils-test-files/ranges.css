@@ -1,14 +1,9 @@
 /* */
 
 .foo {
-    shape-inside: 
-        
-        circle(0 
-                         at 
-                         0
-        
-        
-        0
+    shape-inside: circle(0
+                         at
+                         0 0
     );
     
     shape-inside: circle   (0px 
@@ -28,7 +23,8 @@
     );
     
     
-    shape-inside: polygon(
+    shape-inside: 
+polygon(
         
         
         nonzero, 
@@ -38,8 +34,8 @@
                                                                                     100px 
         
         100px
-);
-}
+                                        );
+                                }
 
 
 
@@ -55,18 +51,5 @@
                                                                                 (  0  %  )
             
 ;
-    }
-}
-
-@-webkit-keyframes colorize {
-    0% {
-        -webkit-filter: grayscale(
-            100%
-        );
-    }
-    100% {
-        -webkit-filter:                                                 grayscale(
-            0%
-);
     }
 }
