@@ -1836,6 +1836,8 @@ define(function (require, exports, module) {
                 
             it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
                 [9, 85].forEach(function (offset) {
+                    var range = (offset === 9) ? {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
+                                               : {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }};
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -1843,7 +1845,8 @@ define(function (require, exports, module) {
                         name: "width",
                         index: 0,
                         values: ["100%"],
-                        isNewItem: true
+                        isNewItem: true,
+                        range: range
                     });
                 });
             });
@@ -1881,7 +1884,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 1,
-                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with correct values at beginning/middle of second multi-value property", function () {
@@ -1889,7 +1893,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 1,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of second multi-value property", function () {
@@ -1900,7 +1905,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value property", function () {
@@ -1919,7 +1925,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
@@ -1930,7 +1937,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property", function () {
@@ -1938,7 +1946,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 1,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
@@ -1949,7 +1958,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property", function () {
@@ -1958,7 +1968,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 
@@ -1970,7 +1981,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 
@@ -1983,7 +1995,8 @@ define(function (require, exports, module) {
                             offset: 0,
                             isNewItem: true,
                             index: i,
-                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                            range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                         });
                     }
 
@@ -1995,7 +2008,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
             }); // multi-line cases
@@ -2008,7 +2022,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace)", function () {
@@ -2020,7 +2035,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ["Arial,"]
+                        values: ["Arial,"],
+                        range: {start: { line: 28 + ((i - 46) * 3), ch: 17 }, end: { line: 28 + ((i - 46) * 3), ch: 23 }}
                     });
                 }
                 for (i = 48; i <= 49; i++) {
@@ -2031,7 +2047,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ["Arial, "]
+                        values: ["Arial, "],
+                        range: {start: { line: 34 + ((i - 48) * 3), ch: 17 }, end: { line: 34 + ((i - 48) * 3), ch: 23 }}
                     });
                 }
             });
@@ -2039,14 +2056,7 @@ define(function (require, exports, module) {
             it("should return PROP_VALUE with 'new value' flag at end of line when there are no existing values", function () {
                 for (i = 70; i <= 74; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
-                    expect(result).toEqual({
-                        context: CSSUtils.PROP_VALUE,
-                        name: "width",
-                        offset: 0,
-                        isNewItem: true,
-                        index: 0,
-                        values: []
-                    });
+                    expect(result.isNewItem).toEqual(true);
                 }
             });
             
@@ -2060,7 +2070,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         index: i,
                         values: ["rgba(50, ", "100, ", "200, ", "0.3)"],
-                        isNewItem: false
+                        isNewItem: false,
+                        range: {start: { line: 54, ch: 11 }, end: { line: 54, ch: 34 }}
                     });
                 }
             });
@@ -2073,7 +2084,8 @@ define(function (require, exports, module) {
                     offset: 1,
                     index: 1,
                     values: ["linear-gradient(to ", "right, ", "rgba(255,", "255,", "0), ", "#fff)"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 71, ch: 16 }, end: { line: 71, ch: 64 }}
                 });
             });
             
@@ -2085,7 +2097,8 @@ define(function (require, exports, module) {
                     offset: 1,
                     index: 1,
                     values: ["polygon(", "0 ", "0)"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 58, ch: 18 }, end: { line: 58, ch: 30 }}
                 });
             });
             
@@ -2097,7 +2110,8 @@ define(function (require, exports, module) {
                     offset: 1,
                     index: 1,
                     values: ["polygon(", "nonzero, ", "0 ", "0)"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 62, ch: 18 }, end: { line: 62, ch: 39 }}
                 });
             });
             
@@ -2147,7 +2161,8 @@ define(function (require, exports, module) {
                         name: "font-family",
                         index: 0,
                         values: [values[i]],
-                        isNewItem: false
+                        isNewItem: false,
+                        range: {start: { line: 79 + i, ch: 17 }, end: { line: 79 + i, ch: 17 + values[i].length }}
                     });
                 }
             });
