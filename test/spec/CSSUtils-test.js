@@ -1774,6 +1774,7 @@ define(function (require, exports, module) {
             expect(result.isNewItem).toBe(expected.isNewItem === undefined ? false : expected.isNewItem);
             expect(result.index).toBe(expected.index === undefined ? -1 : expected.index);
             expect(result.values).toEqual(expected.values === undefined ? [] : expected.values);
+            expect(result.range).toEqual(expected.range);
         }
         
         function checkInfoAtOffsets(first, last, expected) {
@@ -1857,14 +1858,16 @@ define(function (require, exports, module) {
                     name: "width",
                     index: 0,
                     values: ["100%"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
                 });
                 checkInfoAtOffsets(86, 88, {
                     context: CSSUtils.PROP_VALUE,
                     name: "width",
                     index: 0,
                     values: ["100%"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }}
                 });
             });
                 
@@ -1873,7 +1876,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value property", function () {
@@ -1894,7 +1898,7 @@ define(function (require, exports, module) {
                     name: "font-family",
                     index: 1,
                     values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
-                    range: {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }}
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of second multi-value property", function () {
@@ -1915,7 +1919,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             
@@ -2054,9 +2059,20 @@ define(function (require, exports, module) {
             });
             
             it("should return PROP_VALUE with 'new value' flag at end of line when there are no existing values", function () {
+                var lineArray = [41, 44, 47, 50, 112],
+                    columnArray = [10, 11, 10, 11, 10];
                 for (i = 70; i <= 74; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
-                    expect(result.isNewItem).toEqual(true);
+                    expect(result).toEqual({
+                        context: CSSUtils.PROP_VALUE,
+                        name: "width",
+                        offset: 0,
+                        isNewItem: true,
+                        index: 0,
+                        values: [],
+                        range: {start: { line: lineArray[i - 70], ch: columnArray[i - 70] },
+                                end: { line: lineArray[i - 70], ch: columnArray[i - 70] }}
+                    });
                 }
             });
             
@@ -2148,7 +2164,8 @@ define(function (require, exports, module) {
                     name: "font-family",
                     index: 0,
                     values: ["'Helvetica Neue', ", "Arial"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 75, ch: 17 }, end: { line: 75, ch: 40 }}
                 });
             });
             it("should properly parse values with special characters", function () {

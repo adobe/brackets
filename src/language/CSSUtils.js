@@ -146,7 +146,7 @@ define(function (require, exports, module) {
                          name: name || "",
                          index: -1,
                          values: [],
-                         isNewItem: (isNewItem) ? true : false,
+                         isNewItem: (isNewItem === true),
                          range: range };
         
         if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
         
         // Skip the trailing whitespace and property separators.
         while (endCtx.token.string === ";" || endCtx.token.string === "}" ||
-                endCtx.token.string.trim().length === 0) {
+                !endCtx.token.string.trim()) {
             TokenUtils.movePrevToken(endCtx);
         }
         
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
         
         range.end = _.clone(endCtx.pos);
         range.end.ch = endCtx.token.end;
-     
+        
         return range;
     }
     
@@ -461,7 +461,13 @@ define(function (require, exports, module) {
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
         
-        range = _getRangeForPropValue(backwardCtx, forwardCtx);
+        if (propValues.length) {
+            range = _getRangeForPropValue(backwardCtx, forwardCtx);
+        } else {
+            // No property value, so just return the cursor pos as range
+            range = { "start": _.clone(ctx.pos),
+                      "end": _.clone(ctx.pos) };
+        }
         
         // If current index is more than the propValues size, then the cursor is 
         // at the end of the existing property values and is ready for adding another one.
