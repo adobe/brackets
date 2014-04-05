@@ -466,17 +466,6 @@ define(function (require, exports, module) {
 
                 expect(LiveEditorLocalDriver.remove).toHaveBeenCalled();
             });
-
-            it("should call remove() when LivePreview is turned off", function () {
-                var deferred = $.Deferred();
-                spyOn(LiveEditorLocalDriver, "remove").andReturn(deferred.promise());
-
-                main._setup();
-                main._teardown();
-
-                expect(LiveEditorLocalDriver.remove).toHaveBeenCalled();
-            });
-
         });
 
         describe("Live Preview Workflow", function () {
