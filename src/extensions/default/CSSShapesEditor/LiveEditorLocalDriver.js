@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             return deferred.reject().promise();
         }
 
-        _cache.model = undefined; // do not move in _reset(), otherwhise the _reconnect() scenario miss the cache and fail
+        _cache.model = undefined; // do not move in _reset(), otherwhise the _reconnect() scenario misses the cache and fails
         _reset();
         var expr = _namespace + ".remove()";
         return _call(expr);
