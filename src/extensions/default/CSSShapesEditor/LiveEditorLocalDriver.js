@@ -170,7 +170,7 @@ define(function (require, exports, module) {
     function _whenRemoteCallFailed(result) {
         // check if the remote editor namespace is still defined on the page
         _call(_namespace)
-            .then(function(response) {
+            .then(function (response) {
                 if (response.type === "undefined") {
                     _reconnect();
                 } else {
