@@ -2228,7 +2228,7 @@ define(function (require, exports, module) {
                 testEditor = null;
             });
 
-            it("should return the currect range of a prop when cursor is on whitespace between function args", function () {
+            it("should return the correct range of a prop when cursor is on whitespace between function args", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, {ch: 20, line: 4});
                 expect(result.range.start).toEqual({
                     ch: 18,
@@ -2240,7 +2240,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should return the currect range of a prop when cursor is between characters in function args", function () {
+            it("should return the correct range of a prop when cursor is between characters in function args", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, {ch: 26, line: 9});
                 expect(result.range.start).toEqual({
                     ch: 18,
@@ -2251,7 +2251,7 @@ define(function (require, exports, module) {
                     line: 13
                 });
             });
-            it("should return the currect range of a prop when cursor is between characters in prop name with function args with whitespace", function () {
+            it("should return the correct range of a prop when cursor is between characters in prop name with function args with whitespace", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, {ch: 21, line: 15});
                 expect(result.range.start).toEqual({
                     ch: 18,
@@ -2262,7 +2262,7 @@ define(function (require, exports, module) {
                     line: 22
                 });
             });
-            it("should return the currect range of a prop when cursor is on function arg delimiter with whitespace", function () {
+            it("should return the correct range of a prop when cursor is on function arg delimiter with whitespace", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, {ch: 29, line: 30});
                 expect(result.range.start).toEqual({
                     ch: 0,
@@ -2273,7 +2273,7 @@ define(function (require, exports, module) {
                     line: 36
                 });
             });
-            it("should return the currect range of a prop when cursor is between value and unit with whitespace", function () {
+            it("should return the correct range of a prop when cursor is between value and unit with whitespace", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, {ch: 85, line: 49});
                 expect(result.range.start).toEqual({
                     ch: 12,
@@ -2285,7 +2285,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should return the currect range of a prop when cursor is at the start of whitespace of a vendor prop value w/whitespace", function () {
+            it("should return the correct range of a prop when cursor is at the start of whitespace of a vendor prop value w/whitespace", function () {
                 result = CSSUtils.getInfoAtPos(testEditor, {ch: 13, line: 49});
                 expect(result.range.start).toEqual({
                     ch: 12,
