@@ -86,7 +86,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Inject remote live editor driver and any specified editor providers.
      * The remote live editor driver mirrors most of the local live editor driver API
      * to provide an interface to the in-browser live editor.
@@ -158,7 +157,7 @@ define(function (require, exports, module) {
     * Promises can fail if the user manually refreshes the page or navigates
     * because the injected editor files will be lost.
     *
-    * @param {$.Promise=} result promise result
+    * @param {$.Deferred=} result
     */
     function _whenRemoteCallFailed(result) {
         if (result) {
