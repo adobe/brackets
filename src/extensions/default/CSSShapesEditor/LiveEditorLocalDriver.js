@@ -103,16 +103,16 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Send instructions to remove the live editor from the page in LivePreview.
      * @return {$.Promise}
      */
     function remove() {
         if (_hasEditor === false) {
             var deferred = $.Deferred();
-            return deferred.reject();
+            return deferred.reject().promise();
         }
 
+        _cache.model = undefined; // do not move in _reset(), otherwhise the _reconnect() scenario miss the cache and fail
         _reset();
         var expr = _namespace + ".remove()";
         return _call(expr);
@@ -137,6 +137,10 @@ define(function (require, exports, module) {
             hasChanged = false,
             key;
 
+        if (!data) {
+            remove();
+        }
+
         // sync the local model snapshot with the remote model
         _.forEach(data, function (value, key) {
             if (!_model[key] || !_.isEqual(_model[key], value)) {
@@ -154,18 +158,26 @@ define(function (require, exports, module) {
     /**
     * @private
     * Handle failed promises for eval() calls to the inspected page.
-    * Promises can fail if the user manually refreshes the page or navigates
+    * Promises fail if the user manually refreshes the page or navigates
     * because the injected editor files will be lost.
+    * If this is the case, attempt to reconnect.
+    *
+    * Promises also fail because of errors thrown in the remote page.
+    * If this is the case, remove the editor.
     *
     * @param {$.Deferred=} result
     */
     function _whenRemoteCallFailed(result) {
-        if (result) {
-            return _reconnect();
-        } else {
-            _cache.model = undefined;
-            return remove();
-        }
+        // check if the remote editor namespace is still defined on the page
+        _call(_namespace)
+            .then(function(response) {
+                if (response.type === "undefined") {
+                    _reconnect();
+                } else {
+                    remove();
+                }
+            })
+            .fail(remove);
     }
 
     /**
