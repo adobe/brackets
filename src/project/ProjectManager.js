@@ -1076,6 +1076,20 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Reloads the project preferences.
+     */
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
+        } else {
+            PreferencesManager._setProjectSettingsFile();
+        }
+    }
+    
+    /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
@@ -1154,15 +1168,16 @@ define(function (require, exports, module) {
                             _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
                         
-                        if (projectRootChanged) {
-                            PreferencesManager._setCurrentEditingFile(rootPath);
-                        }
-
-
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        
+                        if (projectRootChanged) {
+                            _reloadProjectPreferencesScope();
+                            PreferencesManager._setCurrentEditingFile(rootPath);
+                        }
+
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
                         _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
@@ -2266,18 +2281,6 @@ define(function (require, exports, module) {
         "welcomeProjects": "user",
         "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
-    
-    function _reloadProjectPreferencesScope() {
-        var root = getProjectRoot();
-        if (root) {
-            // Alias the "project" Scope to the path Scope for the project-level settings file
-            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
-        } else {
-            PreferencesManager._setProjectSettingsFile();
-        }
-    }
-    
-    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
     // Initialize the sort prefixes and make sure to change them when the sort pref changes
     _generateSortPrefixes();
