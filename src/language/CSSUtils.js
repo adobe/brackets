@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         ProjectManager      = require("project/ProjectManager"),
-        TokenUtils          = require("utils/TokenUtils");
+        TokenUtils          = require("utils/TokenUtils"),
+        _                   = require("thirdparty/lodash");
 
     // Constants
     var SELECTOR   = "selector",
@@ -128,20 +129,25 @@ define(function (require, exports, module) {
      * @param {Array.<string>=} values An array of property values 
      * @param {boolean=} isNewItem If this is true, then the value in index refers to the index at which a new item  
      *     is going to be inserted and should not be used for accessing an existing value in values array. 
+     * @param {{start: {line: number, ch: number},
+     *          end: {line: number, ch: number}}=} range A range object with a start position and an end position
      * @return {{context: string,
      *           offset: number,
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
-    function createInfo(context, offset, name, index, values, isNewItem) {
+    function createInfo(context, offset, name, index, values, isNewItem, range) {
         var ruleInfo = { context: context || "",
                          offset: offset || 0,
                          name: name || "",
                          index: -1,
                          values: [],
-                         isNewItem: (isNewItem) ? true : false };
+                         isNewItem: (isNewItem === true),
+                         range: range };
         
         if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
             ruleInfo.index = index;
@@ -165,7 +171,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getPropNameInfo(ctx) {
         var propName = "",
@@ -337,6 +345,43 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Return a range object with a start position and an end position after
+     * skipping any whitespaces and all separators used before and after a
+     * valid property value.
+     *
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} startCtx context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} endCtx context
+     * @return {{start: {line: number, ch: number},
+     *           end: {line: number, ch: number}}} A range object.
+     */
+    function _getRangeForPropValue(startCtx, endCtx) {
+        var range = { "start": {},
+                      "end": {} };
+        
+        // Skip the ":" and any leading whitespace
+        while (TokenUtils.moveNextToken(startCtx)) {
+            if (startCtx.token.string.trim()) {
+                break;
+            }
+        }
+        
+        // Skip the trailing whitespace and property separators.
+        while (endCtx.token.string === ";" || endCtx.token.string === "}" ||
+                !endCtx.token.string.trim()) {
+            TokenUtils.movePrevToken(endCtx);
+        }
+        
+        range.start = _.clone(startCtx.pos);
+        range.start.ch = startCtx.token.start;
+        
+        range.end = _.clone(endCtx.pos);
+        range.end.ch = endCtx.token.end;
+        
+        return range;
+    }
+    
+    /**
+     * @private
      * Returns a context info object for the current CSS style rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {!Editor} editor
@@ -345,7 +390,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getRuleInfoStartingFromPropValue(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
@@ -361,7 +408,8 @@ define(function (require, exports, module) {
             canAddNewOne = false,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
             testToken = editor._codeMirror.getTokenAt(testPos, true),
-            propName;
+            propName,
+            range;
         
         // Get property name first. If we don't have a valid property name, then 
         // return a default rule info.
@@ -413,13 +461,21 @@ define(function (require, exports, module) {
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
         
+        if (propValues.length) {
+            range = _getRangeForPropValue(backwardCtx, forwardCtx);
+        } else {
+            // No property value, so just return the cursor pos as range
+            range = { "start": _.clone(ctx.pos),
+                      "end": _.clone(ctx.pos) };
+        }
+        
         // If current index is more than the propValues size, then the cursor is 
         // at the end of the existing property values and is ready for adding another one.
         if (index === propValues.length) {
             canAddNewOne = true;
         }
         
-        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
+        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne, range);
     }
     
     /**
@@ -432,7 +488,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
@@ -501,7 +559,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
