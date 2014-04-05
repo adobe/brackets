@@ -360,7 +360,7 @@ define(function (require, exports, module) {
         
         // Skip the ":" and any leading whitespace
         while (TokenUtils.moveNextToken(startCtx)) {
-            if (startCtx.token.string.trim().length > 0) {
+            if (startCtx.token.string.trim()) {
                 break;
             }
         }
