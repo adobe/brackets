@@ -1,0 +1,17 @@
+/* */
+
+.foo {
+    shape-inside: circle();
+    shape-outside: circle();
+    -webkit-clip-path: circle();
+    shape-inside: circle() ; /* intentional whitespace */
+    shape-inside: circle(0 at 0 0);
+    shape-inside: circle(0px at 0px 0px);
+    shape-inside: circle(0px at 0 0%);
+    shape-inside: ellipse();
+    shape-inside: ellipse(0 0 at 0 0);
+    shape-inside: ellipse(0 0);
+    shape-inside: polygon();
+    shape-inside: polygon(0 0, 100px 0, 100px 100px);
+    shape-inside: polygon(nonzero, 0 0, 100px 0, 100px 100px);
+}

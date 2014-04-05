@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        return FileUtils.getRelativeFilename(projectDirectory, filename) ? true : false;
+        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
     
     /**
@@ -489,7 +489,8 @@ define(function (require, exports, module) {
      * @param {Object} value New value for the preference
      * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
      * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
-     * @return {boolean} true if a value was set
+     * @return {valid:  {boolean}, true if no validator specified or if value is valid
+     *          stored: {boolean}} true if a value was stored
      */
     function set(id, value, options, doNotSave) {
         if (options && options.context) {
@@ -536,7 +537,7 @@ define(function (require, exports, module) {
      */
     function setValueAndSave(id, value, options) {
         DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = set(id, value, options);
+        var changed = set(id, value, options).stored;
         PreferencesImpl.manager.save();
         return changed;
     }
