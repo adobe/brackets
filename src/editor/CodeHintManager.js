@@ -234,7 +234,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
@@ -251,10 +251,10 @@ define(function (require, exports, module) {
         hintList        = null,
         deferredHints   = null,
         keyDownEditor   = null;
-    
-    
+
+
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
-    
+
 
     /**
      * Comparator to sort providers from high to low priority
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
     function _providerSort(a, b) {
         return b.priority - a.priority;
     }
-    
+
     /**
      * The method by which a CodeHintProvider registers its willingness to
      * providing hints for editors in a given language.
@@ -283,7 +283,7 @@ define(function (require, exports, module) {
     function registerHintProvider(providerInfo, languageIds, priority) {
         var providerObj = { provider: providerInfo,
                             priority: priority || 0 };
-        
+
         if (languageIds.indexOf("all") !== -1) {
             // Ignore anything else in languageIds and just register for every language. This includes
             // the special "all" language since its key is in the hintProviders map from the beginning.
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
             });
         }
     }
-    
+
     /**
      * @private
      * Remove a code hint provider
@@ -320,7 +320,7 @@ define(function (require, exports, module) {
             index,
             providers,
             targetLanguageIdArr;
-        
+
         if (Array.isArray(targetLanguageId)) {
             targetLanguageIdArr = targetLanguageId;
         } else if (targetLanguageId) {
@@ -328,10 +328,10 @@ define(function (require, exports, module) {
         } else {
             targetLanguageIdArr = Object.keys(hintProviders);
         }
-        
+
         targetLanguageIdArr.forEach(function (languageId) {
             providers = hintProviders[languageId];
-            
+
             for (index = 0; index < providers.length; index++) {
                 if (providers[index].provider === provider) {
                     providers.splice(index, 1);
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
     function _getProvidersForLanguageId(languageId) {
         return hintProviders[languageId] || hintProviders.all;
     }
-    
+
     var _beginSession;
 
     /**
@@ -371,7 +371,7 @@ define(function (require, exports, module) {
             deferredHints = null;
         }
     }
-   
+
     /**
      * Is there a hinting session active for a given editor?
      *
@@ -406,10 +406,10 @@ define(function (require, exports, module) {
             deferredHints.reject();
             deferredHints = null;
         }
-        
+
         var response = sessionProvider.getHints(lastChar);
         lastChar = null;
-        
+
         if (!response) {
             // the provider wishes to close the session
             _endSession();
@@ -429,6 +429,14 @@ define(function (require, exports, module) {
             } else { // response is a deferred
                 deferredHints = response;
                 response.done(function (hints) {
+                    // Guard against timing issues where the session ends before the
+                    // response gets a chance to execute the callback.  If the session
+                    // ends first while still waiting on the response, then hintList
+                    // will get cleared up.
+                    if (!hintList) {
+                        return;
+                    }
+
                     if (hintList.isOpen()) {
                         // the session is open
                         hintList.update(hints);
@@ -439,7 +447,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * Try to begin a new hinting session.
      * @param {Editor} editor
@@ -448,7 +456,7 @@ define(function (require, exports, module) {
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
-        
+
         enabledProviders.some(function (item, index) {
             if (item.provider.hasHints(editor, lastChar)) {
                 sessionProvider = item.provider;
@@ -464,9 +472,9 @@ define(function (require, exports, module) {
             } else {
                 insertHintOnTab = PreferencesManager.get("insertHintOnTab");
             }
-            
+
             sessionEditor = editor;
-            
+
             hintList = new CodeHintList(sessionEditor, insertHintOnTab);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
@@ -483,7 +491,7 @@ define(function (require, exports, module) {
             lastChar = null;
         }
     };
-    
+
     /**
      * Explicitly start a new session. If we have an existing session,
      * then close the current one and restart a new one.
@@ -493,7 +501,7 @@ define(function (require, exports, module) {
         if (!editor) {
             editor = EditorManager.getFocusedEditor();
         }
-        
+
         if (editor) {
             lastChar = null;
             if (_inSession(editor)) {
@@ -503,7 +511,7 @@ define(function (require, exports, module) {
             _beginSession(editor);
         }
     }
-    
+
     /**
      * Handles keys related to displaying, searching, and navigating the hint list.
      * This gets called before handleChange.
@@ -552,7 +560,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * Start a new implicit hinting session, or update the existing hint list.
      * Called by the editor after handleKeyEvent, which is responsible for setting
@@ -568,7 +576,7 @@ define(function (require, exports, module) {
             if (_inSession(editor)) {
                 var charToRetest = lastChar;
                 _updateHintList();
-                
+
                 // _updateHintList() may end a hinting session and clear lastChar, but a
                 // different provider may want to start a new session with the same character.
                 // So check whether current provider terminates the current hinting
@@ -585,7 +593,7 @@ define(function (require, exports, module) {
             if (hintList && changeList[0] && changeList[0].text.length && changeList[0].text[0].length) {
                 var expectedLength = editor.getCursorPos().ch - changeList[0].from.ch,
                     newText = changeList[0].text[0];
-                // We may get extra text in newText since some features like auto 
+                // We may get extra text in newText since some features like auto
                 // close braces can append some text automatically.
                 // See https://github.com/adobe/brackets/issues/6345#issuecomment-32548064
                 // as an example of this scenario.
@@ -597,7 +605,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * Test whether the provider has an exclusion that is still the same as text after the cursor.
      *
@@ -609,7 +617,7 @@ define(function (require, exports, module) {
     function hasValidExclusion(exclusion, textAfterCursor) {
         return (exclusion && exclusion === textAfterCursor);
     }
-    
+
     /**
      *  Test if a hint popup is open.
      *
@@ -633,7 +641,7 @@ define(function (require, exports, module) {
             $(current).on("keypress", _handleKeypressEvent);
             $(current).on("keyup",    _handleKeyupEvent);
         }
-        
+
         if (previous) {
             //Removing all old Handlers
             $(previous).off("editorChange", _handleChange);
@@ -642,11 +650,11 @@ define(function (require, exports, module) {
             $(previous).off("keyup",    _handleKeyupEvent);
         }
     }
-    
+
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
-    
+
     $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
-    
+
     // Dismiss code hints before executing any command since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is
@@ -657,7 +665,7 @@ define(function (require, exports, module) {
 
     exports._getCodeHintList        = _getCodeHintList;
     exports._removeHintProvider     = _removeHintProvider;
-    
+
     // Define public API
     exports.isOpen                  = isOpen;
     exports.registerHintProvider    = registerHintProvider;
