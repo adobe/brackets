@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var FileSystemError     = require("filesystem/FileSystemError"),
+        LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -310,6 +311,40 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension.
+     * If the only `.` in the file is the first character,
+     * returns "" as this is not considered an extension.
+     * This method considers known extensions which include `.` in them.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getSmartFileExtension(fullPath) {
+        var baseName = getBaseName(fullPath),
+            parts = baseName.split(".");
+
+        // get rid of file name
+        parts.shift();
+        if (baseName[0] === ".") {
+            // if starts with a `.`, then still consider it as file name
+            parts.shift();
+        }
+
+        var extension = [parts.pop()], // last part is always an extension
+            i = parts.length;
+        while (i--) {
+            if (LanguageManager.getLanguageForExtension(parts[i])) {
+                extension.unshift(parts[i]);
+            } else {
+                break;
+            }
+        }
+        return extension.join(".");
+    }
+
+    /**
      * Computes filename as relative to the basePath. For example:
      * basePath: /foo/bar/, filename: /foo/bar/baz.txt
      * returns: baz.txt
@@ -426,5 +461,6 @@ define(function (require, exports, module) {
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
     exports.getFileExtension               = getFileExtension;
+    exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
 });

@@ -69,10 +69,12 @@ define(function (require, exports, module) {
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
+        PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
         Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
+        ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         _                  = require("thirdparty/lodash");
     
@@ -91,6 +93,14 @@ define(function (require, exports, module) {
     
     var cmOptions         = {};
     
+    /** @type {number} Constants */
+    var MIN_SPACE_UNITS         =  0,
+        MIN_TAB_SIZE            =  1,
+        DEFAULT_SPACE_UNITS     =  4,
+        DEFAULT_TAB_SIZE        =  4,
+        MAX_SPACE_UNITS         = 10,
+        MAX_TAB_SIZE            = 10;
+    
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
@@ -99,7 +109,7 @@ define(function (require, exports, module) {
     cmOptions[SMART_INDENT]       = "smartIndent";
     cmOptions[SPACE_UNITS]        = "indentUnit";
     cmOptions[STYLE_ACTIVE_LINE]  = "styleActiveLine";
-    cmOptions[TAB_SIZE]           = "indentUnit";
+    cmOptions[TAB_SIZE]           = "tabSize";
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
@@ -109,9 +119,13 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
     PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
-    PreferencesManager.definePreference(SPACE_UNITS,       "number",  4);
+    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
+    });
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE,          "number",  4);
+    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
+    });
     PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,         "boolean", true);
     
@@ -198,6 +212,7 @@ define(function (require, exports, module) {
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
         this._inlineWidgets = [];
+        this._$messagePopover = null;
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -811,7 +826,7 @@ define(function (require, exports, module) {
         
         this._codeMirror.on("blur", function () {
             self._focused = false;
-            // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
+            $(self).triggerHandler("blur", [self]);
         });
 
         this._codeMirror.on("update", function (instance) {
@@ -901,6 +916,34 @@ define(function (require, exports, module) {
             }
         }
         return column;
+    };
+    
+    /**
+     * Returns the string-based pos for a given display column (zero-based) in given line. Differs from column
+     * only when the line contains preceding \t chars. Result depends on the current tab size setting.
+     * @param {number} lineNum Line number
+     * @param {number} column Display column number
+     * @return {number}
+     */
+    Editor.prototype.getCharIndexForColumn = function (lineNum, column) {
+        var line    = this._codeMirror.getLine(lineNum),
+            tabSize = null,
+            iCol    = 0,
+            i;
+
+        for (i = 0; iCol < column; i++) {
+            if (line[i] === '\t') {
+                if (tabSize === null) {
+                    tabSize = Editor.getTabSize();
+                }
+                if (tabSize > 0) {
+                    iCol += (tabSize - (iCol % tabSize));
+                }
+            } else {
+                iCol++;
+            }
+        }
+        return i;
     };
     
     /**
@@ -1519,6 +1562,133 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Display temporary popover message at current cursor position. Display message above
+     * cursor if space allows, otherwise below.
+     *
+     * @param {string} errorMsg Error message to display
+     */
+    Editor.prototype.displayErrorMessageAtCursor = function (errorMsg) {
+        var arrowBelow, cursorPos, cursorCoord, popoverRect,
+            top, left, clip, arrowCenter, arrowLeft,
+            self = this,
+            $editorHolder = $("#editor-holder"),
+            POPOVER_MARGIN = 10,
+            POPOVER_ARROW_HALF_WIDTH = 10,
+            POPOVER_ARROW_HALF_BASE = POPOVER_ARROW_HALF_WIDTH + 3; // 3 is border radius
+
+        function _removeListeners() {
+            $(self).off(".msgbox");
+        }
+
+        // PopUpManager.removePopUp() callback
+        function _clearMessagePopover() {
+            if (self._$messagePopover && self._$messagePopover.length > 0) {
+                // self._$messagePopover.remove() is done by PopUpManager
+                self._$messagePopover = null;
+            }
+            _removeListeners();
+        }
+        
+        // PopUpManager.removePopUp() is called either directly by this closure, or by
+        // PopUpManager as a result of another popup being invoked.
+        function _removeMessagePopover() {
+            PopUpManager.removePopUp(self._$messagePopover);
+        }
+
+        function _addListeners() {
+            $(self)
+                .on("blur.msgbox",           _removeMessagePopover)
+                .on("change.msgbox",         _removeMessagePopover)
+                .on("cursorActivity.msgbox", _removeMessagePopover)
+                .on("update.msgbox",         _removeMessagePopover);
+        }
+
+        // Only 1 message at a time
+        if (this._$messagePopover) {
+            _removeMessagePopover();
+        }
+        
+        // Make sure cursor is in view
+        cursorPos = this.getCursorPos();
+        this._codeMirror.scrollIntoView(cursorPos);
+        
+        // Determine if arrow is above or below
+        cursorCoord = this._codeMirror.charCoords(cursorPos);
+        
+        // Assume popover height is max of 2 lines
+        arrowBelow = (cursorCoord.top > 100);
+        
+        // Text is dynamic, so build popover first so we can measure final width
+        this._$messagePopover = $("<div/>").addClass("popover-message").appendTo($("body"));
+        if (!arrowBelow) {
+            $("<div/>").addClass("arrowAbove").appendTo(this._$messagePopover);
+        }
+        $("<div/>").addClass("text").appendTo(this._$messagePopover).html(errorMsg);
+        if (arrowBelow) {
+            $("<div/>").addClass("arrowBelow").appendTo(this._$messagePopover);
+        }
+        
+        // Estimate where to position popover.
+        top = (arrowBelow) ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
+                           : cursorCoord.bottom + POPOVER_MARGIN;
+        left = cursorCoord.left - (this._$messagePopover.width() / 2);
+        
+        popoverRect = {
+            top:    top,
+            left:   left,
+            height: this._$messagePopover.height(),
+            width:  this._$messagePopover.width()
+        };
+        
+        // See if popover is clipped on any side
+        clip = ViewUtils.getElementClipSize($editorHolder, popoverRect);
+
+        // Prevent horizontal clipping
+        if (clip.left > 0) {
+            left += clip.left;
+        } else if (clip.right > 0) {
+            left -= clip.right;
+        }
+        
+        // Popover text and arrow are positioned individually
+        this._$messagePopover.css({"top": top, "left": left});
+        
+        // Position popover arrow centered over/under cursor...
+        arrowCenter = cursorCoord.left - left;
+
+        // ... but don't let it slide off text box
+        arrowCenter = Math.min(popoverRect.width - POPOVER_ARROW_HALF_BASE,
+                               Math.max(arrowCenter, POPOVER_ARROW_HALF_BASE));
+
+        arrowLeft = arrowCenter - POPOVER_ARROW_HALF_WIDTH;
+        if (arrowBelow) {
+            this._$messagePopover.find(".arrowBelow").css({"margin-left": arrowLeft});
+        } else {
+            this._$messagePopover.find(".arrowAbove").css({"margin-left": arrowLeft});
+        }
+
+        // Add listeners
+        PopUpManager.addPopUp(this._$messagePopover, _clearMessagePopover, true);
+        _addListeners();
+
+        // Animate open
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
+            // Make sure we still have a popover
+            if (self._$messagePopover && self._$messagePopover.length > 0) {
+                self._$messagePopover.addClass("open");
+
+                // Don't add scroll listeners until open so we don't get event
+                // from scrolling cursor into view
+                $(self).on("scroll.msgbox", _removeMessagePopover);
+
+                // Animate closed -- which includes delay to show message
+                AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose")
+                    .done(_removeMessagePopover);
+            }
+        });
+    };
+    
+    /**
      * Returns the offset of the top of the virtual scroll area relative to the browser window (not the editor
      * itself). Mainly useful for calculations related to scrollIntoView(), where you're starting with the
      * offset() of a child widget (relative to the browser window) and need to figure out how far down it is from
@@ -1848,7 +2018,6 @@ define(function (require, exports, module) {
         
         if (oldValue !== newValue) {
             this._currentOptions[prefName] = newValue;
-            var useTabChar = this._currentOptions[USE_TAB_CHAR];
             
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -1860,9 +2029,6 @@ define(function (require, exports, module) {
                 this._updateStyleActiveLine();
             } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
                 // Do not apply this option to inline editors
-                return;
-            } else if ((useTabChar && prefName === SPACE_UNITS) || (!useTabChar && prefName === TAB_SIZE)) {
-                // This change conflicts with the useTabChar setting, so do not change the CodeMirror option
                 return;
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
@@ -1893,99 +2059,148 @@ define(function (require, exports, module) {
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setUseTabChar = function (value) {
-        PreferencesManager.set(USE_TAB_CHAR, value);
+    Editor.setUseTabChar = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(USE_TAB_CHAR, value, options);
     };
     
-    /** @type {boolean} Gets whether the current editor uses tab characters (vs. spaces) when inserting new text */
-    Editor.getUseTabChar = function () {
-        return PreferencesManager.get(USE_TAB_CHAR);
+    /**
+     * Gets whether the specified or current file uses tab characters (vs. spaces) when inserting new text
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getUseTabChar = function (fullPath) {
+        return PreferencesManager.get(USE_TAB_CHAR, fullPath);
     };
     
     /**
      * Sets tab character width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setTabSize = function (value) {
-        PreferencesManager.set(TAB_SIZE, value);
+    Editor.setTabSize = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(TAB_SIZE, value, options);
     };
     
-    /** @type {number} Get indent unit  */
-    Editor.getTabSize = function () {
-        return PreferencesManager.get(TAB_SIZE);
+    /**
+     * Get indent unit
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {number}
+     */
+    Editor.getTabSize = function (fullPath) {
+        return PreferencesManager.get(TAB_SIZE, fullPath);
     };
     
     /**
      * Sets indentation width.
      * Affects any editors that share the same preference location.
      * @param {number} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setSpaceUnits = function (value) {
-        PreferencesManager.set(SPACE_UNITS, value);
+    Editor.setSpaceUnits = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(SPACE_UNITS, value, options);
     };
     
-    /** @type {number} Get indentation width */
-    Editor.getSpaceUnits = function () {
-        return PreferencesManager.get(SPACE_UNITS);
+    /**
+     * Get indentation width
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {number}
+     */
+    Editor.getSpaceUnits = function (fullPath) {
+        return PreferencesManager.get(SPACE_UNITS, fullPath);
     };
     
     /**
      * Sets the auto close brackets.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setCloseBrackets = function (value) {
-        PreferencesManager.set(CLOSE_BRACKETS, value);
+    Editor.setCloseBrackets = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(CLOSE_BRACKETS, value, options);
     };
     
-    /** @type {boolean} Gets whether the current editor uses auto close brackets */
-    Editor.getCloseBrackets = function () {
-        return PreferencesManager.get(CLOSE_BRACKETS);
+    /**
+     * Gets whether the specified or current file uses auto close brackets
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getCloseBrackets = function (fullPath) {
+        return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
     };
     
     /**
      * Sets show line numbers option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setShowLineNumbers = function (value) {
-        PreferencesManager.set(SHOW_LINE_NUMBERS, value);
+    Editor.setShowLineNumbers = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(SHOW_LINE_NUMBERS, value, options);
     };
     
-    /** @type {boolean} Returns true if show line numbers is enabled for the current editor */
-    Editor.getShowLineNumbers = function () {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS);
+    /**
+     * Returns true if show line numbers is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getShowLineNumbers = function (fullPath) {
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
     };
     
     /**
      * Sets show active line option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setShowActiveLine = function (value) {
-        PreferencesManager.set(STYLE_ACTIVE_LINE, value);
+    Editor.setShowActiveLine = function (value, fullPath) {
+        return PreferencesManager.set(STYLE_ACTIVE_LINE, value);
     };
     
-    /** @type {boolean} Returns true if show active line is enabled for the current editor */
-    Editor.getShowActiveLine = function () {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE);
+    /**
+     * Returns true if show active line is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getShowActiveLine = function (fullPath) {
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
     };
     
     /**
      * Sets word wrap option.
      * Affects any editors that share the same preference location.
      * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
      */
-    Editor.setWordWrap = function (value) {
-        PreferencesManager.set(WORD_WRAP, value);
+    Editor.setWordWrap = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(WORD_WRAP, value, options);
     };
     
-    /** @type {boolean} Returns true if word wrap is enabled for the current editor */
-    Editor.getWordWrap = function () {
-        return PreferencesManager.get(WORD_WRAP);
+    /**
+     * Returns true if word wrap is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getWordWrap = function (fullPath) {
+        return PreferencesManager.get(WORD_WRAP, fullPath);
     };
+    
     
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
