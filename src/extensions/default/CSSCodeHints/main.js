@@ -285,10 +285,10 @@ define(function (require, exports, module) {
             
             result = $.map(valueArray, function (pvalue, pindex) {
                 if (!useFuzzyMatching) {
-                    if (pvalue.indexOf(needle) === 0) {
+                    if (pvalue.indexOf(valueNeedle) === 0) {
                         return pvalue;
                     }
-                } else if (matcher.match(pvalue, needle)) {
+                } else if (matcher.match(pvalue, valueNeedle)) {
                     return pvalue;
                 }
             }).sort();
