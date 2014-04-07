@@ -153,7 +153,7 @@ define(function (require, exports, module) {
                         }
                         // If we type the first letter of the next attribute, it comes as an error
                         // token. We need to double check for possible invalidated attributes.
-                        if (/\S/.test(forwardCtx.token.string) !== "" &&
+                        if (/\S/.test(forwardCtx.token.string) &&
                                 forwardCtx.token.string.indexOf("\"") === -1 &&
                                 forwardCtx.token.string.indexOf("'") === -1 &&
                                 forwardCtx.token.string.indexOf("=") === -1) {
