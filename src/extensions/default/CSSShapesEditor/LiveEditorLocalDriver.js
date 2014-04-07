@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             return deferred.reject().promise();
         }
 
-        _cache.model = undefined; // do not move in _reset(), otherwhise the _reconnect() scenario misses the cache and fails
+        _cache.model = undefined; // do not move in _reset(), otherwise the _reconnect() scenario misses the cache and fails
         _reset();
         var expr = _namespace + ".remove()";
         return _call(expr);
@@ -164,10 +164,8 @@ define(function (require, exports, module) {
     *
     * Promises also fail because of errors thrown in the remote page.
     * If this is the case, remove the editor.
-    *
-    * @param {$.Deferred=} result
     */
-    function _whenRemoteCallFailed(result) {
+    function _whenRemoteCallFailed() {
         // check if the remote editor namespace is still defined on the page
         _call(_namespace)
             .then(function (response) {
