@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                 var attributeValue = tagInfo.attr.value;
                 if (/\S/.test(attributeValue)) {
                     var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                    var endIndex = attributeValue.search(/\s+$/g);
+                    var endIndex = attributeValue.search(/\s+$/);
                     if (endIndex < tagInfo.position.offset) {
                         endIndex = -1;
                     }
