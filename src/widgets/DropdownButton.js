@@ -188,10 +188,14 @@ define(function (require, exports, module) {
     DropdownButton.prototype._onDropdownClose = function () {
         window.document.body.removeEventListener("click", this._onClickOutside, true);
         $(PanelManager).off("editorAreaResize", this.closeDropdown);
+
+        // Restore focus to old pos, unless "select" handler changed it
+        if (window.document.activeElement === this.$dropdown[0]) {
+            this._lastFocus.focus();
+        }
+        
         this._dropdownEventHandler = null;
         this.$dropdown = null;  // already remvoed from DOM automatically by PopUpManager
-
-        this._lastFocus.focus();  // restore focus to old pos
     };
     
     /** Closes the dropdown if currently open */
