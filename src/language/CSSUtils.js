@@ -184,7 +184,7 @@ define(function (require, exports, module) {
         if (ctx.token.type === "property" || ctx.token.type === "property error" ||
                 ctx.token.type === "tag") {
             propName = tokenString;
-            if (TokenUtils.movePrevToken(ctx) && ctx.token.string.trim() !== "" &&
+            if (TokenUtils.movePrevToken(ctx) && /\S/.test(ctx.token.string) &&
                     excludedCharacters.indexOf(ctx.token.string) === -1) {
                 propName = ctx.token.string + tokenString;
                 offset += ctx.token.string.length;
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
                     ctx.token.type === "tag")) {
                 propName += ctx.token.string;
             }
-        } else if (tokenString.trim() !== "" && excludedCharacters.indexOf(tokenString) === -1) {
+        } else if (/\S/.test(tokenString) && excludedCharacters.indexOf(tokenString) === -1) {
             // We're not inside the property name context.
             return createInfo();
         } else {
@@ -360,14 +360,14 @@ define(function (require, exports, module) {
         
         // Skip the ":" and any leading whitespace
         while (TokenUtils.moveNextToken(startCtx)) {
-            if (startCtx.token.string.trim()) {
+            if (/\S/.test(startCtx.token.string)) {
                 break;
             }
         }
         
         // Skip the trailing whitespace and property separators.
         while (endCtx.token.string === ";" || endCtx.token.string === "}" ||
-                !endCtx.token.string.trim()) {
+                !/\S/.test(endCtx.token.string)) {
             TokenUtils.movePrevToken(endCtx);
         }
         
@@ -1033,7 +1033,7 @@ define(function (require, exports, module) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
-                if (entry.selector.trim().search(/\*$/) !== -1) {
+                if (/.*\*\s*$/.test(entry.selector)) {
                     result.push(entry);
                 }
             }
@@ -1230,7 +1230,7 @@ define(function (require, exports, module) {
                     selector = _parseSelector(ctx);
                     break;
                 } else {
-                    if (ctx.token.string.trim() !== "") {
+                    if (/\S/.test(ctx.token.string)) {
                         foundChars = true;
                     }
                 }
@@ -1249,7 +1249,7 @@ define(function (require, exports, module) {
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace
         if (!selector && !foundChars) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && ctx.token.string.trim() !== "") {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && /\S/.test(ctx.token.string)) {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
             }

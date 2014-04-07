@@ -75,9 +75,12 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                if (attributeValue.trim()) {
+                if (/\S/.test(attributeValue)) {
                     var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
+                    var endIndex = attributeValue.search(/\s+$/g);
+                    if (endIndex < tagInfo.position.offset) {
+                        endIndex = -1;
+                    }
                     selectorName = "." +
                         attributeValue.substring(
                             startIndex === -1 ? 0 : startIndex + 1,
