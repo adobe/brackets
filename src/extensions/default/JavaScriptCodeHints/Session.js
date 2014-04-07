@@ -200,7 +200,7 @@ define(function (require, exports, module) {
                 break;
             }
             prev = this.getToken(cursor);
-        } while (prev.string.trim() === "");
+        } while (!/\S/.test(prev.string));
         
         return prev;
     };

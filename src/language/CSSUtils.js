@@ -1033,7 +1033,7 @@ define(function (require, exports, module) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
-                if (/.*\*\s*$/.test(entry.selector)) {
+                if (/\*\s*$/.test(entry.selector)) {
                     result.push(entry);
                 }
             }

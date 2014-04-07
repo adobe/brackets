@@ -303,7 +303,7 @@ define(function (require, exports, module) {
         var result, text, line;
 
         // Move the context to the first non-empty token.
-        if (!ctx.token.type && ctx.token.string.trim().length === 0) {
+        if (!ctx.token.type && !/\S/.test(ctx.token.string)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
 
