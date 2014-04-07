@@ -232,7 +232,7 @@ define(function (require, exports, module) {
                 break;
             }
             next = this.getToken(cursor);
-        } while (skipWhitespace && next.string.trim() === "");
+        } while (skipWhitespace && !/\S/.match(next.string));
         
         return next;
     };
