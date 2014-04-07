@@ -82,7 +82,7 @@
           Declared globally within module so it can be removed by Provider.remove()
           Defined here so it can access scope.inst
 
-          Ctrl+T toggles the free transform editor (scale/rotate)
+          T key toggles the free transform editor (scale/rotate)
           Esc key turns off free transform editor; quietly ignored if editor was never turned on.
 
           @param {Event} e keydown event
@@ -92,8 +92,8 @@
             if (scope.inst.type !== "polygon") {
                 return;
             }
-            // Ctrl+T toggles rotate/scale editor
-            if (e.ctrlKey && e.keyIdentifier === "U+0054") {
+            // T key toggles rotate/scale editor
+            if (e.keyIdentifier === "U+0054") {
                 scope.inst.toggleFreeTransform();
             }
 
