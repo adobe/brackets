@@ -33,13 +33,19 @@ define(function (require, exports, module) {
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        StringMatch         = brackets.getModule("utils/StringMatch"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.
-    var lastContext;
+    var lastContext,
+        matcher      = null, // string matcher for hints
+        prefs        = PreferencesManager.getExtensionPrefs("CSSCodeHints");
     
+    prefs.definePreference("fuzzy-matching",  "boolean", true);
+        
     /**
      * @constructor
      */
@@ -49,6 +55,33 @@ define(function (require, exports, module) {
         this.exclusion = null;
     }
 
+    /**
+     * Returns the preferences used to add/remove the menu items
+     * @return {{fuzzyMatching: boolean}}
+     */
+    function getPreferences() {
+        // It's senseless to look prefs up for the current file, instead look them up for
+        // the current project (or globally)
+        return {
+            fuzzyMatching  : prefs.get("fuzzy-matching", PreferencesManager.CURRENT_PROJECT)
+        };
+    }
+    
+    /**
+     *  Create a new StringMatcher instance, if needed.
+     *
+     * @return {StringMatcher} - a StringMatcher instance.
+     */
+    function getStringMatcher() {
+        if (!matcher) {
+            matcher = new StringMatch.StringMatcher({
+                preferPrefixMatches: false
+            });
+        }
+
+        return matcher;
+    }
+    
     /**
      * Get the CSS style text of the file open in the editor for this hinting session.
      * For a CSS file, this is just the text of the file. For an HTML file,
@@ -206,7 +239,9 @@ define(function (require, exports, module) {
             valueArray,
             namedFlows,
             result,
-            selectInitial = false;
+            selectInitial = false,
+            matcher = getStringMatcher(),
+            useFuzzyMatching = getPreferences().fuzzyMatching;
             
         
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
@@ -249,7 +284,11 @@ define(function (require, exports, module) {
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {
-                if (pvalue.indexOf(valueNeedle) === 0) {
+                if (!useFuzzyMatching) {
+                    if (pvalue.indexOf(needle) === 0) {
+                        return pvalue;
+                    }
+                } else if (matcher.match(pvalue, needle)) {
                     return pvalue;
                 }
             }).sort();
@@ -269,9 +308,14 @@ define(function (require, exports, module) {
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {
-                if (pname.indexOf(needle) === 0) {
+                if (!useFuzzyMatching) {
+                    if (pname.indexOf(needle) === 0) {
+                        return pname;
+                    }
+                } else if (matcher.match(pname, needle)) {
                     return pname;
                 }
+
             }).sort();
             
             return {
