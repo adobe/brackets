@@ -76,11 +76,8 @@ define(function (require, exports, module) {
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
                 if (/\S/.test(attributeValue)) {
-                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).search(/\s\S*$/);
-                    var endIndex =  attributeValue.substr(tagInfo.position.offset).search(/\s/);
-                    if (endIndex !== -1) {
-                        endIndex += tagInfo.position.offset;
-                    }
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
                     selectorName = "." +
                         attributeValue.substring(
                             startIndex === -1 ? 0 : startIndex + 1,
