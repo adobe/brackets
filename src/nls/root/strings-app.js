@@ -33,6 +33,7 @@ define({
     "LOCALE_DE"                                 : "Deutsch",
     "LOCALE_EL"                                 : "Ελληνικά",
     "LOCALE_EN"                                 : "English",
+    "LOCALE_EN_UK"                              : "English (UK)",
     "LOCALE_ES"                                 : "Español",
     "LOCALE_FI"                                 : "suomi",
     "LOCALE_FR"                                 : "Français",

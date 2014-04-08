@@ -206,6 +206,35 @@ define(function (require, exports, module) {
                     expectAndDelete(newFilePath);
                 });
             });
+			
+            // from Issue #6121
+            it("should recognize that a previously untitled, but now saved, document can be saved without prompting for a filename", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+                     
+                runs(function () {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog).toHaveBeenCalled();   // first save should prompt user for filename
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog.callCount).toEqual(1); // second save should not prompt
+                });
+            });
 
             it("should swap out untitled document from working set even when not current", function () {
                 runs(function () {

@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        return FileUtils.getRelativeFilename(projectDirectory, filename) ? true : false;
+        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
     
     /**
@@ -336,13 +336,17 @@ define(function (require, exports, module) {
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
         PreferencesImpl.smUserScopeLoading.done(function () {
             PreferencesImpl.userScopeLoading.done(function () {
+                if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
+                    console.error("Invalid clientID");
+                    return;
+                }
                 var prefs = getPreferenceStorage(clientID, null, true);
 
                 if (!prefs) {
                     return;
                 }
 
-                var prefsID = getClientID(clientID);
+                var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
                 if (prefStorage.convertedKeysMap === undefined) {
                     prefStorage.convertedKeysMap = {};
                 }
@@ -354,7 +358,7 @@ define(function (require, exports, module) {
                         savePreferences();
                     });
             }).fail(function (error) {
-                console.error("Error while converting ", getClientID(clientID));
+                console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
                 console.error(error);
             });
         });
@@ -489,7 +493,8 @@ define(function (require, exports, module) {
      * @param {Object} value New value for the preference
      * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
      * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
-     * @return {boolean} true if a value was set
+     * @return {valid:  {boolean}, true if no validator specified or if value is valid
+     *          stored: {boolean}} true if a value was stored
      */
     function set(id, value, options, doNotSave) {
         if (options && options.context) {
@@ -536,7 +541,7 @@ define(function (require, exports, module) {
      */
     function setValueAndSave(id, value, options) {
         DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = set(id, value, options);
+        var changed = set(id, value, options).stored;
         PreferencesImpl.manager.save();
         return changed;
     }

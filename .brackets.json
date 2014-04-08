@@ -11,6 +11,10 @@
         "src/thirdparty/CodeMirror2/**/*.js": {
             "spaceUnits": 2,
             "linting.enabled": false
+        },
+        "src/thirdparty/globmatch.js": {
+            "spaceUnits": 2,
+            "linting.enabled": false
         }
     },
     "spaceUnits": 4,

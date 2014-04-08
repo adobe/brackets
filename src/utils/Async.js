@@ -487,7 +487,7 @@ define(function (require, exports, module) {
         if (this._queue.length) {
             var op = this._queue.shift();
             this._curPromise = op();
-            this._curPromise.done(function () {
+            this._curPromise.always(function () {
                 self._curPromise = null;
                 self._doNext();
             });

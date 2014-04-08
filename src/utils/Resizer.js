@@ -270,7 +270,7 @@ define(function (require, exports, module) {
             $body.append($resizeShield);
                         
             if ($resizableElement.length) {
-                $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
+                $element.children(":visible").not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
                         baseSize += $(child).outerWidth();
                     } else {
