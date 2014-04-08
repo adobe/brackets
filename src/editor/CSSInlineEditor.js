@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
@@ -76,10 +76,10 @@ define(function (require, exports, module) {
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
                 if (/\S/.test(attributeValue)) {
-                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                    var endIndex = attributeValue.search(/\s+$/);
-                    if (endIndex < tagInfo.position.offset) {
-                        endIndex = -1;
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).search(/\s+.*$/);
+                    var endIndex =  attributeValue.substr(tagInfo.position.offset).search(/\s/);
+                    if (endIndex !== -1) {
+                        endIndex += tagInfo.position.offset;
                     }
                     selectorName = "." +
                         attributeValue.substring(
