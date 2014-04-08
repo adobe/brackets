@@ -838,16 +838,28 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-    
+
+    /**
+     * @public
+     * Executes the Find in Files search using passed RegExp
+     * @param {!RegExp} query RegExp to search with
+     */
+    function doSearch(query) {
+        if (!(query instanceof RegExp)) {
+            throw new Error("RegExp query is required");
+        }
+        return _doSearch(query.toString(), getCandidateFiles(), query);
+    }
+
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      */
-    function _doSearch(query, candidateFilesPromise) {
+    function _doSearch(query, candidateFilesPromise, implicitRegExp) {
         currentQuery     = query;
-        currentQueryExpr = _getQueryRegExp(query);
+        currentQueryExpr = implicitRegExp || _getQueryRegExp(query);
         
         if (!currentQueryExpr) {
             StatusBar.hideBusyIndicator();
@@ -1240,6 +1252,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
     
+    // Public API
+    exports.doSearch = doSearch;
+
     // For unit testing - updated in _doSearch() when search complete
     exports._searchResults = null;
 });
