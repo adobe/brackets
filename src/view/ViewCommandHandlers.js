@@ -102,16 +102,23 @@ define(function (require, exports, module) {
      * @param {string=} fontSizeStyle  A string with the font size and the size unit
      */
     function _setSizeAndRestoreScroll(fontSizeStyle) {
-        var editor    = EditorManager.getCurrentFullEditor(),
-            oldWidth  = editor._codeMirror.defaultCharWidth(),
-            scrollPos = editor.getScrollPos(),
-            line      = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
+        var editor          = EditorManager.getCurrentFullEditor(),
+            oldWidth        = editor._codeMirror.defaultCharWidth(),
+            newFontSize     = "",
+            oldFontSize     = $(".CodeMirror").css("font-size"),
+            fontSizeChange  = 0,
+            scrollPos       = editor.getScrollPos(),
+            line            = editor._codeMirror.lineAtHeight(scrollPos.y, "local");
         
         _removeDynamicFontSize();
         if (fontSizeStyle) {
             _addDynamicFontSize(fontSizeStyle);
         }
         editor.refreshAll();
+        
+        newFontSize = $(".CodeMirror").css("font-size");
+        fontSizeChange = parseInt(newFontSize, 10) - parseInt(oldFontSize, 10);
+        $(exports).triggerHandler("fontSizeChange", [fontSizeChange, newFontSize]);
         
         // Calculate the new scroll based on the old font sizes and scroll position
         var newWidth   = editor._codeMirror.defaultCharWidth(),
