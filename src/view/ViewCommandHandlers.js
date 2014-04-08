@@ -120,7 +120,10 @@ define(function (require, exports, module) {
         delta = /em$/.test(oldFontSize) ? 10 : 1;
         newFontSize = $(".CodeMirror").css("font-size");
         adjustment = parseInt((parseFloat(newFontSize) - parseFloat(oldFontSize)) * delta, 10);
-        $(exports).triggerHandler("fontSizeChange", [adjustment, newFontSize]);
+        
+        if (adjustment) {
+            $(exports).triggerHandler("fontSizeChange", [adjustment, newFontSize]);
+        }
         
         // Calculate the new scroll based on the old font sizes and scroll position
         var newWidth   = editor._codeMirror.defaultCharWidth(),
