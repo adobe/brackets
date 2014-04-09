@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -175,9 +176,25 @@ define({
     "NO_FILE_FILTER"                    : "Exclude files\u2026",
     "EDIT_FILE_FILTER"                  : "Edit\u2026",
     "FILE_FILTER_DIALOG"                : "Edit Filter",
-    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+
+    "FILTER_COUNTING_FILES"             : "Counting files\u2026",
+    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit available for current cursor position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: place cursor on a single class name",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: incomplete class attribute",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: incomplete id attribute",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag, class, or id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: invalid syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: place cursor in function name",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs available for current cursor position",
 
     /**
      * ProjectManager
@@ -223,6 +240,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**
@@ -268,8 +287,8 @@ define({
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
-    "CMD_ADD_NEXT_LINE_TO_SEL"            : "Add Next Line to Selection",
-    "CMD_ADD_PREV_LINE_TO_SEL"            : "Add Previous Line to Selection",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
@@ -334,9 +353,10 @@ define({
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_SUPPORT"                         : "{APP_NAME} Support",
+    "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",

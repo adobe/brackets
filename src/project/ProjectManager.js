@@ -30,7 +30,8 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
+ *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
@@ -103,7 +104,7 @@ define(function (require, exports, module) {
      *    https://github.com/adobe/brackets/issues/6781
      * @type {RegExp}
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|\~$/;
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
     /**
      * @private
@@ -159,6 +160,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @see getProjectRoot()
+     * @type {Directory}
      */
     var _projectRoot = null;
 
@@ -670,7 +672,50 @@ define(function (require, exports, module) {
             // install scroller shadows
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
+            var findEventHandler = function (type, namespace, selector) {
+                var events        = $._data(_projectTree[0], "events"),
+                    eventsForType = events ? events[type] : null,
+                    event         = eventsForType ? _.find(eventsForType, function (e) {
+                        return e.namespace === namespace && e.selector === selector;
+                    }) : null,
+                    eventHandler  = event ? event.handler : null;
+                if (!eventHandler) {
+                    console.error(type + "." + namespace + " " + selector + " handler not found!");
+                }
+                return eventHandler;
+            };
+            var createCustomHandler = function (originalHandler) {
+                return function (event) {
+                    var $node = $(event.target).parent("li"),
+                        methodName;
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.altKey) {
+                            // collapse subtree
+                            // note: expanding using open_all is a bad idea due to poor performance
+                            methodName = $node.is(".jstree-open") ? "close_all" : "open_node";
+                            _projectTree.jstree(methodName, $node);
+                            return;
+                        } else {
+                            // toggle siblings
+                            methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
+                            $node.parent().children("li").each(function () {
+                                _projectTree.jstree(methodName, $(this));
+                            });
+                            return;
+                        }
+                    }
+                    // original behaviour
+                    originalHandler.apply(this, arguments);
+                };
+            };
+            var originalHrefHandler = findEventHandler("click", "jstree", "a");
+            var originalInsHandler = findEventHandler("click", "jstree", "li > ins");
+
             _projectTree
+                .off("click.jstree", "a")
+                .on("click.jstree", "a", createCustomHandler(originalHrefHandler))
+                .off("click.jstree", "li > ins")
+                .on("click.jstree", "li > ins", createCustomHandler(originalInsHandler))
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
@@ -1031,6 +1076,20 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Reloads the project preferences.
+     */
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
+        } else {
+            PreferencesManager._setProjectSettingsFile();
+        }
+    }
+    
+    /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
@@ -1059,8 +1118,9 @@ define(function (require, exports, module) {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
+            
+            // About to close current project (if any)
             if (_projectRoot) {
-                // close current project
                 $(exports).triggerHandler("beforeProjectClose", _projectRoot);
             }
             
@@ -1068,6 +1128,11 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
+                // Done closing old project (if any)
+                if (_projectRoot) {
+                    $(exports).triggerHandler("projectClose", _projectRoot);
+                }
+                
                 startLoad.resolve();
             });
         }
@@ -1084,7 +1149,7 @@ define(function (require, exports, module) {
             };
 
             if (!isUpdating) {
-                PreferencesManager.projectLayer.setProjectPath(rootPath);
+                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
             }
             
             // restore project tree state from last time this project was open
@@ -1099,15 +1164,20 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-                        PreferencesManager._setCurrentEditingFile(rootPath);
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
-
+                        
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        
+                        if (projectRootChanged) {
+                            _reloadProjectPreferencesScope();
+                            PreferencesManager._setCurrentEditingFile(rootPath);
+                        }
+
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
                         _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
@@ -1810,9 +1880,13 @@ define(function (require, exports, module) {
                 var escapedName = _.escape(entry.name);
                 _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
-                var indexOfExtension = escapedName.lastIndexOf('.');
-                if (indexOfExtension > 0) {
-                    $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+
+                var extension = FileUtils.getSmartFileExtension(entry.name);
+                if (extension) {
+                    var indexOfExtension = escapedName.length - extension.length - 1;
+                    if (indexOfExtension > 0) {
+                        $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                    }
                 }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
@@ -2207,18 +2281,6 @@ define(function (require, exports, module) {
         "welcomeProjects": "user",
         "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
-    
-    function _reloadProjectPreferencesScope() {
-        var root = getProjectRoot();
-        if (root) {
-            // Alias the "project" Scope to the path Scope for the project-level settings file
-            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
-        } else {
-            PreferencesManager._setProjectSettingsFile();
-        }
-    }
-    
-    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
     
     // Initialize the sort prefixes and make sure to change them when the sort pref changes
     _generateSortPrefixes();

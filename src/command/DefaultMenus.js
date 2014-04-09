@@ -79,8 +79,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
         menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
-        menu.addMenuItem(Commands.EDIT_ADD_PREV_LINE_TO_SEL);
-        menu.addMenuItem(Commands.EDIT_ADD_NEXT_LINE_TO_SEL);
+        menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_PREV_LINE);
+        menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_NEXT_LINE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND);
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
@@ -157,14 +157,17 @@ define(function (require, exports, module) {
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }
-        if (brackets.config.forum_url) {
-            menu.addMenuItem(Commands.HELP_FORUM);
+        if (brackets.config.support_url) {
+            menu.addMenuItem(Commands.HELP_SUPPORT);
+        }
+        if (brackets.config.suggest_feature_url) {
+            menu.addMenuItem(Commands.HELP_SUGGEST);
         }
         if (brackets.config.release_notes_url) {
             menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
         }
-        if (brackets.config.report_issue_url) {
-            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
+        if (brackets.config.get_involved_url) {
+            menu.addMenuItem(Commands.HELP_GET_INVOLVED);
         }
 
         menu.addMenuDivider();

@@ -158,12 +158,13 @@ a, img {
     white-space: nowrap;
 
     > div {
-        border-left: 1px solid rgba(0, 0, 0, 0.1);
+        &:not(.spinner) {
+            border-left: 1px solid rgba(0, 0, 0, 0.1);
+        }
         float: right;
         padding: 0 10px;
     }
     .spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
-        border: none;
         margin: 6px 10px;
         padding: 0;
     }
@@ -171,15 +172,6 @@ a, img {
     #status-language {
         border-right: 1px solid rgba(0, 0, 0, 0.1);
     }
-}
-
-@-webkit-keyframes spinner-sprites-12 {
-      0% { background-position:    0px 0px; }
-    100% { background-position: -120px 0px; }
-}
-@-webkit-keyframes spinner-sprites-36 {
-      0% { background-position:    0px 0px; }
-    100% { background-position: -360px 0px; }
 }
 
 #status-indent > * {
@@ -794,7 +786,7 @@ a, img {
 
     .inline-editor-header {
         display: inline-block;
-        padding: 10px 10px 0px 40px;
+        padding: 9px 10px 1px 40px;
 
         .filename {
             vertical-align: middle;
@@ -1119,7 +1111,7 @@ a, img {
             top: 24px;
             min-width: 291px + 2px;  // to align with search field above it
 
-            background-color: #f74687;
+            background-color: @bc-error;
             color: @bc-white;
             font-size: 12px;
             padding: 3px 8px;
@@ -1218,11 +1210,18 @@ a, img {
 // File exclusion filter editor dialog
 textarea.exclusions-editor {
     display: block;
-    width: 547px;
+    width: 100%;
     height: 160px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
     margin-top: 12px;
     margin-bottom: 0;
     .code-font();
+}
+.exclusions-filecount {
+    margin: 12px 0 -20px 0;
+    padding: 4px 6px;
+    background-color: @tc-highlight;
+    border-radius: @tc-control-border-radius;
 }
 
 
@@ -1293,12 +1292,15 @@ textarea.exclusions-editor {
 
 .smart_autocomplete_container {
     // the borders show up even if the container is empty, must set height to zero using JS.
-    border: 1px solid @tc-gray-panel-border;
     background-color: @tc-gray-panel;
     border-radius: 0 0 4px 4px;
     box-shadow: @tc-normal-shadow-bottom;
     opacity: 0;
-    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 0, 1);
+    
+    // Need this for border-radius because there are no borders
+    overflow: hidden;
+    
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 190ms, 1);
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     -webkit-transform-origin: 0 0;
@@ -1366,42 +1368,66 @@ textarea.exclusions-editor {
 
 .spinner {
     display: inline-block;
-    vertical-align: middle;
-    margin-top: -2px;
-    width: 12px;
-    height: 12px;
-    background: url("images/spinner_small_sprites12.png") no-repeat;
+    box-sizing: border-box;
+    width: 14px;
+    height: 14px;
+    border-left: 3px solid #78B2F2;
+    border-right: 3px solid #78B2F2;
+    overflow: hidden;
+    position: relative;
     visibility: hidden;
 
+    &:before,
+    &:after {
+        border-left: 3px solid #78B2F2;
+        border-right: 3px solid #78B2F2;
+        box-sizing: border-box;
+        content: "";
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        left: 0;
+    }
+    &:before {
+        top: 0;
+    }
+    &:after {
+        bottom: 0;
+    }
+
     &.spin {
-        -webkit-animation: spinner-sprites-12 1.2s steps(10) infinite;
+        -webkit-animation: spinner-rotateplane 1.2s infinite ease-in-out;
+        animation: spinner-rotateplane 1.2s infinite ease-in-out;
         visibility: visible;
     }
 
     &.large {
         width: 36px;
         height: 36px;
-        margin-top: 0;
-        background: url("images/spinner_large_sprites36.png") no-repeat;
+        border-left: 9px solid #78B2F2;
+        border-right: 9px solid #78B2F2;
 
-        &.spin {
-            -webkit-animation: spinner-sprites-36 1.2s steps(10) infinite;
+        &:before,
+        &:after {
+            border-left: 7px solid #78B2F2;
+            border-right: 7px solid #78B2F2;
+            height: 9px;
         }
     }
 }
-// Retina versions
-@media only screen and (-webkit-min-device-pixel-ratio: 2),
-       only screen and (min-device-pixel-ratio: 2) {
-    .spinner {
-        background-image: url("images/spinner_small_sprites12@2x.png");
-        background-size: 120px 12px;
 
-        &.large {
-            background: url("images/spinner_large_sprites36@2x.png") no-repeat;
-            background-size: 360px 36px;
-        }
-    }
+@-webkit-keyframes spinner-rotateplane {
+    0% { -webkit-transform: perspective(120px) }
+    50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
 }
+@keyframes spinner-rotateplane {
+    0% { -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg); transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+    50% { -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+    100% { -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+}
+
 
 
 /* Problems panel & CodeInspection status bar indicator */
@@ -1470,4 +1496,57 @@ label input {
 
 .install-extension-dialog .spinner {
     margin-left: 10px;
+}
+
+/* Quick Edit, Quick Docs */
+.popover-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: @z-index-brackets-inline-editor-error;
+    opacity: 1.0;
+
+    -webkit-transform: scale(0);
+    transform: scale(0);
+
+    .text {
+        padding: 5px 10px;
+        background-color: @bc-error;
+        border-radius: 3px;
+        color: @bc-white;
+        box-shadow: @tc-dropdown-shadow;
+        white-space: nowrap;
+    }
+    .arrowAbove {
+        height: 0;
+        width: 0;
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent @bc-error transparent;
+        border-style: solid;
+    }
+    .arrowBelow {
+        height: 0;
+        width: 0;
+        border-width: 10px 10px 0 10px;
+        border-color: @bc-error transparent transparent transparent;
+        border-style: solid;
+    }
+    &.animateOpen {
+        -webkit-transition: -webkit-transform 125ms;
+        transition: transform 125ms;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+    &.animateClose {
+        // Make the animation use the GPU--especially important for retina.
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
+        transition: opacity 500ms 5s ease-in, transform 500ms 5s;
+        opacity: 0.0;
+    }
+    &.open {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
 }

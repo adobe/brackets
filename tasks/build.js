@@ -230,7 +230,7 @@ module.exports = function (grunt) {
             
             res.on("end", function () {
                 if (body.match(/.*REJECTED.*/)) {
-                    grunt.log.error(user + " has NOT submitted the contributor license agreement");
+                    grunt.log.error(user + " has NOT submitted the contributor license agreement. See http://dev.brackets.io/brackets-contributor-license-agreement.html.");
                     done(false);
                 } else {
                     grunt.log.writeln(user + " has submitted the contributor license agreement");

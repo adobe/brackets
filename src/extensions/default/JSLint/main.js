@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
+        Editor             = brackets.getModule("editor/Editor").Editor,
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings"),
         _                  = brackets.getModule("thirdparty/lodash");
@@ -60,6 +61,11 @@ define(function (require, exports, module) {
     // Predefined environments understood by JSLint.
     var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
     
+    // gets indentation size depending whether the tabs or spaces are used
+    function _getIndentSize(fullPath) {
+        return Editor.getUseTabChar(fullPath) ? Editor.getTabSize(fullPath) : Editor.getSpaceUnits(fullPath);
+    }
+
     /**
      * Run JSLint on the current document. Reports results to the main UI. Displays
      * a gold star when no errors are found.
@@ -88,7 +94,7 @@ define(function (require, exports, module) {
         
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
-            options.indent = PreferencesManager.get("spaceUnits");
+            options.indent = _getIndentSize(fullPath);
         }
         
         // If the user has not defined the environment, we use browser by default.

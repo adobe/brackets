@@ -52,6 +52,8 @@
  * to meet these requirements)
  * 
  * FileSystem dispatches the following events:
+ * (NOTE: attach to these events via `FileSystem.on()` - not `$(FileSystem).on()`)
+ * 
  *    change - Sent whenever there is a change in the file system. The handler
  *          is passed up to three arguments: the changed entry and, if that changed entry 
  *          is a Directory, a list of entries added to the directory and a list of entries 
@@ -262,6 +264,8 @@ define(function (require, exports, module) {
             commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
         if (recursiveWatch) {
+            // The impl can watch the entire subtree with one call on the root (we also fall into this case for
+            // unwatch, although that never requires us to do the recursion - see similar final case below)
             if (entry !== watchedRoot.entry) {
                 // Watch and unwatch calls to children of the watched root are
                 // no-ops if the impl supports recursiveWatch
@@ -315,6 +319,8 @@ define(function (require, exports, module) {
                 });
             }, callback);
         } else {
+            // Unwatching never requires enumerating the subfolders (which is good, since after a
+            // delete/rename we may be unable to do so anyway)
             this._enqueueWatchRequest(function (requestCb) {
                 impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
