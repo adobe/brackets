@@ -805,12 +805,14 @@ define(function (require, exports, module) {
                     if (selectedPath) {
                         //Get only the filename (without the final slash) and not the rest of the path 
                         var filename = selectedPath.substr(selectedPath.lastIndexOf("/") + 1);
-                        //Validation for file name path only on a Mac
-                        if (new RegExp("[/?*|:]+").test(filename) && brackets.platform === "mac") {
+                        //Validation for file name path for Mac
+                        //If you try to put a slash into the native file dialog on a Mac, it converts it to a colon
+                        //So this regex will catch it
+                        if (/\?|:|\*/.test(filename)) {
                             Dialogs.showModalDialog(
                                 DefaultDialogs.DIALOG_ID_ERROR,
                                 StringUtils.format(Strings.INVALID_FILENAME_TITLE, Strings.FILE),
-                                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, "/?*|:")
+                                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, "/?:*")
                             );
                             result.reject();
                         } else {

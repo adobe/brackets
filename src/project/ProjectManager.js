@@ -2287,7 +2287,7 @@ define(function (require, exports, module) {
     
     // Init invalid characters string 
     if (brackets.platform === "mac") {
-        _invalidChars = "/?*|:";
+        _invalidChars = "/?:*";
     } else if (brackets.platform === "linux") {
         _invalidChars = "?*|/";
     } else {
