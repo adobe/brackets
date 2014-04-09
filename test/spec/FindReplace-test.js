@@ -1722,18 +1722,30 @@ define(function (require, exports, module) {
 
                 expect($("#search-results").is(":visible")).toBeFalsy();
                 expect($(".modal-bar").length).toBe(1);
+
+                // Close search bar
+                var $searchField = $(".modal-bar #find-group input");
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
             });
         });
 
-//        it("should paginate panel when results exceed 100", function () {
-//        });
-//
 //        it("should change file and selection when a result is clicked", function () {
-//        });
+//            openSearchBar();
+//            runs(function () {
+//                executeSearch("foo");
+//            });
 //
+//            runs(function () {
+//                var $searchResults = $("#search-results");
+//
+//                expect($searchResults.is(":visible")).toBeTruthy();
+////                expect($searchResults.find("span.next-page").hasClass("disabled")).toBeFalsy();
+//            });
+//        });
+
 //        it("should open file in working set when a result is double-clicked", function () {
 //        });
-//
+
 //        it("should update results when a result in a file is edited", function () {
 //        });
     });
