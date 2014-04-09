@@ -175,22 +175,6 @@ define(function (require, exports, module) {
      */
     var _projectInitialLoad = null;
     
-    /**
-     * @private
-     * A string containing all invalid characters for a specific platform.
-     * This will be used to construct a regular expression for checking invalid filenames.
-     * When a filename with one of these invalid characters are detected, then it is 
-     * also used to substitute the place holder of the error message.
-     */
-    var _invalidChars;
-
-    /**
-     * @private
-     * RegEx to validate if a filename is not allowed even if the system allows it.
-     * This is done to prevent cross-platform issues.
-     */
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
-    
     var suppressToggleOpen = false;
     
     /**
@@ -1487,32 +1471,6 @@ define(function (require, exports, module) {
         return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
     }
     
-    /**
-     * @private
-     * Check a filename for illegal characters. If any are found, show an error
-     * dialog and return false. If no illegal characters are found, return true.
-     * Although Mac and Linux allow ?*| characters, we still cannot allow them
-     * since these have special meaning for all file systems.
-     *
-     * @param {string} filename
-     * @param {boolean} isFolder
-     * @return {boolean} Returns true if no illegal characters are found
-     */
-    function _checkForValidFilename(filename, isFolder) {
-        // Validate file name
-        // Checks for valid Windows filenames:
-        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if ((filename.search(new RegExp("[" + _invalidChars + "]+")) !== -1) ||
-                filename.match(_illegalFilenamesRegEx)) {
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
-            );
-            return false;
-        }
-        return true;
-    }
     
     /**
      * @private
@@ -1614,7 +1572,7 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                if (!_checkForValidFilename(data.rslt.name, isFolder)) {
+                if (!FileUtils.checkForValidFilename(data.rslt.name, isFolder)) {
                     errorCleanup();
                     return;
                 }
@@ -1805,7 +1763,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                     };
                     
-                    if (!changed || !_checkForValidFilename(unescapedNewName, isFolder)) {
+                    if (!changed || !FileUtils.checkForValidFilename(unescapedNewName, isFolder)) {
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;
@@ -2285,14 +2243,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
     
-    // Init invalid characters string 
-    if (brackets.platform === "mac") {
-        _invalidChars = "/?:*";
-    } else if (brackets.platform === "linux") {
-        _invalidChars = "?*|/";
-    } else {
-        _invalidChars = "/?*:<>\\|\"";  // invalid characters on Windows
-    }
+    
 
     // Define public API
     exports.getProjectRoot           = getProjectRoot;
