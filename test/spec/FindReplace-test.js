@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, window, jasmine */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
@@ -1657,15 +1657,17 @@ define(function (require, exports, module) {
             });
         });
 
-        it("should find line and offsets", function () {
-            var dirEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+        it("should find start and end positions", function () {
+            var filePath = testPath + "/foo.js",
+                dirEntry = FileSystem.getFileForPath(filePath);
+
             openSearchBar(dirEntry);
             runs(function () {
                 executeSearch("callFoo");
             });
 
             runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                var fileResults = FindInFiles._searchResults[filePath];
                 expect(fileResults).toBeTruthy();
                 expect(fileResults.matches.length).toBe(1);
 
@@ -1676,5 +1678,63 @@ define(function (require, exports, module) {
                 expect(match.end.line).toBe(6);
             });
         });
+
+        it("should dismiss dialog and show panel when there are results", function () {
+            var filePath = testPath + "/foo.js",
+                dirEntry = FileSystem.getFileForPath(filePath);
+
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("callFoo");
+            });
+
+            waits(300);     // .modal-bar close transition is 266ms
+
+            runs(function () {
+                var fileResults = FindInFiles._searchResults[filePath];
+                expect(fileResults).toBeTruthy();
+                expect($("#search-results").is(":visible")).toBeTruthy();
+                expect($(".modal-bar").length).toBe(0);
+            });
+        });
+
+        it("should keep dialog and not show panel when there are no results", function () {
+            var filePath = testPath + "/bar.txt",
+                dirEntry = FileSystem.getFileForPath(filePath);
+
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("abcdefghi");
+            });
+
+            waits(300);     // .modal-bar close transition is 266ms
+
+            runs(function () {
+                var result, resultFound = false;
+
+                // verify _searchResults Object is empty
+                for (result in FindInFiles._searchResults) {
+                    if (FindInFiles._searchResults.hasOwnProperty(result)) {
+                        resultFound = true;
+                    }
+                }
+                expect(resultFound).toBe(false);
+
+                expect($("#search-results").is(":visible")).toBeFalsy();
+                expect($(".modal-bar").length).toBe(1);
+            });
+        });
+
+//        it("should paginate panel when results exceed 100", function () {
+//        });
+//
+//        it("should change file and selection when a result is clicked", function () {
+//        });
+//
+//        it("should open file in working set when a result is double-clicked", function () {
+//        });
+//
+//        it("should update results when a result in a file is edited", function () {
+//        });
     });
 });
