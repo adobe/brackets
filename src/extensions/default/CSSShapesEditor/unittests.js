@@ -141,66 +141,6 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("Get range for CSS value", function () {
-
-            beforeEach(function () {
-                var mock = SpecRunnerUtils.createMockEditor(testContentMatchPositive, "css");
-                testDocument = mock.doc;
-                testEditor = mock.editor;
-            });
-
-            afterEach(function () {
-                SpecRunnerUtils.destroyMockEditor(testDocument);
-                testEditor = null;
-                testDocument = null;
-            });
-
-            function testGetRangeAt(pos, expected, trimWhitespace) {
-                var range = main._getRangeForCSSValueAt(testEditor, pos, trimWhitespace || false);
-                expect(range).toEqual(expected);
-            }
-
-            it("should get range for empty circle() starting at begining", function () {
-                var pos =  {line: 6, ch: 19 };
-                var expected = {
-                    start: {line: 6, ch: 17 },
-                    end:   {line: 6, ch: 27 }
-                };
-
-                testGetRangeAt(pos, expected);
-            });
-
-            it("should get range for empty circle() starting at end", function () {
-                var pos =  {line: 6, ch: 27 };
-                var expected = {
-                    start: {line: 6, ch: 17 },
-                    end:   {line: 6, ch: 27 }
-                };
-
-                testGetRangeAt(pos, expected);
-            });
-
-            it("should get range for empty circle() with trimmed whitespace", function () {
-                var pos =  {line: 6, ch: 19 };
-                var expected = {
-                    start: {line: 6, ch: 18 },
-                    end:   {line: 6, ch: 26 }
-                };
-
-                testGetRangeAt(pos, expected, true);
-            });
-
-            it("should get range for full-notation polygon() starting from arbitrary position", function () {
-                var pos =  {line: 15, ch: 55 };
-                var expected = {
-                    start: {line: 15, ch: 17 },
-                    end:   {line: 15, ch: 61 }
-                };
-
-                testGetRangeAt(pos, expected);
-            });
-        });
-
         /*
           Quick test for shape-like values in Brackets.
 
