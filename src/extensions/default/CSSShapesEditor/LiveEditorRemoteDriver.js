@@ -123,6 +123,7 @@
         _target = document.querySelector(model.selector);
 
         if (!_target) {
+            remove();
             return;
         }
 
@@ -187,7 +188,11 @@
             _activeEditor = undefined;
         }
 
-        _target.style[_model.property] = "";
+        // remove() may be called before an early return when _target is not set.
+        if (_target){
+            _target.style[_model.property] = "";
+        }
+
         _model = null;
     }
 
