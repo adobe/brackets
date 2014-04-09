@@ -180,7 +180,7 @@ define({
     "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
 
-    "FILTER_COUNTING_FILES"             : "Zähle Dateien\u2026",
+    "FILTER_COUNTING_FILES"             : "Dateianzahl ermitteln\u2026",
     "FILTER_FILE_COUNT"                 : "Erlaubt {0} von {1} Dateien {2}",
     "FILTER_FILE_COUNT_ALL"             : "Erlaubt allen {0} Dateien {1}",
 
