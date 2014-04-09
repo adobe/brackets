@@ -1528,5 +1528,153 @@ define(function (require, exports, module) {
             });
         });
     });
-    
+
+
+    describe("FindInFiles", function () {
+
+        this.category = "integration";
+
+        var testPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files"),
+            CommandManager,
+            FileSystem,
+            FindInFiles,
+            testWindow,
+            $;
+
+        beforeFirst(function () {
+            // Create a new window that will be shared by ALL tests in this spec.
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                FileSystem      = testWindow.brackets.test.FileSystem;
+                FindInFiles     = testWindow.brackets.test.FindInFiles;
+                CommandManager  = testWindow.brackets.test.CommandManager;
+                $               = testWindow.$;
+
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            });
+        });
+
+        afterLast(function () {
+            CommandManager = null;
+            FileSystem     = null;
+            FindInFiles    = null;
+            $              = null;
+            testWindow     = null;
+            SpecRunnerUtils.closeTestWindow();
+        });
+
+        function openSearchBar(scope) {
+            // Make sure search bar from previous test has animated out fully
+            runs(function () {
+                waitsFor(function () {
+                    return $(".modal-bar").length === 0;
+                }, "search bar close");
+            });
+            runs(function () {
+                FindInFiles._doFindInFiles(scope);
+            });
+        }
+
+        function executeSearch(searchString) {
+            var $searchField = $(".modal-bar #find-group input");
+            $searchField.val(searchString).trigger("input");
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+            waitsFor(function () {
+                return FindInFiles._searchResults;
+            }, "Find in Files done");
+        }
+
+
+        it("should find all occurences in project", function () {
+            openSearchBar();
+            runs(function () {
+                executeSearch("foo");
+            });
+
+            runs(function () {
+                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                expect(fileResults).toBeFalsy();
+
+                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                expect(fileResults).toBeTruthy();
+                expect(fileResults.matches.length).toBe(7);
+
+                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                expect(fileResults).toBeTruthy();
+                expect(fileResults.matches.length).toBe(4);
+
+                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                expect(fileResults).toBeTruthy();
+                expect(fileResults.matches.length).toBe(3);
+            });
+        });
+
+        it("should find all occurences in folder", function () {
+            var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("foo");
+            });
+
+            runs(function () {
+                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                expect(fileResults).toBeFalsy();
+
+                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                expect(fileResults).toBeFalsy();
+
+                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                expect(fileResults).toBeFalsy();
+
+                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                expect(fileResults).toBeTruthy();
+                expect(fileResults.matches.length).toBe(3);
+            });
+        });
+
+        it("should find all occurences in single file", function () {
+            var dirEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("foo");
+            });
+
+            runs(function () {
+                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                expect(fileResults).toBeFalsy();
+
+                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                expect(fileResults).toBeFalsy();
+
+                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                expect(fileResults).toBeTruthy();
+                expect(fileResults.matches.length).toBe(4);
+
+                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                expect(fileResults).toBeFalsy();
+            });
+        });
+
+        it("should find line and offsets", function () {
+            var dirEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("callFoo");
+            });
+
+            runs(function () {
+                var fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                expect(fileResults).toBeTruthy();
+                expect(fileResults.matches.length).toBe(1);
+
+                var match = fileResults.matches[0];
+                expect(match.start.ch).toBe(13);
+                expect(match.start.line).toBe(6);
+                expect(match.end.ch).toBe(20);
+                expect(match.end.line).toBe(6);
+            });
+        });
+    });
 });
