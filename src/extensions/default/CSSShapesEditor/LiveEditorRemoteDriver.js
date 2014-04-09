@@ -189,7 +189,7 @@
         }
 
         // remove() may be called before an early return when _target is not set.
-        if (_target){
+        if (_target) {
             _target.style[_model.property] = "";
         }
 
