@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, window, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
@@ -1695,7 +1695,9 @@ define(function (require, exports, module) {
                 executeSearch("callFoo");
             });
 
-            waits(300);     // .modal-bar close transition is 266ms
+            waitsFor(function () {
+                return ($(".modal-bar").length === 0);
+            }, "search bar close");
 
             runs(function () {
                 var fileResults = FindInFiles._searchResults[filePath];
@@ -1714,7 +1716,9 @@ define(function (require, exports, module) {
                 executeSearch("abcdefghi");
             });
 
-            waits(300);     // .modal-bar close transition is 266ms
+            waitsFor(function () {
+                return (FindInFiles._searchResults);
+            }, "search complete");
 
             runs(function () {
                 var result, resultFound = false;
