@@ -1,9 +1,0 @@
-.shape-outside{
-  float: left;
-  width: 200px;
-  height: 200px;
-}
-
-.shape-circle{
-  shape-outside: circle(100px at 0 0);
-}
