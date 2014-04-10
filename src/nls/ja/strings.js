@@ -65,6 +65,10 @@ define({
 	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
+    // Application preferences corrupt error strings
+	"ERROR_PREFS_CORRUPT_TITLE": "!能=[7510056] Error reading preferences_=!",
+	"ERROR_PREFS_CORRUPT": "!能=[7510055] Your preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to restart {APP_NAME} for the changes to take effect._=!",
+
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
 	"ERROR_IN_BROWSER": "{APP_NAME} は HTML で構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリのアプリケーションシェルを使用してください。",
@@ -73,7 +77,7 @@ define({
 	"ERROR_MAX_FILES_TITLE": "ファイルのインデックス時にエラーが発生しました。",
 	"ERROR_MAX_FILES": "インデックス化できるファイルの最大数に達しました。インデックス内でファイルを見つける機能は正しく動作しないことがあります。",
 
-    // Live Development error strings
+    // Live Preview error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "ブラウザーの起動時にエラーが発生しました。",
 	"ERROR_CANT_FIND_CHROME": "Google Chrome ブラウザーが見つかりません。インストールされていることを確認してください。",
 	"ERROR_LAUNCHING_BROWSER": "ブラウザーの起動時にエラーが発生しました。(エラー {0})",
@@ -81,13 +85,13 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "ライブ開発ページを読み込めません。",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "!能=[6742878] Unable to load Live Preview page_=!",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "ライブプレビューを起動するには、HTML ファイルを開くか、index.html ファイルがプロジェクトに含まれていることを確認してください。",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "サーバー側ファイルでライブプレビューを起動するには、このプロジェクトのベース URL を指定する必要があります。",
-	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "ライブ開発ファイルで使用する HTTP サーバーの起動時にエラーが発生しました。もう一度実行してください。",
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "!能=[6728123] Error starting up the HTTP server for live preview files. Please try again._=!",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS または HTML ファイル</strong>の編集時にのみライブ更新が行われます。 JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a href='{0}' title='{0}'>Live Development の接続エラーに関するトラブルシューティング</a>を参照してください。",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "!能=[6499050] For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>._=!",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
@@ -156,6 +160,7 @@ define({
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {3}個の{4}内で {1}件{0}{2}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
+	"FIND_IN_FILES_ZERO_FILES": "!能=[7510067] Filter excludes all files {0}_=!",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "が見つかりました",
@@ -166,6 +171,30 @@ define({
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
+    
+    // File exclusion filters
+	"NO_FILE_FILTER": "!能=[7510072] Exclude files\u2026_=!",
+	"EDIT_FILE_FILTER": "!能=[7510049] Edit\u2026_=!",
+	"FILE_FILTER_DIALOG": "!能=[7510061] Edit Filter_=!",
+	"FILE_FILTER_INSTRUCTIONS": "!能=[7510062] Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line._=!",
+	"FILE_FILTER_LIST_PREFIX": "!能=[7510063] except_=!",
+	"FILE_FILTER_CLIPPED_SUFFIX": "!能=[7510060] and {0} more_=!",
+
+	"FILTER_COUNTING_FILES": "!能=[7510064] Counting files\u2026_=!",
+	"FILTER_FILE_COUNT": "!能=[7510065] Allows {0} of {1} files {2}_=!",
+	"FILTER_FILE_COUNT_ALL": "!能=[7510066] Allows all {0} files {1}_=!",
+
+    // Quick Edit
+	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "!能=[7510058] No Quick Edit available for current cursor position_=!",
+	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "!能=[7510050] CSS Quick Edit: place cursor on a single class name_=!",
+	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "!能=[7510051] CSS Quick Edit: incomplete class attribute_=!",
+	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "!能=[7510052] CSS Quick Edit: incomplete id attribute_=!",
+	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "!能=[7510053] CSS Quick Edit: place cursor in tag, class, or id_=!",
+	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "!能=[7510059] CSS Timing Function Quick Edit: invalid syntax_=!",
+	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "!能=[7510054] JS Quick Edit: place cursor in function name_=!",
+
+    // Quick Docs
+	"ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND": "!能=[7510057] No Quick Docs available for current cursor position_=!",
 
     /**
      * ProjectManager
@@ -189,6 +218,7 @@ define({
 	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} 列を選択",
 	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} 行を選択",
 	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} 行を選択",
+	"STATUSBAR_SELECTION_MULTIPLE": "!能=[7510075]  \u2014 {0} selections_=!",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "インデントをスペースに変換する",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
@@ -198,6 +228,8 @@ define({
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} 行",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} 行",
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "拡張機能無効",
+	"STATUSBAR_INSERT": "!能=[7510073] INS_=!",
+	"STATUSBAR_OVERWRITE": "OVR",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",
@@ -208,6 +240,8 @@ define({
 	"LINT_DISABLED": "Lint チェックは使用できません",
 	"NO_LINT_AVAILABLE": "{0} に使用できる Lint チェッカーがありません",
 	"NOTHING_TO_LINT": "Lint チェックするファイルがありません",
+	"LINTER_TIMED_OUT": "!能=[7510071] {0} has timed out after waiting for {1} ms_=!",
+	"LINTER_FAILED": "!能=[7510070] {0} terminated with error: {1}_=!",
     
     
     /**
@@ -252,12 +286,18 @@ define({
 	"CMD_PASTE": "ペースト",
 	"CMD_SELECT_ALL": "すべて選択",
 	"CMD_SELECT_LINE": "行の選択",
+	"CMD_SPLIT_SEL_INTO_LINES": "!能=[7510046] Split Selection into Lines_=!",
+	"CMD_ADD_CUR_TO_NEXT_LINE": "!能=[7510038] Add Cursor to Next Line_=!",
+	"CMD_ADD_CUR_TO_PREV_LINE": "!能=[7510039] Add Cursor to Previous Line_=!",
 	"CMD_FIND": "検索",
 	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
 	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_FIND_NEXT": "次を検索",
 	"CMD_FIND_PREVIOUS": "前を検索",
+	"CMD_FIND_ALL_AND_SELECT": "!能=[7510041] Find All and Select_=!",
+	"CMD_ADD_NEXT_MATCH": "!能=[7510040] Add Next Match to Selection_=!",
+	"CMD_SKIP_CURRENT_MATCH": "!能=[7510045] Skip and Add Next Match_=!",
 	"CMD_REPLACE": "置換",
 	"CMD_INDENT": "インデント",
 	"CMD_UNINDENT": "インデント解除",
@@ -305,15 +345,18 @@ define({
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
+	"CMD_SHOW_IN_EXPLORER": "エクスプローラーで表示",
+	"CMD_SHOW_IN_FINDER": "Finder で表示",
 	"CMD_SHOW_IN_OS": "OS で表示",
     
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
 	"CMD_CHECK_FOR_UPDATE": "更新をチェックする",
 	"CMD_HOW_TO_USE_BRACKETS": "{APP_NAME} の使用方法",
-	"CMD_FORUM": "{APP_NAME} フォーラム",
+	"CMD_SUPPORT": "!能=[7510048] {APP_NAME} Support_=!",
+	"CMD_SUGGEST": "!能=[7510047] Suggest a Feature_=!",
 	"CMD_RELEASE_NOTES": "リリースノート",
-	"CMD_REPORT_AN_ISSUE": "問題を報告",
+	"CMD_GET_INVOLVED": "!能=[7510042] Get Involved_=!",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -434,6 +477,9 @@ define({
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
 	"CSS_QUICK_EDIT_NO_MATCHES": "選択に一致する既存の CSS ルールがありません。<br>「新規ルール」をクリックしてルールを作成してください。",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "プロジェクトにはスタイルシートがありません。<br>スタイルシートを作成して CSS ルールに追加してください。",
+
+    // Custom Viewers
+	"IMAGE_VIEWER_LARGEST_ICON": "!能=[7510068] largest_=!",
     
     /**
      * Unit names
@@ -465,6 +511,7 @@ define({
 	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
 	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 選択したポイントを移動<br><kbd class='text'>Shift</kbd> 10 単位ずつ移動<br><kbd class='text'>Tab</kbd> ポイントを切り替え",
 	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> 手順を増減<br><kbd>←</kbd><kbd>→</kbd> 「開始」または「終了」",
+	"INLINE_TIMING_EDITOR_INVALID": "!能=[7510069] The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit._=!",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
