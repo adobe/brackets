@@ -127,6 +127,7 @@ define(function (require, exports, module) {
     *
     * @throws {TypeError} if the promise result is not a string.
     * @param {!string} response JSON stringified object with CSS property, value
+    * @return {$.Promise}
     */
     function _whenGetRemoteModel(response) {
         if (!response || !response.value || typeof response.value !== "string") {
@@ -134,11 +135,13 @@ define(function (require, exports, module) {
         }
 
         var data = JSON.parse(response.value),
+            deferred = $.Deferred(),
             hasChanged = false,
             key;
 
         if (!data) {
             remove();
+            return deferred.reject().promise();
         }
 
         // sync the local model snapshot with the remote model
@@ -153,6 +156,8 @@ define(function (require, exports, module) {
         if (hasChanged || data.forceUpdate) {
             $(exports).triggerHandler("update.model", [_model, data.forceUpdate]);
         }
+
+        return deferred.promise();
     }
 
     /**

@@ -92,41 +92,6 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Returns the range that wraps the CSS value at the given pos.
-     * Assumes pos is within or adjacent to a CSS value (between : and ; or })
-     * @param {!Editor} editor
-     * @param {!{line:number, ch:number}} pos
-     * @param {boolean=} trimWhitespace Ignore whitepace surrounding css value; optional
-     * @return {{!start: {line:number, ch:number}, end: {line:number, ch:number}}}
-     */
-    function _getRangeForCSSValueAt(editor, pos, trimWhitespace) {
-        // TODO: support multi-line values
-        var line    = editor.document.getLine(pos.line),
-            start   = pos.ch,
-            end     = pos.ch,
-            value;
-
-        // css values start after a colon (:)
-        start = line.lastIndexOf(":", pos.ch) + 1;
-
-        // css values end before a semicolon (;) or closing bracket (})
-        // TODO support closing bracket and multi-line. Bracket may be lower.
-        end = line.indexOf(";", pos.ch);
-
-        if (trimWhitespace) {
-            value = line.substring(start, end);
-            start = start + value.match(/^\s*/)[0].length;
-            end = end - value.match(/\s*$/)[0].length;
-        }
-
-        return {
-            "start": { line: pos.line, ch: start },
-            "end": { line: pos.line, ch: end }
-        };
-    }
-
-    /**
-     * @private
      * Constructs the global model with data if the cursor is on a CSS rule
      * with a property from SUPPORTED_PROPS.
      *
@@ -170,8 +135,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        // TODO: remove _getRangeForCSSValueAt after CSSInfo.range is merged https://github.com/adobe/brackets/pull/7390
-        range = info.range || _getRangeForCSSValueAt(editor, selection.start, true);
+        range = info.range;
 
         // TODO: support multi-line values when we can handle line breaks.
         if (info.range && (info.range.start.line !== info.range.end.line)) {
@@ -401,7 +365,6 @@ define(function (require, exports, module) {
     // for testing only
     exports.model = model;
     exports._constructModel = _constructModel;
-    exports._getRangeForCSSValueAt = _getRangeForCSSValueAt;
     exports._setCurrentEditor = function (editor) { _currentEditor = editor; };
     exports._updateCodeEditor = _updateCodeEditor;
     exports._updateLiveEditor = _updateLiveEditor;
