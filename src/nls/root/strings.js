@@ -179,6 +179,7 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+
     "FILTER_COUNTING_FILES"             : "Counting files\u2026",
     "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
     "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
@@ -239,6 +240,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**
