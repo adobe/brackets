@@ -1642,8 +1642,8 @@ define(function (require, exports, module) {
         });
 
         it("should find all occurences in single file", function () {
-            var dirEntry = FileSystem.getFileForPath(testPath + "/foo.js");
-            openSearchBar(dirEntry);
+            var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("foo");
             });
@@ -1666,9 +1666,9 @@ define(function (require, exports, module) {
 
         it("should find start and end positions", function () {
             var filePath = testPath + "/foo.js",
-                dirEntry = FileSystem.getFileForPath(filePath);
+                fileEntry = FileSystem.getFileForPath(filePath);
 
-            openSearchBar(dirEntry);
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("callFoo");
             });
@@ -1688,9 +1688,9 @@ define(function (require, exports, module) {
 
         it("should dismiss dialog and show panel when there are results", function () {
             var filePath = testPath + "/foo.js",
-                dirEntry = FileSystem.getFileForPath(filePath);
+                fileEntry = FileSystem.getFileForPath(filePath);
 
-            openSearchBar(dirEntry);
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("callFoo");
             });
@@ -1709,9 +1709,9 @@ define(function (require, exports, module) {
 
         it("should keep dialog and not show panel when there are no results", function () {
             var filePath = testPath + "/bar.txt",
-                dirEntry = FileSystem.getFileForPath(filePath);
+                fileEntry = FileSystem.getFileForPath(filePath);
 
-            openSearchBar(dirEntry);
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("abcdefghi");
             });
@@ -1742,9 +1742,9 @@ define(function (require, exports, module) {
 
         it("should open file in editor and select text when a result is clicked", function () {
             var filePath = testPath + "/foo.html",
-                dirEntry = FileSystem.getFileForPath(filePath);
+                fileEntry = FileSystem.getFileForPath(filePath);
 
-            openSearchBar(dirEntry);
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("foo");
             });
@@ -1782,9 +1782,9 @@ define(function (require, exports, module) {
 
         it("should open file in working set when a result is double-clicked", function () {
             var filePath = testPath + "/foo.js",
-                dirEntry = FileSystem.getFileForPath(filePath);
+                fileEntry = FileSystem.getFileForPath(filePath);
 
-            openSearchBar(dirEntry);
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("foo");
             });
@@ -1810,11 +1810,11 @@ define(function (require, exports, module) {
 
         it("should update results when a result in a file is edited", function () {
             var filePath = testPath + "/foo.html",
-                dirEntry = FileSystem.getFileForPath(filePath),
+                fileEntry = FileSystem.getFileForPath(filePath),
                 panelListLen = 8,   // 7 hits + 1 file section
                 $panelResults;
 
-            openSearchBar(dirEntry);
+            openSearchBar(fileEntry);
             runs(function () {
                 executeSearch("foo");
             });
