@@ -490,4 +490,4 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
-/*Last translated for 0f92ff894e8b0136b228907c4f93cf6f546d7daa */
+
