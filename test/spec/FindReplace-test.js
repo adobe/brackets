@@ -1536,6 +1536,8 @@ define(function (require, exports, module) {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files"),
             CommandManager,
+            DocumentManager,
+            EditorManager,
             FileSystem,
             FindInFiles,
             testWindow,
@@ -1547,6 +1549,9 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
+                CommandManager  = testWindow.brackets.test.CommandManager;
+                DocumentManager = testWindow.brackets.test.DocumentManager;
+                EditorManager   = testWindow.brackets.test.EditorManager;
                 FileSystem      = testWindow.brackets.test.FileSystem;
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
                 CommandManager  = testWindow.brackets.test.CommandManager;
@@ -1557,11 +1562,13 @@ define(function (require, exports, module) {
         });
 
         afterLast(function () {
-            CommandManager = null;
-            FileSystem     = null;
-            FindInFiles    = null;
-            $              = null;
-            testWindow     = null;
+            CommandManager  = null;
+            DocumentManager = null;
+            EditorManager   = null;
+            FileSystem      = null;
+            FindInFiles     = null;
+            $               = null;
+            testWindow      = null;
             SpecRunnerUtils.closeTestWindow();
         });
 
@@ -1729,24 +1736,120 @@ define(function (require, exports, module) {
             });
         });
 
-//        it("should change file and selection when a result is clicked", function () {
-//            openSearchBar();
-//            runs(function () {
-//                executeSearch("foo");
-//            });
-//
-//            runs(function () {
-//                var $searchResults = $("#search-results");
-//
-//                expect($searchResults.is(":visible")).toBeTruthy();
-////                expect($searchResults.find("span.next-page").hasClass("disabled")).toBeFalsy();
-//            });
-//        });
+        it("should open file in editor and select text when a result is clicked", function () {
+            var filePath = testPath + "/foo.html",
+                dirEntry = FileSystem.getFileForPath(filePath);
 
-//        it("should open file in working set when a result is double-clicked", function () {
-//        });
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("foo");
+            });
 
-//        it("should update results when a result in a file is edited", function () {
-//        });
+            runs(function () {
+                // Verify no current document
+                var editor = EditorManager.getActiveEditor();
+                expect(editor).toBeFalsy();
+
+                // Get panel
+                var $searchResults = $("#search-results");
+                expect($searchResults.is(":visible")).toBeTruthy();
+
+                // Get list in panel
+                var $panelResults = $searchResults.find("table.bottom-panel-table tr");
+                expect($panelResults.length).toBe(8);   // 7 hits + 1 file section
+
+                // First item in list is file section
+                expect($($panelResults[0]).hasClass("file-section")).toBeTruthy();
+
+                // Click second item which is first hit
+                var $firstHit = $($panelResults[1]);
+                expect($firstHit.hasClass("file-section")).toBeFalsy();
+                $firstHit.click();
+
+                // Verify current document
+                editor = EditorManager.getActiveEditor();
+                expect(editor.document.file.fullPath).toEqual(filePath);
+
+                // Verify selection
+                expect(editor.getSelectedText().toLowerCase() === "foo");
+                CommandManager.execute(Commands.FILE_CLOSE_ALL);
+            });
+        });
+
+        it("should open file in working set when a result is double-clicked", function () {
+            var filePath = testPath + "/foo.js",
+                dirEntry = FileSystem.getFileForPath(filePath);
+
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("foo");
+            });
+
+            runs(function () {
+                // Verify document is not yet in working set
+                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+
+                // Get list in panel
+                var $panelResults = $("#search-results table.bottom-panel-table tr");
+                expect($panelResults.length).toBe(5);   // 4 hits + 1 file section
+
+                // Double-click second item which is first hit
+                var $firstHit = $($panelResults[1]);
+                expect($firstHit.hasClass("file-section")).toBeFalsy();
+                $firstHit.dblclick();
+
+                // Verify document is now in working set
+                expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
+                CommandManager.execute(Commands.FILE_CLOSE_ALL);
+            });
+        });
+
+        it("should update results when a result in a file is edited", function () {
+            var filePath = testPath + "/foo.html",
+                dirEntry = FileSystem.getFileForPath(filePath),
+                panelListLen = 8,   // 7 hits + 1 file section
+                $panelResults;
+
+            openSearchBar(dirEntry);
+            runs(function () {
+                executeSearch("foo");
+            });
+
+            runs(function () {
+                // Verify document is not yet in working set
+                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+
+                // Get list in panel
+                $panelResults = $("#search-results table.bottom-panel-table tr");
+                expect($panelResults.length).toBe(panelListLen);
+
+                // Double-click second item which is first hit
+                var $firstHit = $($panelResults[1]);
+                expect($firstHit.hasClass("file-section")).toBeFalsy();
+                $firstHit.dblclick();
+
+                // Verify current document & selection
+                var editor = EditorManager.getActiveEditor();
+                expect(editor.document.file.fullPath).toEqual(filePath);
+                expect(editor.getSelectedText().toLowerCase() === "foo");
+
+                // Edit text to remove hit from file
+                var sel = editor.getSelection();
+                editor.document.replaceRange("Bar", sel.start, sel.end);
+            });
+
+            // Panel is updated asynchronously
+            waitsFor(function () {
+                $panelResults = $("#search-results table.bottom-panel-table tr");
+                return ($panelResults.length < panelListLen);
+            }, "Results panel updated");
+
+            runs(function () {
+                // Verify list automatically updated
+                expect($panelResults.length).toBe(panelListLen - 1);
+
+                CommandManager.execute(Commands.FILE_CLOSE_ALL);
+            });
+        });
     });
 });
