@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in Projekt",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter schließt alle Dateien aus {0}",
     "FIND_IN_FILES_FILE"                : "Datei",
     "FIND_IN_FILES_FILES"               : "Dateien",
     "FIND_IN_FILES_MATCH"               : "Treffer",
@@ -178,6 +179,22 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Globs</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
     "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
+
+    "FILTER_COUNTING_FILES"             : "Dateianzahl ermitteln\u2026",
+    "FILTER_FILE_COUNT"                 : "Erlaubt {0} von {1} Dateien {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Erlaubt allen {0} Dateien {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Kein Schnell bearbeiten verfügbar für die aktuelle Cursor-Position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Schnell bearbeiten: positioniere den Cursor an einer einzelnen class-Name",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Schnell bearbeiten: unvollständiges class-Attribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Schnell bearbeiten: unvollständiges id-Attribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Schnell bearbeiten: positioniere den Cursor auf einem tag, einer class oder id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Schnell bearbeiten: ungültige Syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: positioniere den Cursor in Funktionsname",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Keine Schnell-Dokumentation für die aktuelle Cursor-Position verfügbar",
 
     /**
      * ProjectManager
@@ -222,7 +239,8 @@ define({
     "LINT_DISABLED"                         : "Das Linten ist nicht aktiviert",
     "NO_LINT_AVAILABLE"                     : "Es ist kein Linter für {0} verfügbar",
     "NOTHING_TO_LINT"                       : "Es gibt nichts zum Linten",
-
+    "LINTER_TIMED_OUT"                      : "{0} wurde nach {1} ms beendet",
+    "LINTER_FAILED"                         : "{0} beendet mit Error: {1}",
 
     /**
      * Command Name Constants
@@ -265,6 +283,9 @@ define({
     "CMD_COPY"                            : "Kopieren",
     "CMD_PASTE"                           : "Einfügen",
     "CMD_SELECT_ALL"                      : "Alles auswählen",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Auswahl in Zeilen aufteilen",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Cursor der nächsten Zeile hinzufügen",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Cursor der vorherigen Zeile hinzufügen",
     "CMD_SELECT_LINE"                     : "Zeile auswählen",
     "CMD_FIND"                            : "Suchen",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
@@ -272,6 +293,9 @@ define({
     "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
     "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
     "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
+    "CMD_FIND_ALL_AND_SELECT"             : "Alle suchen und auswählen",
+    "CMD_ADD_NEXT_MATCH"                  : "Füge nächsten Treffer zur Auswahl hinzu",
+    "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
     "CMD_REPLACE"                         : "Ersetzen",
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
@@ -327,8 +351,10 @@ define({
     "HELP_MENU"                           : "Hilfe",
     "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
     "CMD_HOW_TO_USE_BRACKETS"             : "So verwendet man {APP_NAME}",
+    "CMD_SUGGEST"                         : "ein Feature vorschlagen",
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
+    "CMD_GET_INVOLVED"                    : "dazu beitragen",
     "CMD_REPORT_AN_ISSUE"                 : "Ein Problem melden",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
@@ -501,7 +527,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
