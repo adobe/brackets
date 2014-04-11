@@ -153,6 +153,8 @@ define(function (require, exports, module) {
             // Enter key in single-line text input always dismisses; in text area, only Ctrl+Enter dismisses
             // Click primary
             $primaryBtn.click();
+            // prevent event from being used to enter a newline into editor
+            e.preventDefault();
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button or link
             $focusedElement.click();
