@@ -1237,8 +1237,9 @@ define(function (require, exports, module) {
     });
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.SEARCH_FIND_IN_FILES,   _doFindInFiles);
-    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.SEARCH_FIND_IN_SUBTREE, _doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.SEARCH_FIND_IN_FILES,      _doFindInFiles);
+    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.SEARCH_FIND_IN_SELECTED,   _doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.SEARCH_FIND_IN_SUBTREE,    _doFindInSubtree);
     
     // For unit testing - updated in _doSearch() when search complete
     exports._searchResults = null;

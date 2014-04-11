@@ -108,7 +108,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.SEARCH_SKIP_CURRENT_MATCH);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.SEARCH_FIND_IN_FILES);
-        menu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
+        menu.addMenuItem(Commands.SEARCH_FIND_IN_SELECTED);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.SEARCH_REPLACE);
         

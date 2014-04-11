@@ -88,6 +88,7 @@ define(function (require, exports, module) {
     // SEARCH
     exports.SEARCH_FIND                 = "search.find";                // FindReplace.js               _launchFind()
     exports.SEARCH_FIND_IN_FILES        = "search.findInFiles";         // FindInFiles.js               _doFindInFiles()
+    exports.SEARCH_FIND_IN_SELECTED     = "search.findInSelected";      // FindInFiles.js               _doFindInSubtree()
     exports.SEARCH_FIND_IN_SUBTREE      = "search.findInSubtree";       // FindInFiles.js               _doFindInSubtree()
     exports.SEARCH_FIND_NEXT            = "search.findNext";            // FindReplace.js               _findNext()
     exports.SEARCH_FIND_PREVIOUS        = "search.findPrevious";        // FindReplace.js               _findPrevious()
