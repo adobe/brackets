@@ -463,7 +463,7 @@ define(function (require, exports, module) {
                     }, "search bar close");
                 });
                 runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.EDIT_FIND_IN_FILES));
+                    waitsForDone(CommandManager.execute(Commands.SEARCH_FIND_IN_FILES));
                 });
             }
 

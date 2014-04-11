@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     var AppMenuBar = {
         FILE_MENU       : "file-menu",
         EDIT_MENU       : "edit-menu",
+        SEARCH_MENU     : "search-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
         HELP_MENU       : "help-menu"
@@ -85,13 +86,15 @@ define(function (require, exports, module) {
         EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
         EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
         EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.EDIT_FIND},
-        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
         EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
         EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
         EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
-
+        
+        SEARCH_FIND_COMMANDS:               {sectionMarker: Commands.SEARCH_FIND},
+        SEARCH_FIND_IN_COMMANDS:            {sectionMarker: Commands.SEARCH_FIND_IN_FILES},
+        SEARCH_REPLACE_COMMANDS:            {sectionMarker: Commands.SEARCH_REPLACE},
+        
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
         VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},

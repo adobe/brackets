@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     /**
      * List of constants for global command IDs.
      */
-
+    
     // FILE
     exports.FILE_NEW_UNTITLED           = "file.newDoc";                // DocumentCommandHandlers.js   handleFileNew()
     exports.FILE_NEW                    = "file.newFile";               // DocumentCommandHandlers.js   handleFileNewInProject()
@@ -72,15 +72,6 @@ define(function (require, exports, module) {
     exports.EDIT_SPLIT_SEL_INTO_LINES   = "edit.splitSelIntoLines";     // EditorCommandHandlers.js     splitSelIntoLines()
     exports.EDIT_ADD_CUR_TO_NEXT_LINE   = "edit.addCursorToNextLine";   // EditorCommandHandlers.js     addCursorToNextLine()
     exports.EDIT_ADD_CUR_TO_PREV_LINE   = "edit.addCursorToPrevLine";   // EditorCommandHandlers.js     addCursorToPrevLine()
-    exports.EDIT_FIND                   = "edit.find";                  // FindReplace.js               _launchFind()
-    exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";           // FindInFiles.js               _doFindInFiles()
-    exports.EDIT_FIND_IN_SUBTREE        = "edit.findInSubtree";         // FindInFiles.js               _doFindInSubtree()
-    exports.EDIT_FIND_NEXT              = "edit.findNext";              // FindReplace.js               _findNext()
-    exports.EDIT_FIND_PREVIOUS          = "edit.findPrevious";          // FindReplace.js               _findPrevious()
-    exports.EDIT_FIND_ALL_AND_SELECT    = "edit.findAllAndSelect";      // FindReplace.js               _findAllAndSelect()
-    exports.EDIT_ADD_NEXT_MATCH         = "edit.addNextMatch";          // FindReplace.js               _expandAndAddNextToSelection()
-    exports.EDIT_SKIP_CURRENT_MATCH     = "edit.skipCurrentMatch";      // FindReplace.js               _skipCurrentMatch()
-    exports.EDIT_REPLACE                = "edit.replace";               // FindReplace.js               _replace()
     exports.EDIT_INDENT                 = "edit.indent";                // EditorCommandHandlers.js     indentText()
     exports.EDIT_UNINDENT               = "edit.unindent";              // EditorCommandHandlers.js     unindentText()
     exports.EDIT_DUPLICATE              = "edit.duplicate";             // EditorCommandHandlers.js     duplicateText()
@@ -93,7 +84,18 @@ define(function (require, exports, module) {
     exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";         // EditorCommandHandlers.js     openLineBelow()
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";     // EditorOptionHandlers.js      _getToggler()
     exports.SHOW_CODE_HINTS             = "edit.showCodeHints";         // CodeHintManager.js           _startNewSession()
-
+    
+    // SEARCH
+    exports.SEARCH_FIND                 = "search.find";                  // FindReplace.js               _launchFind()
+    exports.SEARCH_FIND_IN_FILES        = "search.findInFiles";           // FindInFiles.js               _doFindInFiles()
+    exports.SEARCH_FIND_IN_SUBTREE      = "search.findInSubtree";         // FindInFiles.js               _doFindInSubtree()
+    exports.SEARCH_FIND_NEXT            = "search.findNext";              // FindReplace.js               _findNext()
+    exports.SEARCH_FIND_PREVIOUS        = "search.findPrevious";          // FindReplace.js               _findPrevious()
+    exports.SEARCH_FIND_ALL_AND_SELECT  = "search.findAllAndSelect";      // FindReplace.js               _findAllAndSelect()
+    exports.SEARCH_ADD_NEXT_MATCH       = "search.addNextMatch";          // FindReplace.js               _expandAndAddNextToSelection()
+    exports.SEARCH_SKIP_CURRENT_MATCH   = "search.skipCurrentMatch";      // FindReplace.js               _skipCurrentMatch()
+    exports.SEARCH_REPLACE              = "search.replace";               // FindReplace.js               _replace()
+    
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";           // SidebarView.js               toggle()
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";      // ViewCommandHandlers.js       _handleIncreaseFontSize()
@@ -125,7 +127,7 @@ define(function (require, exports, module) {
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";         // MultiRangeInlineEditor.js    _nextRange()
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";     // MultiRangeInlineEditor.js    _previousRange()
     exports.CSS_QUICK_EDIT_NEW_RULE     = "navigate.newRule";           // CSSInlineEditor.js           _handleNewRule()
-
+    
     // HELP
     exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";        // HelpCommandHandlers.js       _handleCheckForUpdates()
     exports.HELP_HOW_TO_USE_BRACKETS    = "help.howToUseBrackets";      // HelpCommandHandlers.js       _handleLinkMenuItem()
@@ -138,7 +140,7 @@ define(function (require, exports, module) {
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.HELP_ABOUT                  = "help.about";                 // HelpCommandHandlers.js       _handleAboutDialog()
-
+    
     // APP
     exports.APP_RELOAD                  = "app.reload";                 // DocumentCommandHandlers.js   handleReload()
     exports.APP_RELOAD_WITHOUT_EXTS     = "app.reload_without_exts";    // DocumentCommandHandlers.js   handleReloadWithoutExts()

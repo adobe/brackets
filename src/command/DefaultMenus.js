@@ -64,7 +64,7 @@ define(function (require, exports, module) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
-
+        
         /*
          * Edit  menu
          */
@@ -82,17 +82,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_PREV_LINE);
         menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_NEXT_LINE);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_FIND);
-        menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
-        menu.addMenuItem(Commands.EDIT_FIND_NEXT);
-        menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
-        menu.addMenuItem(Commands.EDIT_FIND_ALL_AND_SELECT);
-        menu.addMenuItem(Commands.EDIT_ADD_NEXT_MATCH);
-        menu.addMenuItem(Commands.EDIT_SKIP_CURRENT_MATCH);
-
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_REPLACE);
-        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_INDENT);
         menu.addMenuItem(Commands.EDIT_UNINDENT);
         menu.addMenuItem(Commands.EDIT_DUPLICATE);
@@ -106,7 +95,22 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.SHOW_CODE_HINTS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
-
+        
+        /*
+         * Search menu
+         */
+        menu = Menus.addMenu(Strings.SEARCH_MENU, Menus.AppMenuBar.SEARCH_MENU);
+        menu.addMenuItem(Commands.SEARCH_FIND);
+        menu.addMenuItem(Commands.SEARCH_FIND_NEXT);
+        menu.addMenuItem(Commands.SEARCH_FIND_PREVIOUS);
+        menu.addMenuItem(Commands.SEARCH_FIND_ALL_AND_SELECT);
+        menu.addMenuItem(Commands.SEARCH_ADD_NEXT_MATCH);
+        menu.addMenuItem(Commands.SEARCH_SKIP_CURRENT_MATCH);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.SEARCH_FIND_IN_FILES);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.SEARCH_REPLACE);
+        
         /*
          * View menu
          */
@@ -146,7 +150,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CSS_QUICK_EDIT_NEW_RULE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
-
+        
         /*
          * Help menu
          */
@@ -199,7 +203,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_DELETE);
         project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        project_cmenu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
@@ -210,7 +214,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
+        working_set_cmenu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         
