@@ -47,6 +47,11 @@ define(function (require, exports, module) {
                              "\n" +
                              "}";
 
+        var tabbedContent =    "function funcWithTabs() {\n" +
+                               "	var i		= 0;\n" +
+                               "	var	offset	= 0;\n" +
+                               "}";
+
         var myDocument, myEditor;
         
         var testPath = SpecRunnerUtils.getTestPath("/spec/EditorCommandHandlers-test-files"),
@@ -623,6 +628,62 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(expectedContent);
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+            });
+        });
+        describe("Line comment in languages with no given line comment prefix", function () {
+            beforeEach(function () {
+                setupFullEditor(null, "unknown");
+            });
+
+            it("should properly restore the cursor", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 4});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 4}});
+            });
+
+            it("should properly restore the range selection", function () {
+                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 6});
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 1, ch: 4}, end: {line: 1, ch: 6}});
+            });
+
+            it("should properly restore the cursors", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: true}]);
+            });
+
+            it("should properly restore the range selections", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}},
+                                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}}]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}, reversed: false, primary: false},
+                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, reversed: false, primary: true}]);
+            });
+
+            it("should properly restore primary/reversed range selections", function () {
+                myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true}]);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expect(myEditor.getSelections()).toEqual([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, reversed: false, primary: true},
+                                                          {start: {line: 3, ch: 4}, end: {line: 3, ch: 12}, reversed: true, primary: false}]);
             });
         });
             
@@ -3411,62 +3472,62 @@ define(function (require, exports, module) {
             
             it("should add a cursor on the next line after a single cursor selection and make it primary", function () {
                 myEditor.setSelection({line: 1, ch: 5}, {line: 1, ch: 5});
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}, primary: true, reversed: false}]);
             });
 
             it("should add a cursor on the previous line before a single cursor selection and make it primary", function () {
                 myEditor.setSelection({line: 1, ch: 5}, {line: 1, ch: 5});
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: true, reversed: false},
                                   {start: {line: 1, ch: 5}, end: {line: 1, ch: 5}, primary: false, reversed: false}]);
             });
 
             it("should add a cursor on the next line after a single-line range selection, below the end pos of the range", function () {
                 myEditor.setSelection({line: 1, ch: 5}, {line: 1, ch: 8});
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
             });
 
             it("should add a cursor on the previous line after a single-line range selection, above the start pos of the range", function () {
                 myEditor.setSelection({line: 1, ch: 5}, {line: 1, ch: 8});
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: true, reversed: false},
                                   {start: {line: 1, ch: 5}, end: {line: 1, ch: 8}, primary: false, reversed: false}]);
             });
             
             it("should add a cursor on the next line after a multi-line range selection, below the end pos of the range", function () {
                 myEditor.setSelection({line: 1, ch: 5}, {line: 2, ch: 8});
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch: 5}, end: {line: 2, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 3, ch: 8}, end: {line: 3, ch: 8}, primary: true, reversed: false}]);
             });
 
             it("should add a cursor on the previous line before a multi-line range selection, above the start pos of the range", function () {
                 myEditor.setSelection({line: 1, ch: 5}, {line: 2, ch: 8});
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: true, reversed: false},
                                   {start: {line: 1, ch: 5}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
             });
             
             it("should do nothing if trying to add selection down at last line", function () {
                 myEditor.setSelection({line: 7, ch: 0}, {line: 7, ch: 0});
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 7, ch: 0}, end: {line: 7, ch: 0}, primary: true, reversed: false}]);
             });
             
             it("should do nothing if trying to add selection up at first line", function () {
                 myEditor.setSelection({line: 0, ch: 5}, {line: 0, ch: 5});
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: true, reversed: false}]);
             });
 
             it("should add cursors below each range in a multiple selection, making the correct one primary", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}},
                                         {start: {line: 3, ch: 2}, end: {line: 3, ch: 8}}]);
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 3, ch: 2}, end: {line: 3, ch: 8}, primary: false, reversed: false},
@@ -3476,7 +3537,7 @@ define(function (require, exports, module) {
             it("should add cursors above each range in a multiple selection, making the correct one primary", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}},
                                         {start: {line: 3, ch: 2}, end: {line: 3, ch: 8}}]);
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 5}, end: {line: 1, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: true, reversed: false},
@@ -3486,7 +3547,7 @@ define(function (require, exports, module) {
             it("should not add cursors downward that overlap another selection", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}},
                                         {start: {line: 2, ch: 2}, end: {line: 2, ch: 8}}]);
-                CommandManager.execute(Commands.EDIT_ADD_NEXT_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
                 expectSelections([{start: {line: 1, ch: 5}, end: {line: 1, ch: 5}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 2}, end: {line: 2, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 3, ch: 8}, end: {line: 3, ch: 8}, primary: true, reversed: false}]);
@@ -3495,7 +3556,7 @@ define(function (require, exports, module) {
             it("should not add cursors upward that overlap another selection", function () {
                 myEditor.setSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 8}},
                                         {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}}]);
-                CommandManager.execute(Commands.EDIT_ADD_PREV_LINE_TO_SEL, myEditor);
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
                 expectSelections([{start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 8}, primary: true, reversed: false},
                                   {start: {line: 2, ch: 5}, end: {line: 2, ch: 5}, primary: false, reversed: false}]);
@@ -3503,6 +3564,26 @@ define(function (require, exports, module) {
 
         });
         
+        describe("Add Line to Selection with Tabs", function () {
+            beforeEach(function () {
+                setupFullEditor(tabbedContent);
+            });
+
+            it("should add a cursor on the next line before a single cursor in same visual position", function () {
+                myEditor.setSelection({line: 1, ch: 8}, {line: 1, ch: 8});
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_NEXT_LINE, myEditor);
+                expectSelections([{start: {line: 1, ch:  8}, end: {line: 1, ch:  8}, primary: false, reversed: false},
+                                  {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true,  reversed: false}]);
+            });
+
+            it("should add a cursor on the previous line before a single cursor selection in same visual position", function () {
+                myEditor.setSelection({line: 2, ch: 12}, {line: 2, ch: 12});
+                CommandManager.execute(Commands.EDIT_ADD_CUR_TO_PREV_LINE, myEditor);
+                expectSelections([{start: {line: 1, ch:  8}, end: {line: 1, ch:  8}, primary: true,  reversed: false},
+                                  {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: false, reversed: false}]);
+            });
+        });
+
         describe("EditorCommandHandlers Integration", function () {
             this.category = "integration";
             

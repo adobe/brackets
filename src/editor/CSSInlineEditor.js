@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
@@ -54,11 +54,14 @@ define(function (require, exports, module) {
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
      * @param {!Editor} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {selectorName: {string}, reason: {string}}
      * @private
      */
     function _getSelectorName(editor, pos) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
-            selectorName = "";
+            selectorName = "",
+            reason;
         
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
@@ -72,29 +75,40 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
-                selectorName = "." +
-                    attributeValue.substring(
-                        startIndex === -1 ? 0 : startIndex + 1,
-                        endIndex === -1 ? attributeValue.length : endIndex
-                    );
-                
-                // If the insertion point is surrounded by space, selectorName is "."
-                // Check for that here
-                if (selectorName === ".") {
-                    selectorName = "";
+                if (/\S/.test(attributeValue)) {
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
+                    selectorName = "." +
+                        attributeValue.substring(
+                            startIndex === -1 ? 0 : startIndex + 1,
+                            endIndex === -1 ? attributeValue.length : endIndex
+                        );
+
+                    // If the insertion point is surrounded by space between two classnames, selectorName is "."
+                    if (selectorName === ".") {
+                        selectorName = "";
+                        reason = Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES;
+                    }
+                } else {
+                    reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
                 }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
                 var trimmedVal = tagInfo.attr.value.trim();
                 if (trimmedVal) {
                     selectorName = "#" + trimmedVal;
+                } else {
+                    reason = Strings.ERROR_CSSQUICKEDIT_IDNOTFOUND;
                 }
+            } else {
+                reason = Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR;
             }
         }
         
-        return selectorName;
+        return {
+            selectorName: selectorName,
+            reason:       reason
+        };
     }
 
     /**
@@ -107,7 +121,7 @@ define(function (require, exports, module) {
      */
     function _addRule(selectorName, inlineEditor, path) {
         DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
-            var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(), Editor.getSpaceUnits());
+            var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
             inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
             inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
         });
@@ -146,8 +160,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget; or error
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr; or null if the
+     *         selection isn't even close to a context where we could provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
@@ -164,10 +179,12 @@ define(function (require, exports, module) {
         
         // Always use the selection start for determining selector name. The pos
         // parameter is usually the selection end.
-        var selectorName = _getSelectorName(hostEditor, sel.start);
-        if (selectorName === "") {
-            return null;
+        var selectorResult = _getSelectorName(hostEditor, sel.start);
+        if (selectorResult.selectorName === "") {
+            return selectorResult.reason || null;
         }
+        
+        var selectorName = selectorResult.selectorName;
 
         var result = new $.Deferred(),
             cssInlineEditor,

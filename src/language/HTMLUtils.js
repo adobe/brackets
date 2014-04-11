@@ -153,7 +153,7 @@ define(function (require, exports, module) {
                         }
                         // If we type the first letter of the next attribute, it comes as an error
                         // token. We need to double check for possible invalidated attributes.
-                        if (forwardCtx.token.string.trim() !== "" &&
+                        if (/\S/.test(forwardCtx.token.string) &&
                                 forwardCtx.token.string.indexOf("\"") === -1 &&
                                 forwardCtx.token.string.indexOf("'") === -1 &&
                                 forwardCtx.token.string.indexOf("=") === -1) {
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
         }
         
         //check and see where we are in the tag
-        if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+        if (ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
 
             // token at (i.e. before) pos is whitespace, so test token at next pos
             //
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
             var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                 testToken = editor._codeMirror.getTokenAt(testPos, true);
 
-            if (testToken.string.length > 0 && testToken.string.trim().length > 0 &&
+            if (testToken.string.length > 0 && /\S/.test(testToken.string) &&
                     testToken.string.charAt(0) !== ">") {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
@@ -485,7 +485,8 @@ define(function (require, exports, module) {
             currentBlock = null,
             inBlock = false,
             outerMode = editor._codeMirror.getMode(),
-            tokenModeName;
+            tokenModeName,
+            previousMode;
         
         while (TokenUtils.moveNextToken(ctx, false)) {
             tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
@@ -495,7 +496,7 @@ define(function (require, exports, module) {
                     currentBlock.end = currentBlock.start;
                 }
                 // Check for end of this block
-                if (tokenModeName !== modeName) {
+                if (tokenModeName === previousMode) {
                     // currentBlock.end is already set to pos of the last token by now
                     currentBlock.text = editor.document.getRange(currentBlock.start, currentBlock.end);
                     inBlock = false;
@@ -510,6 +511,8 @@ define(function (require, exports, module) {
                     };
                     blocks.push(currentBlock);
                     inBlock = true;
+                } else {
+                    previousMode = tokenModeName;
                 }
                 // else, random token: ignore
             }

@@ -183,6 +183,88 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("cakefile.doesNotExist")).toBe(unknown);
                 expect(LanguageManager.getLanguageForPath("Something.cakefile")).toBe(unknown);
             });
+            
+            it("should remove file extensions and add to new languages", function () {
+                var html    = LanguageManager.getLanguage("html"),
+                    ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(html);
+                
+                html.removeFileExtension("html");
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(unknown);
+                
+                ruby.addFileExtension("html");
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(ruby);
+            });
+            
+            it("should remove file names and add to new languages", function () {
+                var coffee  = LanguageManager.getLanguage("coffeescript"),
+                    html    = LanguageManager.getLanguage("html"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(coffee);
+                
+                coffee.removeFileName("Cakefile");
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(unknown);
+                
+                html.addFileName("Cakefile");
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(html);
+            });
+            
+            it("should add multiple file extensions to languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(unknown);
+                
+                ruby.addFileExtension(["1", "2"]);
+                
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(ruby);
+            });
+            
+            it("should remove multiple file extensions from languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                // Assumes test above already ran (tests in this suite are not isolated)
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(ruby);
+                
+                ruby.removeFileExtension(["1", "2"]);
+                
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(unknown);
+            });
+            
+            it("should add multiple file names to languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(unknown);
+                
+                ruby.addFileName(["rubyFile1", "rubyFile2"]);
+                
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(ruby);
+            });
+            
+            it("should remove multiple file names from languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                // Assumes test above already ran (tests in this suite are not isolated)
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(ruby);
+                
+                ruby.removeFileName(["rubyFile1", "rubyFile2"]);
+                
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(unknown);
+            });
         });
 
         describe("defineLanguage", function () {

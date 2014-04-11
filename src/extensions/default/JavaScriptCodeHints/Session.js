@@ -200,7 +200,7 @@ define(function (require, exports, module) {
                 break;
             }
             prev = this.getToken(cursor);
-        } while (prev.string.trim() === "");
+        } while (!/\S/.test(prev.string));
         
         return prev;
     };
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
                 break;
             }
             next = this.getToken(cursor);
-        } while (skipWhitespace && next.string.trim() === "");
+        } while (skipWhitespace && !/\S/.test(next.string));
         
         return next;
     };

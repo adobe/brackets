@@ -220,7 +220,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
-                    checkLineWrapping(editor, {line: 0, ch: 0}, {line: 0, ch: 160}, true);
+                    checkLineWrapping(editor, {line: 0, ch: 0}, {line: 0, ch: 320}, true);
                 });
             });
             

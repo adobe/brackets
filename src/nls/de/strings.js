@@ -65,6 +65,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Fehler beim Lesen der Einstellungen",
+    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei ist kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
@@ -167,6 +171,14 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
 
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Dateien ausschließen\u2026",
+    "EDIT_FILE_FILTER"                  : "Bearbeiten\u2026",
+    "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
+    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Globs</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
+    "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
+
     /**
      * ProjectManager
      */
@@ -198,6 +210,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",

@@ -65,6 +65,10 @@ define({
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 
+    // Application preferences corrupt error strings
+	"ERROR_PREFS_CORRUPT_TITLE": "[7510056] !é=Error reading preferences=!",
+	"ERROR_PREFS_CORRUPT": "[7510055] !é=Your preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to restart {APP_NAME} for the changes to take effect.=!",
+
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
 	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
@@ -73,7 +77,7 @@ define({
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
 
-    // Live Development error strings
+    // Live Preview error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "Erreur lors du lancement du navigateur",
 	"ERROR_CANT_FIND_CHROME": "Le navigateur Google Chrome est introuvable. Assurez-vous qu’il est installé.",
 	"ERROR_LAUNCHING_BROWSER": "Une erreur s’est produite lors du lancement du navigateur. (Erreur {0})",
@@ -81,13 +85,13 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur du module Aperçu en direct",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "[6742878] !é=Unable to load Live Preview page=!",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML ou vérifiez qu’il y a un fichier index.html dans votre projet pour pouvoir lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
-	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "[6728123] !é=Error starting up the HTTP server for live preview files. Please try again.=!",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS ou HTML</strong>. Les modifications apportées aux fichiers JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour plus d’informations, consultez la page <a href='{0}' title='{0}'>Résolution des erreurs de connexion Live Development</a>.",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "[6499050] !é=For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.=!",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion\u2026",
@@ -156,6 +160,7 @@ define({
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
 	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
+	"FIND_IN_FILES_ZERO_FILES": "[7510067] !é=Filter excludes all files {0}=!",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
@@ -166,6 +171,30 @@ define({
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
+    
+    // File exclusion filters
+	"NO_FILE_FILTER": "[7510072] !é=Exclude files\u2026=!",
+	"EDIT_FILE_FILTER": "[7510049] !é=Edit\u2026=!",
+	"FILE_FILTER_DIALOG": "[7510061] !é=Edit Filter=!",
+	"FILE_FILTER_INSTRUCTIONS": "[7510062] !é=Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.=!",
+	"FILE_FILTER_LIST_PREFIX": "[7510063] !é=except=!",
+	"FILE_FILTER_CLIPPED_SUFFIX": "[7510060] !é=and {0} more=!",
+
+	"FILTER_COUNTING_FILES": "[7510064] !é=Counting files\u2026=!",
+	"FILTER_FILE_COUNT": "[7510065] !é=Allows {0} of {1} files {2}=!",
+	"FILTER_FILE_COUNT_ALL": "[7510066] !é=Allows all {0} files {1}=!",
+
+    // Quick Edit
+	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "[7510058] !é=No Quick Edit available for current cursor position=!",
+	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "[7510050] !é=CSS Quick Edit: place cursor on a single class name=!",
+	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "[7510051] !é=CSS Quick Edit: incomplete class attribute=!",
+	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "[7510052] !é=CSS Quick Edit: incomplete id attribute=!",
+	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "[7510053] !é=CSS Quick Edit: place cursor in tag, class, or id=!",
+	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "[7510059] !é=CSS Timing Function Quick Edit: invalid syntax=!",
+	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "[7510054] !é=JS Quick Edit: place cursor in function name=!",
+
+    // Quick Docs
+	"ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND": "[7510057] !é=No Quick Docs available for current cursor position=!",
 
     /**
      * ProjectManager
@@ -189,6 +218,7 @@ define({
 	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} colonnes sélectionnées",
 	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} ligne sélectionnée",
 	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} lignes sélectionnées",
+	"STATUSBAR_SELECTION_MULTIPLE": "[7510075] !é= \u2014 {0} selections=!",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez ici pour remplacer la mise en retrait par des espaces.",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
@@ -198,6 +228,8 @@ define({
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
 	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
+	"STATUSBAR_INSERT": "[7510073] !é=INS=!",
+	"STATUSBAR_OVERWRITE": "REF",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
@@ -208,6 +240,8 @@ define({
 	"LINT_DISABLED": "L’analyse lint est désactivée",
 	"NO_LINT_AVAILABLE": "Aucun programme lint disponible pour {0}",
 	"NOTHING_TO_LINT": "Rien à analyser",
+	"LINTER_TIMED_OUT": "[7510071] !é={0} has timed out after waiting for {1} ms=!",
+	"LINTER_FAILED": "[7510070] !é={0} terminated with error: {1}=!",
     
     
     /**
@@ -252,12 +286,18 @@ define({
 	"CMD_PASTE": "Coller",
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
+	"CMD_SPLIT_SEL_INTO_LINES": "[7510046] !é=Split Selection into Lines=!",
+	"CMD_ADD_CUR_TO_NEXT_LINE": "[7510038] !é=Add Cursor to Next Line=!",
+	"CMD_ADD_CUR_TO_PREV_LINE": "[7510039] !é=Add Cursor to Previous Line=!",
 	"CMD_FIND": "Rechercher",
 	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_FIND_NEXT": "Rechercher suivant",
 	"CMD_FIND_PREVIOUS": "Rechercher précédent",
+	"CMD_FIND_ALL_AND_SELECT": "[7510041] !é=Find All and Select=!",
+	"CMD_ADD_NEXT_MATCH": "[7510040] !é=Add Next Match to Selection=!",
+	"CMD_SKIP_CURRENT_MATCH": "[7510045] !é=Skip and Add Next Match=!",
 	"CMD_REPLACE": "Remplacer",
 	"CMD_INDENT": "Retrait",
 	"CMD_UNINDENT": "Annuler le retrait",
@@ -305,15 +345,18 @@ define({
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
+	"CMD_SHOW_IN_EXPLORER": "Afficher dans l'explorateur",
+	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
 	"CMD_SHOW_IN_OS": "Afficher dans le SE",
     
     // Help menu commands
 	"HELP_MENU": "Aide",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
-	"CMD_FORUM": "Forum {APP_NAME}",
+	"CMD_SUPPORT": "[7510048] !é={APP_NAME} Support=!",
+	"CMD_SUGGEST": "[7510047] !é=Suggest a Feature=!",
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
-	"CMD_REPORT_AN_ISSUE": "Signaler un problème",
+	"CMD_GET_INVOLVED": "[7510042] !é=Get Involved=!",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -434,6 +477,9 @@ define({
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
 	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
+
+    // Custom Viewers
+	"IMAGE_VIEWER_LARGEST_ICON": "[7510068] !é=largest=!",
     
     /**
      * Unit names
@@ -465,6 +511,7 @@ define({
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
 	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Décaler</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
 	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
+	"INLINE_TIMING_EDITOR_INVALID": "[7510069] !é=The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.=!",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",
