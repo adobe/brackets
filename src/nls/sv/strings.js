@@ -539,3 +539,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
+
+/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */
