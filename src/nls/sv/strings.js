@@ -185,8 +185,8 @@ define({
     "FILTER_FILE_COUNT_ALL"             : "Tillåter alla {0} filer {1}",
 
     // Quick Edit
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Ingen Quick Edit är tillgänglig för markörens nuvarande position",
-    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: placera markören på en klass namn",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Ingen Quick Edit är tillgänglig vid markörens nuvarande position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: placera markören på ett klassnamn",
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: ofullständigt klassattribut",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: ofullständigt ID-attribut",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: placera markören inom en tagg, klass eller ID",
@@ -194,7 +194,7 @@ define({
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: placera markören på ett funktionsnamn",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Inga Quick Docs är tillgängliga för markörens nuvarande position",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Inga Quick Docs är tillgängliga vid markörens nuvarande position",
 
     /**
      * ProjectManager
