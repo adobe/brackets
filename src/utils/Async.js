@@ -424,6 +424,8 @@ define(function (require, exports, module) {
      * has finished.
      */
     function PromiseQueue() {
+        this._queue = [];
+        this._curPromise = null;
     }
     
     /**
