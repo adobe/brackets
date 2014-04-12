@@ -656,8 +656,10 @@ define(function (require, exports, module) {
             hasClosingParen = (closingPos.index !== -1);
         }
 
-        // Adjust insert char positions to replace existing value, if there is a closing paren
-        if (closingPos.index !== -1) {
+        // Insert folder names, but replace file names, so if a file is selected
+        // (i.e. closeOnSelect === true), then adjust insert char positions to
+        // replace existing value, if there is a closing paren
+        if (this.closeOnSelect && closingPos.index !== -1) {
             end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
         }
         if (this.info.filter.length > 0) {
@@ -721,15 +723,16 @@ define(function (require, exports, module) {
             charCount = 0,
             replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
-            shouldReplace = true;
+            shouldReplace = false;
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
-            charCount = tagInfo.attr.value.length;
-            
             // Special handling for URL hinting -- if the completion is a file name
             // and not a folder, then close the code hint list.
             if (!this.closeOnSelect && completion.match(/\/$/) === null) {
                 this.closeOnSelect = true;
+
+                // Insert folder names, but replace file names
+                shouldReplace = true;
             }
             
             if (!tagInfo.attr.hasEndQuote) {
@@ -742,19 +745,16 @@ define(function (require, exports, module) {
             } else if (completion === tagInfo.attr.value) {
                 shouldReplace = false;
             }
+
+            // Replace entire value, otherwise just queryDir (to insert new selection)
+            charCount = (shouldReplace) ? tagInfo.attr.value.length : this.cachedHints.queryDir.length;
         }
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (shouldReplace) {
-            if (start.ch !== end.ch) {
-                this.editor.document.replaceRange(completion, start, end);
-            } else {
-                this.editor.document.replaceRange(completion, start);
-            }
-        }
+        this.editor.document.replaceRange(completion, start, end);
 
         if (!this.closeOnSelect) {
             // If we append the missing quote, then we need to adjust the cursor postion
