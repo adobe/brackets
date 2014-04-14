@@ -1,16 +1,12 @@
-#project-dropdown {
-    border-radius: 3px;
-    box-shadow: 0 3px 9px rgba(0, 0, 0, .3);
-    border: none;
-}
 .dropdown-arrow {
     display: inline-block;
-    width: 5px;
-    height: 10px;
+    width: 7px;
+    height: 5px;
     margin-left: 4px;
     background-image: url("down-arrow.svg");
+    background-repeat: no-repeat;
     position: relative;
-    top: 1px;
+    top: 0;
 }
 
 .trash-icon {
@@ -18,15 +14,17 @@
     left: 7px;
     width: 16px;
     height: 16px;
-    background-image: url("close-btn.svg");
-    background-position: 0 0;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 15px;
+    text-align: center;
 }
+
 .trash-icon:hover {
-    background-position: -15px 0;
+    color: rgba(0, 0, 0, 1);
 }
 
 #project-dropdown-toggle {
-    border: 1px solid transparent;
     display: inline-block;
     /* adjust margins to keep position #project-title position stable after extension is loaded */
     margin: -3px 0px -2px -6px;
@@ -41,12 +39,6 @@
     line-height: 21px;
 }
 
-#project-dropdown-toggle:hover {
-    border-radius: 3px;
-    border: 1px solid #2d2f31;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
-    text-decoration: none;
-}
 #project-dropdown-toggle:hover .dropdown-arrow {
     background-image: url("down-arrow.svg");
 }
@@ -58,6 +50,11 @@
 /* TODO: style the dropdown content */
 #project-dropdown.dropdown-menu {
     position: absolute;
+    
+    /* offset for better alignment with the button */
+    margin-top: -1px;
+    margin-left: 1px;
+    
     display: block;
     max-width: none;
     z-index: 100;

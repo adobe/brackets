@@ -30,7 +30,8 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
+ *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
@@ -75,6 +76,11 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager");
     
+    
+    // Define the preference to decide how to sort the Project Tree files
+    PreferencesManager.definePreference("sortDirectoriesFirst", "boolean", brackets.platform !== "mac");
+    
+    
     /**
      * @private
      * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
@@ -86,18 +92,19 @@ define(function (require, exports, module) {
      * @private
      * File tree sorting for mac-specific sorting behavior
      */
-    var _isMac          = brackets.platform === "mac",
-        _sortPrefixDir  = _isMac ? "" : "0",
-        _sortPrefixFile = _isMac ? "" : "1";
+    var _sortPrefixDir,
+        _sortPrefixFile;
     
     /**
      * @private
      * File and folder names which are not displayed or searched
      * TODO: We should add the rest of the file names that TAR excludes:
      *    http://www.gnu.org/software/tar/manual/html_section/exclude.html
+     * TODO: This should be user configurable
+     *    https://github.com/adobe/brackets/issues/6781
      * @type {RegExp}
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitignore$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.cvsignore$|^\.gitattributes$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|^\.hgignore$|\~$/;
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
     /**
      * @private
@@ -153,6 +160,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @see getProjectRoot()
+     * @type {Directory}
      */
     var _projectRoot = null;
 
@@ -163,12 +171,6 @@ define(function (require, exports, module) {
      */
     var _projectBaseUrl = "";
     
-    /**
-     * @private
-     * @type {PreferenceStorage}
-     */
-    var _prefs = null;
-
     /**
      * @private
      * Used to initialize jstree state
@@ -200,6 +202,28 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     var _allFilesCachePromise = null;
+    
+    /**
+     * @private
+     * @type {boolean}
+     * Current sort order for the tree, true if directories are first. This is
+     * initialized in _generateSortPrefixes.
+     */
+    var _dirFirst;
+    
+    /**
+     * @private
+     * Generates the prefixes used for sorting the files in the project tree
+     * @return {boolean} true if the sort prefixes have changed
+     */
+    function _generateSortPrefixes() {
+        var previousDirFirst  = _dirFirst;
+        _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir        = _dirFirst ? "0" : "";
+        _sortPrefixFile       = _dirFirst ? "1" : "";
+        
+        return previousDirFirst !== _dirFirst;
+    }
     
     /**
      * @private
@@ -313,13 +337,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     */
-    function _getBaseUrlKey() {
-        return "projectBaseUrl_" + _projectRoot;
-    }
-
-    /**
      * Returns the encoded Base URL of the currently loaded project, or empty string if no project
      * is open (during startup, or running outside of app shell).
      * @return {String}
@@ -333,6 +350,10 @@ define(function (require, exports, module) {
      * @param {String}
      */
     function setBaseUrl(projectBaseUrl) {
+        var context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath} };
+        
         _projectBaseUrl = projectBaseUrl;
 
         // Ensure trailing slash to be consistent with _projectRoot.fullPath
@@ -341,7 +362,7 @@ define(function (require, exports, module) {
             _projectBaseUrl += "/";
         }
 
-        _prefs.setValue(_getBaseUrlKey(), _projectBaseUrl);
+        PreferencesManager.setViewState("project.baseUrl", _projectBaseUrl, context);
     }
     
     /**
@@ -370,27 +391,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Get prefs tree state lookup key for given project path.
-     */
-    function _getTreeStateKey(path) {
-        // generate unique tree state key for this project path
-        var key = "projectTreeState_" + path;
-
-        // normalize to always have slash at end
-        if (key[key.length - 1] !== "/") {
-            key += "/";
-        }
-        return key;
-    }
-    
-    /**
-     * @private
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
         
         // save the current project
-        _prefs.setValue("projectPath", _projectRoot.fullPath);
+        PreferencesManager.setViewState("projectPath", _projectRoot.fullPath);
 
         // save jstree state
         var openNodes = [],
@@ -398,7 +404,10 @@ define(function (require, exports, module) {
             entry,
             fullPath,
             shortPath,
-            depth;
+            depth,
+            context = { location : { scope: "user",
+                                     layer: "project",
+                                     layerID: _projectRoot.fullPath } };
 
         // Query open nodes by class selector
         $(".jstree-open:visible").each(function (index) {
@@ -425,7 +434,7 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        _prefs.setValue(_getTreeStateKey(_projectRoot.fullPath), openNodes);
+        PreferencesManager.setViewState("project.treeState", openNodes, context);
     }
     
     /**
@@ -663,7 +672,50 @@ define(function (require, exports, module) {
             // install scroller shadows
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
+            var findEventHandler = function (type, namespace, selector) {
+                var events        = $._data(_projectTree[0], "events"),
+                    eventsForType = events ? events[type] : null,
+                    event         = eventsForType ? _.find(eventsForType, function (e) {
+                        return e.namespace === namespace && e.selector === selector;
+                    }) : null,
+                    eventHandler  = event ? event.handler : null;
+                if (!eventHandler) {
+                    console.error(type + "." + namespace + " " + selector + " handler not found!");
+                }
+                return eventHandler;
+            };
+            var createCustomHandler = function (originalHandler) {
+                return function (event) {
+                    var $node = $(event.target).parent("li"),
+                        methodName;
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.altKey) {
+                            // collapse subtree
+                            // note: expanding using open_all is a bad idea due to poor performance
+                            methodName = $node.is(".jstree-open") ? "close_all" : "open_node";
+                            _projectTree.jstree(methodName, $node);
+                            return;
+                        } else {
+                            // toggle siblings
+                            methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
+                            $node.parent().children("li").each(function () {
+                                _projectTree.jstree(methodName, $(this));
+                            });
+                            return;
+                        }
+                    }
+                    // original behaviour
+                    originalHandler.apply(this, arguments);
+                };
+            };
+            var originalHrefHandler = findEventHandler("click", "jstree", "a");
+            var originalInsHandler = findEventHandler("click", "jstree", "li > ins");
+
             _projectTree
+                .off("click.jstree", "a")
+                .on("click.jstree", "a", createCustomHandler(originalHrefHandler))
+                .off("click.jstree", "li > ins")
+                .on("click.jstree", "li > ins", createCustomHandler(originalInsHandler))
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
@@ -716,7 +768,7 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _toCompareString(name, isFolder) {
-        return ((isFolder) ? _sortPrefixDir : _sortPrefixFile) + name;
+        return (isFolder ? _sortPrefixDir : _sortPrefixFile) + name;
     }
     
     /**
@@ -928,7 +980,7 @@ define(function (require, exports, module) {
             return true;
         }
         var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
-        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
     
@@ -938,10 +990,10 @@ define(function (require, exports, module) {
     function addWelcomeProjectPath(path) {
         var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         
-        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        var welcomeProjects = PreferencesManager.getViewState("welcomeProjects") || [];
         if (welcomeProjects.indexOf(pathNoSlash) === -1) {
             welcomeProjects.push(pathNoSlash);
-            _prefs.setValue("welcomeProjects", welcomeProjects);
+            PreferencesManager.setViewState("welcomeProjects", welcomeProjects);
         }
     }
     
@@ -961,7 +1013,7 @@ define(function (require, exports, module) {
      * first launch.
      */
     function getInitialProjectPath() {
-        return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
+        return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
     
     /**
@@ -1024,6 +1076,20 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Reloads the project preferences.
+     */
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
+        } else {
+            PreferencesManager._setProjectSettingsFile();
+        }
+    }
+    
+    /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
@@ -1052,8 +1118,9 @@ define(function (require, exports, module) {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
+            
+            // About to close current project (if any)
             if (_projectRoot) {
-                // close current project
                 $(exports).triggerHandler("beforeProjectClose", _projectRoot);
             }
             
@@ -1061,11 +1128,18 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
+                // Done closing old project (if any)
+                if (_projectRoot) {
+                    $(exports).triggerHandler("projectClose", _projectRoot);
+                }
+                
                 startLoad.resolve();
             });
         }
         
         startLoad.done(function () {
+            var context = { location : { scope: "user",
+                                         layer: "project" } };
 
             // Clear project path map
             _projectInitialLoad = {
@@ -1074,8 +1148,12 @@ define(function (require, exports, module) {
                 fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
             };
 
+            if (!isUpdating) {
+                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
+            }
+            
             // restore project tree state from last time this project was open
-            _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
+            _projectInitialLoad.previous = PreferencesManager.getViewState("project.treeState", context) || [];
 
             // Populate file tree as long as we aren't running in the browser
             if (!brackets.inBrowser) {
@@ -1086,16 +1164,22 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-                        PreferencesManager._setCurrentEditingFile(rootPath);
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
-
+                        
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
-                        _projectBaseUrl = _prefs.getValue(_getBaseUrlKey()) || "";
+                        
+                        if (projectRootChanged) {
+                            _reloadProjectPreferencesScope();
+                            PreferencesManager._setCurrentEditingFile(rootPath);
+                        }
+
+                        _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
+                        _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -1543,12 +1627,14 @@ define(function (require, exports, module) {
                 if (parent && (parent !== -1)) {
                     var methodName = (wasNodeOpen) ? "open_node" : "close_node";
                     var classToAdd = (wasNodeOpen) ? "jstree-open" : "jstree-closed";
-                    
+
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     _projectTree.jstree(methodName, parent);
                     parent.removeClass("jstree-leaf jstree-closed jstree-open")
                         .addClass(classToAdd);
                 }
+                
+                _redraw(true);
                 
                 result.reject();
             }
@@ -1791,8 +1877,17 @@ define(function (require, exports, module) {
                 
                 // Since html_titles are enabled, we have to reset the text without markup.
                 // And we also need to explicitly escape all html-sensitive characters.
-                _projectTree.jstree("set_text", $selected, _.escape(entry.name));
+                var escapedName = _.escape(entry.name);
+                _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
+
+                var extension = FileUtils.getSmartFileExtension(entry.name);
+                if (extension) {
+                    var indexOfExtension = escapedName.length - extension.length - 1;
+                    if (indexOfExtension > 0) {
+                        $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                    }
+                }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }
@@ -2125,6 +2220,8 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    
+    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -2144,11 +2241,54 @@ define(function (require, exports, module) {
         });
     });
 
-    // Init PreferenceStorage
-    var defaults = {
-        projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
-    };
-    _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
+    /**
+     * @private
+     * Examine each preference key for migration of project tree states.
+     * If the key has a prefix of "projectTreeState_/", then it is a project tree states
+     * preference from old preference model.
+     *
+     * @param {string} key The key of the preference to be examined
+     *      for migration of project tree states.
+     * @return {?string} - the scope to which the preference is to be migrated
+     */
+    function _checkPreferencePrefix(key) {
+        var pathPrefix = "projectTreeState_",
+            projectPath;
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "projectTreeState_".
+            projectPath = key.substr(pathPrefix.length);
+            return "user project.treeState " + projectPath;
+        }
+        
+        pathPrefix = "projectBaseUrl_";
+        if (key.indexOf(pathPrefix) === 0) {
+            // Get the project path from the old preference key by stripping "projectBaseUrl_[Directory "
+            // and "]".
+            projectPath = key.substr(key.indexOf(" ") + 1);
+            projectPath = projectPath.substr(0, projectPath.length - 1);
+            return "user project.baseUrl " + projectPath;
+        }
+
+        return null;
+    }
+    
+    // Init default project path to welcome project
+    PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
+
+    PreferencesManager.convertPreferences(module, {
+        "projectPath": "user",
+        "projectTreeState_": "user",
+        "welcomeProjects": "user",
+        "projectBaseUrl_": "user"
+    }, true, _checkPreferencePrefix);
+    
+    // Initialize the sort prefixes and make sure to change them when the sort pref changes
+    _generateSortPrefixes();
+    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
+        if (_generateSortPrefixes()) {
+            refreshFileTree();
+        }
+    });
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -2158,7 +2298,7 @@ define(function (require, exports, module) {
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
-    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
+    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
     
     // Init invalid characters string 
     if (brackets.platform === "mac") {

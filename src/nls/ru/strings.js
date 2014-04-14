@@ -268,7 +268,7 @@ define({
     "CMD_LINE_DOWN"                       : "Переместить строку вниз",
     "CMD_OPEN_LINE_ABOVE"                 : "Встравить строку сверху",
     "CMD_OPEN_LINE_BELOW"                 : "Вставить строку снизу",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Автоматически закрывать скобкуи",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Автоматически закрывать скобки",
     "CMD_SHOW_CODE_HINTS"                 : "Показывать подсказки в коде",
     
     // View menu commands
@@ -304,7 +304,7 @@ define({
     "CMD_NEXT_DOC"                        : "Следующий документ",
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве проекта",
-    "CMD_SHOW_IN_OS"                      : "Показать в оперативной системе",
+    "CMD_SHOW_IN_OS"                      : "Показать в операционной системе",
     
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
@@ -361,7 +361,7 @@ define({
     "UPDATE_EXTENSION_TITLE"               : "Обновление расширения",
     "INSTALL_EXTENSION_LABEL"              : "URL расширения",
     "INSTALL_EXTENSION_HINT"               : "URL zip-файла расширения или репозитория GitHub",
-    "INSTALLING_FROM"                      : "Установка расщирения с {0}\u2026",
+    "INSTALLING_FROM"                      : "Установка расширения с {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Установка завершена успешно!",
     "INSTALL_FAILED"                       : "Не удалось установить.",
     "CANCELING_INSTALL"                    : "Отмена\u2026",
@@ -458,32 +458,6 @@ define({
     "LANGUAGE_SUBMIT"                           : "Перезагрузить {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Отмена",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "По умолчанию",
-    
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Czech",
-    "LOCALE_DE"                                 : "German",
-    "LOCALE_EL"                                 : "Greek",
-    "LOCALE_EN"                                 : "English",
-    "LOCALE_ES"                                 : "Spanish",
-    "LOCALE_FI"                                 : "Finnish",
-    "LOCALE_FR"                                 : "French",
-    "LOCALE_IT"                                 : "Italian",
-    "LOCALE_JA"                                 : "Japanese",
-    "LOCALE_NB"                                 : "Norwegian",
-    "LOCALE_NL"                                 : "Dutch",
-    "LOCALE_FA_IR"                              : "Persian-Farsi",
-    "LOCALE_PL"                                 : "Polish",
-    "LOCALE_PT_BR"                              : "Portuguese, Brazil",
-    "LOCALE_PT_PT"                              : "Portuguese",
-    "LOCALE_RO"                                 : "Romanian",
-    "LOCALE_RU"                                 : "Russian",
-    "LOCALE_SK"                                 : "Slovak",
-    "LOCALE_SR"                                 : "Serbian",
-    "LOCALE_SV"                                 : "Swedish",
-    "LOCALE_TR"                                 : "Turkish",
-    "LOCALE_ZH_CN"                              : "Chinese, simplified",
-    "LOCALE_HU"                                 : "Hungarian",
-    "LOCALE_KO"                                 : "Korean",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Время",

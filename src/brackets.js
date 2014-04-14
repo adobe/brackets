@@ -44,6 +44,19 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
+
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -87,15 +100,28 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
+        DeprecationWarning      = require("utils/DeprecationWarning"),
+        ViewCommandHandlers     = require("view/ViewCommandHandlers"),
         _                       = require("thirdparty/lodash");
-        
+    
+    // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
+    // expose our required CodeMirror globally so as to avoid breaking extensions in the
+    // interim.
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+
+    Object.defineProperty(window, "CodeMirror", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror2/lib/codemirror") instead of global CodeMirror.', true);
+            return CodeMirror;
+        }
+    });
+    
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
@@ -159,6 +185,8 @@ define(function (require, exports, module) {
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
             LanguageManager         : LanguageManager,
+            FindInFiles             : require("search/FindInFiles"),
+            FileFilters             : require("search/FileFilters"),
             doneLoading             : false
         };
 
@@ -196,8 +224,8 @@ define(function (require, exports, module) {
             $testDiv.remove();
         }
 
-        // Load default languages
-        LanguageManager.ready.always(function () {
+        // Load default languages and preferences
+        Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]).always(function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
@@ -206,6 +234,7 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 // Finish UI initialization
+                ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
@@ -214,11 +243,10 @@ define(function (require, exports, module) {
                     // the samples folder on first launch), open it automatically. (We explicitly check for the
                     // samples folder in case this is the first time we're launching Brackets after upgrading from
                     // an old version that might not have set the "afterFirstLaunch" pref.)
-                    var prefs = PreferencesManager.getPreferenceStorage(module),
-                        deferred = new $.Deferred();
+                    var deferred = new $.Deferred();
                     
-                    if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
-                        prefs.setValue("afterFirstLaunch", "true");
+                    if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
+                        PreferencesManager.setViewState("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {
@@ -240,6 +268,18 @@ define(function (require, exports, module) {
                         AppInit._dispatchReady(AppInit.APP_READY);
                         
                         PerfUtils.addMeasurement("Application Startup");
+                        
+                        if (PreferencesManager._isUserScopeCorrupt()) {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                Strings.ERROR_PREFS_CORRUPT
+                            )
+                                .done(function () {
+                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                });
+                        }
+                        
                     });
                     
                     // See if any startup files were passed to the application
@@ -383,9 +423,14 @@ define(function (require, exports, module) {
             }
         }, true);
     }
-
-    // Dispatch htmlReady event
-    _beforeHTMLReady();
-    AppInit._dispatchReady(AppInit.HTML_READY);
-    $(window.document).ready(_onReady);
+    
+    // Wait for view state to load.
+    var viewStateTimer = PerfUtils.markStart("User viewstate loading");
+    PreferencesManager._smUserScopeLoading.always(function () {
+        PerfUtils.addMeasurement(viewStateTimer);
+        // Dispatch htmlReady event
+        _beforeHTMLReady();
+        AppInit._dispatchReady(AppInit.HTML_READY);
+        $(window.document).ready(_onReady);
+    });
 });

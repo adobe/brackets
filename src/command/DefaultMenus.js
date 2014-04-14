@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
+        ContextMenu     = require("command/Menus"),
         EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
         Strings         = require("strings");
@@ -77,12 +78,17 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_SELECT_ALL);
         menu.addMenuItem(Commands.EDIT_SELECT_LINE);
+        menu.addMenuItem(Commands.EDIT_SPLIT_SEL_INTO_LINES);
+        menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_PREV_LINE);
+        menu.addMenuItem(Commands.EDIT_ADD_CUR_TO_NEXT_LINE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_FIND);
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES);
         menu.addMenuItem(Commands.EDIT_FIND_NEXT);
-
         menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS);
+        menu.addMenuItem(Commands.EDIT_FIND_ALL_AND_SELECT);
+        menu.addMenuItem(Commands.EDIT_ADD_NEXT_MATCH);
+        menu.addMenuItem(Commands.EDIT_SKIP_CURRENT_MATCH);
 
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_REPLACE);
@@ -151,14 +157,17 @@ define(function (require, exports, module) {
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }
-        if (brackets.config.forum_url) {
-            menu.addMenuItem(Commands.HELP_FORUM);
+        if (brackets.config.support_url) {
+            menu.addMenuItem(Commands.HELP_SUPPORT);
+        }
+        if (brackets.config.suggest_feature_url) {
+            menu.addMenuItem(Commands.HELP_SUGGEST);
         }
         if (brackets.config.release_notes_url) {
             menu.addMenuItem(Commands.HELP_RELEASE_NOTES);
         }
-        if (brackets.config.report_issue_url) {
-            menu.addMenuItem(Commands.HELP_REPORT_AN_ISSUE);
+        if (brackets.config.get_involved_url) {
+            menu.addMenuItem(Commands.HELP_GET_INVOLVED);
         }
 
         menu.addMenuDivider();
@@ -195,7 +204,6 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
         var working_set_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_MENU);
-        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
         working_set_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
         working_set_cmenu.addMenuItem(Commands.FILE_RENAME);
@@ -204,11 +212,15 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.EDIT_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
-        working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
+        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        
+        
+        var working_set_settings_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_SETTINGS_MENU);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
+        working_set_settings_cmenu.addMenuDivider();
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
@@ -273,6 +285,11 @@ define(function (require, exports, module) {
         $("#open-files-container").on("contextmenu", function (e) {
             working_set_cmenu.open(e);
         });
+
+        /**
+         * Dropdown menu for workspace sorting
+         */
+        Menus.ContextMenu.assignContextMenuToSelector("#working-set-option-btn", working_set_settings_cmenu);
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {

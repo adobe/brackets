@@ -170,7 +170,7 @@ define(function (require, exports, module) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         promise.fail(function (err) {
-            expect("[" + operationName + "] promise rejected with: " + err).toBe(null);
+            expect("[" + operationName + "] promise rejected with: " + err).toBe("(expected resolved instead)");
         });
         waitsFor(function () {
             return promise.state() === "resolved";
@@ -187,6 +187,9 @@ define(function (require, exports, module) {
     window.waitsForFail = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
         expect(promise).toBeTruthy();
+        promise.done(function (result) {
+            expect("[" + operationName + "] promise resolved with: " + result).toBe("(expected rejected instead)");
+        });
         waitsFor(function () {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);
@@ -494,12 +497,26 @@ define(function (require, exports, module) {
             // disable initial dialog for live development
             params.put("skipLiveDevelopmentInfo", true);
             
+            // signals that main.js should configure RequireJS for tests
+            params.put("testEnvironment", true);
+            
             // option to launch test window with either native or HTML menus
             if (options && options.hasOwnProperty("hasNativeMenus")) {
                 params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
             }
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            // Displays the primary console messages from the test window in the the
+            // test runner's console as well.
+            ["log", "info", "warn", "error"].forEach(function (method) {
+                var originalMethod = _testWindow.console[method];
+                _testWindow.console[method] = function () {
+                    var log = ["[testWindow] "].concat(Array.prototype.slice.call(arguments, 0));
+                    console[method].apply(console, log);
+                    originalMethod.apply(_testWindow.console, arguments);
+                };
+            });
             
             _testWindow.isBracketsTestWindow = true;
             
@@ -531,15 +548,6 @@ define(function (require, exports, module) {
         );
 
         runs(function () {
-            // Reconfigure the preferences manager so that the "user" scoped
-            // preferences are empty and the tests will not reconfigure
-            // the preferences of the user running the tests.
-            var pm = _testWindow.brackets.test.PreferencesManager._manager;
-            pm.removeScope("user");
-            pm.addScope("user", new PreferencesBase.MemoryStorage(), {
-                before: "default"
-            });
-            
             // callback allows specs to query the testWindow before they run
             callback.call(spec, _testWindow);
         });
@@ -1042,7 +1050,7 @@ define(function (require, exports, module) {
         // Unfortunately, we can't just use jQuery's :contains() selector, because it appears that
         // you can't escape quotes in it.
         var i;
-        if (root instanceof $) {
+        if (root.jquery) {
             root = root.get(0);
         }
         if (!root) {

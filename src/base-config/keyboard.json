@@ -65,6 +65,21 @@
             "platform": "mac"
         }
     ],
+    "edit.splitSelIntoLines": [
+        "Ctrl-Alt-L"
+    ],
+    "edit.addCursorToPrevLine": [
+        {
+            "key": "Shift-Alt-Up",
+            "displayKey": "Shift-Alt-↑"
+        }
+    ],
+    "edit.addCursorToNextLine": [
+        {
+            "key": "Shift-Alt-Down",
+            "displayKey": "Shift-Alt-↓"
+        }
+    ],
     "edit.find":  [
         "Ctrl-F"
     ],
@@ -87,6 +102,25 @@
         {
             "key": "Cmd-Shift-G",
             "platform": "mac"
+        }
+    ],
+    "edit.findAllAndSelect": [
+        {
+            "key": "Alt-F3"
+        },
+        {
+            "key": "Cmd-Ctrl-G",
+            "platform": "mac"
+        }
+    ],
+    "edit.addNextMatch": [
+        {
+            "key": "Ctrl-B"
+        }
+    ],
+    "edit.skipCurrentMatch": [
+        {
+            "key": "Ctrl-Shift-B"
         }
     ],
     "edit.replace":  [
@@ -283,5 +317,8 @@
     ],
     "file.rename":  [
         "F2"
+    ],
+    "help.support": [
+        "F1"
     ]
 }

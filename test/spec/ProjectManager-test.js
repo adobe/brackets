@@ -469,14 +469,14 @@ define(function (require, exports, module) {
                 expect(shouldShow(makeEntry("Thumbs.db"))).toBe(false);
                 expect(shouldShow(makeEntry(".hg"))).toBe(false);
                 expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
-                expect(shouldShow(makeEntry(".gitignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitignore"))).toBe(true);
                 expect(shouldShow(makeEntry("foobar"))).toBe(true);
                 expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
                 expect(shouldShow(makeEntry("module.pyc"))).toBe(false);
-                expect(shouldShow(makeEntry(".gitattributes"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitattributes"))).toBe(true);
                 expect(shouldShow(makeEntry("CVS"))).toBe(false);
-                expect(shouldShow(makeEntry(".cvsignore"))).toBe(false);
-                expect(shouldShow(makeEntry(".hgignore"))).toBe(false);
+                expect(shouldShow(makeEntry(".cvsignore"))).toBe(true);
+                expect(shouldShow(makeEntry(".hgignore"))).toBe(true);
                 expect(shouldShow(makeEntry(".hgtags"))).toBe(false);
                 
             });

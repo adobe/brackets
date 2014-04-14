@@ -134,7 +134,7 @@ define(function (require, exports, module) {
             break;
             
         case STATE_INSTALLING:
-            url = this.$url.val();
+            url = this.$url.val().trim();
             this.$inputArea.hide();
             this.$browseExtensionsButton.hide();
             this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
@@ -297,9 +297,9 @@ define(function (require, exports, module) {
      * @private
      * Handle typing in the URL field.
      */
-    InstallExtensionDialog.prototype._handleUrlInput = function () {
-        var url = this.$url.val(),
-            valid = (url !== "");
+    InstallExtensionDialog.prototype._handleUrlInput = function (e) {
+        var url     = this.$url.val().trim(),
+            valid   = (url !== "");
         if (!valid && this._state === STATE_VALID_URL) {
             this._enterState(STATE_START);
         } else if (valid && this._state === STATE_START) {
@@ -332,7 +332,8 @@ define(function (require, exports, module) {
 
         var context = {
             Strings: Strings,
-            isUpdate: this._isUpdate
+            isUpdate: this._isUpdate,
+            includeBrowseExtensions: !!brackets.config.extension_listing_url
         };
         
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the 
@@ -352,7 +353,7 @@ define(function (require, exports, module) {
         this.$cancelButton.on("click", this._handleCancel.bind(this));
         this.$url.on("input", this._handleUrlInput.bind(this));
         this.$browseExtensionsButton.on("click", function () {
-            NativeApp.openURLInDefaultBrowser(brackets.config.extension_wiki_url);
+            NativeApp.openURLInDefaultBrowser(brackets.config.extension_listing_url);
         });
         $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         

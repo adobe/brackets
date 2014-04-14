@@ -65,6 +65,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Fehler beim Lesen der Einstellungen",
+    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei ist kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
@@ -162,9 +166,18 @@ define({
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
+
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Dateien ausschließen\u2026",
+    "EDIT_FILE_FILTER"                  : "Bearbeiten\u2026",
+    "FILE_FILTER_DIALOG"                : "Filter bearbeiten",
+    "FILE_FILTER_INSTRUCTIONS"          : "Schließe Dateien und Ordner aus, auf die einer der folgenden Pfade / Teilpfade oder <a href='{0}' title='{0}'>Globs</a> zutrifft. Nutze für jeden Pfad eine neue Zeile.",
+    "FILE_FILTER_LIST_PREFIX"           : "ausgenommen",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "und {0} weitere",
 
     /**
      * ProjectManager
@@ -197,6 +210,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Zeile",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Zeilen",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",
@@ -304,6 +319,8 @@ define({
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
+    "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
+    "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
     "CMD_SHOW_IN_OS"                      : "Im Dateisystem anzeigen",
 
     // Help menu commands
@@ -459,37 +476,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
 
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tschechisch",
-    "LOCALE_DE"                                 : "Deutsch",
-    "LOCALE_EL"                                 : "Griechisch",
-    "LOCALE_EN"                                 : "Englisch",
-    "LOCALE_ES"                                 : "Spanisch",
-    "LOCALE_FA_IR"                              : "Persisch (Farsi)",
-    "LOCALE_FI"                                 : "Finnisch",
-    "LOCALE_FR"                                 : "Französisch",
-    "LOCALE_IT"                                 : "Italienisch",
-    "LOCALE_JA"                                 : "Japanisch",
-    "LOCALE_NB"                                 : "Norwegisch",
-    "LOCALE_NL"                                 : "Niederländisch",
-    "LOCALE_PL"                                 : "Polnisch",
-    "LOCALE_PT_BR"                              : "Portugiesisch, Brasilien",
-    "LOCALE_PT_PT"                              : "Portugiesisch",
-    "LOCALE_RO"                                 : "Rumänisch",
-    "LOCALE_RU"                                 : "Russisch",
-    "LOCALE_SK"                                 : "Slowakisch",
-    "LOCALE_SR"                                 : "Serbisch",
-    "LOCALE_SV"                                 : "Schwedisch",
-    "LOCALE_TR"                                 : "Türkisch",
-    "LOCALE_ZH_CN"                              : "Chinesisch, vereinfacht",
-    "LOCALE_HU"                                 : "Ungarisch",
-    "LOCALE_KO"                                 : "Koreanisch",
-
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Verlauf",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Ausgewählten Punkt bewegen<br><kbd class='text'>Umschalt</kbd> Um 10 Einheiten bewegen<br><kbd class='text'>Tab</kbd> Zwischen Punkten wechseln",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Stufenzahl vergrößern oder verkleinern<br><kbd>←</kbd><kbd>→</kbd> 'Start' oder 'Ende'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Der Code im Dokument <code>{0}</code> ist nicht korrekt, daher wird die Funktion <code>{1}</code> angezeigt. Die Änderungen werden bei der ersten Bearbeitung ins Dokument übernommen.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuelle Farbe",

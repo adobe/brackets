@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = require("thirdparty/lodash");
+    var _         = require("thirdparty/lodash"),
+        FileUtils = require("file/FileUtils");
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -393,7 +394,8 @@ define(function (require, exports, module) {
      */
     function getFileEntryDisplay(entry) {
         var name = entry.name,
-            i = name.lastIndexOf(".");
+            ext = FileUtils.getSmartFileExtension(name),
+            i = name.lastIndexOf("." + ext);
         
         if (i >= 0) {
             // Escape all HTML-sensitive characters in filename.

@@ -65,6 +65,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
+    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene el formato JSON válido. El archivo se abrira para que pueda correguir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
+    
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} está desarrollado en HTML, pero por ahora funciona como una aplicación de escritorio para que puedas editar archivos en local. Por favor, utiliza la aplicación del repositorio <b>github.com/adobe/brackets-shell</b> para ejecutar {APP_NAME}.",
@@ -73,33 +77,33 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Error indexando archivos",
     "ERROR_MAX_FILES"                   : "Se ha alcanzado el número máximo de archivos indexables. Puede que las acciones que buscan archivos en el índice funcionen de manera incorrecta.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando navegador",
     "ERROR_CANT_FIND_CHROME"            : "No se pudo encontrar el navegador Google Chrome. Por favor, asegúrate de que esté instalado correctamente.",
     "ERROR_LAUNCHING_BROWSER"           : "Ha ocurrido un error al iniciar el navegador. (error {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en Desarrollo en Vivo",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista Previa en Vivo",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Desarrollo en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para Desarrollo en Vivo",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Desarrollo en Vivo.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Desarrollo en Vivo con archivos de servidor.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Desarrollo en Vivo. Vuelve a intentarlo, por favor.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Desarrollo en Vivo</a>.",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista Previa en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para Vista Previa en Vivo",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista Previa en Vivo.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista Previa en Vivo con archivos de servidor.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista Previa en Vivo. Vuelve a intentarlo, por favor.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista Previa en Vivo!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista Previa en Vivo</a>.",
     
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Desarrollo en Vivo: Conectando\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Desarrollo en Vivo: Inicializando\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Desarrollo en Vivo",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Desarrollo en Vivo (guarda el archivo para actualizar)",
-    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Desarrollo en Vivo (no se está actualizando debido a un error de sintaxis)",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista Previa en Vivo",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Vista Previa en Vivo: Conectando\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Vista Previa en Vivo: Inicializando\u2026",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Vista Previa en Vivo",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista Previa en Vivo (guarda el archivo para actualizar)",
+    "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista Previa en Vivo (no se está actualizando debido a un error de sintaxis)",
     
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Desarrollo en Vivo se ha detenido porque se han abierto las herramientas de desarrollo",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Desarrollo en Vivo se ha detenido porque se ha cerrado la página en el navegador",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Desarrollo en Vivo se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Desarrollo en Vivo se ha detenido por motivos desconocidos ({0})",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo se ha detenido porque se han abierto las herramientas de desarrollo",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista Previa en Vivo se ha detenido porque se ha cerrado la página en el navegador",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista Previa en Vivo se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista Previa en Vivo se ha detenido por motivos desconocidos ({0})",
     
     "SAVE_CLOSE_TITLE"                  : "Guardar cambios",
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
@@ -163,9 +167,19 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click para expandir/colapsar todo",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
-
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Excluir archivos\u2026",
+    "EDIT_FILE_FILTER"                  : "Editar\u2026",
+    "FILE_FILTER_DIALOG"                : "Editar filtro",
+    "FILE_FILTER_INSTRUCTIONS"          : "Excluir archivos y carpetas que coincidan con alguna de las siguientes cadenas / subcadenas o <a href='{0}' title='{0}'>globs</a>. Ingrese una cadena por línea.",
+    "FILE_FILTER_LIST_PREFIX"           : "excepto",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "y {0} más",
+    
+    
     /**
      * ProjectManager
      */
@@ -197,6 +211,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} línea",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} líneas",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensiones deshabilitadas",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "SOB",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
@@ -231,7 +247,7 @@ define({
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
-    "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
+    "CMD_LIVE_FILE_PREVIEW"               : "Vista Previa en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
     "CMD_FILE_DELETE"                     : "Eliminar",
@@ -283,7 +299,7 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Mostrar números de línea",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Resaltar línea actual",
     "CMD_TOGGLE_WORD_WRAP"                : "Habilitar ajuste de línea",
-    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Desarrollo en Vivo",
+    "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vista Previa en Vivo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Inspeccionar el código al guardar",
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
@@ -304,6 +320,8 @@ define({
     "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
+    "CMD_SHOW_IN_EXPLORER"                : "Mostrar en el Explorador",
+    "CMD_SHOW_IN_FINDER"                  : "Mostrar en Finder",
     "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
     
     // Help menu commands
@@ -338,9 +356,9 @@ define({
     "UPDATE_MESSAGE"                       : "¡Hay una nueva versión de {APP_NAME} disponible! Éstas son algunas de las nuevas características:",
     "GET_IT_NOW"                           : "¡Consíguelo ahora!",
     "PROJECT_SETTINGS_TITLE"               : "Configuración del proyecto para: {0}",
-    "PROJECT_SETTING_BASE_URL"             : "URL base para Desarrollo en Vivo",
+    "PROJECT_SETTING_BASE_URL"             : "URL base para Vista Previa en Vivo",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(deja en blanco para urls de tipo \"file\")",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Desarrollo en Vivo no soporta el protocolo {0}. Por favor, utiliza http: o https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Vista Previa en Vivo no soporta el protocolo {0}. Por favor, utiliza http: o https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
@@ -459,37 +477,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Checo",
-    "LOCALE_DE"                                 : "Alemán",
-    "LOCALE_EL"                                 : "Griego",
-    "LOCALE_EN"                                 : "Inglés",
-    "LOCALE_ES"                                 : "Español",
-    "LOCALE_FI"                                 : "Finlandés",
-    "LOCALE_FR"                                 : "Francés",
-    "LOCALE_IT"                                 : "Italiano",
-    "LOCALE_JA"                                 : "Japonés",
-    "LOCALE_NB"                                 : "Noruego",
-    "LOCALE_NL"                                 : "Holandés",
-    "LOCALE_FA_IR"                              : "Persa-Farsi",
-    "LOCALE_PL"                                 : "Polaco",
-    "LOCALE_PT_BR"                              : "Portugués, Brasil",
-    "LOCALE_PT_PT"                              : "Portugués",
-    "LOCALE_RO"                                 : "Rumano",
-    "LOCALE_RU"                                 : "Ruso",
-    "LOCALE_SK"                                 : "Eslovaco",
-	"LOCALE_SR"									: "Serbio",
-    "LOCALE_SV"                                 : "Sueco",
-    "LOCALE_TR"                                 : "Turco",
-    "LOCALE_ZH_CN"                              : "Chino, simplificado",
-    "LOCALE_HU"                                 : "Húngaro",
-    "LOCALE_KO"                                 : "Coreano",
-    
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresión",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Mueven el punto seleccionado<br><kbd class='text'>Shift</kbd> Mueve de a diez unidades",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Mueven el punto seleccionado<br><kbd class='text'>Shift</kbd> Mueve de a diez unidades<br><kbd class='text'>Tab</kbd> Cambia el punto seleccionado",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa o decrementa los pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' o 'End'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "El valor viejo <code>{0}</code> no es válido, por lo tanto, fue modificado a <code>{1}</code>. El documento será actualizado luego de la primer edición.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",

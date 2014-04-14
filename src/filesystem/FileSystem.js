@@ -29,7 +29,9 @@
  * and manages File and Directory instances, dispatches events when the file system changes,
  * and provides methods for showing 'open' and 'save' dialogs.
  *
- * The FileSystem must be initialized very early during application startup. 
+ * FileSystem automatically initializes when loaded. It depends on a pluggable "impl" layer, which
+ * it loads itself but must be designated in the require.config() that loads FileSystem. For details
+ * see: https://github.com/adobe/brackets/wiki/File-System-Implementations
  *
  * There are three ways to get File or Directory instances:
  *    * Use FileSystem.resolve() to convert a path to a File/Directory object. This will only
@@ -37,8 +39,21 @@
  *    * Use FileSystem.getFileForPath()/FileSystem.getDirectoryForPath() if you know the
  *      file/directory already exists, or if you want to create a new entry.
  *    * Use Directory.getContents() to return all entries for the specified Directory.
- *
+ * 
+ * All paths passed *to* FileSystem APIs must be in the following format:
+ *    * The path separator is "/" regardless of platform
+ *    * Paths begin with "/" on Mac/Linux and "c:/" (or some other drive letter) on Windows
+ * 
+ * All paths returned *from* FileSystem APIs additionally meet the following guarantees:
+ *    * No ".." segments
+ *    * No consecutive "/"s
+ *    * Paths to a directory always end with a trailing "/"
+ * (Because FileSystem normalizes paths automatically, paths passed *to* FileSystem do not need
+ * to meet these requirements)
+ * 
  * FileSystem dispatches the following events:
+ * (NOTE: attach to these events via `FileSystem.on()` - not `$(FileSystem).on()`)
+ * 
  *    change - Sent whenever there is a change in the file system. The handler
  *          is passed up to three arguments: the changed entry and, if that changed entry 
  *          is a Directory, a list of entries added to the directory and a list of entries 
@@ -79,6 +94,7 @@ define(function (require, exports, module) {
     var Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
+        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     /**
@@ -248,6 +264,8 @@ define(function (require, exports, module) {
             commandName = shouldWatch ? "watchPath" : "unwatchPath";
 
         if (recursiveWatch) {
+            // The impl can watch the entire subtree with one call on the root (we also fall into this case for
+            // unwatch, although that never requires us to do the recursion - see similar final case below)
             if (entry !== watchedRoot.entry) {
                 // Watch and unwatch calls to children of the watched root are
                 // no-ops if the impl supports recursiveWatch
@@ -301,6 +319,8 @@ define(function (require, exports, module) {
                 });
             }, callback);
         } else {
+            // Unwatching never requires enumerating the subfolders (which is good, since after a
+            // delete/rename we may be unable to do so anyway)
             this._enqueueWatchRequest(function (requestCb) {
                 impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
@@ -337,7 +357,9 @@ define(function (require, exports, module) {
             // entries always return cached data if it exists!
             this._index.visitAll(function (child) {
                 if (child.fullPath.indexOf(entry.fullPath) === 0) {
-                    child._clearCachedData();
+                    // 'true' so entry doesn't try to clear its immediate childrens' caches too. That would be redundant
+                    // with the visitAll() here, and could be slow if we've already cleared its parent (#7150).
+                    child._clearCachedData(true);
                 }
             }.bind(this));
             
@@ -436,7 +458,7 @@ define(function (require, exports, module) {
      * @return {boolean} True if the fullPath is absolute and false otherwise.
      */
     FileSystem.isAbsolutePath = function (fullPath) {
-        return (fullPath[0] === "/" || fullPath[1] === ":");
+        return (fullPath[0] === "/" || (fullPath[1] === ":" && fullPath[2] === "/"));
     };
 
     function _ensureTrailingSlash(path) {
@@ -705,7 +727,8 @@ define(function (require, exports, module) {
             if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
                 this._index.visitAll(function (entry) {
                     if (entry.fullPath.indexOf(directory.fullPath) === 0) {
-                        entry._clearCachedData();
+                        // Passing 'true' for a similar reason as in _unwatchEntry() - see #7150
+                        entry._clearCachedData(true);
                     }
                 }.bind(this));
                 
@@ -760,7 +783,8 @@ define(function (require, exports, module) {
         if (!path) {
             // This is a "wholesale" change event; clear all caches
             this._index.visitAll(function (entry) {
-                entry._clearCachedData();
+                // Passing 'true' for a similar reason as in _unwatchEntry() - see #7150
+                entry._clearCachedData(true);
             });
             
             this._fireChangeEvent(null);
@@ -869,7 +893,7 @@ define(function (require, exports, module) {
         callback = callback || function () {};
         
         if (!watchedRoot) {
-            callback("Root is not watched.");
+            callback(FileSystemError.ROOT_NOT_WATCHED);
             return;
         }
 
