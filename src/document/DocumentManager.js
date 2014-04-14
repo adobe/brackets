@@ -488,8 +488,9 @@ define(function (require, exports, module) {
         }
         
         // Make it the current document
+        var previousDocument = _currentDocument;
         _currentDocument = doc;
-        $(exports).triggerHandler("currentDocumentChange");
+        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
         PerfUtils.addMeasurement(perfTimerName);
@@ -503,9 +504,10 @@ define(function (require, exports, module) {
             return;
         } else {
             // Change model & dispatch event
+            var previousDocument = _currentDocument;
             _currentDocument = null;
             // (this event triggers EditorManager to actually clear the editor UI)
-            $(exports).triggerHandler("currentDocumentChange");
+            $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         }
     }
     
