@@ -176,25 +176,25 @@ define({
     "NO_FILE_FILTER"                    : "Sulje tiedostoja pois\u2026",
     "EDIT_FILE_FILTER"                  : "Muokkaa\u2026",
     "FILE_FILTER_DIALOG"                : "Muokkaa suodatinta",
-    "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>jokerimerkeistä</a>. Syötä jokainen merkkijono uudelle riville.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>asterikseista</a>. Syötä jokainen merkkijono uudelle riville.",
     "FILE_FILTER_LIST_PREFIX"           : "paitsi",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
 
     "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
-    "FILTER_FILE_COUNT"                 : "Sallii {0}:n {1}:sta tiedostosta {2}",
-    "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki {0} tiedostot {1}"
+    "FILTER_FILE_COUNT"                 : "Sallii {0} tiedostoa {1} tiedostosta {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki {0} tiedostoa {1}",
     
     // Quick Edit
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla nykyiselle osoittimen sijainnille",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla osoittimen nykyiselle sijainnille",
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-pikamuokkaus: sijoita osoitin yksittäisen class-nimen päälle",
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS-pikamuokkaus: puutteellinen class-attribuutti",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS-pikamuokkaus: puutteellinen id-attribuutti",
-    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita osoitin tagiin, class- tai id-attribuuttiin",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita osoitin tagin, class- tai id-attribuutin sisälle",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS:n aikafunktion pikamuokkaus: virheellinen syntaksi",
-    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS-pikamuokkaus: sijoita osoitin funktion nimeen",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS-pikamuokkaus: sijoita osoitin funktion nimen sisälle",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla nykyiselle osoittimen sijainnille",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Pikadokumentaatio ei ole saatavilla osoittimen nykyiselle sijainnille",
     
     /**
      * ProjectManager
@@ -228,8 +228,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rivi",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} riviä",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Laajennukset poistettu käytöstä",
-    "STATUSBAR_INSERT"                      : "INS",
-    "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSERT"                      : "OVR",
+    "STATUSBAR_OVERWRITE"                   : "INS",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
