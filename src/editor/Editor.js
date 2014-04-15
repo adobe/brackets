@@ -212,6 +212,9 @@ define(function (require, exports, module) {
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
         this._inlineWidgets = [];
+        this._inlineWidgetQueues = {};
+        this._hideMarks = [];
+        
         this._$messagePopover = null;
         
         // Editor supplies some standard keyboard behavior extensions of its own
@@ -1984,14 +1987,14 @@ define(function (require, exports, module) {
      * @type {Object}
      * Promise queues for inline widgets being added to a given line.
      */
-    Editor.prototype._inlineWidgetQueues = {};
+    Editor.prototype._inlineWidgetQueues = null;
     
     /**
      * @private
      * @type {Array}
      * A list of objects corresponding to the markers that are hiding lines in the current editor.
      */
-    Editor.prototype._hideMarks = [];
+    Editor.prototype._hideMarks = null;
     
     /**
      * @private
