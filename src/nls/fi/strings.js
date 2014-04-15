@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "kohteesta <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "projektissa",
+    "FIND_IN_FILES_ZERO_FILES"          : "Suodatin sulkee pois kaikki tiedostot {0}",
     "FIND_IN_FILES_FILE"                : "tiedostossa",
     "FIND_IN_FILES_FILES"               : "tiedostossa",
     "FIND_IN_FILES_MATCH"               : "vastaavuus",
@@ -175,9 +176,24 @@ define({
     "NO_FILE_FILTER"                    : "Sulje tiedostoja pois\u2026",
     "EDIT_FILE_FILTER"                  : "Muokkaa\u2026",
     "FILE_FILTER_DIALOG"                : "Muokkaa suodatinta",
-    "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>globs</a>eista. Syötä jokainen merkkijono uudelle riville.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>jokerimerkeistä</a>. Syötä jokainen merkkijono uudelle riville.",
     "FILE_FILTER_LIST_PREFIX"           : "paitsi",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
+    "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
+    "FILTER_FILE_COUNT"                 : "Sallii {0}:n {1}:sta tiedostosta {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki {0} tiedostot {1}"
+    
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla nykyiselle osoittimen sijainnille",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-pikamuokkaus: sijoita osoitin yksittäisen class-nimen päälle",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS-pikamuokkaus: puutteellinen class-attribuutti",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS-pikamuokkaus: puutteellinen id-attribuutti",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita osoitin tagiin, class- tai id-attribuuttiin",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS:n aikafunktion pikamuokkaus: virheellinen syntaksi",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS-pikamuokkaus: sijoita osoitin funktion nimeen",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla nykyiselle osoittimen sijainnille",
     
     /**
      * ProjectManager
@@ -201,6 +217,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Valittu {0} merkkiä",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Valittu {0} rivi",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Valittu {0} riviä",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} valintaa",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Napsauta muuttaaksesi sisennys välilyönneiksi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Napsauta muuttaaksesi sisennys sarkainmerkeiksi",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Napsauta muuttaaksesi sisennyksenä käytettävien välilyöntien määrää",
@@ -222,6 +239,8 @@ define({
     "LINT_DISABLED"                         : "Tarkistus on pois käytöstä",
     "NO_LINT_AVAILABLE"                     : "Tarkistinta ei saatavilla kohteelle {0}",
     "NOTHING_TO_LINT"                       : "Ei mitään tarkistettavaa",
+    "LINTER_TIMED_OUT"                      : "{0} on aikakatkaistu {1} ms:n odotuksen jälkeen",
+    "LINTER_FAILED"                         : "{0} keskeytyi virheeseen: {1}",
     
     
     /**
@@ -266,12 +285,18 @@ define({
     "CMD_PASTE"                           : "Liitä",
     "CMD_SELECT_ALL"                      : "Valitse kaikki",
     "CMD_SELECT_LINE"                     : "Valitse rivi",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Jaa valinta riveihin",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Lisää osoitin seuraavalle riville",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Lisää osoitin edelliselle riville",
     "CMD_FIND"                            : "Etsi",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Etsi\u2026",
     "CMD_FIND_IN_FILES"                   : "Etsi tiedostoista",
     "CMD_FIND_IN_SUBTREE"                 : "Etsi kohteesta\u2026",
     "CMD_FIND_NEXT"                       : "Etsi seuraava",
     "CMD_FIND_PREVIOUS"                   : "Etsi edellinen",
+    "CMD_FIND_ALL_AND_SELECT"             : "Etsi kaikki ja valitse",
+    "CMD_ADD_NEXT_MATCH"                  : "Lisää seuraava vastaavuus valintaan",
+    "CMD_SKIP_CURRENT_MATCH"              : "Ohita ja lisää seuraava vastavuus",
     "CMD_REPLACE"                         : "Korvaa",
     "CMD_INDENT"                          : "Sisennä",
     "CMD_UNINDENT"                        : "Poista sisennys",
@@ -323,13 +348,14 @@ define({
     "CMD_SHOW_IN_FINDER"                  : "Näytä Finderissä",
     "CMD_SHOW_IN_OS"                      : "Näytä käyttöjärjestelmässä",
     
-    // Help menu commands
+    // Help menu commandsCounting
     "HELP_MENU"                           : "Ohje",
     "CMD_CHECK_FOR_UPDATE"                : "Tarkista päivitykset",
     "CMD_HOW_TO_USE_BRACKETS"             : "Miten käyttää {APP_NAME}ia",
-    "CMD_FORUM"                           : "{APP_NAME}-keskustelupalsta",
+    "CMD_SUPPORT"                         : "{APP_NAME}-tuki",
+    "CMD_SUGGEST"                         : "Ehdota ominaisuutta",
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
-    "CMD_REPORT_AN_ISSUE"                 : "Ilmoita ongelmasta",
+    "CMD_CMD_GET_INVOLVED"                : "Lähde mukaan",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennusten kansio",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
     "CMD_ABOUT"                           : "Tietoja {APP_TITLE}-sovelluksesta",
@@ -450,6 +476,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Vastaavuuksia ei saatavilla.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta ”Uusi sääntö” luodaksesi sellaisen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projektissasi ei ole tyylitiedostoja.<br>Luo sellainen lisätäksesi CSS-sääntöjä.",
+    
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "suurin",
     
     /**
      * Unit names
