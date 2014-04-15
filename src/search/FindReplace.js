@@ -105,7 +105,13 @@ define(function (require, exports, module) {
         return cm.getSearchCursor(query, pos, !PreferencesManager.getViewState("caseSensitive"));
     }
     
-    function getModalBarItem(selector) {
+    /**
+     * @private
+     * Returns the item in the modal bar matching the given selector, or an empty jQuery object if
+     * there is no modalBar.
+     * @type {string} selector The selector to find elements for
+     */
+    function _getModalBarItem(selector) {
         if (modalBar) {
             return $(selector, modalBar.getRoot());
         } else {
@@ -115,26 +121,26 @@ define(function (require, exports, module) {
     }
     
     function _updateSearchBarFromPrefs() {
-        getModalBarItem("#find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
-        getModalBarItem("#find-regexp").toggleClass("active",         PreferencesManager.getViewState("regexp"));
+        _getModalBarItem(".find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
+        _getModalBarItem(".find-regexp").toggleClass("active",         PreferencesManager.getViewState("regexp"));
     }
     function _updatePrefsFromSearchBar() {
-        PreferencesManager.setViewState("caseSensitive", getModalBarItem("#find-case-sensitive").is(".active"));
-        PreferencesManager.setViewState("regexp",        getModalBarItem("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("caseSensitive", _getModalBarItem(".find-case-sensitive").is(".active"));
+        PreferencesManager.setViewState("regexp",        _getModalBarItem(".find-regexp").is(".active"));
     }
     
     function parseQuery(query) {
-        getModalBarItem(".message").show();
-        getModalBarItem(".error").hide();
+        _getModalBarItem(".message").show();
+        _getModalBarItem(".error").hide();
         
         // Is it a (non-blank) regex?
-        if (query && getModalBarItem("#find-regexp").is(".active")) {
+        if (query && _getModalBarItem(".find-regexp").is(".active")) {
             try {
-                var caseSensitive = getModalBarItem("#find-case-sensitive").is(".active");
+                var caseSensitive = _getModalBarItem(".find-case-sensitive").is(".active");
                 return new RegExp(query, caseSensitive ? "" : "i");
             } catch (e) {
-                getModalBarItem(".message").hide();
-                getModalBarItem(".error")
+                _getModalBarItem(".message").hide();
+                _getModalBarItem(".error")
                     .show()
                     .text(e.message);
                 return "";
@@ -497,11 +503,11 @@ define(function (require, exports, module) {
         
         function indicateHasMatches(numResults) {
             // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
-            ViewUtils.toggleClass(getModalBarItem("#find-what"), "no-results", !state.foundAny && getModalBarItem("#find-what").val());
+            ViewUtils.toggleClass(_getModalBarItem(".find-what"), "no-results", !state.foundAny && _getModalBarItem(".find-what").val());
             
             // Buttons disabled if blank, OR if no matches (Replace buttons) / < 2 matches (nav buttons)
-            getModalBarItem("#find-prev, #find-next").prop("disabled", !state.foundAny || numResults < 2);
-            getModalBarItem("#replace-yes, #replace-all").prop("disabled", !state.foundAny);
+            _getModalBarItem(".find-prev, .find-next").prop("disabled", !state.foundAny || numResults < 2);
+            _getModalBarItem(".replace-yes, .replace-all").prop("disabled", !state.foundAny);
         }
         
         cm.operation(function () {
@@ -512,7 +518,7 @@ define(function (require, exports, module) {
             
             if (!state.query) {
                 // Search field is empty - no results
-                getModalBarItem("#find-counter").text("");
+                _getModalBarItem(".find-counter").text("");
                 state.foundAny = false;
                 indicateHasMatches();
                 return;
@@ -544,18 +550,18 @@ define(function (require, exports, module) {
                 }
                 
                 if (resultSet.length === 0) {
-                    getModalBarItem("#find-counter").text(Strings.FIND_NO_RESULTS);
+                    _getModalBarItem(".find-counter").text(Strings.FIND_NO_RESULTS);
                 } else if (resultSet.length === 1) {
-                    getModalBarItem("#find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
+                    _getModalBarItem(".find-counter").text(Strings.FIND_RESULT_COUNT_SINGLE);
                 } else {
-                    getModalBarItem("#find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length));
+                    _getModalBarItem(".find-counter").text(StringUtils.format(Strings.FIND_RESULT_COUNT, resultSet.length));
                 }
                 state.foundAny = (resultSet.length > 0);
                 indicateHasMatches(resultSet.length);
                 
             } else {
                 // On huge documents, just look for first match & then stop
-                getModalBarItem("#find-counter").text("");
+                _getModalBarItem(".find-counter").text("");
                 state.foundAny = cursor.findNext();
                 indicateHasMatches();
             }
@@ -572,7 +578,7 @@ define(function (require, exports, module) {
      *     In that case, we don't want to change the selection unnecessarily.
      */
     function handleQueryChange(editor, state, initial) {
-        state.query = parseQuery(getModalBarItem("#find-what").val());
+        state.query = parseQuery(_getModalBarItem(".find-what").val());
         updateResultSet(editor);
         
         if (state.query) {
@@ -605,14 +611,14 @@ define(function (require, exports, module) {
         // If a previous search/replace bar was open, capture its query text for use below
         var initialQuery;
         if (modalBar) {
-            initialQuery = getModalBarItem("#find-what").val();
+            initialQuery = _getModalBarItem(".find-what").val();
         }
         
         // Create the search bar UI (closing any previous modalBar in the process)
         var htmlContent = Mustache.render(searchBarTemplate, $.extend(templateVars, Strings));
         createModalBar(htmlContent);
-        addShortcutToTooltip(getModalBarItem("#find-next"), Commands.EDIT_FIND_NEXT);
-        addShortcutToTooltip(getModalBarItem("#find-prev"), Commands.EDIT_FIND_PREVIOUS);
+        addShortcutToTooltip(_getModalBarItem(".find-next"), Commands.EDIT_FIND_NEXT);
+        addShortcutToTooltip(_getModalBarItem(".find-prev"), Commands.EDIT_FIND_PREVIOUS);
         
         $(modalBar).on("close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
@@ -622,17 +628,17 @@ define(function (require, exports, module) {
             toggleHighlighting(editor, false);
             
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
-            getModalBarItem(".error").hide();
+            _getModalBarItem(".error").hide();
         });
         
         modalBar.getRoot()
-            .on("click", "#find-next", function (e) {
+            .on("click", ".find-next", function (e) {
                 findNext(editor);
             })
-            .on("click", "#find-prev", function (e) {
+            .on("click", ".find-prev", function (e) {
                 findNext(editor, true);
             })
-            .on("click", "#find-case-sensitive, #find-regexp", function (e) {
+            .on("click", ".find-case-sensitive, .find-regexp", function (e) {
                 $(e.currentTarget).toggleClass('active');
                 _updatePrefsFromSearchBar();
                 
@@ -648,7 +654,7 @@ define(function (require, exports, module) {
                 }
             });
         
-        getModalBarItem("#find-what").on("input", function () {
+        _getModalBarItem(".find-what").on("input", function () {
             handleQueryChange(editor, state);
         });
 
@@ -666,7 +672,7 @@ define(function (require, exports, module) {
         }
         
         // Initial UI state
-        getModalBarItem("#find-what")
+        _getModalBarItem(".find-what")
             .val(initialQuery)
             .get(0).select();
         _updateSearchBarFromPrefs();
@@ -813,7 +819,7 @@ define(function (require, exports, module) {
     /** Shows the Find-Replace search bar at top */
     function replace(editor) {
         // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
-        var $replaceBtn = getModalBarItem("#replace-yes");
+        var $replaceBtn = _getModalBarItem(".replace-yes");
         if ($replaceBtn.length) {
             if ($replaceBtn.is(":enabled")) {
                 $replaceBtn.click();
@@ -822,17 +828,17 @@ define(function (require, exports, module) {
         }
         
         openSearchBar(editor, {replace: true});
-        addShortcutToTooltip(getModalBarItem("#replace-yes"), Commands.EDIT_REPLACE);
+        addShortcutToTooltip(_getModalBarItem(".replace-yes"), Commands.EDIT_REPLACE);
         
         var cm = editor._codeMirror,
             state = getSearchState(cm);
         
         function getReplaceWith() {
-            return getModalBarItem("#replace-with").val() || "";
+            return _getModalBarItem(".replace-with").val() || "";
         }
         
         modalBar.getRoot().on("click", function (e) {
-            if (e.target.id === "replace-yes") {
+            if ($(e.target).is(".replace-yes")) {
                 var text = getReplaceWith();
                 cm.replaceSelection(typeof state.query === "string" ? text : parseDollars(text, state.lastMatch));
                 
@@ -844,7 +850,7 @@ define(function (require, exports, module) {
                     modalBar.close();
                 }
                 
-            } else if (e.target.id === "replace-all") {
+            } else if ($(e.target).is(".replace-all")) {
                 // Make sure to get the replace string before we close the modalBar, since the input field will
                 // no longer be in the DOM once we close it.
                 var replaceWith = getReplaceWith();
@@ -856,11 +862,11 @@ define(function (require, exports, module) {
         // One-off hack to make Find/Replace fields a self-contained tab cycle - TODO: remove once https://trello.com/c/lTSJgOS2 implemented
         modalBar.getRoot().on("keydown", function (e) {
             if (e.keyCode === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                if (e.target.id === "replace-with" && !e.shiftKey) {
-                    getModalBarItem("#find-what").focus();
+                if ($(e.target).is(".replace-with") && !e.shiftKey) {
+                    _getModalBarItem(".find-what").focus();
                     e.preventDefault();
-                } else if (e.target.id === "find-what" && e.shiftKey) {
-                    getModalBarItem("#replace-with").focus();
+                } else if ($(e.target).is(".find-what") && e.shiftKey) {
+                    _getModalBarItem(".replace-with").focus();
                     e.preventDefault();
                 }
             }

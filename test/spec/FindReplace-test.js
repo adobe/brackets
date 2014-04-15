@@ -370,10 +370,10 @@ define(function (require, exports, module) {
             return tw$(".modal-bar");
         }
         function getSearchField() {
-            return tw$("#find-what");
+            return tw$(".find-what");
         }
         function getReplaceField() {
-            return tw$("#replace-with");
+            return tw$(".replace-with");
         }
         
         function expectSearchBarOpen() {
@@ -412,13 +412,13 @@ define(function (require, exports, module) {
         }
         
         function toggleCaseSensitive(val) {
-            if (tw$("#find-case-sensitive").is(".active") !== val) {
-                tw$("#find-case-sensitive").click();
+            if (tw$(".find-case-sensitive").is(".active") !== val) {
+                tw$(".find-case-sensitive").click();
             }
         }
         function toggleRegexp(val) {
-            if (tw$("#find-regexp").is(".active") !== val) {
-                tw$("#find-regexp").click();
+            if (tw$(".find-regexp").is(".active") !== val) {
+                tw$(".find-regexp").click();
             }
         }
         
@@ -1076,11 +1076,11 @@ define(function (require, exports, module) {
                     
                     expectSelection(fooExpectedMatches[0]);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
                     
                     enterReplaceText("bar");
                     
-                    tw$("#replace-yes").click();
+                    tw$(".replace-yes").click();
                     expectSelection(fooExpectedMatches[1]);
                     
                     myEditor.setSelection(fooExpectedMatches[0].start, fooExpectedMatches[0].end);
@@ -1116,8 +1116,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1136,8 +1136,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1156,8 +1156,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/\$0_:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1176,8 +1176,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1196,8 +1196,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1216,8 +1216,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/\$2_\$10:Foo/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1236,8 +1236,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1256,8 +1256,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
-                    tw$("#replace-yes").click();
+                    expect(tw$(".replace-yes").is(":enabled")).toBe(true);
+                    tw$(".replace-yes").click();
 
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
@@ -1279,8 +1279,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$(".replace-all").is(":enabled")).toBe(true);
+                    tw$(".replace-all").click();
                     tw$(".replace-checked").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
@@ -1306,8 +1306,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$(".replace-all").is(":enabled")).toBe(true);
+                    tw$(".replace-all").click();
                     tw$(".replace-checked").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
@@ -1333,8 +1333,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$(".replace-all").is(":enabled")).toBe(true);
+                    tw$(".replace-all").click();
                     tw$(".replace-checked").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
@@ -1360,8 +1360,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$(".replace-all").is(":enabled")).toBe(true);
+                    tw$(".replace-all").click();
                     tw$(".replace-checked").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
@@ -1387,8 +1387,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$(".replace-all").is(":enabled")).toBe(true);
+                    tw$(".replace-all").click();
                     tw$(".replace-checked").click();
 
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
@@ -1414,8 +1414,8 @@ define(function (require, exports, module) {
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
-                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
-                    tw$("#replace-all").click();
+                    expect(tw$(".replace-all").is(":enabled")).toBe(true);
+                    tw$(".replace-all").click();
                     tw$(".replace-checked").click();
 
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
