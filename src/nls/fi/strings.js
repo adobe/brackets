@@ -179,6 +179,7 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>jokerimerkeistä</a>. Syötä jokainen merkkijono uudelle riville.",
     "FILE_FILTER_LIST_PREFIX"           : "paitsi",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
+
     "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
     "FILTER_FILE_COUNT"                 : "Sallii {0}:n {1}:sta tiedostosta {2}",
     "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki {0} tiedostot {1}"
@@ -348,14 +349,14 @@ define({
     "CMD_SHOW_IN_FINDER"                  : "Näytä Finderissä",
     "CMD_SHOW_IN_OS"                      : "Näytä käyttöjärjestelmässä",
     
-    // Help menu commandsCounting
+    // Help menu commands
     "HELP_MENU"                           : "Ohje",
     "CMD_CHECK_FOR_UPDATE"                : "Tarkista päivitykset",
     "CMD_HOW_TO_USE_BRACKETS"             : "Miten käyttää {APP_NAME}ia",
     "CMD_SUPPORT"                         : "{APP_NAME}-tuki",
     "CMD_SUGGEST"                         : "Ehdota ominaisuutta",
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
-    "CMD_CMD_GET_INVOLVED"                : "Lähde mukaan",
+    "CMD_GET_INVOLVED"                    : "Lähde mukaan",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennusten kansio",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
     "CMD_ABOUT"                           : "Tietoja {APP_TITLE}-sovelluksesta",
@@ -476,7 +477,7 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Vastaavuuksia ei saatavilla.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Valintaasi vastaavia CSS-sääntöjä ei ole.<br> Napsauta ”Uusi sääntö” luodaksesi sellaisen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Projektissasi ei ole tyylitiedostoja.<br>Luo sellainen lisätäksesi CSS-sääntöjä.",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "suurin",
     
