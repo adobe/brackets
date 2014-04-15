@@ -145,13 +145,13 @@
             "platform": "mac"
         }
     ],
-    "search.find":  [
+    "cmd.find":  [
         "Ctrl-F"
     ],
-    "search.findInFiles":  [
+    "cmd.findInFiles":  [
         "Ctrl-Shift-F"
     ],
-    "search.findNext":  [
+    "cmd.findNext":  [
         {
             "key": "F3"
         },
@@ -160,7 +160,7 @@
             "platform": "mac"
         }
     ],
-    "search.findPrevious":  [
+    "cmd.findPrevious":  [
         {
             "key": "Shift-F3"
         },
@@ -169,7 +169,7 @@
             "platform": "mac"
         }
     ],
-    "search.findAllAndSelect": [
+    "cmd.findAllAndSelect": [
         {
             "key": "Alt-F3"
         },
@@ -178,17 +178,17 @@
             "platform": "mac"
         }
     ],
-    "search.addNextMatch": [
+    "cmd.addNextMatch": [
         {
             "key": "Ctrl-B"
         }
     ],
-    "search.skipCurrentMatch": [
+    "cmd.skipCurrentMatch": [
         {
             "key": "Ctrl-Shift-B"
         }
     ],
-    "search.replace":  [
+    "cmd.replace":  [
         {
             "key": "Ctrl-H"
         },

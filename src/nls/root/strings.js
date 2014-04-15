@@ -303,7 +303,7 @@ define({
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
     
     // Search menu commands
-    "SEARCH_MENU"                         : "Search",
+    "FIND_MENU"                           : "Find",
     "CMD_FIND"                            : "Find",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
     "CMD_FIND_NEXT"                       : "Find Next",

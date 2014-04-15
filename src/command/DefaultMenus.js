@@ -97,20 +97,20 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.TOGGLE_CLOSE_BRACKETS);
         
         /*
-         * Search menu
+         * Find menu
          */
-        menu = Menus.addMenu(Strings.SEARCH_MENU, Menus.AppMenuBar.SEARCH_MENU);
-        menu.addMenuItem(Commands.SEARCH_FIND);
-        menu.addMenuItem(Commands.SEARCH_FIND_NEXT);
-        menu.addMenuItem(Commands.SEARCH_FIND_PREVIOUS);
-        menu.addMenuItem(Commands.SEARCH_FIND_ALL_AND_SELECT);
-        menu.addMenuItem(Commands.SEARCH_ADD_NEXT_MATCH);
-        menu.addMenuItem(Commands.SEARCH_SKIP_CURRENT_MATCH);
+        menu = Menus.addMenu(Strings.FIND_MENU, Menus.AppMenuBar.FIND_MENU);
+        menu.addMenuItem(Commands.CMD_FIND);
+        menu.addMenuItem(Commands.CMD_FIND_NEXT);
+        menu.addMenuItem(Commands.CMD_FIND_PREVIOUS);
+        menu.addMenuItem(Commands.CMD_FIND_ALL_AND_SELECT);
+        menu.addMenuItem(Commands.CMD_ADD_NEXT_MATCH);
+        menu.addMenuItem(Commands.CMD_SKIP_CURRENT_MATCH);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.SEARCH_FIND_IN_FILES);
-        menu.addMenuItem(Commands.SEARCH_FIND_IN_SELECTED);
+        menu.addMenuItem(Commands.CMD_FIND_IN_FILES);
+        menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.SEARCH_REPLACE);
+        menu.addMenuItem(Commands.CMD_REPLACE);
         
         /*
          * View menu
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_DELETE);
         project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
+        project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
         project_cmenu.addMenuDivider();
         project_cmenu.addMenuItem(Commands.FILE_REFRESH);
 
@@ -215,7 +215,7 @@ define(function (require, exports, module) {
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         working_set_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
         working_set_cmenu.addMenuDivider();
-        working_set_cmenu.addMenuItem(Commands.SEARCH_FIND_IN_SUBTREE);
+        working_set_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
         working_set_cmenu.addMenuDivider();
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
         

@@ -46,7 +46,7 @@ define(function (require, exports, module) {
     var AppMenuBar = {
         FILE_MENU       : "file-menu",
         EDIT_MENU       : "edit-menu",
-        SEARCH_MENU     : "search-menu",
+        FIND_MENU       : "find-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
         HELP_MENU       : "help-menu"
@@ -91,9 +91,9 @@ define(function (require, exports, module) {
         EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
         EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
         
-        SEARCH_FIND_COMMANDS:               {sectionMarker: Commands.SEARCH_FIND},
-        SEARCH_FIND_IN_COMMANDS:            {sectionMarker: Commands.SEARCH_FIND_IN_FILES},
-        SEARCH_REPLACE_COMMANDS:            {sectionMarker: Commands.SEARCH_REPLACE},
+        FIND_FIND_COMMANDS:                 {sectionMarker: Commands.CMD_FIND},
+        FIND_FIND_IN_COMMANDS:              {sectionMarker: Commands.CMD_FIND_IN_FILES},
+        FIND_REPLACE_COMMANDS:              {sectionMarker: Commands.CMD_REPLACE},
         
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
