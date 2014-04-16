@@ -353,7 +353,7 @@ define({
 	"HELP_MENU": "ヘルプ",
 	"CMD_CHECK_FOR_UPDATE": "更新をチェックする",
 	"CMD_HOW_TO_USE_BRACKETS": "{APP_NAME} の使用方法",
-	"CMD_SUPPORT": "{APP_NAME} をサポート",
+	"CMD_SUPPORT": "{APP_NAME} サポート",
 	"CMD_SUGGEST": "機能改善の提案",
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
