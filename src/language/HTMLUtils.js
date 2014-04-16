@@ -31,11 +31,14 @@ define(function (require, exports, module) {
     var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror"),
         TokenUtils = require("utils/TokenUtils");
     
-    //constants
+    // Constants
     var TAG_NAME = "tagName",
         CLOSING_TAG = "closingTag",
         ATTR_NAME = "attr.name",
         ATTR_VALUE = "attr.value";
+    
+    // Regular expression for token types with "tag" prefixed
+    var tagPrefixedRegExp = /^tag/;
     
    /**
      * @private
@@ -119,7 +122,7 @@ define(function (require, exports, module) {
         }
         
         // If the ctx is inside the tag name of an end tag, innerModeData.state.tagName is
-        // undefined. So return token string as the tag name when the ctx is in an end tag.
+        // undefined. So return token string as the tag name.
         return innerModeData.state.tagName || ctx.token.string;
     }
     
@@ -135,8 +138,8 @@ define(function (require, exports, module) {
             forwardCtx  = $.extend({}, backwardCtx);
         
         if (editor.getModeForSelection() === "html") {
-            if (backwardCtx.token && !/^tag/.test(backwardCtx.token.type)) {
-                while (TokenUtils.movePrevToken(backwardCtx) && !/^tag/.test(backwardCtx.token.type)) {
+            if (backwardCtx.token && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
+                while (TokenUtils.movePrevToken(backwardCtx) && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
                     if (backwardCtx.token.type === "error" && backwardCtx.token.string.indexOf("<") === 0) {
                         break;
                     }
@@ -145,7 +148,7 @@ define(function (require, exports, module) {
                     }
                 }
                 
-                while (TokenUtils.moveNextToken(forwardCtx) && !/^tag/.test(forwardCtx.token.type)) {
+                while (TokenUtils.moveNextToken(forwardCtx) && !tagPrefixedRegExp.test(forwardCtx.token.type)) {
                     if (forwardCtx.token.type === "attribute") {
                         // If the current tag is not closed, codemirror may return the next opening
                         // tag as an attribute. Stop the search loop in that case.
@@ -337,8 +340,9 @@ define(function (require, exports, module) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
-                // Check whether the token type is either "tag", "tag error" or "tag brackets"
-                if (/^tag/.test(ctx.token.type)) {
+                // Check whether the token type is one of the types prefixed with "tag"
+                // (e.g. "tag", "tag error", "tag brackets")
+                if (tagPrefixedRegExp.test(ctx.token.type)) {
                     // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
@@ -371,7 +375,7 @@ define(function (require, exports, module) {
 
                 if (ctx.token.type === "comment") {
                     return createTagInfo();
-                } else if (!/^tag/.test(ctx.token.type) && ctx.token.string !== "=") {
+                } else if (!tagPrefixedRegExp.test(ctx.token.type) && ctx.token.string !== "=") {
                     // If it wasn't the tag name, assume it was an attr value
                     // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
@@ -379,7 +383,7 @@ define(function (require, exports, module) {
                     // Check to see if this is the closing of a tag (either the start or end)
                     // or a comment tag.
                     if (ctx.token.type === "comment" ||
-                            (/^tag/.test(ctx.token.type) &&
+                            (tagPrefixedRegExp.test(ctx.token.type) &&
                             (ctx.token.string === ">" || ctx.token.string === "/>" ||
                                 ctx.token.string === "</"))) {
                         return createTagInfo();
@@ -404,7 +408,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (/^tag/.test(ctx.token.type)) {
+        if (tagPrefixedRegExp.test(ctx.token.type)) {
             if (ctx.token.type !== "tag bracket") {
                 // Check if the user just typed a white space after "<" that made an existing tag invalid.
                 if (TokenUtils.movePrevToken(ctx) && !/\S/.test(ctx.token.string)) {
