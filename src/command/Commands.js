@@ -85,6 +85,18 @@ define(function (require, exports, module) {
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";     // EditorOptionHandlers.js      _getToggler()
     exports.SHOW_CODE_HINTS             = "edit.showCodeHints";         // CodeHintManager.js           _startNewSession()
     
+    // DEPRECATED: Redirect Edit commands that were moved from the Edit Menu to the Find Menu
+    exports.EDIT_FIND                   = "cmd.find";                   // FindReplace.js               _launchFind()
+    exports.EDIT_FIND_IN_FILES          = "cmd.findInFiles";            // FindInFiles.js               _doFindInFiles()
+    exports.EDIT_FIND_IN_SELECTED       = "cmd.findInSelected";         // FindInFiles.js               _doFindInSubtree()
+    exports.EDIT_FIND_IN_SUBTREE        = "cmd.findInSubtree";          // FindInFiles.js               _doFindInSubtree()
+    exports.EDIT_FIND_NEXT              = "cmd.findNext";               // FindReplace.js               _findNext()
+    exports.EDIT_FIND_PREVIOUS          = "cmd.findPrevious";           // FindReplace.js               _findPrevious()
+    exports.EDIT_FIND_ALL_AND_SELECT    = "cmd.findAllAndSelect";       // FindReplace.js               _findAllAndSelect()
+    exports.EDIT_ADD_NEXT_MATCH         = "cmd.addNextMatch";           // FindReplace.js               _expandAndAddNextToSelection()
+    exports.EDIT_SKIP_CURRENT_MATCH     = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
+    exports.EDIT_REPLACE                = "cmd.replace";                // FindReplace.js               _replace()
+    
     // FIND
     exports.CMD_FIND                    = "cmd.find";                   // FindReplace.js               _launchFind()
     exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFiles.js               _doFindInFiles()

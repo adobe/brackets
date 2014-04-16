@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
-        ViewUtils           = require("utils/ViewUtils");
+        ViewUtils           = require("utils/ViewUtils"),
+        DeprecationWarning  = require("utils/DeprecationWarning");
 
     /**
      * Brackets Application Menu Constants
@@ -90,6 +91,10 @@ define(function (require, exports, module) {
         EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
         EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
         EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
+        
+        // DEPRECATED: Old Edit menu sections redirected to existing Edit menu section
+        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
+        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
         
         FIND_FIND_COMMANDS:                 {sectionMarker: Commands.CMD_FIND},
         FIND_FIND_IN_COMMANDS:              {sectionMarker: Commands.CMD_FIND_IN_FILES},
@@ -362,7 +367,7 @@ define(function (require, exports, module) {
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement;
-
+        
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
                 if (!relativeID.hasOwnProperty("sectionMarker")) {
@@ -550,7 +555,15 @@ define(function (require, exports, module) {
             menuItem,
             name,
             commandID;
-
+        
+        if (relativeID === MenuSection.EDIT_FIND_COMMANDS) {
+            DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
+            DeprecationWarning.deprecationWarning("Use MenuSection.FIND_FIND_COMMANDS instead of MenuSection.EDIT_FIND_COMMANDS.", true);
+        } else if (relativeID === MenuSection.EDIT_REPLACE_COMMANDS) {
+            DeprecationWarning.deprecationWarning("Add " + command + "Command to the Find Menu instead of the Edit Menu.", true);
+            DeprecationWarning.deprecationWarning("Use MenuSection.FIND_REPLACE_COMMANDS instead of MenuSection.EDIT_REPLACE_COMMANDS.", true);
+        }
+        
         if (!command) {
             console.error("addMenuItem(): missing required parameters: command");
             return null;
