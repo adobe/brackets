@@ -160,7 +160,7 @@ define({
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {3}個の{4}内で {1}件{0}{2}",
 	"FIND_IN_FILES_SCOPED": "<span class='dialog-filename'>{0}</span> 内",
 	"FIND_IN_FILES_NO_SCOPE": "プロジェクト内",
-	"FIND_IN_FILES_ZERO_FILES": "フィルターは全ファイルを除外します {0}",
+	"FIND_IN_FILES_ZERO_FILES": "フィルターは {0}の全ファイルを除外します",
 	"FIND_IN_FILES_FILE": "ファイル",
 	"FIND_IN_FILES_FILES": "ファイル",
 	"FIND_IN_FILES_MATCH": "が見つかりました",
@@ -181,8 +181,8 @@ define({
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
 
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
-	"FILTER_FILE_COUNT": "{0}/{1} のファイルを許可 {2}",
-	"FILTER_FILE_COUNT_ALL": "全 {0} ファイルを許可 {1}",
+	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
+	"FILTER_FILE_COUNT_ALL": "{1}の全 {0} ファイルを許可",
 
     // Quick Edit
 	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "現在のカーソル位置で行えるクイック編集はありません",
@@ -218,7 +218,7 @@ define({
 	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} 列を選択",
 	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} 行を選択",
 	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} 行を選択",
-	"STATUSBAR_SELECTION_MULTIPLE": " \u2014 {0} 個の選択範囲",
+	"STATUSBAR_SELECTION_MULTIPLE": " \u2014 選択範囲 {0}",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "インデントをスペースに変換する",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "インデントをタブに変換する",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "インデントに用いるスペースの数を変更",
