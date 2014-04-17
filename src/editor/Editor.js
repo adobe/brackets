@@ -265,7 +265,7 @@ define(function (require, exports, module) {
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWrapping                : currentOptions[WORD_WRAP],
-            matchBrackets               : true,
+            matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
             smartIndent                 : currentOptions[SMART_INDENT],
