@@ -159,7 +159,7 @@ define({
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
+	"FIND_IN_FILES_NO_SCOPE": "du projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
@@ -173,7 +173,7 @@ define({
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "Exclure les fichiers\u2026",
+	"NO_FILE_FILTER": "Exclure des fichiers\u2026",
 	"EDIT_FILE_FILTER": "Modifier\u2026",
 	"FILE_FILTER_DIALOG": "Modifier le filtre",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
@@ -181,7 +181,7 @@ define({
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
-	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) {2} sur {1}",
+	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} que compte {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
@@ -353,7 +353,7 @@ define({
 	"HELP_MENU": "Aide",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
-	"CMD_SUPPORT": "Prise en charge de {APP_NAME}",
+	"CMD_SUPPORT": "Assistance {APP_NAME}",
 	"CMD_SUGGEST": "Suggérer une fonctionnalité",
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
