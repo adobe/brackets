@@ -160,13 +160,13 @@ define(function (require, exports, module) {
     }
 
     // Private helper for unit tests
-    function _getMarks() {
+    function _getTickmarks() {
         return marks;
     }
 
 
     // For unit tests
-    exports._getMarks       = _getMarks;
+    exports._getTickmarks   = _getTickmarks;
 
     exports.clear           = clear;
     exports.setVisible      = setVisible;

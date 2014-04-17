@@ -558,7 +558,7 @@ define(function (require, exports, module) {
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
 
-                var marks = testWindow.brackets.test.ScrollTrackMarkers._getMarks();
+                var marks = testWindow.brackets.test.ScrollTrackMarkers._getTickmarks();
                 expect(marks.length).toEqual(fooExpectedMatches.length);
 
                 marks.forEach(function (mark, index) {
