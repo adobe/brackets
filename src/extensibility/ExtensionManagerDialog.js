@@ -255,7 +255,7 @@ define(function (require, exports, module) {
             });
             
             // Update search UI before new tab is shown
-            $("a[data-toggle='tab']").each(function (index, tabElement) {
+            $("a[data-toggle='tab']", $dlg).each(function (index, tabElement) {
                 $(tabElement).on("show", function (event) {
                     _activeTabIndex = index;
                     
