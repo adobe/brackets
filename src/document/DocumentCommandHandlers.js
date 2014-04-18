@@ -750,6 +750,8 @@ define(function (require, exports, module) {
                 return;
             }
             
+            doc.isSaving = true;    // mark that we're saving the document
+            
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
             
@@ -757,24 +759,30 @@ define(function (require, exports, module) {
             // explictly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
-            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                // If there were unsaved changes before Save As, they don't stay with the old
-                // file anymore - so must revert the old doc to match disk content.
-                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                // not in the working set has the side effect of adding it to the working set.
-                if (doc.isDirty && !(doc.isUntitled())) {
-                    // if the file is dirty it must be in the working set
-                    // doRevert is side effect free in this case
-                    doRevert(doc).always(openNewFile);
-                } else {
-                    openNewFile();
-                }
-            }).fail(function (error) {
-                _showSaveFileError(error, path)
-                    .done(function () {
-                        result.reject(error);
-                    });
-            });
+            FileUtils.writeText(newFile, doc.getText(), true)
+                .done(function () {
+                    // If there were unsaved changes before Save As, they don't stay with the old
+                    // file anymore - so must revert the old doc to match disk content.
+                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                    // not in the working set has the side effect of adding it to the working set.
+                    if (doc.isDirty && !(doc.isUntitled())) {
+                        // if the file is dirty it must be in the working set
+                        // doRevert is side effect free in this case
+                        doRevert(doc).always(openNewFile);
+                    } else {
+                        openNewFile();
+                    }
+                })
+                .fail(function (error) {
+                    _showSaveFileError(error, path)
+                        .done(function () {
+                            result.reject(error);
+                        });
+                })
+                .always(function () {
+                    // mark that we're done saving the document
+                    doc.isSaving = false;
+                });
         }
         
         if (doc) {
@@ -823,7 +831,7 @@ define(function (require, exports, module) {
             doc = (commandData && commandData.doc) || activeDoc,
             settings;
         
-        if (doc) {
+        if (doc && !doc.isSaving) {
             if (doc.isUntitled()) {
                 if (doc === activeDoc) {
                     settings = {
@@ -1465,6 +1473,12 @@ define(function (require, exports, module) {
                 _.forEach(Menus.getAllMenus(), function (value, key) {
                     Menus.removeMenu(key);
                 });
+                
+                // If there's a fragment in both URLs, setting location.href won't actually reload
+                var fragment = href.indexOf("#");
+                if (fragment !== -1) {
+                    href = href.substr(0, fragment);
+                }
                 
                 window.location.href = href;
             });

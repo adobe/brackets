@@ -41,15 +41,15 @@ define(function (require, exports, module) {
      * Return the token string that is at the specified position.
      *
      * @param hostEditor {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {functionName: {string}, reason: {string}}
+     * @param {!{line:number, ch:number}} pos
+     * @return {functionName: string, reason: string}
      */
     function _getFunctionName(hostEditor, pos) {
         var token = hostEditor._codeMirror.getTokenAt(pos, true);
         
         // If the pos is at the beginning of a name, token will be the 
         // preceding whitespace or dot. In that case, try the next pos.
-        if (token.string.trim().length === 0 || token.string === ".") {
+        if (!/\S/.test(token.string) || token.string === ".") {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
         
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
      * @param {!string} functionName
      * @return {?$.Promise} synchronously resolved with an InlineWidget, or
      *         {string} if js other than function is detected at pos, or
-     *         null if we're not going to provide anything.
+     *         null if we're not ready to provide anything.
      */
     function _createInlineEditor(hostEditor, functionName) {
         // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
@@ -186,9 +186,9 @@ define(function (require, exports, module) {
      * and shows (one/all of them) in an inline editor.
      *
      * @param {!Editor} editor
-     * @param {!{line:Number, ch:Number}} pos
+     * @param {!{line:number, ch:number}} pos
      * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     *      or null if we're not ready to provide anything.
      */
     function javaScriptFunctionProvider(hostEditor, pos) {
         // Only provide a JavaScript editor when cursor is in JavaScript content

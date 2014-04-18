@@ -27,6 +27,8 @@
 /**
  * PreferenceStorage defines an interface for persisting preference data as
  * name/value pairs for a module or plugin.
+ * 
+ * @deprecated Use PreferencesManager APIs instead.
  */
 define(function (require, exports, module) {
     "use strict";
