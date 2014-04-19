@@ -42,7 +42,7 @@ define({
     "DIRECTORY"                         : "direktorij",
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Greška prilikom učitavanja projekta",
+    "ERROR_LOADING_PROJECT"             : "Greška pri učitavanju projekta",
     "OPEN_DIALOG_ERROR"                 : "Došlo je do greške prilikom prikazivanja dijaloga za otvaranje datoteke. (error {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Došlo je do greške prilikom pokušaja da se učita direktorij <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Došlo je do greške prilikom iščitavanja sadržaja direktorija <span class='dialog-filename'>{0}</span>. (error {1})",
@@ -180,10 +180,14 @@ define({
     "FILE_FILTER_LIST_PREFIX"           : "osim",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} više",
 
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Nema dostupnih brzih dokumenata za trenutnu poziciju kursora",
+
+
     /**
      * ProjectManager
      */
-    "PROJECT_LOADING"   : "Loading\u2026",
+    "PROJECT_LOADING"   : "Učitavanje\u2026",
     "UNTITLED"          : "Neimenovan",
     "WORKING_FILES"     : "Radne datoteke",
 
@@ -267,12 +271,18 @@ define({
     "CMD_PASTE"                           : "Zalijepi",
     "CMD_SELECT_ALL"                      : "Odaberi sve",
     "CMD_SELECT_LINE"                     : "Odaberi red",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Razdvoji odabrano u redove",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Dodaj kursor u sljedeći red",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Dodaj kursor u prošli red",
     "CMD_FIND"                            : "Nađi",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Nađi\u2026",
     "CMD_FIND_IN_FILES"                   : "Nađi u datotekama",
     "CMD_FIND_IN_SUBTREE"                 : "Nađi u\u2026",
     "CMD_FIND_NEXT"                       : "Nađi sljedeće",
     "CMD_FIND_PREVIOUS"                   : "Nađi prethodno",
+    "CMD_FIND_ALL_AND_SELECT"             : "Nađi sve i odaberi",
+    "CMD_ADD_NEXT_MATCH"                  : "Dodaj sljedeće slaganje u odabir",
+    "CMD_SKIP_CURRENT_MATCH"              : "Preskoči i dodaj sljedeće slaganje",
     "CMD_REPLACE"                         : "Zamjeni",
     "CMD_INDENT"                          : "Pomakni udesno",
     "CMD_UNINDENT"                        : "Pomakni ulijevo",
@@ -328,8 +338,11 @@ define({
     "HELP_MENU"                           : "Pomoć",
     "CMD_CHECK_FOR_UPDATE"                : "Provjeri postoji li novija verzija",
     "CMD_HOW_TO_USE_BRACKETS"             : "Kako koristiti {APP_NAME}",
+    "CMD_SUPPORT"                         : "{APP_NAME} Podrška (na engleskom)",
+    "CMD_SUGGEST"                         : "Predloži mogućnost / značajku",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Bilješke o trenutnoj verziji",
+    "CMD_GET_INVOLVED"                    : "Uključi se",
     "CMD_REPORT_AN_ISSUE"                 : "Prijavi problem",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Prikaži direktorij sa ekstenzijama",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteru",
@@ -456,7 +469,7 @@ define({
      * Unit names
      */
 
-    "UNIT_PIXELS"                          : "piksela",
+    "UNIT_PIXELS"                          : "pixela",
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Otklanjanje grešaka",
@@ -511,4 +524,4 @@ define({
     "DOCS_MORE_LINK"                            : "Pročitaj više"
 });
 
-/* Last translated for 6805eaa2968d7243bd623469fcc8990939ae7aba */
+/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */
