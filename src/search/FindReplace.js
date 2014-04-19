@@ -140,17 +140,27 @@ define(function (require, exports, module) {
     // extracted from the original text and so might be missing some context that the regexp matched.
     function parseDollars(replaceWith, match) {
         replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
-            var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
+            if (dollars.length % 2 === 1) { // make sure dollar signs don't escape themselves (like $$1, $$$$&)
                 if (index === "&") { // handle $&
+                    // slice the first dollar (but leave any others there to get undescaped below) and return
+                    // the whole match
                     return dollars.substr(1) + (match[0] || "");
-                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
-                    return dollars.substr(1) + (match[parsedIndex] || "");
+                } else {
+                    // now we are sure index is an integer (the regex will only accept & and integers), so we
+                    // can parse it to an integer
+                    var parsedIndex = parseInt(index, 10);
+                    if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
+                        // slice the first dollar (but leave any others there to get unescaped below) and return
+                        // the corresponding match
+                        return dollars.substr(1) + (match[parsedIndex] || "");
+                    }
                 }
             }
-            return whole;
+            // this code gets called if the dollar signs escape themselves or if it was $0 or $00, which is not handled
+            return whole; // just return everything to be unescaped below
         });
-        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
+        // replace escaped dollar signs (i.e. $$, $$$$ and so on) with single ones ( = unescaping)
+        replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
     }
 
