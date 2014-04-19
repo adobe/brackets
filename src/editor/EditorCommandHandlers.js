@@ -1055,6 +1055,43 @@ define(function (require, exports, module) {
         // Do nothing. The shell will call the native handler for the command.
         return (new $.Deferred()).reject().promise();
     }
+
+    /**
+     * @private
+     * Cuts the selected text of editor to clipboard. If there are cursors (empty selections) then the selected lines
+     * (which the cursors are active at) will be cut to clipboard.
+     * @param (!Editor) editor The editor to operate on.
+     */
+    function cut(editor) {
+        // Returns true if the selection is cursor (i.e. no text selected).
+        function _isCursor(selection) {
+            return selection.start.line === selection.end.line && selection.start.ch === selection.end.ch;
+        }
+
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+
+        //Get the cursors (no-text selections) and ranges (text selections).
+        var _selections = _.groupBy(editor.getSelections(), function (selection) { return _isCursor(selection) ? "cursors" : "ranges"; });
+
+        // Convert all cursors to line selections.
+        var _convertedCursors = _.pluck(editor.convertToLineSelections(_selections.cursors, {expandEndAtStartOfLine: true, mergeAdjacent: false}), "selectionForEdit");
+
+        // Concat old ranges and new cursor selections.
+        var _newSelections = _convertedCursors;
+        if (_selections.ranges) {
+            _newSelections = _newSelections.concat(_selections.ranges);
+        }
+
+        // Set the new selections.
+        editor.setSelections(_newSelections);
+
+        // Since the shell needs to perform the actual cut to clipboard, and the cursors now have been
+        // transformed to line selections, the command can be ignored in order for the native shell to do the cutting.
+        return ignoreCommand();
+    }
 	
 	function _handleSelectAll() {
         var result = new $.Deferred(),
@@ -1088,7 +1125,7 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_UNDO,                   Commands.EDIT_UNDO,                   handleUndo);
     CommandManager.register(Strings.CMD_REDO,                   Commands.EDIT_REDO,                   handleRedo);
-    CommandManager.register(Strings.CMD_CUT,                    Commands.EDIT_CUT,                    ignoreCommand);
+    CommandManager.register(Strings.CMD_CUT,                    Commands.EDIT_CUT,                    cut);
     CommandManager.register(Strings.CMD_COPY,                   Commands.EDIT_COPY,                   ignoreCommand);
     CommandManager.register(Strings.CMD_PASTE,                  Commands.EDIT_PASTE,                  ignoreCommand);
     CommandManager.register(Strings.CMD_SELECT_ALL,             Commands.EDIT_SELECT_ALL,             _handleSelectAll);

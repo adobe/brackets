@@ -3570,5 +3570,48 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        describe("Cut command", function () {
+            beforeEach(setupFullEditor);
+
+            it("should not alter selection", function () {
+                var _selection = {start: {line: 1, ch: 1}, end: {line: 1, ch: 2}};
+                myEditor.setSelection(_selection.start, _selection.end);
+                CommandManager.execute(Commands.EDIT_CUT, myEditor);
+
+                expectSelection(_selection);
+            });
+
+            it("should convert cursor to line selection", function () {
+                myEditor.setCursorPos({line: 1, ch: 5});
+                CommandManager.execute(Commands.EDIT_CUT, myEditor);
+
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
+            });
+
+            describe("with multiple selections", function () {
+                it("should convert cursors to line selections", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}},
+                                            {start: {line: 4, ch: 5}, end: {line: 4, ch: 5}}]);
+                    CommandManager.execute(Commands.EDIT_CUT, myEditor);
+
+                    expectSelections([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}, reversed: false, primary: false},
+                                      {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}, reversed: false, primary: true}]);
+                });
+
+                it("should be able to handle overlapping cursor and selections", function () {
+                    myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                                             {start: {line: 1, ch: 3}, end: {line: 1, ch: 3}},
+                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}},
+                                             {start: {line: 3, ch: 8}, end: {line: 3, ch: 8}}]);
+                    CommandManager.execute(Commands.EDIT_CUT, myEditor);
+
+                    expectSelections([{start: {line: 1, ch: 0}, end: {line: 2, ch: 0}, reversed: false, primary: false},
+                                      {start: {line: 3, ch: 0}, end: {line: 4, ch: 0}, reversed: false, primary: true}]);
+                });
+            });
+        });
     });
 });
