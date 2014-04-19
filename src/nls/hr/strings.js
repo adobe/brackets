@@ -524,4 +524,4 @@ define({
     "DOCS_MORE_LINK"                            : "Pročitaj više"
 });
 
-/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */
+/* Last translated for c1f7ebdb48b07f830e138dd7959f0ae42a144f8f */
