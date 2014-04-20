@@ -99,6 +99,22 @@ define(function (require, exports, module) {
     var _addedClickHandler = false;
     
     /**
+     * Construct a new version update url with the given locale.
+     *
+     * {String=} locale - optional locale, defaults to 'en' when omitted.
+     * return {String} the new version update url
+     */
+    function _versionInfoUrl(locale) {
+        var currentLocale = locale;
+
+        if (!locale) {
+            currentLocale = brackets.getLocale();
+        }
+
+        return brackets.config.update_info_url + currentLocale + ".json";
+    }
+
+    /**
      * Get a data structure that has information for all builds of Brackets.
      *
      * If force is true, the information is always fetched from _versionInfoURL.
@@ -131,44 +147,53 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            $.ajax(_versionInfoURL, {
-                dataType: "text",
+            $.ajax({
+                url: _versionInfoURL,
                 cache: false,
-                complete: function (jqXHR, status) {
-                    if (status === "success") {
+                type: "HEAD",
+                error: function (jxHDR, status) {
+                    _versionInfoURL = _versionInfoUrl("en");
+                }
+            }).always(function (data) {
+                $.ajax(_versionInfoURL, {
+                    dataType: "text",
+                    cache: false,
+                    complete: function (jqXHR, status) {
+                        if (status === "success") {
+                            try {
+                                data = JSON.parse(jqXHR.responseText);
+                                if (!dontCache) {
+                                    _lastInfoURLFetchTime = (new Date()).getTime();
+                                    PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                                    PreferencesManager.setViewState("updateInfo", data);
+                                }
+                                result.resolve(data);
+                            } catch (e) {
+                                console.log("Error parsing version information");
+                                console.log(e);
+                                result.reject();
+                            }
+                        }
+                    },
+                    error: function (jqXHR, status, error) {
+                        // When loading data for unit tests, the error handler is
+                        // called but the responseText is valid. Try to use it here,
+                        // but *don't* save the results in prefs.
+
+                        if (!jqXHR.responseText) {
+                            // Text is NULL or empty string, reject().
+                            result.reject();
+                            return;
+                        }
+
                         try {
                             data = JSON.parse(jqXHR.responseText);
-                            if (!dontCache) {
-                                _lastInfoURLFetchTime = (new Date()).getTime();
-                                PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
-                                PreferencesManager.setViewState("updateInfo", data);
-                            }
                             result.resolve(data);
                         } catch (e) {
-                            console.log("Error parsing version information");
-                            console.log(e);
                             result.reject();
                         }
                     }
-                },
-                error: function (jqXHR, status, error) {
-                    // When loading data for unit tests, the error handler is
-                    // called but the responseText is valid. Try to use it here,
-                    // but *don't* save the results in prefs.
-                    
-                    if (!jqXHR.responseText) {
-                        // Text is NULL or empty string, reject().
-                        result.reject();
-                        return;
-                    }
-                    
-                    try {
-                        data = JSON.parse(jqXHR.responseText);
-                        result.resolve(data);
-                    } catch (e) {
-                        result.reject();
-                    }
-                }
+                });
             });
         } else {
             result.resolve(data);
@@ -391,7 +416,7 @@ define(function (require, exports, module) {
     }
 
     // Append locale to version info URL
-    _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
+    _versionInfoURL = _versionInfoUrl();
 
     // Events listeners
     $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
