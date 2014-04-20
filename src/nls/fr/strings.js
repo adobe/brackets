@@ -271,7 +271,7 @@ define({
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
+	"CMD_EXTENSION_MANAGER": "Gestionnaire d'extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
