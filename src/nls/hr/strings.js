@@ -34,10 +34,10 @@ define({
     "GENERIC_ERROR"                     : "(greška {0})",
     "NOT_FOUND_ERR"                     : "Nepostojeća datoteka.",
     "NOT_READABLE_ERR"                  : "Datoteka ne može biti učitana.",
-    "NO_MODIFICATION_ALLOWED_ERR"       : "Ciljani direktorij ne može biti izmijenjen.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Ciljana mapa ne može biti izmijenjena.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Trenutne ovlasti vam ne dozvoljavaju da radite izmjene.",
     "CONTENTS_MODIFIED_ERR"             : "Datoteka je bila izmjenjena izvan {APP_NAME}.",
-    "FILE_EXISTS_ERR"                   : "Datoteka ili direktorij već postoji.",
+    "FILE_EXISTS_ERR"                   : "Datoteka ili mapa već postoji.",
     "FILE"                              : "datoteka",
     "DIRECTORY"                         : "direktorij",
 
@@ -110,7 +110,7 @@ define({
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Želite li sačuvati izmjene sljedećih datoteka?",
     "EXT_MODIFIED_TITLE"                : "Vanjske izmjene",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdi brisanje",
-    "CONFIRM_FOLDER_DELETE"             : "Da li ste sigurni da želite obrisati direktorij <span class='dialog-filename'>{0}</span>?",
+    "CONFIRM_FOLDER_DELETE"             : "Da li ste sigurni da želite obrisati mapu <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Datoteka Obrisana",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> je bio izmjenjen na disku.<br /><br />Da li želite sačuvati datoteku i spremiti preko tih izmjena?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> je bila izmjenjena na disku, ali isto tako sadrži nesačuvane promjene u {APP_NAME}.<br /><br />Koju verziju želite sačuvati?",
@@ -143,7 +143,7 @@ define({
 
     "OPEN_FILE"                         : "Otvori datoteku",
     "SAVE_FILE_AS"                      : "Sačuvaj datoteku",
-    "CHOOSE_FOLDER"                     : "Izaberi direktorij",
+    "CHOOSE_FOLDER"                     : "Izaberi mapu",
 
     "RELEASE_NOTES"                     : "Obavijesti o izmjenama",
     "NO_UPDATE_TITLE"                   : "Imate aktualnu verziju!",
@@ -175,14 +175,22 @@ define({
     // File exclusion filters
     "NO_FILE_FILTER"                    : "Isključi datoteke\u2026",
     "EDIT_FILE_FILTER"                  : "Uredi\u2026",
-    "FILE_FILTER_DIALOG"                : "Edit Filter",
-    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>globs</a>. Enter each string on a new line.",
+    "FILE_FILTER_DIALOG"                : "Uređivački filter",
+    "FILE_FILTER_INSTRUCTIONS"          : "Isključi datoteke i direktorije koji se slažu sa ijednom od sljedećih nizova / podnizova riječi ili <a href='{0}' title='{0}'>globs</a>. Unesi svaki niz u novi red.",
     "FILE_FILTER_LIST_PREFIX"           : "osim",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} više",
 
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Brzo uređivanje nije dostupno za trenutnu poziciju kursora",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Brzo CSS uređivanje: postavi kursor na pojedinačno ime klase",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "Brzo CSS uređivanje: nepotpuno svojstvo klase",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "Brzo CSS uređivanje: nepotpuno id svojstvo",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Brzo CSS uređivanje: postavi kursor na tag, klasu(class), ili id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Brzo CSS uređivanje vremenskog raspoređivanja: nevažeća sintaksa",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Brzo JS uređivanje: postavi kursor na ime funkcije",
+
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Nema dostupnih brzih dokumenata za trenutnu poziciju kursora",
-
 
     /**
      * ProjectManager
@@ -237,11 +245,11 @@ define({
     "FILE_MENU"                           : "Datoteka",
     "CMD_FILE_NEW_UNTITLED"               : "Nova",
     "CMD_FILE_NEW"                        : "Nova datoteka",
-    "CMD_FILE_NEW_FOLDER"                 : "Novi direktorij",
+    "CMD_FILE_NEW_FOLDER"                 : "Nova mapa",
     "CMD_FILE_OPEN"                       : "Otvori\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Dodaj u radni set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
-    "CMD_OPEN_FOLDER"                     : "Otvori Direktorij\u2026",
+    "CMD_OPEN_FOLDER"                     : "Otvori Mapu\u2026",
     "CMD_FILE_CLOSE"                      : "Zatvori",
     "CMD_FILE_CLOSE_ALL"                  : "Zatvori sve",
     "CMD_FILE_CLOSE_LIST"                 : "Zatvori listu",
@@ -361,7 +369,7 @@ define({
     "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_LINE3"                     : "Obavijesti, obaveze i uvjeti korištenja koji se odnose na third party softver su locirani na <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> i uključeni su ovdje putem linka.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentacija i izvorni kôd na <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
-    "ABOUT_TEXT_LINE5"                     : "Napravljeno sa \u2764 i JavaScriptom od:",
+    "ABOUT_TEXT_LINE5"                     : "Napravili sa \u2764 i JavaScriptom:",
     "ABOUT_TEXT_LINE6"                     : "Mnogo ljudi (ali trenutno imamo poteškoća sa učitavanjem tih podataka).",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs i Web Platform graphical logo su zaštićeni pod Creative Commons Attribution licencom, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Dostupna je nova verzija aplikacije {APP_NAME}! Kliknite ovdje za detalje.",
@@ -385,9 +393,9 @@ define({
     "UPDATE"                               : "Obnovi",
     "REMOVE"                               : "Makni",
     "OVERWRITE"                            : "Piši preko",
-    "CANT_REMOVE_DEV"                      : "Extenzije u \"dev\" direktoriju moraju biti ručno obrisane.",
+    "CANT_REMOVE_DEV"                      : "Extenzije u \"dev\" mapi moraju biti ručno obrisane.",
     "CANT_UPDATE"                          : "Novija verzija nije kompatibilna sa trenutnom verzijom aplikacije {APP_NAME}.",
-    "CANT_UPDATE_DEV"                      : "Extensions in the \"dev\" folder can't be updated automatically.",
+    "CANT_UPDATE_DEV"                      : "Extenzije u \"dev\" mapi ne mogu biti automatski ažurirane.",
     "INSTALL_EXTENSION_TITLE"              : "Instaliraj Extenziju",
     "UPDATE_EXTENSION_TITLE"               : "Ažuriraj Extenziju",
     "INSTALL_EXTENSION_LABEL"              : "Link Extenzije",
@@ -407,7 +415,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Verzija paketa broj ({0}) nije valjana.",
     "INVALID_BRACKETS_VERSION"             : "Niz o kompatibilnosti ({0}) aplikacije {APP_NAME} nije valjan.",
     "DISALLOWED_WORDS"                     : "Riječi ({1}) nisu dozvoljene u polju {0}.",
-    "API_NOT_COMPATIBLE"                   : "Ova extenzija nije kompatibilna sa ovom verzijom aplikacije {APP_NAME}. Instalirana je u vaš direktorij onemogućenih extenzija.",
+    "API_NOT_COMPATIBLE"                   : "Ova extenzija nije kompatibilna sa ovom verzijom aplikacije {APP_NAME}. Instalirana je u vašu mapu onemogućenih extenzija.",
     "MISSING_MAIN"                         : "Paket nema main.js datoteku.",
     "EXTENSION_ALREADY_INSTALLED"          : "Instaliranjem ovog paketa ćete presnimiti prethodno instaliranu verziju. Da li želite presnimiti staru extenziju?",
     "EXTENSION_SAME_VERSION"               : "Verzija ovog paketa je ista kao verzija koja je trenutno instalirana. Da li želite presnimiti postojeću instalaciju?",
@@ -493,7 +501,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Vrijeme",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Napredak",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Pomakni odabranu point*<br><kbd class='text'>Shift</kbd> Pomakni za 10 jedinica<br><kbd class='text'>Tab</kbd> Switch points",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Pomakni odabranu točku<br><kbd class='text'>Shift</kbd> Pomakni za 10 jedinica<br><kbd class='text'>Tab</kbd> Zamijeni točke.",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Povećaj ili smanji korake<br><kbd>←</kbd><kbd>→</kbd> 'Početak' ili 'Kraj'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Stara vrijednost <code>{0}</code> nije valjana, tako da je prikazana funkcija promjenjena u <code>{1}</code>. Dokument će biti ažuriran kod prvog uređivanja.",
     
@@ -515,7 +523,7 @@ define({
     "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "Brzi 'lebdeći' prikaz*",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Brzi 'lebdeći' (hover) prikaz",
     
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedavni projekti",
