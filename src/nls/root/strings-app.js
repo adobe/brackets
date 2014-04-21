@@ -37,6 +37,7 @@ define({
     "LOCALE_ES"                                 : "Español",
     "LOCALE_FI"                                 : "suomi",
     "LOCALE_FR"                                 : "Français",
+    "LOCALE_HR"                                 : "Hrvatski",
     "LOCALE_ID"                                 : "Indonesia",
     "LOCALE_IT"                                 : "italiano",
     "LOCALE_JA"                                 : "日本語",
