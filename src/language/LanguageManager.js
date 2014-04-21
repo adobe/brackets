@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
+/*unittests: LanguageManager*/
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -117,17 +118,44 @@ define(function (require, exports, module) {
     var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
-        _defaultLanguagesJSON = require("text!language/languages.json");
-    
+        _defaultLanguagesJSON = require("text!language/languages.json"),
+        _                     = require("thirdparty/lodash"),
+        
+        // PreferencesManager is loaded near the end of the file
+        PreferencesManager;
     
     // State
-    var _fallbackLanguage           = null,
-        _pendingLanguages           = {},
-        _languages                  = {},
-        _fileExtensionToLanguageMap = {},
-        _fileNameToLanguageMap      = {},
-        _modeToLanguageMap          = {},
+    var _fallbackLanguage               = null,
+        _pendingLanguages               = {},
+        _languages                      = {},
+        _baseFileExtensionToLanguageMap = {},
+        _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap),
+        _fileNameToLanguageMap          = {},
+        _modeToLanguageMap              = {},
         _ready;
+    
+    // Tracking for changes to mappings made by preferences
+    var _prefState = {
+        "language.fileExtensions": {
+            last: {},
+            overridden: {},
+            add: "addFileExtension",
+            remove: "removeFileExtension",
+            get: "getLanguageForExtension"
+        },
+        "language.fileNames": {
+            last: {},
+            overridden: {},
+            add: "addFileName",
+            remove: "removeFileName",
+            get: "getLanguageForPath"
+        }
+    };
+    
+    // Constants
+    
+    var EXTENSION_MAP_PREF = "language.fileExtensions",
+        NAME_MAP_PREF      = "language.fileNames";
     
     // Helper functions
     
@@ -840,6 +868,77 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * @private
+     * 
+     * If a default file extension or name was overridden by a pref, restore it.
+     * 
+     * @param {string} name Extension or filename that should be restored
+     * @param {{overridden: string, add: string}} prefState object for the pref that is currently being updated
+     */
+    function _restoreOverriddenDefault(name, state) {
+        if (state.overridden[name]) {
+            var language = getLanguage(state.overridden[name]);
+            language[state.add](name);
+            delete state.overridden[name];
+        }
+    }
+    
+    /**
+     * @private
+     * 
+     * Updates extension and filename mappings from languages based on the current preferences values.
+     */
+    function _updateFromPrefs(pref) {
+        var newMapping = PreferencesManager.get(pref) || {},
+            newNames = Object.keys(newMapping),
+            state = _prefState[pref],
+            last = state.last,
+            overridden = state.overridden;
+        
+        // Look for added and changed names (extensions or filenames)
+        newNames.forEach(function (name) {
+            var language;
+            if (newMapping[name] !== last[name]) {
+                if (last[name]) {
+                    language = getLanguage(last[name]);
+                    if (language) {
+                        language[state.remove](name);
+                        
+                        // If this name that was previously mapped was overriding a default
+                        // restore it now.
+                        _restoreOverriddenDefault(name, state);
+                    }
+                }
+                
+                language = exports[state.get](name);
+                if (language) {
+                    language[state.remove](name);
+                    
+                    // We're removing a name that was defined in Brackets or an extension,
+                    // so keep track of how it used to be mapped.
+                    if (!overridden[name]) {
+                        overridden[name] = language.getId();
+                    }
+                }
+                language = getLanguage(newMapping[name]);
+                if (language) {
+                    language[state.add](name);
+                }
+            }
+        });
+        
+        // Look for removed names (extensions or filenames)
+        _.difference(Object.keys(last), newNames).forEach(function (name) {
+            var language = getLanguage(last[name]);
+            if (language) {
+                language[state.remove](name);
+                _restoreOverriddenDefault(name, state);
+            }
+        });
+        state.last = newMapping;
+    }
+    
    
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
@@ -881,6 +980,22 @@ define(function (require, exports, module) {
         
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
+        
+        // There is a circular dependency between FileUtils and LanuageManager which
+        // was introduced in 254b01e2f2eebea4416026d0f40d017b8ca6dbc9
+        // and may be preventing us from importing PreferencesManager (which also
+        // depends on FileUtils) here. Using the async form of require fixes this.
+        require(["preferences/PreferencesManager"], function (pm) {
+            PreferencesManager = pm;
+            _updateFromPrefs(EXTENSION_MAP_PREF);
+            _updateFromPrefs(NAME_MAP_PREF);
+            pm.definePreference(EXTENSION_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(EXTENSION_MAP_PREF);
+            });
+            pm.definePreference(NAME_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(NAME_MAP_PREF);
+            });
+        });
     });
     
     // Public methods

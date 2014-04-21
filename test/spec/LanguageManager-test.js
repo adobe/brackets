@@ -24,17 +24,19 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail, spyOn */
+/*unittests: LanguageManager */
 
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeMirror      = require("thirdparty/CodeMirror2/lib/codemirror"),
-        LanguageManager = require("language/LanguageManager"),
-        DocumentManager = require("document/DocumentManager"),
-        PathUtils       = require("thirdparty/path-utils/path-utils.min"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        FileSystem      = require("filesystem/FileSystem");
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        LanguageManager     = require("language/LanguageManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        PathUtils           = require("thirdparty/path-utils/path-utils.min"),
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        FileSystem          = require("filesystem/FileSystem");
     
     describe("LanguageManager", function () {
         
@@ -667,6 +669,71 @@ define(function (require, exports, module) {
                 
                 // cleanup
                 doc.releaseRef();
+            });
+        });
+        
+        describe("Preferences", function () {
+            it("should be able to add extension mappings via a preference", function () {
+                var language = LanguageManager.getLanguageForExtension("foo");
+                expect(language).toBeUndefined();
+                PreferencesManager.set("language.fileExtensions", {
+                    foo: "javascript"
+                });
+                language = LanguageManager.getLanguageForExtension("foo");
+                expect(language.getId()).toBe("javascript");
+            });
+            
+            it("should remove extension mappings when preferences change", function () {
+                var language = LanguageManager.getLanguageForExtension("foo");
+                expect(language).toBeDefined();
+                PreferencesManager.set("language.fileExtensions", { });
+                language = LanguageManager.getLanguageForExtension("foo");
+                expect(language).toBeUndefined();
+            });
+            
+            it("should manage overridden default extensions", function () {
+                PreferencesManager.set("language.fileExtensions", {
+                    js: "html"
+                });
+                var language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("html");
+                PreferencesManager.set("language.fileExtensions", {
+                    js: "php"
+                });
+                language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("php");
+                PreferencesManager.set("language.fileExtensions", { });
+                language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("javascript");
+            });
+            
+            it("should be able to manage file name mappings via a preference", function () {
+                var language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("unknown");
+                PreferencesManager.set("language.fileNames", {
+                    "Foofile": "javascript"
+                });
+                language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("javascript");
+                PreferencesManager.set("language.fileNames", { });
+                language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("unknown");
+            });
+            
+            it("should manage overridden default file names", function () {
+                PreferencesManager.set("language.fileNames", {
+                    Gemfile: "python"
+                });
+                var language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("python");
+                PreferencesManager.set("language.fileNames", {
+                    Gemfile: "php"
+                });
+                language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("php");
+                PreferencesManager.set("language.fileNames", { });
+                language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("ruby");
             });
         });
     });
