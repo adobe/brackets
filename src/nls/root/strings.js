@@ -139,6 +139,7 @@ define({
     "BUTTON_NEXT_HINT"                  : "Next Match",
     "BUTTON_PREV_HINT"                  : "Previous Match",
     "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
+    "BUTTON_WHOLE_WORD_HINT"            : "Whole word",
     "BUTTON_REGEXP_HINT"                : "Regular Expression",
 
     "OPEN_FILE"                         : "Open File",
