@@ -41,11 +41,8 @@ define(function (require, exports, module) {
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.
     var lastContext,
-        matcher      = null, // string matcher for hints
-        prefs        = PreferencesManager.getExtensionPrefs("CSSCodeHints");
+        stringMatcherOptions = { preferPrefixMatches: true };
     
-    prefs.definePreference("fuzzy-matching",  "boolean", true);
-        
     /**
      * @constructor
      */
@@ -55,33 +52,6 @@ define(function (require, exports, module) {
         this.exclusion = null;
     }
 
-    /**
-     * Returns the preferences used to add/remove the menu items
-     * @return {{fuzzyMatching: boolean}}
-     */
-    function getPreferences() {
-        // It's senseless to look prefs up for the current file, instead look them up for
-        // the current project (or globally)
-        return {
-            fuzzyMatching  : prefs.get("fuzzy-matching", PreferencesManager.CURRENT_PROJECT)
-        };
-    }
-    
-    /**
-     *  Create a new StringMatcher instance, if needed.
-     *
-     * @return {StringMatcher} - a StringMatcher instance.
-     */
-    function getStringMatcher() {
-        if (!matcher) {
-            matcher = new StringMatch.StringMatcher({
-                preferPrefixMatches: false
-            });
-        }
-
-        return matcher;
-    }
-    
     /**
      * Get the CSS style text of the file open in the editor for this hinting session.
      * For a CSS file, this is just the text of the file. For an HTML file,
@@ -239,9 +209,7 @@ define(function (require, exports, module) {
             valueArray,
             namedFlows,
             result,
-            selectInitial = false,
-            matcher = getStringMatcher(),
-            useFuzzyMatching = getPreferences().fuzzyMatching;
+            selectInitial = false;
             
         
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
@@ -284,11 +252,7 @@ define(function (require, exports, module) {
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {
-                if (!useFuzzyMatching) {
-                    if (pvalue.indexOf(valueNeedle) === 0) {
-                        return pvalue;
-                    }
-                } else if (matcher.match(pvalue, valueNeedle)) {
+                if (StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions)) {
                     return pvalue;
                 }
             }).sort();
@@ -308,14 +272,9 @@ define(function (require, exports, module) {
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
             result = $.map(properties, function (pvalues, pname) {
-                if (!useFuzzyMatching) {
-                    if (pname.indexOf(needle) === 0) {
-                        return pname;
-                    }
-                } else if (matcher.match(pname, needle)) {
+                if (StringMatch.stringMatch(pname, needle, stringMatcherOptions)) {
                     return pname;
                 }
-
             }).sort();
             
             return {
