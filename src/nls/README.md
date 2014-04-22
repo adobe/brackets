@@ -62,6 +62,7 @@ The following languages have been contributed by the Brackets community:
 * Finnish (fi)
 * Croatian (hr)
 * Hungarian (hu)
+* Croatian (hr)
 * Italian (it)
 * Korean (ko)
 * Norwegian (nb)
