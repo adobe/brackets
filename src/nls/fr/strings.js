@@ -181,7 +181,7 @@ define({
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
-	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} que compte {2}",
+	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
