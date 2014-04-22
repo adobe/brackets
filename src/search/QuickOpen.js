@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -858,9 +859,13 @@ define(function (require, exports, module) {
 
         this.setSearchFieldValue(prefix, initialString);
         
+        function _filter(file) {
+            return !FileUtils.isBinaryFile(file.fullPath);
+        }
+        
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = ProjectManager.getAllFiles(true)
+        fileListPromise = ProjectManager.getAllFiles(_filter)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;

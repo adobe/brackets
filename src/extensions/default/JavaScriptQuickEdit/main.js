@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         EditorManager           = brackets.getModule("editor/EditorManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        FileUtils               = brackets.getModule("file/FileUtils"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
@@ -82,7 +83,11 @@ define(function (require, exports, module) {
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        ProjectManager.getAllFiles()
+        function _filter(file) {
+            return !FileUtils.isBinaryFile(file.fullPath);
+        }
+        
+        ProjectManager.getAllFiles(_filter)
             .done(function (files) {
                 JSUtils.findMatchingFunctions(functionName, files)
                     .done(function (functions) {
