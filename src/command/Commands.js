@@ -28,6 +28,26 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var DeprecationWarning = require("utils/DeprecationWarning");
+    
+    /**
+     * @private
+     * Create a deprecation warning and action for updated Command constants
+     * @param {!string} oldConstant
+     * @param {!string} newConstant
+     */
+    function _deprecateCommand(oldConstant, newConstant) {
+        var warning     = "Use Commands." + newConstant + " instead of Commands." + oldConstant + ".",
+            newValue    = exports[newConstant];
+        
+        Object.defineProperty(exports, oldConstant, {
+            get: function () {
+                DeprecationWarning.deprecationWarning(warning, true);
+                return newValue;
+            }
+        });
+    }
+    
     /**
      * List of constants for global command IDs.
      */
@@ -84,18 +104,6 @@ define(function (require, exports, module) {
     exports.EDIT_OPEN_LINE_BELOW        = "edit.openLineBelow";         // EditorCommandHandlers.js     openLineBelow()
     exports.TOGGLE_CLOSE_BRACKETS       = "edit.autoCloseBrackets";     // EditorOptionHandlers.js      _getToggler()
     exports.SHOW_CODE_HINTS             = "edit.showCodeHints";         // CodeHintManager.js           _startNewSession()
-    
-    // DEPRECATED: Redirect Edit commands that were moved from the Edit Menu to the Find Menu
-    exports.EDIT_FIND                   = "cmd.find";                   // FindReplace.js               _launchFind()
-    exports.EDIT_FIND_IN_FILES          = "cmd.findInFiles";            // FindInFiles.js               _doFindInFiles()
-    exports.EDIT_FIND_IN_SELECTED       = "cmd.findInSelected";         // FindInFiles.js               _doFindInSubtree()
-    exports.EDIT_FIND_IN_SUBTREE        = "cmd.findInSubtree";          // FindInFiles.js               _doFindInSubtree()
-    exports.EDIT_FIND_NEXT              = "cmd.findNext";               // FindReplace.js               _findNext()
-    exports.EDIT_FIND_PREVIOUS          = "cmd.findPrevious";           // FindReplace.js               _findPrevious()
-    exports.EDIT_FIND_ALL_AND_SELECT    = "cmd.findAllAndSelect";       // FindReplace.js               _findAllAndSelect()
-    exports.EDIT_ADD_NEXT_MATCH         = "cmd.addNextMatch";           // FindReplace.js               _expandAndAddNextToSelection()
-    exports.EDIT_SKIP_CURRENT_MATCH     = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
-    exports.EDIT_REPLACE                = "cmd.replace";                // FindReplace.js               _replace()
     
     // FIND
     exports.CMD_FIND                    = "cmd.find";                   // FindReplace.js               _launchFind()
@@ -161,5 +169,16 @@ define(function (require, exports, module) {
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
+    
+    // DEPRECATED: Edit commands that were moved from the Edit Menu to the Find Menu
+    _deprecateCommand("EDIT_FIND",                  "CMD_FIND");
+    _deprecateCommand("EDIT_FIND_IN_SELECTED",      "CMD_FIND_IN_SELECTED");
+    _deprecateCommand("EDIT_FIND_IN_SUBTREE",       "CMD_FIND_IN_SUBTREE");
+    _deprecateCommand("EDIT_FIND_NEXT",             "CMD_FIND_NEXT");
+    _deprecateCommand("EDIT_FIND_PREVIOUS",         "CMD_FIND_PREVIOUS");
+    _deprecateCommand("EDIT_FIND_ALL_AND_SELECT",   "CMD_FIND_ALL_AND_SELECT");
+    _deprecateCommand("EDIT_ADD_NEXT_MATCH",        "CMD_ADD_NEXT_MATCH");
+    _deprecateCommand("EDIT_SKIP_CURRENT_MATCH",    "CMD_SKIP_CURRENT_MATCH");
+    _deprecateCommand("EDIT_REPLACE",               "CMD_REPLACE");
 });
 
