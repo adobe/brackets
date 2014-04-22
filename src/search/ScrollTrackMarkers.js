@@ -158,9 +158,17 @@ define(function (require, exports, module) {
         marks = marks.concat(posArray);
         _renderMarks(posArray);
     }
-    
-    
-    exports.clear = clear;
-    exports.setVisible = setVisible;
-    exports.addTickmarks = addTickmarks;
+
+    // Private helper for unit tests
+    function _getTickmarks() {
+        return marks;
+    }
+
+
+    // For unit tests
+    exports._getTickmarks   = _getTickmarks;
+
+    exports.clear           = clear;
+    exports.setVisible      = setVisible;
+    exports.addTickmarks    = addTickmarks;
 });

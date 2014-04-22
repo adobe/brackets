@@ -336,13 +336,17 @@ define(function (require, exports, module) {
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
         PreferencesImpl.smUserScopeLoading.done(function () {
             PreferencesImpl.userScopeLoading.done(function () {
+                if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
+                    console.error("Invalid clientID");
+                    return;
+                }
                 var prefs = getPreferenceStorage(clientID, null, true);
 
                 if (!prefs) {
                     return;
                 }
 
-                var prefsID = getClientID(clientID);
+                var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
                 if (prefStorage.convertedKeysMap === undefined) {
                     prefStorage.convertedKeysMap = {};
                 }
@@ -354,7 +358,7 @@ define(function (require, exports, module) {
                         savePreferences();
                     });
             }).fail(function (error) {
-                console.error("Error while converting ", getClientID(clientID));
+                console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
                 console.error(error);
             });
         });
@@ -442,6 +446,8 @@ define(function (require, exports, module) {
         return context;
     }
     
+    PreferencesImpl.manager.contextNormalizer = _normalizeContext;
+    
     /**
      * @private
      * 
@@ -459,50 +465,6 @@ define(function (require, exports, module) {
     
     PreferencesImpl.manager.on("scopeOrderChange", _updateCurrentProjectContext);
     
-    /**
-     * Look up a preference in the given context. The default is 
-     * CURRENT_FILE (preferences as they would be applied to the
-     * currently edited file).
-     * 
-     * @param {string} id Preference ID to retrieve the value of
-     * @param {Object|string=} context CURRENT_FILE, CURRENT_PROJECT or a filename
-     */
-    function get(id, context) {
-        context = _normalizeContext(context);
-        return PreferencesImpl.manager.get(id, context);
-    }
-    
-    /**
-     * Sets a preference and notifies listeners that there may
-     * have been a change. By default, the preference is set in the same location in which
-     * it was defined except for the "default" scope. If the current value of the preference
-     * comes from the "default" scope, the new value will be set at the level just above
-     * default.
-     * 
-     * The preferences are saved automatically unless doNotSave is true.
-     * 
-     * As with the `get()` function, the context can be a filename,
-     * CURRENT_FILE, CURRENT_PROJECT or a full context object as supported by
-     * PreferencesSystem.
-     * 
-     * @param {string} id Identifier of the preference to set
-     * @param {Object} value New value for the preference
-     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
-     * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
-     * @return {valid:  {boolean}, true if no validator specified or if value is valid
-     *          stored: {boolean}} true if a value was stored
-     */
-    function set(id, value, options, doNotSave) {
-        if (options && options.context) {
-            options.context = _normalizeContext(options.context);
-        }
-        var wasSet = PreferencesImpl.manager.set(id, value, options);
-        if (!doNotSave) {
-            PreferencesImpl.manager.save();
-        }
-        return wasSet;
-    }
-
     /**
      * @private
      */
@@ -537,7 +499,7 @@ define(function (require, exports, module) {
      */
     function setValueAndSave(id, value, options) {
         DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = set(id, value, options).stored;
+        var changed = exports.set(id, value, options).stored;
         PreferencesImpl.manager.save();
         return changed;
     }
@@ -590,8 +552,8 @@ define(function (require, exports, module) {
     
     exports.ready               = PreferencesImpl.managerReady;
     exports.getUserPrefFile     = getUserPrefFile;
-    exports.get                 = get;
-    exports.set                 = set;
+    exports.get                 = PreferencesImpl.manager.get.bind(PreferencesImpl.manager);
+    exports.set                 = PreferencesImpl.manager.set.bind(PreferencesImpl.manager);
     exports.save                = PreferencesImpl.manager.save.bind(PreferencesImpl.manager);
     exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
     exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);

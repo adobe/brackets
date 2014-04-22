@@ -499,6 +499,49 @@ define(function (require, exports, module) {
                 expect(queue._queue.length).toBe(0);
                 expect(queue._curPromise).toBe(null);
             });
+            
+            it("should be able to run two queues simultaneously without clashing", function () {
+                var queue2 = new PromiseQueue(),
+                    q1FnInfo1 = makeFn("one"),
+                    q1FnInfo2 = makeFn("two"),
+                    q2FnInfo3 = makeFn("three"),
+                    q2FnInfo4 = makeFn("four");
+                
+                //queue one
+                queue.add(q1FnInfo1.fn);
+                queue.add(q1FnInfo2.fn);
+                expect(calledFns.one).toBe(true);
+                expect(calledFns.two).toBeUndefined();
+                //queue one should have one in _queue,
+                //queue two should have zero in _queue
+                expect(queue._queue.length).toBe(1);
+                expect(queue2._queue.length).toBe(0);
+                
+                //queue two
+                queue2.add(q2FnInfo3.fn);
+                queue2.add(q2FnInfo4.fn);
+                expect(calledFns.three).toBe(true);
+                expect(calledFns.four).toBeUndefined();
+                //queue one and two should have one in _queue
+                expect(queue._queue.length).toBe(1);
+                expect(queue2._queue.length).toBe(1);
+                
+                q1FnInfo1.deferred.resolve();
+                expect(calledFns.two).toBe(true);
+                expect(queue._queue.length).toBe(0);
+                
+                q1FnInfo2.deferred.resolve();
+                expect(queue._queue.length).toBe(0);
+                expect(queue._curPromise).toBe(null);
+                
+                q2FnInfo3.deferred.resolve();
+                expect(calledFns.three).toBe(true);
+                expect(queue2._queue.length).toBe(0);
+                
+                q2FnInfo4.deferred.resolve();
+                expect(queue2._queue.length).toBe(0);
+                expect(queue2._curPromise).toBe(null);
+            });
         });
     });
 });

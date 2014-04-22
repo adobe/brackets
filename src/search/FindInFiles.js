@@ -1240,6 +1240,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
     
-    // For unit testing - updated in _doSearch() when search complete
+    // For unit testing
+    exports._doFindInFiles = _doFindInFiles;
     exports._searchResults = null;
 });
