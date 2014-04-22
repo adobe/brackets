@@ -296,13 +296,9 @@ define(function (require, exports, module) {
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
-            // check once a day, plus 2 minutes, 
-            // as the check will skip if the last check was not -24h ago
-            window.setInterval(UpdateNotification.checkForUpdate, 86520000);
-            
-            // Check for updates on App Ready
             AppInit.appReady(function () {
-                UpdateNotification.checkForUpdate();
+                // launches periodic checks for updates cca every 24 hours
+                UpdateNotification.launchAutomaticUpdate();
             });
         }
     }
