@@ -525,10 +525,10 @@ define(function (require, exports, module) {
     
     /**
      * Gets an array of extensions that are currently installed and can be updated to a new version
-     * @return {Array} array of objects with properies id,installVersion,registryVersion
-     *                 where id = extensionId
-     *                       installVersion = currently installed version of extension
-     *                       registryVersion = latest version compatible with current Brackets
+     * @return {Array.<{id: string, installVersion: string, registryVersion: string}>}
+     *     where id = extensionId
+     *     installVersion = currently installed version of extension
+     *     registryVersion = latest version compatible with current Brackets
      */
     function getAvailableUpdates() {
         var result = [];
@@ -550,12 +550,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Takes array returned from getAvailableUpdates() as an input and removes those entries
+     * Takes the array returned from getAvailableUpdates() as an input and removes those entries
      * that are no longer current - when currently installed version of an extension
      * is equal or newer than registryVersion returned by getAvailableUpdates().
      * This function is designed to work without the necessity to download extension registry
-     * @param {Array} previous output of getAvailableUpdates()
-     * @param {Array} filtered input as function description
+     * @param {Array.<{id: string, installVersion: string, registryVersion: string}>} updates
+     *     previous output of getAvailableUpdates()
+     * @return {Array.<{id: string, installVersion: string, registryVersion: string}>}
+     *     filtered input as function description
      */
     function cleanAvailableUpdates(updates) {
         return updates.reduce(function (arr, updateInfo) {

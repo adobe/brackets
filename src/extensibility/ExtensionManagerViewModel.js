@@ -424,8 +424,8 @@ define(function (require, exports, module) {
 
             var metadata1 = self.extensions[key1].installInfo.metadata,
                 metadata2 = self.extensions[key2].installInfo.metadata,
-                id1 = (metadata1.title || metadata1.name).toLowerCase(),
-                id2 = (metadata2.title || metadata2.name).toLowerCase();
+                id1 = (metadata1.title || metadata1.name).toLocaleLowerCase(),
+                id2 = (metadata2.title || metadata2.name).toLocaleLowerCase();
 
             return id1.localeCompare(id2);
         });

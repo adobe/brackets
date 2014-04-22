@@ -42,7 +42,11 @@ define(function (require, exports, module) {
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
+    // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
+
+    // duration of two minutes in milliseconds
+    var TWO_MINUTES = 1000 * 60 * 2;
 
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
@@ -250,11 +254,11 @@ define(function (require, exports, module) {
                 // downloadRegistry, will be resolved in _onRegistryDownloaded
                 ExtensionManager.downloadRegistry().done(function () {
                     // schedule another check in 24 hours + 2 minutes
-                    setTimeout(checkForExtensionsUpdate, ONE_DAY + (2 * 60 * 1000));
+                    setTimeout(checkForExtensionsUpdate, ONE_DAY + TWO_MINUTES);
                 });
             } else {
                 // schedule the download of the registry in appropriate time
-                setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + (2 * 60 * 1000));
+                setTimeout(checkForExtensionsUpdate, (timeOfNextCheck - currentTime) + TWO_MINUTES);
             }
         }
     }
@@ -383,7 +387,7 @@ define(function (require, exports, module) {
         // launch immediately and then every 24 hours + 2 minutes
         checkForUpdate();
         checkForExtensionsUpdate();
-        window.setInterval(checkForUpdate, ONE_DAY + (2 * 60 * 1000));
+        window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
 
     // Append locale to version info URL
