@@ -31,7 +31,9 @@ define(function (require, exports, module) {
     var Commands              = require("command/Commands"),
         FindReplace           = require("search/FindReplace"),
         KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
+        StringUtils           = require("utils/StringUtils"),
+        Strings               = require("strings");
 
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
@@ -1615,6 +1617,64 @@ define(function (require, exports, module) {
                 fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
                 expect(fileResults).toBeTruthy();
                 expect(fileResults.matches.length).toBe(3);
+            });
+        });
+
+        it("should ignore binary files", function () {
+            var $dlg, actualMessage, expectedMessage,
+                exists = false,
+                done = false,
+                imageDirPath = testPath + "/images";
+
+            runs(function () {
+                // Set project to have only images
+                SpecRunnerUtils.loadProjectInTestWindow(imageDirPath);
+
+                // Verify an image exists in folder
+                var file = FileSystem.getFileForPath(testPath + "/images/icon_twitter.png");
+
+                file.exists(function (fileError, fileExists) {
+                    exists = fileExists;
+                    done = true;
+                });
+            });
+
+            waitsFor(function () {
+                return done;
+            }, "file.exists");
+
+            runs(function () {
+                expect(exists).toBe(true);
+                openSearchBar();
+            });
+
+            runs(function () {
+                // Launch filter editor
+                $(".filter-picker button").click();
+
+                // Dialog should state there are 0 files in project
+                $dlg = $(".modal");
+                expectedMessage = StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, 0, Strings.FIND_IN_FILES_NO_SCOPE);
+            });
+
+            // Message loads asynchronously, but dialog should evetually state: "Allows all 0 files in project"
+            waitsFor(function () {
+                actualMessage   = $dlg.find(".exclusions-filecount").text();
+                return (actualMessage === expectedMessage);
+            }, "display file count");
+
+            runs(function () {
+                // Dismiss filter dialog
+                $dlg.find(".btn.primary").click();
+
+                // Close search bar
+                var $searchField = $(".modal-bar #find-group input");
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
+            });
+
+            runs(function () {
+                // Set project back to main test folder
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
 
