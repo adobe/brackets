@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         "cs": true,
         "de": true,
         "el": true,
-        "en-uk": true,
+        "en-gb": true,
         "es": true,
         "fa-ir": true,
         "fi": true,
