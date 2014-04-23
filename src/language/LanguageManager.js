@@ -134,28 +134,29 @@ define(function (require, exports, module) {
         _modeToLanguageMap              = {},
         _ready;
     
-    // Tracking for changes to mappings made by preferences
-    var _prefState = {
-        "language.fileExtensions": {
-            last: {},
-            overridden: {},
-            add: "addFileExtension",
-            remove: "removeFileExtension",
-            get: "getLanguageForExtension"
-        },
-        "language.fileNames": {
-            last: {},
-            overridden: {},
-            add: "addFileName",
-            remove: "removeFileName",
-            get: "getLanguageForPath"
-        }
-    };
-    
     // Constants
     
-    var EXTENSION_MAP_PREF = "language.fileExtensions",
-        NAME_MAP_PREF      = "language.fileNames";
+    var _EXTENSION_MAP_PREF = "language.fileExtensions",
+        _NAME_MAP_PREF      = "language.fileNames";
+    
+    // Tracking for changes to mappings made by preferences
+    var _prefState = {};
+    
+    _prefState[_EXTENSION_MAP_PREF] = {
+        last: {},
+        overridden: {},
+        add: "addFileExtension",
+        remove: "removeFileExtension",
+        get: "getLanguageForExtension"
+    };
+    
+    _prefState[_NAME_MAP_PREF] = {
+        last: {},
+        overridden: {},
+        add: "addFileName",
+        remove: "removeFileName",
+        get: "getLanguageForPath"
+    };
     
     // Helper functions
     
@@ -888,6 +889,19 @@ define(function (require, exports, module) {
      * @private
      * 
      * Updates extension and filename mappings from languages based on the current preferences values.
+     * 
+     * The preferences look like this in a prefs file:
+     * 
+     * Map *.foo to javascript, *.vm to html
+     * "language.fileExtensions": {
+     *     "foo": "javascript",
+     *     "vm": "html"
+     * }
+     * 
+     * Map "Gemfile" to ruby:
+     * "language.fileNames": {
+     *     "Gemfile": "ruby"
+     * }
      */
     function _updateFromPrefs(pref) {
         var newMapping = PreferencesManager.get(pref) || {},
@@ -981,22 +995,26 @@ define(function (require, exports, module) {
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
         
-        // There is a circular dependency between FileUtils and LanuageManager which
+        // There is a circular dependency between FileUtils and LanguageManager which
         // was introduced in 254b01e2f2eebea4416026d0f40d017b8ca6dbc9
         // and may be preventing us from importing PreferencesManager (which also
         // depends on FileUtils) here. Using the async form of require fixes this.
         require(["preferences/PreferencesManager"], function (pm) {
             PreferencesManager = pm;
-            _updateFromPrefs(EXTENSION_MAP_PREF);
-            _updateFromPrefs(NAME_MAP_PREF);
-            pm.definePreference(EXTENSION_MAP_PREF, "object").on("change", function () {
-                _updateFromPrefs(EXTENSION_MAP_PREF);
+            _updateFromPrefs(_EXTENSION_MAP_PREF);
+            _updateFromPrefs(_NAME_MAP_PREF);
+            pm.definePreference(_EXTENSION_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
             });
-            pm.definePreference(NAME_MAP_PREF, "object").on("change", function () {
-                _updateFromPrefs(NAME_MAP_PREF);
+            pm.definePreference(_NAME_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(_NAME_MAP_PREF);
             });
         });
     });
+    
+    // Private for unit tests
+    exports._EXTENSION_MAP_PREF = _EXTENSION_MAP_PREF;
+    exports._NAME_MAP_PREF      = _NAME_MAP_PREF;
     
     // Public methods
     exports.ready                   = _ready;
