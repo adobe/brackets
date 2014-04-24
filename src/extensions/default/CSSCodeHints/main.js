@@ -251,12 +251,17 @@ define(function (require, exports, module) {
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {
-                if (StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions)) {
-                    return pvalue;
+                var result = StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions);
+                if (result) {
+                    return result;
                 }
             });
             
-            var newResult = StringMatch.basicMatchSort(result);
+            StringMatch.basicMatchSort(result);
+            
+            result = $.map(result, function (entry) {
+                return entry.label;
+            });
             
             return {
                 hints: result,
@@ -272,13 +277,19 @@ define(function (require, exports, module) {
             
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
+   
             result = $.map(properties, function (pvalues, pname) {
-                if (StringMatch.stringMatch(pname, needle, stringMatcherOptions)) {
-                    return pname;
+                var result = StringMatch.stringMatch(pname, needle, stringMatcherOptions);
+                if (result) {
+                    return result;
                 }
             });
             
-            var newResult = StringMatch.basicMatchSort(result);
+            StringMatch.basicMatchSort(result);
+            
+            result = $.map(result, function (entry) {
+                return entry.label;
+            });
             
             return {
                 hints: result,
