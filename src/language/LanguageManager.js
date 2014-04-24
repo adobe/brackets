@@ -1013,8 +1013,8 @@ define(function (require, exports, module) {
     });
     
     // Private for unit tests
-    exports._EXTENSION_MAP_PREF = _EXTENSION_MAP_PREF;
-    exports._NAME_MAP_PREF      = _NAME_MAP_PREF;
+    exports._EXTENSION_MAP_PREF     = _EXTENSION_MAP_PREF;
+    exports._NAME_MAP_PREF          = _NAME_MAP_PREF;
     
     // Public methods
     exports.ready                   = _ready;
