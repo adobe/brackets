@@ -10,7 +10,7 @@
 define(function (require) {
     "use strict";
 
-    var _                       = require("thirdparty/lodash"),
+    var _                   = require("thirdparty/lodash"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DefaultSettings     = require("themes/DefaultSettings"),
         SettingsDialog      = require("themes/views/settings"),
