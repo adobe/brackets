@@ -21,46 +21,6 @@
  * 
  */
 
-.brackets-css-hints.priority-high {
-    color: #486c00; /* green */
-}
-
-.brackets-css-hints.priority-medium {
-    color: #0c50af; /* blue */
-}
-
-.brackets-css-hints.priority-low {
-    color: #6b24bd; /* violet */
-}
-
-.brackets-css-hints.priority-lowest {
-    color: #444; /* dark grey */
-}
-
-.brackets-css-hints.variable-hint {
-}
-
-.brackets-css-hints.property-hint {
-}
-
-.brackets-css-hints.literal-hint {
-    color: #444; /* dark grey */
-    font-family: SourceCodePro;
-}
-
-.brackets-css-hints.keyword-hint {
-    font-family: SourceCodePro; 
-}
-
-.brackets-css-hints.keyword-hint .matched-hint {
-    font-family: SourceCodePro-Medium;
-    font-weight: 500; 
-}
-
 .brackets-css-hints .matched-hint {
     font-weight: 500;
-}
-
-.brackets-css-hints.guess-hint {
-    font-style: italic;
 }
