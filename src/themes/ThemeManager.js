@@ -11,7 +11,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    require("themes/String");
     require("themes/MenuCommands");
 
     var _                   = require("thirdparty/lodash"),
