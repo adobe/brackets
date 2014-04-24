@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var _ = brackets.getModule("thirdparty/lodash");
 
     var AppInit             = brackets.getModule("utils/AppInit"),
-        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
@@ -375,6 +375,10 @@ define(function (require, exports, module) {
             adjustCursor = false,
             newCursor,
             ctx;
+        
+        if (hint.jquery) {
+            hint = hint.text();
+        }
         
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
