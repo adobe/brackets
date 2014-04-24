@@ -4,6 +4,8 @@
  * Licensed under MIT
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, require */
 
 define(function(require) {
     "use strict";

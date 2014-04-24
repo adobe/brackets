@@ -4,12 +4,14 @@
  * Licensed under MIT
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, require, Mustache */
 
 define(function(require) {
     "use strict";
 
     var _       = require("thirdparty/lodash"),
-    	Dialogs = require("widgets/Dialogs"),
+        Dialogs = require("widgets/Dialogs"),
 
         tmpl = {
             "settings": require("text!themes/views/settings.html"),

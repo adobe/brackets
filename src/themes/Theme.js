@@ -4,6 +4,8 @@
  * Licensed under MIT
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, require, less */
 
 define(function () {
     "use strict";
@@ -26,7 +28,7 @@ define(function () {
         var _self     = this,
             fileName  = file.name;
 
-		_self.file        = file;
+        _self.file        = file;
         _self.displayName = toDisplayName(fileName);
         _self.name        = fileName.substring(0, fileName.lastIndexOf('.'));
         _self.className   = "theme-" + _self.name;

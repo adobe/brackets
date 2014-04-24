@@ -5,12 +5,14 @@
  * Licensed under MIT
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, require */
 
 define(function (require) {
     "use strict";
 
     var Settings            = require("themes/Settings"),
-    	DefaultSettings     = require("themes/DefaultSettings"),
+        DefaultSettings     = require("themes/DefaultSettings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
         PreferencesManager  = require("preferences/PreferencesManager");
 
@@ -37,6 +39,6 @@ define(function (require) {
 
     // Let's make sure we use Themes fonts by default
     return {
-    	init: ViewCommandsManager
+        init: ViewCommandsManager
     };
 });

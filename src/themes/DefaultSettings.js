@@ -5,9 +5,14 @@
  */
 
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, require */
+
 define(function(require) {
+    "use strict";
+
     var FileUtils = require("file/FileUtils");
-    var cm_path = FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/CodeMirror2";
+    var cm_path   = FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/CodeMirror2";
 
     return {
         "fontSize": 12,

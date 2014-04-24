@@ -4,6 +4,8 @@
  * Licensed under MIT
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global $, define, require */
 
 define(function (require) {
     "use strict";
@@ -17,33 +19,6 @@ define(function (require) {
 
 
     function Settings() {
-        return PreferencesManager.ready.then(function() {
-            if ( Settings.getValue("paths") === (void 0) ) {
-                Settings.setValue("paths", DefaultSettings.paths);
-            }
-
-            if ( Settings.getValue("theme") === (void 0) ) {
-                Settings.setValue("theme",  DefaultSettings.theme);
-            }
-
-            if ( Settings.getValue("fontSize") === (void 0) ) {
-                Settings.setValue("fontSize", DefaultSettings.fontSize + "px");
-            }
-
-            if ( Settings.getValue("lineHeight") === (void 0) ) {
-                Settings.setValue("lineHeight", DefaultSettings.lineHeight);
-            }
-
-            if ( Settings.getValue("fontType") === (void 0) ) {
-                Settings.setValue("fontType", DefaultSettings.fontType);
-            }
-
-            if ( Settings.getValue("customScrollbars") === (void 0) ) {
-                Settings.setValue("customScrollbars", DefaultSettings.customScrollbars);
-            }
-
-            return Settings;
-        }).promise();
     }
 
     Settings.open = function() {
@@ -85,6 +60,37 @@ define(function (require) {
     };
 
 
-    Settings.ready = Settings();
+    function init() {
+        return PreferencesManager.ready.then(function() {
+            if ( Settings.getValue("paths") === (void 0) ) {
+                Settings.setValue("paths", DefaultSettings.paths);
+            }
+
+            if ( Settings.getValue("theme") === (void 0) ) {
+                Settings.setValue("theme",  DefaultSettings.theme);
+            }
+
+            if ( Settings.getValue("fontSize") === (void 0) ) {
+                Settings.setValue("fontSize", DefaultSettings.fontSize + "px");
+            }
+
+            if ( Settings.getValue("lineHeight") === (void 0) ) {
+                Settings.setValue("lineHeight", DefaultSettings.lineHeight);
+            }
+
+            if ( Settings.getValue("fontType") === (void 0) ) {
+                Settings.setValue("fontType", DefaultSettings.fontType);
+            }
+
+            if ( Settings.getValue("customScrollbars") === (void 0) ) {
+                Settings.setValue("customScrollbars", DefaultSettings.customScrollbars);
+            }
+
+            return Settings;
+        }).promise();
+    }
+
+
+    Settings.ready = init();
     return Settings;
 });
