@@ -204,7 +204,6 @@ define(function (require, exports, module) {
     CssPropHints.prototype.getHints = function (implicitChar) {
         this.cursor = this.editor.getCursorPos();
         this.info = CSSUtils.getInfoAtPos(this.editor, this.cursor);
-
         
         var needle = this.info.name,
             valueNeedle = "",
@@ -214,7 +213,6 @@ define(function (require, exports, module) {
             result,
             selectInitial = false;
             
-        
         /*
          * Returns a sorted and formatted list of hints with the query substring
          * highlighted.
@@ -229,7 +227,6 @@ define(function (require, exports, module) {
             return hints.map(function (token) {
                 var $hintObj    = $("<span>").addClass("brackets-css-hints");
 
-  
                 // highlight the matched portion of each hint
                 if (token.stringRanges) {
                     token.stringRanges.forEach(function (item) {
