@@ -37,7 +37,7 @@ define(function (require, exports, module) {
      * @param {!string} newConstant
      */
     function _deprecateCommand(oldConstant, newConstant) {
-        var warning     = "Use Commands." + newConstant + " instead of Commands." + oldConstant + ".",
+        var warning     = "Use Commands." + newConstant + " instead of Commands." + oldConstant,
             newValue    = exports[newConstant];
         
         Object.defineProperty(exports, oldConstant, {

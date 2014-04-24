@@ -560,7 +560,7 @@ define(function (require, exports, module) {
             DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
             DeprecationWarning.deprecationWarning("Use MenuSection.FIND_FIND_COMMANDS instead of MenuSection.EDIT_FIND_COMMANDS.", true);
         } else if (relativeID === MenuSection.EDIT_REPLACE_COMMANDS) {
-            DeprecationWarning.deprecationWarning("Add " + command + "Command to the Find Menu instead of the Edit Menu.", true);
+            DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
             DeprecationWarning.deprecationWarning("Use MenuSection.FIND_REPLACE_COMMANDS instead of MenuSection.EDIT_REPLACE_COMMANDS.", true);
         }
         
