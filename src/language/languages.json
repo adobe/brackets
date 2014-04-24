@@ -231,7 +231,7 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
         "isBinary": true
     },
     
@@ -244,9 +244,10 @@
     "binary": {
         "name": "Other Binary",
         "fileExtensions": [
-            "a", "ai", "avi", "bin", "dll", "doc", "docx", "dsym", "dylib", "eot", "exe", "flv",
-            "gz", "htmz", "htmlz", "ipch", "jsz", "lib", "mpeg", "mpg", "mp4", "node", "o",
-            "obj", "otf", "pak", "pdb", "pdf", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite",
+            "a", "ai", "avi", "bin", "cab", "com", "db", "dll", "dmg", "doc", "docx", "dsym",
+            "dylib", "egg", "epub", "eot", "exe", "flv", "gz", "gzip", "htmz", "htmlz", "ipch",
+            "iso", "jar", "jsz", "lib", "mpeg", "mpg", "mp4", "node", "o", "obj", "odb", "otf",
+            "pak", "pdb", "pdf", "pdi", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite",
             "suo", "svgz", "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
