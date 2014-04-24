@@ -1,0 +1,72 @@
+.cm-s-visual-studio.CodeMirror
+{
+    background-color: #fefefe;
+    color:black;
+}
+
+.cm-s-visual-studio.CodeMirror .CodeMirror-gutters
+{
+    background-color: #fefefe;
+}
+
+.cm-s-visual-studio.CodeMirror .CodeMirror-linenumber
+{
+    color: #0E97A1;
+    background-color: #fefefe;
+}
+
+.cm-s-visual-studio.CodeMirror .CodeMirror-matchingbracket
+{
+    color: black;
+    background-color: #dedede;
+}
+
+.cm-s-visual-studio.CodeMirror .CodeMirror-linebackground
+{
+    outline: 2px solid #dddddd;
+}
+
+.cm-s-visual-studio .CodeMirror-activeline-background,
+.cm-s-visual-studio .CodeMirror-activeline .CodeMirror-gutter-elt
+{
+    background: transparent !important;
+}
+
+.cm-s-visual-studio .CodeMirror-activeline-background
+{
+    outline: 2px solid #dddddd;
+}
+
+.cm-s-visual-studio.CodeMirror .cm-matchhighlight
+{
+    background-color: yellow;
+}
+
+.cm-s-visual-studio.CodeMirror .CodeMirror-selectedtext
+{
+    background-color: #ADD6FF;
+}
+
+.cm-s-visual-studio.CodeMirror .CodeMirror-selected,
+.cm-s-visual-studio.CodeMirror-focused .CodeMirror-selected
+{
+    background: transparent;
+}
+
+
+.cm-s-visual-studio.CodeMirror .cm-atom { color: blue; }
+.cm-s-visual-studio.CodeMirror .cm-qualifier { color: #800000; }
+
+/*CodeMirror does not add notation for css...  Which would be really nice. */
+/*.cm-s-visual-studio.CodeMirror .cm-property { color: red; }*/
+
+.cm-s-visual-studio.CodeMirror .cm-keyword { color: blue; }
+.cm-s-visual-studio.CodeMirror .cm-comment { color: green; }
+.cm-s-visual-studio.CodeMirror .cm-string {color: #800000;}
+.cm-s-visual-studio.CodeMirror .cm-string-2 {color: #800000;}
+.cm-s-visual-studio.CodeMirror .cm-variable { color: black; }
+.cm-s-visual-studio.CodeMirror .cm-variable-2 { color: black; }
+.cm-s-visual-studio.CodeMirror .cm-tag { color: #800000; }
+.cm-s-visual-studio.CodeMirror .cm-attribute { color: red; }
+.cm-s-visual-studio.CodeMirror .cm-property { color: black; }
+

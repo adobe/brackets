@@ -1,0 +1,265 @@
+.panel {
+  background:#2b2b2b;
+}
+
+#main-toolbar,
+#status-bar,
+#status-indicators {
+  background:#242424;
+  color:#ccc;
+}
+
+/*#sidebar {
+  position: inherit !important;
+}
+#working-set-header {
+  display: none !important;
+}
+#open-files-container {
+  width: 100% !important;
+  position: absolute !important;
+  z-index: 10 !important;
+  max-height: auto !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+#open-files-container li {
+  float: left;
+}*/
+
+#status-info {
+  color:#ccc;
+}
+
+#open-files-container,
+#working-set-header {
+  color:#aaa;
+  background:#111;
+}
+#project-files-header {
+  color:#aaa;
+  background:#222;
+}
+.recent-folder,
+#open-folder-link {
+  color:#ddd;
+}
+#project-dropdown.dropdown-menu a.selected {
+  background: #0081c2;
+}
+.dropdown-menu {
+  background: #333;
+  color: #aaa;
+}
+.dropdown-menu .divider {
+  background: #222;
+  border-bottom: 1px solid #444;
+}
+.sidebar-selection {
+  background: #1a1a1a;
+}
+.sidebar-selection-triangle {
+  display: none !important;
+}
+
+.jstree-brackets li.jstree-closed > a,
+.jstree-brackets li.jstree-open > a {
+  color:#ccc;
+}
+
+#open-files-container .extension,
+.jstree-brackets li .extension {
+  color:#aaa;
+}
+
+.cm-s-pixie.CodeMirror {
+    background-color:#202020;
+    color:#fff;
+}
+
+.cm-s-pixie.CodeMirror div.CodeMirror-cursor {
+  border-left:1px solid #f8f8f0;
+  z-index:3;
+}
+
+.cm-s-pixie .CodeMirror-selected {
+  background:#3d3d3d;
+  opacity:.5;
+}
+
+.cm-s-pixie .cm-keyword    {color:#CC7833;}
+.cm-s-pixie .cm-atom       {color:#A5C261;}
+.cm-s-pixie .cm-number     {color:#A5C261;}
+.cm-s-pixie .cm-def        {color:#A0BD2D;}
+.cm-s-pixie .cm-variable   {color:#FFCC33;}
+.cm-s-pixie .cm-variable-2 {color:#DA4939;}
+.cm-s-pixie .cm-property   {color:#DAD6CD;}
+.cm-s-pixie .cm-operator   {color:#34A2D9;}
+.cm-s-pixie .cm-comment    {color:#BC9458;}
+.cm-s-pixie .cm-string     {color:#A0BD2D;}
+.cm-s-pixie .cm-string-2   {color:#A5C261;}
+.cm-s-pixie .cm-meta       {color:#CC7833;}
+.cm-s-pixie .cm-qualifier  {color:#FFCC33;}
+.cm-s-pixie .cm-bracket    {color:#FF3333;}
+.cm-s-pixie .cm-tag        {color:#E8BF6A;}
+.cm-s-pixie .cm-attribute  {color:#FFCC33;}
+.cm-s-pixie .cm-builtin  {color:#CC7833;}
+
+.cm-s-pixie .cm-matchhighlight {
+  background:#00CCFF;
+  box-shadow:0 0 5px #00CCFF;
+  color:#000;
+  border-radius:2px;
+}
+
+.cm-s-pixie.CodeMirror span.CodeMirror-nonmatchingbracket {
+  color:#FF3333;
+  text-shadow: none;
+  border-bottom: 1px solid #FF3333;
+}
+
+.cm-s-pixie.CodeMirror span.CodeMirror-matchingbracket {
+  color:#DAD6CD;
+  text-shadow: none;
+  border-bottom: 1px solid #DAD6CD;
+}
+
+.cm-s-pixie.CodeMirror span.cm-matchhighlight.CodeMirror-searching.CodeMirror-selectedtext {
+  background-color:#FFCC33;
+  color:#000;
+  border:0;
+  box-shadow:0 0 5px #FFCC33;
+  border-radius:2px;
+}
+
+.cm-s-pixie.CodeMirror span.CodeMirror-matchingtag {
+  color: #E8BF6A !important;
+  background-color: #222222 !important;
+}
+
+.cm-s-pixie.CodeMirror span.CodeMirror-searching {
+  background-color:#00CCFF;
+  box-shadow:0 0 5px #00CCFF;
+  color:#000;
+  border-radius:2px;
+}
+
+.cm-s-pixie .CodeMirror-activeline-background {
+  background:hsla(0,0%,0%,0.5)!important;
+  margin:-1px -10px;
+}
+
+.cm-s-pixie div.CodeMirror-gutter {
+  color:#ccc;
+}
+
+.cm-s-pixie div.CodeMirror-gutters {
+  background-color:#333435;
+  box-shadow:0 0 10px hsla(0,0%,0%,.8);
+  padding:0 15px 20px 10px;
+  border-right:0;
+}
+
+.cm-s-pixie span.CodeMirror-widget {
+  margin:-3px 0px;
+  display:inline-block;
+}
+.cm-s-pixie span.CodeMirror-foldmarker {
+  display:inline-table;
+  background:#ccc;
+  border:0;
+  color:#000;
+  border-radius:3px;
+  font-size:20px;
+  margin:3px;
+  padding:0px 5px;
+  height:15px;
+  line-height:15px;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+/* Let's get this party started */
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background-color: #1a1a1a;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background: rgba(100,100,100,1);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+}
+::-webkit-scrollbar-thumb:window-inactive {
+    background: rgba(55,55,55,0.9);
+}
+
+.extension-manager-dialog .modal-header,
+.extension-manager-dialog .modal-footer {
+  background: #222;
+}
+.extension-manager-dialog .modal-body {
+  background: #1a1a1a;
+}
+.extension-manager-dialog .modal-footer {
+  border-color: #1a1a1a;
+}
+.extension-manager-dialog .modal-header .nav-tabs > li > a {
+  color: #eee;
+}
+.extension-manager-dialog .modal-header .nav-tabs > .active > a,
+.extension-manager-dialog .modal-header .nav-tabs > .active > a:hover {
+  background: #333;
+  border-color: #1a1a1a #1a1a1a transparent #1a1a1a;
+}
+.table-striped tbody tr:nth-child(odd) td,
+.table-striped tbody tr:nth-child(odd) th {
+  background: #333;
+  color: #eee;
+}
+.table-striped tbody tr:nth-child(even) td,
+.table-striped tbody tr:nth-child(even) th {
+  background: #2a2a2a;
+  color: #eee;
+}
+body.platform-win .extension-manager-dialog .modal-body .extension-list .ext-name,
+body.platform-win .extension-manager-dialog .modal-body .extension-list .ext-desc {
+  color: #eee;
+}
+.extension-manager-dialog .modal-header .nav-tabs {
+  border-color: #1a1a1a;
+}
+.extension-manager-dialog .modal-body .info-message {
+  background: #1a1a1a;
+  color: #888;
+}
+#project-dropdown-toggle {
+  width: auto;
+}
+#devdocs-viewer-iframe ._header {
+  background-color: #222;
+}
+.toolbar .nav .dropdown-menu li a,
+.context-menu .dropdown-menu li a,
+.codehint-menu .dropdown-menu li a {
+  color: #bbb;
+}
+.toolbar .nav .dropdown-menu li a:hover,
+.context-menu .dropdown-menu li a:hover,
+.codehint-menu .dropdown-menu li a:hover,
+.toolbar .nav .dropdown-menu li a.highlight,
+.context-menu .dropdown-menu li a.highlight,
+.codehint-menu .dropdown-menu li a.highlight {
+  color: #eee;
+  background: #0081c2;
+}

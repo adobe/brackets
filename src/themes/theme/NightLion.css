@@ -1,0 +1,166 @@
+/*
+BearTheme is bare theme for styling Adobe Brackets (Code Mirror) editor. Some elements need be overwritien, if you find comment with "may need !important", give it a try.
+Good luck, have fun!
+*/
+
+    /*Sidebar*/
+
+#sidebar{} /*General sidebar style*/
+#sidebar #working-set-header{} /*"Working files" header*/
+#sidebar #open-files-container{} /*Working files style*/
+#sidebar #open-files-container ul li.selected a{} /*Selected working file*/
+#sidebar #open-files-container ul li.selected a span.extension{} /*Selected working file's extension*/
+#sidebar #open-files-container ul li .file-status-icon{} /*Icon next to a file, dot, X etc.*/
+
+
+    /*Project file header*/
+#sidebar #project-files-header{} /*Browser header, path select, search, X etc.*/
+#sidebar #project-files-header #project-dropdown-toggle{} /*Path select toggle*/
+#sidebar #project-files-header #project-dropdown-toggle #project-title{} /*Currently selected project title*/
+#sidebar #project-files-header #project-dropdown-toggle .dropdown-arrow{} /*Select toggle arrow - SVG image*/
+#sidebar #project-files-header #closeAllFolders{} /*Close all icon*/
+#sidebar #project-files-header #search-files-button{} /*Search file icon*/
+
+
+    /*Project files container*/
+#sidebar #project-files-container{} /*Project files - WITHOUT header*/
+#sidebar #project-files-container .jstree-icon{} /*Icon next to files (left side), like close/open arrow for parent element*/
+#sidebar #project-files-container li.jstree-closed{} /*Closed tree element*/
+#sidebar #project-files-container li.jstree-open{} /*Open tree element*/
+#sidebar #project-files-container ul li a{} /*Project container file*/
+#sidebar #project-files-container ul li a.jstree-hovered{} /*Project container file hovered*/
+#sidebar #project-files-container ul li a span.extension{} /*Project container file's extension*/
+
+
+    /*Main area*/
+.CodeMirror{background-color: #1a1a1a; color: #777; }/*Main coding area, without line count.*/
+.CodeMirror-lines{}/*Code lines, syntax coloring has higher priority then .CodeMirror-lines*/
+
+.CodeMirror div.CodeMirror-cursor { border-left: 1px solid #333; z-index: 3;} /*Cursor stling*/
+.CodeMirror div.CodeMirror-secondarycursor {} /* Shown when moving in bi-directional text  - from CM docs*/
+
+	/*Brackets is based on webkit, so you can use scrollbar styling. Example below contains 8px width, grey scrollbar for the main area. You can use it with other section, just remember about z-indexes or things like 'selected' with overlap your scrollbar.*/
+.CodeMirror .CodeMirror-vscrollbar{ width: 8px; bottom:8px !important;} /*Scrollbar vertical. These values MUST be the same as height/width of scrollbars*/
+.CodeMirror .CodeMirror-hscrollbar{ height:8px; right:8px !important;} /*Scrollbar horizontal. These values MUST be the same as height/width of scrollbars*/
+
+.CodeMirror ::-webkit-scrollbar { width: 12px; height:12px;} /* The width of vertical scrollbars and height of horizontal scrollbars*/
+.CodeMirror ::-webkit-scrollbar-track {background-color: #333 !important;} /* The track that scrollbars run in */
+.CodeMirror ::-webkit-scrollbar-thumb {background-color: #a5a4a4 !important; border-radius: 4px} /* The scrollbar thumb */
+
+.CodeMirror-scrollbar-filler {height:8px !important; width:8px !important; background:none;} /* Corner where scrollbars meet. Width and height MUST be the same as that of scrollbars. Background should be the same as that of the scrollbar track*/
+.CodeMirror-gutter-filler{ height:8px !important;} /* Linenumber area left of horizontal scrollbar. Height MUST be the same as width/height of scrollbars */
+
+
+
+.CodeMirror .CodeMirror-scroll .CodeMirror-gutters{background-color: #545454; color:#ffffff;}/*Left vertical bar with line count*/
+.CodeMirror-gutter{color:#ffffff;} /*Left bar with line count - it will affect global line count, BUT line count in inline editor won't be changed.*/
+.CodeMirror-linenumbers{color:#ffffff;} /*Line count bar only, without "gutter"*/
+.CodeMirror-foldgutter{color:#ffffff;} /*It's exactly .CodeMirror-gutter{} without .CodeMirror-linenumbers{}.*/
+
+
+    /*Syntax elements & action*/
+.CodeMirror .cm-atom{color: #40D5B9 ;} /*Atribbute value ex. #f00 in color:#f00;*/
+.CodeMirror .cm-def{color: #F995E0  ;} /*variable definition*/
+.CodeMirror .cm-number{ color: #76B8EB;} /*Numbers*/
+.CodeMirror .cm-variable{ color: #e6e6e6;} /*Variable name ex. class Variable_name */
+.CodeMirror .cm-variable-2{color: #76B8EB ;} /*Variable declaration ex. $variable */
+.CodeMirror .cm-property{color: #e6e6e6;} /*Property ex. color in color:#f00;*/
+.CodeMirror .cm-operator{color: #666666;} /*Operators ex. dots (:) between property and atom value */
+.CodeMirror .cm-comment{color: #4F6B85;} /*Comment*/
+.CodeMirror .cm-string{color: #40D5B9 ;} /*String elements ex. "description" in name="description" - including quotation*/
+.CodeMirror .cm-meta{color: #9E9E9E;} /*Meta elements like ex.: <!DOCTYPE html>*/
+.CodeMirror .cm-qualifier{color: #40D5B9;} /*Final qualifier like css class ex.: .cm-qualifier*/
+.CodeMirror .cm-tag{color: #999 ;} /*Tags ex. ul or <ul>*/
+.CodeMirror .cm-attribute{color: #76B8EB ;} /*Attribute ex. rel, href, name*/
+.CodeMirror .cm-keyword {color: #e6e6e6;} /*Element call ex. array, class, public function, if, elseif, !important*/
+.CodeMirror .cm-matchingtag{color: #FFD37F;}
+
+.CodeMirror .CodeMirror-matchingtag{} /*Matching tags, open/close. Try !important for bg, color etc. if it doesn't work*/
+div.CodeMirror span.CodeMirror-matchingbracket{} /*Matching brackets, open/close*/
+
+.CodeMirror-selected{background-color: #2D3F4F; color: #000000 !important;} /*Selected lines - may need !important*/
+.CodeMirror-activeline-background{;} /*Active line - may need !important*/
+.CodeMirror-gutter-elt{} /*Active line, line count section*/
+div.CodeMirror span.CodeMirror-searching{background-color: #ffffff !important;} /*Search result highlight- may need !important*/
+
+
+    /*Status bar - bottom*/
+#status-bar{}/*Bottom status bar*/
+#status-bar #status-info{}/*Line & column info*/
+#status-bar #status-indicators{}/*Second part of the status bar*/
+#status-bar #status-indicators{} #status-indent{} /*Indent status info*/
+#status-bar #status-indicators{} #status-language{} /*Language info*/
+#status-bar #status-indicators{} #fileSizeInfo{} /*File size*/
+#status-bar #status-indicators{} #filePathInfo{} /*File path*/
+
+    /*Status bar - ex. debug area*/
+#problems-panel{} /*Bottom error panel main wrapper*/
+#problems-panel .toolbar{} /*Error panel toolbar with title and X*/
+#problems-panel .toolbar .title{} /*Error panel toolbar title eg. "JSLint Errors"*/
+#problems-panel .toolbar .close{} /*X to close error panel*/
+#problems-panel .toolbar .table-container{} /*Table container with errors*/
+#problems-panel .table .tbody{} /*Table with errors - additional classes for look: table-striped table-condensed row-highlight, fimilar for people working with Boostrap*/
+#problems-panel .table .tbody tr{} /*Single row containing line number, "error" message and code info*/
+#problems-panel .table .tbody tr td.line-number{} /*Line number for error row*/
+/*There are no separated classes for error and code excerpt, the only hint I can give is: error is second child and excerpt is 3rd chaild of tr.*/
+
+    /*Right toolbar - live preview, extensions*/
+#main-toolbar{} /*Whole toolbar*/
+#main-toolbar .buttons{} /*Buttons group*/
+
+
+    /*Modal windows like context-menu, quick-view or hint container*/
+#context-menu-bar .dropdown-menu{} /*Dropdown menu, available under right-click - may need !important*/
+#context-menu-bar .dropdown-menu a{} /*Single option, treat it like <li> ex. background*/
+#context-menu-bar .dropdown-menu a:hover{} /*Single option, treat it like <li> ex. background - hover state. RGBA is not working!*/
+
+		/*If you need different dropdown style for different sections, use IDs below.*/
+			#context-menu-bar #project-context-menu .dropdown-menu{} /*Dropdown menu for project files section*/
+			#context-menu-bar #editor-context-menu .dropdown-menu{} /*Dropdown menu for editor section*/
+			#context-menu-bar #inline-editor-context-menu .dropdown-menu{} /*Dropdown menu for inline editor like Quick Edit*/
+		/*--back to general--*/
+
+#codehint-menu-bar .dropdown-menu{} /*Code hint menu, dropdown visible when writing code.*/
+#codehint-menu-bar .dropdown-menu li a{} /*Code hint menu option, dropdown visible when writing code. Treat like <li>*/
+#codehint-menu-bar .dropdown-menu li a span.code-hint-item{} /*Single hint in dropdown menu, automaticlly puts already typed text into <strong>*/
+
+    /*Inline editor(Ex. Quick Edit - Ctrl + E)*/
+.inline-widget{} /*Inline widget wrap, won't affect line count bar*/
+.inline-text-editor{} /*Whole editing area - without active rule*/
+.inline-text-editor .CodeMirror-lines{}/*Code lines in inline editor, syntax coloring has higher priority then .CodeMirror-lines*/
+.inline-editor-header{} /*Inline text editor header, includes info about inline editor file*/
+.inline-editor-header a.filename{} /*Filename visible in inline editor - may need !important*/
+.inline-editor-header a.filename span.line-number{} /*Line number next to filename - may need !important*/
+.inline-editor-header button.btn{} /*Button responsible for "New rule"*/
+
+/*Global rules apply to inline editor scroll, just use .inline-widget class to target only bar options of this area. Example below.*/
+.inline-widget .CodeMirror-gutter{} /*Inline editor "gutter", won't affect line count in inline editor*/
+.inline-widget .CodeMirror-linenumbers{} /*Inline editor line numbers bar - no "gutter"*/
+
+.inline-widget .related-container{} /*Related container with similar rules*/
+.inline-widget .related-container .selection {} /*Currently selected style rule*/
+.inline-widget .related-container ul li.selected {} /*Currently selected style rule from related container - text*/
+.inline-widget .related-container .related ul li{} /*List element with rule*/
+.inline-widget .related-container .related ul li .related-file{} /*File information for rule*/
+
+    /*Inline widget - extended color picker*/
+.inline-widget .color-editor{} /*Extended color editor area*/
+
+.inline-widget .color-editor .sliders .color-selection-field{} /*Color selection square - big one*/
+.inline-widget .color-editor .hue-slider{} /*Hue slider*/
+.inline-widget .color-editor .opacity-slider{} /*Opacity slider*/
+
+.inline-widget .color-editor input.color-value{} /*Input for color value*/
+.inline-widget .color-editor ul.button-bar{} /*Buttons for RGBa, HEX, HSLA*/
+.inline-widget .color-editor ul.button-bar li a{} /*Single buttons <li>*/
+.inline-widget .color-editor ul.button-bar li a.rgba{} /*RGBa button*/
+.inline-widget .color-editor ul.button-bar li a.hex{} /*HEX button*/
+.inline-widget .color-editor ul.button-bar li a.hsla{} /*HSLA button*/
+
+.inline-widget .color-editor .large-swatches{} /*Big swatches with currently picked and original color*/
+.inline-widget .color-editor .large-swatches .current-color{} /*Current color swatch*/
+.inline-widget .color-editor .large-swatches .original-color{} /*Original color swatch*/
+
+.inline-widget .color-editor ul.swatches{} /*Small swatches with color suggestions*/
+.inline-widget .color-editor ul.swatches li .swatch-bg{} /*Swatch sample*/
+.inline-widget .color-editor ul.swatches li span.value{} /*Swatch label with color value*/

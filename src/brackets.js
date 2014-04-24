@@ -102,6 +102,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
+        ThemeManager            = require("themes/ThemeManager"),
         _                       = require("thirdparty/lodash");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we

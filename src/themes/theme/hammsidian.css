@@ -1,0 +1,125 @@
+.cm-s-hammsidian.CodeMirror
+{
+    font-family: consolas !important;
+    background-color: #293134;
+    color: #E0E2E4;
+    font-size: 16px !important;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-lines pre
+{
+    z-index: 3;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-gutters
+{
+    background-color: #293134;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-linenumber
+{
+    background-color: #293134;
+    color: #81969A;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-matchingbracket
+{
+    color: #dedede;
+    outline: 1px solid #dedede;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-linebackground,
+.cm-s-hammsidian.CodeMirror .CodeMirror-activeline
+{
+    background-color: #2F393C;
+}
+
+
+.cm-s-hammsidian.CodeMirror .cm-atom { color: #EC7600; }
+.cm-s-hammsidian.CodeMirror .cm-qualifier { color: #678CB1; }
+
+/*CodeMirror does not add notation for css...  Which would be really nice. */
+/*.cm-s-hammsidian.CodeMirror .cm-property { color: red; }*/
+
+.cm-s-hammsidian.CodeMirror .cm-keyword { color: #93C763; }
+.cm-s-hammsidian.CodeMirror .cm-comment { color: #7D8C93; }
+.cm-s-hammsidian.CodeMirror .cm-string {color: #EC7600;}
+.cm-s-hammsidian.CodeMirror .cm-string-2 {color: #EC7600;}
+.cm-s-hammsidian.CodeMirror .cm-variable { color: #E0E2E4; }
+/*.cm-s-hammsidian.CodeMirror .cm-variable-2 { color: #EC7600; }*/
+.cm-s-hammsidian.CodeMirror .cm-tag { color: rgb(147,199,99); }
+.cm-s-hammsidian.CodeMirror .cm-attribute { color: #678CB1; }
+.cm-s-hammsidian.CodeMirror .cm-property { color: rgb(140,140,180); }
+.cm-s-hammsidian.CodeMirror .cm-number { color: #FF9E3D;}
+
+/*.cm-s-hammsidian.CodeMirror .cm-meta { color: #EC7600; }*/
+.cm-s-hammsidian.CodeMirror .cm-error { color: #EC7600; }
+
+.cm-s-hammsidian.CodeMirror .cm-matchhighlight:not(.CodeMirror-selectedtext)
+{
+      background-color: #616161;
+    color: white;
+}
+
+.CodeMirror-gutters {
+  border-right: 1px solid #444;
+}
+
+.CodeMirror-foldmarker {
+    padding-right:5px;
+    padding-left:5px;
+    background:#4d4d4d;
+    border:1px solid #ddd;
+    margin-right:3px;
+    margin-left:3px;
+    border-radius:3px;
+    color:#fff;
+    cursor:pointer;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-selectedtext
+{
+      background-color: #804000;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-selected
+{
+      background: transparent;
+}
+
+.cm-s-hammsidian.CodeMirror-focused .CodeMirror-selected
+{
+      background: transparent;
+}
+
+.cm-s-hammsidian.CodeMirror .CodeMirror-cursor
+{
+    z-index: 5;
+    border-left: 1px solid white;
+}
+
+#status-bar {
+    border-top:1px solid #484b4d;
+    background:#3c3f41;
+
+}
+
+#status-bar #status-info {
+    color:#f7c741;
+
+}
+
+#status-bar #status-indicators{
+    background:#3c3f41;
+
+}
+
+#status-bar #status-indicators #status-language {
+    color:#ed8d47;
+}
+
+
+#status-bar #status-indicators #status-indent {
+    color:#4bd278;
+}
+

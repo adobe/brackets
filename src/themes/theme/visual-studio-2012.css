@@ -1,0 +1,247 @@
+/* Main UI */
+*:focus {
+    outline: none !important;
+	box-shadow: none !important;
+}
+
+#sidebar{
+    background:#D6DBE9;
+    text-shadow:none;
+}
+
+#working-set-header {
+	background:#D6DBE9;
+	border-bottom: 4px solid #293955;
+	color: #60728C;
+	text-shadow: none;
+	
+}
+#open-files-container{ /* Working files */
+    background: #293955;
+	color: #fff;
+}
+
+#project-files-header {/* "working files" header and folder header*/
+    color:#777!important;
+}
+
+#working-set-option-btn, #project-dropdown-toggle, #main-toolbar a, .btn {
+	color:#60728C;
+}
+.btn {
+	color:#000;
+	background: linear-gradient(to bottom, #f0f0f0 0%,#e5e5e5 100%);
+	border: 1px solid #ACACAC;
+	border-radius: 0px;
+	box-shadow: none;
+	text-shadow: none;
+}
+.btn.primary {
+	border-color: #E5C365;
+}
+.btn.active {
+	background: none;
+	background-color:#FFF0D0 !important;
+	border-color: #E5C365;
+	color: #E5C365 !important;
+}
+.btn:not([disabled]):hover {
+	background: none;
+}
+#working-set-option-btn:hover, #project-dropdown-toggle:hover, #main-toolbar a:hover, .btn:not([disabled]):hover { /* Open url when hover */
+    color:#000;
+	background-color:#FFF0D0 !important;
+	border: 1px solid #E5C365;
+	border-radius: 0px;
+}
+input {
+	border: 1px solid #ACACAC;
+	background-color: #f0f0f0;
+	border-radius: 0px;
+}
+input:focus {
+	border: 1px solid #E5C365;
+}
+
+#main-toolbar a {
+	margin-left: 2px;
+	margin-top: 6px;
+	margin-bottom: -1px;
+	border: 1px solid transparent;
+}
+
+#project-files-container {
+	padding-top: 5px;
+	background: #293955;
+}
+
+.jstree-brackets li a,
+.jstree-brackets li a .extension, /* Files, folder and extensions */
+#open-files-container li a,
+#open-files-container li a .extension,
+#open-files-container li a.jstree-clicked { /* Files, folder and extensions in "working fiels"*/
+    color:#fff;
+}
+.jstree-brackets li.selected a,
+.jstree-brackets li.selected a .extension,
+.jstree-brackets li a.jstree-clicked,
+.jstree-brackets li a.jstree-clicked .extension, /* Files, folder and extensions */
+#open-files-container li.selected a,
+#open-files-container li.selected a .extension,
+#open-files-container li.selected a.jstree-clicked { /* Files, folder and extensions in "working fiels"*/
+    color:#000;
+}
+
+.sidebar-selection{ /* Selected file or folder */
+    background:#FFF0D0;
+	margin-left:0px;
+}
+
+.sidebar-selection-triangle{ /* ^ the cool arrow */
+    background:transparent;
+}
+
+.sidebar-selection-triangle.triangle-visible::before{
+    border-left:12px solid #FFF0D0;
+	display:none;
+}
+
+#main-toolbar{ /* Toolbar to the right */
+    background:#D6DBE9;
+}
+
+#status-bar{ /* Bottom status bar */
+    background:#293955;
+}
+
+#status-indicators,
+#status-info{ /* Status bar text */
+    background:transparent;
+	color: #fff;
+}
+
+/* Context menu */
+.dropdown-menu {
+	background-color: red;
+	border: 1px solid #9ba7b7 !important;
+	border-radius: none !important;
+	background: linear-gradient(to bottom, #e9ecee 0%, #d0d7e2 100%) !important;
+}
+.dropdown-menu .divider {
+	border: none !important;
+	background-color: #bec3cb;
+}
+.dropdown-menu a {
+	color: #3f3f3f;
+	border: 1px solid transparent;
+	margin: 1px 4px !important;
+	padding-top: 2px !important;
+	padding-bottom: 2px !important;
+}
+.dropdown-menu a:hover, .dropdown-menu a.highlight {
+	color:#000;
+	background-color:#FFF0D0 !important;
+	border: 1px solid #E5C365;
+	margin: 1px 4px !important;
+	border-radius: 0px;
+}
+
+/* Code Editor */
+.cm-s-visual-studio-2012.CodeMirror
+{
+    border-left: 2px solid #FFF0D0;
+	background-color: #fefefe;
+    color:black;
+	font-family: consolas !important;
+}
+
+.cm-s-visual-studio-2012.CodeMirror .CodeMirror-gutters
+{
+    background-color: #fefefe;
+}
+
+.cm-s-visual-studio-2012.CodeMirror .CodeMirror-linenumber
+{
+    color: /*#0E97A1*/ #BAC1D6;
+    background-color: #fefefe;
+	font-family: consolas !important;
+}
+
+.cm-s-visual-studio-2012.CodeMirror .CodeMirror-matchingbracket
+{
+    color: black;
+    background-color: #dedede;
+}
+
+.cm-s-visual-studio-2012.CodeMirror .CodeMirror-linebackground
+{
+    outline: 2px solid #dddddd;
+    z-index: 3;
+}
+
+.cm-s-visual-studio-2012 .CodeMirror-activeline-background,
+.cm-s-visual-studio-2012 .CodeMirror-activeline .CodeMirror-gutter-elt
+{
+    background: transparent !important;
+}
+
+.cm-s-visual-studio-2012 .CodeMirror-activeline-background
+{
+    outline: 2px solid #dddddd;
+}
+
+.cm-s-visual-studio-2012 .CodeMirror-activeline .CodeMirror-gutter-elt
+{
+    outline: 0px;
+}
+
+
+.cm-s-visual-studio-2012.CodeMirror .cm-matchhighlight
+{
+    background-color: yellow;
+}
+
+.cm-s-visual-studio-2012.CodeMirror .CodeMirror-selectedtext
+{
+    background-color: #ADD6FF;
+}
+
+.cm-s-visual-studio-2012.CodeMirror .CodeMirror-selected,
+.cm-s-visual-studio-2012.CodeMirror-focused .CodeMirror-selected
+{
+    background: transparent;
+}
+
+
+.cm-s-visual-studio-2012.CodeMirror .cm-atom,
+.cm-s-visual-studio-2012.CodeMirror .cm-qualifier,
+.cm-s-visual-studio-2012.CodeMirror .cm-def,
+.cm-s-visual-studio-2012.CodeMirror .cm-keyword {
+	color: #0000FF;
+}
+
+/* css */
+/* css selectors */
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-qualifier /* .class */ { color: #800000; }
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-builtin /* #id */ { color: #ff0000; }
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-tag /* tag */ { color: #8063d4; }
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-variable-3 /* :pseudo */ { color: #af552b; }
+
+
+/* css values */
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-number { color: #2B91AF; }
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-keyword /* !important */ { color: #FF0000; }
+.doctype-css .cm-s-visual-studio-2012.CodeMirror .cm-variable /* other value, like font name */ { color: #3399ff; }
+
+/*CodeMirror does not add notation for css...  Which would be really nice. */
+/*.cm-s-visual-studio-2012.CodeMirror .cm-property { color: red; }*/
+
+.cm-s-visual-studio-2012.CodeMirror .cm-comment { color: green; }
+.cm-s-visual-studio-2012.CodeMirror .cm-string {color: #800000;}
+.cm-s-visual-studio-2012.CodeMirror .cm-string-2 {color: #800000;}
+.cm-s-visual-studio-2012.CodeMirror .cm-variable { color: black; }
+.cm-s-visual-studio-2012.CodeMirror .cm-variable-2 { color: #2B91AF; }
+.cm-s-visual-studio-2012.CodeMirror .cm-tag { color: #800000; }
+.cm-s-visual-studio-2012.CodeMirror .cm-attribute { color: red; }
+.cm-s-visual-studio-2012.CodeMirror .cm-property { color: black; }
+

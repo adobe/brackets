@@ -1,0 +1,120 @@
+.panel {
+  background:#3C3F41;
+}
+
+#status-bar,
+#status-indicators {
+  background:#242424;
+  color:#ccc;
+}
+
+#status-info {
+  color:#ccc;
+}
+
+#open-files-container,
+#working-set-header,
+#project-files-header {
+  color:#aaa;
+  background:#565A5D;
+}
+
+.jstree-brackets li.jstree-closed > a,
+.jstree-brackets li.jstree-open > a {
+  color:#ccc;
+}
+
+#open-files-container .extension,
+.jstree-brackets li .extension {
+  color:#aaa;
+}
+
+.cm-s-zamiere.CodeMirror {
+  background-color:#202020;
+  color:#fff;
+}
+
+.cm-s-zamiere.CodeMirror div.CodeMirror-cursor {
+  border-left:1px solid #f8f8f0;
+  z-index:3;
+}
+
+.cm-s-zamiere .CodeMirror-selected {
+  background:#3d3d3d;
+  opacity:.5;
+}
+
+.cm-s-zamiere .cm-keyword    {color:#FFCC33;}
+.cm-s-zamiere .cm-atom       {color:#99CC66;}
+.cm-s-zamiere .cm-number     {color:#99CC66;}
+.cm-s-zamiere .cm-def        {color:#A9D158;}
+.cm-s-zamiere .cm-variable   {color:#34A2D9;}
+.cm-s-zamiere .cm-variable-2 {color:#3399CC;}
+.cm-s-zamiere .cm-property   {color:#DAD6CD;}
+.cm-s-zamiere .cm-operator   {color:#FFCC33;}
+.cm-s-zamiere .cm-comment    {color:#747166;}
+.cm-s-zamiere .cm-string     {color:#A9D158;}
+.cm-s-zamiere .cm-string-2   {color:#A9D158;}
+.cm-s-zamiere .cm-meta       {color:#FFCC33;}
+.cm-s-zamiere .cm-qualifier  {color:#FFCC33;}
+.cm-s-zamiere .cm-bracket    {color:#FFFFFF;}
+.cm-s-zamiere .cm-tag        {color:#FFCC33;}
+.cm-s-zamiere .cm-attribute  {color:#FFCC33;}
+
+.cm-s-zamiere.CodeMirror span.CodeMirror-matchingbracket {
+  color:#00CCFF;
+  text-shadow:0 0 3px #00CCFF;
+}
+
+.cm-s-zamiere .cm-matchhighlight {
+  box-shadow:0 0 5px #00CCFF;
+  background-color: #00CCFF;
+  color: black;
+  border-radius:2px;
+}
+
+.cm-s-zamiere .CodeMirror-searching {
+  color:#000;
+}
+
+.cm-s-zamiere .cm-matchhighlight:not(.CodeMirror-selectedtext) {
+  background-color: rgba(0, 204, 255, 0.4);
+  box-shadow:0 0 5px #00CCFF;
+  color:#ccc;
+  border-radius:2px;
+}
+
+.cm-s-zamiere .CodeMirror-activeline-background {
+  background:hsla(0,0%,0%,0.5)!important;
+  margin:-1px -10px;
+}
+
+.cm-s-zamiere div.CodeMirror-gutter {
+  color:#ccc;
+}
+
+.cm-s-zamiere div.CodeMirror-gutters {
+  background-color:#101010;
+  box-shadow:0 0 10px hsla(0,0%,0%,.8);
+  padding:0 15px 20px 10px;
+  border-right:0;
+}
+
+.cm-s-zamiere span.CodeMirror-widget {
+  margin:-3px 0px;
+  display:inline-block;
+}
+.cm-s-zamiere span.CodeMirror-foldmarker {
+  display:inline-table;
+  background:#ccc;
+  border:0;
+  color:#000;
+  border-radius:3px;
+  font-size:20px;
+  margin:3px;
+  padding:0px 5px;
+  height:15px;
+  line-height:15px;
+  overflow:hidden;
+  white-space:nowrap;
+}

@@ -1,0 +1,55 @@
+.cm-s-monokai-dark-soda.CodeMirror {
+  background-color: #242424;
+  color: #fff;
+}
+
+.CodeMirror div.CodeMirror-cursor {
+  border-left: 1px solid #f8f8f0;
+  z-index: 3;
+}
+
+.CodeMirror-selected {
+    background: #3d3d3d;
+    opacity: .23;
+}
+
+.cm-s-monokai-dark-soda .cm-keyword {color: #ff007f;}
+.cm-s-monokai-dark-soda .cm-atom {color: #c48cff;}
+.cm-s-monokai-dark-soda .cm-number {color: #c48cff;}
+.cm-s-monokai-dark-soda .cm-def {color: #fd963f;}
+.cm-s-monokai-dark-soda .cm-variable {color: #fff;}
+.cm-s-monokai-dark-soda .cm-variable-2 {color: #c48cff;}
+.cm-s-monokai-dark-soda .cm-property {color: #52e3f6;}
+.cm-s-monokai-dark-soda .cm-operator {color: #ff007f;}
+.cm-s-monokai-dark-soda .cm-comment {color: #8c8c8c;}
+.cm-s-monokai-dark-soda .cm-string {color: #ece47e;}
+.cm-s-monokai-dark-soda .cm-string-2 {color: #ece47e;}
+.cm-s-monokai-dark-soda .cm-meta {color: #a7ec21;}
+.cm-s-monokai-dark-soda .cm-qualifier {color: #a7ec21;}
+.cm-s-monokai-dark-soda .cm-bracket {color: #f9faf4;}
+.cm-s-monokai-dark-soda .cm-tag {color: #ff007f;}
+.cm-s-monokai-dark-soda .cm-attribute {color: #a7ec21;}
+
+.cm-s-monokai-dark-soda .cm-matchhighlight:not(.CodeMirror-selectedtext) {
+    background-color: #616161;
+    color: white;
+}
+
+.cm-s-monokai-dark-soda .cm-matchhighlight {
+  background-color: #00CCFF;
+  color: #242424;
+}
+
+.CodeMirror .CodeMirror-matchingbracket {
+    color: #a7ec21;
+    font-weight: bold;
+}
+
+.CodeMirror .CodeMirror-gutters {
+    background-color: #242424;
+}
+
+.CodeMirror .CodeMirror-searching {
+  color: #242424;
+  background-color: #ffe69d !important;
+}

@@ -1,0 +1,113 @@
+#sidebar{
+    background:#f6f6f6;
+    text-shadow:none;
+}
+
+#working-set-header,
+#open-files-container{ /* Working files */
+    background:#f0f0f0;
+}
+
+#project-files-header,
+#working-set-header{/* "working files" header and folder header*/
+    color:#777!important;
+}
+
+#project-dropdown-toggle:hover{ /* Open url when hover */
+    color:#555!important;
+    background:#e8e8e8;
+}
+
+.jstree-brackets li a,
+.jstree-brackets li .extension,
+.jstree-brackets li a.jstree-clicked, /* Files, folder and extensions */
+#open-files-container li a,
+#open-files-container li .extension,
+#open-files-container li a.jstree-clicked{ /* Files, folder and extensions in "working fiels"*/
+    color:#222!important;
+}
+
+.sidebar-selection{ /* Selected file or folder */
+    background:#cccedb;
+}
+
+.sidebar-selection-triangle{ /* ^ the cool arrow */
+    background:transparent;
+}
+
+.sidebar-selection-triangle.triangle-visible::before{
+    border-left:12px solid #cccedb;
+}
+
+#main-toolbar{ /* Toolbar to the right */
+    background:#f6f6f6;
+}
+
+#status-bar{ /* Bottom status bar */
+    background:#f6f6f6;
+    border-top:1px solid #d4d4d4;
+}
+
+#status-indicators,
+#status-info{ /* Status bar text */
+    background:transparent;
+}
+
+.CodeMirror-scroll{
+    background-color: #fefefe;
+    color:black;
+}
+
+.CodeMirror .CodeMirror-lines pre{
+    z-index: 3;
+}
+
+.CodeMirror .CodeMirror-gutters{
+    background-color: #fefefe;
+}
+
+.CodeMirror .CodeMirror-linenumber{
+    color: #0E97A1;
+    background-color: #fefefe;
+}
+
+.CodeMirror .CodeMirror-matchingbracket{
+    color: black;
+    background-color: #dedede;
+}
+
+.CodeMirror .CodeMirror-linebackground{
+    outline: 2px solid #dddddd;
+      z-index: 3;
+}
+
+
+.CodeMirror span.cm-atom { color: blue; }
+.CodeMirror span.cm-qualifier, .CodeMirror span.cm-builtin { color: #800000; }
+
+.CodeMirror span.cm-keyword { color: blue; }
+.CodeMirror span.cm-comment { color: green; }
+.CodeMirror span.cm-string {color: #800000;}
+.CodeMirror span.cm-string-2 {color: #800000;}
+.CodeMirror span.cm-variable { color: black; }
+.CodeMirror span.cm-variable-2 { color: black; }
+.CodeMirror span.cm-tag { color: #800000; }
+.CodeMirror span.cm-attribute { color: red; }
+.CodeMirror span.cm-property { color: black; }
+
+.CodeMirror span.cm-matchhighlight{
+      background-color: yellow;
+}
+
+.CodeMirror .CodeMirror-selectedtext{
+      background-color: #ADD6FF;
+}
+
+.CodeMirror .CodeMirror-selected{
+      background: transparent;
+}
+
+.CodeMirror-focused .CodeMirror-selected{
+      background: transparent;
+}
+
