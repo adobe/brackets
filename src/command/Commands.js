@@ -109,7 +109,7 @@ define(function (require, exports, module) {
     exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
     exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
     exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
-    exports.THEMES                      = "view.themes";                // themes
+    exports.THEMES                      = "view.themes";                // MenuCommands.js              Settings.open()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
