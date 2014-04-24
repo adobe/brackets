@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 $dlg.find(".close").hide();
                 $dlg.find(".dialog-message")
                     .text(Strings.PROCESSING_EXTENSIONS)
-                    .append("<span class='spinner spin'/>");
+                    .append("<span class='spinner inline spin'/>");
                 
                 ExtensionManager.removeMarkedExtensions()
                     .done(function () {
