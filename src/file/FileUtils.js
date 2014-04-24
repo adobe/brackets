@@ -416,6 +416,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Filter for non-binary files.
+     * @param {!File} file File to test for filter
+     * @return {boolean} Returns true if file is non-binary
+     */
+    function nonBinaryFileFilter(file) {
+        return !isBinaryFile(file.fullPath);
+    }
+
+    /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
@@ -479,6 +488,7 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.isBinaryFile                   = isBinaryFile;
+    exports.nonBinaryFileFilter            = nonBinaryFileFilter;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;

@@ -83,11 +83,7 @@ define(function (require, exports, module) {
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        function _filter(file) {
-            return !FileUtils.isBinaryFile(file.fullPath);
-        }
-        
-        ProjectManager.getAllFiles(_filter)
+        ProjectManager.getAllFiles(FileUtils.nonBinaryFileFilter)
             .done(function (files) {
                 JSUtils.findMatchingFunctions(functionName, files)
                     .done(function (functions) {
