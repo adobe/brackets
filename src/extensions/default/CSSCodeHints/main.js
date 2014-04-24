@@ -34,7 +34,6 @@ define(function (require, exports, module) {
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
@@ -255,7 +254,9 @@ define(function (require, exports, module) {
                 if (StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions)) {
                     return pvalue;
                 }
-            }).sort();
+            });
+            
+            var newResult = StringMatch.basicMatchSort(result);
             
             return {
                 hints: result,
@@ -275,7 +276,9 @@ define(function (require, exports, module) {
                 if (StringMatch.stringMatch(pname, needle, stringMatcherOptions)) {
                     return pname;
                 }
-            }).sort();
+            });
+            
+            var newResult = StringMatch.basicMatchSort(result);
             
             return {
                 hints: result,
