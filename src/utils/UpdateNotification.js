@@ -101,17 +101,13 @@ define(function (require, exports, module) {
     /**
      * Construct a new version update url with the given locale.
      *
-     * {String=} locale - optional locale, defaults to 'en' when omitted.
+     * {String=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
      * return {String} the new version update url
      */
     function _versionInfoUrl(locale) {
-        var currentLocale = locale;
+        locale = locale || brackets.getLocale();
 
-        if (!locale) {
-            currentLocale = brackets.getLocale();
-        }
-
-        return brackets.config.update_info_url + currentLocale + ".json";
+        return brackets.config.update_info_url + locale + ".json";
     }
 
     /**
