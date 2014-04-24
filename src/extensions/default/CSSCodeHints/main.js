@@ -229,34 +229,7 @@ define(function (require, exports, module) {
             return hints.map(function (token) {
                 var $hintObj    = $("<span>").addClass("brackets-css-hints");
 
-                switch (token.depth) {
-                case 0:
-                    $hintObj.addClass("priority-high");
-                    break;
-                case 1:
-                    $hintObj.addClass("priority-medium");
-                    break;
-                case 2:
-                    $hintObj.addClass("priority-low");
-                    break;
-                default:
-                    $hintObj.addClass("priority-lowest");
-                    break;
-                }
-
-                if (token.guess) {
-                    $hintObj.addClass("guess-hint");
-                }
-
-                // is the token a keyword?
-                if (token.keyword) {
-                    $hintObj.addClass("keyword-hint");
-                }
-
-                if (token.literal) {
-                    $hintObj.addClass("literal-hint");
-                }
-             
+  
                 // highlight the matched portion of each hint
                 if (token.stringRanges) {
                     token.stringRanges.forEach(function (item) {
