@@ -93,7 +93,17 @@ define(function (require, exports, module) {
             expect(hintList.indexOf("div")).toBe(-1);
             expect(hintList[0]).toBe(expectedFirstHint);
         }
-            
+
+        // compares lists to ensure they are the same
+        function verifyListsAreIdentical(hintList, values) {
+            var i;
+            expect(hintList.length).toBe(values.length);
+            for (i = 0; i < values.length; i++) {
+                expect(hintList[i]).toBe(values[i]);
+            }
+        }
+        
+        
         function selectHint(provider, expectedHint, implicitChar) {
             var hintList = expectHints(provider, implicitChar);
             expect(hintList.indexOf(expectedHint)).not.toBe(-1);
@@ -175,7 +185,11 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 9, ch: 12 });
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"  
-                expect(hintList.length).toBe(1);
+                verifyListsAreIdentical(hintList, ["border-color",
+                                                   "border-left-color",
+                                                   "border-top-color",
+                                                   "border-bottom-color",
+                                                   "border-right-color"]);
             });
             
             it("should list prop-name hints at end of property-value finished by ;", function () {
@@ -383,8 +397,18 @@ define(function (require, exports, module) {
             it("should list prop-name hints inside multi-line styletags with cursor in last line", function () {
                 testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyAttrHints(hintList, "color");  // filtered on "colo"
-                expect(hintList.length).toBe(1);
+                verifyListsAreIdentical(hintList, ["color",
+                                                   "border-color",
+                                                   "background-color",
+                                                   "border-left-color",
+                                                   "border-top-color",
+                                                   "outline-color",
+                                                   "border-bottom-color",
+                                                   "border-right-color",
+                                                   "text-decoration-color",
+                                                   "text-emphasis-color",
+                                                   "column-count",
+                                                   "column-rule-color"]);
             });
             
             it("should NOT list prop-name hints between closed styletag and new opening styletag", function () {
@@ -588,7 +612,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos({ line: 66, ch: 16 });    // after flow-from: m
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyAllValues(hintList, ["main"]);
+                verifyListsAreIdentical(hintList, ["main", "lim"]);
             });
 
         });

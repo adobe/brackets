@@ -33,12 +33,14 @@ define(function (require, exports, module) {
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        StringMatch         = brackets.getModule("utils/StringMatch"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.
-    var lastContext;
+    var lastContext,
+        stringMatcherOptions = { preferPrefixMatches: true };
     
     /**
      * @constructor
@@ -249,10 +251,17 @@ define(function (require, exports, module) {
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {
-                if (pvalue.indexOf(valueNeedle) === 0) {
-                    return pvalue;
+                var result = StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions);
+                if (result) {
+                    return result;
                 }
-            }).sort();
+            });
+            
+            StringMatch.basicMatchSort(result);
+            
+            result = $.map(result, function (entry) {
+                return entry.label;
+            });
             
             return {
                 hints: result,
@@ -268,11 +277,19 @@ define(function (require, exports, module) {
             
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
+   
             result = $.map(properties, function (pvalues, pname) {
-                if (pname.indexOf(needle) === 0) {
-                    return pname;
+                var result = StringMatch.stringMatch(pname, needle, stringMatcherOptions);
+                if (result) {
+                    return result;
                 }
-            }).sort();
+            });
+            
+            StringMatch.basicMatchSort(result);
+            
+            result = $.map(result, function (entry) {
+                return entry.label;
+            });
             
             return {
                 hints: result,
