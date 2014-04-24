@@ -12,7 +12,8 @@ define(function(require) {
     "use strict";
     var Commands       = require("command/Commands"),
         CommandManager = require("command/CommandManager"),
+        Strings        = require("strings"),
         Settings       = require("themes/Settings");
 
-    CommandManager.register("Themes", Commands.THEMES, Settings.open);
+    CommandManager.register(Strings.CMD_THEMES, Commands.THEMES, Settings.open);
 });
