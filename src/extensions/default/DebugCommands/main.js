@@ -167,12 +167,6 @@ define(function (require, exports, module) {
                     
                     return i18n === undefined ? locale : i18n;
                 };
-
-                // add system default
-                languages.push({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null});
-                
-                // add english
-                languages.push({label: getLocalizedLabel("en"),  language: "en"});
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
@@ -191,6 +185,13 @@ define(function (require, exports, module) {
                         }
                     }
                 });
+                // sort the languages via their display name
+                languages.sort(function (lang1, lang2) {
+                    return lang1.label.localeCompare(lang2.label);
+                });
+
+                // add system default and english (those should be on the very top)
+                languages.unshift({label: Strings.LANGUAGE_SYSTEM_DEFAULT, language: null}, {label: getLocalizedLabel("en"),  language: "en"});
                 
                 var template = Mustache.render(LanguageDialogTemplate, {languages: languages, Strings: Strings});
                 Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
