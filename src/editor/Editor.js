@@ -2036,6 +2036,7 @@ define(function (require, exports, module) {
             } else if (prefName === SHOW_LINE_NUMBERS) {
                 $("#editor-holder").toggleClass("show-line-padding", !newValue);
                 this._codeMirror.setOption(cmOptions[SHOW_LINE_NUMBERS], newValue);
+                this.refreshAll();
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
