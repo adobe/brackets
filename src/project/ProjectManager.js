@@ -2004,7 +2004,7 @@ define(function (require, exports, module) {
                 allFiles = [],
                 allFilesVisitor = function (entry) {
                     if (shouldShow(entry)) {
-                        if (entry.isFile && !FileUtils.isBinaryFile(entry.name)) {
+                        if (entry.isFile) {
                             allFiles.push(entry);
                         }
                         return true;
@@ -2030,7 +2030,7 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow() OR FileUtils.isBinaryFile() are excluded.
+     * out by shouldShow().
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
