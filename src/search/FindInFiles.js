@@ -949,7 +949,7 @@ define(function (require, exports, module) {
         
         // Synchronously close Find/Replace bar first, if open (TODO: remove once #6203 fixed)
         // (Any previous open FindInFiles bar instance was already handled by our caller)
-        FindReplace._closeFindBar();
+        FindReplace._closeFindBar(this.modalBar);
         
         this.modalBar    = new ModalBar(dialogHTML, true);
         $(this.modalBar).on("close", this._handleClose.bind(this));
@@ -1006,7 +1006,7 @@ define(function (require, exports, module) {
         
         this.modalBar.getRoot().on("click", ".find-case-sensitive, .find-regexp", function (e) {
             $(e.currentTarget).toggleClass('active');
-            FindReplace._updatePrefsFromSearchBar();
+            FindReplace._updatePrefsFromSearchBar(self.modalBar);
             
             handleQueryChange();  // re-validate regexp if needed
         });
@@ -1023,7 +1023,7 @@ define(function (require, exports, module) {
         }
         
         // Initial UI state (including prepopulated initialString passed into template)
-        FindReplace._updateSearchBarFromPrefs();
+        FindReplace._updateSearchBarFromPrefs(this.modalBar);
         handleQueryChange();
     };
 

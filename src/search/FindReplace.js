@@ -120,13 +120,13 @@ define(function (require, exports, module) {
         }
     }
     
-    function _updateSearchBarFromPrefs() {
-        _getModalBarItem(".find-case-sensitive").toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
-        _getModalBarItem(".find-regexp").toggleClass("active",         PreferencesManager.getViewState("regexp"));
+    function _updateSearchBarFromPrefs(bar) {
+        $(".find-case-sensitive", bar.getRoot()).toggleClass("active", PreferencesManager.getViewState("caseSensitive"));
+        $(".find-regexp", bar.getRoot()).toggleClass("active",         PreferencesManager.getViewState("regexp"));
     }
-    function _updatePrefsFromSearchBar() {
-        PreferencesManager.setViewState("caseSensitive", _getModalBarItem(".find-case-sensitive").is(".active"));
-        PreferencesManager.setViewState("regexp",        _getModalBarItem(".find-regexp").is(".active"));
+    function _updatePrefsFromSearchBar(bar) {
+        PreferencesManager.setViewState("caseSensitive", $(".find-case-sensitive", bar.getRoot()).is(".active"));
+        PreferencesManager.setViewState("regexp",        $(".find-regexp", bar.getRoot()).is(".active"));
     }
     
     function parseQuery(query) {
@@ -444,10 +444,10 @@ define(function (require, exports, module) {
         });
     }
     
-    function _closeFindBar() {
-        if (modalBar) {
+    function _closeFindBar(bar) {
+        if (bar) {
             // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
-            modalBar.close(true, false);
+            bar.close(true, false);
         }
     }
     function _registerFindInFilesCloser(closer) {
@@ -462,7 +462,7 @@ define(function (require, exports, module) {
         // the modal bar to close. Rather than reinstate that hack, we simply explicitly
         // close the old modal bar (which may be a Find, Replace, *or* Find in Files bar
         // before creating a new one. (TODO: remove once #6203 fixed)
-        _closeFindBar();
+        _closeFindBar(modalBar);
         closeFindInFilesBar();
         
         modalBar = new ModalBar(template, true);  // 2nd arg = auto-close on Esc/blur
@@ -640,7 +640,7 @@ define(function (require, exports, module) {
             })
             .on("click", ".find-case-sensitive, .find-regexp", function (e) {
                 $(e.currentTarget).toggleClass('active');
-                _updatePrefsFromSearchBar();
+                _updatePrefsFromSearchBar(modalBar);
                 
                 handleQueryChange(editor, state);
             })
@@ -675,7 +675,7 @@ define(function (require, exports, module) {
         _getModalBarItem(".find-what")
             .val(initialQuery)
             .get(0).select();
-        _updateSearchBarFromPrefs();
+        _updateSearchBarFromPrefs(modalBar);
         
         handleQueryChange(editor, state, true);
     }
