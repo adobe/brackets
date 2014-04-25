@@ -152,10 +152,10 @@ define(function (require, exports, module) {
             return null;
         }
 
-        var caseSensitive = $("#find-case-sensitive").is(".active");
+        var caseSensitive = $(".find-case-sensitive").is(".active");
         
         // Is it a (non-blank) regex?
-        if ($("#find-regexp").is(".active")) {
+        if ($(".find-regexp").is(".active")) {
             try {
                 return new RegExp(query, caseSensitive ? "g" : "gi");
             } catch (e) {
@@ -949,7 +949,7 @@ define(function (require, exports, module) {
         
         // Synchronously close Find/Replace bar first, if open (TODO: remove once #6203 fixed)
         // (Any previous open FindInFiles bar instance was already handled by our caller)
-        FindReplace._closeFindBar();
+        FindReplace._closeFindBar(this.modalBar);
         
         this.modalBar    = new ModalBar(dialogHTML, true);
         $(this.modalBar).on("close", this._handleClose.bind(this));
@@ -961,7 +961,7 @@ define(function (require, exports, module) {
             return self.getDialogTextField().attr("disabled") || $(".modal.instance .exclusions-editor").length > 0;
         };
         
-        var $searchField = $("input#find-what"),
+        var $searchField = $("input.find-what"),
             candidateFilesPromise = getCandidateFiles(),  // used for eventual search, and in exclusions editor UI
             filterPicker;
         
@@ -1004,9 +1004,9 @@ define(function (require, exports, module) {
             .bind("input", handleQueryChange)
             .focus();
         
-        this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
+        this.modalBar.getRoot().on("click", ".find-case-sensitive, .find-regexp", function (e) {
             $(e.currentTarget).toggleClass('active');
-            FindReplace._updatePrefsFromSearchBar();
+            FindReplace._updatePrefsFromSearchBar(self.modalBar);
             
             handleQueryChange();  // re-validate regexp if needed
         });
@@ -1023,7 +1023,7 @@ define(function (require, exports, module) {
         }
         
         // Initial UI state (including prepopulated initialString passed into template)
-        FindReplace._updateSearchBarFromPrefs();
+        FindReplace._updateSearchBarFromPrefs(this.modalBar);
         handleQueryChange();
     };
 
