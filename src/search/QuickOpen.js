@@ -861,7 +861,7 @@ define(function (require, exports, module) {
 
         // Return files that are non-binary, or binary files that have a custom viewer
         function _filter(file) {
-            return !FileUtils.isBinaryFile(file.fullPath) || EditorManager.getCustomViewerForPath(file.fullPath);
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
         }
         
         // Start fetching the file list, which will be needed the first time the user enters

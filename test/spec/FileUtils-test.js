@@ -165,38 +165,5 @@ define(function (require, exports, module) {
                 expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
             });
         });
-
-        describe("isBinaryFile", function () {
-
-            it("should recognize known binary file extensions", function () {
-                // image
-                expect(FileUtils.isBinaryFile("test.gif")).toBe(true);
-                expect(FileUtils.isBinaryFile("test.png")).toBe(true);
-
-                // audio
-                expect(FileUtils.isBinaryFile("test.mp3")).toBe(true);
-                expect(FileUtils.isBinaryFile("test.wav")).toBe(true);
-
-                // other
-                expect(FileUtils.isBinaryFile("test.exe")).toBe(true);
-                expect(FileUtils.isBinaryFile("test.dll")).toBe(true);
-                expect(FileUtils.isBinaryFile("test.zip")).toBe(true);
-            });
-
-            it("should recognize known non-binary file extensions", function () {
-                expect(FileUtils.isBinaryFile("test.css")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.html")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.txt")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.js")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.json")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.xml")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.css.erb")).toBe(false);
-                expect(FileUtils.isBinaryFile("test.php.css")).toBe(false);
-            });
-
-            it("should recognize unknown file extensions as non-binary", function () {
-                expect(FileUtils.isBinaryFile("test.abcxyz")).toBe(false);
-            });
-        });
     });
 });

@@ -746,14 +746,14 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @deprecated Use FileUtils.isBinaryFile()
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
      * @param {string} fileName
      * @return {boolean}
      */
     function isBinaryFile(fileName) {
-        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use FileUtils.isBinaryFile() instead.");
-        return FileUtils.isBinaryFile(fileName);
+        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
+        return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
     
     /**

@@ -736,7 +736,7 @@ define(function (require, exports, module) {
      */
     function getCandidateFiles() {
         function filter(file) {
-            return !FileUtils.isBinaryFile(file.fullPath) && _subtreeFilter(file, currentScope);
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() && _subtreeFilter(file, currentScope);
         }
         
         return ProjectManager.getAllFiles(filter, true);
@@ -768,7 +768,8 @@ define(function (require, exports, module) {
                 }
             }
         }
-        if (FileUtils.isBinaryFile(file.fullPath)) {
+
+        if (LanguageManager.getLanguageForPath(file.fullPath).isBinary()) {
             return false;
         }
         
@@ -1140,7 +1141,7 @@ define(function (require, exports, module) {
             var visitor = function (child) {
                 // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile && !FileUtils.isBinaryFile(child.name)) {
+                    if (child.isFile && !LanguageManager.getLanguageForPath(child.name).isBinary()) {
                         // Re-check the filtering that the initial search applied
                         if (_inSearchScope(child)) {
                             addedFiles.push(child);

@@ -395,36 +395,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Use file extension to determine if file is a binary file.
-     * @param {string} fileName  File name with extension; may include path
-     * @return {boolean} Returns true if file is binary
-     */
-    function isBinaryFile(fileName) {
-        var fileExt = getSmartFileExtension(fileName),
-            language;
-
-        // Check known file extensions
-        if (fileExt) {
-            language = LanguageManager.getLanguageForExtension(fileExt);
-            if (language) {
-                return language.isBinary();
-            }
-        }
-
-        // This is not a known file extension, so assume it's not binary
-        return false;
-    }
-
-    /**
-     * Filter for non-binary files.
-     * @param {!File} file File to test for filter
-     * @return {boolean} Returns true if file is non-binary
-     */
-    function nonBinaryFileFilter(file) {
-        return !isBinaryFile(file.fullPath);
-    }
-
-    /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
@@ -487,8 +457,6 @@ define(function (require, exports, module) {
     exports.stripTrailingSlash             = stripTrailingSlash;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
-    exports.isBinaryFile                   = isBinaryFile;
-    exports.nonBinaryFileFilter            = nonBinaryFileFilter;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;

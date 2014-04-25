@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
+        LanguageManager         = brackets.getModule("language/LanguageManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         Strings                 = brackets.getModule("strings");
@@ -83,7 +84,11 @@ define(function (require, exports, module) {
         
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
-        ProjectManager.getAllFiles(FileUtils.nonBinaryFileFilter)
+        function _nonBinaryFileFilter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary();
+        }
+        
+        ProjectManager.getAllFiles(_nonBinaryFileFilter)
             .done(function (files) {
                 JSUtils.findMatchingFunctions(functionName, files)
                     .done(function (functions) {
