@@ -395,15 +395,15 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Determine if file is a binary file.
-     * @param {string} fullPath Path to file
+     * Use file extension to determine if file is a binary file.
+     * @param {string} fileName  File name with extension; may include path
      * @return {boolean} Returns true if file is binary
      */
-    function isBinaryFile(fullPath) {
-        var fileExt = getSmartFileExtension(fullPath),
+    function isBinaryFile(fileName) {
+        var fileExt = getSmartFileExtension(fileName),
             language;
 
-        // First check known file extensions
+        // Check known file extensions
         if (fileExt) {
             language = LanguageManager.getLanguageForExtension(fileExt);
             if (language) {
