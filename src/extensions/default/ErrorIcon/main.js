@@ -30,9 +30,10 @@ define(function (require, exports, module) {
     var CommandManager  = brackets.getModule("command/CommandManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils");
 
-    var $span         = null,
-        errorCount    = 0,
-        _consoleError = window.console.error;
+    var $span          = null,
+        errorCount     = 0,
+        _windowOnError = window.onerror,
+        _consoleError  = window.console.error;
 
     ExtensionUtils.loadStyleSheet(module, "style.css");
 
@@ -60,6 +61,9 @@ define(function (require, exports, module) {
 
     window.onerror = function (errorMsg, url, lineNumber) {
         incErrorCount();
+        if (_windowOnError) {
+            return _windowOnError(errorMsg, url, lineNumber);
+        }
         return false;
     };
 
