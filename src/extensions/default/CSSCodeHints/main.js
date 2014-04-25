@@ -225,7 +225,7 @@ define(function (require, exports, module) {
         function formatHints(hints, query) {
             StringMatch.basicMatchSort(result);
             return hints.map(function (token) {
-                var $hintObj    = $("<span>").addClass("brackets-css-hints");
+                var $hintObj = $("<span>").addClass("brackets-css-hints");
 
                 // highlight the matched portion of each hint
                 if (token.stringRanges) {
