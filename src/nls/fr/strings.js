@@ -271,7 +271,7 @@ define({
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
+	"CMD_EXTENSION_MANAGER": "Gestionnaire d'extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
@@ -513,7 +513,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
-	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Décaler</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Maj</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
 	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
 	"INLINE_TIMING_EDITOR_INVALID": "L’ancienne valeur <code>{0}</code> n’est pas valide et a donc été remplacée par <code>{1}</code> pour la fonction affichée. Le document sera mis à jour à la première modification.",
     
