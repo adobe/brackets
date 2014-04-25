@@ -320,6 +320,119 @@ define(function (require, exports, module) {
                     expect(cb.error).toBe(brackets.fs.ERR_CANT_READ);
                 });
             });
+            
+            it("should return an error trying to read a binary file", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/tree.jpg", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                });
+            });
+
+            it("should be able to read a UTF-8 file > 3k", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_utf8.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                });
+            });
+
+            it("should be not be able to read a UTF-8 file with malformed continuation bytes", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_bad_utf8.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                });
+            });
+            
+            it("should be able to read a UTF-8 file with a BOM", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_utf8_wBOM.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.content[0]).toBe("<");  // should not have BOM
+                });
+            });
+            
+            it("should return an error trying to read a UTF16 file", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_utf16.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                });
+            });
+            it("should return an error trying to read a UTF16 file w/o BOM ", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                });
+            });
+
+            it("should return an error trying to read a UTF32 file", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_utf32.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                });
+            });
+            it("should return an error trying to read a UTF32 file w/o BOM ", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/ru_utf32_noBOM.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                });
+            });
+            
+            
         }); // describe("readFile")
     
         describe("writeFile", function () {
