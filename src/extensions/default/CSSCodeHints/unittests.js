@@ -76,12 +76,18 @@ define(function (require, exports, module) {
             testDocument = null;
         }
 
+        function extractHintList(hints) {
+            return $.map(hints, function ($node) {
+                return $node.text();
+            });
+        }
+        
         // Ask provider for hints at current cursor position; expect it to return some
         function expectHints(provider, implicitChar) {
             expect(provider.hasHints(testEditor, implicitChar)).toBe(true);
             var hintsObj = provider.getHints();
             expect(hintsObj).toBeTruthy();
-            return hintsObj.hints; // return just the array of hints
+            return extractHintList(hintsObj.hints); // return just the array of hints
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
