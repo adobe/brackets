@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var CommandManager  = brackets.getModule("command/CommandManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils");
 
-    var $icon         = null,
+    var $span         = null,
         errorCount    = 0,
         _consoleError = window.console.error;
 
@@ -41,21 +41,31 @@ define(function (require, exports, module) {
     }
 
     function showIcon() {
-        if ($icon) {
-            $icon.text(errorCount);
+        if ($span) {
+            $span.text(errorCount);
             return;
         }
-        $icon = $("<a>")
+        $span = $("<span>").text(errorCount);
+        $("<a>")
             .addClass("consoleErrorIcon")
-            .text(errorCount)
+            .append($span)
             .on("click", showDeveloperTools)
             .appendTo("#main-toolbar .buttons");
     }
 
-    window.console.error = function () {
+    function incErrorCount() {
         errorCount++;
         showIcon();
-        return _consoleError.apply(console, arguments);
+    }
+
+    window.onerror = function (errorMsg, url, lineNumber) {
+        incErrorCount();
+        return false;
+    };
+
+    window.console.error = function () {
+        incErrorCount();
+        return _consoleError.apply(window.console, arguments);
     };
 
 });
