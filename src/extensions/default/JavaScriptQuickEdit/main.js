@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         EditorManager           = brackets.getModule("editor/EditorManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
-        FileUtils               = brackets.getModule("file/FileUtils"),
         JSUtils                 = brackets.getModule("language/JSUtils"),
         LanguageManager         = brackets.getModule("language/LanguageManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils"),

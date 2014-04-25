@@ -244,7 +244,7 @@
     "binary": {
         "name": "Other Binary",
         "fileExtensions": [
-            "a", "ai", "app", "avi", "bin", "cab", "com", "db", "dll", "dmg",
+            "a", "ai", "avi", "bin", "cab", "com", "db", "dll", "dmg",
             "doc", "docx", "dot", "dotx", "dsym", "dylib", "egg", "epub", "eot",
             "exe", "flv", "gz", "gzip", "htmz", "htmlz", "ipch", "iso", "jar",
             "jsz", "lib", "mpeg", "mpg", "mp4", "msi", "node", "o", "obj", "odc",

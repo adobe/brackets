@@ -731,12 +731,21 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Filters out files that are known binary types.
+     * @param {string} fullPath
+     * @return {boolean} True if the file's contents can be read as text
+     */
+    function _isReadableText(fullPath) {
+        return !LanguageManager.getLanguageForPath(fullPath).isBinary();
+    }
+    
+    /**
      * Finds all candidate files to search in currentScope's subtree that are not binary content. Does NOT apply
      * currentFilter yet.
      */
     function getCandidateFiles() {
         function filter(file) {
-            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() && _subtreeFilter(file, currentScope);
+            return _subtreeFilter(file, currentScope) && _isReadableText(file.fullPath);
         }
         
         return ProjectManager.getAllFiles(filter, true);
@@ -769,7 +778,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if (LanguageManager.getLanguageForPath(file.fullPath).isBinary()) {
+        if (!_isReadableText(file.fullPath)) {
             return false;
         }
         
@@ -1141,7 +1150,7 @@ define(function (require, exports, module) {
             var visitor = function (child) {
                 // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile && !LanguageManager.getLanguageForPath(child.name).isBinary()) {
+                    if (child.isFile && _isReadableText(child.name)) {
                         // Re-check the filtering that the initial search applied
                         if (_inSearchScope(child)) {
                             addedFiles.push(child);
