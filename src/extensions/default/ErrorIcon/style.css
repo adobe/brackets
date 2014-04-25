@@ -1,0 +1,9 @@
+#main-toolbar .buttons .consoleErrorIcon {
+    color: #454545;
+    background-color: #f74687;
+    height: 15px;
+    line-height: 15px;
+}
+#main-toolbar .buttons .consoleErrorIcon:hover {
+    color: #f74687;
+}
