@@ -27,9 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = brackets.getModule("thirdparty/lodash");
-
-    var AppInit             = brackets.getModule("utils/AppInit"),
+    var _                   = brackets.getModule("thirdparty/lodash"),
+        AppInit             = brackets.getModule("utils/AppInit"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
@@ -176,7 +175,42 @@ define(function (require, exports, module) {
         
         return true;
     };
-       
+
+    /*
+     * Returns a sorted and formatted list of hints with the query substring
+     * highlighted.
+     * 
+     * @param {Array.<Object>} hints - the list of hints to format
+     * @param {string} query - querystring used for highlighting matched
+     *      poritions of each hint
+     * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
+     */
+    function formatHints(hints, query) {
+        StringMatch.basicMatchSort(hints);
+        return hints.map(function (token) {
+            var $hintObj = $("<span>").addClass("brackets-css-hints");
+
+            // highlight the matched portion of each hint
+            if (token.stringRanges) {
+                token.stringRanges.forEach(function (item) {
+                    if (item.matched) {
+                        $hintObj.append($("<span>")
+                            .text(item.text)
+                            .addClass("matched-hint"));
+                    } else {
+                        $hintObj.append(item.text);
+                    }
+                });
+            } else {
+                $hintObj.text(token.value);
+            }
+
+            $hintObj.data("token", token);
+
+            return $hintObj;
+        });
+    }
+    
     /**
      * Returns a list of availble CSS propertyname or -value hints if possible for the current
      * editor context. 
@@ -213,41 +247,6 @@ define(function (require, exports, module) {
             result,
             selectInitial = false;
             
-        /*
-         * Returns a sorted and formatted list of hints with the query substring
-         * highlighted.
-         * 
-         * @param {Array.<Object>} hints - the list of hints to format
-         * @param {string} query - querystring used for highlighting matched
-         *      poritions of each hint
-         * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
-         */
-        function formatHints(hints, query) {
-            StringMatch.basicMatchSort(result);
-            return hints.map(function (token) {
-                var $hintObj = $("<span>").addClass("brackets-css-hints");
-
-                // highlight the matched portion of each hint
-                if (token.stringRanges) {
-                    token.stringRanges.forEach(function (item) {
-                        if (item.matched) {
-                            $hintObj.append($("<span>")
-                                .append(_.escape(item.text))
-                                .addClass("matched-hint"));
-                        } else {
-                            $hintObj.append(_.escape(item.text));
-                        }
-                    });
-                } else {
-                    $hintObj.text(token.value);
-                }
-
-                $hintObj.data("token", token);
-                
-                return $hintObj;
-            });
-        }
-        
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
         
