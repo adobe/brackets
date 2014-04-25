@@ -107,6 +107,13 @@ define(function (require, exports, module) {
     function _versionInfoUrl(locale) {
         locale = locale || brackets.getLocale();
 
+        // cut off any country in the locale
+        // e.g.: en-US will be reduced to en
+        var dashPos = locale.indexOf('-');
+        if (dashPos > -1) {
+            locale = locale.substring(0, dashPos);
+        }
+
         return brackets.config.update_info_url + locale + ".json";
     }
 
