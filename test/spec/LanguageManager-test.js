@@ -674,15 +674,15 @@ define(function (require, exports, module) {
         
         describe("Preferences", function () {
             it("should be able to add extension mappings via a preference", function () {
-                var language = LanguageManager.getLanguageForExtension("foo");
+                var language = LanguageManager.getLanguageForExtension("foobar");
                 expect(language).toBeUndefined();
                 PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
-                    foo: "javascript"
+                    foobar: "javascript"
                 });
-                language = LanguageManager.getLanguageForExtension("foo");
+                language = LanguageManager.getLanguageForExtension("foobar");
                 expect(language.getId()).toBe("javascript");
                 PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, { });
-                language = LanguageManager.getLanguageForExtension("foo");
+                language = LanguageManager.getLanguageForExtension("foobar");
                 expect(language).toBeUndefined();
             });
             
