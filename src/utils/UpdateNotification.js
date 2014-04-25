@@ -101,18 +101,15 @@ define(function (require, exports, module) {
     /**
      * Construct a new version update url with the given locale.
      *
-     * {String=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
-     * return {String} the new version update url
+     * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * return {string} the new version update url
      */
     function _versionInfoUrl(locale) {
         locale = locale || brackets.getLocale();
 
         // cut off any country in the locale
         // e.g.: en-US will be reduced to en
-        var dashPos = locale.indexOf('-');
-        if (dashPos > -1) {
-            locale = locale.substring(0, dashPos);
-        }
+        locale = locale.substring(0, 2);
 
         return brackets.config.update_info_url + locale + ".json";
     }
