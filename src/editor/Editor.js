@@ -2033,6 +2033,9 @@ define(function (require, exports, module) {
             } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
                 // Do not apply this option to inline editors
                 return;
+            } else if (prefName === SHOW_LINE_NUMBERS) {
+                $("#editor-holder").toggleClass("show-line-padding", !newValue);
+                this._codeMirror.setOption(cmOptions[SHOW_LINE_NUMBERS], newValue);
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
