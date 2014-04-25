@@ -36,10 +36,9 @@ module.exports = function (grunt) {
      */
     function checkForTestFailures(pathToResult) {
         var resultXml = grunt.file.read(pathToResult),
-            xmlDocument = new XmlDocument(resultXml);
-
-        var testSuites = xmlDocument.childrenNamed("testsuite");
-        var failures = 0;
+            xmlDocument = new XmlDocument(resultXml),
+            testSuites = xmlDocument.childrenNamed("testsuite"),
+            failures = 0;
 
         testSuites.forEach(function (testSuite) {
             failures += Number(testSuite.attr.failures);
