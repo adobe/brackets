@@ -731,14 +731,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Filters out files that are known binary types (currently just image/audio; ideally we'd filter out ALL binary files).
-     * On Mac these would silently fail to be read, but on Windows we'd read the garbled content & try to search it.
-     * @param {File} file
+     * Filters out files that are known binary types.
+     * @param {string} fullPath
      * @return {boolean} True if the file's contents can be read as text
      */
-    function _isReadableText(file) {
-        var language = LanguageManager.getLanguageForPath(file.fullPath);
-        return !language.isBinary();
+    function _isReadableText(fullPath) {
+        return !LanguageManager.getLanguageForPath(fullPath).isBinary();
     }
     
     /**
@@ -747,7 +745,7 @@ define(function (require, exports, module) {
      */
     function getCandidateFiles() {
         function filter(file) {
-            return _subtreeFilter(file, currentScope) && _isReadableText(file);
+            return _subtreeFilter(file, currentScope) && _isReadableText(file.fullPath);
         }
         
         return ProjectManager.getAllFiles(filter, true);
@@ -779,7 +777,8 @@ define(function (require, exports, module) {
                 }
             }
         }
-        if (!_isReadableText(file)) {
+
+        if (!_isReadableText(file.fullPath)) {
             return false;
         }
         
@@ -1151,7 +1150,7 @@ define(function (require, exports, module) {
             var visitor = function (child) {
                 // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile && !ProjectManager.isBinaryFile(child.name)) {
+                    if (child.isFile && _isReadableText(child.name)) {
                         // Re-check the filtering that the initial search applied
                         if (_inSearchScope(child)) {
                             addedFiles.push(child);
