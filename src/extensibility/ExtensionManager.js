@@ -46,7 +46,8 @@ define(function (require, exports, module) {
         ExtensionLoader  = require("utils/ExtensionLoader"),
         FileSystem       = require("filesystem/FileSystem"),
         Strings          = require("strings"),
-        StringUtils      = require("utils/StringUtils");
+        StringUtils      = require("utils/StringUtils"),
+        ThemeManager     = require("themes/ThemeManager");
     
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
@@ -132,6 +133,21 @@ define(function (require, exports, module) {
 
         $(exports).triggerHandler("registryUpdate", [id]);
     }
+    
+    
+    /**
+     * @private
+     * Verifies if an extension is a theme based on the presence of the field "theme"
+     * in the package.json.  If it is a theme, then the theme file is just loaded by the
+     * ThemeManager
+     */
+    function loadTheme(id) {
+        var extension = extensions[id];
+        if ( extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme ) {
+            ThemeManager.loadFile(extension.installInfo.path + "/" + extension.installInfo.metadata.theme);
+        }    
+    }
+    
 
     /**
      * @private
@@ -245,6 +261,7 @@ define(function (require, exports, module) {
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
             synchronizeEntry(id);
+            loadTheme(id);
             $(exports).triggerHandler("statusChange", [id]);
         }
         

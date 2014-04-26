@@ -74,13 +74,6 @@ define(function (require, exports, module) {
 
 
     /**
-    * Loads a theme from a package
-    */
-    ThemeManager.loadPackage = function() {
-    };
-
-
-    /**
     * Loads a theme from a file. fileName is the full path to the file
     */
     ThemeManager.loadFile = function(fileName) {
@@ -91,6 +84,13 @@ define(function (require, exports, module) {
             if ( exists ) {
                 var theme = new Theme(file);
                 deferred.resolve((ThemeManager.themes[theme.name] = theme));
+
+                // For themes that are loaded after ThemeManager has been loaded,
+                // we should check if it the theme in the selected array so that
+                // we can determine if we need to trigger a refresh
+                if ( ThemeManager.selected.indexOf(theme.name) !== -1 ) {
+                    ThemeManager.refresh(true);
+                }
             }
             else if ( err ) {
                 deferred.reject(err);
