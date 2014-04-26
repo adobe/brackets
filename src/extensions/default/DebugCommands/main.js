@@ -59,7 +59,10 @@ define(function (require, exports, module) {
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
-        DEBUG_RESTART_NODE              = "debug.restartNode";
+        DEBUG_RESTART_NODE              = "debug.restartNode",
+        DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar";
+
+    PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false);
     
     function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
@@ -230,6 +233,18 @@ define(function (require, exports, module) {
         });
     }
     
+    function toggleErrorsInStatusBar() {
+        // get the current value
+        var val = PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+
+        // toggle the value
+        val = !val;
+
+        // update menu
+        CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
+        PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+    }
+
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -243,8 +258,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
     
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,       DEBUG_SHOW_PERF_DATA,         handleShowPerfData);
-    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,      DEBUG_SWITCH_LANGUAGE,        handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,            DEBUG_SHOW_PERF_DATA,            handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
+    CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorsInStatusBar);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
@@ -270,6 +286,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_ENABLE_NODE_DEBUGGER);
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
+    menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
     menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
     
     // exposed for convenience, but not official API

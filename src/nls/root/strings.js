@@ -503,6 +503,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
