@@ -92,8 +92,8 @@ define(function (require, exports, module) {
             CommandManager.get(commandName).setChecked(PreferencesManager.get(prefName));
         });
         
-        if (!PreferencesManager.get(SHOW_LINE_NUMBERS)) {
-            $("#editor-holder").toggleClass("show-line-padding", true);
+        if (!Editor.getShowLineNumbers()) {
+            Editor._toggleLinePadding(true);
         }
     }
     
