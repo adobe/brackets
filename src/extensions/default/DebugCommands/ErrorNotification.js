@@ -60,7 +60,7 @@ define(function (require, exports, module) {
         $span = $("<span>").text(errorCount);
         $("<div>")
             .addClass("error")
-            .text(Strings.ERRORS + ":")
+            .text(Strings.ERRORS + ": ")
             .append($span)
             .on("click", showDeveloperTools)
             .prependTo("#status-bar .indicators");
