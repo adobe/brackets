@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CommandManager  = brackets.getModule("command/CommandManager"),
-        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils");
+    var ExtensionUtils = brackets.getModule("utils/ExtensionUtils");
 
     var $span          = null,
         errorCount     = 0,
@@ -38,7 +37,11 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "style.css");
 
     function showDeveloperTools() {
-        CommandManager.execute("debug.showDeveloperTools");
+        try {
+            brackets.app.showDeveloperTools();
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     function showIcon() {
@@ -59,11 +62,13 @@ define(function (require, exports, module) {
         showIcon();
     }
 
+    // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers.onerror
     window.onerror = function (errorMsg, url, lineNumber) {
         incErrorCount();
         if (_windowOnError) {
             return _windowOnError(errorMsg, url, lineNumber);
         }
+        // return false means that we didn't handle this error and it should run the default handler
         return false;
     };
 
