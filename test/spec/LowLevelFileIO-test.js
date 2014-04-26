@@ -391,19 +391,19 @@ define(function (require, exports, module) {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
                 });
             });
-            it("should return an error trying to read a UTF16 file w/o BOM ", function () {
-                var cb = readFileSpy();
-                
-                runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-                });
-            });
+//            it("should return an error trying to read a UTF16 file w/o BOM ", function () {
+//                var cb = readFileSpy();
+//                
+//                runs(function () {
+//                    brackets.fs.readFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
+//                });
+//            
+//                waitsFor(function () { return cb.wasCalled; }, 1000);
+//            
+//                runs(function () {
+//                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+//                });
+//            });
 
             it("should return an error trying to read a UTF32 file", function () {
                 var cb = readFileSpy();
@@ -418,19 +418,19 @@ define(function (require, exports, module) {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
                 });
             });
-            it("should return an error trying to read a UTF32 file w/o BOM ", function () {
-                var cb = readFileSpy();
-                
-                runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_utf32_noBOM.html", UTF8, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-                });
-            });
+//            it("should return an error trying to read a UTF32 file w/o BOM ", function () {
+//                var cb = readFileSpy();
+//                
+//                runs(function () {
+//                    brackets.fs.readFile(baseDir + "/ru_utf32_noBOM.html", UTF8, cb);
+//                });
+//            
+//                waitsFor(function () { return cb.wasCalled; }, 1000);
+//            
+//                runs(function () {
+//                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+//                });
+//            });
             
             
         }); // describe("readFile")
