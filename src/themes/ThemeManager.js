@@ -193,31 +193,21 @@ define(function (require, exports, module) {
 
 
     function init() {
-        if ( init._ready ) {
-            return init._ready;
-        }
-
-        init._ready = $.when(Settings.ready, CodeMirrorAddons.ready).done(function() {
+        return $.when(Settings.ready, CodeMirrorAddons.ready).done(function() {
             // Very first thing is the font settings need to be setup
             fontSettings(Settings);
             fontCommandsManager.init();
 
-            ThemeManager.selected = Settings.getValue("theme");
             ThemeManager.docMode = "";
             ThemeManager.themes = {};
+            ThemeManager.selected = Settings.getValue("theme");
+            ThemeManager.refresh(true);
+            themeSettings.themes(ThemeManager.themes);
 
-            // Load files in the configured directories
-            $.when.apply((void 0), _.map(Settings.getValue("paths"), function(path) {
-                return ThemeManager.loadDirectory(path.path);
-            }))
-            .done(function() {
-                ThemeManager.refresh(true);
-                themeSettings.themes(ThemeManager.themes);
-
-                $(EditorManager).on("activeEditorChange", function() {
+            $(EditorManager)
+                .on("activeEditorChange", function() {
                     ThemeManager.refresh();
                 });
-            });
 
             $(Settings)
                 .on("change:theme", function(evt, theme) {
@@ -237,8 +227,6 @@ define(function (require, exports, module) {
                 }
             });
         });
-
-        return init._ready;
     }
 
 
