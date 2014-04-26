@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         Dialogs                = brackets.getModule("widgets/Dialogs"),
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
+        ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
         LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
@@ -233,12 +234,16 @@ define(function (require, exports, module) {
         });
     }
     
-    function toggleErrorsInStatusBar() {
-        // get the current value
-        var val = PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+    function toggleErrorNotification(bool) {
+        var val;
 
-        // toggle the value
-        val = !val;
+        if (typeof bool === "undefined") {
+            val = !PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+        } else {
+            val = !!bool;
+        }
+
+        ErrorNotification.toggle(val);
 
         // update menu
         CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
@@ -260,7 +265,7 @@ define(function (require, exports, module) {
     
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,            DEBUG_SHOW_PERF_DATA,            handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
-    CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorsInStatusBar);
+    CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
@@ -268,6 +273,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
     enableRunTestsMenuItem();
+    toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
     
     /*
      * Debug menu
