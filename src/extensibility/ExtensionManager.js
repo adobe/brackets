@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         Package          = require("extensibility/Package"),
         Async            = require("utils/Async"),
         ExtensionLoader  = require("utils/ExtensionLoader"),
+        ExtensionUtils   = require("utils/ExtensionUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         Strings          = require("strings"),
         StringUtils      = require("utils/StringUtils"),
@@ -201,30 +202,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /**
-     * @private
-     * Loads the package.json file in the given extension folder.
-     * @param {string} folder The extension folder.
-     * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
-     *     or rejected if there is no package.json or the contents are not valid JSON.
-     */
-    function _loadPackageJson(folder) {
-        var file = FileSystem.getFileForPath(folder + "/package.json"),
-            result = new $.Deferred();
-        FileUtils.readAsText(file)
-            .done(function (text) {
-                try {
-                    var json = JSON.parse(text);
-                    result.resolve(json);
-                } catch (e) {
-                    result.reject();
-                }
-            })
-            .fail(function () {
-                result.reject();
-            });
-        return result.promise();
-    }
     
     /**
      * @private
@@ -265,7 +242,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("statusChange", [id]);
         }
         
-        _loadPackageJson(path)
+        ExtensionUtils.loadPackageJson(path)
             .done(function (metadata) {
                 setData(metadata.name, metadata);
             })
