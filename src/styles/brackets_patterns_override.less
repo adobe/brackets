@@ -988,13 +988,14 @@ a[href^="http"] {
             a {
                 text-decoration: none;
             }
-        }
-        .about-contributors img {
-            opacity: 0;
-            -webkit-transition: opacity 1s;
-            -moz-transition: opacity 1s;
-            -o-transition: opacity 1s;
-            transition: opacity 1s;
+            img {
+                opacity: 0;
+                -webkit-transition: opacity 1s;
+                transition: opacity 1s;
+                // fixed height and width: avoid increasing scrollbar while loading
+                height: 30px;
+                width: 30px;
+            }
         }
     }
 

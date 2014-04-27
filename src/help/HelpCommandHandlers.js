@@ -78,18 +78,57 @@ define(function (require, exports, module) {
         // Get containers
         var $dlg = $(".about-dialog.instance"),
             $contributors = $dlg.find(".about-contributors"),
-            $spinner = $dlg.find(".spinner");
+            $spinner = $dlg.find(".spinner"),
+            contributorsUrl = brackets.config.contributors_url,
+            page,
+            allContributors = [],
+            data;
+
+        if (contributorsUrl.indexOf("api.github.com") !== -1) {
+            page = 1;
+        }
         
         $spinner.addClass("spin");
         
-        // Get all the project contributors and add them to the dialog
-        $.getJSON(brackets.config.contributors_url).done(function (contributorsInfo) {
-            
+        function loadContributorsPage(url, page) {
+            var contributors;
+
+            if (page) {
+                url += "?per_page=100&page=" + page;
+            }
+            $.ajax({
+                url: url,
+                async: false,
+                dataType: "json",
+                cache: false,
+                complete: function (data) {
+                    contributors = (data && data.responseJSON) || [];
+                }
+            });
+            return contributors;
+        }
+
+        // Get all the project contributors
+        do {
+            data = loadContributorsPage(contributorsUrl, page);
+            allContributors = allContributors.concat(data);
+            if (page) {
+                page++;
+            }
+        } while (page && data.length === 100);
+
+        if (allContributors.length) {
             // Populate the contributors data
-            var totalContributors = contributorsInfo.length;
-            var contributorsCount = 0;
+            var totalContributors = allContributors.length,
+                contributorsCount = 0;
             
-            $contributors.html(Mustache.render(ContributorsTemplate, contributorsInfo));
+            allContributors.forEach(function (contributor) {
+                if (contributor.avatar_url && contributor.avatar_url.indexOf("avatars.githubusercontent.com") !== -1) {
+                    contributor.avatar_url += "size=30";
+                }
+            });
+
+            $contributors.html(Mustache.render(ContributorsTemplate, allContributors));
             
             // This is used to create an opacity transition when each image is loaded
             $contributors.find("img").one("load", function () {
@@ -105,10 +144,10 @@ define(function (require, exports, module) {
                     $(this).trigger("load");
                 }
             });
-        }).fail(function () {
+        } else {
             $spinner.removeClass("spin");
             $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
-        });
+        }
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead
