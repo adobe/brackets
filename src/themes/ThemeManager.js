@@ -17,7 +17,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
         ExtensionUtils      = require("utils/ExtensionUtils"),
-        Settings            = require("themes/Settings"),
+        Settings            = require("themes/SettingsManager"),
         Theme               = require("themes/Theme"),
         themeSettings       = require("themes/views/settings"),
         themeFiles          = require("themes/ThemeFiles"),

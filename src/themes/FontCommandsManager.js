@@ -11,7 +11,7 @@
 define(function (require) {
     "use strict";
 
-    var Settings            = require("themes/Settings"),
+    var Settings            = require("themes/SettingsManager"),
         DefaultSettings     = require("themes/DefaultSettings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
         PreferencesManager  = require("preferences/PreferencesManager");

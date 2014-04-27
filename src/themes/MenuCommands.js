@@ -13,7 +13,7 @@ define(function(require) {
     var Commands       = require("command/Commands"),
         CommandManager = require("command/CommandManager"),
         Strings        = require("strings"),
-        Settings       = require("themes/Settings");
+        Settings       = require("themes/SettingsManager");
 
     CommandManager.register(Strings.CMD_THEMES, Commands.THEMES, Settings.open);
 });

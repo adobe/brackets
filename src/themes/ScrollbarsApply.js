@@ -10,7 +10,7 @@
 define(function (require) {
     "use strict";
 
-    var Settings = require("themes/Settings");
+    var Settings = require("themes/SettingsManager");
     var $scrollbars = $("<style id='scrollbars'>").appendTo("head");
     var theme;
 
