@@ -123,9 +123,8 @@ define(function (require, exports, module) {
                 contributorsCount = 0;
             
             allContributors.forEach(function (contributor) {
-                if (contributor.avatar_url && contributor.avatar_url.indexOf("avatars.githubusercontent.com") !== -1) {
-                    contributor.avatar_url += "size=30";
-                }
+                // remove any UrlParams delivered via the GitHub API
+                contributor.avatar_url = contributor.avatar_url.split("?")[0];
             });
 
             $contributors.html(Mustache.render(ContributorsTemplate, allContributors));
