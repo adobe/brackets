@@ -258,7 +258,11 @@
     .CodeMirror-matchingtag { background: @matching-bracket; }
 }
 
-.show-line-padding .CodeMirror .CodeMirror-focused .CodeMirror-activeline-background {
+.show-line-padding .inline-text-editor .CodeMirror .CodeMirror-activeline-background {
+    box-shadow: inset @code-padding 0 0 0 transparent;
+}
+
+.show-line-padding .inline-text-editor .CodeMirror-focused .CodeMirror-activeline-background {
     box-shadow: inset @code-padding 0 0 0 @tc-gray-panel-top-bar;
 }
 
