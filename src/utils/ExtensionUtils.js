@@ -176,7 +176,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
      **/
     function loadFile(module, path) {
-        var url     = isAbsolutePathOrUrl(path) ? path : getModuleUrl(module, path),
+        var url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path),
             promise = $.get(url);
 
         return promise;
