@@ -61,23 +61,23 @@ define(function (require) {
 
     function init() {
         return PreferencesManager.ready.then(function() {
-            if ( Settings.getValue("theme") === (void 0) ) {
+            if ( Settings.getValue("theme") === undefined ) {
                 Settings.setValue("theme",  DefaultSettings.theme);
             }
 
-            if ( Settings.getValue("fontSize") === (void 0) ) {
+            if ( Settings.getValue("fontSize") === undefined ) {
                 Settings.setValue("fontSize", DefaultSettings.fontSize + "px");
             }
 
-            if ( Settings.getValue("lineHeight") === (void 0) ) {
+            if ( Settings.getValue("lineHeight") === undefined ) {
                 Settings.setValue("lineHeight", DefaultSettings.lineHeight);
             }
 
-            if ( Settings.getValue("fontType") === (void 0) ) {
+            if ( Settings.getValue("fontType") === undefined ) {
                 Settings.setValue("fontType", DefaultSettings.fontType);
             }
 
-            if ( Settings.getValue("customScrollbars") === (void 0) ) {
+            if ( Settings.getValue("customScrollbars") === undefined ) {
                 Settings.setValue("customScrollbars", DefaultSettings.customScrollbars);
             }
 
