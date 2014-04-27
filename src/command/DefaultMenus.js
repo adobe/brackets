@@ -116,7 +116,7 @@ define(function (require, exports, module) {
          * View menu
          */
         menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
-        menu.addMenuItem(Commands.THEMES);
+        menu.addMenuItem(Commands.CMD_THEMES_SETTINGS_OPEN);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.VIEW_HIDE_SIDEBAR);
         menu.addMenuDivider();
