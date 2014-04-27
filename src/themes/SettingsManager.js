@@ -51,7 +51,6 @@ define(function (require) {
     };
 
     Settings.reset = function() {
-        Settings.setValue("paths", DefaultSettings.paths);
         Settings.setValue("theme",  DefaultSettings.theme);
         Settings.setValue("fontSize", DefaultSettings.fontSize + "px");
         Settings.setValue("lineHeight", DefaultSettings.lineHeight);
@@ -62,10 +61,6 @@ define(function (require) {
 
     function init() {
         return PreferencesManager.ready.then(function() {
-            if ( Settings.getValue("paths") === (void 0) ) {
-                Settings.setValue("paths", DefaultSettings.paths);
-            }
-
             if ( Settings.getValue("theme") === (void 0) ) {
                 Settings.setValue("theme",  DefaultSettings.theme);
             }
