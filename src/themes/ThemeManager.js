@@ -19,7 +19,7 @@ define(function (require, exports, module) {
         ExtensionUtils      = require("utils/ExtensionUtils"),
         Settings            = require("themes/SettingsManager"),
         Theme               = require("themes/Theme"),
-        themeSettings       = require("themes/views/settings"),
+        themeSettings       = require("themes/ThemeSettingsDialog"),
         themeFiles          = require("themes/ThemeFiles"),
         themeApply          = require("themes/ThemeApply"),
         scrollbarsApply     = require("themes/ScrollbarsApply"),

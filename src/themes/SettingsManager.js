@@ -13,7 +13,7 @@ define(function (require) {
     var _                   = require("thirdparty/lodash"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DefaultSettings     = require("themes/DefaultSettings"),
-        SettingsDialog      = require("themes/views/settings"),
+        SettingsDialog      = require("themes/ThemeSettingsDialog"),
         PREFERENCES_KEY     = "brackets-themes",
         _settings           = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
 
