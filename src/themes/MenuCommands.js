@@ -15,5 +15,5 @@ define(function(require) {
         Strings        = require("strings"),
         Settings       = require("themes/SettingsManager");
 
-    CommandManager.register(Strings.CMD_THEMES, Commands.CMD_THEMES_SETTINGS_OPEN, Settings.open);
+    CommandManager.register(Strings.CMD_THEMES, Commands.CMD_THEMES_OPEN_SETTINGS, Settings.open);
 });
