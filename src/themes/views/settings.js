@@ -14,8 +14,8 @@ define(function(require) {
         Dialogs = require("widgets/Dialogs"),
 
         tmpl = {
-            "settings": require("text!themes/views/settings.html"),
-            "general": require("text!themes/views/general.html")
+            "settings": require("text!htmlContent/themes-settings.html"),
+            "general": require("text!htmlContent/themes-general.html")
         };
 
     var _themes;

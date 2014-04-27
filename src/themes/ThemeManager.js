@@ -30,8 +30,8 @@ define(function (require, exports, module) {
 
     // Load up reset.css to override brackground settings from brackets because
     // they make the themes look really bad.
-    ExtensionUtils.loadStyleSheet(module, "reset.css");
-    ExtensionUtils.loadStyleSheet(module, "views/settings.css");
+    ExtensionUtils.addLinkedStyleSheet("themes/reset.css");
+    ExtensionUtils.addLinkedStyleSheet("styles/brackets_theme_settings.css");
 
 
     /**
