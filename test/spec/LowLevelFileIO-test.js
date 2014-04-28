@@ -363,6 +363,22 @@ define(function (require, exports, module) {
                 });
             });
 
+
+// FIXME: This test causes problems cleaning up the temp directory and, thus, tests to fail
+//            it("should be able to read a zero-length file", function () {
+//                var cb = readFileSpy();
+//                
+//                runs(function () {
+//                    brackets.fs.readFile(baseDir + "/emptyfile.txt", UTF8, cb);
+//                });
+//            
+//                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
+//            
+//                runs(function () {
+//                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+//                });
+//            });            
+
             it("should not be able to read a UTF-8 file with malformed continuation bytes", function () {
                 var cb = readFileSpy();
                 
@@ -405,6 +421,8 @@ define(function (require, exports, module) {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
                 });
             });
+            
+// FIXME: This test does not work on Linux or Mac
 //            it("should return an error trying to read a UTF16 file w/o BOM ", function () {
 //                var cb = readFileSpy();
 //                
@@ -432,6 +450,7 @@ define(function (require, exports, module) {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
                 });
             });
+// FIXME: This test does not work on Linux or Mac
 //            it("should return an error trying to read a UTF32 file w/o BOM ", function () {
 //                var cb = readFileSpy();
 //                
