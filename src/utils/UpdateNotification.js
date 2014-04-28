@@ -147,58 +147,58 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            $.ajax({
-                url: _versionInfoURL,
-                cache: false,
-                type: "HEAD",
-                error: function (jxHDR, status) {
-                    _versionInfoURL = _versionInfoUrl("en");
-                }
-            }).always(function (data) {
-                $.ajax(_versionInfoURL, {
-                    dataType: "text",
+            var lookupPromise = new $.Deferred();
+
+            // don't make HEAD request if we already have the default en locale
+            if (brackets.getLocale() !== "en") {
+                $.ajax({
+                    url: _versionInfoURL,
                     cache: false,
-                    complete: function (jqXHR, status) {
-                        if (status === "success") {
-                            try {
-                                data = JSON.parse(jqXHR.responseText);
-                                if (!dontCache) {
-                                    _lastInfoURLFetchTime = (new Date()).getTime();
-                                    PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
-                                    PreferencesManager.setViewState("updateInfo", data);
-                                }
-                                result.resolve(data);
-                            } catch (e) {
-                                console.log("Error parsing version information");
-                                console.log(e);
-                                result.reject();
-                            }
-                        }
-                    },
-                    error: function (jqXHR, status, error) {
-                        // When loading data for unit tests, the error handler is
-                        // called but the responseText is valid. Try to use it here,
-                        // but *don't* save the results in prefs.
+                    type: "HEAD"
+                }).fail(function (jqXHR, status, error) {
+                    _versionInfoURL = _versionInfoUrl("en");
+                    lookupPromise.resolve();
+                }).done(function (data, textStatus, jqXHR) {
+                    lookupPromise.resolve();
+                });
+            } else {
+                lookupPromise.resolve();
+            }
 
-                        if (!jqXHR.responseText) {
-                            // Text is NULL or empty string, reject().
-                            result.reject();
-                            return;
-                        }
+            lookupPromise.done(function () {
+                $.ajax(_versionInfoURL, {
+                    dataType: "json",
+                    cache: false
+                }).done(function (updateInfo, textStatus, jqXHR) {
+                    if (!dontCache) {
+                        _lastInfoURLFetchTime = (new Date()).getTime();
+                        PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                        PreferencesManager.setViewState("updateInfo", updateInfo);
+                    }
+                    result.resolve(updateInfo);
+                }).fail(function (jqXHR, status, error) {
+                    // When loading data for unit tests, the error handler is
+                    // called but the responseText is valid. Try to use it here,
+                    // but *don't* save the results in prefs.
 
-                        try {
-                            data = JSON.parse(jqXHR.responseText);
-                            result.resolve(data);
-                        } catch (e) {
-                            result.reject();
-                        }
+                    if (!jqXHR.responseText) {
+                        // Text is NULL or empty string, reject().
+                        result.reject();
+                        return;
+                    }
+
+                    try {
+                        data = JSON.parse(jqXHR.responseText);
+                        result.resolve(data);
+                    } catch (e) {
+                        result.reject();
                     }
                 });
             });
         } else {
             result.resolve(data);
         }
-        
+
         return result.promise();
     }
     
