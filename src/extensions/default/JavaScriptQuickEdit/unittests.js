@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         
         FileUtils           = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
+        Strings             = brackets.getModule("strings"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter");
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
@@ -212,23 +213,23 @@ define(function (require, exports, module) {
                    
                     // regexp token
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[0]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // multi-line comment
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[1]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // single-line comment
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[2]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // string, double quotes
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[3]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // string, single quotes
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[4]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                 });
             });
 

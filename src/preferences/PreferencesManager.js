@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
         AppInit                 = require("utils/AppInit"),
-        Async                   = require("utils/Async"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
@@ -43,6 +42,7 @@ define(function (require, exports, module) {
         PreferencesBase         = require("preferences/PreferencesBase"),
         FileSystem              = require("filesystem/FileSystem"),
         Strings                 = require("strings"),
+        PreferencesImpl         = require("preferences/PreferencesImpl"),
         _                       = require("thirdparty/lodash");
     
     /**
@@ -221,83 +221,10 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
-    // The SETTINGS_FILENAME is used with a preceding "." within user projects
-    var SETTINGS_FILENAME = "brackets.json",
-        STATE_FILENAME    = "state.json";
-    
-    // User-level preferences
-    var userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
-    
-    /**
-     * Get the full path to the user-level preferences file.
-     * 
-     * @return {string} Path to the preferences file
-     */
-    function getUserPrefFile() {
-        return userPrefFile;
-    }
-    
-    /** 
-     * A boolean property indicating if the user scope configuration file is malformed.
-     */
-    var _userScopeCorrupt = false;
-    
-    /**
-     * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
-     * @private
-     * @type {$.Deferred}
-     */
-    var _prefManagerReadyDeferred = new $.Deferred();
-    
-    /**
-     * Promises to add scopes. Used at init time only. 
-     * @private
-     * @type {Array.<$.Promise>}
-     */
-    var _addScopePromises = [];
-    
-    var preferencesManager = new PreferencesBase.PreferencesSystem();
-    preferencesManager.pauseChangeEvents();
-
-    // Create a Project scope
-    var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
-        projectScope            = new PreferencesBase.Scope(projectStorage),
-        projectPathLayer        = new PreferencesBase.PathLayer(),
+    var currentEditedFile       = null,
         projectDirectory        = null,
-        currentEditedFile       = null,
         projectScopeIsIncluded  = true;
-    
-    projectScope.addLayer(projectPathLayer);
-    
-    var userScopeLoading = preferencesManager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
-    
-    _addScopePromises.push(userScopeLoading);
-    
-    // Set up the .brackets.json file handling
-    userScopeLoading
-        .fail(function (err) {
-            _addScopePromises.push(preferencesManager.addScope("user", new PreferencesBase.MemoryStorage(), {
-                before: "default"
-            }));
 
-            if (err.name && err.name === "ParsingError") {
-                _userScopeCorrupt = true;
-            }
-        })
-        .always(function () {
-            _addScopePromises.push(preferencesManager.addScope("project", projectScope, {
-                before: "user"
-            }));
-    
-            // Session Scope is for storing prefs in memory only but with the highest precedence.
-            _addScopePromises.push(preferencesManager.addScope("session", new PreferencesBase.MemoryStorage()));
-
-            Async.waitForAll(_addScopePromises)
-                .always(function () {
-                    _prefManagerReadyDeferred.resolve();
-                });
-        });
-    
     
     /**
      * @private
@@ -313,8 +240,19 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        return FileUtils.getRelativeFilename(projectDirectory, filename) ? true : false;
+        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
+    
+    /**
+     * Get the full path to the user-level preferences file.
+     * 
+     * @return {string} Path to the preferences file
+     */
+    function getUserPrefFile() {
+        return PreferencesImpl.userPrefFile;
+    }
+    
+
     
     /**
      * @private
@@ -327,9 +265,9 @@ define(function (require, exports, module) {
             return;
         }
         if (projectScopeIsIncluded) {
-            preferencesManager.removeFromScopeOrder("project");
+            PreferencesImpl.manager.removeFromScopeOrder("project");
         } else {
-            preferencesManager.addToScopeOrder("project", "user");
+            PreferencesImpl.manager.addToScopeOrder("project", "user");
         }
         projectScopeIsIncluded = !projectScopeIsIncluded;
     }
@@ -345,8 +283,8 @@ define(function (require, exports, module) {
     function _setProjectSettingsFile(settingsFile) {
         projectDirectory = FileUtils.getDirectoryPath(settingsFile);
         _toggleProjectScope();
-        projectPathLayer.setPrefFilePath(settingsFile);
-        projectStorage.setPath(settingsFile);
+        PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
+        PreferencesImpl.projectStorage.setPath(settingsFile);
     }
     
     /**
@@ -360,7 +298,7 @@ define(function (require, exports, module) {
     function _setCurrentEditingFile(currentFile) {
         currentEditedFile = currentFile;
         _toggleProjectScope();
-        preferencesManager.setDefaultFilename(currentFile);
+        PreferencesImpl.manager.setDefaultFilename(currentFile);
     }
     
     /**
@@ -372,18 +310,9 @@ define(function (require, exports, module) {
      * @param {string} prefix Prefix to be applied
      */
     function getExtensionPrefs(prefix) {
-        return preferencesManager.getPrefixedSystem(prefix);
+        return PreferencesImpl.manager.getPrefixedSystem(prefix);
     }
     
-    // "State" is stored like preferences but it is not generally intended to be user-editable.
-    // It's for more internal, implicit things like window size, working set, etc.
-    var stateManager = new PreferencesBase.PreferencesSystem();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
-    var smUserScope = new PreferencesBase.Scope(new PreferencesBase.FileStorage(userStateFile, true));
-    var projectLayer = new PreferencesBase.ProjectLayer();
-    smUserScope.addLayer(projectLayer);
-    var smUserScopeLoading = stateManager.addScope("user", smUserScope);
-
     /**
      * Converts from the old localStorage-based preferences to the new-style
      * preferences according to the "rules" given.
@@ -405,15 +334,19 @@ define(function (require, exports, module) {
      *      examines each preference key for migration.
      */
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
-        smUserScopeLoading.done(function () {
-            userScopeLoading.done(function () {
+        PreferencesImpl.smUserScopeLoading.done(function () {
+            PreferencesImpl.userScopeLoading.done(function () {
+                if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
+                    console.error("Invalid clientID");
+                    return;
+                }
                 var prefs = getPreferenceStorage(clientID, null, true);
 
                 if (!prefs) {
                     return;
                 }
 
-                var prefsID = getClientID(clientID);
+                var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
                 if (prefStorage.convertedKeysMap === undefined) {
                     prefStorage.convertedKeysMap = {};
                 }
@@ -425,7 +358,7 @@ define(function (require, exports, module) {
                         savePreferences();
                     });
             }).fail(function (error) {
-                console.error("Error while converting ", getClientID(clientID));
+                console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
                 console.error(error);
             });
         });
@@ -513,13 +446,15 @@ define(function (require, exports, module) {
         return context;
     }
     
+    PreferencesImpl.manager.contextNormalizer = _normalizeContext;
+    
     /**
      * @private
      * 
      * Updates the CURRENT_PROJECT context to have the correct scopes.
      */
     function _updateCurrentProjectContext() {
-        var context = preferencesManager.buildContext({});
+        var context = PreferencesImpl.manager.buildContext({});
         delete context.filename;
         scopeOrderWithProject = _adjustScopeOrderForProject(context.scopeOrder, true);
         scopeOrderWithoutProject = _adjustScopeOrderForProject(context.scopeOrder, false);
@@ -528,51 +463,8 @@ define(function (require, exports, module) {
     
     _updateCurrentProjectContext();
     
-    preferencesManager.on("scopeOrderChange", _updateCurrentProjectContext);
+    PreferencesImpl.manager.on("scopeOrderChange", _updateCurrentProjectContext);
     
-    /**
-     * Look up a preference in the given context. The default is 
-     * CURRENT_FILE (preferences as they would be applied to the
-     * currently edited file).
-     * 
-     * @param {string} id Preference ID to retrieve the value of
-     * @param {Object|string=} context CURRENT_FILE, CURRENT_PROJECT or a filename
-     */
-    function get(id, context) {
-        context = _normalizeContext(context);
-        return preferencesManager.get(id, context);
-    }
-    
-    /**
-     * Sets a preference and notifies listeners that there may
-     * have been a change. By default, the preference is set in the same location in which
-     * it was defined except for the "default" scope. If the current value of the preference
-     * comes from the "default" scope, the new value will be set at the level just above
-     * default.
-     * 
-     * The preferences are saved automatically unless doNotSave is true.
-     * 
-     * As with the `get()` function, the context can be a filename,
-     * CURRENT_FILE, CURRENT_PROJECT or a full context object as supported by
-     * PreferencesSystem.
-     * 
-     * @param {string} id Identifier of the preference to set
-     * @param {Object} value New value for the preference
-     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
-     * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
-     * @return {boolean} true if a value was set
-     */
-    function set(id, value, options, doNotSave) {
-        if (options && options.context) {
-            options.context = _normalizeContext(options.context);
-        }
-        var wasSet = preferencesManager.set(id, value, options);
-        if (!doNotSave) {
-            preferencesManager.save();
-        }
-        return wasSet;
-    }
-
     /**
      * @private
      */
@@ -607,8 +499,8 @@ define(function (require, exports, module) {
      */
     function setValueAndSave(id, value, options) {
         DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = set(id, value, options);
-        preferencesManager.save();
+        var changed = exports.set(id, value, options).stored;
+        PreferencesImpl.manager.save();
         return changed;
     }
     
@@ -619,7 +511,7 @@ define(function (require, exports, module) {
      * @param {?Object} context Optional additional information about the request
      */
     function getViewState(id, context) {
-        return stateManager.get(id, context);
+        return PreferencesImpl.stateManager.get(id, context);
     }
     
     /**
@@ -633,23 +525,24 @@ define(function (require, exports, module) {
      */
     function setViewState(id, value, context, doNotSave) {
         
-        stateManager.set(id, value, context);
+        PreferencesImpl.stateManager.set(id, value, context);
         
         if (!doNotSave) {
-            stateManager.save();
+            PreferencesImpl.stateManager.save();
         }
     }
     
     AppInit.appReady(function () {
-        preferencesManager.resumeChangeEvents();
+        PreferencesImpl.manager.resumeChangeEvents();
     });
     
     // Private API for unit testing and use elsewhere in Brackets core
-    exports._isUserScopeCorrupt    = function () { return _userScopeCorrupt; };
-    exports._manager                = preferencesManager;
+    exports._isUserScopeCorrupt    = function () { return PreferencesImpl._userScopeCorrupt; };
+    exports._manager                = PreferencesImpl.manager;
     exports._setCurrentEditingFile  = _setCurrentEditingFile;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
-    exports._smUserScopeLoading     = smUserScopeLoading;
+    exports._smUserScopeLoading     = PreferencesImpl.smUserScopeLoading;
+    exports._stateProjectLayer      = PreferencesImpl.stateProjectLayer;
     
     // Public API
     
@@ -657,24 +550,23 @@ define(function (require, exports, module) {
     exports.CURRENT_FILE        = CURRENT_FILE;
     exports.CURRENT_PROJECT     = CURRENT_PROJECT;
     
-    exports.ready               = _prefManagerReadyDeferred.promise();
+    exports.ready               = PreferencesImpl.managerReady;
     exports.getUserPrefFile     = getUserPrefFile;
-    exports.get                 = get;
-    exports.set                 = set;
-    exports.save                = preferencesManager.save.bind(preferencesManager);
-    exports.on                  = preferencesManager.on.bind(preferencesManager);
-    exports.off                 = preferencesManager.off.bind(preferencesManager);
-    exports.getPreference       = preferencesManager.getPreference.bind(preferencesManager);
+    exports.get                 = PreferencesImpl.manager.get.bind(PreferencesImpl.manager);
+    exports.set                 = PreferencesImpl.manager.set.bind(PreferencesImpl.manager);
+    exports.save                = PreferencesImpl.manager.save.bind(PreferencesImpl.manager);
+    exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
+    exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);
+    exports.getPreference       = PreferencesImpl.manager.getPreference.bind(PreferencesImpl.manager);
     exports.getExtensionPrefs   = getExtensionPrefs;
     exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;
     exports.setViewState        = setViewState;
-    exports.addScope            = preferencesManager.addScope.bind(preferencesManager);
-    exports.stateManager        = stateManager;
-    exports.projectLayer        = projectLayer;
+    exports.addScope            = PreferencesImpl.manager.addScope.bind(PreferencesImpl.manager);
+    exports.stateManager        = PreferencesImpl.stateManager;
     exports.FileStorage         = PreferencesBase.FileStorage;
-    exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
-    exports.definePreference    = preferencesManager.definePreference.bind(preferencesManager);
-    exports.fileChanged         = preferencesManager.fileChanged.bind(preferencesManager);
+    exports.SETTINGS_FILENAME   = PreferencesImpl.SETTINGS_FILENAME;
+    exports.definePreference    = PreferencesImpl.manager.definePreference.bind(PreferencesImpl.manager);
+    exports.fileChanged         = PreferencesImpl.manager.fileChanged.bind(PreferencesImpl.manager);
     exports.convertPreferences  = convertPreferences;
 });

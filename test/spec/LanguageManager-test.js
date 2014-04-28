@@ -24,17 +24,19 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, describe, jasmine, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone, waitsForFail, spyOn */
+/*unittests: LanguageManager */
 
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeMirror      = require("thirdparty/CodeMirror2/lib/codemirror"),
-        LanguageManager = require("language/LanguageManager"),
-        DocumentManager = require("document/DocumentManager"),
-        PathUtils       = require("thirdparty/path-utils/path-utils.min"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        FileSystem      = require("filesystem/FileSystem");
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        LanguageManager     = require("language/LanguageManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        PathUtils           = require("thirdparty/path-utils/path-utils.min"),
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        FileSystem          = require("filesystem/FileSystem");
     
     describe("LanguageManager", function () {
         
@@ -180,6 +182,88 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("CakeFiLE")).toBe(coffee);
                 expect(LanguageManager.getLanguageForPath("cakefile.doesNotExist")).toBe(unknown);
                 expect(LanguageManager.getLanguageForPath("Something.cakefile")).toBe(unknown);
+            });
+            
+            it("should remove file extensions and add to new languages", function () {
+                var html    = LanguageManager.getLanguage("html"),
+                    ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(html);
+                
+                html.removeFileExtension("html");
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(unknown);
+                
+                ruby.addFileExtension("html");
+                expect(LanguageManager.getLanguageForPath("test.html")).toBe(ruby);
+            });
+            
+            it("should remove file names and add to new languages", function () {
+                var coffee  = LanguageManager.getLanguage("coffeescript"),
+                    html    = LanguageManager.getLanguage("html"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(coffee);
+                
+                coffee.removeFileName("Cakefile");
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(unknown);
+                
+                html.addFileName("Cakefile");
+                expect(LanguageManager.getLanguageForPath("Cakefile")).toBe(html);
+            });
+            
+            it("should add multiple file extensions to languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(unknown);
+                
+                ruby.addFileExtension(["1", "2"]);
+                
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(ruby);
+            });
+            
+            it("should remove multiple file extensions from languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                // Assumes test above already ran (tests in this suite are not isolated)
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(ruby);
+                
+                ruby.removeFileExtension(["1", "2"]);
+                
+                expect(LanguageManager.getLanguageForPath("foo.1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(unknown);
+            });
+            
+            it("should add multiple file names to languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(unknown);
+                
+                ruby.addFileName(["rubyFile1", "rubyFile2"]);
+                
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(ruby);
+            });
+            
+            it("should remove multiple file names from languages", function () {
+                var ruby    = LanguageManager.getLanguage("ruby"),
+                    unknown = LanguageManager.getLanguage("unknown");
+                
+                // Assumes test above already ran (tests in this suite are not isolated)
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(ruby);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(ruby);
+                
+                ruby.removeFileName(["rubyFile1", "rubyFile2"]);
+                
+                expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(unknown);
             });
         });
 
@@ -677,6 +761,66 @@ define(function (require, exports, module) {
                 doc.releaseRef();
             });
             
+        });
+        
+        describe("Preferences", function () {
+            it("should be able to add extension mappings via a preference", function () {
+                var language = LanguageManager.getLanguageForExtension("foobar");
+                expect(language).toBeUndefined();
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    foobar: "javascript"
+                });
+                language = LanguageManager.getLanguageForExtension("foobar");
+                expect(language.getId()).toBe("javascript");
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, { });
+                language = LanguageManager.getLanguageForExtension("foobar");
+                expect(language).toBeUndefined();
+            });
+            
+            it("should manage overridden default extensions", function () {
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    js: "html"
+                });
+                var language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("html");
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    js: "php"
+                });
+                language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("php");
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, { });
+                language = LanguageManager.getLanguageForExtension("js");
+                expect(language.getId()).toBe("javascript");
+            });
+            
+            it("should be able to manage file name mappings via a preference", function () {
+                var language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("unknown");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    "Foofile": "javascript"
+                });
+                language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("javascript");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, { });
+                language = LanguageManager.getLanguageForPath("/bar/Foofile");
+                expect(language.getId()).toBe("unknown");
+            });
+            
+            it("should manage overridden default file names", function () {
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    Gemfile: "python"
+                });
+                var language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("python");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, {
+                    Gemfile: "php"
+                });
+                language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("php");
+                PreferencesManager.set(LanguageManager._NAME_MAP_PREF, { });
+                language = LanguageManager.getLanguageForPath("Gemfile");
+                expect(language.getId()).toBe("ruby");
+            });
         });
     });
 });

@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands,           // loaded from brackets.test
+    var CommandManager,     // loaded from brackets.test
+        Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
@@ -37,7 +38,8 @@ define(function (require, exports, module) {
         Dialogs          = require("widgets/Dialogs"),
         KeyEvent         = require("utils/KeyEvent"),
         FileUtils        = require("file/FileUtils"),
-        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
+        Strings          = require("strings");
 
     describe("InlineEditorProviders", function () {
         
@@ -78,13 +80,11 @@ define(function (require, exports, module) {
          * 
          * @param {string} openFile  Project relative file path to open in a main editor.
          * @param {number} openOffset  The offset index location within openFile to open an inline editor.
-         * @param {?boolean} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
+         * @param {boolean=} expectInline  Use false to verify that an inline editor should not be opened. Omit otherwise.
+         * @param {Array<{string}>=} workingSet  Optional array of files to open in working set
          */
         function initInlineTest(openFile, openOffset, expectInline, workingSet) {
-            var allFiles,
-                editor,
-                hostOpened = false,
-                err = false;
+            var editor;
             
             workingSet = workingSet || [];
             
@@ -145,6 +145,45 @@ define(function (require, exports, module) {
             return false;
         }
 
+        function expectPopoverMessageWithText(text) {
+            var $popover  = testWindow.$(".popover-message");
+            expect($popover.length).toEqual(1);
+
+            var popoverText = $(".text", $popover).html();
+            expect(popoverText).toEqual(text);
+        }
+        
+        function getBounds(object, useOffset) {
+            var left = (useOffset ? object.offset().left : parseInt(object.css("left"), 10)),
+                top = (useOffset ? object.offset().top : parseInt(object.css("top"), 10));
+            return {
+                left:   left,
+                top:    top,
+                right:  left + object.outerWidth(),
+                bottom: top + object.outerHeight()
+            };
+        }
+
+        function boundsInsideWindow(object) {
+            // For the popover, we can't use offset(), because jQuery gets confused by the
+            // scale factor and transform origin that the animation uses. Instead, we rely on
+            // the fact that its offset parent is body, and just test its explicit left/top values.
+            var bounds = getBounds(object, false),
+                editorBounds = getBounds(testWindow.$("#editor-holder"), true);
+
+            return bounds.left >= editorBounds.left   &&
+                bounds.right   <= editorBounds.right  &&
+                bounds.top     >= editorBounds.top    &&
+                bounds.bottom  <= editorBounds.bottom;
+        }
+
+        function toggleOption(commandID, text) {
+            runs(function () {
+                var promise = CommandManager.execute(commandID);
+                waitsForDone(promise, text);
+            });
+        }
+
         /*
          * Note that the bulk of selector matching tests are in CSSutils-test.js.
          * These tests are primarily focused on the InlineEditorProvider module.
@@ -164,6 +203,7 @@ define(function (require, exports, module) {
                     testWindow = w;
     
                     // Load module instances from brackets.test
+                    CommandManager      = testWindow.brackets.test.CommandManager;
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileSyncManager     = testWindow.brackets.test.FileSyncManager;
@@ -257,6 +297,21 @@ define(function (require, exports, module) {
             });
 
 
+            it("should open a type selector and show correct range including the embedded php", function () {
+                initInlineTest("test1.php", 1);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+                    
+                    // verify cursor position and displayed range in inline editor
+                    expect(inlinePos).toEqual(infos["test1.php"].offsets[0]);
+                    expect(inlineWidget.editor).toHaveInlineEditorRange(toRange(4, 8));
+                    
+                    inlineWidget = null;
+                });
+            });
+            
             it("should open a type selector on opening tag", function () {
                 initInlineTest("test1.html", 0);
                 
@@ -341,6 +396,52 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should work with multiple classes when the cursor is on the first class in the list", function () {
+                initInlineTest("test1.html", 14);
+
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
+
+                    inlineWidget = null;
+                });
+            });
+
+            it("should work when the cursor is between classes", function () {
+                initInlineTest("test1.html", 15, false);
+
+                runs(function () {
+                    // verify no inline editor open
+                    expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+
+                    // verify popover message is displayed with correct string
+                    expectPopoverMessageWithText(Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES);
+
+                    // verify popover message is automatically dismissed after short wait
+                    // current delay is 5 sec + 0.5 sec fade-out transition
+                    waits(6000);
+                });
+            });
+
+
+            it("should work with multiple classes when the cursor is on the first class in the list", function () {
+                initInlineTest("test1.html", 16);
+
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(infos["test1.css"].offsets[8]);
+
+                    inlineWidget = null;
+                });
+            });
+            
+            
             it("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
@@ -405,8 +506,33 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 3, false);
                 
                 runs(function () {
-                    // verify no inline open
+                    // verify no inline editor open
                     expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+
+                    // verify popover message is displayed with correct string
+                    expectPopoverMessageWithText(Strings.ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND);
+                });
+            });
+
+            it("should not open an inline editor when positioned on title attribute", function () {
+                initInlineTest("test1.html", 12, false);
+                
+                runs(function () {
+                    // verify no inline editor open
+                    expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+
+                    // verify popover message is displayed with correct string
+                    expectPopoverMessageWithText(Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR);
+
+                    // verify popover message is automatically dismissed after short wait
+                    // current delay is 5 sec + 0.5 sec fade-out transition
+                    waits(6000);
+                });
+
+                runs(function () {
+                    // verify no popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(0);
                 });
             });
 
@@ -414,8 +540,148 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 4, false);
                 
                 runs(function () {
-                    // verify no inline open
+                    // verify no inline editor open
                     expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+                });
+            });
+            
+            it("should close first popover message before opening another one", function () {
+                var editor,
+                    openFile = "test1.html";
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                });
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+
+                    // attempt to open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[3]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    // attempt to open another inline editor at a different offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[12]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    // verify only 1 popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+            });
+            
+                        
+            it("should close popover message on selection change", function () {
+                var editor,
+                    openFile = "test1.html";
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                });
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+
+                    // attempt to open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[3]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    // change selection
+                    var offset = infos[openFile].offsets[12];
+                    editor.setCursorPos(offset.line, offset.ch);
+
+                    // verify no popover message
+                    var $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(0);
+                });
+            });
+            
+            it("should position message popover inside left edge of window", function () {
+                var $popover;
+                initInlineTest("test1.html", 11, false);
+
+                runs(function () {
+                    $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+
+                runs(function () {
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+                });
+            });
+
+            it("should position message popover inside top edge of window", function () {
+                var $popover;
+                initInlineTest("test1.html", 3, false);
+
+                runs(function () {
+                    $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+
+                runs(function () {
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+                });
+            });
+
+            it("should scroll cursor into view and position message popover inside right edge of window", function () {
+                var $popover, scrollPos, editor,
+                    openFile = "test1.html";
+
+                runs(function () {
+                    // Turn off word wrap for next tests
+                    toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
+                });
+
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                });
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor.getScrollPos().x).toEqual(0);
+
+                    // attempt to open inline editor at specified offset index
+                    var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
+                        editor,
+                        infos[openFile].offsets[13]
+                    );
+
+                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                });
+
+                runs(function () {
+                    $popover = testWindow.$(".popover-message");
+                    expect($popover.length).toEqual(1);
+                });
+
+                runs(function () {
+                    // Popover should be inside right edge
+                    expect(boundsInsideWindow($popover)).toBeTruthy();
+
+                    // verify that page scrolled left
+                    expect(editor.getScrollPos().x).toBeGreaterThan(0);
+
+                    // restore word wrap
+                    toggleOption(Commands.TOGGLE_WORD_WRAP, "Toggle word-wrap");
                 });
             });
             
@@ -429,7 +695,7 @@ define(function (require, exports, module) {
                     widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
-                    expect(inlineEditor.lineCount()).toBe(12);
+                    expect(inlineEditor.lineCount()).toBe(16);
                     
                     // change inline editor content
                     var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
@@ -442,7 +708,7 @@ define(function (require, exports, module) {
                     );
                     
                     // verify widget resizes when contents is changed
-                    expect(inlineEditor.lineCount()).toBe(17);
+                    expect(inlineEditor.lineCount()).toBe(21);
                     expect(inlineEditor.totalHeight()).toBeGreaterThan(widgetHeight);
                     
                     inlineEditor = null;
@@ -459,7 +725,7 @@ define(function (require, exports, module) {
                     widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
-                    expect(inlineEditor.lineCount()).toBe(12);
+                    expect(inlineEditor.lineCount()).toBe(16);
                     
                     // replace the entire .foo rule with an empty string
                     // set text on the editor, can't mutate document directly at this point
@@ -470,7 +736,7 @@ define(function (require, exports, module) {
                     );
                     
                     // verify widget resizes when contents is changed
-                    expect(inlineEditor.lineCount()).toBe(10);
+                    expect(inlineEditor.lineCount()).toBe(14);
                     expect(inlineEditor.totalHeight()).toBeLessThan(widgetHeight);
 
                     inlineEditor = null;

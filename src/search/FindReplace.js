@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         ViewUtils           = require("utils/ViewUtils"),
         _                   = require("thirdparty/lodash"),
-        CodeMirror          = require("thirdparty/CodeMirror2/lib/CodeMirror");
+        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
     var searchBarTemplate            = require("text!htmlContent/findreplace-bar.html"),
         searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
@@ -602,8 +602,8 @@ define(function (require, exports, module) {
         // Create the search bar UI (closing any previous modalBar in the process)
         var htmlContent = Mustache.render(searchBarTemplate, $.extend(templateVars, Strings));
         createModalBar(htmlContent);
-        addShortcutToTooltip($("#find-next"), Commands.EDIT_FIND_NEXT);
-        addShortcutToTooltip($("#find-prev"), Commands.EDIT_FIND_PREVIOUS);
+        addShortcutToTooltip($("#find-next"), Commands.CMD_FIND_NEXT);
+        addShortcutToTooltip($("#find-prev"), Commands.CMD_FIND_PREVIOUS);
         
         $(modalBar).on("close", function (e, query) {
             // Clear highlights but leave search state in place so Find Next/Previous work after closing
@@ -813,7 +813,7 @@ define(function (require, exports, module) {
         }
         
         openSearchBar(editor, {replace: true});
-        addShortcutToTooltip($("#replace-yes"), Commands.EDIT_REPLACE);
+        addShortcutToTooltip($("#replace-yes"), Commands.CMD_REPLACE);
         
         var cm = editor._codeMirror,
             state = getSearchState(cm);
@@ -912,13 +912,13 @@ define(function (require, exports, module) {
 
     $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
-    CommandManager.register(Strings.CMD_FIND,                   Commands.EDIT_FIND,                    _launchFind);
-    CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.EDIT_FIND_NEXT,               _findNext);
-    CommandManager.register(Strings.CMD_REPLACE,                Commands.EDIT_REPLACE,                 _replace);
-    CommandManager.register(Strings.CMD_FIND_PREVIOUS,          Commands.EDIT_FIND_PREVIOUS,           _findPrevious);
-    CommandManager.register(Strings.CMD_FIND_ALL_AND_SELECT,    Commands.EDIT_FIND_ALL_AND_SELECT,     _findAllAndSelect);
-    CommandManager.register(Strings.CMD_ADD_NEXT_MATCH,         Commands.EDIT_ADD_NEXT_MATCH,          _expandWordAndAddNextToSelection);
-    CommandManager.register(Strings.CMD_SKIP_CURRENT_MATCH,     Commands.EDIT_SKIP_CURRENT_MATCH,      _skipCurrentMatch);
+    CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);
+    CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.CMD_FIND_NEXT,             _findNext);
+    CommandManager.register(Strings.CMD_REPLACE,                Commands.CMD_REPLACE,               _replace);
+    CommandManager.register(Strings.CMD_FIND_PREVIOUS,          Commands.CMD_FIND_PREVIOUS,         _findPrevious);
+    CommandManager.register(Strings.CMD_FIND_ALL_AND_SELECT,    Commands.CMD_FIND_ALL_AND_SELECT,   _findAllAndSelect);
+    CommandManager.register(Strings.CMD_ADD_NEXT_MATCH,         Commands.CMD_ADD_NEXT_MATCH,        _expandWordAndAddNextToSelection);
+    CommandManager.register(Strings.CMD_SKIP_CURRENT_MATCH,     Commands.CMD_SKIP_CURRENT_MATCH,    _skipCurrentMatch);
     
     // APIs shared with FindInFiles
     exports._updatePrefsFromSearchBar        = _updatePrefsFromSearchBar;

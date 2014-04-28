@@ -108,6 +108,12 @@ define(function (require, exports, module) {
     Document.prototype.isDirty = false;
     
     /**
+     * Whether this document is currently being saved.
+     * @type {boolean}
+     */
+    Document.prototype.isSaving = false;
+    
+    /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
      * it means the file was modified by an app other than Brackets.
      * @type {!Date}

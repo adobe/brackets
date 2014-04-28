@@ -303,7 +303,7 @@ define(function (require, exports, module) {
         var result, text, line;
 
         // Move the context to the first non-empty token.
-        if (!ctx.token.type && ctx.token.string.trim().length === 0) {
+        if (!ctx.token.type && !/\S/.test(ctx.token.string)) {
             result = TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx);
         }
 
@@ -563,7 +563,7 @@ define(function (require, exports, module) {
             }
             if (!edit) {
                 // Even if we didn't want to do an edit, we still need to track the selection.
-                edit = {selection: [sel]};
+                edit = {selection: lineSel.selectionsToTrack};
             }
             edits.push(edit);
         });
@@ -973,19 +973,27 @@ define(function (require, exports, module) {
      * @param {!Editor} editor The editor to operate on.
      * @param {number} dir The direction to add - 1 is down, -1 is up.
      */
-    function addLineToSelection(editor, dir) {
+    function addCursorToSelection(editor, dir) {
         editor = editor || EditorManager.getFocusedEditor();
         if (editor) {
             var origSels = editor.getSelections(),
                 newSels = [];
             _.each(origSels, function (sel) {
-                var pos;
+                var pos, colOffset;
                 if ((dir === -1 && sel.start.line > editor.getFirstVisibleLine()) || (dir === 1 && sel.end.line < editor.getLastVisibleLine())) {
                     // Add a new cursor on the next line up/down. It's okay if it overlaps another selection, because CM
                     // will take care of throwing it away in that case. It will also take care of clipping the char position
                     // to the end of the new line if the line is shorter.
                     pos = _.clone(dir === -1 ? sel.start : sel.end);
+
+                    // get sel column of current selection
+                    colOffset = editor.getColOffset(pos);
+
                     pos.line += dir;
+
+                    // translate column to ch in line of new selection
+                    pos.ch = editor.getCharIndexForColumn(pos.line, colOffset);
+
 
                     // If this is the primary selection, we want the new cursor we're adding to become the
                     // primary selection.
@@ -1003,8 +1011,8 @@ define(function (require, exports, module) {
      * Adds a cursor on the previous line before each selected range to the selection.
      * @param {!Editor} editor The editor to operate on.
      */
-    function addPrevLineToSelection(editor) {
-        addLineToSelection(editor, -1);
+    function addCursorToPrevLine(editor) {
+        addCursorToSelection(editor, -1);
     }
     
     /**
@@ -1012,8 +1020,8 @@ define(function (require, exports, module) {
      * Adds a cursor on the next line after each selected range to the selection.
      * @param {!Editor} editor The editor to operate on.
      */
-    function addNextLineToSelection(editor) {
-        addLineToSelection(editor, 1);
+    function addCursorToNextLine(editor) {
+        addCursorToSelection(editor, 1);
     }
 
     function handleUndoRedo(operation) {
@@ -1075,8 +1083,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_LINE_BELOW,        Commands.EDIT_OPEN_LINE_BELOW,        openLineBelow);
     CommandManager.register(Strings.CMD_SELECT_LINE,            Commands.EDIT_SELECT_LINE,            selectLine);
     CommandManager.register(Strings.CMD_SPLIT_SEL_INTO_LINES,   Commands.EDIT_SPLIT_SEL_INTO_LINES,   splitSelIntoLines);
-    CommandManager.register(Strings.CMD_ADD_NEXT_LINE_TO_SEL,   Commands.EDIT_ADD_NEXT_LINE_TO_SEL,   addNextLineToSelection);
-    CommandManager.register(Strings.CMD_ADD_PREV_LINE_TO_SEL,   Commands.EDIT_ADD_PREV_LINE_TO_SEL,   addPrevLineToSelection);
+    CommandManager.register(Strings.CMD_ADD_CUR_TO_NEXT_LINE,   Commands.EDIT_ADD_CUR_TO_NEXT_LINE,   addCursorToNextLine);
+    CommandManager.register(Strings.CMD_ADD_CUR_TO_PREV_LINE,   Commands.EDIT_ADD_CUR_TO_PREV_LINE,   addCursorToPrevLine);
 
     CommandManager.register(Strings.CMD_UNDO,                   Commands.EDIT_UNDO,                   handleUndo);
     CommandManager.register(Strings.CMD_REDO,                   Commands.EDIT_REDO,                   handleRedo);

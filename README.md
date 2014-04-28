@@ -1,4 +1,4 @@
-Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
+Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
 This is an early version of Brackets, a code editor for HTML, CSS
@@ -30,7 +30,7 @@ Together with your contributions, we're getting close to our first release candi
 
 #### Download
 
-Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://download.brackets.io/).
+Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
 
 The Linux version has most of the features of the Mac and Windows versions, but
 is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
@@ -105,9 +105,9 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 
 #### What's Brackets working on next?
 
-* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns labeled "Sprint N"
-  are features already in progress and should ship within 2 weeks. Features at the top of
-  the "Product Backlog" list will come next.
+* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns to the right
+  (starting from "Development") list the features that we're currently working on.
+  "Ready" shows what we'll be working on next.
 * Watch our [GitHub activity stream](https://github.com/adobe/brackets/pulse).
 
 #### Contact info

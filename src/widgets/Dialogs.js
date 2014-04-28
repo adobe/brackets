@@ -295,7 +295,6 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             $dlg.remove();
-            $(".modal-backdrop:last").addClass("last-backdrop");
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
@@ -318,9 +317,7 @@ define(function (require, exports, module) {
         $dlg.one("click", ".dialog-button", function (e) {
             _processButton($dlg, $(this).attr("data-button-id"), autoDismiss);
         });
-        
-        $(".last-backdrop").removeClass("last-backdrop");
-        
+                
         // Run the dialog
         $dlg
             .modal({
@@ -332,8 +329,7 @@ define(function (require, exports, module) {
             // Updates the z-index of the modal dialog and the backdrop
             .css("z-index", zIndex + 1)
             .next()
-            .css("z-index", zIndex)
-            .addClass("last-backdrop");
+            .css("z-index", zIndex);
         
         zIndex += 2;
         
