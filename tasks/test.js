@@ -28,8 +28,25 @@ module.exports = function (grunt) {
     var common          = require("./lib/common")(grunt),
         child_process   = require("child_process"),
         q               = require("q"),
-        qexec           = q.denodeify(child_process.exec);
-    
+        qexec           = q.denodeify(child_process.exec),
+        XmlDocument     = require("xmldoc").XmlDocument;
+
+    /**
+     * Check the unit test results for failures
+     */
+    function checkForTestFailures(pathToResult) {
+        var resultXml = grunt.file.read(pathToResult),
+            xmlDocument = new XmlDocument(resultXml),
+            testSuites = xmlDocument.childrenNamed("testsuite"),
+            failures = 0;
+
+        testSuites.forEach(function (testSuite) {
+            failures += Number(testSuite.attr.failures);
+        });
+
+        return failures;
+    }
+
     // task: test-integration
     grunt.registerTask("test-integration", "Run tests in brackets-shell. Requires 'grunt full-build' in shell.", function () {
         var done            = this.async(),
@@ -52,11 +69,16 @@ module.exports = function (grunt) {
         grunt.log.writeln(cmd);
 
         qexec(cmd, opts).then(function (stdout, stderr) {
-            done();
+            var failures = checkForTestFailures(resultsPath);
+            if (failures) {
+                var e = new Error(failures + ' test failure(s). Results are available from ' + resultsPath);
+                done(e);
+            } else {
+                done();
+            }
         }, function (err) {
             grunt.log.writeln(err);
             done(false);
         });
     });
-    
 };
