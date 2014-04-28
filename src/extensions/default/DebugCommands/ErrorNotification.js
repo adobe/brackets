@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         errorCount = 0,
         _attached  = false,
         _windowOnError,
-        _consoleError;
+        _consoleError,
+        _consoleClear;
 
     function showDeveloperTools() {
         try {
@@ -47,6 +48,10 @@ define(function (require, exports, module) {
     function refreshIcon() {
         // never show 0 errors
         if (errorCount === 0) {
+            // hide notifier if it was attached previously but errorCount was cleared
+            if ($span) {
+                $span.parent().hide();
+            }
             return;
         }
 
@@ -94,12 +99,18 @@ define(function (require, exports, module) {
         refreshIcon();
     }
 
+    function clearErrorCount() {
+        errorCount = 0;
+        refreshIcon();
+    }
+
     function attachFunctions() {
         if (_attached) { return; }
 
         _attached      = true;
         _windowOnError = window.onerror;
         _consoleError  = window.console.error;
+        _consoleClear  = window.console.clear;
 
         // https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers.onerror
         window.onerror = function (errorMsg, url, lineNumber) {
@@ -115,6 +126,11 @@ define(function (require, exports, module) {
             incErrorCount();
             return _consoleError.apply(window.console, arguments);
         };
+
+        window.console.clear = function () {
+            clearErrorCount();
+            return _consoleClear.apply(window.console, arguments);
+        };
     }
 
     function detachFunctions() {
@@ -123,6 +139,7 @@ define(function (require, exports, module) {
         _attached            = false;
         window.onerror       = _windowOnError;
         window.console.error = _consoleError;
+        window.console.clear = _consoleClear;
     }
 
     function toggle(bool) {
