@@ -63,7 +63,7 @@ define(function (require, exports, module) {
             .text(Strings.ERRORS + ": ")
             .append($span)
             .on("click", showDeveloperTools)
-            .prependTo("#status-bar .indicators");
+            .prependTo("#status-bar .dynamic-indicators");
     }
 
     function incErrorCount() {
