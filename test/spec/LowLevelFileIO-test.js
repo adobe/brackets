@@ -122,7 +122,7 @@ define(function (require, exports, module) {
                     brackets.fs.readdir(baseDir, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBeFalsy();
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
                     brackets.fs.readdir("/This/directory/doesnt/exist", cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                         brackets.fs.readdir(baseDir + "/cant_read_here", cb);
                     });
                 
-                    waitsFor(function () { return cb.wasCalled; }, 1000);
+                    waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
                 
                     runs(function () {
                         expect(cb.error).toBe(brackets.fs.ERR_CANT_READ);
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                     brackets.fs.readdir(42, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
@@ -209,7 +209,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(baseDir + "/file_one.txt", cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "stat to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBeFalsy();
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat("/This/directory/doesnt/exist", cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "stat to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(42, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "stat to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
@@ -257,7 +257,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(baseDir + "/file_one.txt", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBeFalsy();
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile("/This/file/doesnt/exist.txt", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(baseDir + "/file_one.txt", UTF16, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(42, [], cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
@@ -328,28 +328,42 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(baseDir + "/tree.jpg", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
                 });
             });
 
-            it("should be able to read a UTF-8 file > 3k", function () {
+            it("should be able to quickly determine if a large file is UTF-8", function () {
                 var cb = readFileSpy();
                 
                 runs(function () {
                     brackets.fs.readFile(baseDir + "/ru_utf8.html", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.NO_ERROR);
                 });
             });
 
-            it("should be not be able to read a UTF-8 file with malformed continuation bytes", function () {
+            it("should be able to quickly read a small UTF-8 file", function () {
+                var cb = readFileSpy();
+                
+                runs(function () {
+                    brackets.fs.readFile(baseDir + "/es_small_utf8.html", UTF8, cb);
+                });
+            
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
+            
+                runs(function () {
+                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                });
+            });
+
+            it("should not be able to read a UTF-8 file with malformed continuation bytes", function () {
                 var cb = readFileSpy();
                 
                 runs(function () {
@@ -370,7 +384,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(baseDir + "/ru_utf8_wBOM.html", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.NO_ERROR);
@@ -385,7 +399,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(baseDir + "/ru_utf16.html", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
@@ -398,7 +412,7 @@ define(function (require, exports, module) {
 //                    brackets.fs.readFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
 //                });
 //            
-//                waitsFor(function () { return cb.wasCalled; }, 1000);
+//                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
 //            
 //                runs(function () {
 //                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
@@ -412,7 +426,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(baseDir + "/ru_utf32.html", UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
@@ -425,7 +439,7 @@ define(function (require, exports, module) {
 //                    brackets.fs.readFile(baseDir + "/ru_utf32_noBOM.html", UTF8, cb);
 //                });
 //            
-//                waitsFor(function () { return cb.wasCalled; }, 1000);
+//                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
 //            
 //                runs(function () {
 //                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
@@ -447,7 +461,7 @@ define(function (require, exports, module) {
                     brackets.fs.writeFile(baseDir + "/write_test.txt", contents, UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBeFalsy();
@@ -474,7 +488,7 @@ define(function (require, exports, module) {
                         brackets.fs.writeFile(baseDir + "/cant_write_here/write_test.txt", contents, UTF8, cb);
                     });
                 
-                    waitsFor(function () { return cb.wasCalled; }, 1000);
+                    waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
                 
                     runs(function () {
                         expect(cb.error).toBe(brackets.fs.ERR_CANT_WRITE);
@@ -490,7 +504,7 @@ define(function (require, exports, module) {
                     brackets.fs.writeFile(42, contents, 2, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
@@ -504,7 +518,7 @@ define(function (require, exports, module) {
                     brackets.fs.writeFile(baseDir, contents, UTF8, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
             
                 runs(function () {
                     // Ideally we would get ERR_CANT_WRITE, but as long as we get some sort of error it's fine. 
@@ -528,7 +542,7 @@ define(function (require, exports, module) {
                     brackets.fs.writeFile(filename, contents, UTF8, writeFileCB);
                 });
             
-                waitsFor(function () { return writeFileCB.wasCalled; }, 1000);
+                waitsFor(function () { return writeFileCB.wasCalled; }, "writeFile to finish", 1000);
             
                 runs(function () {
                     expect(writeFileCB.error).toBeFalsy();
@@ -540,7 +554,7 @@ define(function (require, exports, module) {
                     brackets.fs.readFile(filename, UTF8, readFileCB);
                 });
 
-                waitsFor(function () { return readFileCB.wasCalled; }, 1000);
+                waitsFor(function () { return readFileCB.wasCalled; },  "readFile to finish", 1000);
             
                 runs(function () {
                     expect(readFileCB.error).toBeFalsy();
@@ -552,7 +566,7 @@ define(function (require, exports, module) {
                     brackets.fs.unlink(filename, unlinkCB);
                 });
             
-                waitsFor(function () { return unlinkCB.wasCalled; }, 1000);
+                waitsFor(function () { return unlinkCB.wasCalled; },  "unlink to finish", 1000);
             
                 runs(function () {
                     expect(unlinkCB.error).toBeFalsy();
@@ -563,7 +577,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(filename, statCB);
                 });
             
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; },  "stat to finish", 1000);
             
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -577,7 +591,7 @@ define(function (require, exports, module) {
                     brackets.fs.unlink("/This/file/doesnt/exist.txt", cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; },  "unlink to finish",  1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -591,7 +605,7 @@ define(function (require, exports, module) {
                     brackets.fs.unlink(42, cb);
                 });
             
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "unlink to finish", 1000);
             
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
@@ -609,7 +623,7 @@ define(function (require, exports, module) {
                     brackets.fs.makedir(delDirName, parseInt("777", 0), cb);
                 });
                 
-                waitsFor(function () { return cb.wasCalled; });
+                waitsFor(function () { return cb.wasCalled; }, "makeDir to finish");
                 
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.NO_ERROR);
@@ -620,7 +634,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(delDirName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; });
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish");
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
@@ -644,7 +658,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(delDirName, statCB);
                 });
             
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, 1000, "stat to finish");
             
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -664,7 +678,7 @@ define(function (require, exports, module) {
                     brackets.fs.makedir(newDirName, parseInt("777", 0), cb);
                 });
                 
-                waitsFor(function () { return cb.wasCalled; });
+                waitsFor(function () { return cb.wasCalled; }, "makedir to finish");
                 
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.NO_ERROR);
@@ -675,7 +689,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(newDirName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; });
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish");
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
@@ -687,7 +701,7 @@ define(function (require, exports, module) {
                     brackets.fs.moveToTrash(newDirName, trashCB);
                 });
                 
-                waitsFor(function () { return trashCB.wasCalled; });
+                waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
                     expect(trashCB.error).toBe(brackets.fs.NO_ERROR);
@@ -710,7 +724,7 @@ define(function (require, exports, module) {
                     brackets.fs.rename(oldName, newName, renameCB);
                 });
                 
-                waitsFor(function () { return renameCB.wasCalled; }, 1000);
+                waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
                     expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
@@ -721,7 +735,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(oldName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -732,7 +746,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(newName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
@@ -744,7 +758,7 @@ define(function (require, exports, module) {
                     brackets.fs.rename(newName, oldName, renameCB);
                 });
                 
-                waitsFor(function () { return renameCB.wasCalled; }, 1000);
+                waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
                     expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
@@ -763,7 +777,7 @@ define(function (require, exports, module) {
                     brackets.fs.rename(oldName, newName, renameCB);
                 });
                 
-                waitsFor(function () { return renameCB.wasCalled; }, 1000);
+                waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
                     expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
@@ -774,7 +788,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(oldName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -785,7 +799,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(newName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
@@ -797,7 +811,7 @@ define(function (require, exports, module) {
                     brackets.fs.rename(newName, oldName, renameCB);
                 });
                 
-                waitsFor(function () { return renameCB.wasCalled; }, 1000);
+                waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
                     expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
@@ -814,7 +828,7 @@ define(function (require, exports, module) {
                     brackets.fs.rename(oldName, newName, cb);
                 });
                 
-                waitsFor(function () { return cb.wasCalled; }, 1000);
+                waitsFor(function () { return cb.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_FILE_EXISTS);
@@ -832,7 +846,7 @@ define(function (require, exports, module) {
                         brackets.fs.rename(oldName, newName, cb);
                     });
                     
-                    waitsFor(function () { return cb.wasCalled; }, 1000);
+                    waitsFor(function () { return cb.wasCalled; }, "rename to finish", 1000);
                     
                     runs(function () {
                         expect(cb.error).toBe(brackets.fs.ERR_CANT_WRITE);
@@ -859,7 +873,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(copyName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -870,7 +884,7 @@ define(function (require, exports, module) {
                     brackets.fs.copyFile(fileName, copyName, copyCB);
                 });
                 
-                waitsFor(function () { return copyCB.wasCalled; }, 1000);
+                waitsFor(function () { return copyCB.wasCalled; }, "copyFile to finish", 1000);
                 
                 runs(function () {
                     expect(copyCB.error).toBe(brackets.fs.NO_ERROR);
@@ -882,7 +896,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(copyName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
@@ -894,7 +908,7 @@ define(function (require, exports, module) {
                     brackets.fs.stat(fileName, statCB);
                 });
                 
-                waitsFor(function () { return statCB.wasCalled; }, 1000);
+                waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
                     expect(statCB.error).toBe(brackets.fs.NO_ERROR);
@@ -905,7 +919,7 @@ define(function (require, exports, module) {
                     brackets.fs.unlink(copyName, unlinkCB);
                 });
                 
-                waitsFor(function () { return unlinkCB.wasCalled; }, 1000);
+                waitsFor(function () { return unlinkCB.wasCalled; }, "unlink to finish", 1000);
                 
                 runs(function () {
                     expect(unlinkCB.error).toBe(brackets.fs.NO_ERROR);
@@ -940,7 +954,7 @@ define(function (require, exports, module) {
                     brackets.fs.writeFile(newFileName, "", UTF8, writeFileCB);
                 });
                 
-                waitsFor(function () { return writeFileCB.wasCalled; });
+                waitsFor(function () { return writeFileCB.wasCalled; }, "writeFile to finish");
                 
                 runs(function () {
                     expect(writeFileCB.error).toBe(brackets.fs.NO_ERROR);
@@ -951,7 +965,7 @@ define(function (require, exports, module) {
                     brackets.fs.moveToTrash(newFileName, trashCB);
                 });
                 
-                waitsFor(function () { return trashCB.wasCalled; });
+                waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
                     expect(trashCB.error).toBe(brackets.fs.NO_ERROR);
@@ -963,7 +977,7 @@ define(function (require, exports, module) {
                     brackets.fs.moveToTrash(newFileName, trashCB);
                 });
                 
-                waitsFor(function () { return trashCB.wasCalled; });
+                waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
                     expect(trashCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -980,7 +994,7 @@ define(function (require, exports, module) {
                     brackets.fs.makedir(newDirName, parseInt("777", 8), makedirCB);
                 });
                 
-                waitsFor(function () { return makedirCB.wasCalled; });
+                waitsFor(function () { return makedirCB.wasCalled; }, "makedir to finish");
                 
                 runs(function () {
                     expect(makedirCB.error).toBe(brackets.fs.NO_ERROR);
@@ -991,7 +1005,7 @@ define(function (require, exports, module) {
                     brackets.fs.moveToTrash(newDirName, trashCB);
                 });
                 
-                waitsFor(function () { return trashCB.wasCalled; });
+                waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
                     expect(trashCB.error).toBe(brackets.fs.NO_ERROR);
@@ -1003,7 +1017,7 @@ define(function (require, exports, module) {
                     brackets.fs.moveToTrash(newDirName, trashCB);
                 });
                 
-                waitsFor(function () { return trashCB.wasCalled; });
+                waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
                     expect(trashCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
@@ -1018,7 +1032,7 @@ define(function (require, exports, module) {
                     brackets.fs.moveToTrash(baseDir + "/doesnt_exist", cb);
                 });
                 
-                waitsFor(function () { return cb.wasCalled; });
+                waitsFor(function () { return cb.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
