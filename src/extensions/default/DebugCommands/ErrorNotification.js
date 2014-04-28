@@ -61,6 +61,7 @@ define(function (require, exports, module) {
         $span = $("<span>").text(errorCount);
         $("<div>")
             .addClass("error")
+            .css("cursor", "pointer")
             .text(Strings.ERRORS + ": ")
             .append($span)
             .on("click", showDeveloperTools)
