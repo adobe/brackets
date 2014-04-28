@@ -316,7 +316,7 @@ define(function (require, exports, module) {
         
         languageSelect      = new DropdownButton("", [], function (item, index) {
             var document = EditorManager.getActiveEditor().document,
-                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath),
+                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true),
                 html = _.escape(item.getName());
             
             // Show indicators for currently selected & default languages for the current file
@@ -363,7 +363,8 @@ define(function (require, exports, module) {
         // Language select change handler
         $(languageSelect).on("select", function (e, lang, index) {
             var document = EditorManager.getActiveEditor().document,
-                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath);
+                fullPath = document.file.fullPath,
+                defaultLang = LanguageManager.getLanguageForPath(fullPath, true);
             // if default language selected, don't "force" it
             // (passing in null will reset the force flag)
             document.setLanguageOverride(lang === defaultLang ? null : lang);

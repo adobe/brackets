@@ -322,7 +322,7 @@ define(function (require, exports, module) {
         }
 
         var currentDoc = DocumentManager.getCurrentDocument(),
-            providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath, true);
+            providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath);
 
         if (providerList && providerList.length) {
             var numProblems = 0;

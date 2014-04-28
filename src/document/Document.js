@@ -673,10 +673,14 @@ define(function (require, exports, module) {
         if (language) {
             var oldLanguage = this.language;
             this._languageWasForced = true;
-            this.language = language;
-            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+            if (oldLanguage !== language) {
+                this.language = language;
+                LanguageManager.setLanguageOverrideForPath(this.file.fullPath, this.language);
+                $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+            }
         } else { // if language was null, reset to default language
             this._languageWasForced = false;
+            LanguageManager.setLanguageOverrideForPath(this.file.fullPath, null);
             this._updateLanguage();
         }
     };
@@ -690,7 +694,7 @@ define(function (require, exports, module) {
             return;
         }
         var oldLanguage = this.language;
-        this.language = LanguageManager.getLanguageForPath(this.file.fullPath, false);
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         if (oldLanguage && oldLanguage !== this.language) {
             $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
         }
@@ -710,7 +714,6 @@ define(function (require, exports, module) {
     Document.prototype.isUntitled = function () {
         return this.file instanceof InMemoryFile;
     };
-
 
     // Define public API
     exports.Document = Document;
