@@ -302,11 +302,13 @@ define(function (require, exports, module) {
             //Remove wrapper
             $(".modal-wrapper:last").remove();
         }).one("shown", function () {
-            // Set focus to the default button
-            var primaryBtn = $dlg.find(".primary");
-
-            if (primaryBtn) {
-                primaryBtn.focus();
+            // Set focus to the default button, if possible
+            var $primaryBtn = $dlg.find(".primary:enabled");
+            if ($primaryBtn.length) {
+                $primaryBtn.focus();
+            // If not, set it to any other button
+            } else {
+                $dlg.find(".dialog-button:enabled:eq(0)").focus();
             }
 
             // Push our global keydown handler onto the global stack of handlers.
