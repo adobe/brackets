@@ -27,7 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Strings = brackets.getModule("strings");
+    var _       = brackets.getModule("thirdparty/lodash"),
+        Strings = brackets.getModule("strings");
 
     var $span      = null,
         errorCount = 0,
@@ -66,8 +67,29 @@ define(function (require, exports, module) {
             .prependTo("#status-bar .dynamic-indicators");
     }
 
+    var blink = _.debounce(function () {
+        var times = 3,
+            speed = 200;
+
+        function blinkOnce() {
+            $span.css("visibility", "hidden");
+            setTimeout(function () {
+                $span.css("visibility", "visible");
+                times--;
+                if (times > 0) {
+                    setTimeout(function () {
+                        blinkOnce();
+                    }, speed);
+                }
+            }, speed);
+        }
+
+        blinkOnce();
+    }, 100);
+
     function incErrorCount() {
         errorCount++;
+        blink();
         refreshIcon();
     }
 
