@@ -312,7 +312,7 @@ define({
 	"CMD_ADD_NEXT_MATCH": "選択範囲に次の候補を追加",
 	"CMD_SKIP_CURRENT_MATCH": "スキップして次の候補を追加",
 	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
-	"CMD_FIND_IN_SELECTED": "!能=[7518286] Find in Selected File/Folder_=!",
+	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_REPLACE": "置換",
     
