@@ -760,8 +760,8 @@ define(function (require, exports, module) {
                 // Replace entire value
                 charCount = tagInfo.attr.value.length;
             } else {
-                // Replace queryDir what's been typed (to insert new selection)
-                charCount = this.cachedHints.queryDir.length + this.info.filter.length;
+                // Replace filter (to insert new selection)
+                charCount = this.info.filter.length;
 
                 // If next char is "/", then overwrite it since we're inserting a "/"
                 if (this.info.attr.value.length > charCount && this.info.attr.value[charCount] === "/") {
