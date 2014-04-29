@@ -661,8 +661,16 @@ define(function (require, exports, module) {
         // Insert folder names, but replace file names, so if a file is selected
         // (i.e. closeOnSelect === true), then adjust insert char positions to
         // replace existing value, if there is a closing paren
-        if (this.closeOnSelect && closingPos.index !== -1) {
-            end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+        if (this.closeOnSelect) {
+            if (closingPos.index !== -1) {
+                end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+            }
+        } else {
+            // If next char is "/", then overwrite it since we're inserting a "/"
+            var nextSlash = this.findNextPosInArray(this.info.values, "/", this.info);
+            if (nextSlash.index === this.info.index && nextSlash.offset === this.info.offset) {
+                end.ch += 1;
+            }
         }
         if (this.info.filter.length > 0) {
             start.ch -= this.info.filter.length;
@@ -748,8 +756,18 @@ define(function (require, exports, module) {
                 shouldReplace = false;
             }
 
-            // Replace entire value, otherwise just queryDir (to insert new selection)
-            charCount = (shouldReplace) ? tagInfo.attr.value.length : this.cachedHints.queryDir.length;
+            if (shouldReplace) {
+                // Replace entire value
+                charCount = tagInfo.attr.value.length;
+            } else {
+                // Replace queryDir what's been typed (to insert new selection)
+                charCount = this.cachedHints.queryDir.length + this.info.filter.length;
+
+                // If next char is "/", then overwrite it since we're inserting a "/"
+                if (this.info.attr.value.length > charCount && this.info.attr.value[charCount] === "/") {
+                    charCount += 1;
+                }
+            }
         }
 
         end.line = start.line = cursor.line;
