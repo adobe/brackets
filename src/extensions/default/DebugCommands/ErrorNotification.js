@@ -27,8 +27,10 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _       = brackets.getModule("thirdparty/lodash"),
-        Strings = brackets.getModule("strings");
+    var _               = brackets.getModule("thirdparty/lodash"),
+        AnimationUtils  = brackets.getModule("utils/AnimationUtils"),
+        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        Strings         = brackets.getModule("strings");
 
     var $span      = null,
         errorCount = 0,
@@ -36,6 +38,8 @@ define(function (require, exports, module) {
         _windowOnError,
         _consoleError,
         _consoleClear;
+
+    ExtensionUtils.loadStyleSheet(module, "styles.css");
 
     function showDeveloperTools() {
         try {
@@ -65,33 +69,16 @@ define(function (require, exports, module) {
         // create the span
         $span = $("<span>").text(errorCount);
         $("<div>")
+            .attr("id", "error-counter")
             .attr("title", Strings.CMD_SHOW_DEV_TOOLS + "\u2026")
-            .addClass("error")
-            .css("cursor", "pointer")
             .text(Strings.ERRORS + ": ")
             .append($span)
             .on("click", showDeveloperTools)
-            .prependTo("#status-bar .dynamic-indicators");
+            .insertBefore("#status-bar .spinner");
     }
 
     var blink = _.debounce(function () {
-        var times = 3,
-            speed = 200;
-
-        function blinkOnce() {
-            $span.css("visibility", "hidden");
-            setTimeout(function () {
-                $span.css("visibility", "visible");
-                times--;
-                if (times > 0) {
-                    setTimeout(function () {
-                        blinkOnce();
-                    }, speed);
-                }
-            }, speed);
-        }
-
-        blinkOnce();
+        AnimationUtils.animateUsingClass($span.parent()[0], "flash");
     }, 100);
 
     function incErrorCount() {
