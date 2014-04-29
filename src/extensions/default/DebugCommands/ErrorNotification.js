@@ -105,7 +105,9 @@ define(function (require, exports, module) {
     }
 
     function attachFunctions() {
-        if (_attached) { return; }
+        if (_attached) {
+            return;
+        }
 
         _attached      = true;
         _windowOnError = window.onerror;
@@ -134,7 +136,9 @@ define(function (require, exports, module) {
     }
 
     function detachFunctions() {
-        if (!_attached) { return; }
+        if (!_attached) {
+            return;
+        }
 
         _attached            = false;
         window.onerror       = _windowOnError;
@@ -143,7 +147,11 @@ define(function (require, exports, module) {
     }
 
     function toggle(bool) {
-        if (bool) { attachFunctions(); } else { detachFunctions(); }
+        if (bool) {
+            attachFunctions();
+        } else {
+            detachFunctions();
+        }
         refreshIcon();
     }
 
