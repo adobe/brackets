@@ -159,7 +159,6 @@ define(function (require, exports, module) {
             y                   = Math.round(e.offsetY * 100 / _scale),
             $target             = $(e.target),
             imagePos            = $("#img-preview").position(),
-            scaleDivPos         = $("#img-scale").position(),
             left                = e.offsetX + imagePos.left,
             top                 = e.offsetY + imagePos.top,
             width               = $("#img-preview").width(),
@@ -173,23 +172,7 @@ define(function (require, exports, module) {
             tipMinusOffsetX1    = -82,    // for less than 4-digit image width
             tipMinusOffsetX2    = -90;    // for 4-digit image width 
         
-        // Adjust left, top, x and y based on which element contains the cursor.
-        if (!$target.is("#img-preview")) {
-            if ($target.is("#img-scale")) {
-                left = scaleDivPos.left + e.offsetX;
-                top = scaleDivPos.top + e.offsetY;
-                x = Math.round((left - imagePos.left) * 100 / _scale);
-                y = Math.round((top - imagePos.top) * 100 / _scale);
-            } else {
-                return;
-            }
-        }
-
         _handleMouseEnterOrExitScaleSticker(left, top);
-        if ($(e.target).is("#img-scale")) {
-            // If we're in the scale sticker, then just return.
-            return;
-        }
         
         // Check whether to show the image tip on the left.
         if ((e.pageX + infoWidth1) > windowWidth ||
@@ -246,13 +229,6 @@ define(function (require, exports, module) {
                 _scaleDivInfo = null;
                 $("#img-scale").show();
             }
-        } else if (!_scaleDivInfo && $target.is("#img-scale")) {
-            // Remember image scale div coordinates before hiding it.
-            _scaleDivInfo = {left: targetPos.left,
-                             top: targetPos.top,
-                             right: targetPos.left + $target.width(),
-                             bottom: targetPos.top + $target.height()};
-            $("#img-scale").hide();
         }
     }
 
@@ -264,8 +240,8 @@ define(function (require, exports, module) {
     function onRemove() {
         $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
-        $("#img").off("mousemove", "#img-preview, #img-scale", _showImageTip)
-                 .off("mouseleave", "#img-preview, #img-scale", _hideImageTip);
+        $("#img").off("mousemove", "#img-preview", _showImageTip)
+                 .off("mouseleave", "#img-preview", _hideImageTip);
     }
 
     /**
@@ -322,8 +298,8 @@ define(function (require, exports, module) {
 
             $("#img-tip").hide();
             $(".img-guide").hide();
-            $("#img").on("mousemove", "#img-preview, #img-scale", _showImageTip)
-                     .on("mouseleave", "#img-preview, #img-scale", _hideImageTip);
+            $("#img").on("mousemove", "#img-preview", _showImageTip)
+                     .on("mouseleave", "#img-preview", _hideImageTip);
 
             _updateScale($(this).width());
 
