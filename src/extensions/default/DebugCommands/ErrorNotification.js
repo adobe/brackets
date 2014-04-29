@@ -65,6 +65,7 @@ define(function (require, exports, module) {
         // create the span
         $span = $("<span>").text(errorCount);
         $("<div>")
+            .attr("title", Strings.CMD_SHOW_DEV_TOOLS + "\u2026")
             .addClass("error")
             .css("cursor", "pointer")
             .text(Strings.ERRORS + ": ")
