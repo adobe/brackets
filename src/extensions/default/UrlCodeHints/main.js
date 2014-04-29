@@ -479,9 +479,10 @@ define(function (require, exports, module) {
 
         if (hints instanceof Array && hints.length) {
             // Array was returned
+            var lowerCaseFilter = filter.toLowerCase();
             console.assert(!result.length);
             result = $.map(hints, function (item) {
-                if (item.indexOf(filter) === 0) {
+                if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                     return item;
                 }
             }).sort(sortFunc);
@@ -497,8 +498,9 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                var lowerCaseFilter = filter.toLowerCase();
                 result = $.map(asyncHints, function (item) {
-                    if (item.indexOf(filter) === 0) {
+                    if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                         return item;
                     }
                 }).sort(sortFunc);
