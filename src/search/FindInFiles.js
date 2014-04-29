@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
-    var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
+    var searchDialogTemplate  = require("text!htmlContent/findreplace-bar.html"),
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html");
@@ -942,9 +942,11 @@ define(function (require, exports, module) {
         // Note the prefix label is a simple "Find:" - the "in ..." part comes after the text field
         var templateVars = {
                 value: initialString || "",
-                label: _labelForScope(scope)
+                label: _labelForScope(scope),
+                placeholder: Strings.CMD_FIND_IN_SUBTREE,
+                Strings: Strings
             },
-            dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings)),
+            dialogHTML = Mustache.render(searchDialogTemplate),
             that       = this;
         
         // Synchronously close Find/Replace bar first, if open (TODO: remove once #6203 fixed)

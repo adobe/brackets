@@ -115,7 +115,6 @@ define(function (require, exports, module) {
     }
     
     function parseQuery(query) {
-        $(".modal-bar .message").show();
         $(".modal-bar .error").hide();
         
         // Is it a (non-blank) regex?
@@ -124,7 +123,6 @@ define(function (require, exports, module) {
                 var caseSensitive = $("#find-case-sensitive").is(".active");
                 return new RegExp(query, caseSensitive ? "" : "i");
             } catch (e) {
-                $(".modal-bar .message").hide();
                 $(".modal-bar .error")
                     .show()
                     .text(e.message);
@@ -593,14 +591,32 @@ define(function (require, exports, module) {
         // occurrence.
         state.searchStartPos = editor.getCursorPos(false, "start");
         
-        // If a previous search/replace bar was open, capture its query text for use below
+        // Prepopulate the search field
         var initialQuery;
         if (modalBar) {
+            // Use the previous query. This can happen if the user switches from Find to Replace.
             initialQuery = $("#find-what").val();
+        } else {
+            // Prepopulate with the current primary selection, if any
+            var sel = editor.getSelection();
+            initialQuery = cm.getRange(sel.start, sel.end);
+            
+            // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
+            var newline = initialQuery.indexOf("\n");
+            if (newline !== -1) {
+                initialQuery = initialQuery.substr(0, newline);
+            }
         }
         
         // Create the search bar UI (closing any previous modalBar in the process)
-        var htmlContent = Mustache.render(searchBarTemplate, $.extend(templateVars, Strings));
+        _.extend(templateVars, {
+            value: initialQuery || "",
+            navigator: true,
+            placeholder: Strings.CMD_FIND_FIELD_PLACEHOLDER,
+            Strings: Strings
+        });
+        
+        var htmlContent = Mustache.render(searchBarTemplate, templateVars);
         createModalBar(htmlContent);
         addShortcutToTooltip($("#find-next"), Commands.CMD_FIND_NEXT);
         addShortcutToTooltip($("#find-prev"), Commands.CMD_FIND_PREVIOUS);
@@ -643,23 +659,8 @@ define(function (require, exports, module) {
             handleQueryChange(editor, state);
         });
 
-        // Prepopulate the search field
-        if (!initialQuery) {
-            // Prepopulate with the current primary selection, if any
-            var sel = editor.getSelection();
-            initialQuery = cm.getRange(sel.start, sel.end);
-            
-            // Eliminate newlines since we don't generally support searching across line boundaries (#2960)
-            var newline = initialQuery.indexOf("\n");
-            if (newline !== -1) {
-                initialQuery = initialQuery.substr(0, newline);
-            }
-        }
-        
         // Initial UI state
-        $("#find-what")
-            .val(initialQuery)
-            .get(0).select();
+        $("#find-what").get(0).select();
         _updateSearchBarFromPrefs();
         
         handleQueryChange(editor, state, true);
@@ -801,7 +802,6 @@ define(function (require, exports, module) {
         $replaceAllTable.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     }
 
-    /** Shows the Find-Replace search bar at top */
     function replace(editor) {
         // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
         var $replaceBtn = $("#replace-yes");
