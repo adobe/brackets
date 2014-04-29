@@ -500,7 +500,10 @@ a, img {
 }
 
 #toolbar-extension-manager {
-    .sprite-icon(0, 0, 24px, 24px, "images/topcoat-plugin-20.svg");
+    .sprite-icon(0, 0, 24px, 24px, "images/extension-manager-sprite.svg");
+    &.updatesAvailable {
+        .sprite-icon(0, 24px, 24px, 24px, "images/extension-manager-sprite.svg");
+    }
 }
 
 /* Project panel */
@@ -1415,6 +1418,12 @@ textarea.exclusions-editor {
             height: 9px;
         }
     }
+    
+    &.inline {
+        margin-left: 8px;
+        position: relative;
+        top: 3px;
+    }
 }
 
 @-webkit-keyframes spinner-rotateplane {
@@ -1492,10 +1501,6 @@ label input {
 .live-preview-sync-error .CodeMirror-linenumber {
     background-color: @live-preview-sync-error-background !important;
     color: @live-preview-sync-error-color !important;
-}
-
-.install-extension-dialog .spinner {
-    margin-left: 10px;
 }
 
 /* Quick Edit, Quick Docs */

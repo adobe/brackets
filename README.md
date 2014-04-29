@@ -1,4 +1,4 @@
-Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.png?branch=master)](https://travis-ci.org/adobe/brackets)
+Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
 This is an early version of Brackets, a code editor for HTML, CSS
@@ -105,9 +105,9 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 
 #### What's Brackets working on next?
 
-* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns labeled "Sprint N"
-  are features already in progress and should ship within 2 weeks. Features at the top of
-  the "Product Backlog" list will come next.
+* In our [feature backlog](http://bit.ly/BracketsBacklog), the columns to the right
+  (starting from "Development") list the features that we're currently working on.
+  "Ready" shows what we'll be working on next.
 * Watch our [GitHub activity stream](https://github.com/adobe/brackets/pulse).
 
 #### Contact info
