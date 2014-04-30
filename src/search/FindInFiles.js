@@ -152,10 +152,18 @@ define(function (require, exports, module) {
             return null;
         }
 
+        // For now, treat all matches as multiline (i.e. ^/$ match on every line, not the whole
+        // document). This is consistent with how single-file find works. Eventually we should add
+        // an option for this.
+        var flags = "gm";
+        if (!queryInfo.isCaseSensitive) {
+            flags += "i";
+        }
+        
         // Is it a (non-blank) regex?
         if (queryInfo.isRegexp) {
             try {
-                return new RegExp(queryInfo.query, queryInfo.isCaseSensitive ? "g" : "gi");
+                return new RegExp(queryInfo.query, flags);
             } catch (e) {
                 if (findBar) {
                     findBar.showError(e.message);
@@ -164,7 +172,7 @@ define(function (require, exports, module) {
             }
         } else {
             // Query is a plain string. Turn it into a regexp
-            return new RegExp(StringUtils.regexEscape(queryInfo.query), queryInfo.isCaseSensitive ? "g" : "gi");
+            return new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
         }
     }
     
