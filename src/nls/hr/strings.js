@@ -131,14 +131,14 @@ define({
     "FIND_RESULT_COUNT"                 : "{0} rezultata",
     "FIND_RESULT_COUNT_SINGLE"          : "1 rezultat",
     "FIND_NO_RESULTS"                   : "Nema rezultata",
-    "REPLACE_PLACEHOLDER"               : "Zamjeni sa\u2026",
+    "REPLACE_PLACEHOLDER"               : "Zamijeni sa\u2026",
     "BUTTON_REPLACE_ALL"                : "Sve\u2026",
-    "BUTTON_REPLACE"                    : "Zamjeni",
+    "BUTTON_REPLACE"                    : "Zamijeni",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Sljedeće poklapanje",
     "BUTTON_PREV_HINT"                  : "Prethodno poklapanje",
-    "BUTTON_CASESENSITIVE_HINT"         : "*Match**Case*",
+    "BUTTON_CASESENSITIVE_HINT"         : "Poklapanje samo sa specificiranim/određenim velikim ili malim slovom",
     "BUTTON_REGEXP_HINT"                : "Regularni Izraz",
 
     "OPEN_FILE"                         : "Otvori datoteku",
@@ -150,7 +150,7 @@ define({
     "NO_UPDATE_MESSAGE"                 : "Trenutno koristite aktualnu verziju aplikacije {APP_NAME}.",
 
     // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Zamjeni \"",
+    "FIND_REPLACE_TITLE_PART1"          : "Zamijeni \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" sa \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
@@ -291,7 +291,7 @@ define({
     "CMD_FIND_ALL_AND_SELECT"             : "Nađi sve i odaberi",
     "CMD_ADD_NEXT_MATCH"                  : "Dodaj sljedeće slaganje u odabir",
     "CMD_SKIP_CURRENT_MATCH"              : "Preskoči i dodaj sljedeće slaganje",
-    "CMD_REPLACE"                         : "Zamjeni",
+    "CMD_REPLACE"                         : "Zamijeni",
     "CMD_INDENT"                          : "Pomakni udesno",
     "CMD_UNINDENT"                        : "Pomakni ulijevo",
     "CMD_DUPLICATE"                       : "Udvostruči",
