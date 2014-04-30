@@ -1046,7 +1046,7 @@ define(function (require, exports, module) {
                 
                 toggleRegexp(true);
                 toggleCaseSensitive(true);
-                enterSearchText("foo");
+                enterSearchText("f.o");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
             });
@@ -1064,7 +1064,7 @@ define(function (require, exports, module) {
                 
                 toggleRegexp(true);
                 toggleCaseSensitive(false);
-                enterSearchText("foo");
+                enterSearchText("f.o");
                 expectHighlightedMatches(expectedSelections);
                 expectSelection(expectedSelections[0]);
             });
