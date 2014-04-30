@@ -8,8 +8,12 @@
         --><button id="find-next" class="btn no-focus" tabindex="-1" title="{{Strings.BUTTON_NEXT_HINT}}">{{Strings.BUTTON_NEXT}}</button><!--
     --></div><!--
     {{/navigator}}
-    --><div class="no-results-message">{{Strings.FIND_NO_RESULTS}}</div><!--
---></div><!--
+    -->
+    <div class="no-results-message">{{Strings.FIND_NO_RESULTS}}</div>
+    <div class="message">
+        <span id="searchlabel">{{{scopeLabel}}}</span>
+    </div>
+</div><!--
 
 {{#replace}}
 --><div id="replace-group"><!--

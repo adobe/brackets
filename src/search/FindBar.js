@@ -66,13 +66,15 @@ define(function (require, exports, module) {
      *      replace - true to show the Replace field - default false
      *      queryPlaceholder - label to show in the Find field - default empty string
      *      initialQuery - query to populate in the Find field on open - default empty string
+     *      scopeLabel - label to show for the scope of the search - default empty string
      */
     function FindBar(options) {
         var defaults = {
             navigator: false,
             replace: false,
             queryPlaceholder: "",
-            initialQuery: ""
+            initialQuery: "",
+            scopeLabel: ""
         };
         this._options = _.extend(defaults, options);
         this._closed = false;

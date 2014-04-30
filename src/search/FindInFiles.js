@@ -941,7 +941,8 @@ define(function (require, exports, module) {
             navigator: false,
             replace: false,
             initialQuery: initialString,
-            queryPlaceholder: Strings.CMD_FIND_IN_SUBTREE
+            queryPlaceholder: Strings.CMD_FIND_IN_SUBTREE,
+            scopeLabel: _labelForScope(scope)
         });
         findBar.open();
 
