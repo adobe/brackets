@@ -31,8 +31,14 @@ define(function (require, exports, module) {
     var Commands              = require("command/Commands"),
         FindReplace           = require("search/FindReplace"),
         KeyEvent              = require("utils/KeyEvent"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
+        FileSystem            = require("filesystem/FileSystem"),
+        FileUtils             = require("file/FileUtils"),
+        Async                 = require("utils/Async"),
+        _                     = require("thirdparty/lodash");
 
+    var promisify = Async.promisify; // for convenience
+    
     var defaultContent = "/* Test comment */\n" +
                          "define(function (require, exports, module) {\n" +
                          "    var Foo = require(\"modules/Foo\"),\n" +
@@ -1534,16 +1540,21 @@ define(function (require, exports, module) {
 
         this.category = "integration";
 
-        var testPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files"),
+        var defaultSourcePath = SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files"),
+            testPath,
+            nextFolderIndex = 1,
             CommandManager,
             DocumentManager,
             EditorManager,
             FileSystem,
             FindInFiles,
+            ProjectManager,
             testWindow,
             $;
-
+        
         beforeFirst(function () {
+            SpecRunnerUtils.createTempDirectory();
+
             // Create a new window that will be shared by ALL tests in this spec.
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -1555,12 +1566,11 @@ define(function (require, exports, module) {
                 FileSystem      = testWindow.brackets.test.FileSystem;
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
                 CommandManager  = testWindow.brackets.test.CommandManager;
+                ProjectManager  = testWindow.brackets.test.ProjectManager;
                 $               = testWindow.$;
-
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
-
+        
         afterLast(function () {
             CommandManager  = null;
             DocumentManager = null;
@@ -1570,7 +1580,13 @@ define(function (require, exports, module) {
             $               = null;
             testWindow      = null;
             SpecRunnerUtils.closeTestWindow();
+            SpecRunnerUtils.removeTempDirectory();
         });
+        
+        function openProject(sourcePath) {
+            testPath = defaultSourcePath;
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+        }
 
         function openSearchBar(scope) {
             // Make sure search bar from previous test has animated out fully
@@ -1593,266 +1609,443 @@ define(function (require, exports, module) {
             }, "Find in Files done");
         }
 
+        describe("Find", function () {
+            beforeEach(function () {
+                openProject(defaultSourcePath);
+            });
+            
+            it("should find all occurences in project", function () {
+                openSearchBar();
+                runs(function () {
+                    executeSearch("foo");
+                });
 
-        it("should find all occurences in project", function () {
-            openSearchBar();
-            runs(function () {
-                executeSearch("foo");
+                runs(function () {
+                    var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                    expect(fileResults).toBeFalsy();
+
+                    fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                    expect(fileResults).toBeTruthy();
+                    expect(fileResults.matches.length).toBe(7);
+
+                    fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                    expect(fileResults).toBeTruthy();
+                    expect(fileResults.matches.length).toBe(4);
+
+                    fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                    expect(fileResults).toBeTruthy();
+                    expect(fileResults.matches.length).toBe(3);
+                });
             });
 
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
-                expect(fileResults).toBeFalsy();
+            it("should find all occurences in folder", function () {
+                var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
+                openSearchBar(dirEntry);
+                runs(function () {
+                    executeSearch("foo");
+                });
 
-                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(7);
+                runs(function () {
+                    var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                    expect(fileResults).toBeFalsy();
 
-                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(4);
+                    fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                    expect(fileResults).toBeFalsy();
 
-                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(3);
-            });
-        });
+                    fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                    expect(fileResults).toBeFalsy();
 
-        it("should find all occurences in folder", function () {
-            var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
-            openSearchBar(dirEntry);
-            runs(function () {
-                executeSearch("foo");
+                    fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                    expect(fileResults).toBeTruthy();
+                    expect(fileResults.matches.length).toBe(3);
+                });
             });
 
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
-                expect(fileResults).toBeFalsy();
+            it("should find all occurences in single file", function () {
+                var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("foo");
+                });
 
-                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
-                expect(fileResults).toBeFalsy();
+                runs(function () {
+                    var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                    expect(fileResults).toBeFalsy();
 
-                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
-                expect(fileResults).toBeFalsy();
+                    fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                    expect(fileResults).toBeFalsy();
 
-                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(3);
-            });
-        });
+                    fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                    expect(fileResults).toBeTruthy();
+                    expect(fileResults.matches.length).toBe(4);
 
-        it("should find all occurences in single file", function () {
-            var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
-                expect(fileResults).toBeFalsy();
-
-                fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(4);
-
-                fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
-                expect(fileResults).toBeFalsy();
-            });
-        });
-
-        it("should find start and end positions", function () {
-            var filePath = testPath + "/foo.js",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("callFoo");
+                    fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                    expect(fileResults).toBeFalsy();
+                });
             });
 
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[filePath];
-                expect(fileResults).toBeTruthy();
-                expect(fileResults.matches.length).toBe(1);
+            it("should find start and end positions", function () {
+                var filePath = testPath + "/foo.js",
+                    fileEntry = FileSystem.getFileForPath(filePath);
 
-                var match = fileResults.matches[0];
-                expect(match.start.ch).toBe(13);
-                expect(match.start.line).toBe(6);
-                expect(match.end.ch).toBe(20);
-                expect(match.end.line).toBe(6);
-            });
-        });
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("callFoo");
+                });
 
-        it("should dismiss dialog and show panel when there are results", function () {
-            var filePath = testPath + "/foo.js",
-                fileEntry = FileSystem.getFileForPath(filePath);
+                runs(function () {
+                    var fileResults = FindInFiles._searchResults[filePath];
+                    expect(fileResults).toBeTruthy();
+                    expect(fileResults.matches.length).toBe(1);
 
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("callFoo");
-            });
-
-            waitsFor(function () {
-                return ($(".modal-bar").length === 0);
-            }, "search bar close");
-
-            runs(function () {
-                var fileResults = FindInFiles._searchResults[filePath];
-                expect(fileResults).toBeTruthy();
-                expect($("#search-results").is(":visible")).toBeTruthy();
-                expect($(".modal-bar").length).toBe(0);
-            });
-        });
-
-        it("should keep dialog and not show panel when there are no results", function () {
-            var filePath = testPath + "/bar.txt",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("abcdefghi");
+                    var match = fileResults.matches[0];
+                    expect(match.start.ch).toBe(13);
+                    expect(match.start.line).toBe(6);
+                    expect(match.end.ch).toBe(20);
+                    expect(match.end.line).toBe(6);
+                });
             });
 
-            waitsFor(function () {
-                return (FindInFiles._searchResults);
-            }, "search complete");
+            it("should dismiss dialog and show panel when there are results", function () {
+                var filePath = testPath + "/foo.js",
+                    fileEntry = FileSystem.getFileForPath(filePath);
 
-            runs(function () {
-                var result, resultFound = false;
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("callFoo");
+                });
 
-                // verify _searchResults Object is empty
-                for (result in FindInFiles._searchResults) {
-                    if (FindInFiles._searchResults.hasOwnProperty(result)) {
-                        resultFound = true;
+                waitsFor(function () {
+                    return ($(".modal-bar").length === 0);
+                }, "search bar close");
+
+                runs(function () {
+                    var fileResults = FindInFiles._searchResults[filePath];
+                    expect(fileResults).toBeTruthy();
+                    expect($("#search-results").is(":visible")).toBeTruthy();
+                    expect($(".modal-bar").length).toBe(0);
+                });
+            });
+
+            it("should keep dialog and not show panel when there are no results", function () {
+                var filePath = testPath + "/bar.txt",
+                    fileEntry = FileSystem.getFileForPath(filePath);
+
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("abcdefghi");
+                });
+
+                waitsFor(function () {
+                    return (FindInFiles._searchResults);
+                }, "search complete");
+
+                runs(function () {
+                    var result, resultFound = false;
+
+                    // verify _searchResults Object is empty
+                    for (result in FindInFiles._searchResults) {
+                        if (FindInFiles._searchResults.hasOwnProperty(result)) {
+                            resultFound = true;
+                        }
                     }
+                    expect(resultFound).toBe(false);
+
+                    expect($("#search-results").is(":visible")).toBeFalsy();
+                    expect($(".modal-bar").length).toBe(1);
+
+                    // Close search bar
+                    var $searchField = $(".modal-bar #find-group input");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
+                });
+            });
+
+            it("should open file in editor and select text when a result is clicked", function () {
+                var filePath = testPath + "/foo.html",
+                    fileEntry = FileSystem.getFileForPath(filePath);
+
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("foo");
+                });
+
+                runs(function () {
+                    // Verify no current document
+                    var editor = EditorManager.getActiveEditor();
+                    expect(editor).toBeFalsy();
+
+                    // Get panel
+                    var $searchResults = $("#search-results");
+                    expect($searchResults.is(":visible")).toBeTruthy();
+
+                    // Get list in panel
+                    var $panelResults = $searchResults.find("table.bottom-panel-table tr");
+                    expect($panelResults.length).toBe(8);   // 7 hits + 1 file section
+
+                    // First item in list is file section
+                    expect($($panelResults[0]).hasClass("file-section")).toBeTruthy();
+
+                    // Click second item which is first hit
+                    var $firstHit = $($panelResults[1]);
+                    expect($firstHit.hasClass("file-section")).toBeFalsy();
+                    $firstHit.click();
+
+                    // Verify current document
+                    editor = EditorManager.getActiveEditor();
+                    expect(editor.document.file.fullPath).toEqual(filePath);
+
+                    // Verify selection
+                    expect(editor.getSelectedText().toLowerCase() === "foo");
+                    CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                });
+            });
+
+            it("should open file in working set when a result is double-clicked", function () {
+                var filePath = testPath + "/foo.js",
+                    fileEntry = FileSystem.getFileForPath(filePath);
+
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("foo");
+                });
+
+                runs(function () {
+                    // Verify document is not yet in working set
+                    expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+
+                    // Get list in panel
+                    var $panelResults = $("#search-results table.bottom-panel-table tr");
+                    expect($panelResults.length).toBe(5);   // 4 hits + 1 file section
+
+                    // Double-click second item which is first hit
+                    var $firstHit = $($panelResults[1]);
+                    expect($firstHit.hasClass("file-section")).toBeFalsy();
+                    $firstHit.dblclick();
+
+                    // Verify document is now in working set
+                    expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
+                    CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                });
+            });
+
+            it("should update results when a result in a file is edited", function () {
+                var filePath = testPath + "/foo.html",
+                    fileEntry = FileSystem.getFileForPath(filePath),
+                    panelListLen = 8,   // 7 hits + 1 file section
+                    $panelResults;
+
+                openSearchBar(fileEntry);
+                runs(function () {
+                    executeSearch("foo");
+                });
+
+                runs(function () {
+                    // Verify document is not yet in working set
+                    expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
+
+                    // Get list in panel
+                    $panelResults = $("#search-results table.bottom-panel-table tr");
+                    expect($panelResults.length).toBe(panelListLen);
+
+                    // Click second item which is first hit
+                    var $firstHit = $($panelResults[1]);
+                    expect($firstHit.hasClass("file-section")).toBeFalsy();
+                    $firstHit.click();
+                });
+
+                // Wait for file to open if not already open
+                waitsFor(function () {
+                    var editor = EditorManager.getActiveEditor();
+                    return (editor.document.file.fullPath === filePath);
+                }, 1000, "file open");
+
+                // Wait for selection to change (this happens asynchronously after file opens)
+                waitsFor(function () {
+                    var editor = EditorManager.getActiveEditor(),
+                        sel = editor.getSelection();
+                    return (sel.start.line === 4 && sel.start.ch === 7);
+                }, 1000, "selection change");
+
+                runs(function () {
+                    // Verify current selection
+                    var editor = EditorManager.getActiveEditor();
+                    expect(editor.getSelectedText().toLowerCase()).toBe("foo");
+
+                    // Edit text to remove hit from file
+                    var sel = editor.getSelection();
+                    editor.document.replaceRange("Bar", sel.start, sel.end);
+                });
+
+                // Panel is updated asynchronously
+                waitsFor(function () {
+                    $panelResults = $("#search-results table.bottom-panel-table tr");
+                    return ($panelResults.length < panelListLen);
+                }, "Results panel updated");
+
+                runs(function () {
+                    // Verify list automatically updated
+                    expect($panelResults.length).toBe(panelListLen - 1);
+
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }));
+                });
+            });
+        });
+        
+        // Things to test:
+        // test in subtrees, single file
+        // test with filters
+        // test with some files open in memory
+        // case sensitive, regexp, both (regexp will need to retain query info)
+        // CRLF handling
+        // file changing on disk between search and replace
+        describe("Replace", function () {
+            /**
+             * Helper function that calls the given asynchronous processor once on each file in the given subtree
+             * and returns a promise that's resolved when all files are processed.
+             * @param {string} rootPath The root of the subtree to search.
+             * @param {function(string, string): $.Promise} processor The function that processes each file. Args are:
+             *      contents: the contents of the file
+             *      fullPath: the full path to the file on disk
+             * @return {$.Promise} A promise that is resolved when all files are processed, or rejected if there was
+             *      an error reading one of the files or one of the process steps was rejected.
+             */
+            function visitAndProcessFiles(rootPath, processor) {
+                var rootEntry = FileSystem.getDirectoryForPath(rootPath),
+                    files = [];
+                
+                function visitor(file) {
+                    if (!file.isDirectory) {
+                        files.push(file);
+                    }
+                    return true;
                 }
-                expect(resultFound).toBe(false);
+                return promisify(rootEntry, "visit", visitor).then(function () {
+                    return Async.doInParallel(files, function (file) {
+                        return promisify(file, "read").then(function (contents) {
+                            return processor(contents, file.fullPath);
+                        });
+                    });
+                });
+            }
+            
+            function ensureParentExists(file) {
+                var parentDir = FileSystem.getDirectoryForPath(file.parentPath);
+                return promisify(parentDir, "exists").then(function (exists) {
+                    if (!exists) {
+                        return promisify(parentDir, "create");
+                    }
+                    return null;
+                });
+            }
+            
+            function copyWithLineEndings(src, dest, lineEndings) {
+                function copyOneFileWithLineEndings(contents, srcPath) {
+                    var destPath = dest + srcPath.slice(src.length),
+                        destFile = FileSystem.getFileForPath(destPath),
+                        newContents = FileUtils.translateLineEndings(contents, lineEndings);
+                    return ensureParentExists(destFile).then(function () {
+                        return promisify(destFile, "write", newContents);
+                    });
+                }
+                
+                return promisify(FileSystem.getDirectoryForPath(dest), "create").then(function () {
+                    return visitAndProcessFiles(src, copyOneFileWithLineEndings);
+                });
+            }
+            
+            function openTestProjectCopy(sourcePath, lineEndings) {
+                // Create a clean copy of the test project before each test. We don't delete the old
+                // folders as we go along (to avoid problems with deleting the project out from under the
+                // open test window); we just delete the whole temp folder at the end.
+                testPath = SpecRunnerUtils.getTempDirectory() + "/find-in-files-test-" + (nextFolderIndex++);
+                runs(function () {
+                    if (lineEndings) {
+                        waitsForDone(copyWithLineEndings(sourcePath, testPath, lineEndings), "copy test files with line endings");
+                    } else {
+                        waitsForDone(SpecRunnerUtils.copy(sourcePath, testPath), "copy test files");
+                    }
+                });
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            }
+            
+            function expectProjectToMatchKnownGood(kgFolder, lineEndings) {
+                var testRootPath = ProjectManager.getProjectRoot().fullPath,
+                    kgRootPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + kgFolder + "/");
+                runs(function () {
+                    function compareKnownGoodToTestFile(kgContents, kgFilePath) {
+                        var testFilePath = testRootPath + kgFilePath.slice(kgRootPath.length);
+                        return promisify(FileSystem.getFileForPath(testFilePath), "read").then(function (testContents) {
+                            if (lineEndings) {
+                                kgContents = FileUtils.translateLineEndings(kgContents, lineEndings);
+                            }
+                            expect(testContents).toEqual(kgContents);
+                        });
+                    }
+                    
+                    waitsForDone(visitAndProcessFiles(kgRootPath, compareKnownGoodToTestFile), "project comparison done", 1000);
+                });
+            }
+            
+            function numMatches(results) {
+                return _.reduce(_.pluck(results, "matches"), function (sum, matches) {
+                    return sum + matches.length;
+                }, 0);
+            }
+            
+            function doBasicTest(options) {
+                var results;
 
-                expect($("#search-results").is(":visible")).toBeFalsy();
-                expect($(".modal-bar").length).toBe(1);
-
-                // Close search bar
-                var $searchField = $(".modal-bar #find-group input");
-                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
-            });
-        });
-
-        it("should open file in editor and select text when a result is clicked", function () {
-            var filePath = testPath + "/foo.html",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                // Verify no current document
-                var editor = EditorManager.getActiveEditor();
-                expect(editor).toBeFalsy();
-
-                // Get panel
-                var $searchResults = $("#search-results");
-                expect($searchResults.is(":visible")).toBeTruthy();
-
-                // Get list in panel
-                var $panelResults = $searchResults.find("table.bottom-panel-table tr");
-                expect($panelResults.length).toBe(8);   // 7 hits + 1 file section
-
-                // First item in list is file section
-                expect($($panelResults[0]).hasClass("file-section")).toBeTruthy();
-
-                // Click second item which is first hit
-                var $firstHit = $($panelResults[1]);
-                expect($firstHit.hasClass("file-section")).toBeFalsy();
-                $firstHit.click();
-
-                // Verify current document
-                editor = EditorManager.getActiveEditor();
-                expect(editor.document.file.fullPath).toEqual(filePath);
-
-                // Verify selection
-                expect(editor.getSelectedText().toLowerCase() === "foo");
-                CommandManager.execute(Commands.FILE_CLOSE_ALL);
-            });
-        });
-
-        it("should open file in working set when a result is double-clicked", function () {
-            var filePath = testPath + "/foo.js",
-                fileEntry = FileSystem.getFileForPath(filePath);
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                // Verify document is not yet in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
-
-                // Get list in panel
-                var $panelResults = $("#search-results table.bottom-panel-table tr");
-                expect($panelResults.length).toBe(5);   // 4 hits + 1 file section
-
-                // Double-click second item which is first hit
-                var $firstHit = $($panelResults[1]);
-                expect($firstHit.hasClass("file-section")).toBeFalsy();
-                $firstHit.dblclick();
-
-                // Verify document is now in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
-                CommandManager.execute(Commands.FILE_CLOSE_ALL);
-            });
-        });
-
-        it("should update results when a result in a file is edited", function () {
-            var filePath = testPath + "/foo.html",
-                fileEntry = FileSystem.getFileForPath(filePath),
-                panelListLen = 8,   // 7 hits + 1 file section
-                $panelResults;
-
-            openSearchBar(fileEntry);
-            runs(function () {
-                executeSearch("foo");
-            });
-
-            runs(function () {
-                // Verify document is not yet in working set
-                expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
-
-                // Get list in panel
-                $panelResults = $("#search-results table.bottom-panel-table tr");
-                expect($panelResults.length).toBe(panelListLen);
-
-                // Double-click second item which is first hit
-                var $firstHit = $($panelResults[1]);
-                expect($firstHit.hasClass("file-section")).toBeFalsy();
-                $firstHit.dblclick();
-
-                // Verify current document & selection
-                var editor = EditorManager.getActiveEditor();
-                expect(editor.document.file.fullPath).toEqual(filePath);
-                expect(editor.getSelectedText().toLowerCase() === "foo");
-
-                // Edit text to remove hit from file
-                var sel = editor.getSelection();
-                editor.document.replaceRange("Bar", sel.start, sel.end);
+                openTestProjectCopy(defaultSourcePath, options.lineEndings);
+                runs(function () {
+                    FindInFiles.doSearchInScope(options.queryInfo, null, null)
+                        .done(function (r) {
+                            results = r;
+                        });
+                });
+                waitsFor(function () { return results; }, 1000, "search completed");
+                
+                runs(function () {
+                    expect(numMatches(results)).toBe(options.numMatches);
+                    waitsForDone(FindInFiles.doReplace(results, "bar"));
+                });
+                
+                runs(function () {
+                    expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
+                });
+            }
+            
+            it("should replace all instances of a simple string in a project on disk case-insensitively", function () {
+                doBasicTest({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    knownGoodFolder: "simple-case-insensitive"
+                });
             });
 
-            // Panel is updated asynchronously
-            waitsFor(function () {
-                $panelResults = $("#search-results table.bottom-panel-table tr");
-                return ($panelResults.length < panelListLen);
-            }, "Results panel updated");
+            it("should replace all instances of a simple string in a project on disk case-sensitively", function () {
+                doBasicTest({
+                    queryInfo:       {query: "foo", isCaseSensitive: true},
+                    numMatches:      9,
+                    knownGoodFolder: "simple-case-sensitive"
+                });
+            });
+            
+            it("should replace instances of a string in a project respecting CRLF line endings", function () {
+                doBasicTest({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    knownGoodFolder: "simple-case-insensitive",
+                    lineEndings:     FileUtils.LINE_ENDINGS_CRLF
+                });
+            });
 
-            runs(function () {
-                // Verify list automatically updated
-                expect($panelResults.length).toBe(panelListLen - 1);
-
-                CommandManager.execute(Commands.FILE_CLOSE_ALL);
+            it("should replace instances of a string in a project respecting LF line endings", function () {
+                doBasicTest({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    knownGoodFolder: "simple-case-insensitive",
+                    lineEndings:     FileUtils.LINE_ENDINGS_LF
+                });
             });
         });
     });

@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     
     /**
      * Map of all the last search results
-     * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
+     * @type {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>}
      */
     var searchResults = {};
     
@@ -227,7 +227,7 @@ define(function (require, exports, module) {
      * Searches through the contents an returns an array of matches
      * @param {string} contents
      * @param {RegExp} queryExpr
-     * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
+     * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>}
      */
     function _getSearchMatches(contents, queryExpr) {
         // Quick exit if not found
@@ -251,6 +251,8 @@ define(function (require, exports, module) {
             matches.push({
                 start: {line: lineNum, ch: ch},
                 end:   {line: lineNum, ch: ch + matchLength},
+                startOffset: match.index,
+                endOffset: match.index + matchLength,
                 line:  line
             });
 
@@ -845,12 +847,15 @@ define(function (require, exports, module) {
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
-     * @param {string} query String to be searched
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object, as returned by FindBar.getQueryInfo()
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
+     * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
+     * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
-    function _doSearch(queryInfo, candidateFilesPromise) {
+    function _doSearch(queryInfo, candidateFilesPromise, filter) {
         currentQuery     = queryInfo;
         currentQueryExpr = _getQueryRegExp(queryInfo);
+        currentFilter    = filter;
         
         if (!currentQueryExpr) {
             StatusBar.hideBusyIndicator();
@@ -861,12 +866,13 @@ define(function (require, exports, module) {
         }
         
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
-            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query);
+            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query),
+            deferred = new $.Deferred();
         
         candidateFilesPromise
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
-                fileListResult = FileFilters.filterFileList(currentFilter, fileListResult);
+                fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 
                 if (fileListResult.length) {
                     return Async.doInParallel(fileListResult, _doSearchInOneFile);
@@ -886,13 +892,96 @@ define(function (require, exports, module) {
                     _addListeners();
                 }
                 
-                exports._searchResults = searchResults;  // for unit tests
+                exports._searchResults = searchResults;  // for UI integration tests that don't call doSearchInScope() directly
+                deferred.resolve(searchResults);
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
                 StatusBar.hideBusyIndicator();
                 PerfUtils.finalizeMeasurement(perfTimer);
+                deferred.reject();
             });
+        
+        return deferred.promise();
+    }
+    
+    /**
+     * @private
+     * Clears any previous search information in preparation for starting a new search in the given scope.
+     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     */
+    function _resetSearch(scope) {
+        currentStart       = 0;
+        currentQuery       = null;
+        currentQueryExpr   = null;
+        currentScope       = scope;
+        maxHitsFoundInFile = false;
+        searchResults      = {};
+        exports._searchResults = null;  // for unit tests        
+    }
+    
+    /**
+     * Does a search in the given scope with the given filter. Used when you want to start a search
+     * programmatically.
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object, as returned by FindBar.getQueryInfo()
+     * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
+     * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
+     * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
+     */
+    function doSearchInScope(queryInfo, scope, filter) {
+        _resetSearch(scope);
+        var candidateFilesPromise = getCandidateFiles();
+        return _doSearch(queryInfo, candidateFilesPromise, filter);
+    }
+    
+    /**
+     * Does a set of replacements in a single file, following the rules in doReplace().
+     * @param {string} fullPath The full path to the file.
+     * @param Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}> matches
+     *      The matches to replace in the file.
+     * @param {string} replaceText The text to replace each result with.
+     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with a FileSystem error if there were one or more errors.
+     */
+    function _doReplaceInOneFile(fullPath, matches, replaceText) {
+        var file = FileSystem.getFileForPath(fullPath);
+        return DocumentManager.getDocumentText(file, true).then(function (contents, lineEndings) {
+            // TODO: check stats to make sure it hasn't changed since we did the search
+            // TODO: is there a more efficient way to do this in a large string?
+
+            // Note that this assumes that the matches are sorted.
+            var result = [],
+                lastIndex = 0;
+            matches.forEach(function (match) {
+                result.push(contents.slice(lastIndex, match.startOffset));
+                result.push(replaceText);
+                lastIndex = match.endOffset;
+            });
+            result.push(contents.slice(lastIndex));
+
+            var newContents = result.join("");
+            // TODO: duplicated logic from Document - should refactor this?
+            if (lineEndings === FileUtils.LINE_ENDINGS_CRLF) {
+                newContents = newContents.replace(/\n/g, "\r\n");
+            }
+
+            // TODO: handle in-memory docs - need to just write back into editor
+            return Async.promisify(file, "write", newContents);
+        });
+    }
+    
+    /**
+     * Given a set of search results as returned from _doSearch, replaces them with the given replaceText on disk.
+     * TODO: doesn't yet handle a lot of things, see unit test TODOs.
+     * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
+     *      The list of results to replace.
+     * @param {string} replaceText The text to replace each result with.
+     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
+     *      (as returned by Async.doInParallel_aggregateErrors) if there were one or more errors. Each individual error will be a FileSystem error.
+     */
+    function doReplace(results, replaceText) {
+        return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
+            return _doReplaceInOneFile(fullPath, results[fullPath].matches, replaceText);
+        });
     }
     
     /**
@@ -931,13 +1020,7 @@ define(function (require, exports, module) {
             selectedEntry = selectedItem.fullPath;
         }
         
-        searchResults      = {};
-        currentStart       = 0;
-        currentQuery       = null;
-        currentQueryExpr   = null;
-        currentScope       = scope;
-        maxHitsFoundInFile = false;
-        exports._searchResults = null;  // for unit tests
+        _resetSearch(scope);
         
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)
@@ -983,13 +1066,14 @@ define(function (require, exports, module) {
                     findBar.enable(false);
                     StatusBar.showBusyIndicator(true);
 
+                    var filter;
                     if (filterPicker) {
-                        currentFilter = FileFilters.commitPicker(filterPicker);
+                        filter = FileFilters.commitPicker(filterPicker);
                     } else {
                         // Single-file scope: don't use any file filters
-                        currentFilter = null;
+                        filter = null;
                     }
-                    _doSearch(queryInfo, candidateFilesPromise);
+                    _doSearch(queryInfo, candidateFilesPromise, filter);
                 }
             })
             .on("queryChange.FindInFiles", handleQueryChange)
@@ -1170,6 +1254,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,     _doFindInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,  _doFindInSubtree);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,   _doFindInSubtree);
+    
+    // Public exports
+    exports.doSearchInScope = doSearchInScope;
+    exports.doReplace       = doReplace;
     
     // For unit testing
     exports._doFindInFiles = _doFindInFiles;
