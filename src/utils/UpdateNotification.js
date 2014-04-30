@@ -157,8 +157,7 @@ define(function (require, exports, module) {
                     type: "HEAD"
                 }).fail(function (jqXHR, status, error) {
                     _versionInfoURL = _versionInfoUrl("en");
-                    lookupPromise.resolve();
-                }).done(function (data, textStatus, jqXHR) {
+                }).always(function (jsXHR, status, error) {
                     lookupPromise.resolve();
                 });
             } else {
