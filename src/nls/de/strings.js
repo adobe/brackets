@@ -289,16 +289,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Auswahl in Zeilen aufteilen",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Cursor zur nächsten Zeile hinzufügen",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Cursor zur vorherigen Zeile hinzufügen",
-    "CMD_FIND"                            : "Suchen",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
-    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
-    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
-    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
-    "CMD_FIND_ALL_AND_SELECT"             : "Alle suchen und auswählen",
-    "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
-    "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
-    "CMD_REPLACE"                         : "Ersetzen",
     "CMD_INDENT"                          : "Einrücken",
     "CMD_UNINDENT"                        : "Ausrücken",
     "CMD_DUPLICATE"                       : "Duplizieren",
@@ -311,6 +301,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Zeile darunter öffnen",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Klammern automatisch schließen",
     "CMD_SHOW_CODE_HINTS"                 : "Code-Vervollständigung anzeigen",
+
+    // Search menu commands
+    "FIND_MENU"                           : "Suchen",
+    "CMD_FIND"                            : "Suchen",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Suchen\u2026",
+    "CMD_FIND_NEXT"                       : "Weitersuchen (vorwärts)",
+    "CMD_FIND_PREVIOUS"                   : "Weitersuchen (rückwärts)",
+    "CMD_FIND_ALL_AND_SELECT"             : "Alle suchen und auswählen",
+    "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
+    "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
+    "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
+    "CMD_FIND_IN_SELECTED"                : "Suchen in der Ausgewählten Datei/Ordner",
+    "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
+    "CMD_REPLACE"                         : "Ersetzen",
 
     // View menu commands
     "VIEW_MENU"                           : "Ansicht",
@@ -540,4 +544,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */
+/* Last translated for d2980036b4c3e91ef43bc6e6c07c6a8b422f2c3d */
