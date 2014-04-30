@@ -99,6 +99,22 @@ define(function (require, exports, module) {
     var _addedClickHandler = false;
     
     /**
+     * Construct a new version update url with the given locale.
+     *
+     * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * return {string} the new version update url
+     */
+    function _versionInfoUrl(locale) {
+        locale = locale || brackets.getLocale();
+
+        // cut off any country in the locale
+        // e.g.: en-US will be reduced to en
+        locale = locale.substring(0, 2);
+
+        return brackets.config.update_info_url + locale + ".json";
+    }
+
+    /**
      * Get a data structure that has information for all builds of Brackets.
      *
      * If force is true, the information is always fetched from _versionInfoURL.
@@ -131,49 +147,57 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            $.ajax(_versionInfoURL, {
-                dataType: "text",
-                cache: false,
-                complete: function (jqXHR, status) {
-                    if (status === "success") {
-                        try {
-                            data = JSON.parse(jqXHR.responseText);
-                            if (!dontCache) {
-                                _lastInfoURLFetchTime = (new Date()).getTime();
-                                PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
-                                PreferencesManager.setViewState("updateInfo", data);
-                            }
-                            result.resolve(data);
-                        } catch (e) {
-                            console.log("Error parsing version information");
-                            console.log(e);
-                            result.reject();
-                        }
+            var lookupPromise = new $.Deferred();
+
+            // don't make HEAD request if we already have the default en locale
+            if (brackets.getLocale() !== "en") {
+                $.ajax({
+                    url: _versionInfoURL,
+                    cache: false,
+                    type: "HEAD"
+                }).fail(function (jqXHR, status, error) {
+                    _versionInfoURL = _versionInfoUrl("en");
+                }).always(function (jsXHR, status, error) {
+                    lookupPromise.resolve();
+                });
+            } else {
+                lookupPromise.resolve();
+            }
+
+            lookupPromise.done(function () {
+                $.ajax(_versionInfoURL, {
+                    dataType: "json",
+                    cache: false
+                }).done(function (updateInfo, textStatus, jqXHR) {
+                    if (!dontCache) {
+                        _lastInfoURLFetchTime = (new Date()).getTime();
+                        PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                        PreferencesManager.setViewState("updateInfo", updateInfo);
                     }
-                },
-                error: function (jqXHR, status, error) {
+                    result.resolve(updateInfo);
+                }).fail(function (jqXHR, status, error) {
                     // When loading data for unit tests, the error handler is
                     // called but the responseText is valid. Try to use it here,
                     // but *don't* save the results in prefs.
-                    
+
                     if (!jqXHR.responseText) {
                         // Text is NULL or empty string, reject().
                         result.reject();
                         return;
                     }
-                    
+
                     try {
                         data = JSON.parse(jqXHR.responseText);
                         result.resolve(data);
                     } catch (e) {
                         result.reject();
                     }
-                }
+                });
             });
         } else {
             result.resolve(data);
         }
-        
+
         return result.promise();
     }
     
@@ -391,7 +415,7 @@ define(function (require, exports, module) {
     }
 
     // Append locale to version info URL
-    _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
+    _versionInfoURL = _versionInfoUrl();
 
     // Events listeners
     $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
