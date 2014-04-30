@@ -144,6 +144,31 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Hide image coordinates info tip
+     *
+     * @param {MouseEvent} e mouse leave event
+     */
+    function _hideImageTip(e) {
+        var $target   = $(e.target),
+            targetPos = $target.position(),
+            imagePos  = $("#img-preview").position(),
+            right     = imagePos.left + $("#img-preview").width(),
+            bottom    = imagePos.top + $("#img-preview").height(),
+            x         = targetPos.left + e.offsetX,
+            y         = targetPos.top + e.offsetY;
+        
+        // Hide image tip and guides only if the cursor is outside of the image.
+        if (x < imagePos.left || x >= right ||
+                y < imagePos.top || y >= bottom) {
+            _hideGuidesAndTip();
+            if (_scaleDivInfo) {
+                _scaleDivInfo = null;
+                $("#img-scale").show();
+            }
+        }
+    }
+
+    /**
      * Show image coordinates under the mouse cursor
      *
      * @param {MouseEvent} e mouse move event
@@ -171,6 +196,14 @@ define(function (require, exports, module) {
             tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
             tipMinusOffsetX1    = -82,    // for less than 4-digit image width
             tipMinusOffsetX2    = -90;    // for 4-digit image width 
+        
+        // Check whether we're getting mousemove events beyond the image width due to a browser bug 
+        // or the rounding calculation above for a scaled image. For example, if an image is 120 px wide,
+        // we should get mousemove events in the range of 0 <= x < 120, but not 120 or more. If we get 
+        // a value beyond the range, then simple pass the event to _hideImageTip and hide the image tip.
+        if (x >= _naturalWidth) {
+            return _hideImageTip(e);
+        }
         
         _handleMouseEnterOrExitScaleSticker(left, top);
         
@@ -206,33 +239,7 @@ define(function (require, exports, module) {
             height: height - 1
         }).show();
     }
-    
-    /**
-     * Hide image coordinates info tip
-     *
-     * @param {MouseEvent} e mouse leave event
-     */
-    function _hideImageTip(e) {
-        var $target   = $(e.target),
-            targetPos = $target.position(),
-            imagePos  = $("#img-preview").position(),
-            right     = imagePos.left + $("#img-preview").width(),
-            bottom    = imagePos.top + $("#img-preview").height(),
-            x         = targetPos.left + e.offsetX,
-            y         = targetPos.top + e.offsetY;
         
-        // Hide image tip and guides only if the cursor is outside of the image.
-        if (x < imagePos.left || x >= right ||
-                y < imagePos.top || y >= bottom) {
-            _hideGuidesAndTip();
-            if (_scaleDivInfo) {
-                _scaleDivInfo = null;
-                $("#img-scale").show();
-            }
-        }
-    }
-
-    
     /**
      * sign off listeners when editor manager closes
      * the image viewer
