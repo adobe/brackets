@@ -49,10 +49,11 @@ define(function (require, exports, module) {
         }
     }
 
-    function refreshIcon() {
+    function refreshIndicator() {
         // never show 0 errors
-        if (errorCount === 0) {
-            // hide notifier if it was attached previously but errorCount was cleared
+        if (!_attached || errorCount === 0) {
+            // hide notifier if it was attached previously
+            // but errorCount was cleared or it was disabled
             if ($span) {
                 $span.parent().hide();
             }
@@ -61,8 +62,7 @@ define(function (require, exports, module) {
 
         // update span if it was created before
         if ($span) {
-            $span.parent().toggle(_attached);
-            $span.text(errorCount);
+            $span.text(errorCount).parent().show();
             return;
         }
 
@@ -84,12 +84,12 @@ define(function (require, exports, module) {
     function incErrorCount() {
         errorCount++;
         blink();
-        refreshIcon();
+        refreshIndicator();
     }
 
     function clearErrorCount() {
         errorCount = 0;
-        refreshIcon();
+        refreshIndicator();
     }
 
     function attachFunctions() {
@@ -140,7 +140,7 @@ define(function (require, exports, module) {
         } else {
             detachFunctions();
         }
-        refreshIcon();
+        refreshIndicator();
     }
 
     // Public API
