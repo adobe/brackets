@@ -84,7 +84,7 @@ define(function (require, exports, module) {
     
     function SearchState() {
         this.searchStartPos = null;
-        this.query = null;
+        this.queryInfo = null;
         this.foundAny = false;
         this.marked = [];
     }
@@ -96,10 +96,9 @@ define(function (require, exports, module) {
         return cm._searchState;
     }
 
-    function getSearchCursor(cm, query, pos) {
+    function getSearchCursor(cm, query, queryInfo, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        // TODO: store the query info object and get the caseSensitive info from there
-        return cm.getSearchCursor(query, pos, !PreferencesManager.getViewState("caseSensitive"));
+        return cm.getSearchCursor(query, pos, !queryInfo.isCaseSensitive);
     }
     
     function parseQuery(queryInfo) {
@@ -124,6 +123,22 @@ define(function (require, exports, module) {
         
         } else {
             return queryInfo.query;
+        }
+    }
+    
+    /**
+     * @private
+     * Determine the query from the given info and store it in the state.
+     * @param {SearchState} state The state to store the query in
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo 
+     *      The query info object as returned by FindBar.getQueryInfo()
+     */
+    function setQueryInfo(state, queryInfo) {
+        state.queryInfo = queryInfo;
+        if (!queryInfo) {
+            state.query = null;
+        } else {
+            state.query = parseQuery(queryInfo);
         }
     }
 
@@ -161,12 +176,12 @@ define(function (require, exports, module) {
     function _getNextMatch(editor, rev, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
-        var cursor = getSearchCursor(cm, state.query, pos || editor.getCursorPos(false, rev ? "start" : "end"));
+        var cursor = getSearchCursor(cm, state.query, state.queryInfo, pos || editor.getCursorPos(false, rev ? "start" : "end"));
 
         state.lastMatch = cursor.find(rev);
         if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
-            cursor = getSearchCursor(cm, state.query, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            cursor = getSearchCursor(cm, state.query, state.queryInfo, rev ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
             state.lastMatch = cursor.find(rev);
         }
         if (!state.lastMatch) {
@@ -290,7 +305,7 @@ define(function (require, exports, module) {
             // We store this as a query in the state so that if the user next does a "Find Next",
             // it will use the same query (but throw away the existing selection).
             var state = getSearchState(editor._codeMirror);
-            state.query = searchText;
+            setQueryInfo(state, { query: searchText, isCaseSensitive: false, isRegexp: false });
             
             // Skip over matches that are already in the selection.
             var searchStart = primarySel.end,
@@ -356,7 +371,7 @@ define(function (require, exports, module) {
             var searchStart = {line: 0, ch: 0},
                 state = getSearchState(editor._codeMirror),
                 nextMatch;
-            state.query = editor.document.getRange(sel.start, sel.end);
+            setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false });
             
             while ((nextMatch = _getNextMatch(editor, false, searchStart, false)) !== null) {
                 if (_selEq(sel, nextMatch)) {
@@ -411,10 +426,10 @@ define(function (require, exports, module) {
     function clearSearch(cm) {
         cm.operation(function () {
             var state = getSearchState(cm);
-            if (!state.query) {
+            if (!state.query || !state.queryInfo) {
                 return;
             }
-            state.query = null;
+            setQueryInfo(state, null);
 
             clearHighlights(cm, state);
         });
@@ -456,7 +471,7 @@ define(function (require, exports, module) {
                 clearHighlights(cm, state);
             }
             
-            if (!state.query) {
+            if (!state.query || !state.queryInfo) {
                 // Search field is empty - no results
                 if (findBar) {
                     findBar.showFindCount("");
@@ -468,7 +483,7 @@ define(function (require, exports, module) {
             
             // Find *all* matches, searching from start of document
             // (Except on huge documents, where this is too expensive)
-            var cursor = getSearchCursor(cm, state.query);
+            var cursor = getSearchCursor(cm, state.query, state.queryInfo);
             if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
                 // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
                 var resultSet = [];
@@ -526,10 +541,10 @@ define(function (require, exports, module) {
      *     In that case, we don't want to change the selection unnecessarily.
      */
     function handleQueryChange(editor, state, initial) {
-        state.query = parseQuery(findBar && findBar.getQueryInfo());
+        setQueryInfo(state, findBar && findBar.getQueryInfo());
         updateResultSet(editor);
         
-        if (state.query) {
+        if (state.query && state.queryInfo) {
             // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
             findNext(editor, false, true, state.searchStartPos);
@@ -614,7 +629,7 @@ define(function (require, exports, module) {
      */
     function doSearch(editor, rev) {
         var state = getSearchState(editor._codeMirror);
-        if (state.query) {
+        if (state.query && state.queryInfo) {
             findNext(editor, rev);
             return;
         }
@@ -654,10 +669,10 @@ define(function (require, exports, module) {
      * @param {string|RegExp} replaceWhat - Query that will be passed into CodeMirror Cursor to search for results.
      * @param {string} replaceWith - String that should be used to replace chosen results.
      */
-    function _showReplaceAllPanel(editor, replaceWhat, replaceWith) {
+    function _showReplaceAllPanel(editor, replaceWhat, queryInfo, replaceWith) {
         var results = [],
             cm      = editor._codeMirror,
-            cursor  = getSearchCursor(cm, replaceWhat),
+            cursor  = getSearchCursor(cm, replaceWhat, queryInfo),
             from,
             to,
             line,
@@ -751,7 +766,7 @@ define(function (require, exports, module) {
         
         if (all) {
             findBar.close();
-            _showReplaceAllPanel(editor, state.query, replaceText);
+            _showReplaceAllPanel(editor, state.query, state.queryInfo, replaceText);
         } else {
             cm.replaceSelection(typeof state.query === "string" ? replaceText : parseDollars(replaceText, state.lastMatch));
 
