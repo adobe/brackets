@@ -782,7 +782,7 @@ define(function (require, exports, module) {
 
     function replace(editor) {
         // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
-        if (findBar) {
+        if (findBar && findBar.getOptions().replace) {
             doReplace(editor, false);
             return;
         }

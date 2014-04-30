@@ -317,6 +317,13 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @return {Object} The options passed into the FindBar.
+     */
+    FindBar.prototype.getOptions = function () {
+        return this._options;
+    };
+    
+    /**
      * Returns the current query and parameters.
      * @return {{query: string, caseSensitive: boolean, isRegexp: boolean}}
      */
