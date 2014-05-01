@@ -94,10 +94,10 @@ define(function Inspector(require, exports, module) {
      */
     var _messageCallbacks = {};
 
-    var _messageId = 1;     // id used for remote method calls, auto-incrementing
-    var _socket;            // remote debugger WebSocket
-    var _connectDeferred;   // The deferred connect
-    var _userAgent = "";    // user agent string
+    var _messageId = 1,     // id used for remote method calls, auto-incrementing
+        _socket,            // remote debugger WebSocket
+        _connectDeferred,   // The deferred connect
+        _userAgent = "";    // user agent string
 
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
