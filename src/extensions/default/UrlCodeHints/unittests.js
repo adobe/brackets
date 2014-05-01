@@ -639,6 +639,56 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
                 });
             });
+
+            it("should collapse consecutive path separators when inserting folder in HTML", function () {
+                var pos1    = { line: 21, ch: 11 },
+                    pos2    = { line: 21, ch: 22 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+
+                    // Folder was inserted and there's only 1 slash afterwards
+                    expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/'");
+                });
+            });
+
+            it("should collapse consecutive path separators when inserting folder in CSS", function () {
+                var pos1    = { line: 8, ch: 25 },
+                    pos2    = { line: 8, ch: 36 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+
+                    // Folder was inserted and there's only 1 slash afterwards
+                    expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/\"");
+                });
+            });
         });
         
     }); // describe("Url Code Hinting"
