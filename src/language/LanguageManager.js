@@ -216,14 +216,26 @@ define(function (require, exports, module) {
         _modeToLanguageMap[mode] = language;
     }
     
-    function setLanguageOverrideForPath(fullPath, language) {
-        if (fullPath) {
-            if (!language) {
-                delete _filePathToLanguageMap[fullPath];
-            } else {
-                _filePathToLanguageMap[fullPath] = language;
-            }
+    /**
+     * Adds a language mapping for the specified fullPath. If language is falsy (null or undefined), the mapping
+     * is removed.
+     *
+     * @param {!fullPath} fullPath absolute path of the file
+     * @param {?object} language language to associate the file with or falsy value to remove the existing mapping
+     */
+    function _setLanguageOverrideForPath(fullPath, language) {
+        if (!language) {
+            delete _filePathToLanguageMap[fullPath];
+        } else {
+            _filePathToLanguageMap[fullPath] = language;
         }
+    }
+    
+    /**
+     * Resets all the language overrides for file paths. Used by unit tests only.
+     */
+    function _resetLanguageOverrides() {
+        _filePathToLanguageMap = {};
     }
 
     /**
@@ -257,8 +269,7 @@ define(function (require, exports, module) {
         var fileName,
             language = _filePathToLanguageMap[path],
             extension,
-            parts,
-            doc;
+            parts;
         
         // if there's an override, return it
         if (!ignoreOverride && language) {
@@ -315,9 +326,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns all of the languages currently defined in the LanguageManager.
+     * Returns a map of all the languages currently defined in the LanguageManager. The key to
+     * the map is the language id and the value is the language object.
+     *
      * @return {Object.<string, Language>} A map containing all of the
-     * languages currently defined.
+     *      languages currently defined.
      */
     function getLanguages() {
         return $.extend({}, _languages); // copy to prevent modification
@@ -1047,11 +1060,15 @@ define(function (require, exports, module) {
     // Private for unit tests
     exports._EXTENSION_MAP_PREF         = _EXTENSION_MAP_PREF;
     exports._NAME_MAP_PREF              = _NAME_MAP_PREF;
+    exports._resetLanguageOverrides     = _resetLanguageOverrides;
+    // Internal use only
+    // _setLanguageOverrideForPath is used by Document to help LanguageManager keeping track of
+    // in-document language overrides
+    exports._setLanguageOverrideForPath  = _setLanguageOverrideForPath;
     
     // Public methods
     exports.ready                       = _ready;
     exports.defineLanguage              = defineLanguage;
-    exports.setLanguageOverrideForPath  = setLanguageOverrideForPath;
     exports.getLanguage                 = getLanguage;
     exports.getLanguageForExtension     = getLanguageForExtension;
     exports.getLanguageForPath          = getLanguageForPath;

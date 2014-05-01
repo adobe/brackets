@@ -157,13 +157,6 @@ define(function (require, exports, module) {
      */
     Document.prototype._lineEndings = null;
     
-    /**
-     * Whether this document's language was forced (manually selected) or not.
-     * If true, the language will not change when _updateLanguage() is called.
-     * @type {boolean}
-     */
-    Document.prototype._languageWasForced = false;
-
     /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
         //console.log("+++REF+++ "+this);
@@ -670,19 +663,8 @@ define(function (require, exports, module) {
      * null, the language will be set back to the default.
      */
     Document.prototype.setLanguageOverride = function (language) {
-        if (language) {
-            var oldLanguage = this.language;
-            this._languageWasForced = true;
-            if (oldLanguage !== language) {
-                this.language = language;
-                LanguageManager.setLanguageOverrideForPath(this.file.fullPath, this.language);
-                $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
-            }
-        } else { // if language was null, reset to default language
-            this._languageWasForced = false;
-            LanguageManager.setLanguageOverrideForPath(this.file.fullPath, null);
-            this._updateLanguage();
-        }
+        LanguageManager._setLanguageOverrideForPath(this.file.fullPath, language);
+        this._updateLanguage();
     };
 
     /**
@@ -690,9 +672,6 @@ define(function (require, exports, module) {
      * language was forced (set manually by user), don't change it.
      */
     Document.prototype._updateLanguage = function () {
-        if (this._languageWasForced) {
-            return;
-        }
         var oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         if (oldLanguage && oldLanguage !== this.language) {

@@ -788,11 +788,7 @@ define(function (require, exports, module) {
         $(DocumentManager)
             .on("currentDocumentLanguageChanged", function (e) {
                 var activeEditor = EditorManager.getActiveEditor();
-                // if we're not in an inline editor, trigger reinstalling of the editor listeners
-                // on the same editor, otherwise do nothing
-                if (DocumentManager.getCurrentDocument() === activeEditor.document) {
-                    handleActiveEditorChange(e, activeEditor, activeEditor);
-                }
+                handleActiveEditorChange(e, activeEditor, activeEditor);
             });
         
         $(ProjectManager).on("beforeProjectClose", function () {

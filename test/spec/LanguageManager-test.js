@@ -46,6 +46,10 @@ define(function (require, exports, module) {
             spyOn(console, "error");
         });
         
+        afterEach(function () {
+            LanguageManager._resetLanguageOverrides();
+        });
+        
         function defineLanguage(definition) {
             var def = $.extend({}, definition);
             
