@@ -165,7 +165,7 @@ define(function CSSAgent(require, exports, module) {
 
         // Check for undefined so user agent string is only parsed once
         if (_getAllStyleSheetsNotFound === undefined) {
-            regexChromeUA = /Chrome\/(\w+)\./;  // Example: "... Chrome/34.0.1847.131 ..."
+            regexChromeUA = /Chrome\/(\d+)\./;  // Example: "... Chrome/34.0.1847.131 ..."
             userAgent     = Inspector.getUserAgent();
             uaMatch       = userAgent.match(regexChromeUA);
 
