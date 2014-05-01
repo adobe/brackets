@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils");
     
     var _naturalWidth = 0,
+        _naturalHeight = 0,
         _scale = 100,
         _scaleDivInfo = null;   // coordinates of hidden scale sticker
     
@@ -197,12 +198,13 @@ define(function (require, exports, module) {
             tipMinusOffsetX1    = -82,    // for less than 4-digit image width
             tipMinusOffsetX2    = -90;    // for 4-digit image width 
         
-        // Check whether we're getting mousemove events beyond the image width due to a browser bug 
+        // Check whether we're getting mousemove events beyond the image boundaries due to a browser bug 
         // or the rounding calculation above for a scaled image. For example, if an image is 120 px wide,
         // we should get mousemove events in the range of 0 <= x < 120, but not 120 or more. If we get 
-        // a value beyond the range, then simple pass the event to _hideImageTip and hide the image tip.
-        if (x >= _naturalWidth) {
-            return _hideImageTip(e);
+        // a value beyond the range, then simply handle the event as if it were a mouseleave.
+        if (x < 0 || x >= _naturalWidth || y < 0 || y >= _naturalHeight) {
+            _hideImageTip(e);
+            return;
         }
         
         _handleMouseEnterOrExitScaleSticker(left, top);
@@ -213,12 +215,6 @@ define(function (require, exports, module) {
             tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
         }
         
-        // For some reason we're getting -1 for e.offset when hovering over the very 
-        // first pixel of a scaled image. So adjust x to 0 if it is negative.
-        if (x < 0) {
-            x = 0;
-        }
-
         $("#x-value").text(x + "px");
         $("#y-value").text(y + "px");
 
@@ -272,6 +268,7 @@ define(function (require, exports, module) {
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
+            _naturalHeight = this.naturalHeight;
             var ext = FileUtils.getFileExtension(fullPath);
             var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
             if (ext === "ico") {
