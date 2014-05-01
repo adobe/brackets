@@ -312,7 +312,7 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
     "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
     "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SELECTED"                : "Suchen in der Ausgewählten Datei/Ordner",
+    "CMD_FIND_IN_SELECTED"                : "Suchen in ausgewählter Datei/Ordner",
     "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
     "CMD_REPLACE"                         : "Ersetzen",
 
@@ -493,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Fehler",
     "CMD_SHOW_DEV_TOOLS"                        : "Entwicklungswerkzeuge zeigen",
     "CMD_REFRESH_WINDOW"                        : "Mit Erweiterungen neu laden",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
@@ -503,6 +504,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Node-Debugger aktivieren",
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
@@ -544,4 +546,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for d2980036b4c3e91ef43bc6e6c07c6a8b422f2c3d */
+/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
