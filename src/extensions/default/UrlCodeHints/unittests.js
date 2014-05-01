@@ -689,6 +689,58 @@ define(function (require, exports, module) {
                     expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/\"");
                 });
             });
+
+            it("should show & insert case insensitive hints in HTML", function () {
+                var pos1    = { line: 17, ch: 12 },
+                    pos2    = { line: 17, ch: 13 },
+                    pos3    = { line: 17, ch: 21 };
+
+                runs(function () {
+                    // Insert letter that matches filename, but with different case
+                    testDocument.replaceRange("T", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+
+                    // Filename case from list was inserted (overriding case inserted in page)
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html");
+                });
+            });
+
+            it("should show & insert case insensitive hints in CSS", function () {
+                var pos1    = { line: 6, ch: 24 },
+                    pos2    = { line: 6, ch: 25 },
+                    pos3    = { line: 6, ch: 33 };
+
+                runs(function () {
+                    // Insert letter that matches filename, but with different case
+                    testDocument.replaceRange("T", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+
+                    // Filename case from list was inserted (overriding case inserted in page)
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html");
+                });
+            });
         });
         
     }); // describe("Url Code Hinting"

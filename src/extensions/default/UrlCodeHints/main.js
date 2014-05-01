@@ -358,17 +358,20 @@ define(function (require, exports, module) {
                     query = "";
                 }
                 
-                var hintsAndSortFunc = this._getUrlHints({queryStr: query});
-                var hints = hintsAndSortFunc.hints;
+                var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
+                    hints = hintsAndSortFunc.hints;
+
                 if (hints instanceof Array) {
                     // If we got synchronous hints, check if we have something we'll actually use
                     var i, foundPrefix = false;
+                    query = query.toLowerCase();
                     for (i = 0; i < hints.length; i++) {
-                        if (hints[i].indexOf(query) === 0) {
+                        if (hints[i].toLowerCase().indexOf(query) === 0) {
                             foundPrefix = true;
                             break;
                         }
                     }
+
                     if (!foundPrefix) {
                         query = null;
                     }
