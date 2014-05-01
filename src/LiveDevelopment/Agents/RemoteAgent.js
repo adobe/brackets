@@ -137,6 +137,10 @@ define(function RemoteAgent(require, exports, module) {
                 _objectId = response.result.objectId;
                 _load.resolve();
 
+                Inspector.Runtime.evaluate("window.navigator.userAgent", function (uaResponse) {
+                    Inspector.setUserAgent(uaResponse.result.value);
+                });
+
                 _startKeepAliveInterval();
             }
         });
