@@ -118,6 +118,11 @@ a:focus {
         > li {
             float: left;
         }
+        .dropdown-menu {
+            //max-height: calc(~"100vh - 34px"); doesn't seem to work...
+            max-height: 90vh;
+            overflow-y: auto;
+        }
     }
     .title {
         float: none;
