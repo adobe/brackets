@@ -1762,7 +1762,7 @@ define(function (require, exports, module) {
             runs(function () {
                 var fileResults = FindInFiles._searchResults[filePath];
                 expect(fileResults).toBeTruthy();
-                expect($("#search-results").is(":visible")).toBeTruthy();
+                expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                 expect($(".modal-bar").length).toBe(0);
             });
         });
@@ -1791,7 +1791,7 @@ define(function (require, exports, module) {
                 }
                 expect(resultFound).toBe(false);
 
-                expect($("#search-results").is(":visible")).toBeFalsy();
+                expect($("#find-in-files-results").is(":visible")).toBeFalsy();
                 expect($(".modal-bar").length).toBe(1);
 
                 // Close search bar
@@ -1815,7 +1815,7 @@ define(function (require, exports, module) {
                 expect(editor).toBeFalsy();
 
                 // Get panel
-                var $searchResults = $("#search-results");
+                var $searchResults = $("#find-in-files-results");
                 expect($searchResults.is(":visible")).toBeTruthy();
 
                 // Get list in panel
@@ -1854,7 +1854,7 @@ define(function (require, exports, module) {
                 expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
 
                 // Get list in panel
-                var $panelResults = $("#search-results table.bottom-panel-table tr");
+                var $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
                 expect($panelResults.length).toBe(5);   // 4 hits + 1 file section
 
                 // Double-click second item which is first hit
@@ -1884,7 +1884,7 @@ define(function (require, exports, module) {
                 expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
 
                 // Get list in panel
-                $panelResults = $("#search-results table.bottom-panel-table tr");
+                $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
                 expect($panelResults.length).toBe(panelListLen);
 
                 // Double-click second item which is first hit
@@ -1904,7 +1904,7 @@ define(function (require, exports, module) {
 
             // Panel is updated asynchronously
             waitsFor(function () {
-                $panelResults = $("#search-results table.bottom-panel-table tr");
+                $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
                 return ($panelResults.length < panelListLen);
             }, "Results panel updated");
 

@@ -37,8 +37,6 @@
  *  - Handle matches that span multiple lines
  *  - Refactor UI from functionality to enable unit testing
  */
-
-
 define(function (require, exports, module) {
     "use strict";
     
@@ -56,49 +54,29 @@ define(function (require, exports, module) {
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         FileSystem            = require("filesystem/FileSystem"),
-        FileUtils             = require("file/FileUtils"),
-        FileViewController    = require("project/FileViewController"),
         LanguageManager       = require("language/LanguageManager"),
         FindReplace           = require("search/FindReplace"),
+        SearchResults         = require("search/SearchResults").SearchResults,
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
-        PanelManager          = require("view/PanelManager"),
         KeyEvent              = require("utils/KeyEvent"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
     var searchDialogTemplate  = require("text!htmlContent/findinfiles-bar.html"),
-        searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
-        searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
-        searchResultsTemplate = require("text!htmlContent/search-results.html");
+        searchSummaryTemplate = require("text!htmlContent/search-summary-find.html");
+    
     
     /** @const Constants used to define the maximum results show per page and found in a single file */
-
-    var RESULTS_PER_PAGE = 100,
-        FIND_IN_FILE_MAX = 300,
+    var FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400;
     
     /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
     var ZERO_FILES_TO_SEARCH = {};
     
-    /**
-     * Map of all the last search results
-     * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
-     */
-    var searchResults = {};
-    
-    /** @type {Array.<string>} Keeps a copy of the searched files sorted by name and with the selected file first */
-    var searchFiles = [];
-    
-    /** @type {Panel} Bottom panel holding the search results. Initialized in htmlReady() */
-    var searchResultsPanel;
-    
-    /** @type {Entry} the File selected on the initial search */
-    var selectedEntry;
-    
-    /** @type {number} The index of the first result that is displayed */
-    var currentStart = 0;
+    /** @type {FindInFilesResults} The find in files results. Initialized in htmlReady() */
+    var findInFilesResults;
     
     /** @type {string} The current search query */
     var currentQuery = "";
@@ -115,30 +93,10 @@ define(function (require, exports, module) {
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
     
-    /** @type {string} The setTimeout id, used to clear it if required */
-    var timeoutID = null;
-    
-    /** @type {$.Element} jQuery elements used in the search results */
-    var $searchResults,
-        $searchSummary,
-        $searchContent,
-        $selectedRow;
-    
     /** @type {FindInFilesDialog} dialog having the modalbar for search */
     var dialog = null;
-    
-    /**
-     * Updates search results in response to FileSystem "change" event. (Declared here to appease JSLint)
-     * @type {Function}
-     **/
-    var _fileSystemChangeHandler;
-    
-    /**
-     * Updates the search results in response to (unsaved) text edits. (Declared here to appease JSLint)
-     * @type {Function}
-     **/
-    var _documentChangeHandler;
 
+    
     /**
      * @private
      * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
@@ -191,524 +149,6 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Remove listeners that were tracking potential search result changes */
-    function _removeListeners() {
-        $(DocumentModule).off(".findInFiles");
-        FileSystem.off("change", _fileSystemChangeHandler);
-    }
-    
-    /** Add listeners to track events that might change the search result set */
-    function _addListeners() {
-        // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
-        _removeListeners();
-        
-        $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
-        FileSystem.on("change", _fileSystemChangeHandler);
-    }
-    
-    /**
-     * @private
-     * Hides the Search Results Panel
-     */
-    function _hideSearchResults() {
-        if (searchResultsPanel.isVisible()) {
-            searchResultsPanel.hide();
-        }
-        _removeListeners();
-    }
-    
-    /**
-     * @private
-     * Searches through the contents an returns an array of matches
-     * @param {string} contents
-     * @param {RegExp} queryExpr
-     * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
-     */
-    function _getSearchMatches(contents, queryExpr) {
-        // Quick exit if not found
-        if (contents.search(queryExpr) === -1) {
-            return null;
-        }
-        
-        var match, lineNum, line, ch, matchLength,
-            lines   = StringUtils.getLines(contents),
-            matches = [];
-        
-        while ((match = queryExpr.exec(contents)) !== null) {
-            lineNum     = StringUtils.offsetToLineNum(lines, match.index);
-            line        = lines[lineNum];
-            ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
-            matchLength = match[0].length;
-            
-            // Don't store more than 200 chars per line
-            line = line.substr(0, Math.min(200, line.length));
-            
-            matches.push({
-                start: {line: lineNum, ch: ch},
-                end:   {line: lineNum, ch: ch + matchLength},
-                line:  line
-            });
-
-            // We have the max hits in just this 1 file. Stop searching this file.
-            // This fixed issue #1829 where code hangs on too many hits.
-            if (matches.length >= FIND_IN_FILE_MAX) {
-                queryExpr.lastIndex = 0;
-                maxHitsFoundInFile = true;
-                break;
-            }
-        }
-
-        return matches;
-    }
-    
-    /**
-     * @private
-     * Searches and stores the match results for the given file, if there are matches
-     * @param {string} fullPath
-     * @param {string} contents
-     * @param {RegExp} queryExpr
-     * @return {boolean} True iff the matches were added to the search results
-     */
-    function _addSearchMatches(fullPath, contents, queryExpr) {
-        var matches = _getSearchMatches(contents, queryExpr);
-        
-        if (matches && matches.length) {
-            searchResults[fullPath] = {
-                matches:   matches,
-                collapsed: false
-            };
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * @private
-     * Sorts the file keys to show the results from the selected file first and the rest sorted by path
-     */
-    function _sortResultFiles() {
-        searchFiles = Object.keys(searchResults);
-        searchFiles.sort(function (key1, key2) {
-            if (selectedEntry === key1) {
-                return -1;
-            } else if (selectedEntry === key2) {
-                return 1;
-            }
-            
-            var entryName1, entryName2,
-                pathParts1 = key1.split("/"),
-                pathParts2 = key2.split("/"),
-                length     = Math.min(pathParts1.length, pathParts2.length),
-                folders1   = pathParts1.length - 1,
-                folders2   = pathParts2.length - 1,
-                index      = 0;
-            
-            while (index < length) {
-                entryName1 = pathParts1[index];
-                entryName2 = pathParts2[index];
-                
-                if (entryName1 !== entryName2) {
-                    if (index < folders1 && index < folders2) {
-                        return entryName1.toLocaleLowerCase().localeCompare(entryName2.toLocaleLowerCase());
-                    } else if (index >= folders1 && index >= folders2) {
-                        return FileUtils.compareFilenames(entryName1, entryName2);
-                    }
-                    return (index >= folders1 && index < folders2) ? 1 : -1;
-                }
-                index++;
-            }
-            return 0;
-        });
-    }
-    
-    /**
-     * @private
-     * Counts the total number of matches and files
-     * @return {{files: number, matches: number}}
-     */
-    function _countFilesMatches() {
-        var numFiles = 0, numMatches = 0;
-        _.forEach(searchResults, function (item) {
-            numFiles++;
-            numMatches += item.matches.length;
-        });
-
-        return {files: numFiles, matches: numMatches};
-    }
-    
-    /**
-     * @private
-     * Returns the last possible current start based on the given number of matches
-     * @param {number} numMatches
-     * @return {number}
-     */
-    function _getLastCurrentStart(numMatches) {
-        return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
-    }
-    
-    /**
-     * @private
-     * Shows the results in a table and adds the necessary event listeners
-     * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
-     */
-    function _showSearchResults(zeroFilesToken) {
-        if (!$.isEmptyObject(searchResults)) {
-            var count = _countFilesMatches();
-            
-            // Show result summary in header
-            var numMatchesStr = "";
-            if (maxHitsFoundInFile) {
-                numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
-            }
-
-            // This text contains some formatting, so all the strings are assumed to be already escaped
-            var summary = StringUtils.format(
-                Strings.FIND_IN_FILES_TITLE_PART3,
-                numMatchesStr,
-                String(count.matches),
-                (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                count.files,
-                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
-            );
-            
-            // The last result index displayed
-            var last = Math.min(currentStart + RESULTS_PER_PAGE, count.matches);
-            
-            // Insert the search summary
-            $searchSummary.html(Mustache.render(searchSummaryTemplate, {
-                query:    currentQuery,
-                scope:    currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
-                summary:  summary,
-                hasPages: count.matches > RESULTS_PER_PAGE,
-                results:  StringUtils.format(Strings.FIND_IN_FILES_PAGING, currentStart + 1, last),
-                hasPrev:  currentStart > 0,
-                hasNext:  last < count.matches,
-                Strings:  Strings
-            }));
-            
-            // Create the results template search list
-            var searchItems, match, i, item,
-                searchList     = [],
-                matchesCounter = 0,
-                showMatches    = false;
-            
-            // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
-            // we filled the results for one page
-            searchFiles.some(function (fullPath) {
-                showMatches = true;
-                item = searchResults[fullPath];
-                
-                // Since the amount of matches on this item plus the amount of matches we skipped until
-                // now is still smaller than the first match that we want to display, skip these.
-                if (matchesCounter + item.matches.length < currentStart) {
-                    matchesCounter += item.matches.length;
-                    showMatches = false;
-                
-                // If we still haven't skipped enough items to get to the first match, but adding the
-                // item matches to the skipped ones is greater the the first match we want to display,
-                // then we can display the matches from this item skipping the first ones
-                } else if (matchesCounter < currentStart) {
-                    i = currentStart - matchesCounter;
-                    matchesCounter = currentStart;
-                
-                // If we already skipped enough matches to get to the first match to display, we can start
-                // displaying from the first match of this item
-                } else if (matchesCounter < last) {
-                    i = 0;
-                
-                // We can't display more items by now. Break the loop
-                } else {
-                    return true;
-                }
-                
-                if (showMatches && i < item.matches.length) {
-                    // Add a row for each match in the file
-                    searchItems = [];
-                    
-                    // Add matches until we get to the last match of this item, or filling the page
-                    while (i < item.matches.length && matchesCounter < last) {
-                        match = item.matches[i];
-                        searchItems.push({
-                            file:      searchList.length,
-                            item:      searchItems.length,
-                            line:      match.start.line + 1,
-                            pre:       match.line.substr(0, match.start.ch),
-                            highlight: match.line.substring(match.start.ch, match.end.ch),
-                            post:      match.line.substr(match.end.ch),
-                            start:     match.start,
-                            end:       match.end
-                        });
-                        matchesCounter++;
-                        i++;
-                    }
-                                                            
-                    // Add a row for each file
-                    var relativePath = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
-                        directoryPath = FileUtils.getDirectoryPath(relativePath),
-                        displayFileName = StringUtils.format(
-                            Strings.FIND_IN_FILES_FILE_PATH,
-                            StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
-                            StringUtils.breakableUrl(directoryPath),
-                            directoryPath ? "&mdash;" : ""
-                        );
-
-                    searchList.push({
-                        file:     searchList.length,
-                        filename: displayFileName,
-                        fullPath: fullPath,
-                        items:    searchItems
-                    });
-                }
-            });
-            
-            // Add the listeners for close, prev and next
-            $searchResults
-                .off(".searchList")  // Remove the old events
-                .one("click.searchList", ".close", function () {
-                    _hideSearchResults();
-                })
-                // The link to go the first page
-                .one("click.searchList", ".first-page:not(.disabled)", function () {
-                    currentStart = 0;
-                    _showSearchResults();
-                })
-                // The link to go the previous page
-                .one("click.searchList", ".prev-page:not(.disabled)", function () {
-                    currentStart -= RESULTS_PER_PAGE;
-                    _showSearchResults();
-                })
-                // The link to go to the next page
-                .one("click.searchList", ".next-page:not(.disabled)", function () {
-                    currentStart += RESULTS_PER_PAGE;
-                    _showSearchResults();
-                })
-                // The link to go to the last page
-                .one("click.searchList", ".last-page:not(.disabled)", function () {
-                    currentStart = _getLastCurrentStart(count.matches);
-                    _showSearchResults();
-                });
-            
-            // Insert the search results
-            $searchContent
-                .empty()
-                .append(Mustache.render(searchResultsTemplate, {searchList: searchList, Strings: Strings}))
-                .off(".searchList")  // Remove the old events
-            
-                // Add the click event listener directly on the table parent
-                .on("click.searchList", function (e) {
-                    var $row = $(e.target).closest("tr");
-                    
-                    if ($row.length) {
-                        if ($selectedRow) {
-                            $selectedRow.removeClass("selected");
-                        }
-                        $row.addClass("selected");
-                        $selectedRow = $row;
-                        
-                        var searchItem = searchList[$row.data("file")],
-                            fullPath   = searchItem.fullPath;
-                        
-                        // This is a file title row, expand/collapse on click
-                        if ($row.hasClass("file-section")) {
-                            var $titleRows,
-                                collapsed = !searchResults[fullPath].collapsed;
-                            
-                            if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
-                                $titleRows = $(e.target).closest("table").find(".file-section");
-                            } else {
-                                // Clicking the file section header collapses/expands result rows for that file
-                                $titleRows = $row;
-                            }
-                            
-                            $titleRows.each(function () {
-                                fullPath   = searchList[$(this).data("file")].fullPath;
-                                searchItem = searchResults[fullPath];
-
-                                if (searchItem.collapsed !== collapsed) {
-                                    searchItem.collapsed = collapsed;
-                                    $(this).nextUntil(".file-section").toggle();
-                                    $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
-                                }
-                            });
-                            
-                            //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
-                            if (e.metaKey || e.ctrlKey) {
-                                _.forEach(searchResults, function (item) {
-                                    item.collapsed = collapsed;
-                                });
-                            }
-                        // This is a file row, show the result on click
-                        } else {
-                            // Grab the required item data
-                            var item = searchItem.items[$row.data("item")];
-                            
-                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
-                                .done(function (doc) {
-                                    // Opened document is now the current main editor
-                                    EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
-                                });
-                        }
-                    }
-                })
-                // Add the file to the working set on double click
-                .on("dblclick.searchList", "tr:not(.file-section)", function (e) {
-                    var item = searchList[$(this).data("file")];
-                    FileViewController.addToWorkingSetAndSelect(item.fullPath);
-                })
-                // Restore the collapsed files
-                .find(".file-section").each(function () {
-                    var fullPath = searchList[$(this).data("file")].fullPath;
-                    
-                    if (searchResults[fullPath].collapsed) {
-                        searchResults[fullPath].collapsed = false;
-                        $(this).trigger("click");
-                    }
-                });
-            
-            if ($selectedRow) {
-                $selectedRow.removeClass("selected");
-                $selectedRow = null;
-            }
-            searchResultsPanel.show();
-            $searchContent.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
-
-            if (dialog) {
-                dialog._close();
-            }
-            
-        } else {
-            _hideSearchResults();
-
-            if (dialog) {
-                dialog.getDialogTextField()
-                    .addClass("no-results")
-                    .removeAttr("disabled")
-                    .get(0).select();
-                if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
-                    $(".modal-bar .error")
-                        .show()
-                        .html(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, _labelForScope(currentScope)));
-                } else {
-                    $(".modal-bar .no-results-message").show();
-                }
-            }
-        }
-    }
-    
-    /**
-     * @private
-     * Shows the search results and tries to restore the previous scroll and selection
-     */
-    function _restoreSearchResults() {
-        if (searchResultsPanel.isVisible()) {
-            var scrollTop  = $searchContent.scrollTop(),
-                index      = $selectedRow ? $selectedRow.index() : null,
-                numMatches = _countFilesMatches().matches;
-            
-            if (currentStart > numMatches) {
-                currentStart = _getLastCurrentStart(numMatches);
-            }
-            _showSearchResults();
-            
-            $searchContent.scrollTop(scrollTop);
-            if (index) {
-                $selectedRow = $searchContent.find("tr:eq(" + index + ")");
-                $selectedRow.addClass("selected");
-            }
-        }
-    }
-    
-    /**
-     * @private
-     * Update the search results using the given list of changes fr the given document
-     * @param {Document} doc  The Document that changed, should be the current one
-     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}>} changeList
-     *      An array of changes as described in the Document constructor
-     * @return {boolean}  True when the search results changed from a file change
-     */
-    function _updateSearchResults(doc, changeList) {
-        var i, diff, matches,
-            resultsChanged = false,
-            fullPath = doc.file.fullPath,
-            lines, start, howMany;
-        
-        changeList.forEach(function (change) {
-            lines = [];
-            start = 0;
-            howMany = 0;
-
-            // There is no from or to positions, so the entire file changed, we must search all over again
-            if (!change.from || !change.to) {
-                _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
-                resultsChanged = true;
-
-            } else {
-                // Get only the lines that changed
-                for (i = 0; i < change.text.length; i++) {
-                    lines.push(doc.getLine(change.from.line + i));
-                }
-
-                // We need to know how many lines changed to update the rest of the lines
-                if (change.from.line !== change.to.line) {
-                    diff = change.from.line - change.to.line;
-                } else {
-                    diff = lines.length - 1;
-                }
-
-                if (searchResults[fullPath]) {
-                    // Search the last match before a replacement, the amount of matches deleted and update
-                    // the lines values for all the matches after the change
-                    searchResults[fullPath].matches.forEach(function (item) {
-                        if (item.end.line < change.from.line) {
-                            start++;
-                        } else if (item.end.line <= change.to.line) {
-                            howMany++;
-                        } else {
-                            item.start.line += diff;
-                            item.end.line   += diff;
-                        }
-                    });
-
-                    // Delete the lines that where deleted or replaced
-                    if (howMany > 0) {
-                        searchResults[fullPath].matches.splice(start, howMany);
-                    }
-                    resultsChanged = true;
-                }
-
-                // Searches only over the lines that changed
-                matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
-                if (matches && matches.length) {
-                    // Updates the line numbers, since we only searched part of the file
-                    matches.forEach(function (value, key) {
-                        matches[key].start.line += change.from.line;
-                        matches[key].end.line   += change.from.line;
-                    });
-
-                    // If the file index exists, add the new matches to the file at the start index found before
-                    if (searchResults[fullPath]) {
-                        Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
-                    // If not, add the matches to a new file index
-                    } else {
-                        searchResults[fullPath] = {
-                            matches:   matches,
-                            collapsed: false
-                        };
-                    }
-                    resultsChanged = true;
-                }
-
-                // All the matches where deleted, remove the file from the results
-                if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
-                    delete searchResults[fullPath];
-                    resultsChanged = true;
-                }
-            }
-        });
-        
-        return resultsChanged;
-    }
-
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
      * should be in the search set, use _inSearchScope() instead - a supserset of this.
@@ -786,47 +226,25 @@ define(function (require, exports, module) {
         return FileFilters.filterPath(currentFilter, file.fullPath);
     }
 
-    /**
-     * @private
-     * Updates the search results in response to (unsaved) text edits
-     * @param {$.Event} event
-     * @param {Document} document
-     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
-     *      A linked list as described in the Document constructor
-     */
-    _documentChangeHandler = function (event, document, change) {
-        // Re-check the filtering that the initial search applied
-        if (_inSearchScope(document.file)) {
-            var updateResults = _updateSearchResults(document, change, false);
-            
-            if (timeoutID) {
-                window.clearTimeout(timeoutID);
-                updateResults = true;
-            }
-            if (updateResults) {
-                timeoutID = window.setTimeout(function () {
-                    _sortResultFiles();
-                    _restoreSearchResults();
-                    timeoutID = null;
-                }, UPDATE_TIMEOUT);
-            }
-        }
-    };
     
     /**
+     * @private
      * Finds search results in the given file and adds them to 'searchResults.' Resolves with
      * true if any matches found, false if none found. Errors reading the file are treated the
      * same as if no results found.
      * 
      * Does not perform any filtering - assumes caller has already vetted this file as a search
      * candidate.
+     * 
+     * @param {!File} file
+     * @return {$.Promise}
      */
     function _doSearchInOneFile(file) {
         var result = new $.Deferred();
         
         DocumentManager.getDocumentText(file)
             .done(function (text) {
-                var foundMatches = _addSearchMatches(file.fullPath, text, currentQueryExpr);
+                var foundMatches = findInFilesResults._addSearchMatches(file.fullPath, text, currentQueryExpr);
                 result.resolve(foundMatches);
             })
             .fail(function () {
@@ -870,17 +288,14 @@ define(function (require, exports, module) {
             })
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
-                _sortResultFiles();
-                _showSearchResults(zeroFilesToken);
+                findInFilesResults.showResults(zeroFilesToken);
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
                 
                 // Listen for FS & Document changes to keep results up to date
-                if (!$.isEmptyObject(searchResults)) {
-                    _addListeners();
-                }
+                findInFilesResults.addListeners();
                 
-                exports._searchResults = searchResults;  // for unit tests
+                exports._searchResults = findInFilesResults._searchResults;  // for unit tests
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -1057,21 +472,14 @@ define(function (require, exports, module) {
             dialog._close(true);
         }
         
-        // Save the currently selected file's fullpath if there is one selected and if it is a file
-        var selectedItem = ProjectManager.getSelectedItem();
-        if (selectedItem && !selectedItem.isDirectory) {
-            selectedEntry = selectedItem.fullPath;
-        }
-        
         dialog             = new FindInFilesDialog();
-        searchResults      = {};
-        currentStart       = 0;
         currentQuery       = "";
         currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
+        
         exports._searchResults = null;  // for unit tests
-                            
+        findInFilesResults.initializeResults();
         dialog.showDialog(initialString, scope);
     }
     
@@ -1085,6 +493,301 @@ define(function (require, exports, module) {
     }
     
     
+    
+    
+    /**
+     * @private
+     * @constructor
+     * @extends {SearchResults}
+     * Handles the Find in Files Results and the Results Panel
+     */
+    function FindInFilesResults() {
+        this._summaryTemplate = searchSummaryTemplate;
+        this._timeoutID       = null;
+        
+        this.createPanel("find-in-files-results", "find-in-files.results");
+    }
+    
+    FindInFilesResults.prototype = Object.create(SearchResults.prototype);
+    FindInFilesResults.prototype.constructor = FindInFilesResults;
+    FindInFilesResults.prototype.parentClass = SearchResults.prototype;
+    
+    /** @type {string} The setTimeout id, used to clear it if required */
+    FindInFilesResults.prototype._timeoutID = null;
+    
+    
+    /**
+     * Hides the Search Results Panel
+     */
+    FindInFilesResults.prototype.hideResults = function () {
+        if (this._panel.isVisible()) {
+            this._panel.hide();
+        }
+        this.removeListeners();
+    };
+    
+    /**
+     * @private
+     * Shows the results in a table and adds the necessary event listeners
+     * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
+     */
+    FindInFilesResults.prototype.showResults = function (zeroFilesToken) {
+        if (!$.isEmptyObject(this._searchResults)) {
+            var count = this._countFilesMatches(),
+                self  = this;
+            
+            // Show result summary in header
+            var numMatchesStr = "";
+            if (maxHitsFoundInFile) {
+                numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
+            }
+
+            // This text contains some formatting, so all the strings are assumed to be already escaped
+            var summary = StringUtils.format(
+                Strings.FIND_IN_FILES_TITLE_PART3,
+                numMatchesStr,
+                String(count.matches),
+                (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                count.files,
+                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+            );
+            
+            // Insert the search summary
+            this._showSummary({
+                query:   currentQuery,
+                scope:   currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
+                summary: summary
+            });
+            
+            // Create the results template search list
+            this._showResultsList();
+            
+            if (dialog) {
+                dialog._close();
+            }
+        
+        } else {
+            this.hideResults();
+
+            if (dialog) {
+                dialog.getDialogTextField()
+                    .addClass("no-results")
+                    .removeAttr("disabled")
+                    .get(0).select();
+                
+                if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
+                    $(".modal-bar .error")
+                        .show()
+                        .html(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, _labelForScope(currentScope)));
+                } else {
+                    $(".modal-bar .no-results-message").show();
+                }
+            }
+        }
+    };
+    
+    /**
+     * @private
+     * Searches through the contents an returns an array of matches
+     * @param {string} contents
+     * @param {RegExp} queryExpr
+     * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
+     */
+    FindInFilesResults.prototype._getSearchMatches = function (contents, queryExpr) {
+        // Quick exit if not found
+        if (contents.search(queryExpr) === -1) {
+            return null;
+        }
+        
+        var match, lineNum, line, ch, matchLength,
+            lines   = StringUtils.getLines(contents),
+            matches = [];
+        
+        while ((match = queryExpr.exec(contents)) !== null) {
+            lineNum     = StringUtils.offsetToLineNum(lines, match.index);
+            line        = lines[lineNum];
+            ch          = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            matchLength = match[0].length;
+            
+            // Don't store more than 200 chars per line
+            line = line.substr(0, Math.min(200, line.length));
+            
+            matches.push({
+                start: {line: lineNum, ch: ch},
+                end:   {line: lineNum, ch: ch + matchLength},
+                line:  line
+            });
+
+            // We have the max hits in just this 1 file. Stop searching this file.
+            // This fixed issue #1829 where code hangs on too many hits.
+            if (matches.length >= FIND_IN_FILE_MAX) {
+                queryExpr.lastIndex = 0;
+                maxHitsFoundInFile = true;
+                break;
+            }
+        }
+
+        return matches;
+    };
+    
+    /**
+     * @private
+     * Searches and stores the match results for the given file, if there are matches
+     * @param {string} fullPath
+     * @param {string} contents
+     * @param {RegExp} queryExpr
+     * @return {boolean} True iff the matches were added to the search results
+     */
+    FindInFilesResults.prototype._addSearchMatches = function (fullPath, contents, queryExpr) {
+        var matches = this._getSearchMatches(contents, queryExpr);
+        
+        if (matches && matches.length) {
+            this.addResultMatches(fullPath, matches);
+            return true;
+        }
+        return false;
+    };
+    
+    
+    /**
+     * Remove the listeners that were tracking potential search result changes
+     */
+    FindInFilesResults.prototype.removeListeners = function () {
+        $(DocumentModule).off(".findInFiles");
+        FileSystem.off("change", this._fileSystemChangeHandler.bind(this));
+    };
+    
+    /**
+     * Add listeners to track events that might change the search result set
+     */
+    FindInFilesResults.prototype.addListeners = function () {
+        if (!$.isEmptyObject(this._searchResults)) {
+            // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
+            this.removeListeners();
+
+            $(DocumentModule).on("documentChange.findInFiles", this._documentChangeHandler.bind(this));
+            FileSystem.on("change", this._fileSystemChangeHandler.bind(this));
+        }
+    };
+    
+    /**
+     * @private
+     * Tries to update the search result on document changes
+     * @param {$.Event} event
+     * @param {Document} document
+     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
+     *      A linked list as described in the Document constructor
+     */
+    FindInFilesResults.prototype._documentChangeHandler = function (event, document, change) {
+        var self = this, updateResults;
+        if (_inSearchScope(document.file)) {
+            updateResults = this._updateResults(document, change, false);
+            
+            if (this._timeoutID) {
+                window.clearTimeout(this._timeoutID);
+                updateResults = true;
+            }
+            if (updateResults) {
+                this._timeoutID = window.setTimeout(function () {
+                    self.restoreResults();
+                    self._timeoutID = null;
+                }, UPDATE_TIMEOUT);
+            }
+        }
+    };
+    
+    /**
+     * @private
+     * Update the search results using the given list of changes for the given document
+     * @param {Document} doc  The Document that changed, should be the current one
+     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}>} changeList
+     *      An array of changes as described in the Document constructor
+     * @return {boolean}  True when the search results changed from a file change
+     */
+    FindInFilesResults.prototype._updateResults = function (doc, changeList) {
+        var i, diff, matches, lines, start, howMany,
+            resultsChanged = false,
+            fullPath       = doc.file.fullPath,
+            self           = this;
+        
+        changeList.forEach(function (change) {
+            lines = [];
+            start = 0;
+            howMany = 0;
+
+            // There is no from or to positions, so the entire file changed, we must search all over again
+            if (!change.from || !change.to) {
+                self._addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
+                resultsChanged = true;
+
+            } else {
+                // Get only the lines that changed
+                for (i = 0; i < change.text.length; i++) {
+                    lines.push(doc.getLine(change.from.line + i));
+                }
+
+                // We need to know how many lines changed to update the rest of the lines
+                if (change.from.line !== change.to.line) {
+                    diff = change.from.line - change.to.line;
+                } else {
+                    diff = lines.length - 1;
+                }
+
+                if (self._searchResults[fullPath]) {
+                    // Search the last match before a replacement, the amount of matches deleted and update
+                    // the lines values for all the matches after the change
+                    self._searchResults[fullPath].matches.forEach(function (item) {
+                        if (item.end.line < change.from.line) {
+                            start++;
+                        } else if (item.end.line <= change.to.line) {
+                            howMany++;
+                        } else {
+                            item.start.line += diff;
+                            item.end.line   += diff;
+                        }
+                    });
+
+                    // Delete the lines that where deleted or replaced
+                    if (howMany > 0) {
+                        self._searchResults[fullPath].matches.splice(start, howMany);
+                    }
+                    resultsChanged = true;
+                }
+
+                // Searches only over the lines that changed
+                matches = self._getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+                if (matches && matches.length) {
+                    // Updates the line numbers, since we only searched part of the file
+                    matches.forEach(function (value, key) {
+                        matches[key].start.line += change.from.line;
+                        matches[key].end.line   += change.from.line;
+                    });
+
+                    // If the file index exists, add the new matches to the file at the start index found before
+                    if (self._searchResults[fullPath]) {
+                        Array.prototype.splice.apply(self._searchResults[fullPath].matches, [start, 0].concat(matches));
+                    // If not, add the matches to a new file index
+                    } else {
+                        self._searchResults[fullPath] = {
+                            matches:   matches,
+                            collapsed: false
+                        };
+                    }
+                    resultsChanged = true;
+                }
+
+                // All the matches where deleted, remove the file from the results
+                if (self._searchResults[fullPath] && !self._searchResults[fullPath].matches.length) {
+                    delete self._searchResults[fullPath];
+                    resultsChanged = true;
+                }
+            }
+        });
+        
+        return resultsChanged;
+    };
+    
+    
     /**
      * @private
      * Moves the search results from the previous path to the new one and updates the results list, if required
@@ -1092,26 +795,26 @@ define(function (require, exports, module) {
      * @param {string} oldName
      * @param {string} newName
      */
-    function _fileNameChangeHandler(event, oldName, newName) {
-        var resultsChanged = false;
+    FindInFilesResults.prototype._fileNameChangeHandler = function (event, oldName, newName) {
+        var resultsChanged = false,
+            self           = this;
         
-        if (searchResultsPanel.isVisible()) {
+        if (this._panel.isVisible()) {
             // Update the search results
-            _.forEach(searchResults, function (item, fullPath) {
+            _.forEach(this._searchResults, function (item, fullPath) {
                 if (fullPath.match(oldName)) {
-                    searchResults[fullPath.replace(oldName, newName)] = item;
-                    delete searchResults[fullPath];
+                    self._searchResults[fullPath.replace(oldName, newName)] = item;
+                    delete self._searchResults[fullPath];
                     resultsChanged = true;
                 }
             });
 
             // Restore the results if needed
             if (resultsChanged) {
-                _sortResultFiles();
-                _restoreSearchResults();
+                this.restoreResults();
             }
         }
-    }
+    };
     
     /**
      * @private
@@ -1121,17 +824,18 @@ define(function (require, exports, module) {
      * @param {Array.<FileSystemEntry>=} added Added children
      * @param {Array.<FileSystemEntry>=} removed Removed children
      */
-    _fileSystemChangeHandler = function (event, entry, added, removed) {
-        var resultsChanged = false;
+    FindInFilesResults.prototype._fileSystemChangeHandler = function (event, entry, added, removed) {
+        var resultsChanged = false,
+            self           = this;
 
         /*
          * Remove existing search results that match the given entry's path
          * @param {(File|Directory)} entry
          */
         function _removeSearchResultsForEntry(entry) {
-            Object.keys(searchResults).forEach(function (fullPath) {
+            Object.keys(self._searchResults).forEach(function (fullPath) {
                 if (fullPath.indexOf(entry.fullPath) === 0) {
-                    delete searchResults[fullPath];
+                    delete self._searchResults[fullPath];
                     resultsChanged = true;
                 }
             });
@@ -1208,8 +912,7 @@ define(function (require, exports, module) {
         addPromise.always(function () {
             // Restore the results if needed
             if (resultsChanged) {
-                _sortResultFiles();
-                _restoreSearchResults();
+                self.restoreResults();
             }
         });
     };
@@ -1217,17 +920,12 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var panelHtml = Mustache.render(searchPanelTemplate, Strings);
-        searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml), 100);
-        
-        $searchResults = $("#search-results");
-        $searchSummary = $searchResults.find(".title");
-        $searchContent = $("#search-results .table-container");
+        findInFilesResults = new FindInFilesResults();
     });
     
     // Initialize: register listeners
-    $(DocumentManager).on("fileNameChange",    _fileNameChangeHandler);
-    $(ProjectManager).on("beforeProjectClose", _hideSearchResults);
+    $(DocumentManager).on("fileNameChange",    function () { findInFilesResults._fileNameChangeHandler(); });
+    $(ProjectManager).on("beforeProjectClose", function () { findInFilesResults.hideResults(); });
     
     FindReplace._registerFindInFilesCloser(function () {
         if (dialog) {
