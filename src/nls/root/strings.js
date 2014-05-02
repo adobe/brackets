@@ -77,7 +77,7 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error launching browser",
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
@@ -85,13 +85,13 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Development page",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live development files. Please try again.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live preview files. Please try again.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -170,6 +171,30 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Exclude files\u2026",
+    "EDIT_FILE_FILTER"                  : "Edit\u2026",
+    "FILE_FILTER_DIALOG"                : "Edit Filter",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
+    "FILE_FILTER_LIST_PREFIX"           : "except",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
+
+    "FILTER_COUNTING_FILES"             : "Counting files\u2026",
+    "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "No Quick Edit available for current cursor position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: place cursor on a single class name",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: incomplete class attribute",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: incomplete id attribute",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: place cursor in tag, class, or id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: invalid syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: place cursor in function name",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "No Quick Docs available for current cursor position",
 
     /**
      * ProjectManager
@@ -193,6 +218,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Selected {0} columns",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Selected {0} line",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Selected {0} lines",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selections",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
@@ -214,6 +240,8 @@ define({
     "LINT_DISABLED"                         : "Linting is disabled",
     "NO_LINT_AVAILABLE"                     : "No linter available for {0}",
     "NOTHING_TO_LINT"                       : "Nothing to lint",
+    "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
+    "LINTER_FAILED"                         : "{0} terminated with error: {1}",
     
     
     /**
@@ -258,13 +286,9 @@ define({
     "CMD_PASTE"                           : "Paste",
     "CMD_SELECT_ALL"                      : "Select All",
     "CMD_SELECT_LINE"                     : "Select Line",
-    "CMD_FIND"                            : "Find",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
-    "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
-    "CMD_FIND_NEXT"                       : "Find Next",
-    "CMD_FIND_PREVIOUS"                   : "Find Previous",
-    "CMD_REPLACE"                         : "Replace",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
@@ -277,6 +301,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Find",
+    "CMD_FIND"                            : "Find",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
+    "CMD_FIND_NEXT"                       : "Find Next",
+    "CMD_FIND_PREVIOUS"                   : "Find Previous",
+    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
+    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
+    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
+    "CMD_FIND_IN_FILES"                   : "Find in Files",
+    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
+    "CMD_REPLACE"                         : "Replace",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -319,9 +357,10 @@ define({
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_SUPPORT"                         : "{APP_NAME} Support",
+    "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_REPORT_AN_ISSUE"                 : "Report an Issue",
+    "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -442,6 +481,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
     
     /**
      * Unit names
@@ -451,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -461,6 +504,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

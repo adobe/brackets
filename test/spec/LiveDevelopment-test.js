@@ -103,6 +103,19 @@ define(function (require, exports, module) {
         // wrap with a timeout to indicate loadEventFired was not fired
         return Async.withTimeout(deferred.promise(), 2000);
     }
+
+    function waitForLiveDoc(path, callback) {
+        var liveDoc;
+
+        waitsFor(function () {
+            liveDoc = LiveDevelopment.getLiveDocForPath(path);
+            return !!liveDoc;
+        }, "Waiting for LiveDevelopment document", 10000);
+
+        runs(function () {
+            callback(liveDoc);
+        });
+    }
     
     function doOneTest(htmlFile, cssFile) {
         var localText,
@@ -129,10 +142,7 @@ define(function (require, exports, module) {
         });
 
         var liveDoc;
-        waitsFor(function () {
-            liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/" + cssFile);
-            return !!liveDoc;
-        }, "Waiting for LiveDevelopment document", 10000);
+        waitForLiveDoc(tempDir + "/" + cssFile, function (doc) { liveDoc = doc; });
         
         var doneSyncing = false;
         runs(function () {
@@ -273,7 +283,7 @@ define(function (require, exports, module) {
                 
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn("");
-                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () {});
+                spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
                 spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 InspectorModule.CSS = {
@@ -637,8 +647,9 @@ define(function (require, exports, module) {
                 openLiveDevelopmentAndWait();
                 
                 var liveDoc, doneSyncing = false;
+                waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
+
                 runs(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -714,13 +725,13 @@ define(function (require, exports, module) {
                 });
                 
                 // Grab the node that we've modified in Brackets. 
-                var updatedNode, doneSyncing = false;
+                var liveDoc, updatedNode, doneSyncing = false;
+                waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
+
                 runs(function () {
                     // Inpsector.Page.reload should not be called when saving an HTML file
                     expect(Inspector.Page.reload).not.toHaveBeenCalled();
-                    
                     updatedNode = DOMAgent.nodeAtLocation(501);
-                    var liveDoc = LiveDevelopment.getLiveDocForPath(tempDir + "/simple1.css");
                     
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
@@ -791,8 +802,6 @@ define(function (require, exports, module) {
                         doc.replaceRange("<", { line: 10, ch: 2});
                     }, LiveDevelopmentModule.STATUS_SYNC_ERROR, 11);
                 });
-
-                waits(1000);
 
                 runs(function () {
                     // Undo syntax errors

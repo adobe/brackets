@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        FileSystem          = require("filesystem/FileSystem");
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils");
     
     var _naturalWidth = 0,
         _scale = 100,
@@ -312,7 +313,11 @@ define(function (require, exports, module) {
         $("#img-preview").on("load", function () {
             // add dimensions and size
             _naturalWidth = this.naturalWidth;
+            var ext = FileUtils.getFileExtension(fullPath);
             var dimensionString = _naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS;
+            if (ext === "ico") {
+                dimensionString += " (" + Strings.IMAGE_VIEWER_LARGEST_ICON + ")";
+            }
             // get image size
             var file = FileSystem.getFileForPath(fullPath);
             var minimumPixels = 20;     // for showing crosshair cursor

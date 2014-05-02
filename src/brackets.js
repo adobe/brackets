@@ -44,6 +44,19 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
+
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
@@ -87,15 +100,28 @@ define(function (require, exports, module) {
         ColorUtils              = require("utils/ColorUtils"),
         CodeInspection          = require("language/CodeInspection"),
         NativeApp               = require("utils/NativeApp"),
+        DeprecationWarning      = require("utils/DeprecationWarning"),
+        ViewCommandHandlers     = require("view/ViewCommandHandlers"),
         _                       = require("thirdparty/lodash");
-        
+    
+    // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
+    // expose our required CodeMirror globally so as to avoid breaking extensions in the
+    // interim.
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+
+    Object.defineProperty(window, "CodeMirror", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror2/lib/codemirror") instead of global CodeMirror.', true);
+            return CodeMirror;
+        }
+    });
+    
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
     require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
-    require("view/ViewCommandHandlers");
     require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
@@ -125,40 +151,44 @@ define(function (require, exports, module) {
         // in the modules since they would run in context of the unit test window,
         // and would not have access to the app html/css.
         brackets.test = {
-            PreferencesManager      : PreferencesManager,
-            ProjectManager          : ProjectManager,
-            DocumentCommandHandlers : DocumentCommandHandlers,
-            FileViewController      : FileViewController,
-            DocumentManager         : DocumentManager,
-            EditorManager           : EditorManager,
-            Commands                : Commands,
-            WorkingSetView          : WorkingSetView,
-            PerfUtils               : PerfUtils,
-            JSUtils                 : JSUtils,
-            CommandManager          : CommandManager,
-            FileSyncManager         : FileSyncManager,
-            FileSystem              : FileSystem,
-            Menus                   : Menus,
-            KeyBindingManager       : KeyBindingManager,
             CodeHintManager         : CodeHintManager,
-            Dialogs                 : Dialogs,
-            DefaultDialogs          : DefaultDialogs,
-            DragAndDrop             : DragAndDrop,
             CodeInspection          : CodeInspection,
+            CommandManager          : CommandManager,
+            Commands                : Commands,
             CSSUtils                : require("language/CSSUtils"),
-            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
-            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            DefaultDialogs          : DefaultDialogs,
+            Dialogs                 : Dialogs,
+            DocumentCommandHandlers : DocumentCommandHandlers,
+            DocumentManager         : DocumentManager,
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
-            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-            NativeApp               : NativeApp,
+            DragAndDrop             : DragAndDrop,
+            EditorManager           : EditorManager,
             ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
-            UpdateNotification      : require("utils/UpdateNotification"),
-            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
-            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            FileFilters             : require("search/FileFilters"),
+            FileSyncManager         : FileSyncManager,
+            FileSystem              : FileSystem,
+            FileViewController      : FileViewController,
+            FindInFiles             : require("search/FindInFiles"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
-            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+            InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
+            JSUtils                 : JSUtils,
+            KeyBindingManager       : KeyBindingManager,
             LanguageManager         : LanguageManager,
+            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            Menus                   : Menus,
+            MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+            NativeApp               : NativeApp,
+            PerfUtils               : PerfUtils,
+            PreferencesManager      : PreferencesManager,
+            ProjectManager          : ProjectManager,
+            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
+            UpdateNotification      : require("utils/UpdateNotification"),
+            WorkingSetView          : WorkingSetView,
+
             doneLoading             : false
         };
 
@@ -206,6 +236,7 @@ define(function (require, exports, module) {
             // Load the initial project after extensions have loaded
             extensionLoaderPromise.always(function () {
                 // Finish UI initialization
+                ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
@@ -265,13 +296,9 @@ define(function (require, exports, module) {
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
-            // check once a day, plus 2 minutes, 
-            // as the check will skip if the last check was not -24h ago
-            window.setInterval(UpdateNotification.checkForUpdate, 86520000);
-            
-            // Check for updates on App Ready
             AppInit.appReady(function () {
-                UpdateNotification.checkForUpdate();
+                // launches periodic checks for updates cca every 24 hours
+                UpdateNotification.launchAutomaticUpdate();
             });
         }
     }

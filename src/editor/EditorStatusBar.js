@@ -51,42 +51,81 @@ define(function (require, exports, module) {
         $statusOverwrite;
     
     
+    /**
+     * Determine string based on count
+     * @param {number} number Count
+     * @param {string} singularStr Singular string
+     * @param {string} pluralStr Plural string
+     * @return {string} Proper string to use for count
+     */
     function _formatCountable(number, singularStr, pluralStr) {
         return StringUtils.format(number > 1 ? pluralStr : singularStr, number);
     }
     
+    /**
+     * Update file mode
+     * @param {Editor} editor Current editor
+     */
     function _updateLanguageInfo(editor) {
         $languageInfo.text(editor.document.getLanguage().getName());
     }
     
+    /**
+     * Update file information
+     * @param {Editor} editor Current editor
+     */
     function _updateFileInfo(editor) {
         var lines = editor.lineCount();
         $fileInfo.text(_formatCountable(lines, Strings.STATUSBAR_LINE_COUNT_SINGULAR, Strings.STATUSBAR_LINE_COUNT_PLURAL));
     }
     
-    function _updateIndentType() {
-        var indentWithTabs = Editor.getUseTabChar();
+    /**
+     * Update indent type and size
+     * @param {string} fullPath Path to file in current editor
+     */
+    function _updateIndentType(fullPath) {
+        var indentWithTabs = Editor.getUseTabChar(fullPath);
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
         $indentWidthLabel.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_TABS : Strings.STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES);
     }
 
-    function _getIndentSize() {
-        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getSpaceUnits();
+    /**
+     * Get indent size based on type
+     * @param {string} fullPath Path to file in current editor
+     * @return {number} Indent size
+     */
+    function _getIndentSize(fullPath) {
+        return Editor.getUseTabChar(fullPath) ? Editor.getTabSize(fullPath) : Editor.getSpaceUnits(fullPath);
     }
     
-    function _updateIndentSize() {
-        var size = _getIndentSize();
+    /**
+     * Update indent size
+     * @param {string} fullPath Path to file in current editor
+     */
+    function _updateIndentSize(fullPath) {
+        var size = _getIndentSize(fullPath);
         $indentWidthLabel.text(size);
         $indentWidthInput.val(size);
     }
     
+    /**
+     * Toggle indent type
+     */
     function _toggleIndentType() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        _updateIndentType();
-        _updateIndentSize();
+        var current = EditorManager.getActiveEditor(),
+            fullPath = current && current.document.file.fullPath;
+
+        Editor.setUseTabChar(!Editor.getUseTabChar(fullPath), fullPath);
+        _updateIndentType(fullPath);
+        _updateIndentSize(fullPath);
     }
     
+    /**
+     * Update cursor(s)/selection(s) information
+     * @param {Event} event (unused)
+     * @param {Editor} editor Current editor
+     */
     function _updateCursorInfo(event, editor) {
         editor = editor || EditorManager.getActiveEditor();
 
@@ -94,11 +133,14 @@ define(function (require, exports, module) {
         var cursor = editor.getCursorPos(true);
         
         var cursorStr = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1);
-        if (editor.hasSelection()) {
-            // Show info about selection size when one exists
-            var sel = editor.getSelection(),
-                selStr;
-            
+        
+        var sels = editor.getSelections(),
+            selStr = "";
+
+        if (sels.length > 1) {
+            selStr = StringUtils.format(Strings.STATUSBAR_SELECTION_MULTIPLE, sels.length);
+        } else if (editor.hasSelection()) {
+            var sel = sels[0];
             if (sel.start.line !== sel.end.line) {
                 var lines = sel.end.line - sel.start.line + 1;
                 if (sel.end.ch === 0) {
@@ -109,13 +151,16 @@ define(function (require, exports, module) {
                 var cols = editor.getColOffset(sel.end) - editor.getColOffset(sel.start);  // end ch is exclusive always
                 selStr = _formatCountable(cols, Strings.STATUSBAR_SELECTION_CH_SINGULAR, Strings.STATUSBAR_SELECTION_CH_PLURAL);
             }
-            $cursorInfo.text(cursorStr + selStr);
-        } else {
-            $cursorInfo.text(cursorStr);
         }
+        $cursorInfo.text(cursorStr + selStr);
     }
     
-    function _changeIndentWidth(value) {
+    /**
+     * Change indent size
+     * @param {string} fullPath Path to file in current editor
+     * @param {string} value Size entered into status bar 
+     */
+    function _changeIndentWidth(fullPath, value) {
         $indentWidthLabel.removeClass("hidden");
         $indentWidthInput.addClass("hidden");
         
@@ -125,40 +170,71 @@ define(function (require, exports, module) {
         // restore focus to the editor
         EditorManager.focusEditor();
         
-        if (!value || isNaN(value)) {
-            return;
-        }
-        
-        value = Math.max(Math.min(Math.floor(value), 10), 1);
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(value);
+        var valInt = parseInt(value, 10);
+        if (Editor.getUseTabChar(fullPath)) {
+            if (!Editor.setTabSize(valInt, fullPath)) {
+                return;     // validation failed
+            }
         } else {
-            Editor.setSpaceUnits(value);
+            if (!Editor.setSpaceUnits(valInt, fullPath)) {
+                return;     // validation failed
+            }
         }
 
         // update indicator
-        _updateIndentSize();
+        _updateIndentSize(fullPath);
 
         // column position may change when tab size changes
         _updateCursorInfo();
     }
     
-    function _updateOverwriteLabel(event, editor, newstate) {
+    /**
+     * Update insert/overwrite label
+     * @param {Event} event (unused)
+     * @param {Editor} editor Current editor
+     * @param {string} newstate New overwrite state
+     * @param {boolean=} doNotAnimate True if state should not be animated
+     */
+    function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+        if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
+            // label already up-to-date
+            return;
+        }
+
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
-        
-        AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+        }
+    }
+
+    /**
+     * Update insert/overwrite indicator
+     * @param {Event} event (unused)
+     */
+    function _updateEditorOverwriteMode(event) {
+        var editor = EditorManager.getActiveEditor(),
+            newstate = !editor._codeMirror.state.overwrite;
+
+        // update label with no transition
+        _updateOverwriteLabel(event, editor, newstate, true);
+        editor.toggleOverwrite(newstate);
     }
     
-    function _updateEditorOverwriteMode() {
-        var editor = EditorManager.getActiveEditor();
-        
-        editor.toggleOverwrite(null);
-    }
-    
+    /**
+     * Initialize insert/overwrite indicator
+     * @param {Editor} currentEditor Current editor
+     */
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
     }
     
+    /**
+     * Handle active editor change event
+     * @param {Event} event (unused)
+     * @param {Editor} current Current editor
+     * @param {Editor} previous Previous editor 
+     */
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
             $(previous).off(".statusbar");
@@ -169,12 +245,13 @@ define(function (require, exports, module) {
         if (!current) {
             StatusBar.hide();  // calls resizeEditor() if needed
         } else {
+            var fullPath = current.document.file.fullPath;
             StatusBar.show();  // calls resizeEditor() if needed
             
             $(current).on("cursorActivity.statusbar", _updateCursorInfo);
             $(current).on("optionChange.statusbar", function () {
-                _updateIndentType();
-                _updateIndentSize();
+                _updateIndentType(fullPath);
+                _updateIndentSize(fullPath);
             });
             $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
@@ -189,11 +266,14 @@ define(function (require, exports, module) {
             _updateLanguageInfo(current);
             _updateFileInfo(current);
             _initOverwriteMode(current);
-            _updateIndentType();
-            _updateIndentSize();
+            _updateIndentType(fullPath);
+            _updateIndentSize(fullPath);
         }
     }
     
+    /**
+     * Initialize
+     */
     function _init() {
         $languageInfo       = $("#status-language");
         $cursorInfo         = $("#status-cursor");
@@ -208,7 +288,8 @@ define(function (require, exports, module) {
         $indentWidthLabel
             .on("click", function () {
                 // update the input value before displaying
-                $indentWidthInput.val(_getIndentSize());
+                var current = EditorManager.getActiveEditor();
+                $indentWidthInput.val(_getIndentSize(current));
 
                 $indentWidthLabel.addClass("hidden");
                 $indentWidthInput.removeClass("hidden");
@@ -216,13 +297,13 @@ define(function (require, exports, module) {
         
                 $indentWidthInput
                     .on("blur", function () {
-                        _changeIndentWidth($indentWidthInput.val());
+                        _changeIndentWidth(current, $indentWidthInput.val());
                     })
                     .on("keyup", function (event) {
                         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                             $indentWidthInput.blur();
                         } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(false);
+                            _changeIndentWidth(current, false);
                         }
                     });
             });

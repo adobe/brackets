@@ -30,7 +30,8 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
+ *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
@@ -59,6 +60,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -75,6 +77,11 @@ define(function (require, exports, module) {
         FileSyncManager     = require("project/FileSyncManager"),
         EditorManager       = require("editor/EditorManager");
     
+    
+    // Define the preference to decide how to sort the Project Tree files
+    PreferencesManager.definePreference("sortDirectoriesFirst", "boolean", brackets.platform !== "mac");
+    
+    
     /**
      * @private
      * Forward declaration for the _fileSystemChange and _fileSystemRename functions to make JSLint happy.
@@ -86,9 +93,8 @@ define(function (require, exports, module) {
      * @private
      * File tree sorting for mac-specific sorting behavior
      */
-    var _isMac          = brackets.platform === "mac",
-        _sortPrefixDir  = _isMac ? "" : "0",
-        _sortPrefixFile = _isMac ? "" : "1";
+    var _sortPrefixDir,
+        _sortPrefixFile;
     
     /**
      * @private
@@ -99,15 +105,8 @@ define(function (require, exports, module) {
      *    https://github.com/adobe/brackets/issues/6781
      * @type {RegExp}
      */
-    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.c9revisions|^\.SyncArchive|^\.SyncID|^\.SyncIgnore|\~$/;
+    var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
-    /**
-     * @private
-     * File names which are not showed in quick open dialog
-     * @type {RegExp}
-     */
-    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
-    
     /**
      * @private
      * Filename to use for project settings files.
@@ -155,6 +154,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @see getProjectRoot()
+     * @type {Directory}
      */
     var _projectRoot = null;
 
@@ -196,6 +196,28 @@ define(function (require, exports, module) {
      * ProjectManager.getAllFiles().
      */
     var _allFilesCachePromise = null;
+    
+    /**
+     * @private
+     * @type {boolean}
+     * Current sort order for the tree, true if directories are first. This is
+     * initialized in _generateSortPrefixes.
+     */
+    var _dirFirst;
+    
+    /**
+     * @private
+     * Generates the prefixes used for sorting the files in the project tree
+     * @return {boolean} true if the sort prefixes have changed
+     */
+    function _generateSortPrefixes() {
+        var previousDirFirst  = _dirFirst;
+        _dirFirst             = PreferencesManager.get("sortDirectoriesFirst");
+        _sortPrefixDir        = _dirFirst ? "0" : "";
+        _sortPrefixFile       = _dirFirst ? "1" : "";
+        
+        return previousDirFirst !== _dirFirst;
+    }
     
     /**
      * @private
@@ -644,7 +666,50 @@ define(function (require, exports, module) {
             // install scroller shadows
             ViewUtils.addScrollerShadow(_projectTree.get(0));
             
+            var findEventHandler = function (type, namespace, selector) {
+                var events        = $._data(_projectTree[0], "events"),
+                    eventsForType = events ? events[type] : null,
+                    event         = eventsForType ? _.find(eventsForType, function (e) {
+                        return e.namespace === namespace && e.selector === selector;
+                    }) : null,
+                    eventHandler  = event ? event.handler : null;
+                if (!eventHandler) {
+                    console.error(type + "." + namespace + " " + selector + " handler not found!");
+                }
+                return eventHandler;
+            };
+            var createCustomHandler = function (originalHandler) {
+                return function (event) {
+                    var $node = $(event.target).parent("li"),
+                        methodName;
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.altKey) {
+                            // collapse subtree
+                            // note: expanding using open_all is a bad idea due to poor performance
+                            methodName = $node.is(".jstree-open") ? "close_all" : "open_node";
+                            _projectTree.jstree(methodName, $node);
+                            return;
+                        } else {
+                            // toggle siblings
+                            methodName = $node.is(".jstree-open") ? "close_node" : "open_node";
+                            $node.parent().children("li").each(function () {
+                                _projectTree.jstree(methodName, $(this));
+                            });
+                            return;
+                        }
+                    }
+                    // original behaviour
+                    originalHandler.apply(this, arguments);
+                };
+            };
+            var originalHrefHandler = findEventHandler("click", "jstree", "a");
+            var originalInsHandler = findEventHandler("click", "jstree", "li > ins");
+
             _projectTree
+                .off("click.jstree", "a")
+                .on("click.jstree", "a", createCustomHandler(originalHrefHandler))
+                .off("click.jstree", "li > ins")
+                .on("click.jstree", "li > ins", createCustomHandler(originalInsHandler))
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
@@ -681,12 +746,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
      * @param {string} fileName
      * @return {boolean}
      */
     function isBinaryFile(fileName) {
-        return fileName.match(_binaryExclusionListRegEx);
+        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
+        return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
     
     /**
@@ -697,7 +764,7 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function _toCompareString(name, isFolder) {
-        return ((isFolder) ? _sortPrefixDir : _sortPrefixFile) + name;
+        return (isFolder ? _sortPrefixDir : _sortPrefixFile) + name;
     }
     
     /**
@@ -1005,6 +1072,20 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Reloads the project preferences.
+     */
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
+        } else {
+            PreferencesManager._setProjectSettingsFile();
+        }
+    }
+    
+    /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
@@ -1033,8 +1114,9 @@ define(function (require, exports, module) {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
+            
+            // About to close current project (if any)
             if (_projectRoot) {
-                // close current project
                 $(exports).triggerHandler("beforeProjectClose", _projectRoot);
             }
             
@@ -1042,6 +1124,11 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
+                // Done closing old project (if any)
+                if (_projectRoot) {
+                    $(exports).triggerHandler("projectClose", _projectRoot);
+                }
+                
                 startLoad.resolve();
             });
         }
@@ -1058,7 +1145,7 @@ define(function (require, exports, module) {
             };
 
             if (!isUpdating) {
-                PreferencesManager.projectLayer.setProjectPath(rootPath);
+                PreferencesManager._stateProjectLayer.setProjectPath(rootPath);
             }
             
             // restore project tree state from last time this project was open
@@ -1073,16 +1160,22 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-                        PreferencesManager._setCurrentEditingFile(rootPath);
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
-
+                        
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        
+                        if (projectRootChanged) {
+                            _reloadProjectPreferencesScope();
+                            PreferencesManager._setCurrentEditingFile(rootPath);
+                        }
+
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
+                        _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
                         // If this is the most current welcome project, record it. In future launches, we want
                         // to substitute the latest welcome project from the current build instead of using an
@@ -1780,8 +1873,17 @@ define(function (require, exports, module) {
                 
                 // Since html_titles are enabled, we have to reset the text without markup.
                 // And we also need to explicitly escape all html-sensitive characters.
-                _projectTree.jstree("set_text", $selected, _.escape(entry.name));
+                var escapedName = _.escape(entry.name);
+                _projectTree.jstree("set_text", $selected, escapedName);
                 _projectTree.jstree("rename");
+
+                var extension = FileUtils.getSmartFileExtension(entry.name);
+                if (extension) {
+                    var indexOfExtension = escapedName.length - extension.length - 1;
+                    if (indexOfExtension > 0) {
+                        $selected.children(".jstree-rename-input")[0].setSelectionRange(0, indexOfExtension);
+                    }
+                }
             });
         // No fail handler: silently no-op if file doesn't exist in tree
     }
@@ -1902,7 +2004,7 @@ define(function (require, exports, module) {
                 allFiles = [],
                 allFilesVisitor = function (entry) {
                     if (shouldShow(entry)) {
-                        if (entry.isFile && !isBinaryFile(entry.name)) {
+                        if (entry.isFile) {
                             allFiles.push(entry);
                         }
                         return true;
@@ -1928,7 +2030,7 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow() OR isBinaryFile() are excluded.
+     * out by shouldShow().
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
@@ -2114,6 +2216,8 @@ define(function (require, exports, module) {
         DocumentManager.notifyPathNameChanged(oldName, newName);
     };
     
+    
+    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -2174,17 +2278,13 @@ define(function (require, exports, module) {
         "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
     
-    function _reloadProjectPreferencesScope() {
-        var root = getProjectRoot();
-        if (root) {
-            // Alias the "project" Scope to the path Scope for the project-level settings file
-            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
-        } else {
-            PreferencesManager._setProjectSettingsFile();
+    // Initialize the sort prefixes and make sure to change them when the sort pref changes
+    _generateSortPrefixes();
+    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
+        if (_generateSortPrefixes()) {
+            refreshFileTree();
         }
-    }
-    
-    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
+    });
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -2194,7 +2294,7 @@ define(function (require, exports, module) {
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
-    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
+    CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
     
     // Init invalid characters string 
     if (brackets.platform === "mac") {

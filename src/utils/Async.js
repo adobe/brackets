@@ -424,6 +424,7 @@ define(function (require, exports, module) {
      * has finished.
      */
     function PromiseQueue() {
+        this._queue = [];
     }
     
     /**
@@ -432,7 +433,7 @@ define(function (require, exports, module) {
      * The queue of operations to execute sequentially. Note that even if this array is empty, there might
      * still be an operation we need to wait on; that operation's promise is stored in _curPromise.
      */
-    PromiseQueue.prototype._queue = [];
+    PromiseQueue.prototype._queue = null;
     
     /**
      * @private
@@ -487,7 +488,7 @@ define(function (require, exports, module) {
         if (this._queue.length) {
             var op = this._queue.shift();
             this._curPromise = op();
-            this._curPromise.done(function () {
+            this._curPromise.always(function () {
                 self._curPromise = null;
                 self._doNext();
             });

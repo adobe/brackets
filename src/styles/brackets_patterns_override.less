@@ -229,6 +229,29 @@ a:focus {
 @menubar-h-padding: 9px;
 @item-highlight-color: #e0f0fa;
 
+// Dropdown Menu Animation
+.dropdown-menu {
+    .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99), 0, 1);
+    -webkit-transform-origin: 0 0;
+    border: none;
+    border-radius: @tc-control-border-radius;
+}
+
+@-webkit-keyframes dropdown {
+    0%   { opacity: 0.5; -webkit-transform: translate3d(0, 0, 0) scale(0.5); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes dropdown {
+    0%   { opacity: 0.5; transform: translate3d(0, 0, 0) scale(0.5); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+// Code hints don't need scaling navigation so we're removing it
+
+.codehint-menu.open .dropdown-menu {
+    -webkit-animation: none;
+}
+
 .toolbar .nav, .context-menu, .codehint-menu {
 
     // The 1px adjustments here are to account for the border around the top-level menu items.
@@ -269,7 +292,8 @@ a:focus {
 
     // Menu dropdown appearance
     .dropdown-menu {
-        top: 34px; // Offset from top of menubar item
+        // Offset for better alignment with button
+        top: 34px;
         margin-top: 0;
         
         // Fix for #4593: don't let narrow parent (menubar item) cause text wrap at the float boundary between
@@ -403,34 +427,31 @@ a:focus {
     margin: 0;
 }
 
-/* Stylesheet button & dropdown styles */
+/* DropdownButton widget */
 
-.stylesheet-button.btn-mini {
-    margin-left: 8px;
-    position: relative;
-    top: -1px;
+.btn-dropdown, .btn-dropdown.btn-mini {
+    position: relative;   // needed to position ::after arrow
+    padding-right: 24px;  // makes room for ::after arrow
 }
-
-.stylesheet-button.btn-mini.btn-dropdown {
-    padding-right: 24px;
-}
-
-.stylesheet-button.btn-dropdown::after {
+.btn-dropdown::after {
     content: "";
     display: block;
     height: 0px;
     width: 0px;
     position: absolute;
     right: 6px;
-    top: 7px;
+    top: 11px;
 
     /* dropdown triangle */
     border-top: 4px solid @tc-gray-component-triangle;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
 }
+.btn-dropdown.btn-mini::after {
+    top: 7px;
+}
 
-.stylesheet-dropdown {
+.dropdownbutton-popup {
     &.dropdown-menu:focus {
         outline: none;
     }
@@ -449,24 +470,12 @@ a:focus {
         z-index: @z-index-brackets-stylesheet-menu;
     }
     
-    .stylesheet-link, .stylesheet-name {
-        white-space: nowrap;
-    }
-    
     &.dropdown-menu li a {
         padding: 1px 15px 1px 15px;
     }
     
     &.dropdown-menu .stylesheet-link {
         display: block;
-    }
-    
-    .stylesheet-name {
-        color: @tc-text;
-    }
-    
-    .stylesheet-dir {
-        color: @tc-quiet-text;
     }
     
     &.dropdown-menu a.selected {
@@ -479,6 +488,26 @@ a:focus {
     }
 }
 
+/* Inline editor stylesheet-picker DropdownButton */
+
+.stylesheet-button.btn-mini {
+    margin-left: 8px;
+    top: -1px;
+}
+
+.dropdownbutton-popup {
+    .stylesheet-link, .stylesheet-name {
+        white-space: nowrap;
+    }
+    
+    .stylesheet-name {
+        color: @tc-text;
+    }
+    
+    .stylesheet-dir {
+        color: @tc-quiet-text;
+    }
+}
 
 /* Dialog-related styles */
 
@@ -499,10 +528,12 @@ a:focus {
 
 .modal {
     background-color: @tc-gray-panel;
+    border: 1px solid rgba(0, 0, 0, 0.1);
     min-width: 200px;
     position: relative;
     top: 0;
     margin: auto;
+    .animation(modal, 240ms, cubic-bezier(0, 1.05, .35, 1), 0, 1);
 }
 
 .modal .close {
@@ -583,11 +614,26 @@ a:focus {
 }
 
 .modal-backdrop {
-    opacity: 0;
+    .animation (backdrop, 200ms, linear, 0, 1);
+    opacity: 0.4;
 }
-.last-backdrop {
-    /* Only show the last modal backdrop */
-    opacity: 0.5;
+
+@-webkit-keyframes backdrop {
+    0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0); }
+    100% { opacity: 0.4; -webkit-transform: translate3d(0, 0, 0); }
+}
+@keyframes backdrop {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0); }
+    100% { opacity: 0.4; transform: translate3d(0, 0, 0); }
+}
+
+@-webkit-keyframes modal {
+    0%   { opacity: 0; -webkit-transform: translate3d(0, 0, 0) scale(0); }
+    100% { opacity: 1; -webkit-transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes modal {
+    0%   { opacity: 0; transform: translate3d(0, 0, 0) scale(0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 
@@ -612,6 +658,10 @@ a:focus {
     line-height: 20px;
     color: @tc-light-weight-text;
     padding: 0 0 5px;
+}
+
+.dialog-message select {
+    margin-left: 10px;
 }
 
 .dialog-message select {
@@ -663,6 +713,19 @@ a[href^="http"] {
             // Enable text selection
             cursor: auto;
             .user-select(text);
+            
+            h3 {
+                font-weight: normal;
+                margin: 0 0 10px;
+            }
+            
+            ul {
+                margin-bottom: 0 0 20px;
+                
+                > li {
+                    margin-bottom: 10px;
+                }
+            }
         }
     }
 }
@@ -747,7 +810,7 @@ a[href^="http"] {
             
             > li {
                 position: relative;  // for positioning .notification icon
-                > .notification {
+                .notification {
                     display: none;  // hidden by default
                     background-color: #91CC41;
                     color: white;
@@ -774,14 +837,17 @@ a[href^="http"] {
             padding-right: 20px;
         }
         .search-clear {
+            background: transparent;
             position: relative;
             display: block;
             float: right;
-            left: -5px;
-            margin: 7px 0 0 -20px;
+            font-size: 20px;
+            left: -6px;
+            line-height: 0;
+            margin: 6px 0 0 -20px;
             opacity: 0.5;
-            background: url("images/topcoat-cancel-15.svg") no-repeat;
-            width: 15px;
+            padding: 0;
+            width: 16px;
             height: 16px;
             z-index: 1;
             border: 0;
@@ -848,12 +914,19 @@ a[href^="http"] {
                 .user-select(text);
                 cursor: text;
             }
+            .ext-keywords {
+                color: @tc-input-placeholder-text;
+            }
             .muted {
-                color: #888;
+                color: @tc-input-placeholder-text;
+            }
+            .alert {
+                font-size: 11px;
+                margin: 0 0 10px;
             }
             .error {
                 font-weight: @font-weight-semibold;
-                color: #ff5656;
+                color: @tc-error-text;
             }
             .ext-version,
             .ext-date,
@@ -884,8 +957,10 @@ a[href^="http"] {
     position: relative;
     .about-icon {
         position: absolute;
-        left: 10px;  // relative to border of modal-body (bounds outside padding)
-        top:  11px;
+        left: 19px;  // relative to border of modal-body (bounds outside padding)
+        top:  15px;
+        width: 100px;
+        height: 100px;
     }
     .about-text {
         // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
@@ -955,7 +1030,7 @@ input[type="color"],
     -webkit-font-smoothing: antialiased;
     .border-radius(@tc-control-border-radius);
     .box-shadow(@tc-input-inner-shadow);
-    .transition(~"border linear 0s, box-shadow linear 0s");
+    .transition(~"border linear 180ms, box-shadow linear 180ms");
 
     &::-webkit-input-placeholder {
         color: @tc-input-placeholder-text;
@@ -1028,7 +1103,6 @@ input[type="color"],
     background-image: none;
 
     background-color: @tc-button-background;
-    text-shadow: @tc-text-shadow;
     color: @tc-text;
     cursor: default;
     font-size: (@baseFontSize + 1);
@@ -1072,7 +1146,7 @@ input[type="color"],
         border: 1px solid  @tc-call-to-action-border;
         box-shadow: @tc-call-to-action-highlight;
         color: @tc-call-to-action-text;
-        text-shadow: @tc-call-to-action-text-shadow;
+        text-shadow: none;
         &.active,
         &:active {
             background-image: none;
@@ -1082,9 +1156,26 @@ input[type="color"],
         }
 
         &:focus {
-            border: 1px solid @tc-gray-component-focused-border;
+            border: 1px solid @tc-call-to-action-border;
             box-shadow: @tc-call-to-action-highlight, @tc-input-glow;
             outline: none;
+        }
+    }
+    
+    // Update Button Type
+    &.update {
+        background-color: #91cc41;
+        border-color: #65a015;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.27);
+        color: #fff;
+        font-weight: @font-weight-semibold;
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.24);
+        
+        &:active {
+            background-color: #82b839;
+            border-color: #5b8028;
+            box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+            color: #fff;
         }
     }
 
@@ -1098,6 +1189,21 @@ input[type="color"],
     }
 }
 
+.btn-alt-quiet {
+    border: 1px solid transparent;
+    border-radius: @tc-control-border-radius;
+    text-decoration: none;
+    &:hover {
+        border: 1px solid @tc-alt-component-border;
+        box-shadow: @tc-button-alt-highlight;
+    }
+    &:active {
+        background: @tc-button-alt-down-background;
+        border: 1px solid @tc-alt-component-border;
+        box-shadow: @tc-call-to-action-down-shadow;
+    }
+}
+
 .btn-mini {
     padding: 2px 6px;
     font-size: 11px;
@@ -1105,10 +1211,11 @@ input[type="color"],
     line-height: 14px;
     &:focus {
         border: 1px solid @tc-gray-component-focused-border;
-        box-shadow: @tc-button-highlight, @tc-input-small-glow;
+        box-shadow: @tc-button-highlight, @tc-input-glow;
         outline: none;
     }
 }
+
 
 /* Tables */
 
@@ -1177,6 +1284,7 @@ b,
 strong,
 dt,
 .label {
+    color: @tc-text;
     font-weight: @font-weight-semibold;
 }
 

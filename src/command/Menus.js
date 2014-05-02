@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,9 +27,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
-    
+
     // Load dependent modules
     var Global              = require("utils/Global"),
         Commands            = require("command/Commands"),
@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
-        ViewUtils           = require("utils/ViewUtils");
+        ViewUtils           = require("utils/ViewUtils"),
+        DeprecationWarning  = require("utils/DeprecationWarning");
 
     /**
      * Brackets Application Menu Constants
@@ -46,6 +47,7 @@ define(function (require, exports, module) {
     var AppMenuBar = {
         FILE_MENU       : "file-menu",
         EDIT_MENU       : "edit-menu",
+        FIND_MENU       : "find-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
         HELP_MENU       : "help-menu"
@@ -56,10 +58,11 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var ContextMenuIds = {
-        EDITOR_MENU:        "editor-context-menu",
-        INLINE_EDITOR_MENU: "inline-editor-context-menu",
-        PROJECT_MENU:       "project-context-menu",
-        WORKING_SET_MENU:   "working-set-context-menu"
+        EDITOR_MENU:               "editor-context-menu",
+        INLINE_EDITOR_MENU:        "inline-editor-context-menu",
+        PROJECT_MENU:              "project-context-menu",
+        WORKING_SET_MENU:          "working-set-context-menu",
+        WORKING_SET_SETTINGS_MENU: "working-set-settings-context-menu"
     };
 
 
@@ -68,7 +71,7 @@ define(function (require, exports, module) {
      * It is preferred that plug-ins specify the location of new MenuItems
      * in terms of a menu section rather than a specific MenuItem. This provides
      * looser coupling to Bracket's internal MenuItems and makes menu organization
-     * more semantic. 
+     * more semantic.
      * Use these constants as the "relativeID" parameter when calling addMenuItem() and
      * specify a position of FIRST_IN_SECTION or LAST_IN_SECTION.
      *
@@ -84,13 +87,19 @@ define(function (require, exports, module) {
         EDIT_UNDO_REDO_COMMANDS:            {sectionMarker: Commands.EDIT_UNDO},
         EDIT_TEXT_COMMANDS:                 {sectionMarker: Commands.EDIT_CUT},
         EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
-        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.EDIT_FIND},
-        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
         EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
         EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
         EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
-
+        
+        // DEPRECATED: Old Edit menu sections redirected to existing Edit menu section
+        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
+        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
+        
+        FIND_FIND_COMMANDS:                 {sectionMarker: Commands.CMD_FIND},
+        FIND_FIND_IN_COMMANDS:              {sectionMarker: Commands.CMD_FIND_IN_FILES},
+        FIND_REPLACE_COMMANDS:              {sectionMarker: Commands.CMD_REPLACE},
+        
         VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
         VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
         VIEW_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_ACTIVE_LINE},
@@ -102,7 +111,7 @@ define(function (require, exports, module) {
         NAVIGATE_QUICK_DOCS_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_DOCS}
     };
 
-    
+
     /**
      * Insertion position constants
      * Used by addMenu(), addMenuItem(), and addSubMenu() to
@@ -120,7 +129,7 @@ define(function (require, exports, module) {
      * Other constants
      */
     var DIVIDER = "---";
-    
+
     /**
      * Error Codes from Brackets Shell
      * @enum {number}
@@ -129,7 +138,7 @@ define(function (require, exports, module) {
         ERR_UNKNOWN        = 1,
         ERR_INVALID_PARAMS = 2,
         ERR_NOT_FOUND      = 3;
-    
+
     /**
      * Maps menuID's to Menu objects
      * @type {Object.<string, Menu>}
@@ -147,16 +156,16 @@ define(function (require, exports, module) {
      * @type {Object.<string, MenuItem>}
      */
     var menuItemMap = {};
-    
+
     /**
-     * Retrieves the Menu object for the corresponding id. 
+     * Retrieves the Menu object for the corresponding id.
      * @param {string} id
      * @return {Menu}
      */
     function getMenu(id) {
         return menuMap[id];
     }
-    
+
     /**
      * Retrieves the map of all Menu objects.
      * @return {Object.<string, Menu>}
@@ -166,7 +175,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Retrieves the ContextMenu object for the corresponding id. 
+     * Retrieves the ContextMenu object for the corresponding id.
      * @param {string} id
      * @return {ContextMenu}
      */
@@ -175,20 +184,20 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Check whether a ContextMenu exists for the given id. 
+     * Check whether a ContextMenu exists for the given id.
      * @param {string} id
      * @return {boolean}
      */
     function _isContextMenu(id) {
         return !!getContextMenu(id);
     }
-    
+
     function _isHTMLMenu(id) {
         return (!brackets.nativeMenus || _isContextMenu(id));
     }
 
     /**
-     * Retrieves the MenuItem object for the corresponding id. 
+     * Retrieves the MenuItem object for the corresponding id.
      * @param {string} id
      * @return {MenuItem}
      */
@@ -203,32 +212,32 @@ define(function (require, exports, module) {
     function _getHTMLMenuItem(id) {
         return $("#" + StringUtils.jQueryIdEscape(id)).get(0);
     }
-    
+
     function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
         var $shortcut = $menuItem.find(".menu-shortcut");
-        
+
         if ($shortcut.length === 0) {
             $shortcut = $("<span class='menu-shortcut' />");
             $menuItem.append($shortcut);
         }
-        
+
         $shortcut.data("key", key);
         $shortcut.text(KeyBindingManager.formatKeyDescriptor(displayKey));
     }
-    
+
     function _addExistingKeyBinding(menuItem) {
         var bindings = KeyBindingManager.getKeyBindings(menuItem.getCommand().getID()),
             binding = null;
-        
+
         if (bindings.length > 0) {
             // add the latest key binding
             binding = bindings[bindings.length - 1];
             _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey);
         }
-        
+
         return binding;
     }
-    
+
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
@@ -276,8 +285,8 @@ define(function (require, exports, module) {
      * may have a sub-menu. A MenuItem may correspond to an HTML-based
      * menu item or a native menu item if Brackets is running in a native application shell
      *
-     * Since MenuItems may have a native implementation clients should create MenuItems through 
-     * addMenuItem() and should NOT construct a MenuItem object directly. 
+     * Since MenuItems may have a native implementation clients should create MenuItems through
+     * addMenuItem() and should NOT construct a MenuItem object directly.
      * Clients should also not access HTML content of a menu directly and instead use
      * the MenuItem API to query and modify menus items.
      *
@@ -316,10 +325,10 @@ define(function (require, exports, module) {
      * @private
      *
      * Menu represents a top-level menu in the menu bar. A Menu may correspond to an HTML-based
-     * menu or a native menu if Brackets is running in a native application shell. 
-     * 
-     * Since menus may have a native implementation clients should create Menus through 
-     * addMenu() and should NOT construct a Menu object directly. 
+     * menu or a native menu if Brackets is running in a native application shell.
+     *
+     * Since menus may have a native implementation clients should create Menus through
+     * addMenu() and should NOT construct a Menu object directly.
      * Clients should also not access HTML content of a menu directly and instead use
      * the Menu API to query and modify menus.
      *
@@ -387,13 +396,13 @@ define(function (require, exports, module) {
                         $relativeElement = $listElem;
                     }
                 }
-                
+
             } else {
                 if (relativeID.hasOwnProperty("sectionMarker")) {
                     console.error("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
                     return null;
                 }
-                
+
                 // handle FIRST, LAST, BEFORE, & AFTER
                 var command = CommandManager.get(relativeID);
                 if (command) {
@@ -407,14 +416,14 @@ define(function (require, exports, module) {
                     return null;
                 }
             }
-            
+
             return $relativeElement;
-            
+
         } else if (position && position !== FIRST && position !== LAST) {
             console.error("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
             return null;
         }
-        
+
         return $relativeElement;
     };
 
@@ -456,10 +465,10 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         delete menuItemMap[menuItemID];
     };
-    
+
     /**
      * Removes the specified menu divider from this Menu.
      *
@@ -468,24 +477,24 @@ define(function (require, exports, module) {
     Menu.prototype.removeMenuDivider = function (menuItemID) {
         var menuItem,
             $HTMLMenuItem;
-        
+
         if (!menuItemID) {
             console.error("removeMenuDivider(): missing required parameters: menuItemID");
             return;
         }
-        
+
         menuItem = getMenuItem(menuItemID);
-        
+
         if (!menuItem) {
             console.error("removeMenuDivider(): parameter menuItemID: %s is not a valid menu item id", menuItemID);
             return;
         }
-        
+
         if (!menuItem.isDivider) {
             console.error("removeMenuDivider(): parameter menuItemID: %s is not a menu divider", menuItemID);
             return;
         }
-        
+
         if (_isHTMLMenu(this.id)) {
             // Targeting parent to get the menu divider <hr> and the <li> that contains it
             $HTMLMenuItem = $(_getHTMLMenuItem(menuItemID)).parent();
@@ -502,20 +511,20 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         if (!menuItemMap[menuItemID]) {
             console.error("removeMenuDivider(): menu divider not found in menuItemMap: %s", menuItemID);
             return;
         }
-        
+
         delete menuItemMap[menuItemID];
     };
-    
+
     /**
      * Adds a new menu item with the specified id and display text. The insertion position is
-     * specified via the relativeID and position arguments which describe a position 
-     * relative to another MenuItem or MenuGroup. It is preferred that plug-ins 
-     * insert new  MenuItems relative to a menu section rather than a specific 
+     * specified via the relativeID and position arguments which describe a position
+     * relative to another MenuItem or MenuGroup. It is preferred that plug-ins
+     * insert new  MenuItems relative to a menu section rather than a specific
      * MenuItem (see Menu Section Constants).
      *
      * TODO: Sub-menus are not yet supported, but when they are implemented this API will
@@ -523,7 +532,7 @@ define(function (require, exports, module) {
      *
      * Note, keyBindings are bound to Command objects not MenuItems. The provided keyBindings
      *      will be bound to the supplied Command object rather than the MenuItem.
-     * 
+     *
      * @param {!string | Command} command - the command the menu will execute.
      *      Pass Menus.DIVIDER for a menu divider, or just call addMenuDivider() instead.
      * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
@@ -546,7 +555,15 @@ define(function (require, exports, module) {
             menuItem,
             name,
             commandID;
-
+        
+        if (relativeID === MenuSection.EDIT_FIND_COMMANDS) {
+            DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
+            DeprecationWarning.deprecationWarning("Use MenuSection.FIND_FIND_COMMANDS instead of MenuSection.EDIT_FIND_COMMANDS.", true);
+        } else if (relativeID === MenuSection.EDIT_REPLACE_COMMANDS) {
+            DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
+            DeprecationWarning.deprecationWarning("Use MenuSection.FIND_REPLACE_COMMANDS instead of MenuSection.EDIT_REPLACE_COMMANDS.", true);
+        }
+        
         if (!command) {
             console.error("addMenuItem(): missing required parameters: command");
             return null;
@@ -572,7 +589,7 @@ define(function (require, exports, module) {
 
         // Internal id is the a composite of the parent menu id and the command id.
         id = this._getMenuItemId(commandID);
-        
+
         if (menuItemMap[id]) {
             console.log("MenuItem added with same id of existing MenuItem: " + id);
             return null;
@@ -589,12 +606,12 @@ define(function (require, exports, module) {
             } else {
                 // Create the HTML Menu
                 $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
-    
+
                 $menuItem.on("click", function () {
                     menuItem._command.execute();
                 });
             }
-    
+
             // Insert menu item
             var $relativeElement = this._getRelativeMenuItem(relativeID, position);
             _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
@@ -604,26 +621,26 @@ define(function (require, exports, module) {
                 binding,
                 bindingStr = "",
                 displayStr = "";
-            
+
             if (bindings && bindings.length > 0) {
                 binding = bindings[bindings.length - 1];
                 bindingStr = binding.displayKey || binding.key;
             }
-            
+
             if (bindingStr.length > 0) {
                 displayStr = KeyBindingManager.formatKeyDescriptor(bindingStr);
             }
-            
+
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
                 if (!relativeID.hasOwnProperty("sectionMarker")) {
                     console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
                     return null;
                 }
-                
-                // For sections, pass in the marker for that section. 
+
+                // For sections, pass in the marker for that section.
                 relativeID = relativeID.sectionMarker;
             }
-            
+
             brackets.app.addMenuItem(this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 switch (err) {
                 case NO_ERROR:
@@ -651,10 +668,10 @@ define(function (require, exports, module) {
                     keyBindings = [keyBindings];
                 }
             }
-                
+
             // Note that keyBindings passed during MenuItem creation take precedent over any existing key bindings
             KeyBindingManager.addBinding(commandID, keyBindings);
-            
+
             // Look for existing key bindings
             _addExistingKeyBinding(menuItem, commandID);
 
@@ -662,18 +679,18 @@ define(function (require, exports, module) {
             menuItem._enabledChanged();
             menuItem._nameChanged();
         }
-        
+
         return menuItem;
     };
 
     /**
      * Inserts divider item in menu.
      * @param {?string} position - constant defining the position of new the divider relative
-     *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
-     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
+     *      to other MenuItems. Default is LAST.  (see Insertion position constants).
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new
      *      divider will be positioned relative to. Required for all position constants
      *      except FIRST and LAST
-     * 
+     *
      * @return {MenuItem} the newly created divider
      */
     Menu.prototype.addMenuDivider = function (position, relativeID) {
@@ -683,7 +700,7 @@ define(function (require, exports, module) {
     /**
      * NOT IMPLEMENTED
      * Alternative JSON based API to addMenuItem()
-     * 
+     *
      * All properties are required unless noted as optional.
      *
      * @param { Array.<{
@@ -693,9 +710,9 @@ define(function (require, exports, module) {
      *          }>} jsonStr
      *        }
      * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
-     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
-     *      menuItem will be positioned relative to. Required when position is 
+     *      to other MenuItems. Default is LAST.  (see Insertion position constants).
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new
+     *      menuItem will be positioned relative to. Required when position is
      *      AFTER or BEFORE, ignored when position is FIRST or LAST.
      *
      * @return {MenuItem} the newly created MenuItem
@@ -710,11 +727,11 @@ define(function (require, exports, module) {
      * @param {!string} text displayed in menu item
      * @param {!string} id
      * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to other MenuItems. Default is LAST.  (see Insertion position constants) 
-     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
-     *      menuItem will be positioned relative to. Required when position is 
+     *      to other MenuItems. Default is LAST.  (see Insertion position constants)
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new
+     *      menuItem will be positioned relative to. Required when position is
      *      AFTER or BEFORE, ignored when position is FIRST or LAST.
-     * 
+     *
      * @return {MenuItem} newly created menuItem for sub-menu
      */
     // MenuItem.prototype.createSubMenu = function (text, id, position, relativeID) {
@@ -740,7 +757,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns the parent Menu for this MenuItem
-     * @return {Menu} 
+     * @return {Menu}
      */
     MenuItem.prototype.getParentMenu = function () {
         var parent = $(_getHTMLMenuItem(this.id)).parents(".dropdown").get(0);
@@ -750,7 +767,7 @@ define(function (require, exports, module) {
 
         return getMenu(parent.id);
     };
-    
+
     /**
      * Synchronizes MenuItem checked state with underlying Command checked state
      */
@@ -799,7 +816,7 @@ define(function (require, exports, module) {
             $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
         }
     };
-    
+
     /**
      * @private
      * Updates MenuItem DOM with a keyboard shortcut label
@@ -816,7 +833,7 @@ define(function (require, exports, module) {
             _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
         }
     };
-    
+
     /**
      * @private
      * Updates MenuItem DOM to remove keyboard shortcut label
@@ -830,7 +847,7 @@ define(function (require, exports, module) {
             });
         } else {
             var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
-            
+
             if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
                 // check for any other bindings
                 if (_addExistingKeyBinding(this) === null) {
@@ -846,20 +863,20 @@ define(function (require, exports, module) {
     function closeAll() {
         $(".dropdown").removeClass("open");
     }
-    
+
     /**
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
      *
-     * @param {!string} name - display text for menu 
+     * @param {!string} name - display text for menu
      * @param {!string} id - unique identifier for a menu.
      *      Core Menus in Brackets use a simple  title as an id, for example "file-menu".
-     *      Extensions should use the following format: "author.myextension.mymenuname". 
+     *      Extensions should use the following format: "author.myextension.mymenuname".
      * @param {?string} position - constant defining the position of new the Menu relative
      *  to other Menus. Default is LAST (see Insertion position constants).
-     *      
+     *
      * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to. Required
      *      when position is AFTER or BEFORE, ignored when position is FIRST or LAST
-     * 
+     *
      * @return {?Menu} the newly created Menu
      */
     function addMenu(name, id, position, relativeID) {
@@ -871,7 +888,7 @@ define(function (require, exports, module) {
             console.error("call to addMenu() is missing required parameters");
             return null;
         }
-        
+
         // Guard against duplicate menu ids
         if (menuMap[id]) {
             console.log("Menu added with same name and id of existing Menu: " + id);
@@ -915,7 +932,7 @@ define(function (require, exports, module) {
         // Insert menu
         var $relativeElement = relativeID && $(_getHTMLMenu(relativeID));
         _insertInList($menubar, $newMenu, position, $relativeElement);
-        
+
         // Install ESC key handling
         PopUpManager.addPopUp($popUp, closeAll, false);
 
@@ -934,17 +951,17 @@ define(function (require, exports, module) {
     function removeMenu(id) {
         var menu,
             commandID = "";
-        
+
         if (!id) {
             console.error("removeMenu(): missing required parameter: id");
             return;
         }
-        
+
         if (!menuMap[id]) {
             console.error("removeMenu(): menu id not found: %s", id);
             return;
         }
-        
+
         // Remove all of the menu items in the menu
         menu = getMenu(id);
         
@@ -958,7 +975,7 @@ define(function (require, exports, module) {
                 }
             }
         });
-        
+
         if (_isHTMLMenu(id)) {
             $(_getHTMLMenu(id)).remove();
         } else {
@@ -968,7 +985,7 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         delete menuMap[id];
     }
 
@@ -976,7 +993,7 @@ define(function (require, exports, module) {
      * @constructor
      * @extends {Menu}
      *
-     * Represents a context menu that can open at a specific location in the UI. 
+     * Represents a context menu that can open at a specific location in the UI.
      *
      * Clients should not create this object directly and should instead use registerContextMenu()
      * to create new ContextMenu objects.
@@ -1000,14 +1017,14 @@ define(function (require, exports, module) {
 
         // insert into DOM
         $("#context-menu-bar > ul").append($newMenu);
-        
+
         var self = this;
         PopUpManager.addPopUp($popUp,
             function () {
                 self.close();
             },
             false);
-        
+
         // Listen to ContextMenu's beforeContextMenuOpen event to first close other popups
         PopUpManager.listenToContextMenu(this);
     }
@@ -1017,7 +1034,7 @@ define(function (require, exports, module) {
 
 
     /**
-     * Displays the ContextMenu at the specified location and dispatches the 
+     * Displays the ContextMenu at the specified location and dispatches the
      * "beforeContextMenuOpen" event.The menu location may be adjusted to prevent
      * clipping by the browser window. All other menus and ContextMenus will be closed
      * bofore a new menu is shown.
@@ -1064,6 +1081,7 @@ define(function (require, exports, module) {
         }
         posTop -= 30;   // shift top for hidden parent element
         posLeft += 5;
+
         
         if (clip.right > 0) {
             posLeft = Math.max(0, posLeft - clip.right);
@@ -1074,6 +1092,7 @@ define(function (require, exports, module) {
                    .css({"left": posLeft, "top": posTop});
     };
 
+
     /**
      * Closes the context menu.
      */
@@ -1082,14 +1101,48 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Registers new context menu with Brackets. 
+     * Detect if current context menu is already open
+     */
+    ContextMenu.prototype.isOpen = function () {
+        return $("#" + StringUtils.jQueryIdEscape(this.id)).hasClass("open");
+    };
 
-     * Extensions should generally use the predefined context menus built into Brackets. Use this 
+
+    /**
+     * Associate a context menu to a DOM element.
+     * This static function take care of registering event handlers for the click event
+     * listener and passing the right "position" object to the Context#open method
+     */
+    ContextMenu.assignContextMenuToSelector = function (selector, cmenu) {
+        $(selector).on("click", function (e) {
+            var buttonOffset,
+                buttonHeight;
+
+            e.stopPropagation();
+
+            if (cmenu.isOpen()) {
+                cmenu.close();
+            } else {
+                buttonOffset = $(this).offset();
+                buttonHeight = $(this).outerHeight();
+                cmenu.open({
+                    pageX: buttonOffset.left,
+                    pageY: buttonOffset.top + buttonHeight
+                });
+            }
+        });
+    };
+
+
+    /**
+     * Registers new context menu with Brackets.
+
+     * Extensions should generally use the predefined context menus built into Brackets. Use this
      * API to add a new context menu to UI that is specific to an extension.
      *
      * After registering  a new context menu clients should:
      *      - use addMenuItem() to add items to the context menu
-     *      - call open() to show the context menu. 
+     *      - call open() to show the context menu.
      *      For example:
      *      $("#my_ID").contextmenu(function (e) {
      *          if (e.which === 3) {
@@ -1111,7 +1164,7 @@ define(function (require, exports, module) {
             console.error("call to registerContextMenu() is missing required parameters");
             return null;
         }
-        
+
         // Guard against duplicate menu ids
         if (contextMenuMap[id]) {
             console.log("Context Menu added with same name and id of existing Context Menu: " + id);

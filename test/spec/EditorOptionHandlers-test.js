@@ -220,7 +220,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
-                    checkLineWrapping(editor, {line: 0, ch: 0}, {line: 0, ch: 160}, true);
+                    checkLineWrapping(editor, {line: 0, ch: 0}, {line: 0, ch: 320}, true);
                 });
             });
             
@@ -433,7 +433,7 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
                     
                     runs(function () {
-                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}});
+                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}, reversed: false});
                     });
                 });
             });

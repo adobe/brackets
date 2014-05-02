@@ -60,6 +60,7 @@ define(function (require, exports, module) {
         var directory,
             doc,
             docDir,
+            editor,
             queryDir = "",
             queryUrl,
             result = [],
@@ -67,8 +68,13 @@ define(function (require, exports, module) {
             targetDir,
             unfiltered = [];
 
-        // get path to current document
-        doc = DocumentManager.getCurrentDocument();
+        // get path to document in focused editor
+        editor = EditorManager.getFocusedEditor();
+        if (!editor) {
+            return result;
+        }
+
+        doc = editor.document;
         if (!doc || !doc.file) {
             return result;
         }

@@ -61,6 +61,9 @@ define(function (require, exports, module) {
      */
     SearchResults.prototype.searchResults = {};
     
+    /** @type {?Entry} The File selected on the initial search */
+    SearchResults.prototype.selectedEntry = null;
+    
     /** @type {number} The index of the first result that is displayed */
     SearchResults.prototype.currentStart = 0;
     
@@ -411,18 +414,30 @@ define(function (require, exports, module) {
     
     
     /**
+     * Sets the Currently Selected Entry, if possible
+     */
+    SearchResults.prototype.setSelectedEntry = function () {
+        var selectedItem = ProjectManager.getSelectedItem();
+        if (selectedItem && !selectedItem.isDirectory) {
+            this.selectedEntry = selectedItem.fullPath;
+        } else {
+            this.selectedEntry = null;
+        }
+    };
+    
+    /**
      * @private
      * Sorts the file keys to show the results from the selected file first and the rest sorted by path
      * @return {Array.<string>}
      */
     SearchResults.prototype._getSortedFiles = function () {
-        var selectedEntry = ProjectManager.getSelectedItem().fullPath,
-            searchFiles   = Object.keys(this.searchResults);
+        var searchFiles = Object.keys(this.searchResults),
+            self        = this;
         
         searchFiles.sort(function (key1, key2) {
-            if (selectedEntry === key1) {
+            if (self.selectedEntry === key1) {
                 return -1;
-            } else if (selectedEntry === key2) {
+            } else if (self.selectedEntry === key2) {
                 return 1;
             }
             

@@ -261,7 +261,7 @@ define(function (require, exports, module) {
                 var file = FileSystem.getFileForPath(fullPath);
                 file.exists(function (fileError, fileExists) {
                     if (fileExists) {
-                        EditorManager.showCustomViewer(viewProvider, fullPath);
+                        EditorManager._showCustomViewer(viewProvider, fullPath);
                         result.resolve();
                     } else {
                         fileError = fileError || FileSystemError.NOT_FOUND;
@@ -714,8 +714,7 @@ define(function (require, exports, module) {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
                     if (settings) {
-                        editor.setCursorPos(settings.cursorPos);
-                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setSelections(settings.selections);
                         editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
                     }
                 }
@@ -751,6 +750,8 @@ define(function (require, exports, module) {
                 return;
             }
             
+            doc.isSaving = true;    // mark that we're saving the document
+            
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
             
@@ -758,24 +759,30 @@ define(function (require, exports, module) {
             // explictly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
-            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                // If there were unsaved changes before Save As, they don't stay with the old
-                // file anymore - so must revert the old doc to match disk content.
-                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                // not in the working set has the side effect of adding it to the working set.
-                if (doc.isDirty && !(doc.isUntitled())) {
-                    // if the file is dirty it must be in the working set
-                    // doRevert is side effect free in this case
-                    doRevert(doc).always(openNewFile);
-                } else {
-                    openNewFile();
-                }
-            }).fail(function (error) {
-                _showSaveFileError(error, path)
-                    .done(function () {
-                        result.reject(error);
-                    });
-            });
+            FileUtils.writeText(newFile, doc.getText(), true)
+                .done(function () {
+                    // If there were unsaved changes before Save As, they don't stay with the old
+                    // file anymore - so must revert the old doc to match disk content.
+                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                    // not in the working set has the side effect of adding it to the working set.
+                    if (doc.isDirty && !(doc.isUntitled())) {
+                        // if the file is dirty it must be in the working set
+                        // doRevert is side effect free in this case
+                        doRevert(doc).always(openNewFile);
+                    } else {
+                        openNewFile();
+                    }
+                })
+                .fail(function (error) {
+                    _showSaveFileError(error, path)
+                        .done(function () {
+                            result.reject(error);
+                        });
+                })
+                .always(function () {
+                    // mark that we're done saving the document
+                    doc.isSaving = false;
+                });
         }
         
         if (doc) {
@@ -824,12 +831,11 @@ define(function (require, exports, module) {
             doc = (commandData && commandData.doc) || activeDoc,
             settings;
         
-        if (doc) {
+        if (doc && !doc.isSaving) {
             if (doc.isUntitled()) {
                 if (doc === activeDoc) {
                     settings = {
-                        selection: activeEditor.getSelection(),
-                        cursorPos: activeEditor.getCursorPos(),
+                        selections: activeEditor.getSelections(),
                         scrollPos: activeEditor.getScrollPos()
                     };
                 }
@@ -918,8 +924,7 @@ define(function (require, exports, module) {
             if (activeEditor) {
                 doc = activeEditor.document;
                 settings = {};
-                settings.selection = activeEditor.getSelection();
-                settings.cursorPos = activeEditor.getCursorPos();
+                settings.selections = activeEditor.getSelections();
                 settings.scrollPos = activeEditor.getScrollPos();
             }
         }
@@ -986,7 +991,7 @@ define(function (require, exports, module) {
                         result.resolve();
                     });
                 } else {
-                    EditorManager.closeCustomViewer();
+                    EditorManager._closeCustomViewer();
                     result.resolve();
                 }
             }
@@ -1197,7 +1202,7 @@ define(function (require, exports, module) {
         return _closeList(DocumentManager.getWorkingSet(),
                                     (commandData && commandData.promptOnly), true).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
-                EditorManager.closeCustomViewer();
+                EditorManager._closeCustomViewer();
             }
         });
     }
@@ -1205,7 +1210,7 @@ define(function (require, exports, module) {
     function handleFileCloseList(commandData) {
         return _closeList(commandData.fileList, false, false).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
-                EditorManager.closeCustomViewer();
+                EditorManager._closeCustomViewer();
             }
         });
     }
@@ -1469,6 +1474,12 @@ define(function (require, exports, module) {
                     Menus.removeMenu(key);
                 });
                 
+                // If there's a fragment in both URLs, setting location.href won't actually reload
+                var fragment = href.indexOf("#");
+                if (fragment !== -1) {
+                    href = href.substr(0, fragment);
+                }
+                
                 window.location.href = href;
             });
         }).fail(function () {
@@ -1563,9 +1574,6 @@ define(function (require, exports, module) {
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-    // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
-    // File > New should open a new blank tab, and handleFileNewInProject should
-    // be called from a "+" button in the project
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,  Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
