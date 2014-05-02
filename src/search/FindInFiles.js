@@ -293,11 +293,9 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(perfTimer);
                 
                 // Listen for FS & Document changes to keep results up to date
-                if (!$.isEmptyObject(findInFilesResults.searchResults)) {
-                    findInFilesResults._addListeners();
-                }
+                findInFilesResults.addListeners();
                 
-                exports._searchResults = findInFilesResults.searchResults;  // for unit tests
+                exports._searchResults = findInFilesResults._searchResults;  // for unit tests
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -474,9 +472,6 @@ define(function (require, exports, module) {
             dialog._close(true);
         }
         
-        // Save the currently selected file's fullpath if there is one selected and if it is a file
-        findInFilesResults.setSelectedEntry();
-        
         dialog             = new FindInFilesDialog();
         currentQuery       = "";
         currentQueryExpr   = null;
@@ -507,24 +502,28 @@ define(function (require, exports, module) {
      * Handles the Find in Files Results and the Results Panel
      */
     function FindInFilesResults() {
-        this.summaryTemplate = searchSummaryTemplate;
-        this.timeoutID       = null;
+        this._summaryTemplate = searchSummaryTemplate;
+        this._timeoutID       = null;
         
-        this.createPanel("findInFilesResults", "find-in-files.results");
+        this.createPanel("find-in-files-results", "find-in-files.results");
     }
     
     FindInFilesResults.prototype = Object.create(SearchResults.prototype);
     FindInFilesResults.prototype.constructor = FindInFilesResults;
     FindInFilesResults.prototype.parentClass = SearchResults.prototype;
     
+    /** @type {string} The setTimeout id, used to clear it if required */
+    FindInFilesResults.prototype._timeoutID = null;
+    
+    
     /**
      * Hides the Search Results Panel
      */
     FindInFilesResults.prototype.hideResults = function () {
-        if (this.panel.isVisible()) {
-            this.panel.hide();
+        if (this._panel.isVisible()) {
+            this._panel.hide();
         }
-        this._removeListeners();
+        this.removeListeners();
     };
     
     /**
@@ -533,7 +532,7 @@ define(function (require, exports, module) {
      * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
      */
     FindInFilesResults.prototype.showResults = function (zeroFilesToken) {
-        if (!$.isEmptyObject(this.searchResults)) {
+        if (!$.isEmptyObject(this._searchResults)) {
             var count = this._countFilesMatches(),
                 self  = this;
             
@@ -650,19 +649,25 @@ define(function (require, exports, module) {
     };
     
     
-    /** Remove listeners that were tracking potential search result changes */
-    FindInFilesResults.prototype._removeListeners = function () {
+    /**
+     * Remove the listeners that were tracking potential search result changes
+     */
+    FindInFilesResults.prototype.removeListeners = function () {
         $(DocumentModule).off(".findInFiles");
         FileSystem.off("change", this._fileSystemChangeHandler.bind(this));
     };
     
-    /** Add listeners to track events that might change the search result set */
-    FindInFilesResults.prototype._addListeners = function () {
-        // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
-        this._removeListeners();
-        
-        $(DocumentModule).on("documentChange.findInFiles", this._documentChangeHandler.bind(this));
-        FileSystem.on("change", this._fileSystemChangeHandler.bind(this));
+    /**
+     * Add listeners to track events that might change the search result set
+     */
+    FindInFilesResults.prototype.addListeners = function () {
+        if (!$.isEmptyObject(this._searchResults)) {
+            // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
+            this.removeListeners();
+
+            $(DocumentModule).on("documentChange.findInFiles", this._documentChangeHandler.bind(this));
+            FileSystem.on("change", this._fileSystemChangeHandler.bind(this));
+        }
     };
     
     /**
@@ -678,14 +683,14 @@ define(function (require, exports, module) {
         if (_inSearchScope(document.file)) {
             updateResults = this._updateResults(document, change, false);
             
-            if (this.timeoutID) {
-                window.clearTimeout(this.timeoutID);
+            if (this._timeoutID) {
+                window.clearTimeout(this._timeoutID);
                 updateResults = true;
             }
             if (updateResults) {
-                this.timeoutID = window.setTimeout(function () {
+                this._timeoutID = window.setTimeout(function () {
                     self.restoreResults();
-                    self.timeoutID = null;
+                    self._timeoutID = null;
                 }, UPDATE_TIMEOUT);
             }
         }
@@ -728,10 +733,10 @@ define(function (require, exports, module) {
                     diff = lines.length - 1;
                 }
 
-                if (self.searchResults[fullPath]) {
+                if (self._searchResults[fullPath]) {
                     // Search the last match before a replacement, the amount of matches deleted and update
                     // the lines values for all the matches after the change
-                    self.searchResults[fullPath].matches.forEach(function (item) {
+                    self._searchResults[fullPath].matches.forEach(function (item) {
                         if (item.end.line < change.from.line) {
                             start++;
                         } else if (item.end.line <= change.to.line) {
@@ -744,7 +749,7 @@ define(function (require, exports, module) {
 
                     // Delete the lines that where deleted or replaced
                     if (howMany > 0) {
-                        self.searchResults[fullPath].matches.splice(start, howMany);
+                        self._searchResults[fullPath].matches.splice(start, howMany);
                     }
                     resultsChanged = true;
                 }
@@ -759,11 +764,11 @@ define(function (require, exports, module) {
                     });
 
                     // If the file index exists, add the new matches to the file at the start index found before
-                    if (self.searchResults[fullPath]) {
-                        Array.prototype.splice.apply(self.searchResults[fullPath].matches, [start, 0].concat(matches));
+                    if (self._searchResults[fullPath]) {
+                        Array.prototype.splice.apply(self._searchResults[fullPath].matches, [start, 0].concat(matches));
                     // If not, add the matches to a new file index
                     } else {
-                        self.searchResults[fullPath] = {
+                        self._searchResults[fullPath] = {
                             matches:   matches,
                             collapsed: false
                         };
@@ -772,8 +777,8 @@ define(function (require, exports, module) {
                 }
 
                 // All the matches where deleted, remove the file from the results
-                if (self.searchResults[fullPath] && !self.searchResults[fullPath].matches.length) {
-                    delete self.searchResults[fullPath];
+                if (self._searchResults[fullPath] && !self._searchResults[fullPath].matches.length) {
+                    delete self._searchResults[fullPath];
                     resultsChanged = true;
                 }
             }
@@ -794,12 +799,12 @@ define(function (require, exports, module) {
         var resultsChanged = false,
             self           = this;
         
-        if (this.panel.isVisible()) {
+        if (this._panel.isVisible()) {
             // Update the search results
-            _.forEach(this.searchResults, function (item, fullPath) {
+            _.forEach(this._searchResults, function (item, fullPath) {
                 if (fullPath.match(oldName)) {
-                    self.searchResults[fullPath.replace(oldName, newName)] = item;
-                    delete self.searchResults[fullPath];
+                    self._searchResults[fullPath.replace(oldName, newName)] = item;
+                    delete self._searchResults[fullPath];
                     resultsChanged = true;
                 }
             });
@@ -828,9 +833,9 @@ define(function (require, exports, module) {
          * @param {(File|Directory)} entry
          */
         function _removeSearchResultsForEntry(entry) {
-            Object.keys(self.searchResults).forEach(function (fullPath) {
+            Object.keys(self._searchResults).forEach(function (fullPath) {
                 if (fullPath.indexOf(entry.fullPath) === 0) {
-                    delete self.searchResults[fullPath];
+                    delete self._searchResults[fullPath];
                     resultsChanged = true;
                 }
             });

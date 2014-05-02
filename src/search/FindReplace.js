@@ -781,10 +781,10 @@ define(function (require, exports, module) {
      * Handles the Replace All Results and the Results Panel
      */
     function ReplaceAllResults() {
-        this.summaryTemplate = replaceAllSummaryTemplate;
-        this.hasCheckboxes   = true;
+        this._summaryTemplate = replaceAllSummaryTemplate;
+        this._hasCheckboxes   = true;
         
-        this.createPanel("replaceAllResults", "replace-all.results");
+        this.createPanel("replace-all-results", "replace-all.results");
     }
     
     ReplaceAllResults.prototype = Object.create(SearchResults.prototype);
@@ -799,7 +799,7 @@ define(function (require, exports, module) {
         this.parentClass._addPanelListeners.apply(this);
         
         // Attach event to replace button
-        this.$container
+        this._panel.$panel
             .off(".replaceAll")
             .on("click.replaceAll", ".replace-checked", function (e) {
                 self.matches.reverse().forEach(function (match) {

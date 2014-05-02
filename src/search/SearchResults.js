@@ -59,19 +59,40 @@ define(function (require, exports, module) {
      * Map of all the last search results
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
      */
-    SearchResults.prototype.searchResults = {};
+    SearchResults.prototype._searchResults = {};
+    
+    /**
+     * Array with content used in the Results Panel
+     * @type {Array.<{file: number, filename: string, fullPath: string, items: Array.<Object>}>}
+     */
+    SearchResults.prototype._searchList = [];
+    
+    /** @type {Panel} Bottom panel holding the search results */
+    SearchResults.prototype._panel = null;
+    
+    /** @type {string} The tempalte used for the summary */
+    SearchResults.prototype._summaryTemplate = "";
     
     /** @type {?Entry} The File selected on the initial search */
-    SearchResults.prototype.selectedEntry = null;
+    SearchResults.prototype._selectedEntry = null;
     
     /** @type {number} The index of the first result that is displayed */
-    SearchResults.prototype.currentStart = 0;
+    SearchResults.prototype._currentStart = 0;
     
     /** @type {boolean} Determines if it should use checkboxes in the results */
-    SearchResults.prototype.hasCheckboxes = false;
+    SearchResults.prototype._hasCheckboxes = false;
+    
+    /** @type {boolean} Used to remake the replace all summary after it is changed */
+    SearchResults.prototype._allChecked = false;
     
     /** @type {$.Element} The currently selected row */
-    SearchResults.prototype.$selectedRow = null;
+    SearchResults.prototype._$selectedRow = null;
+    
+    /** @type {$.Element} The element where the title is placed */
+    SearchResults.prototype._$summary = null;
+    
+    /** @type {$.Element} The table that holds the results */
+    SearchResults.prototype._$table = null;
     
     
     /**
@@ -80,12 +101,11 @@ define(function (require, exports, module) {
      * @param {string} panelName
      */
     SearchResults.prototype.createPanel = function (panelID, panelName) {
-        var panelHtml   = Mustache.render(searchPanelTemplate, {panelID: panelID});
+        var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
         
-        this.panel      = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
-        this.$container = this.panel.$panel;
-        this.$summary   = this.$container.find(".title");
-        this.$table     = this.$container.find(".table-container");
+        this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
+        this._$summary = this._panel.$panel.find(".title");
+        this._$table   = this._panel.$panel.find(".table-container");
         
         this._addPanelListeners();
     };
@@ -96,44 +116,117 @@ define(function (require, exports, module) {
      */
     SearchResults.prototype._addPanelListeners = function () {
         var self = this;
-        this.$container
+        this._panel.$panel
             .off(".searchResults")  // Remove the old events
             .on("click.searchResults", ".close", function () {
                 self.hideResults();
             })
             // The link to go the first page
             .on("click.searchResults", ".first-page:not(.disabled)", function () {
-                self.currentStart = 0;
+                self._currentStart = 0;
                 self.showResults();
             })
             // The link to go the previous page
             .on("click.searchResults", ".prev-page:not(.disabled)", function () {
-                self.currentStart -= RESULTS_PER_PAGE;
+                self._currentStart -= RESULTS_PER_PAGE;
                 self.showResults();
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self.currentStart += RESULTS_PER_PAGE;
+                self._currentStart += RESULTS_PER_PAGE;
                 self.showResults();
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self.currentStart = self._getLastCurrentStart();
+                self._currentStart = self._getLastCurrentStart();
                 self.showResults();
+            })
+            
+            // Add the file to the working set on double click
+            .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
+                var item = self._searchList[$(this).data("file")];
+                FileViewController.addToWorkingSetAndSelect(item.fullPath);
+            })
+        
+            // Add the click event listener directly on the table parent
+            .on("click.searchResults .table-container", function (e) {
+                var $row = $(e.target).closest("tr");
+
+                if ($row.length) {
+                    if (self._$selectedRow) {
+                        self._$selectedRow.removeClass("selected");
+                    }
+                    $row.addClass("selected");
+                    self._$selectedRow = $row;
+
+                    var searchItem = self._searchList[$row.data("file")],
+                        fullPath   = searchItem.fullPath;
+
+                    // This is a file title row, expand/collapse on click
+                    if ($row.hasClass("file-section")) {
+                        var $titleRows,
+                            collapsed = !self._searchResults[fullPath].collapsed;
+
+                        if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
+                            $titleRows = $(e.target).closest("table").find(".file-section");
+                        } else {
+                            // Clicking the file section header collapses/expands result rows for that file
+                            $titleRows = $row;
+                        }
+
+                        $titleRows.each(function () {
+                            fullPath   = self._searchList[$(this).data("file")].fullPath;
+                            searchItem = self._searchResults[fullPath];
+
+                            if (searchItem.collapsed !== collapsed) {
+                                searchItem.collapsed = collapsed;
+                                $(this).nextUntil(".file-section").toggle();
+                                $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                            }
+                        });
+
+                        //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
+                        if (e.metaKey || e.ctrlKey) {
+                            _.forEach(self._searchResults, function (item) {
+                                item.collapsed = collapsed;
+                            });
+                        }
+                    
+                    // This is a file row, show the result on click
+                    } else {
+                        // Grab the required item data
+                        var item = searchItem.items[$row.data("item")];
+
+                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
+                            .done(function (doc) {
+                                // Opened document is now the current main editor
+                                EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
+                            });
+                    }
+                }
             });
         
+        
         // Add the Click handlers for Checkboxes if required
-        if (this.hasCheckboxes) {
-            this.$container.on("click.searchResults", ".check-all", function (e) {
-                var isChecked = $(this).is(":checked");
-                _.forEach(self.searchResults, function (results) {
-                    results.matches.forEach(function (match) {
-                        match.isChecked = isChecked;
+        if (this._hasCheckboxes) {
+            this._panel.$panel
+                .on("click.searchResults", ".check-all", function (e) {
+                    var isChecked = $(this).is(":checked");
+                    _.forEach(self._searchResults, function (results) {
+                        results.matches.forEach(function (match) {
+                            match.isChecked = isChecked;
+                        });
                     });
+                    self._$table.find(".check-one").prop("checked", isChecked);
+                    self._allChecked = isChecked;
+                })
+                .on("click.searchResults", ".check-one", function (e) {
+                    var $row = $(e.target).closest("tr"),
+                        item = self._searchList[$row.data("file")];
+
+                    self._searchResults[item.fullPath].matches[$row.data("index")].isChecked = $(this).is(":checked");
+                    e.stopPropagation();
                 });
-                self.$table.find(".check-one").prop("checked", isChecked);
-                self.allChecked = isChecked;
-            });
         }
     };
     
@@ -142,10 +235,18 @@ define(function (require, exports, module) {
      * Initializes the Search Results
      */
     SearchResults.prototype.initializeResults = function () {
-        this.searchResults = {};
-        this.currentStart  = 0;
-        this.$selectedRow  = null;
-        this.allChecked    = true;
+        this._searchResults = {};
+        this._currentStart  = 0;
+        this._$selectedRow  = null;
+        this._allChecked    = true;
+        
+        // Save the currently selected file's fullpath if there is one selected and if it is a file
+        var selectedItem = ProjectManager.getSelectedItem();
+        if (selectedItem && !selectedItem.isDirectory) {
+            this._selectedEntry = selectedItem.fullPath;
+        } else {
+            this._selectedEntry = null;
+        }
     };
     
     /**
@@ -154,7 +255,7 @@ define(function (require, exports, module) {
      * @param {Array.<Object>} matches
      */
     SearchResults.prototype.addResultMatches = function (fullpath, matches) {
-        this.searchResults[fullpath] = {
+        this._searchResults[fullpath] = {
             matches:   matches,
             collapsed: false
         };
@@ -173,8 +274,8 @@ define(function (require, exports, module) {
      */
     SearchResults.prototype.hideResults = function () {
         var self = this;
-        if (this.panel.isVisible()) {
-            this.panel.hide();
+        if (this._panel.isVisible()) {
+            this._panel.hide();
         }
     };
     
@@ -188,11 +289,11 @@ define(function (require, exports, module) {
         var count     = this._countFilesMatches(),
             lastIndex = this._getLastIndex(count.matches);
         
-        this.$summary.html(Mustache.render(this.summaryTemplate, $.extend({
-            allChecked: this.allChecked,
+        this._$summary.html(Mustache.render(this._summaryTemplate, $.extend({
+            allChecked: this._allChecked,
             hasPages:   count.matches > RESULTS_PER_PAGE,
-            results:    StringUtils.format(Strings.FIND_IN_FILES_PAGING, this.currentStart + 1, lastIndex),
-            hasPrev:    this.currentStart > 0,
+            results:    StringUtils.format(Strings.FIND_IN_FILES_PAGING, this._currentStart + 1, lastIndex),
+            hasPrev:    this._currentStart > 0,
             hasNext:    lastIndex < count.matches,
             Strings:    Strings
         }, sumaryData), { paging: searchPagingTemplate }));
@@ -207,30 +308,30 @@ define(function (require, exports, module) {
             count          = this._countFilesMatches(),
             searchFiles    = this._getSortedFiles(),
             lastIndex      = this._getLastIndex(count.matches),
-            searchList     = [],
             matchesCounter = 0,
             showMatches    = false,
             self           = this;
         
+        this._searchList   = [];
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
         searchFiles.some(function (fullPath) {
             showMatches = true;
-            item = self.searchResults[fullPath];
+            item = self._searchResults[fullPath];
 
             // Since the amount of matches on this item plus the amount of matches we skipped until
             // now is still smaller than the first match that we want to display, skip these.
-            if (matchesCounter + item.matches.length < self.currentStart) {
+            if (matchesCounter + item.matches.length < self._currentStart) {
                 matchesCounter += item.matches.length;
                 showMatches = false;
 
             // If we still haven't skipped enough items to get to the first match, but adding the
             // item matches to the skipped ones is greater the the first match we want to display,
             // then we can display the matches from this item skipping the first ones
-            } else if (matchesCounter < self.currentStart) {
-                i = self.currentStart - matchesCounter;
-                matchesCounter = self.currentStart;
+            } else if (matchesCounter < self._currentStart) {
+                i = self._currentStart - matchesCounter;
+                matchesCounter = self._currentStart;
 
             // If we already skipped enough matches to get to the first match to display, we can start
             // displaying from the first match of this item
@@ -252,7 +353,7 @@ define(function (require, exports, module) {
                     multiLine = match.start.line !== match.end.line;
                     
                     searchItems.push({
-                        file:      searchList.length,
+                        file:      self._searchList.length,
                         item:      searchItems.length,
                         index:     i,
                         line:      match.start.line + 1,
@@ -277,8 +378,8 @@ define(function (require, exports, module) {
                         directoryPath ? "&mdash;" : ""
                     );
 
-                searchList.push({
-                    file:     searchList.length,
+                self._searchList.push({
+                    file:     self._searchList.length,
                     filename: displayFileName,
                     fullPath: fullPath,
                     items:    searchItems
@@ -288,142 +389,55 @@ define(function (require, exports, module) {
 
         
         // Insert the search results
-        this.$table
+        this._$table
             .empty()
             .append(Mustache.render(searchResultsTemplate, {
-                hasCheckboxes: this.hasCheckboxes,
-                searchList:    searchList,
+                hasCheckboxes: this._hasCheckboxes,
+                searchList:    this._searchList,
                 Strings:       Strings
             }))
-            .off(".searchResults")  // Remove the old events
-
-            // Add the click event listener directly on the table parent
-            .on("click.searchResults", function (e) {
-                var $row = $(e.target).closest("tr");
-
-                if ($row.length) {
-                    if (self.$selectedRow) {
-                        self.$selectedRow.removeClass("selected");
-                    }
-                    $row.addClass("selected");
-                    self.$selectedRow = $row;
-
-                    var searchItem = searchList[$row.data("file")],
-                        fullPath   = searchItem.fullPath;
-
-                    // This is a file title row, expand/collapse on click
-                    if ($row.hasClass("file-section")) {
-                        var $titleRows,
-                            collapsed = !self.searchResults[fullPath].collapsed;
-
-                        if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
-                            $titleRows = $(e.target).closest("table").find(".file-section");
-                        } else {
-                            // Clicking the file section header collapses/expands result rows for that file
-                            $titleRows = $row;
-                        }
-
-                        $titleRows.each(function () {
-                            fullPath   = searchList[$(this).data("file")].fullPath;
-                            searchItem = self.searchResults[fullPath];
-
-                            if (searchItem.collapsed !== collapsed) {
-                                searchItem.collapsed = collapsed;
-                                $(this).nextUntil(".file-section").toggle();
-                                $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
-                            }
-                        });
-
-                        //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
-                        if (e.metaKey || e.ctrlKey) {
-                            _.forEach(self.searchResults, function (item) {
-                                item.collapsed = collapsed;
-                            });
-                        }
-                    
-                    // This is a file row, show the result on click
-                    } else {
-                        // Grab the required item data
-                        var item = searchItem.items[$row.data("item")];
-
-                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
-                            .done(function (doc) {
-                                // Opened document is now the current main editor
-                                EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
-                            });
-                    }
-                }
-            })
-            // Add the file to the working set on double click
-            .on("dblclick.searchResults", "tr:not(.file-section)", function (e) {
-                var item = searchList[$(this).data("file")];
-                FileViewController.addToWorkingSetAndSelect(item.fullPath);
-            })
             // Restore the collapsed files
             .find(".file-section").each(function () {
-                var fullPath = searchList[$(this).data("file")].fullPath;
+                var fullPath = self._searchList[$(this).data("file")].fullPath;
 
-                if (self.searchResults[fullPath].collapsed) {
-                    self.searchResults[fullPath].collapsed = false;
+                if (self._searchResults[fullPath].collapsed) {
+                    self._searchResults[fullPath].collapsed = false;
                     $(this).trigger("click");
                 }
             });
         
-        // Add the Click handlers for Checkboxes if required
-        if (this.hasCheckboxes) {
-            this.$table.on("click.searchResults", ".check-one", function (e) {
-                var $row = $(e.target).closest("tr"),
-                    item = searchList[$row.data("file")];
-
-                self.searchResults[item.fullPath].matches[$row.data("index")].isChecked = $(this).is(":checked");
-                e.stopPropagation();
-            });
-        }
-
-        if (this.$selectedRow) {
-            this.$selectedRow.removeClass("selected");
-            this.$selectedRow = null;
+        if (this._$selectedRow) {
+            this._$selectedRow.removeClass("selected");
+            this._$selectedRow = null;
         }
         
-        this.panel.show();
-        this.$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
+        this._panel.show();
+        this._$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
     };
     
     /**
      * Restores the state of the Results Panel
      */
     SearchResults.prototype.restoreResults = function () {
-        if (this.panel.isVisible()) {
-            var scrollTop  = this.$table.scrollTop(),
-                index      = this.$selectedRow ? this.$selectedRow.index() : null,
+        if (this._panel.isVisible()) {
+            var scrollTop  = this._$table.scrollTop(),
+                index      = this._$selectedRow ? this._$selectedRow.index() : null,
                 numMatches = this._countFilesMatches().matches;
 
-            if (this.currentStart > numMatches) {
-                this.currentStart = this._getLastCurrentStart(numMatches);
+            if (this._currentStart > numMatches) {
+                this._currentStart = this._getLastCurrentStart(numMatches);
             }
             
             this.showResults();
 
-            this.$table.scrollTop(scrollTop);
+            this._$table.scrollTop(scrollTop);
             if (index) {
-                this.$selectedRow = this.$table.find("tr:eq(" + index + ")");
-                this.$selectedRow.addClass("selected");
+                this._$selectedRow = this._$table.find("tr:eq(" + index + ")");
+                this._$selectedRow.addClass("selected");
             }
         }
     };
     
-    
-    /**
-     * Sets the Currently Selected Entry, if possible
-     */
-    SearchResults.prototype.setSelectedEntry = function () {
-        var selectedItem = ProjectManager.getSelectedItem();
-        if (selectedItem && !selectedItem.isDirectory) {
-            this.selectedEntry = selectedItem.fullPath;
-        } else {
-            this.selectedEntry = null;
-        }
-    };
     
     /**
      * @private
@@ -431,13 +445,13 @@ define(function (require, exports, module) {
      * @return {Array.<string>}
      */
     SearchResults.prototype._getSortedFiles = function () {
-        var searchFiles = Object.keys(this.searchResults),
+        var searchFiles = Object.keys(this._searchResults),
             self        = this;
         
         searchFiles.sort(function (key1, key2) {
-            if (self.selectedEntry === key1) {
+            if (self._selectedEntry === key1) {
                 return -1;
-            } else if (self.selectedEntry === key2) {
+            } else if (self._selectedEntry === key2) {
                 return 1;
             }
             
@@ -478,7 +492,7 @@ define(function (require, exports, module) {
      */
     SearchResults.prototype._countFilesMatches = function () {
         var numFiles = 0, numMatches = 0;
-        _.forEach(this.searchResults, function (item) {
+        _.forEach(this._searchResults, function (item) {
             numFiles++;
             numMatches += item.matches.length;
         });
@@ -493,7 +507,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     SearchResults.prototype._getLastIndex = function (numMatches) {
-        return Math.min(this.currentStart + RESULTS_PER_PAGE, numMatches);
+        return Math.min(this._currentStart + RESULTS_PER_PAGE, numMatches);
     };
     
     /**
