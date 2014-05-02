@@ -504,7 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
-	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "[7522334] !é=Show Errors in Status Bar=!",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
