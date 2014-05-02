@@ -273,7 +273,7 @@ define(function LiveDevelopment(require, exports, module) {
      * given file is no longer associated with the HTML document that is live (e.g.
      * if the related file has been deleted on disk).
      */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
+    function _closeRelatedDocument(liveDoc) {
         if (_relatedDocuments[liveDoc.doc.url]) {
             delete _relatedDocuments[liveDoc.doc.url];
         }
@@ -284,7 +284,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         _closeDocument(liveDoc);
     }
-
+    
     /**
      * Update the status. Triggers a statusChange event.
      * @param {number} status new status
@@ -469,7 +469,9 @@ define(function LiveDevelopment(require, exports, module) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
 
-                    $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
+                    $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
+                        _closeRelatedDocument(liveDoc);
+                    });
                 }
             }
         });
@@ -548,6 +550,11 @@ define(function LiveDevelopment(require, exports, module) {
             promises = [],
             enableAgentsPromise,
             allAgentsPromise;
+        
+        // Clear any existing related documents, in case this is a reload.
+        _.forOwn(_relatedDocuments, function (relatedDoc) {
+            _closeRelatedDocument(relatedDoc);
+        });
 
         _loadAgentsPromise = result.promise();
 
