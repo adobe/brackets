@@ -498,6 +498,7 @@ define(function (require, exports, module) {
                     oldFilename = tempDir + "/foo.js",
                     newFilename = tempDir + "/dummy.html",
                     spy         = jasmine.createSpy("languageChanged event handler"),
+                    dmspy       = jasmine.createSpy("currentDocumentLanguageChanged event handler"),
                     javascript,
                     html,
                     oldFile,
@@ -541,6 +542,7 @@ define(function (require, exports, module) {
 
                 var renameDeferred = $.Deferred();
                 runs(function () {
+                    DocumentManager.setCurrentDocument(doc);                    
                     javascript = LanguageManager.getLanguage("javascript");
                     
                     // sanity check language
@@ -549,10 +551,11 @@ define(function (require, exports, module) {
                     // Documents are only 'active' while referenced; they won't be maintained by DocumentManager
                     // for global updates like rename otherwise.
                     doc.addRef();
-                    
+
                     // listen for event
                     _$(doc).on("languageChanged", spy);
-                   
+                    _$(DocumentManager).on("currentDocumentLanguageChanged", dmspy);
+                    
                     // trigger a rename
                     oldFile.rename(newFilename, function (err) {
                         if (err) {
@@ -571,6 +574,7 @@ define(function (require, exports, module) {
                     expect(doc.getLanguage()).toBe(html);
                     expect(spy).toHaveBeenCalled();
                     expect(spy.callCount).toEqual(1);
+                    expect(dmspy.callCount).toEqual(1);
                     
                     // check callback args (arg 0 is a jQuery event)
                     expect(spy.mostRecentCall.args[1]).toBe(javascript);
@@ -631,6 +635,9 @@ define(function (require, exports, module) {
                     expect(spy.mostRecentCall.args[1]).toBe(unknown);
                     expect(spy.mostRecentCall.args[2]).toBe(schemeLanguage);
                     
+                    // make sure LanguageManager keeps track of it
+                    expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(schemeLanguage);
+                    
                     // cleanup
                     doc.releaseRef();
                 });
@@ -666,6 +673,7 @@ define(function (require, exports, module) {
                 expect(doc.getLanguage()).toBe(modifiedLanguage);
                 expect(spy).toHaveBeenCalled();
                 expect(spy.callCount).toEqual(1);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(modifiedLanguage);
                 
                 // check callback args (arg 0 is a jQuery event)
                 expect(spy.mostRecentCall.args[1]).toBe(unknown);
@@ -702,6 +710,7 @@ define(function (require, exports, module) {
                 expect(spy.callCount).toEqual(1);
                 expect(spy.mostRecentCall.args[1]).toBe(unknownLang);
                 expect(spy.mostRecentCall.args[2]).toBe(phpLang);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(phpLang);
                 
                 // add 'foo2' extension to some other language
                 modifiedLanguage = LanguageManager.getLanguage("html");
@@ -710,6 +719,7 @@ define(function (require, exports, module) {
                 // language should NOT change
                 expect(doc.getLanguage()).toBe(phpLang);
                 expect(spy.callCount).toEqual(1);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(phpLang);
                 
                 // cleanup
                 doc.releaseRef();
@@ -742,6 +752,7 @@ define(function (require, exports, module) {
                 expect(spy.callCount).toEqual(1);
                 expect(spy.mostRecentCall.args[1]).toBe(unknownLang);
                 expect(spy.mostRecentCall.args[2]).toBe(phpLang);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(phpLang);
                 
                 doc.setLanguageOverride(null);
                 
@@ -750,6 +761,7 @@ define(function (require, exports, module) {
                 expect(spy.callCount).toEqual(2);
                 expect(spy.mostRecentCall.args[1]).toBe(phpLang);
                 expect(spy.mostRecentCall.args[2]).toBe(unknownLang);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(unknownLang);
                 
                 // add 'foo3' extension to some other language
                 modifiedLanguage = LanguageManager.getLanguage("html");
@@ -760,6 +772,25 @@ define(function (require, exports, module) {
                 expect(spy.callCount).toEqual(3);
                 expect(spy.mostRecentCall.args[1]).toBe(unknownLang);
                 expect(spy.mostRecentCall.args[2]).toBe(modifiedLanguage);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(modifiedLanguage);
+                
+                // override again
+                doc.setLanguageOverride(phpLang);
+                
+                expect(doc.getLanguage()).toBe(phpLang);
+                expect(spy.callCount).toBe(4);
+                expect(spy.mostRecentCall.args[1]).toBe(modifiedLanguage);
+                expect(spy.mostRecentCall.args[2]).toBe(phpLang);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(phpLang);
+                
+                // remove override, should restore to modifiedLanguage
+                doc.setLanguageOverride(null);
+                
+                expect(doc.getLanguage()).toBe(modifiedLanguage);
+                expect(spy.callCount).toBe(5);
+                expect(spy.mostRecentCall.args[1]).toBe(phpLang);
+                expect(spy.mostRecentCall.args[2]).toBe(modifiedLanguage);
+                expect(LanguageManager.getLanguageForPath(doc.file.fullPath)).toBe(modifiedLanguage);
                 
                 // cleanup
                 doc.releaseRef();
