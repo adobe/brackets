@@ -46,14 +46,17 @@ define(function (require, exports, module) {
      *  @param {!string} currentWidth actual width of image in view
      */
     function _updateScale(currentWidth) {
-        if (currentWidth < _naturalWidth) {
+        if (currentWidth && currentWidth < _naturalWidth) {
             _scale = currentWidth / _naturalWidth * 100;
             $("#img-scale").text(Math.floor(_scale) + "%")
                 // Keep the position of the image scale div relative to the image.
                 .css("left", $("#img-preview").position().left + 5)
                 .show();
         } else {
-            $("#img-scale").hide();
+            // Reset everything related to the image scale sticker before hiding it.
+            _scale = 100;
+            _scaleDivInfo = null;
+            $("#img-scale").text("").hide();
         }
     }
     
@@ -204,8 +207,11 @@ define(function (require, exports, module) {
         // a value beyond the range, then simply handle the event as if it were a mouseleave.
         if (x < 0 || x >= _naturalWidth || y < 0 || y >= _naturalHeight) {
             _hideImageTip(e);
+            $("#img-preview").css("cursor", "auto");
             return;
         }
+        
+        $("#img-preview").css("cursor", "none");
         
         _handleMouseEnterOrExitScaleSticker(left, top);
         
