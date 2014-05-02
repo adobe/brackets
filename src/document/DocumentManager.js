@@ -59,7 +59,8 @@
  *    - documentRefreshed -- When a Document's contents have been reloaded from disk. The 2nd arg to the
  *      listener is the Document that has been refreshed.
  *
- *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
+ *    - currentDocumentChange -- When the value of getCurrentDocument() changes. 2nd argument to the listener
+ *      is the current document and 3rd argument is the previous document.
  *
  *    To listen for working set changes, you must listen to *all* of these events:
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
@@ -497,8 +498,9 @@ define(function (require, exports, module) {
         });
         
         // Make it the current document
+        var previousDocument = _currentDocument;
         _currentDocument = doc;
-        $(exports).triggerHandler("currentDocumentChange");
+        $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
         PerfUtils.addMeasurement(perfTimerName);
@@ -512,9 +514,10 @@ define(function (require, exports, module) {
             return;
         } else {
             // Change model & dispatch event
+            var previousDocument = _currentDocument;
             _currentDocument = null;
             // (this event triggers EditorManager to actually clear the editor UI)
-            $(exports).triggerHandler("currentDocumentChange");
+            $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         }
     }
     

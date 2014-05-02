@@ -494,6 +494,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -504,6 +505,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

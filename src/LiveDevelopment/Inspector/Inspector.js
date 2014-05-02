@@ -94,9 +94,10 @@ define(function Inspector(require, exports, module) {
      */
     var _messageCallbacks = {};
 
-    var _messageId = 1; // id used for remote method calls, auto-incrementing
-    var _socket; // remote debugger WebSocket
-    var _connectDeferred; // The deferred connect
+    var _messageId = 1,     // id used for remote method calls, auto-incrementing
+        _socket,            // remote debugger WebSocket
+        _connectDeferred,   // The deferred connect
+        _userAgent = "";    // user agent string
 
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
@@ -368,6 +369,22 @@ define(function Inspector(require, exports, module) {
         return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
+    /**
+     * Get user agent string
+     * @return {string}
+     */
+    function getUserAgent() {
+        return _userAgent;
+    }
+
+    /**
+     * Set user agent string
+     * @param {string} userAgent User agent string returned from Chrome
+     */
+    function setUserAgent(userAgent) {
+        _userAgent = userAgent;
+    }
+
     /** Initialize the Inspector
      * Read the Inspector.json configuration and define the command objects
      * -> Inspector.domain.command()
@@ -390,13 +407,15 @@ define(function Inspector(require, exports, module) {
     }
 
     // Export public functions
+    exports.connect              = connect;
+    exports.connected            = connected;
+    exports.connectToURL         = connectToURL;
+    exports.disconnect           = disconnect;
     exports.getDebuggableWindows = getDebuggableWindows;
-    exports.on = on;
-    exports.off = off;
-    exports.disconnect = disconnect;
-    exports.connect = connect;
-    exports.connectToURL = connectToURL;
-    exports.connected = connected;
-    exports.send = send;
-    exports.init = init;
+    exports.getUserAgent         = getUserAgent;
+    exports.init                 = init;
+    exports.off                  = off;
+    exports.on                   = on;
+    exports.send                 = send;
+    exports.setUserAgent         = setUserAgent;
 });
