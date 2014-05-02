@@ -504,7 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Node Debugger を有効にする",
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
-	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "!能=[7522334] Show Errors in Status Bar_=!",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
