@@ -145,7 +145,7 @@ define(function (require, exports, module) {
 
             it("should hint for href attribute", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 13, ch: 12 });
+                    testEditor.setCursorPos({ line: 14, ch: 12 });
 
                     // Must reset hintsObj before every call to expectAsyncHints()
                     hintsObj = null;
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
 
             it("should hint for src attribute", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 14, ch: 13 });
+                    testEditor.setCursorPos({ line: 15, ch: 13 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
@@ -171,21 +171,21 @@ define(function (require, exports, module) {
             
             it("should not hint for type attribute", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 14, ch: 21 });
+                    testEditor.setCursorPos({ line: 15, ch: 21 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
             
             it("should not hint in query part of url", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 19, ch: 31 });
+                    testEditor.setCursorPos({ line: 20, ch: 31 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
             
             it("should hint up 1 folder for '../'", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 20, ch: 14 });
+                    testEditor.setCursorPos({ line: 21, ch: 14 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
@@ -264,7 +264,7 @@ define(function (require, exports, module) {
 
             it("should not hint for background-image outside of url()", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 10, ch: 20 });
+                    testEditor.setCursorPos({ line: 11, ch: 20 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
@@ -339,7 +339,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     DocumentManager.setCurrentDocument(testDocument);
                     testEditor = EditorManager.getCurrentFullEditor();
-                    testEditor.setCursorPos({ line: 21, ch: 12 });
+                    testEditor.setCursorPos({ line: 22, ch: 12 });
                     CommandManager.execute(Commands.SHOW_CODE_HINTS);
                 });
 
@@ -378,9 +378,9 @@ define(function (require, exports, module) {
             });
 
             it("should handle unclosed url(", function () {
-                var pos1    = { line: 10, ch: 20 },
-                    pos2    = { line: 10, ch: 24 },
-                    pos3    = { line: 10, ch: 34 };
+                var pos1    = { line: 11, ch: 20 },
+                    pos2    = { line: 11, ch: 24 },
+                    pos3    = { line: 11, ch: 34 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -406,9 +406,9 @@ define(function (require, exports, module) {
             });
             
             it("should handle unclosed url( with unclosed single-quote", function () {
-                var pos1    = { line: 10, ch: 20 },
-                    pos2    = { line: 10, ch: 25 },
-                    pos3    = { line: 10, ch: 36 };
+                var pos1    = { line: 11, ch: 20 },
+                    pos2    = { line: 11, ch: 25 },
+                    pos3    = { line: 11, ch: 36 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -436,10 +436,10 @@ define(function (require, exports, module) {
             });
 
             it("should keep hints open after inserting folder in HTML", function () {
-                var pos1    = { line: 17, ch: 12 },
-                    pos2    = { line: 17, ch: 22 },
-                    pos3    = { line: 17, ch: 33 },
-                    pos4    = { line: 17, ch: 34 };
+                var pos1    = { line: 18, ch: 12 },
+                    pos2    = { line: 18, ch: 22 },
+                    pos3    = { line: 18, ch: 33 },
+                    pos4    = { line: 18, ch: 34 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -488,11 +488,11 @@ define(function (require, exports, module) {
             });
 
             it("should keep hints open after inserting folder in CSS", function () {
-                var pos1    = { line: 10, ch: 20 },
-                    pos2    = { line: 10, ch: 25 },
-                    pos3    = { line: 10, ch: 35 },
-                    pos4    = { line: 10, ch: 37 },
-                    pos5    = { line: 10, ch: 48 };
+                var pos1    = { line: 11, ch: 20 },
+                    pos2    = { line: 11, ch: 25 },
+                    pos3    = { line: 11, ch: 35 },
+                    pos4    = { line: 11, ch: 37 },
+                    pos5    = { line: 11, ch: 48 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -543,10 +543,10 @@ define(function (require, exports, module) {
             });
 
             it("should insert folder and replace file in HTML", function () {
-                var pos1    = { line: 22, ch: 11 },
-                    pos2    = { line: 22, ch: 21 },
-                    pos3    = { line: 22, ch: 31 },
-                    pos4    = { line: 22, ch: 32 };
+                var pos1    = { line: 23, ch: 11 },
+                    pos2    = { line: 23, ch: 21 },
+                    pos3    = { line: 23, ch: 31 },
+                    pos4    = { line: 23, ch: 32 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -592,10 +592,10 @@ define(function (require, exports, module) {
             });
 
             it("should insert folder and replace file in CSS", function () {
-                var pos1    = { line: 9, ch: 24 },
-                    pos2    = { line: 9, ch: 34 },
-                    pos3    = { line: 9, ch: 43 },
-                    pos4    = { line: 9, ch: 45 };
+                var pos1    = { line: 10, ch: 24 },
+                    pos2    = { line: 10, ch: 34 },
+                    pos3    = { line: 10, ch: 43 },
+                    pos4    = { line: 10, ch: 45 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -641,8 +641,8 @@ define(function (require, exports, module) {
             });
 
             it("should collapse consecutive path separators when inserting folder in HTML", function () {
-                var pos1    = { line: 21, ch: 11 },
-                    pos2    = { line: 21, ch: 22 };
+                var pos1    = { line: 22, ch: 11 },
+                    pos2    = { line: 22, ch: 22 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -666,8 +666,8 @@ define(function (require, exports, module) {
             });
 
             it("should collapse consecutive path separators when inserting folder in CSS", function () {
-                var pos1    = { line: 8, ch: 25 },
-                    pos2    = { line: 8, ch: 36 };
+                var pos1    = { line: 9, ch: 15 },
+                    pos2    = { line: 9, ch: 26 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -691,9 +691,9 @@ define(function (require, exports, module) {
             });
 
             it("should show & insert case insensitive hints in HTML", function () {
-                var pos1    = { line: 17, ch: 12 },
-                    pos2    = { line: 17, ch: 13 },
-                    pos3    = { line: 17, ch: 21 };
+                var pos1    = { line: 18, ch: 12 },
+                    pos2    = { line: 18, ch: 13 },
+                    pos3    = { line: 18, ch: 21 };
 
                 runs(function () {
                     // Insert letter that matches filename, but with different case
