@@ -203,22 +203,26 @@ define(function (require, exports, module) {
         describe("Toggle Word Wrap", function () {
             it("should wrap long lines in main editor by default", function () {
                 openEditor(HTML_FILE);
+
+                var editor, oldEditorSize, flag;
                 
                 runs(function () {
-                    var editor = EditorManager.getCurrentFullEditor(),
-                        oldEditorSize = SpecRunnerUtils.resizeEditor(editor, testWindow.$, 200);
+                    editor = EditorManager.getCurrentFullEditor();
+                    oldEditorSize = SpecRunnerUtils.resizeEditor(editor, testWindow.$, 800);
 
                     // Use two cursor positions to detect line wrapping. First position at 
                     // the beginning of a long line and the second position to be
                     // somewhere on the long line that will be part of an extra line 
                     // created by word-wrap and get its bottom coordinate.
                     checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                });
 
+                runs(function () {
                     // reset to previous values
                     SpecRunnerUtils.resizeEditor(editor, testWindow.$, oldEditorSize.width, oldEditorSize.height);
                 });
             });
-    
+
             it("should also wrap long lines in inline editor by default", function () {
                 openInlineEditor();
                 
