@@ -151,22 +151,27 @@ define(function (require, exports, module) {
                         enterSearchText(gotoLineQuery);
                     }
                 });
-                
-                if (gotoLineQuery) {
-                    waitsFor(function () {
-                        return getSearchField().val() === gotoLineQuery;
-                    }, "goto line entry timeout", 1000);
-                    
-                    runs(function () {
-                        pressEnter();
-                    });
-    
-                    // wait for ModalBar to close
-                    waitsFor(function () {
-                        return getSearchBar().length === 0;
-                    }, "ModalBar close", 1000);
-                }
-    
+
+                runs(function () {
+                    if (gotoLineQuery) {
+                        var editor = EditorManager.getCurrentFullEditor();
+                        SpecRunnerUtils.resizeEditor(editor, testWindow.$, 200);
+
+                        waitsFor(function () {
+                            return getSearchField().val() === gotoLineQuery;
+                        }, "goto line entry timeout", 1000);
+
+                        runs(function () {
+                            pressEnter();
+                        });
+
+                        // wait for ModalBar to close
+                        waitsFor(function () {
+                            return getSearchBar().length === 0;
+                        }, "ModalBar close", 1000);
+                    }
+                });
+
                 runs(function () {
                     // The user enters a 1-based number, but the reported position
                     // is 0 based, so we check for line-1, col-1.

@@ -205,13 +205,17 @@ define(function (require, exports, module) {
                 openEditor(HTML_FILE);
                 
                 runs(function () {
-                    var editor = EditorManager.getCurrentFullEditor();
-                    
+                    var editor = EditorManager.getCurrentFullEditor(),
+                        oldEditorSize = SpecRunnerUtils.resizeEditor(editor, testWindow.$, 0, 200);
+
                     // Use two cursor positions to detect line wrapping. First position at 
                     // the beginning of a long line and the second position to be
                     // somewhere on the long line that will be part of an extra line 
                     // created by word-wrap and get its bottom coordinate.
                     checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, true);
+
+                    // reset to previous values
+                    SpecRunnerUtils.resizeEditor(editor, testWindow.$, oldEditorSize.width, oldEditorSize.height);
                 });
             });
     
