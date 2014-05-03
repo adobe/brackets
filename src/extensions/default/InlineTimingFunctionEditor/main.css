@@ -55,10 +55,10 @@
 .bezier-curve-editor .coordinate-plane:before,
 .bezier-curve-editor .coordinate-plane:after {
     position: absolute;
-    bottom: 0%;
+    bottom: 0;
     left: 0;
     width: 100%;
-    padding: .3em .5em;
+    padding: 2px 3px;
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
@@ -207,10 +207,10 @@
 .step-editor .coordinate-plane:before,
 .step-editor .coordinate-plane:after {
     position: absolute;
-    bottom: 0%;
-    left: 0;
+    bottom: calc(11px - 1em);
+    left: calc(13px - 1em);
     width: 100%;
-    padding: .3em .5em;
+    padding: 2px 3px;
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
