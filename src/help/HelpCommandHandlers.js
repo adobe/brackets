@@ -42,6 +42,9 @@ define(function (require, exports, module) {
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
+    /** @const This is the thirdparty API's (GitHub) maximum contributors per page limit */
+    var CONTRIBUTORS_PER_PAGE   = 100;
+
     var buildInfo;
     
 	
@@ -81,9 +84,8 @@ define(function (require, exports, module) {
             $spinner        = $dlg.find(".spinner"),
             allContributors = [],
             contributorsUrl = brackets.config.contributors_url,
-            perPage         = 100,
-            page,
-            data;
+            data,
+            page;
 
         if (contributorsUrl.indexOf("{1}") !== -1) { // pagination enabled
             page = 1;
@@ -95,7 +97,7 @@ define(function (require, exports, module) {
             var contributors;
 
             if (page) {
-                url = StringUtils.format(url, perPage, page);
+                url = StringUtils.format(url, CONTRIBUTORS_PER_PAGE, page);
             }
             $.ajax({
                 url: url,
@@ -116,7 +118,7 @@ define(function (require, exports, module) {
             if (page) {
                 page++;
             }
-        } while (page && data.length === perPage);
+        } while (page && data.length === CONTRIBUTORS_PER_PAGE);
 
         if (allContributors.length) {
             // Populate the contributors data
