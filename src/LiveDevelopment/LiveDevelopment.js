@@ -551,11 +551,6 @@ define(function LiveDevelopment(require, exports, module) {
             enableAgentsPromise,
             allAgentsPromise;
         
-        // Clear any existing related documents, in case this is a reload.
-        _.forOwn(_relatedDocuments, function (relatedDoc) {
-            _closeRelatedDocument(relatedDoc);
-        });
-
         _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
@@ -905,6 +900,15 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         unloadAgents();
+        
+        // Clear any existing related documents before we reload the agents.
+        // We need to recreate them for the reloaded document due to some
+        // desirable side-effects (see #7606). Eventually, we should simplify
+        // the way we get that behavior.
+        _.forOwn(_relatedDocuments, function (relatedDoc) {
+            _closeRelatedDocument(relatedDoc);
+        });
+
         return loadAgents();
     }
 
