@@ -591,6 +591,54 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should insert filtered folder in HTML", function () {
+                var pos1    = { line: 23, ch: 11 },
+                    pos2    = { line: 23, ch: 14 },
+                    pos3    = { line: 23, ch: 31 };
+
+                runs(function () {
+                    testDocument.replaceRange("sub", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // Partially existing folder was inserted correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/test2.html");
+                });
+            });
+
+            it("should replace filtered file in HTML", function () {
+                var pos1    = { line: 23, ch: 11 },
+                    pos2    = { line: 23, ch: 14 },
+                    pos3    = { line: 23, ch: 21 };
+
+                runs(function () {
+                    testDocument.replaceRange("tes", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    // Partially existing file was replaced correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html'");
+                });
+            });
+
             it("should insert folder and replace file in CSS", function () {
                 var pos1    = { line: 10, ch: 24 },
                     pos2    = { line: 10, ch: 34 },
@@ -637,6 +685,54 @@ define(function (require, exports, module) {
                     
                     // Filename was replaced
                     expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
+                });
+            });
+
+            it("should insert filtered folder in CSS", function () {
+                var pos1    = { line: 10, ch: 24 },
+                    pos2    = { line: 10, ch: 27 },
+                    pos3    = { line: 10, ch: 43 };
+
+                runs(function () {
+                    testDocument.replaceRange("sub", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // Partially existing folder was inserted correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/dummy.jpg");
+                });
+            });
+
+            it("should replace filtered file in CSS", function () {
+                var pos1    = { line: 10, ch: 24 },
+                    pos2    = { line: 10, ch: 27 },
+                    pos3    = { line: 10, ch: 34 };
+
+                runs(function () {
+                    testDocument.replaceRange("tes", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    // Partially existing file was replaced correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html)");
                 });
             });
 
