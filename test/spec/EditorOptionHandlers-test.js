@@ -206,7 +206,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor(),
-                        oldEditorSize = SpecRunnerUtils.resizeEditor(editor, testWindow.$, 0, 200);
+                        oldEditorSize = SpecRunnerUtils.resizeEditor(editor, testWindow.$, 200);
 
                     // Use two cursor positions to detect line wrapping. First position at 
                     // the beginning of a long line and the second position to be

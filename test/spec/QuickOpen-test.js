@@ -155,7 +155,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     if (gotoLineQuery) {
                         var editor = EditorManager.getCurrentFullEditor();
-                        SpecRunnerUtils.resizeEditor(editor, testWindow.$, 200);
+                        SpecRunnerUtils.resizeEditor(editor, testWindow.$, 0, 600);
 
                         waitsFor(function () {
                             return getSearchField().val() === gotoLineQuery;
