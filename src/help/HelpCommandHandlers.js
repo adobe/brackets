@@ -29,16 +29,16 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = require("utils/AppInit"),
-        Global                  = require("utils/Global"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
-        Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        Commands                = require("command/Commands"),
         Dialogs                 = require("widgets/Dialogs"),
-        Strings                 = require("strings"),
-        UpdateNotification      = require("utils/UpdateNotification"),
         FileUtils               = require("file/FileUtils"),
+        Global                  = require("utils/Global"),
         NativeApp               = require("utils/NativeApp"),
+        Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
+        UpdateNotification      = require("utils/UpdateNotification"),
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
     
@@ -76,15 +76,16 @@ define(function (require, exports, module) {
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
         
         // Get containers
-        var $dlg = $(".about-dialog.instance"),
-            $contributors = $dlg.find(".about-contributors"),
-            $spinner = $dlg.find(".spinner"),
-            contributorsUrl = brackets.config.contributors_url,
-            page,
+        var $dlg            = $(".about-dialog.instance"),
+            $contributors   = $dlg.find(".about-contributors"),
+            $spinner        = $dlg.find(".spinner"),
             allContributors = [],
+            contributorsUrl = brackets.config.contributors_url,
+            perPage         = 100,
+            page,
             data;
 
-        if (contributorsUrl.indexOf("api.github.com") !== -1) {
+        if (contributorsUrl.indexOf("{1}") !== -1) { // pagination enabled
             page = 1;
         }
         
@@ -94,7 +95,7 @@ define(function (require, exports, module) {
             var contributors;
 
             if (page) {
-                url += "?per_page=100&page=" + page;
+                url = StringUtils.format(url, perPage, page);
             }
             $.ajax({
                 url: url,
@@ -115,7 +116,7 @@ define(function (require, exports, module) {
             if (page) {
                 page++;
             }
-        } while (page && data.length === 100);
+        } while (page && data.length === perPage);
 
         if (allContributors.length) {
             // Populate the contributors data
