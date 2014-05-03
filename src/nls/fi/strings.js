@@ -493,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Kehitys",
+    "ERRORS"                                    : "Virheet",
     "CMD_SHOW_DEV_TOOLS"                        : "Näytä kehitystyökalut",
     "CMD_REFRESH_WINDOW"                        : "Lataa uudelleen laajennuksineen",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Lataa uudelleen laajennuksitta",
@@ -503,6 +504,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Ota Noden virheenjäljitin käyttöön",
     "CMD_LOG_NODE_STATE"                        : "Kirjaa Noden tila konsoliin",
     "CMD_RESTART_NODE"                          : "Käynnistä Node uudelleen",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Näytä virheet tilapalkissa",
     
     "LANGUAGE_TITLE"                            : "Vaihda kieltä",
     "LANGUAGE_MESSAGE"                          : "Kieli:",
