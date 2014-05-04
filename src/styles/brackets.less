@@ -1077,14 +1077,10 @@ a, img {
     }
 
     &.offscreen {
-        -webkit-transform: translate(0, -44px);
-        transform: translate(0, -44px);
+        -webkit-transform: translate(0, -100%);
+        transform: translate(0, -100%);
         transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
-
-        body:not(.has-appshell-menus) & {
-            top: 37px;
-        }
     }
 
     input {
