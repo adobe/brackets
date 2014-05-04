@@ -210,7 +210,7 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: .3em .5em 0 .3em
+    padding: .3em .5em 0 .3em;
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
