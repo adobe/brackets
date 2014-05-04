@@ -157,7 +157,7 @@ define(function (require, exports, module) {
         // when there are html menus we need to adjust the top position
         if (!brackets.nativeMenus) {
             var top = $("#titlebar").outerHeight();
-            this._$root.css("top", (top + 10) + "px");
+            this._$root.css("top", top + "px");
         }
         
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
