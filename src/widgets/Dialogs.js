@@ -263,10 +263,11 @@ define(function (require, exports, module) {
         
         $("body").append("<div class='modal-wrapper'><div class='modal-inner-wrapper'></div></div>");
 
-        var result    = $.Deferred(),
-            promise   = result.promise(),
-            $dlg      = $(template)
+        var result  = new $.Deferred(),
+            promise = result.promise(),
+            $dlg    = $(template)
                 .addClass("instance")
+                .prop("tabindex", "-1")
                 .appendTo(".modal-inner-wrapper:last");
 
         // Don't allow dialog to exceed viewport size
@@ -302,13 +303,17 @@ define(function (require, exports, module) {
             //Remove wrapper
             $(".modal-wrapper:last").remove();
         }).one("shown", function () {
-            // Set focus to the default button, if possible
-            var $primaryBtn = $dlg.find(".primary:enabled");
+            var $primaryBtn = $dlg.find(".primary:enabled"),
+                $otherBtn   = $dlg.find(".modal-footer .dialog-button:enabled:eq(0)");
+            
+            // Set focus to the primary button, to any other button, or to the dialog depending
+            // if there are buttons
             if ($primaryBtn.length) {
                 $primaryBtn.focus();
-            // If not, set it to any other button
+            } else if ($otherBtn.length) {
+                $otherBtn.focus();
             } else {
-                $dlg.find(".dialog-button:enabled:eq(0)").focus();
+                $dlg.focus();
             }
 
             // Push our global keydown handler onto the global stack of handlers.
