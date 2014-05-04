@@ -82,9 +82,7 @@ define(function (require, exports, module) {
         var $dlg            = $(".about-dialog.instance"),
             $contributors   = $dlg.find(".about-contributors"),
             $spinner        = $dlg.find(".spinner"),
-            allContributors = [],
             contributorsUrl = brackets.config.contributors_url,
-            data,
             page;
 
         if (contributorsUrl.indexOf("{1}") !== -1) { // pagination enabled
@@ -94,12 +92,9 @@ define(function (require, exports, module) {
         $spinner.addClass("spin");
         
         function loadContributors(rawUrl, page, contributors, deferred) {
-            deferred = deferred || $.Deferred();
+            deferred = deferred || new $.Deferred();
             contributors = contributors || [];
-            var url = rawUrl;
-            if (page) {
-                url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
-            }
+            var url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
 
             $.ajax({
                 url: url,
@@ -107,18 +102,21 @@ define(function (require, exports, module) {
                 cache: false
             })
                 .done(function (response) {
-                    var data = response || [];
-                    contributors = contributors.concat(data);
-                    if (page && data.length === CONTRIBUTORS_PER_PAGE) {
+                    contributors = contributors.concat(response || []);
+                    if (page && response.length === CONTRIBUTORS_PER_PAGE) {
                         loadContributors(rawUrl, page + 1, contributors, deferred);
                     } else {
                         deferred.resolve(contributors);
                     }
                 })
                 .fail(function () {
-                    deferred.reject(contributors);
+                    if (contributors.length) { // we weren't able to fetch this page, but previous fetches were successful
+                        deferred.resolve(contributors);
+                    } else {
+                        deferred.reject();
+                    }
                 });
-            return deferred;
+            return deferred.promise();
         }
 
         loadContributors(contributorsUrl, page) // Load the contributors
