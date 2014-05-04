@@ -480,9 +480,7 @@ define(function (require, exports, module) {
     }
 
     // Init invalid characters string 
-    if (brackets.platform === "mac") {
-        _invalidChars = /[\/?:|*]+/;
-    } else if (brackets.platform === "linux") {
+    if (brackets.platform === "mac" || brackets.platform === "linux") {
         _invalidChars = /[\/?:|*]+/;
     } else {
         _invalidChars = /[\/?*:<>\\|\"]+/;  // invalid characters on Windows
