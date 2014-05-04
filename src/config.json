@@ -10,6 +10,7 @@
         "get_involved_url": "https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md",
         "glob_help_url": "https://github.com/adobe/brackets/wiki/Using-File-Filters",
         "release_notes_url": "https://github.com/adobe/brackets/wiki/Release-Notes",
+        "homepage_url": "http://brackets.io/index.html",
         "twitter_url": "https://twitter.com/brackets",
         "troubleshoot_url": "https://github.com/adobe/brackets/wiki/Troubleshooting#wiki-livedev",
         "twitter_name": "@brackets",
