@@ -305,6 +305,7 @@ define({
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве проекта",
     "CMD_SHOW_IN_OS"                      : "Показать в операционной системе",
+    "CMD_SHOW_IN_EXPLORER"                : "Показать в операционной системе",
     
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
