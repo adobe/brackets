@@ -159,7 +159,7 @@ define({
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
+	"FIND_IN_FILES_NO_SCOPE": "du projet",
 	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
@@ -173,7 +173,7 @@ define({
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // File exclusion filters
-	"NO_FILE_FILTER": "Exclure les fichiers\u2026",
+	"NO_FILE_FILTER": "Exclure des fichiers\u2026",
 	"EDIT_FILE_FILTER": "Modifier\u2026",
 	"FILE_FILTER_DIALOG": "Modifier le filtre",
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
@@ -181,7 +181,7 @@ define({
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
 
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
-	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) {2} sur {1}",
+	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
@@ -271,7 +271,7 @@ define({
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
+	"CMD_EXTENSION_MANAGER": "Gestionnaire d'extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
@@ -289,16 +289,6 @@ define({
 	"CMD_SPLIT_SEL_INTO_LINES": "Scinder la sélection en lignes",
 	"CMD_ADD_CUR_TO_NEXT_LINE": "Ajouter un curseur à la ligne suivante",
 	"CMD_ADD_CUR_TO_PREV_LINE": "Ajouter un curseur à la ligne précédente",
-	"CMD_FIND": "Rechercher",
-	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
-	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
-	"CMD_FIND_NEXT": "Rechercher suivant",
-	"CMD_FIND_PREVIOUS": "Rechercher précédent",
-	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
-	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
-	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
-	"CMD_REPLACE": "Remplacer",
 	"CMD_INDENT": "Retrait",
 	"CMD_UNINDENT": "Annuler le retrait",
 	"CMD_DUPLICATE": "Dupliquer",
@@ -311,6 +301,20 @@ define({
 	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
 	"CMD_SHOW_CODE_HINTS": "Afficher les indicateurs de code",
+    
+    // Search menu commands
+	"FIND_MENU": "Rechercher",
+	"CMD_FIND": "Rechercher",
+	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
+	"CMD_FIND_NEXT": "Rechercher suivant",
+	"CMD_FIND_PREVIOUS": "Rechercher précédent",
+	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
+	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
+	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
+	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
+	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
+	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
+	"CMD_REPLACE": "Remplacer",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -353,7 +357,7 @@ define({
 	"HELP_MENU": "Aide",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
-	"CMD_SUPPORT": "Prise en charge de {APP_NAME}",
+	"CMD_SUPPORT": "Assistance {APP_NAME}",
 	"CMD_SUGGEST": "Suggérer une fonctionnalité",
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
@@ -489,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
+	"ERRORS": "Erreurs",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
@@ -499,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
@@ -509,7 +515,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
-	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Décaler</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Maj</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
 	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
 	"INLINE_TIMING_EDITOR_INVALID": "L’ancienne valeur <code>{0}</code> n’est pas valide et a donc été remplacée par <code>{1}</code> pour la fonction affichée. Le document sera mis à jour à la première modification.",
     

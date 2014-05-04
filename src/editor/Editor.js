@@ -265,7 +265,7 @@ define(function (require, exports, module) {
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWrapping                : currentOptions[WORD_WRAP],
-            matchBrackets               : true,
+            matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
             smartIndent                 : currentOptions[SMART_INDENT],
@@ -2033,6 +2033,10 @@ define(function (require, exports, module) {
             } else if (prefName === SCROLL_PAST_END && this._visibleRange) {
                 // Do not apply this option to inline editors
                 return;
+            } else if (prefName === SHOW_LINE_NUMBERS) {
+                Editor._toggleLinePadding(!newValue);
+                this._codeMirror.setOption(cmOptions[SHOW_LINE_NUMBERS], newValue);
+                this.refreshAll();
             } else {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
@@ -2204,6 +2208,16 @@ define(function (require, exports, module) {
         return PreferencesManager.get(WORD_WRAP, fullPath);
     };
     
+    /**
+     * @private
+     * Toggles the left padding of all code editors.  Used to provide more
+     * space between the code text and the left edge of the editor when
+     * line numbers are hidden.
+     * @param {boolean} showLinePadding
+     */
+    Editor._toggleLinePadding = function (showLinePadding) {
+        $("#editor-holder").toggleClass("show-line-padding", showLinePadding);
+    };
     
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {

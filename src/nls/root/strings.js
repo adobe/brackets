@@ -289,16 +289,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
-    "CMD_FIND"                            : "Find",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
-    "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
-    "CMD_FIND_NEXT"                       : "Find Next",
-    "CMD_FIND_PREVIOUS"                   : "Find Previous",
-    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
-    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
-    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
-    "CMD_REPLACE"                         : "Replace",
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
@@ -311,6 +301,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Find",
+    "CMD_FIND"                            : "Find",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Find\u2026",
+    "CMD_FIND_NEXT"                       : "Find Next",
+    "CMD_FIND_PREVIOUS"                   : "Find Previous",
+    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
+    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
+    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
+    "CMD_FIND_IN_FILES"                   : "Find in Files",
+    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
+    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
+    "CMD_REPLACE"                         : "Replace",
     
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -489,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -499,6 +504,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
