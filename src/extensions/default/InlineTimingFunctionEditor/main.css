@@ -58,13 +58,13 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 2px 3px;
+    padding: .3em .5em;
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
     color: #454545;
-    font-size: 75%;
+    font-size: 11px;
     line-height: 1;
 }
 
@@ -207,16 +207,16 @@
 .step-editor .coordinate-plane:before,
 .step-editor .coordinate-plane:after {
     position: absolute;
-    bottom: calc(11px - 1em);
-    left: calc(13px - 1em);
+    bottom: 0;
+    left: 0;
     width: 100%;
-    padding: 2px 3px;
+    padding: .3em .5em 0 .3em
     
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     
     color: #454545;
-    font-size: 75%;
+    font-size: 11px;
     line-height: 1;
 }
 
