@@ -93,63 +93,66 @@ define(function (require, exports, module) {
         
         $spinner.addClass("spin");
         
-        function loadContributorsPage(url, page) {
-            var contributors;
-
+        function loadContributors(rawUrl, page, contributors, deferred) {
+            deferred = deferred || $.Deferred();
+            contributors = contributors || [];
+            var url = rawUrl;
             if (page) {
-                url = StringUtils.format(url, CONTRIBUTORS_PER_PAGE, page);
+                url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
             }
+
             $.ajax({
                 url: url,
-                async: false,
                 dataType: "json",
-                cache: false,
-                complete: function (data) {
-                    contributors = (data && data.responseJSON) || [];
-                }
-            });
-            return contributors;
+                cache: false
+            })
+                .done(function (response) {
+                    var data = response || [];
+                    contributors = contributors.concat(data);
+                    if (page && data.length === CONTRIBUTORS_PER_PAGE) {
+                        loadContributors(rawUrl, page + 1, contributors, deferred);
+                    } else {
+                        deferred.resolve(contributors);
+                    }
+                })
+                .fail(function () {
+                    deferred.reject(contributors);
+                });
+            return deferred;
         }
 
-        // Get all the project contributors
-        do {
-            data = loadContributorsPage(contributorsUrl, page);
-            allContributors = allContributors.concat(data);
-            if (page) {
-                page++;
-            }
-        } while (page && data.length === CONTRIBUTORS_PER_PAGE);
+        loadContributors(contributorsUrl, page) // Load the contributors
+            .done(function (allContributors) {
+                // Populate the contributors data
+                var totalContributors = allContributors.length,
+                    contributorsCount = 0;
 
-        if (allContributors.length) {
-            // Populate the contributors data
-            var totalContributors = allContributors.length,
-                contributorsCount = 0;
-            
-            allContributors.forEach(function (contributor) {
-                // remove any UrlParams delivered via the GitHub API
-                contributor.avatar_url = contributor.avatar_url.split("?")[0];
-            });
+                allContributors.forEach(function (contributor) {
+                    // remove any UrlParams delivered via the GitHub API
+                    contributor.avatar_url = contributor.avatar_url.split("?")[0];
+                });
 
-            $contributors.html(Mustache.render(ContributorsTemplate, allContributors));
-            
-            // This is used to create an opacity transition when each image is loaded
-            $contributors.find("img").one("load", function () {
-                $(this).css("opacity", 1);
-                
-                // Count the contributors loaded and hide the spinner once all are loaded
-                contributorsCount++;
-                if (contributorsCount >= totalContributors) {
-                    $spinner.removeClass("spin");
-                }
-            }).each(function () {
-                if (this.complete) {
-                    $(this).trigger("load");
-                }
+                $contributors.html(Mustache.render(ContributorsTemplate, allContributors));
+
+                // This is used to create an opacity transition when each image is loaded
+                $contributors.find("img").one("load", function () {
+                    $(this).css("opacity", 1);
+
+                    // Count the contributors loaded and hide the spinner once all are loaded
+                    contributorsCount++;
+                    if (contributorsCount >= totalContributors) {
+                        $spinner.removeClass("spin");
+                    }
+                }).each(function () {
+                    if (this.complete) {
+                        $(this).trigger("load");
+                    }
+                });
+            })
+            .fail(function () {
+                $spinner.removeClass("spin");
+                $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
             });
-        } else {
-            $spinner.removeClass("spin");
-            $contributors.html(Mustache.render("<p class='dialog-message'>{{ABOUT_TEXT_LINE6}}</p>", Strings));
-        }
     }
 
     // Read "build number" SHAs off disk immediately at APP_READY, instead
