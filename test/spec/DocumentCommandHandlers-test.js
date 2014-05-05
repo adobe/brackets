@@ -236,42 +236,42 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should swap out untitled document from working set even when not current", function () {
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
-
-                    waitsForDone(promise, "FILE_NEW_UNTITLED");
-                });
-
-                runs(function () {
-                    // Select test.js in the project tree (so nothing is selected in the working set)
-                    promise = FileViewController.openAndSelectDocument(testPath + "/test.js", FileViewController.PROJECT_MANAGER);
-
-                    waitsForDone(promise, "openAndSelectDocument");
-                });
-
-                runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
-                        callback(undefined, newFilePath);
-                    });
-
-                    var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                    waitsForDone(promise, "FILE_SAVE_ALL");
-                });
-                
-                runs(function () {
-                    var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
-
-                    expect(noLongerUntitledDocument.isDirty).toBe(false);
-                    expect(noLongerUntitledDocument.isUntitled()).toBe(false);
-                    expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
-
-                    // Verify file exists, & clean up
-                    expectAndDelete(newFilePath);
-                });
-            });
+//            it("should swap out untitled document from working set even when not current", function () {
+//                runs(function () {
+//                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+//
+//                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+//                });
+//
+//                runs(function () {
+//                    // Select test.js in the project tree (so nothing is selected in the working set)
+//                    promise = FileViewController.openAndSelectDocument(testPath + "/test.js", FileViewController.PROJECT_MANAGER);
+//
+//                    waitsForDone(promise, "openAndSelectDocument");
+//                });
+//
+//                runs(function () {
+//                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+//                        callback(undefined, newFilePath);
+//                    });
+//
+//                    var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
+//                    waitsForDone(promise, "FILE_SAVE_ALL");
+//                });
+//                
+//                runs(function () {
+//                    var noLongerUntitledDocument = DocumentManager.getCurrentDocument();
+//
+//                    expect(noLongerUntitledDocument.isDirty).toBe(false);
+//                    expect(noLongerUntitledDocument.isUntitled()).toBe(false);
+//                    expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
+//                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
+//                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+//
+//                    // Verify file exists, & clean up
+//                    expectAndDelete(newFilePath);
+//                });
+//            });
             
             it("should ask to save untitled document upon closing", function () {
                 newFilename = "testname2.js";
