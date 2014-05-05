@@ -1021,15 +1021,15 @@ define(function (require, exports, module) {
      * CodeMirror will change it's size withing Brackets.
      *
      * @param {!Editor} editor - instance of Editor
-     * @param {!Object} jquery - instance of jquery that belongs to the window which hosts the editor
      * @param {?number} width - the new width of the editor in pixel
      * @param {?number} height - the new height of the editor in pixel
      */
-    function resizeEditor(editor, jquery, width, height) {
+    function resizeEditor(editor, width, height) {
         var oldSize = {};
 
-        if (editor && jquery) {
-            var $editorHolder = jquery('#editor-holder'),
+        if (editor) {
+            var jquery = editor.getRootElement().ownerDocument.defaultView.$,
+                $editorHolder = jquery('#editor-holder'),
                 $content = jquery('.content');
 
             // preserve old size
