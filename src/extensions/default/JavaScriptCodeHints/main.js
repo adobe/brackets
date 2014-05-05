@@ -56,7 +56,8 @@ define(function (require, exports, module) {
         matcher      = null,  // string matcher for hints
         ignoreChange;         // can ignore next "change" event if true;
     
-    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", ["ionic(-.*|\\.bundle|)\\.min\\.js$"]);
+    // Define the defaultExclusions which are files that are known to cause Tern to run out of control.
+    PreferencesManager.definePreference("jscodehints.defaultExclusions", "array", ["ionic*.min.js"]);
     
     /**
      * Sets the configuration, generally for testing/debugging use.

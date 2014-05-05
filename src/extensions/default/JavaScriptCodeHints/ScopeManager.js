@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        globmatch           = brackets.getModule("thirdparty/globmatch"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
@@ -217,7 +218,18 @@ define(function (require, exports, module) {
             return false;
         }
         
-        return excludes.test(file.name);
+        if (excludes.test(file.name)) {
+            return true;
+        }
+
+        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
+
+        // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
+        // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
+        // file in your project. defaultExclusions is an array of globs.
+        return defaultExclusions
+            && _.isArray(defaultExclusions)
+            && _.some(defaultExclusions, _.partial(globmatch, file.fullPath));
     }
 
     /**
@@ -742,17 +754,6 @@ define(function (require, exports, module) {
         }
         
         /**
-         * Checks filename to see if it matches the exclusion regex.
-         * 
-         * @param {string} name filename to check
-         * @param {string} exclusion uncompiled exclusion regular expression
-         * @return {boolean} true if the file should be excluded
-         */
-        function checkExclusion(name, exclusion) {
-            return new RegExp(exclusion).exec(name);
-        }
-        
-        /**
          * Handle a request from the worker for text of a file
          *
          * @param {{file:string}} request - the request from the worker.  Should be an Object containing the name
@@ -768,17 +769,7 @@ define(function (require, exports, module) {
                 });
             }
     
-            var name = request.file,
-                defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
-            
-            // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
-            // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
-            // file in your project.
-            if (defaultExclusions
-                    && _.isArray(defaultExclusions)
-                    && _.some(defaultExclusions, _.partial(checkExclusion, name))) {
-                replyWith(name, "");
-            }
+            var name = request.file;
     
             /**
              * Helper function to get the text of a given document and send it to tern.
