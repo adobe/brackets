@@ -31,6 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var FileSystem = require("filesystem/FileSystem");
+
     /**
      * Appends a <style> tag to the document's head.
      *
@@ -67,6 +69,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * getModuleUrl returns different urls for win platform
+     * so that's why we need a different check here
+     * @see getModuleUrl()
+     * @param {!string} pathOrUrl that should be checked if it's absolute
+     * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
+     *                    or when it's absolute path on other platforms
+     */
+    function isAbsolutePathOrUrl(pathOrUrl) {
+        return brackets.platform === "win" ? PathUtils.isAbsoluteUrl(pathOrUrl) : FileSystem.isAbsolutePath(pathOrUrl);
+    }
+
+    /**
      * Parses LESS code and returns a promise that resolves with plain CSS code.
      *
      * Pass the {@link url} argument to resolve relative URLs contained in the code.
@@ -91,7 +105,7 @@ define(function (require, exports, module) {
                 rootpath: dir
             };
 
-            if (PathUtils.isAbsoluteUrl(url)) {
+            if (isAbsolutePathOrUrl(url)) {
                 options.currentFileInfo = {
                     currentDirectory: dir,
                     entryPath: dir,

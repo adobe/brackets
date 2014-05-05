@@ -1202,7 +1202,7 @@ define(function (require, exports, module) {
                     }
                     
                     // Stop once we've reached a <style ...> tag
-                    if (ctx.token.string === "<style") {
+                    if (ctx.token.string === "style" && ctx.token.type === "tag") {
                         // Remove everything up to end-of-tag from selector
                         var eotIndex = selector.indexOf(">");
                         if (eotIndex !== -1) {

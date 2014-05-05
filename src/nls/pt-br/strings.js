@@ -296,6 +296,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
     "CMD_TWITTER"                         : "{TWITTER_NAME} no Twitter",
     "CMD_ABOUT"                           : "Sobre o {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de configurações",
 
 
     // Special commands invoked by the native shell

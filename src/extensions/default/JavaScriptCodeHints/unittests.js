@@ -1409,7 +1409,8 @@ define(function (require, exports, module) {
             });
 
             // Test reading multiple files and subdirectories
-            it("should handle reading all files when modules not used", function () {
+            // Turned for per #7646
+            xit("should handle reading all files when modules not used", function () {
                 var start = { line: 8, ch: 8 };
 
                 runs(function () {
