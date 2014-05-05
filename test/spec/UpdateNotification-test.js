@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
+/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, waitsForFail, spyOn, runs */
 define(function (require, exports, module) {
     "use strict";
     
@@ -37,6 +37,8 @@ define(function (require, exports, module) {
 
         var updateInfoURL = "file://" + SpecRunnerUtils.getTestPath("/spec/UpdateNotification-test-files") + "/versionInfo.json",
             maliciousInfoURL = "file://" + SpecRunnerUtils.getTestPath("/spec/UpdateNotification-test-files") + "/versionInfoXSS.json",
+            brokenInfoURL = "file://" + SpecRunnerUtils.getTestPath("/spec/UpdateNotification-test-files") + "/versionInfoBroken.json",
+            doesNotExistURL = "file://" + SpecRunnerUtils.getTestPath("/spec/UpdateNotification-test-files") + "/doesNotExist.json",
             testWindow;
 
         beforeEach(function () {
@@ -44,6 +46,8 @@ define(function (require, exports, module) {
                 testWindow = w;
                 // Load module instances from brackets.test
                 UpdateNotification = testWindow.brackets.test.UpdateNotification;
+                // always pretend to run with en locale
+//                spyOn(testWindow.brackets, "getLocale").andReturn("en");
             });
         });
 
@@ -163,6 +167,73 @@ define(function (require, exports, module) {
                 // out and run as a script.
                 var txt = $doc.find(".update-dialog.instance .update-info li").text();
                 expect(txt.indexOf("<script>")).toNotEqual(-1);
+            });
+        });
+
+        it("should error dialog if json is broken and can not be parsed", function () {
+            var updateInfo = {
+                _buildNumber: 72,
+                _lastNotifiedBuildNumber: 0,
+                _versionInfoURL: brokenInfoURL
+            };
+
+            runs(function () {
+                var promise = UpdateNotification.checkForUpdate(true, updateInfo);
+                waitsForFail(promise, "Check for updates");
+            });
+
+            runs(function () {
+                var $doc = $(testWindow.document);
+                expect($doc.find(".error-dialog.instance").length).toBe(1);
+            });
+        });
+
+        it("should fall back to en.json when it.json is not available", function () {
+            var updateInfo = {
+                _buildNumber: 72,
+                _lastNotifiedBuildNumber: 0,
+                _versionInfoURL: doesNotExistURL
+            };
+
+            var expectedResult = [
+                {
+                    "buildNumber": 93,
+                    "versionString": "Sprint 12",
+                    "dateString": "8-13-2012",
+                    "releaseNotesURL": "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-12",
+                    "downloadURL": "https://github.com/adobe/brackets/downloads",
+                    "newFeatures": [
+                        {
+                            "name": "Feature 1",
+                            "description": "Only one feature"
+                        }
+                    ]
+                }
+            ];
+
+            var jq = spyOn(testWindow.$, "ajax").andCallFake(function (req) {
+                var d = $.Deferred();
+
+                if (req.url === "http://dev.brackets.io/updates/stable/en.json") {
+                    d.resolve(expectedResult);
+                } else {
+                    d.reject();
+                }
+
+                return d.promise();
+            });
+
+            // pretend that we are using the italian locale and we don't have a translation for the update notification
+            spyOn(testWindow.brackets, "getLocale").andReturn("it");
+
+            runs(function () {
+                var promise = UpdateNotification.checkForUpdate(true, updateInfo);
+                waitsForDone(promise, "Check for updates");
+            });
+
+            runs(function () {
+                var $doc = $(testWindow.document);
+                expect($doc.find(".update-dialog.instance").length).toBe(1);
             });
         });
     });

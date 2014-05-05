@@ -97,7 +97,23 @@ define(function (require, exports, module) {
      * Flag that indicates if we've added a click handler to the update notification icon.
      */
     var _addedClickHandler = false;
-    
+
+    /**
+     * Construct a new version update url with the given locale.
+     *
+     * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * return {string} the new version update url
+     */
+    function _versionInfoUrl(locale) {
+        locale = locale || brackets.getLocale();
+
+        // cut off any country in the locale
+        // e.g.: en-US will be reduced to en
+        locale = locale.substring(0, 2);
+
+        return brackets.config.update_info_url + locale + ".json";
+    }
+
     /**
      * Get a data structure that has information for all builds of Brackets.
      *
@@ -108,8 +124,9 @@ define(function (require, exports, module) {
      *
      * If new data is fetched and dontCache is false, the data is saved in preferences
      * for quick fetching later.
+     * versionInfoUrl is used for unit testing.
      */
-    function _getUpdateInformation(force, dontCache) {
+    function _getUpdateInformation(force, dontCache, versionInfoUrl) {
         var result = new $.Deferred();
         var fetchData = false;
         var data;
@@ -131,27 +148,37 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            $.ajax(_versionInfoURL, {
-                dataType: "text",
-                cache: false,
-                complete: function (jqXHR, status) {
-                    if (status === "success") {
-                        try {
-                            data = JSON.parse(jqXHR.responseText);
-                            if (!dontCache) {
-                                _lastInfoURLFetchTime = (new Date()).getTime();
-                                PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
-                                PreferencesManager.setViewState("updateInfo", data);
-                            }
-                            result.resolve(data);
-                        } catch (e) {
-                            console.log("Error parsing version information");
-                            console.log(e);
-                            result.reject();
-                        }
+            var lookupPromise = new $.Deferred(),
+                localVersionInfoUrl = versionInfoUrl || _versionInfoUrl();
+
+            // don't make HEAD request if we already have the default en locale
+            if (brackets.getLocale() !== "en") {
+                $.ajax({
+                    url: localVersionInfoUrl,
+                    cache: false,
+                    type: "HEAD"
+                }).fail(function (jqXHR, status, error) {
+                    localVersionInfoUrl = _versionInfoUrl("en");
+                }).always(function (jsXHR, status, error) {
+                    lookupPromise.resolve();
+                });
+            } else {
+                lookupPromise.resolve();
+            }
+
+            lookupPromise.done(function () {
+                $.ajax({
+                    url: localVersionInfoUrl,
+                    dataType: "json",
+                    cache: false
+                }).done(function (updateInfo, textStatus, jqXHR) {
+                    if (!dontCache) {
+                        _lastInfoURLFetchTime = (new Date()).getTime();
+                        PreferencesManager.setViewState("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                        PreferencesManager.setViewState("updateInfo", updateInfo);
                     }
-                },
-                error: function (jqXHR, status, error) {
+                    result.resolve(updateInfo);
+                }).fail(function (jqXHR, status, error) {
                     // When loading data for unit tests, the error handler is
                     // called but the responseText is valid. Try to use it here,
                     // but *don't* save the results in prefs.
@@ -168,7 +195,7 @@ define(function (require, exports, module) {
                     } catch (e) {
                         result.reject();
                     }
-                }
+                });
             });
         } else {
             result.resolve(data);
@@ -282,6 +309,7 @@ define(function (require, exports, module) {
         var oldValues;
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
+        var versionInfoUrl = _versionInfoUrl();
         
         if (_testValues) {
             oldValues = {};
@@ -299,13 +327,12 @@ define(function (require, exports, module) {
             }
 
             if (_testValues.hasOwnProperty("_versionInfoURL")) {
-                oldValues._versionInfoURL = _versionInfoURL;
-                _versionInfoURL = _testValues._versionInfoURL;
+                versionInfoUrl = _testValues._versionInfoURL;
                 usingOverrides = true;
             }
         }
         
-        _getUpdateInformation(force || usingOverrides, usingOverrides)
+        _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl)
             .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
@@ -359,9 +386,6 @@ define(function (require, exports, module) {
                     if (oldValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
                         _lastNotifiedBuildNumber = oldValues._lastNotifiedBuildNumber;
                     }
-                    if (oldValues.hasOwnProperty("_versionInfoURL")) {
-                        _versionInfoURL = oldValues._versionInfoURL;
-                    }
                 }
                 result.resolve();
             })
@@ -390,13 +414,12 @@ define(function (require, exports, module) {
         window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
 
-    // Append locale to version info URL
-    _versionInfoURL = brackets.config.update_info_url + brackets.getLocale() + ".json";
-
     // Events listeners
     $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
+    // Unit test API
+    exports._versionInfoUrl       = _versionInfoUrl;
 });
