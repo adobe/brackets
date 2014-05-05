@@ -2037,21 +2037,78 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 6, ch: 0}, end: {line: 7, ch: 0}});
             });
             
+            it("should block comment on an empty line around comments", function () {
+                var lines = coffeeContent.split("\n");
+                lines[2] = "###baz = \"hello\"###";
+                lines[3] = "";
+                lines[4] = "#number = -42";
+                var text = lines.join("\n");
+                
+                lines[3] = "######";
+                var expectedText = lines.join("\n");
+                
+                myDocument.setText(text);
+                myEditor.setCursorPos(3, 0);
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 3, ch: 3});
+            });
+            
+            it("should block uncomment on an empty line inside a block comment", function () {
+                var lines = coffeeContent.split("\n");
+                lines[1] = "###bar = true";
+                lines[2] = "";
+                lines[3] = "number = -42###";
+                var text = lines.join("\n");
+                
+                lines = coffeeContent.split("\n");
+                lines[2] = "";
+                var expectedText = lines.join("\n");
+                
+                myDocument.setText(text);
+                myEditor.setCursorPos(2, 0);
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 2, ch: 0});
+            });
+            
             it("should line uncomment on line comments around a block comment", function () {
                 var lines = getContentCommented(1, 3).split("\n");
                 lines[5] = "#number = -42";
                 var text = lines.join("\n");
+                
+                lines = text.split("\n");
+                lines[5] = "number = -42";
+                var expectedText = lines.join("\n");
                 
                 myDocument.setText(text);
                 myEditor.setSelection({line: 5, ch: 0}, {line: 6, ch: 0});
                 
                 CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
                 
-                lines[5] = "number = -42";
-                var expectedText = lines.join("\n");
-                
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectSelection({start: {line: 5, ch: 0}, end: {line: 6, ch: 0}});
+            });
+            
+            it("should line comment block commented lines", function () {
+                var lines = coffeeContent.split("\n");
+                lines[2] = "###baz = \"hello\"###";
+                var text = lines.join("\n");
+                
+                lines = text.split("\n");
+                lines[2] = "####baz = \"hello\"###";
+                var expectedText = lines.join("\n");
+                
+                myDocument.setText(text);
+                myEditor.setSelection({line: 2, ch: 0}, {line: 2, ch: 5});
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 0}, end: {line: 2, ch: 6}});
             });
             
             it("should line comment in block comment prefix or sufix starting lines", function () {
@@ -2069,11 +2126,9 @@ define(function (require, exports, module) {
                 
                 myDocument.setText(text);
                 myEditor.setSelection({line: 0, ch: 0}, {line: 2, ch: 0});
-                
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 myEditor.setSelection({line: 4, ch: 0}, {line: 6, ch: 0});
-                
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 expect(myDocument.getText()).toEqual(expectedText);
