@@ -227,9 +227,9 @@ define(function (require, exports, module) {
         // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
         // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
         // file in your project. defaultExclusions is an array of globs.
-        return defaultExclusions
-            && _.isArray(defaultExclusions)
-            && _.some(defaultExclusions, _.partial(globmatch, file.fullPath));
+        return defaultExclusions &&
+            _.isArray(defaultExclusions) &&
+            _.some(defaultExclusions, _.partial(globmatch, file.fullPath));
     }
 
     /**
