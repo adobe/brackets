@@ -420,6 +420,4 @@ define(function (require, exports, module) {
     // Define public API
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
     exports.checkForUpdate        = checkForUpdate;
-    // Unit test API
-    exports._versionInfoUrl       = _versionInfoUrl;
 });
