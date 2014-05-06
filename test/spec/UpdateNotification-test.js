@@ -178,6 +178,9 @@ define(function (require, exports, module) {
             };
 
             runs(function () {
+                // forces to load the json from brokenInfoURL
+                spyOn(testWindow.brackets, "getLocale").andReturn("en");
+
                 var promise = UpdateNotification.checkForUpdate(true, updateInfo);
                 waitsForFail(promise, "Check for updates");
             });
@@ -188,7 +191,7 @@ define(function (require, exports, module) {
             });
         });
 
-        it("should fall back to en.json when it.json is not available", function () {
+        describe("Locale Fallback", function () {
             var updateInfo = {
                 _buildNumber: 72,
                 _lastNotifiedBuildNumber: 0,
@@ -211,29 +214,56 @@ define(function (require, exports, module) {
                 }
             ];
 
-            var jq = spyOn(testWindow.$, "ajax").andCallFake(function (req) {
-                var d = $.Deferred();
+            function setupAjaxSpy(defaultUpdateUrl) {
+                var jq = spyOn(testWindow.$, "ajax").andCallFake(function (req) {
+                    var d = $.Deferred();
 
-                if (req.url === "http://dev.brackets.io/updates/stable/en.json") {
-                    d.resolve(expectedResult);
-                } else {
-                    d.reject();
-                }
+                    if (req.url === defaultUpdateUrl) {
+                        d.resolve(expectedResult);
+                    } else {
+                        d.reject();
+                    }
 
-                return d.promise();
+                    return d.promise();
+                });
+            }
+
+            it("should fall back to de.json when de-ch.json is not available", function () {
+                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "de.json";
+
+                setupAjaxSpy(defaultUpdateUrl);
+
+                // pretend that we are using the italian locale and we don't have a translation for the update notification
+                spyOn(testWindow.brackets, "getLocale").andReturn("de-ch");
+
+                runs(function () {
+                    var promise = UpdateNotification.checkForUpdate(true, updateInfo);
+                    waitsForDone(promise, "Check for updates");
+                });
+
+                runs(function () {
+                    var $doc = $(testWindow.document);
+                    expect($doc.find(".update-dialog.instance").length).toBe(1);
+                });
             });
 
-            // pretend that we are using the italian locale and we don't have a translation for the update notification
-            spyOn(testWindow.brackets, "getLocale").andReturn("it");
+            it("should fall back to en.json when it.json is not available", function () {
+                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "en.json";
 
-            runs(function () {
-                var promise = UpdateNotification.checkForUpdate(true, updateInfo);
-                waitsForDone(promise, "Check for updates");
-            });
+                setupAjaxSpy(defaultUpdateUrl);
 
-            runs(function () {
-                var $doc = $(testWindow.document);
-                expect($doc.find(".update-dialog.instance").length).toBe(1);
+                // pretend that we are using the italian locale and we don't have a translation for the update notification
+                spyOn(testWindow.brackets, "getLocale").andReturn("it");
+
+                runs(function () {
+                    var promise = UpdateNotification.checkForUpdate(true, updateInfo);
+                    waitsForDone(promise, "Check for updates");
+                });
+
+                runs(function () {
+                    var $doc = $(testWindow.document);
+                    expect($doc.find(".update-dialog.instance").length).toBe(1);
+                });
             });
         });
     });

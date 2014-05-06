@@ -75,9 +75,6 @@ define(function (require, exports, module) {
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
     
-    // URL to fetch the version information.
-    var _versionInfoURL;
-    
     // Information on all posted builds of Brackets. This is an Array, where each element is
     // an Object with the following fields:
     //
@@ -102,14 +99,15 @@ define(function (require, exports, module) {
      * Construct a new version update url with the given locale.
      *
      * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * @param {boolean=} removeCountryPartOfLocale - optional, remove existing country information from locale 'en-gb' => 'en'
      * return {string} the new version update url
      */
-    function _versionInfoUrl(locale) {
+    function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
         locale = locale || brackets.getLocale();
 
-        // cut off any country in the locale
-        // e.g.: en-US will be reduced to en
-        locale = locale.substring(0, 2);
+        if (removeCountryPartOfLocale) {
+            locale = locale.substring(0, 2);
+        }
 
         return brackets.config.update_info_url + locale + ".json";
     }
@@ -124,9 +122,9 @@ define(function (require, exports, module) {
      *
      * If new data is fetched and dontCache is false, the data is saved in preferences
      * for quick fetching later.
-     * versionInfoUrl is used for unit testing.
+     * _versionInfoUrl is used for unit testing.
      */
-    function _getUpdateInformation(force, dontCache, versionInfoUrl) {
+    function _getUpdateInformation(force, dontCache, _versionInfoUrl) {
         var result = new $.Deferred();
         var fetchData = false;
         var data;
@@ -149,17 +147,31 @@ define(function (require, exports, module) {
         
         if (fetchData) {
             var lookupPromise = new $.Deferred(),
-                localVersionInfoUrl = versionInfoUrl || _versionInfoUrl();
+                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
 
-            // don't make HEAD request if we already have the default en locale
+            // If the current locale isn't en, check whether we actually have a locale-specific update notification, and fall back to en if not.
             if (brackets.getLocale() !== "en") {
                 $.ajax({
                     url: localVersionInfoUrl,
                     cache: false,
                     type: "HEAD"
                 }).fail(function (jqXHR, status, error) {
-                    localVersionInfoUrl = _versionInfoUrl("en");
-                }).always(function (jsXHR, status, error) {
+                    // get rid of any country information from locale and try again
+                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
+                    if (tmpUrl !== localVersionInfoUrl) {
+                        $.ajax({
+                            url: tmpUrl,
+                            cache: false,
+                            type: "HEAD"
+                        }).fail(function (jqXHR, status, error) {
+                            localVersionInfoUrl = _getVersionInfoUrl("en");
+                        }).done(function (jqXHR, status, error) {
+                            localVersionInfoUrl = tmpUrl;
+                        }).always(function (jqXHR, status, error) {
+                            lookupPromise.resolve();
+                        });
+                    }
+                }).always(function (jqXHR, status, error) {
                     lookupPromise.resolve();
                 });
             } else {
@@ -309,7 +321,7 @@ define(function (require, exports, module) {
         var oldValues;
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
-        var versionInfoUrl = _versionInfoUrl();
+        var versionInfoUrl = _getVersionInfoUrl();
         
         if (_testValues) {
             oldValues = {};
