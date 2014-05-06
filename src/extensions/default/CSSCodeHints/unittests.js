@@ -522,11 +522,11 @@ define(function (require, exports, module) {
                 verifyAllValues(hintList, ["auto", "circle()", "ellipse()", "inherit", "outside-shape", "polygon()", "rectangle()"]);
             });
 
-            it("should list 6 value-name hints for shape-outside", function () {
+            it("should list 16 value-name hints for shape-outside", function () {
                 testEditor.setCursorPos({ line: 2, ch: 16 });    // after shape-outside
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyAttrHints(hintList, "auto");  // first hint should be auto
-                verifyAllValues(hintList, ["auto", "rectangle()", "circle()", "ellipse()", "polygon()", "inherit"]);
+                verifyAttrHints(hintList, "border-box");  // first hint should be border-box
+                verifyAllValues(hintList, ["none", "inherit", "circle()", "ellipse()", "polygon()", "inset()", "margin-box", "border-box", "padding-box", "content-box", "url()", "image()", "linear-gradient()", "radial-gradient()", "repeating-linear-gradient()", "repeating-radial-gradient()"]);
             });
 
             it("should list 2 value-name hints for region-fragment", function () {
