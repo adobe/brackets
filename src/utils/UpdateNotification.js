@@ -75,9 +75,6 @@ define(function (require, exports, module) {
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
     
-    // URL to fetch the version information.
-    var _versionInfoURL;
-    
     // Information on all posted builds of Brackets. This is an Array, where each element is
     // an Object with the following fields:
     //
@@ -97,19 +94,20 @@ define(function (require, exports, module) {
      * Flag that indicates if we've added a click handler to the update notification icon.
      */
     var _addedClickHandler = false;
-    
+
     /**
      * Construct a new version update url with the given locale.
      *
      * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
+     * @param {boolean=} removeCountryPartOfLocale - optional, remove existing country information from locale 'en-gb' => 'en'
      * return {string} the new version update url
      */
-    function _versionInfoUrl(locale) {
+    function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
         locale = locale || brackets.getLocale();
 
-        // cut off any country in the locale
-        // e.g.: en-US will be reduced to en
-        locale = locale.substring(0, 2);
+        if (removeCountryPartOfLocale) {
+            locale = locale.substring(0, 2);
+        }
 
         return brackets.config.update_info_url + locale + ".json";
     }
@@ -124,8 +122,9 @@ define(function (require, exports, module) {
      *
      * If new data is fetched and dontCache is false, the data is saved in preferences
      * for quick fetching later.
+     * _versionInfoUrl is used for unit testing.
      */
-    function _getUpdateInformation(force, dontCache) {
+    function _getUpdateInformation(force, dontCache, _versionInfoUrl) {
         var result = new $.Deferred();
         var fetchData = false;
         var data;
@@ -147,17 +146,32 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            var lookupPromise = new $.Deferred();
+            var lookupPromise = new $.Deferred(),
+                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
 
-            // don't make HEAD request if we already have the default en locale
+            // If the current locale isn't en, check whether we actually have a locale-specific update notification, and fall back to en if not.
             if (brackets.getLocale() !== "en") {
                 $.ajax({
-                    url: _versionInfoURL,
+                    url: localVersionInfoUrl,
                     cache: false,
                     type: "HEAD"
                 }).fail(function (jqXHR, status, error) {
-                    _versionInfoURL = _versionInfoUrl("en");
-                }).always(function (jsXHR, status, error) {
+                    // get rid of any country information from locale and try again
+                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
+                    if (tmpUrl !== localVersionInfoUrl) {
+                        $.ajax({
+                            url: tmpUrl,
+                            cache: false,
+                            type: "HEAD"
+                        }).fail(function (jqXHR, status, error) {
+                            localVersionInfoUrl = _getVersionInfoUrl("en");
+                        }).done(function (jqXHR, status, error) {
+                            localVersionInfoUrl = tmpUrl;
+                        }).always(function (jqXHR, status, error) {
+                            lookupPromise.resolve();
+                        });
+                    }
+                }).always(function (jqXHR, status, error) {
                     lookupPromise.resolve();
                 });
             } else {
@@ -165,7 +179,8 @@ define(function (require, exports, module) {
             }
 
             lookupPromise.done(function () {
-                $.ajax(_versionInfoURL, {
+                $.ajax({
+                    url: localVersionInfoUrl,
                     dataType: "json",
                     cache: false
                 }).done(function (updateInfo, textStatus, jqXHR) {
@@ -306,6 +321,7 @@ define(function (require, exports, module) {
         var oldValues;
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
+        var versionInfoUrl = _getVersionInfoUrl();
         
         if (_testValues) {
             oldValues = {};
@@ -323,13 +339,12 @@ define(function (require, exports, module) {
             }
 
             if (_testValues.hasOwnProperty("_versionInfoURL")) {
-                oldValues._versionInfoURL = _versionInfoURL;
-                _versionInfoURL = _testValues._versionInfoURL;
+                versionInfoUrl = _testValues._versionInfoURL;
                 usingOverrides = true;
             }
         }
         
-        _getUpdateInformation(force || usingOverrides, usingOverrides)
+        _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl)
             .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
@@ -383,9 +398,6 @@ define(function (require, exports, module) {
                     if (oldValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
                         _lastNotifiedBuildNumber = oldValues._lastNotifiedBuildNumber;
                     }
-                    if (oldValues.hasOwnProperty("_versionInfoURL")) {
-                        _versionInfoURL = oldValues._versionInfoURL;
-                    }
                 }
                 result.resolve();
             })
@@ -413,9 +425,6 @@ define(function (require, exports, module) {
         checkForExtensionsUpdate();
         window.setInterval(checkForUpdate, ONE_DAY + TWO_MINUTES);
     }
-
-    // Append locale to version info URL
-    _versionInfoURL = _versionInfoUrl();
 
     // Events listeners
     $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
