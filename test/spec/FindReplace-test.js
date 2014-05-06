@@ -1800,7 +1800,7 @@ define(function (require, exports, module) {
 
                     // Verify selection
                     expect(editor.getSelectedText().toLowerCase() === "foo");
-                    CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
                 });
             });
 
@@ -1828,7 +1828,7 @@ define(function (require, exports, module) {
 
                     // Verify document is now in working set
                     expect(DocumentManager.findInWorkingSet(filePath)).not.toBe(-1);
-                    CommandManager.execute(Commands.FILE_CLOSE_ALL);
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
                 });
             });
 
@@ -1890,7 +1890,7 @@ define(function (require, exports, module) {
                     // Verify list automatically updated
                     expect($panelResults.length).toBe(panelListLen - 1);
 
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }));
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "closing file");
                 });
             });
         });
@@ -1981,7 +1981,7 @@ define(function (require, exports, module) {
                         });
                     }
                     
-                    waitsForDone(visitAndProcessFiles(kgRootPath, compareKnownGoodToTestFile), "project comparison done", 1000);
+                    waitsForDone(visitAndProcessFiles(kgRootPath, compareKnownGoodToTestFile), "project comparison done");
                 });
             }
             
@@ -2003,17 +2003,19 @@ define(function (require, exports, module) {
                 });
             }
             
+            // Does a standard test for files on disk: search, replace, and check that files on disk match.
             function doBasicTest(options) {
                 doSearch(options);
                 
                 runs(function () {
-                    waitsForDone(FindInFiles.doReplace(searchResults, "bar"));
+                    waitsForDone(FindInFiles.doReplace(searchResults, "bar"), "finish replacement");
                 });
                 runs(function () {
                     expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
                 });
             }
             
+            // Like doBasicTest, but expects some files to have specific errors.
             function doTestWithErrors(options) {
                 var done = false;
                 
@@ -2036,6 +2038,26 @@ define(function (require, exports, module) {
                         });
                 });
                 waitsFor(function () { return done; }, 1000, "finish replacement");
+            }
+            
+            // Like doBasicTest, but expects one file to be open in memory and the replacements to happen there.
+            function doInMemoryTest(options) {
+                // Like the basic test, we expect everything on disk to match the kgFolder (which means the file open in memory
+                // should *not* have changed on disk yet).
+                doBasicTest(options);
+                
+                runs(function () {
+                    // Check that the document open in memory was changed and matches the expected replaced version of that file.
+                    var doc = DocumentManager.getOpenDocumentForPath(testPath + options.inMemoryFile);
+                    expect(doc).toBeTruthy();
+                    expect(doc.isDirty).toBe(true);
+                    
+                    var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + options.inMemoryKGFolder + options.inMemoryFile),
+                        kgFile = FileSystem.getFileForPath(kgPath);
+                    waitsForDone(promisify(kgFile, "read").then(function (contents) {
+                        expect(doc.getText()).toEqual(contents);
+                    }), "read known good contents");
+                });
             }
             
             beforeEach(function () {
@@ -2098,7 +2120,7 @@ define(function (require, exports, module) {
                             // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
                             // file on disk anyway.
                             searchResults = _.cloneDeep(searchResults);
-                            waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), 1000, "modify file");
+                            waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
                         });
                     },
                     errors:          [{item: testPath + "/css/foo.css", error: FindInFiles.ERROR_FILE_CHANGED}]
@@ -2125,8 +2147,76 @@ define(function (require, exports, module) {
                 doTestWithErrors({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
-                    knownGoodFolder: "failed-write",
+                    knownGoodFolder: "simple-case-insensitive-except-foo.css",
                     errors:          [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
+                });
+            });
+            
+            it("should do the replacement in memory for a file open in an Editor in the working set", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                });
+                
+                doInMemoryTest({
+                    queryInfo:        {query: "foo"},
+                    numMatches:       14,
+                    knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                    inMemoryFile:     "/css/foo.css",
+                    inMemoryKGFolder: "simple-case-insensitive"
+                });
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "close file");
+                });
+            });
+            
+            it("should do the replacement in memory for a file open in an Editor that's not in the working set", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/css/foo.css"}), "open file");
+                });
+                
+                doInMemoryTest({
+                    queryInfo:        {query: "foo"},
+                    numMatches:       14,
+                    knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                    inMemoryFile:     "/css/foo.css",
+                    inMemoryKGFolder: "simple-case-insensitive"
+                });
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "close file");
+                });
+            });
+            
+            it("should open the document in an editor and do the replacement there if the document is open but not in an Editor", function () {
+                var doc, openFilePath;
+                openTestProjectCopy(defaultSourcePath);
+
+                runs(function () {
+                    openFilePath = testPath + "/css/foo.css";
+                    waitsForDone(DocumentManager.getDocumentForPath(openFilePath).done(function (d) {
+                        doc = d;
+                        doc.addRef();
+                    }), "get document");
+                });
+                    
+                doInMemoryTest({
+                    queryInfo:        {query: "foo"},
+                    numMatches:       14,
+                    knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                    inMemoryFile:     "/css/foo.css",
+                    inMemoryKGFolder: "simple-case-insensitive"
+                });
+                
+                runs(function () {
+                    var workingSet = DocumentManager.getWorkingSet();
+                    expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
+                    doc.releaseRef();
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "close file");
                 });
             });
             
@@ -2136,8 +2226,9 @@ define(function (require, exports, module) {
             // filters
             // regexp, both case sensitive and case insensitive (will need to retain query/match info for $-substitution)
             // file changing on disk between search and replace when results are properly auto-updated
-            // files open in memory
             // file changing in memory between search and replace
+            // do replace in memory for <N documents
+            // do replace on disk for >N documents
         });
     });
 });

@@ -63,7 +63,8 @@ define(function (require, exports, module) {
         PanelManager          = require("view/PanelManager"),
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
-        FindBar               = require("search/FindBar").FindBar;
+        FindBar               = require("search/FindBar").FindBar,
+        CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror");
     
     var searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
@@ -937,13 +938,36 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Does a set of replacements in a single file, following the rules in doReplace().
+     * Does a set of replacements in a single document in memory.
+     * @param {!Document} doc The document to do the replacements in.
+     * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`. Might be mutated.
+     * @param {string} replaceText The text to replace each result with.
+     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
+     */
+    function _doReplaceInDocument(doc, matchInfo, replaceText) {
+        // TODO: if doc has changed since query was run, don't do replacement
+        
+        // Do the replacements in reverse document order so the offsets continue to be correct.
+        matchInfo.matches.sort(function (match1, match2) {
+            return CodeMirror.cmpPos(match2.start, match1.start);
+        });
+        doc.batchOperation(function () {
+            matchInfo.matches.forEach(function (match) {
+                doc.replaceRange(replaceText, match.start, match.end);
+            });
+        });
+        
+        return new $.Deferred().resolve().promise();
+    }
+    
+    /**
+     * Does a set of replacements in a single file on disk.
      * @param {string} fullPath The full path to the file.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with a FileSystem error if there were one or more errors.
+     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
-    function _doReplaceInOneFile(fullPath, matchInfo, replaceText) {
+    function _doReplaceOnDisk(fullPath, matchInfo, replaceText) {
         var file = FileSystem.getFileForPath(fullPath);
         return DocumentManager.getDocumentText(file, true).then(function (contents, timestamp, lineEndings) {
             if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
@@ -972,6 +996,23 @@ define(function (require, exports, module) {
             // TODO: handle in-memory docs - need to just write back into editor
             return Async.promisify(file, "write", newContents);
         });
+    }
+    
+    /**
+     * Does a set of replacements in a single file. If the file is already open in a Document in memory,
+     * will do the replacement there, otherwise does it directly on disk.
+     * @param {string} fullPath The full path to the file.
+     * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
+     * @param {string} replaceText The text to replace each result with.
+     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
+     */
+    function _doReplaceInOneFile(fullPath, matchInfo, replaceText) {
+        var doc = DocumentManager.getOpenDocumentForPath(fullPath);
+        if (doc) {
+            return _doReplaceInDocument(doc, matchInfo, replaceText);
+        } else {
+            return _doReplaceOnDisk(fullPath, matchInfo, replaceText);
+        }
     }
     
     /**
