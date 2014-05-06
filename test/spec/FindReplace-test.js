@@ -1891,14 +1891,13 @@ define(function (require, exports, module) {
             });
         });
         
-        // Things to test:
-        // test in subtrees, single file
-        // test with filters
-        // test with some files open in memory
-        // case sensitive, regexp, both (regexp will need to retain query info)
-        // CRLF handling
-        // file changing on disk between search and replace
         describe("Replace", function () {
+            var searchResults;
+            
+            beforeEach(function () {
+                searchResults = null;
+            });
+            
             /**
              * Helper function that calls the given asynchronous processor once on each file in the given subtree
              * and returns a promise that's resolved when all files are processed.
@@ -1992,23 +1991,25 @@ define(function (require, exports, module) {
                 }, 0);
             }
             
-            function doBasicTest(options) {
-                var results;
-
+            function doSearch(options) {
                 openTestProjectCopy(defaultSourcePath, options.lineEndings);
                 runs(function () {
-                    FindInFiles.doSearchInScope(options.queryInfo, null, null)
-                        .done(function (r) {
-                            results = r;
-                        });
+                    FindInFiles.doSearchInScope(options.queryInfo, null, null).done(function (results) {
+                        searchResults = results;
+                    });
                 });
-                waitsFor(function () { return results; }, 1000, "search completed");
+                waitsFor(function () { return searchResults; }, 1000, "search completed");
+                runs(function () {
+                    expect(numMatches(searchResults)).toBe(options.numMatches);
+                });
+            }
+            
+            function doBasicTest(options) {
+                doSearch(options);
                 
                 runs(function () {
-                    expect(numMatches(results)).toBe(options.numMatches);
-                    waitsForDone(FindInFiles.doReplace(results, "bar"));
+                    waitsForDone(FindInFiles.doReplace(searchResults, "bar"));
                 });
-                
                 runs(function () {
                     expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
                 });
@@ -2047,6 +2048,48 @@ define(function (require, exports, module) {
                     lineEndings:     FileUtils.LINE_ENDINGS_LF
                 });
             });
+            
+            it("should not do the replacement in files that have changed on disk since the results list was last updated", function () {
+                var done = false;
+                
+                doSearch({
+                    queryInfo:  {query: "foo"},
+                    numMatches: 14
+                });
+                
+                runs(function () {
+                    // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
+                    // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                    // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
+                    // file on disk anyway.
+                    searchResults = _.cloneDeep(searchResults);
+                    waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"));
+                });
+                runs(function () {
+                    FindInFiles.doReplace(searchResults, "bar")
+                        .then(function () {
+                            expect("should not succeed if file was changed on disk").toBe(true);
+                            done = true;
+                        }, function (errors) {
+                            expect(errors).toEqual([{
+                                item: testPath + "/css/foo.css",
+                                error: FindInFiles.ERROR_FILE_CHANGED
+                            }]);
+                            expectProjectToMatchKnownGood("changed-file");
+                            done = true;
+                        });
+                });
+                waitsFor(function () { return done; }, 1000, "finish replacement");
+            });
+            
+            // Things to test:
+            // test in subtrees, single file
+            // test with filters
+            // regexp, both case sensitive and case insensitive (will need to retain query/match info for $-substitution)
+            // file changing on disk between search and replace
+            // test with some files open in memory
+            // file changing in memory between search and replace
+            // read-only file
         });
     });
 });

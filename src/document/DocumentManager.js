@@ -738,9 +738,10 @@ define(function (require, exports, module) {
      * @param {!File} file The file to get the text for.
      * @param {boolean=} checkLineEndings Whether to return line ending information. Default false (slightly more efficient).
      * @return {$.Promise} 
-     *     A promise that is resolved with two parameters:
-     *          contents - the document's text
-     *          lineEndings - the original line endings of the file, one of the FileUtils.LINE_ENDINGS_* constants;
+     *     A promise that is resolved with three parameters:
+     *          contents - string: the document's text
+     *          timestamp - Date: the last time the document was changed on disk (might not be the same as the last time it was changed in memory)
+     *          lineEndings - string: the original line endings of the file, one of the FileUtils.LINE_ENDINGS_* constants;
      *              will be null if checkLineEndings was false.
      *     or rejected with a filesystem error.
      */
@@ -748,9 +749,9 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
-            result.resolve(doc.getText(), checkLineEndings ? doc._lineEndings : null);
+            result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
         } else {
-            file.read(function (err, contents) {
+            file.read(function (err, contents, stat) {
                 if (err) {
                     result.reject(err);
                 } else {
@@ -758,7 +759,7 @@ define(function (require, exports, module) {
                     // new up a Document (which entails a bunch of object churn).
                     var originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
                     contents = DocumentModule.Document.normalizeText(contents);
-                    result.resolve(contents, originalLineEndings);
+                    result.resolve(contents, stat.mtime, originalLineEndings);
                 }
             });
         }

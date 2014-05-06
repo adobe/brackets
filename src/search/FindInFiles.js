@@ -274,15 +274,18 @@ define(function (require, exports, module) {
      * @param {string} fullPath
      * @param {string} contents
      * @param {RegExp} queryExpr
+     * @param {Date} timestamp The disk timestamp of the file at the time it was searched.
      * @return {boolean} True iff the matches were added to the search results
      */
-    function _addSearchMatches(fullPath, contents, queryExpr) {
+    function _addSearchMatches(fullPath, contents, queryExpr, timestamp) {
         var matches = _getSearchMatches(contents, queryExpr);
         
         if (matches && matches.length) {
+            console.log(fullPath + " - initial query timestamp = " + timestamp.getTime());
             searchResults[fullPath] = {
                 matches:   matches,
-                collapsed: false
+                collapsed: false,
+                timestamp: timestamp
             };
             return true;
         }
@@ -831,8 +834,8 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         DocumentManager.getDocumentText(file)
-            .done(function (text) {
-                var foundMatches = _addSearchMatches(file.fullPath, text, currentQueryExpr);
+            .done(function (text, timestamp) {
+                var foundMatches = _addSearchMatches(file.fullPath, text, currentQueryExpr, timestamp);
                 result.resolve(foundMatches);
             })
             .fail(function () {
@@ -937,21 +940,25 @@ define(function (require, exports, module) {
     /**
      * Does a set of replacements in a single file, following the rules in doReplace().
      * @param {string} fullPath The full path to the file.
-     * @param Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}> matches
-     *      The matches to replace in the file.
+     * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with a FileSystem error if there were one or more errors.
      */
-    function _doReplaceInOneFile(fullPath, matches, replaceText) {
+    function _doReplaceInOneFile(fullPath, matchInfo, replaceText) {
         var file = FileSystem.getFileForPath(fullPath);
-        return DocumentManager.getDocumentText(file, true).then(function (contents, lineEndings) {
-            // TODO: check stats to make sure it hasn't changed since we did the search
-            // TODO: is there a more efficient way to do this in a large string?
+        return DocumentManager.getDocumentText(file, true).then(function (contents, timestamp, lineEndings) {
+            console.log(fullPath + " - query timestamp = " + matchInfo.timestamp.getTime() + ", current file timestamp = " + timestamp.getTime());
+            if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
+                // Return a promise that we'll reject immediately. (We can't just return the
+                // error object since this is the success handler.)
+                return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
+            }
 
             // Note that this assumes that the matches are sorted.
+            // TODO: is there a more efficient way to do this in a large string?
             var result = [],
                 lastIndex = 0;
-            matches.forEach(function (match) {
+            matchInfo.matches.forEach(function (match) {
                 result.push(contents.slice(lastIndex, match.startOffset));
                 result.push(replaceText);
                 lastIndex = match.endOffset;
@@ -976,11 +983,13 @@ define(function (require, exports, module) {
      *      The list of results to replace.
      * @param {string} replaceText The text to replace each result with.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
-     *      (as returned by Async.doInParallel_aggregateErrors) if there were one or more errors. Each individual error will be a FileSystem error.
+     *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
+     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
+     *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText) {
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
-            return _doReplaceInOneFile(fullPath, results[fullPath].matches, replaceText);
+            return _doReplaceInOneFile(fullPath, results[fullPath], replaceText);
         });
     }
     
@@ -1256,8 +1265,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,   _doFindInSubtree);
     
     // Public exports
-    exports.doSearchInScope = doSearchInScope;
-    exports.doReplace       = doReplace;
+    exports.doSearchInScope     = doSearchInScope;
+    exports.doReplace           = doReplace;
+    exports.ERROR_FILE_CHANGED  = "fileChanged";
     
     // For unit testing
     exports._doFindInFiles = _doFindInFiles;
