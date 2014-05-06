@@ -1572,7 +1572,12 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                if (!FileUtils.checkForValidFilename(data.rslt.name, isFolder)) {
+                if (!FileUtils.checkForValidFilename(data.rslt.name)) {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_ERROR,
+                        StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
+                        StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, FileUtils.invalidCharsString)
+                    );
                     errorCleanup();
                     return;
                 }
@@ -1763,7 +1768,12 @@ define(function (require, exports, module) {
                         _projectTree.jstree("set_text", $selected, ViewUtils.getFileEntryDisplay(entry));
                     };
                     
-                    if (!changed || !FileUtils.checkForValidFilename(unescapedNewName, isFolder)) {
+                    if (!changed || !FileUtils.checkForValidFilename(unescapedNewName)) {
+                        Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
+                            StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, FileUtils.invalidCharsString)
+                        );
                         // No change or invalid filename. Reset the old name and bail.
                         _resetOldFilename();
                         return;

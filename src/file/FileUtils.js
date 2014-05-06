@@ -440,44 +440,16 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * A string containing all invalid characters for a specific platform.
-     * This will be used to construct a regular expression for checking invalid filenames.
-     * When a filename with one of these invalid characters are detected, then it is 
-     * also used to substitute the place holder of the error message.
-     */
-    var _invalidChars;
-
-    /**
-     * @private
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
     var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
-
+    
     /**
-     * Check a filename for illegal characters. If any are found, show an error
-     * dialog and return false. If no illegal characters are found, return true.
-     * Although Mac and Linux allow ?*|: characters, we still cannot allow them
-     * since these have special meaning for all file systems.
-     *
-     * @param {string} filename
-     * @param {boolean} isFolder
-     * @return {boolean} Returns true if no illegal characters are found
+     * @private
+     * A Regex containing all invalid characters for a specific platform.
      */
-    function checkForValidFilename(filename, isFolder) {
-        // Validate file name
-        if ((filename.search(_invalidChars) !== -1) || filename.match(_illegalFilenamesRegEx)) {
-            //Invalid chars string for dialog box
-            var invalidCharsString = _invalidChars.source.substr(1, _invalidChars.source.indexOf(']') - 1).replace(/\\/g, '');
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, invalidCharsString)
-            );
-            return false;
-        }
-        return true;
-    }
+    var _invalidChars;
 
     // Init invalid characters string 
     if (brackets.platform === "mac" || brackets.platform === "linux") {
@@ -485,6 +457,30 @@ define(function (require, exports, module) {
     } else {
         _invalidChars = /[\/?*:<>\\|\"]+/;  // invalid characters on Windows
     }
+    
+    /**
+     * Check a filename for illegal characters. If any are found, show an error
+     * dialog and return false. If no illegal characters are found, return true.
+     * Although Mac and Linux allow ?*|: characters, we still cannot allow them
+     * since these have special meaning for all file systems.
+     *
+     * @param {string} filename
+     * @return {boolean} Returns true if no illegal characters are found
+     */
+    function checkForValidFilename(filename) {
+        // Validate file name
+        if ((filename.search(_invalidChars) !== -1) || filename.match(_illegalFilenamesRegEx)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @public
+     * A string representation of the invalid characters for a given platform.
+     * For use in error dialogs.
+     */
+    var invalidCharsString = _invalidChars.source.substr(1, _invalidChars.source.indexOf(']') - 1).replace(/\\/g, '');
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -511,4 +507,5 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.checkForValidFilename          = checkForValidFilename;
+    exports.invalidCharsString             = invalidCharsString;
 });

@@ -806,7 +806,12 @@ define(function (require, exports, module) {
                         //Get only the filename (without the final slash) and not the rest of the path 
                         var filename = selectedPath.substr(selectedPath.lastIndexOf("/") + 1);
                         //Check with the FileUtils method
-                        if (!FileUtils.checkForValidFilename(filename, false)) {
+                        if (!FileUtils.checkForValidFilename(filename)) {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                StringUtils.format(Strings.INVALID_FILENAME_TITLE, Strings.FILE),
+                                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, FileUtils.invalidCharsString)
+                            );
                             result.reject();
                         } else {
                             _doSaveAfterSaveDialog(selectedPath);
