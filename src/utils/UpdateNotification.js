@@ -194,13 +194,13 @@ define(function (require, exports, module) {
                     // When loading data for unit tests, the error handler is
                     // called but the responseText is valid. Try to use it here,
                     // but *don't* save the results in prefs.
-                    
+
                     if (!jqXHR.responseText) {
                         // Text is NULL or empty string, reject().
                         result.reject();
                         return;
                     }
-                    
+
                     try {
                         data = JSON.parse(jqXHR.responseText);
                         result.resolve(data);
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
         } else {
             result.resolve(data);
         }
-        
+
         return result.promise();
     }
     
