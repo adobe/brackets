@@ -281,7 +281,6 @@ define(function (require, exports, module) {
         var matches = _getSearchMatches(contents, queryExpr);
         
         if (matches && matches.length) {
-            console.log(fullPath + " - initial query timestamp = " + timestamp.getTime());
             searchResults[fullPath] = {
                 matches:   matches,
                 collapsed: false,
@@ -947,10 +946,9 @@ define(function (require, exports, module) {
     function _doReplaceInOneFile(fullPath, matchInfo, replaceText) {
         var file = FileSystem.getFileForPath(fullPath);
         return DocumentManager.getDocumentText(file, true).then(function (contents, timestamp, lineEndings) {
-            console.log(fullPath + " - query timestamp = " + matchInfo.timestamp.getTime() + ", current file timestamp = " + timestamp.getTime());
             if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
                 // Return a promise that we'll reject immediately. (We can't just return the
-                // error object since this is the success handler.)
+                // error since this is the success handler.)
                 return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
             }
 

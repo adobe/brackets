@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, window, jasmine */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
         FileSystem            = require("filesystem/FileSystem"),
+        FileSystemError       = require("filesystem/FileSystemError"),
         FileUtils             = require("file/FileUtils"),
         Async                 = require("utils/Async"),
         _                     = require("thirdparty/lodash");
@@ -1547,6 +1548,7 @@ define(function (require, exports, module) {
             DocumentManager,
             EditorManager,
             FileSystem,
+            File,
             FindInFiles,
             ProjectManager,
             testWindow,
@@ -1564,6 +1566,7 @@ define(function (require, exports, module) {
                 DocumentManager = testWindow.brackets.test.DocumentManager;
                 EditorManager   = testWindow.brackets.test.EditorManager;
                 FileSystem      = testWindow.brackets.test.FileSystem;
+                File            = testWindow.brackets.test.File;
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
                 CommandManager  = testWindow.brackets.test.CommandManager;
                 ProjectManager  = testWindow.brackets.test.ProjectManager;
@@ -1575,6 +1578,7 @@ define(function (require, exports, module) {
             CommandManager  = null;
             DocumentManager = null;
             EditorManager   = null;
+            File            = null;
             FileSystem      = null;
             FindInFiles     = null;
             $               = null;
@@ -1894,10 +1898,6 @@ define(function (require, exports, module) {
         describe("Replace", function () {
             var searchResults;
             
-            beforeEach(function () {
-                searchResults = null;
-            });
-            
             /**
              * Helper function that calls the given asynchronous processor once on each file in the given subtree
              * and returns a promise that's resolved when all files are processed.
@@ -1992,7 +1992,6 @@ define(function (require, exports, module) {
             }
             
             function doSearch(options) {
-                openTestProjectCopy(defaultSourcePath, options.lineEndings);
                 runs(function () {
                     FindInFiles.doSearchInScope(options.queryInfo, null, null).done(function (results) {
                         searchResults = results;
@@ -2015,7 +2014,36 @@ define(function (require, exports, module) {
                 });
             }
             
+            function doTestWithErrors(options) {
+                var done = false;
+                
+                doSearch(options);
+                
+                if (options.test) {
+                    // The test function *must* contain one or more runs blocks.
+                    options.test();
+                }
+                
+                runs(function () {
+                    FindInFiles.doReplace(searchResults, "bar")
+                        .then(function () {
+                            expect("should fail due to error").toBe(true);
+                            done = true;
+                        }, function (errors) {
+                            expect(errors).toEqual(options.errors);
+                            expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
+                            done = true;
+                        });
+                });
+                waitsFor(function () { return done; }, 1000, "finish replacement");
+            }
+            
+            beforeEach(function () {
+                searchResults = null;
+            });
+
             it("should replace all instances of a simple string in a project on disk case-insensitively", function () {
+                openTestProjectCopy(defaultSourcePath);
                 doBasicTest({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
@@ -2024,6 +2052,7 @@ define(function (require, exports, module) {
             });
 
             it("should replace all instances of a simple string in a project on disk case-sensitively", function () {
+                openTestProjectCopy(defaultSourcePath);
                 doBasicTest({
                     queryInfo:       {query: "foo", isCaseSensitive: true},
                     numMatches:      9,
@@ -2032,6 +2061,7 @@ define(function (require, exports, module) {
             });
             
             it("should replace instances of a string in a project respecting CRLF line endings", function () {
+                openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
                 doBasicTest({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
@@ -2041,6 +2071,7 @@ define(function (require, exports, module) {
             });
 
             it("should replace instances of a string in a project respecting LF line endings", function () {
+                openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_LF);
                 doBasicTest({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
@@ -2050,46 +2081,63 @@ define(function (require, exports, module) {
             });
             
             it("should not do the replacement in files that have changed on disk since the results list was last updated", function () {
-                var done = false;
-                
-                doSearch({
-                    queryInfo:  {query: "foo"},
-                    numMatches: 14
-                });
-                
-                runs(function () {
-                    // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
-                    // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
-                    // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
-                    // file on disk anyway.
-                    searchResults = _.cloneDeep(searchResults);
-                    waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"));
-                });
-                runs(function () {
-                    FindInFiles.doReplace(searchResults, "bar")
-                        .then(function () {
-                            expect("should not succeed if file was changed on disk").toBe(true);
-                            done = true;
-                        }, function (errors) {
-                            expect(errors).toEqual([{
-                                item: testPath + "/css/foo.css",
-                                error: FindInFiles.ERROR_FILE_CHANGED
-                            }]);
-                            expectProjectToMatchKnownGood("changed-file");
-                            done = true;
+                openTestProjectCopy(defaultSourcePath);
+                doTestWithErrors({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    knownGoodFolder: "changed-file",
+                    test: function () {
+                        // Wait for one second to make sure that the changed file gets an updated timestamp.
+                        // TODO: this seems like a FileSystem issue - we don't get timestamp changes with a resolution
+                        // of less than one second.
+                        waits(1000);
+                        
+                        runs(function () {
+                            // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
+                            // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                            // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
+                            // file on disk anyway.
+                            searchResults = _.cloneDeep(searchResults);
+                            waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), 1000, "modify file");
                         });
+                    },
+                    errors:          [{item: testPath + "/css/foo.css", error: FindInFiles.ERROR_FILE_CHANGED}]
                 });
-                waitsFor(function () { return done; }, 1000, "finish replacement");
+            });
+            
+            it("should return an error if a write fails", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                // Return a fake error when we try to write to the CSS file. (Note that this is spying on the test window's File module.)
+                var writeSpy = spyOn(File.prototype, "write").andCallFake(function (data, options, callback) {
+                    if (typeof options === "function") {
+                        callback = options;
+                    } else {
+                        callback = callback || function () {};
+                    }
+                    if (this.fullPath === testPath + "/css/foo.css") {
+                        callback(FileSystemError.NOT_WRITABLE);
+                    } else {
+                        return writeSpy.originalValue.apply(this, arguments);
+                    }
+                });
+                
+                doTestWithErrors({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    knownGoodFolder: "failed-write",
+                    errors:          [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
+                });
             });
             
             // Things to test:
-            // test in subtrees, single file
-            // test with filters
+            // subtree search
+            // single file search
+            // filters
             // regexp, both case sensitive and case insensitive (will need to retain query/match info for $-substitution)
-            // file changing on disk between search and replace
-            // test with some files open in memory
+            // file changing on disk between search and replace when results are properly auto-updated
+            // files open in memory
             // file changing in memory between search and replace
-            // read-only file
         });
     });
 });

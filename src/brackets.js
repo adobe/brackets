@@ -165,6 +165,7 @@ define(function (require, exports, module) {
             EditorManager           : EditorManager,
             ExtensionLoader         : ExtensionLoader,
             ExtensionUtils          : ExtensionUtils,
+            File                    : require("filesystem/File"),
             FileFilters             : require("search/FileFilters"),
             FileSyncManager         : FileSyncManager,
             FileSystem              : FileSystem,
