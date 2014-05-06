@@ -35,7 +35,7 @@ define({
     "NOT_FOUND_ERR"                     : "无法找到该文件。",
     "NOT_READABLE_ERR"                  : "无法读取该文件。",
     "NO_MODIFICATION_ALLOWED_ERR"       : "无法修改此目录。",
-    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有做出修改的权限。",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有权限修改。",
     "CONTENTS_MODIFIED_ERR"             : "该文件已在 {APP_NAME} 外被修改。",
     "FILE_EXISTS_ERR"                   : "文件/目录名已存在。",
     "FILE"                              : "文件",
@@ -54,7 +54,7 @@ define({
     "ERROR_RELOADING_FILE_TITLE"        : "从磁盘重新加载文件时出现错误",
     "ERROR_RELOADING_FILE"              : "试图重新加载该文件 <span class='dialog-filename'>{0}</span> 时出现了错误。 {1}",
     "ERROR_SAVING_FILE_TITLE"           : "保存文件时出现错误",
-    "ERROR_SAVING_FILE"                 : "试图保存该文件 <span class='dialog-filename'>{0}</span> 时出现了错误。 {1}",
+    "ERROR_SAVING_FILE"                 : "程序试图保存该文件 <span class='dialog-filename'>{0}</span> 时出现了错误。 {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "重命名文件时出现错误",
     "ERROR_RENAMING_FILE"               : "为该文件 <span class='dialog-filename'>{0}</span> 重命名时出现了错误。 {1}",
     "ERROR_DELETING_FILE_TITLE"         : "删除文件时出现错误",
@@ -70,14 +70,14 @@ define({
     "ERROR_PREFS_CORRUPT"               : "你的配置文件不是合法的 JSON 格式，将打开此文件方便你修正格式错误。你需要重新启动 {APP_NAME} 让改动生效。",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂时无法运行在浏览器窗口中。",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} 暂时无法运行在浏览器窗口中。",
     "ERROR_IN_BROWSER"                  : "虽然 {APP_NAME} 使用 HTML 构建，但是它需要作为桌面程序运行，以便修改本地文件。请前往 <b>github.com/adobe/brackets-shell</b> 下载对应系统的应用程序外壳来运行 {APP_NAME}。",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "索引文件时出现错误",
     "ERROR_MAX_FILES"                   : "已达到最大索引文件数，在索引中查看文件的功能可能不会正常工作。",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "启动浏览器时出现错误",
     "ERROR_CANT_FIND_CHROME"            : "没有找到 Google Chrome 浏览器, 请确定您已安装了该浏览器。",
     "ERROR_LAUNCHING_BROWSER"           : "启动浏览器时出现一个错误。 (错误 {0})",
@@ -160,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} 于 {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "在 <span class='dialog-filename'>{0}</span> 中",
     "FIND_IN_FILES_NO_SCOPE"            : "在项目中",
+    "FIND_IN_FILES_ZERO_FILES"          : "过滤器已排除所有文件 {0}",
     "FIND_IN_FILES_FILE"                : "个文件",
     "FIND_IN_FILES_FILES"               : "个文件",
     "FIND_IN_FILES_MATCH"               : "个匹配",
@@ -172,17 +173,22 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的更新信息。请确认你的电脑已经连接互联网, 然后再次尝试！",
     
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "排除搜索文件\u2026",
+    "NO_FILE_FILTER"                    : "排除文件\u2026",
     "EDIT_FILE_FILTER"                  : "编辑\u2026",
     "FILE_FILTER_DIALOG"                : "编辑过滤规则",
-    "FILE_FILTER_INSTRUCTIONS"          : "根据下列匹配规则排除文件或文件夹, 匹配规则可以是文件名或其子串, 或使用 <a href='{0}' title='{0}'>globs（通配符）</a>，每行输入一条规则。",
+    "FILE_FILTER_INSTRUCTIONS"          : "将根据下列匹配规则排除文件或文件夹。匹配规则可以是文件名或其子串，或者 <a href='{0}' title='{0}'>globs（通配符）</a>，每行输入一条规则。",
     "FILE_FILTER_LIST_PREFIX"           : "除了",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "及另外 {0} 类",
 
+    "FILTER_COUNTING_FILES"             : "正在计算文件数\u2026",
+    "FILTER_FILE_COUNT"                 : "允许 {2} 的 {0} 个文件，共 {1} 个文件",
+    "FILTER_FILE_COUNT_ALL"             : "允许 {1} 的 {0} 个文件",
+
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "当前光标位置没有提供快速编辑功能",
-    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS 快速编辑：请将光标放在 class 名上",
-    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS 快速编辑: 请将光标放在 id 名上",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS 快速编辑: 将光标放在单个 class 名处",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS 快速编辑：不完整的 class 属性",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS 快速编辑：不完整的 id 属性",
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS 快速编辑: 请将光标放在标签名、class 名或者 id 名上",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS 时间函数快速编辑：语法错误",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS 快速编辑: 请将光标放在函数名上",
@@ -231,9 +237,11 @@ define({
     "MULTIPLE_ERRORS"                       : "{1} 个 {0} 问题",
     "NO_ERRORS"                             : "未发现 {0} 问题 - 干的漂亮!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "未发现问题 - 干的漂亮!",
-    "LINT_DISABLED"                         : "JJSLint 已禁用或者无法在此文件上工作",
+    "LINT_DISABLED"                         : "JSLint 已禁用或者无法在此文件上工作",
     "NO_LINT_AVAILABLE"                     : "{0} 没有可用检查器",
     "NOTHING_TO_LINT"                       : "没有可检查的文件",
+    "LINTER_TIMED_OUT"                      : "{0} 在等待 {1} ms 后超时",
+    "LINTER_FAILED"                         : "{0} 已终止，错误为： {1}",
     
     
     /**
@@ -264,7 +272,7 @@ define({
     "CMD_FILE_DELETE"                     : "删除",
     "CMD_INSTALL_EXTENSION"               : "安装扩展\u2026",
     "CMD_EXTENSION_MANAGER"               : "扩展管理器\u2026",
-    "CMD_FILE_REFRESH"                    : "刷新文件树",
+    "CMD_FILE_REFRESH"                    : "刷新文件列表",
     "CMD_QUIT"                            : "退出",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "退出",
@@ -279,38 +287,42 @@ define({
     "CMD_SELECT_ALL"                      : "全选",
     "CMD_SELECT_LINE"                     : "选中当前行",
     "CMD_SPLIT_SEL_INTO_LINES"            : "将选中内容拆分至多行",
-    "CMD_ADD_NEXT_LINE_TO_SEL"            : "将下一行添加至选中区域",
-    "CMD_ADD_PREV_LINE_TO_SEL"            : "将上一行添加至选中区域",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "在下一行插入光标",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "在上一行插入光标",
+    "CMD_INDENT"                          : "增加行缩进",
+    "CMD_UNINDENT"                        : "减少行缩进",
+    "CMD_DUPLICATE"                       : "创建副本",
+    "CMD_DELETE_LINES"                    : "删除当前行",
+    "CMD_COMMENT"                         : "注释当前行",
+    "CMD_BLOCK_COMMENT"                   : "注释选中内容",
+    "CMD_LINE_UP"                         : "上移当前行",
+    "CMD_LINE_DOWN"                       : "下移当前行",
+    "CMD_OPEN_LINE_ABOVE"                 : "在上方插入新行",
+    "CMD_OPEN_LINE_BELOW"                 : "在下方插入新行",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动完成括号",
+    "CMD_SHOW_CODE_HINTS"                 : "显示代码提示",
+
+    // Search menu commands
+    "FIND_MENU"                           : "查找",
     "CMD_FIND"                            : "查找",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "查找\u2026",
-    "CMD_FIND_IN_FILES"                   : "在文件中查找",
-    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
     "CMD_FIND_NEXT"                       : "查找下一个",
     "CMD_FIND_PREVIOUS"                   : "查找上一个",
     "CMD_FIND_ALL_AND_SELECT"             : "查找全部并选中",
-    "CMD_ADD_NEXT_MATCH"                  : "将下一项匹配添加至选中区域",
+    "CMD_ADD_NEXT_MATCH"                  : "将下一项匹配添加至选中内容",
     "CMD_SKIP_CURRENT_MATCH"              : "跳过并添加下一项匹配",
+    "CMD_FIND_IN_FILES"                   : "在文件中查找",
+    "CMD_FIND_IN_SELECTED"                : "在选中的文件/文件夹中查找",
+    "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
     "CMD_REPLACE"                         : "替换",
-    "CMD_INDENT"                          : "增加缩进",
-    "CMD_UNINDENT"                        : "减少缩进",
-    "CMD_DUPLICATE"                       : "创建副本",
-    "CMD_DELETE_LINES"                    : "删除当前行",
-    "CMD_COMMENT"                         : "打开/关闭行注释",
-    "CMD_BLOCK_COMMENT"                   : "打开/关闭块注释",
-    "CMD_LINE_UP"                         : "向上移一行",
-    "CMD_LINE_DOWN"                       : "向下移一行",
-    "CMD_OPEN_LINE_ABOVE"                 : "在上方插入新行",
-    "CMD_OPEN_LINE_BELOW"                 : "在下方插入新行",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "自动补全括号",
-    "CMD_SHOW_CODE_HINTS"                 : "显示代码提示",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "查看",
     "CMD_HIDE_SIDEBAR"                    : "隐藏侧边栏",
     "CMD_SHOW_SIDEBAR"                    : "显示侧边栏",
     "CMD_INCREASE_FONT_SIZE"              : "增大字号",
     "CMD_DECREASE_FONT_SIZE"              : "缩小字号",
-    "CMD_RESTORE_FONT_SIZE"               : "恢复字体默认大小",
+    "CMD_RESTORE_FONT_SIZE"               : "恢复默认字体大小",
     "CMD_SCROLL_LINE_UP"                  : "向上滚动",
     "CMD_SCROLL_LINE_DOWN"                : "向下滚动",
     "CMD_TOGGLE_LINE_NUMBERS"             : "显示行号",
@@ -345,9 +357,10 @@ define({
     "HELP_MENU"                           : "帮助",
     "CMD_CHECK_FOR_UPDATE"                : "检查更新",
     "CMD_HOW_TO_USE_BRACKETS"             : "如何使用 {APP_NAME}",
-    "CMD_SUPPORT"                         : "{APP_NAME} 的支持",
-    "CMD_RELEASE_NOTES"                   : "发布说明",
-    "CMD_GET_INVOLVED"                    : "参与 Brackets 开发",
+    "CMD_SUPPORT"                         : "{APP_NAME} 支持",
+    "CMD_SUGGEST"                         : "功能建议",
+    "CMD_RELEASE_NOTES"                   : "发行说明",
+    "CMD_GET_INVOLVED"                    : "参与项目",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
     "CMD_TWITTER"                         : "{TWITTER_NAME} 的 Twitter (推特需要翻墙)",
     "CMD_ABOUT"                           : "关于 {APP_TITLE}",
@@ -374,7 +387,7 @@ define({
     "GET_IT_NOW"                           : "马上获取！",
     "PROJECT_SETTINGS_TITLE"               : "项目设置：{0}",
     "PROJECT_SETTING_BASE_URL"             : "实时预览的根 URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "使用本地服务器需要指定一个 URL。例如: http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "使用本地服务器需要指定一个 URL，例如: http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "实时预览不支持此协议 {0} &mdash; 请使用 http: 或 https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "地址不能包含查询参数，如 \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含#（hash）符号，如 \"{0}\".",
@@ -439,7 +452,7 @@ define({
     "EXTENSION_ERROR"                      : "扩展错误",
     "EXTENSION_KEYWORDS"                   : "关键词",
     "EXTENSION_INSTALLED"                  : "已安装",
-    "EXTENSION_UPDATE_INSTALLED"           : "此扩展的更新已下载，将在退出 {APP_NAME} 时安装。",
+    "EXTENSION_UPDATE_INSTALLED"           : "此扩展的更新已下载，将在重启 {APP_NAME} 后安装。",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "搜索",
     "EXTENSION_MORE_INFO_LINK"             : "更多",
     "BROWSE_EXTENSIONS"                    : "浏览扩展",
@@ -451,8 +464,8 @@ define({
     "UNDO_REMOVE"                          : "撤销",
     "MARKED_FOR_UPDATE"                    : "标记为升级",
     "UNDO_UPDATE"                          : "撤销",
-    "CHANGE_AND_QUIT_TITLE"                : "扩展更改",
-    "CHANGE_AND_QUIT_MESSAGE"              : "安装或移除已标记的扩展，需要退出并重启 {APP_NAME}，请保存尚未保存的改动。",
+    "CHANGE_AND_RELOAD_TITLE"              : "扩展更改",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "安装或移除已标记的扩展，需要退出并重启 {APP_NAME}，请保存尚未保存的改动。",
     "REMOVE_AND_RELOAD"                    : "移除扩展并重启",
     "CHANGE_AND_RELOAD"                    : "改动扩展并重启",
     "UPDATE_AND_RELOAD"                    : "更新扩展并重启",
@@ -480,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "调试",
+    "ERRORS"                                    : "错误",
     "CMD_SHOW_DEV_TOOLS"                        : "显示开发人员工具",
     "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
@@ -490,12 +504,13 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "启用 Node.js 调试",
     "CMD_LOG_NODE_STATE"                        : "将 Node.js 日志显示在控制台中",
     "CMD_RESTART_NODE"                          : "重启 Node.js",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "在状态栏中显示错误",
     
     "LANGUAGE_TITLE"                            : "切换语言",
-    "LANGUAGE_MESSAGE"                          : "请从下拉列表中选择语言:",
+    "LANGUAGE_MESSAGE"                          : "请从下拉列表中选择语言：",
     "LANGUAGE_SUBMIT"                           : "重新加载 {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "取消",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "使用系统默认语言",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "系统默认语言",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "时间",
@@ -531,4 +546,4 @@ define({
     "DOCS_MORE_LINK"                            : "更多信息"
 });
 
-/* Last translated for c0eb5be239f16c83e950665c7d63d775ba952855 */
+/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
