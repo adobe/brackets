@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
                         result = lintingResult;
                     });
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
                         result = lintingResult;
                     });
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -254,7 +254,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                         expectedResult = result;
                     });
 
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
 
                 runs(function () {
@@ -288,7 +288,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var promise = CodeInspection.inspectFile(simpleJavascriptFileEntry);
                                         
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
                 
                 runs(function () {
@@ -309,7 +309,7 @@ define(function (require, exports, module) {
                         result = r;
                     });
                     
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
                 
                 runs(function () {
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
                         result = r;
                     });
                     
-                    waitsForDone(promise, "file linting", 5000);
+                    waitsForDone(promise, "file linting");
                 });
                 
                 runs(function () {
@@ -419,7 +419,7 @@ define(function (require, exports, module) {
                 var codeInspector = createCodeInspector("javascript linter", failLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     expect($("#problems-panel").is(":visible")).toBe(true);
@@ -486,7 +486,7 @@ define(function (require, exports, module) {
                 var codeInspector = createCodeInspector("javascript linter", lintResult);
                 CodeInspection.register("javascript", codeInspector);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     expect($("#problems-panel").is(":visible")).toBe(true);
@@ -505,7 +505,7 @@ define(function (require, exports, module) {
                 var codeInspector = createCodeInspector("javascript linter", failLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     expect(codeInspector.scanFile).not.toHaveBeenCalled();
@@ -521,7 +521,7 @@ define(function (require, exports, module) {
                 var codeInspector = createCodeInspector("javascript linter", successfulLintResult());
                 CodeInspection.register("javascript", codeInspector);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     expect($("#problems-panel").is(":visible")).toBe(false);
@@ -548,7 +548,7 @@ define(function (require, exports, module) {
                 CodeInspection.register("javascript", codeInspector1);
                 CodeInspection.register("javascript", codeInspector2);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     var $inspectorSections = $(".inspector-section td");
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
                 var codeInspector1 = createCodeInspector("javascript linter 1", failLintResult());
                 CodeInspection.register("javascript", codeInspector1);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
 
                 runs(function () {
                     expect($(".inspector-section").is(":visible")).toBeFalsy();
@@ -905,7 +905,7 @@ define(function (require, exports, module) {
                 var codeInspector2 = createCodeInspector("javascript inspector", successfulLintResult());
                 CodeInspection.register("javascript", codeInspector2, true);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
 
                 runs(function () {
                     expect(codeInspector1.scanFile).not.toHaveBeenCalled();
@@ -919,7 +919,7 @@ define(function (require, exports, module) {
                 var codeInspector2 = createCodeInspector("javascript inspector 2", successfulLintResult());
                 CodeInspection.register("javascript", codeInspector2);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
 
                 runs(function () {
                     expect(codeInspector1.scanFile).toHaveBeenCalled();
@@ -933,7 +933,7 @@ define(function (require, exports, module) {
                 var codeInspector2 = createCodeInspector("javascript inspector 2", successfulLintResult());
                 CodeInspection.register("javascript", codeInspector2, true);
 
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
 
                 runs(function () {
                     expect(codeInspector1.scanFile).toHaveBeenCalled();

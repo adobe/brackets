@@ -245,7 +245,7 @@ define(function (require, exports, module) {
                     ProjectManager.createNewItem(tempDir, "brackets_unittests_delete_me.js", true)
                         .always(function () { complete = true; });
                 });
-                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout", 5000);
+                waitsFor(function () { return complete; }, "ProjectManager.createNewItem() timeout");
 
                 runs(function () {
                     complete = false;
@@ -268,7 +268,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     // delete the new file
                     var promise = ProjectManager.deleteItem(selectedFile);
-                    waitsForDone(promise, "ProjectManager.deleteItem() timeout", 5000);
+                    waitsForDone(promise, "ProjectManager.deleteItem() timeout");
                 });
                 
                 // Verify that file no longer exists.
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
                         complete = true;
                     });
                 });
-                waitsFor(function () { return complete; }, 1000);
+                waitsFor(function () { return complete; });
                 
                 runs(function () {
                     expect(error).toBe(FileSystemError.NOT_FOUND);
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
                 // Delete the root folder and all files/folders in it.
                 runs(function () {
                     promise = ProjectManager.deleteItem(rootFolderEntry);
-                    waitsForDone(promise, "ProjectManager.deleteItem() timeout", 5000);
+                    waitsForDone(promise, "ProjectManager.deleteItem() timeout");
                 });
 
                 // Verify that the root folder no longer exists.
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
                         complete = true;
                     });
                 });
-                waitsFor(function () { return complete; }, 1000);
+                waitsFor(function () { return complete; });
                 
                 runs(function () {
                     expect(error).toBe(FileSystemError.NOT_FOUND);

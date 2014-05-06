@@ -614,7 +614,7 @@ define(function (require, exports, module) {
                         schemeLanguage = language;
                     });
                 
-                    waitsForDone(promise, "loading scheme mode", 1000);
+                    waitsForDone(promise, "loading scheme mode");
                 });
                 
                 runs(function () {

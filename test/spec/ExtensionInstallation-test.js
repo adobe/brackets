@@ -67,7 +67,7 @@ define(function (require, exports, module) {
                 expect(err).toBeNull();
             });
             
-            waitsForDone(promise, "package validation", 5000);
+            waitsForDone(promise, "package validation");
         });
     }
     
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
             ExtensionLoader.getUserExtensionPath = realGetUserExtensionPath;
             ExtensionLoader.loadExtension = realLoadExtension;
             var promise = SpecRunnerUtils.deletePath(mockGetUserExtensionPath(), true);
-            waitsForDone(promise, "Mock Extension Removal", 2000);
+            waitsForDone(promise, "Mock Extension Removal");
         });
         
         it("extensions should install and load", function () {

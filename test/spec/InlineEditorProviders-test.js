@@ -92,7 +92,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 workingSet.push(openFile);
-                waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "FILE_OPEN timeout", 1000);
+                waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "FILE_OPEN timeout");
             });
             
             runs(function () {
@@ -105,9 +105,9 @@ define(function (require, exports, module) {
                 );
                 
                 if (expectInline) {
-                    waitsForDone(inlineEditorResult, "inline editor opened", 1000);
+                    waitsForDone(inlineEditorResult, "inline editor opened");
                 } else {
-                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                    waitsForFail(inlineEditorResult, "inline editor not opened");
                 }
             });
 
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
 
                 // rewrite the project for each spec
                 runs(function () {
-                    waitsForDone(rewriteProject(), "rewriteProject timeout", 1000);
+                    waitsForDone(rewriteProject(), "rewriteProject timeout");
                 });
                 
                 // Create a new window that will be shared by ALL tests in this spec.
@@ -550,7 +550,7 @@ define(function (require, exports, module) {
                     openFile = "test1.html";
 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout");
                 });
 
                 runs(function () {
@@ -562,7 +562,7 @@ define(function (require, exports, module) {
                         infos[openFile].offsets[3]
                     );
 
-                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                    waitsForFail(inlineEditorResult, "inline editor not opened");
                 });
 
                 runs(function () {
@@ -572,7 +572,7 @@ define(function (require, exports, module) {
                         infos[openFile].offsets[12]
                     );
 
-                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                    waitsForFail(inlineEditorResult, "inline editor not opened");
                 });
 
                 runs(function () {
@@ -588,7 +588,7 @@ define(function (require, exports, module) {
                     openFile = "test1.html";
 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout");
                 });
 
                 runs(function () {
@@ -600,7 +600,7 @@ define(function (require, exports, module) {
                         infos[openFile].offsets[3]
                     );
 
-                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                    waitsForFail(inlineEditorResult, "inline editor not opened");
                 });
 
                 runs(function () {
@@ -652,7 +652,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles([openFile]), "FILE_OPEN timeout");
                 });
 
                 runs(function () {
@@ -665,7 +665,7 @@ define(function (require, exports, module) {
                         infos[openFile].offsets[13]
                     );
 
-                    waitsForFail(inlineEditorResult, "inline editor not opened", 1000);
+                    waitsForFail(inlineEditorResult, "inline editor not opened");
                 });
 
                 runs(function () {
@@ -756,7 +756,7 @@ define(function (require, exports, module) {
                 this.after(function () {
                     // rewrite the project after saving changes
                     runs(function () {
-                        waitsForDone(rewriteProject(), "rewriteProject timeout", 1000);
+                        waitsForDone(rewriteProject(), "rewriteProject timeout");
                     });
                 });
                 
@@ -782,7 +782,7 @@ define(function (require, exports, module) {
                     expect(inlineEditor.hasFocus()).toBeTruthy();
                     
                     // execute file save command
-                    waitsForDone(testWindow.executeCommand(Commands.FILE_SAVE), "save timeout", 1000);
+                    waitsForDone(testWindow.executeCommand(Commands.FILE_SAVE), "save timeout");
                 });
                 
                 runs(function () {
@@ -797,7 +797,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedText !== undefined; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedText !== undefined; }, "readAsText timeout");
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
@@ -827,7 +827,7 @@ define(function (require, exports, module) {
                 this.after(function () {
                     // rewrite the project after saving changes
                     runs(function () {
-                        waitsForDone(rewriteProject(), "rewriteProject timeout", 1000);
+                        waitsForDone(rewriteProject(), "rewriteProject timeout");
                     });
                 });
                 
@@ -853,7 +853,7 @@ define(function (require, exports, module) {
                     expect(inlineEditor.hasFocus()).toBeTruthy();
                     
                     // execute file save command
-                    waitsForDone(testWindow.executeCommand(Commands.FILE_SAVE), "save timeout", 1000);
+                    waitsForDone(testWindow.executeCommand(Commands.FILE_SAVE), "save timeout");
                 });
                 
                 runs(function () {
@@ -872,7 +872,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedInlineText !== undefined && savedHostText !== undefined; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedInlineText !== undefined && savedHostText !== undefined; }, "readAsText timeout");
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
@@ -903,7 +903,7 @@ define(function (require, exports, module) {
                                 console.log(err);
                             });
                         
-                        waitsForDone(promise, "writeText tempCSS.css", 1000);
+                        waitsForDone(promise, "writeText tempCSS.css");
                     });
                     
                     // Open inline editor for that file
@@ -931,7 +931,7 @@ define(function (require, exports, module) {
                     waitsFor(function () {
                         var hostEditor = EditorManager.getCurrentFullEditor();
                         return (hostEditor.getInlineWidgets().length === 0);
-                    }, 1000);
+                    });
                     
                     // Cleanup: initInlineTest() saves contents of all files in the project and rewrites
                     // them back to disk at the end (to restore any stripped offset markers). But in this
@@ -1455,7 +1455,7 @@ define(function (require, exports, module) {
                         });
                     });
                     
-                    waitsFor(function () { return secondInlineOpen; }, "second inline open timeout", 1000);
+                    waitsFor(function () { return secondInlineOpen; }, "second inline open timeout");
                     
                     // Not sure why we have to wait in between these for the bug to occur, but we do.
                     runs(function () {

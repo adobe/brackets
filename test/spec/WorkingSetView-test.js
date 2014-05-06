@@ -275,7 +275,7 @@ define(function (require, exports, module) {
                 openAndMakeDirty(testPath + "/directory/file_one.js");
 
                 // Wait for file to be added to the working set
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; }, 1000);
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 1; });
 
                 runs(function () {
                     // Two files with the same name file_one.js should be now opened
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
                     // Now close last opened file to hide the directories again
                     DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
                     var didClose = false, gotError = false;
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE");
 
                     // there should be no more directories shown
                     runs(function () {
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
                 openAndMakeDirty(testPath + "/directory/directory/file_one.js");
 
                 // Wait for them to load
-                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; }, 1000);
+                waitsFor(function () { return workingSetCount === workingSetCountBeforeTest + 2; });
 
                 runs(function () {
                     // Collect all directory names displayed

@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         
         // save the file
         var fileSavePromise = CommandManager.execute(Commands.FILE_SAVE, {doc: doc});
-        waitsForDone(fileSavePromise, "FILE_SAVE", 1000);
+        waitsForDone(fileSavePromise, "FILE_SAVE");
         
         // wrap with a timeout to indicate loadEventFired was not fired
         return Async.withTimeout(deferred.promise(), 2000);
@@ -125,13 +125,13 @@ define(function (require, exports, module) {
         
         runs(function () {
             spyOn(Inspector.Page, "reload");
-            waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles " + htmlFile, 1000);
+            waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles " + htmlFile);
         });
 
         openLiveDevelopmentAndWait();
         
         runs(function () {
-            waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles " + cssFile, 1000);
+            waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles " + cssFile);
         });
         
         runs(function () {
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
         });
         
         runs(function () {
-            waitsForFail(loadEventPromise, "loadEventFired", 3000);
+            waitsForFail(loadEventPromise, "loadEventFired");
         });
         
         runs(function () {
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 var promise = InspectorModule.Runtime.evaluate("window.open('', '_self').close()");
-                waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
+                waitsForDone(promise, "Inspector.Runtime.evaluate");
             });
             
             waitsFor(function () { return !InspectorModule.connected(); }, "!InspectorModule.connected()", 10000);
@@ -388,7 +388,7 @@ define(function (require, exports, module) {
                             });
                     });
                     
-                    waitsFor(function () { return (fileContent !== null); }, "Load fileContent", 1000);
+                    waitsFor(function () { return (fileContent !== null); }, "Load fileContent");
                 }
             }
         
@@ -579,7 +579,7 @@ define(function (require, exports, module) {
             it("should establish a browser connection for an opened html file", function () {
                 //open a file
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html");
                 });
 
                 openLiveDevelopmentAndWait();
@@ -595,7 +595,7 @@ define(function (require, exports, module) {
             it("should should not start a browser connection for an opened css file", function () {
                 //open a file
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css");
                 });
                 
                 //start live dev
@@ -627,7 +627,7 @@ define(function (require, exports, module) {
                     browserText;
                 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css");
                 });
                 
                 runs(function () {
@@ -641,7 +641,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html");
                 });
                 
                 openLiveDevelopmentAndWait();
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
                     spyOn(Inspector.Page, "reload").andCallThrough();
                     enableAgent(LiveDevelopment, "dom");
 
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css");
                 });
                 
                 runs(function () {
@@ -690,7 +690,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html");
                 });
                 
                 // Modify some text in test file before starting live dev
@@ -753,7 +753,7 @@ define(function (require, exports, module) {
 
             function _openSimpleHTML() {
                 runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html");
                 });
 
                 openLiveDevelopmentAndWait();
@@ -883,7 +883,7 @@ define(function (require, exports, module) {
                     spyOn(Inspector.Page, "reload").andCallThrough();
                     
                     promise = SpecRunnerUtils.openProjectFiles(["simple1.html"]);
-                    waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
+                    waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.html");
                 });
 
                 openLiveDevelopmentAndWait();
@@ -894,7 +894,7 @@ define(function (require, exports, module) {
                         jsdoc = openDocs["simple1.js"];
                     });
                     
-                    waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.js", 1000);
+                    waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.js");
                 });
 
                 runs(function () {
@@ -910,7 +910,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // Browser should reload when saving non-live files like JavaScript
-                    waitsForDone(loadEventPromise, "loadEventFired", 3000);
+                    waitsForDone(loadEventPromise, "loadEventFired");
                 });
                 
                 runs(function () {
@@ -925,7 +925,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // Browser should reload again
-                    waitsForDone(loadEventPromise, "loadEventFired", 3000);
+                    waitsForDone(loadEventPromise, "loadEventFired");
                 });
                 
                 runs(function () {

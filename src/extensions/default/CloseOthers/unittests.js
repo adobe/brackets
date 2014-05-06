@@ -70,7 +70,7 @@ define(function (require, exports, module) {
             });
             runs(function () {
                 var promise = SpecRunnerUtils.deletePath(fullPath);
-                waitsForDone(promise, "Remove testfile " + fullPath, 5000);
+                waitsForDone(promise, "Remove testfile " + fullPath);
             });
         }
 

@@ -52,7 +52,9 @@ define(function (require, exports, module) {
         _testWindow,
         _doLoadExtensions,
         _rootSuite              = { id: "__brackets__" },
-        _unitTestReporter;
+        _unitTestReporter,
+        DEFAULT_DONE_TIMEOUT    = 5000,
+        DEFAULT_FAIL_TIMEOUT    = 5000;
     
     function _getFileSystem() {
         return _testWindow ? _testWindow.brackets.test.FileSystem : FileSystem;
@@ -167,7 +169,7 @@ define(function (require, exports, module) {
      * @param {string} operationName  Name used for timeout error message
      */
     window.waitsForDone = function (promise, operationName, timeout) {
-        timeout = timeout || 1000;
+        timeout = timeout || DEFAULT_DONE_TIMEOUT;
         expect(promise).toBeTruthy();
         promise.fail(function (err) {
             expect("[" + operationName + "] promise rejected with: " + err).toBe("(expected resolved instead)");
@@ -185,7 +187,7 @@ define(function (require, exports, module) {
      * @param {string} operationName  Name used for timeout error message
      */
     window.waitsForFail = function (promise, operationName, timeout) {
-        timeout = timeout || 1000;
+        timeout = timeout || DEFAULT_FAIL_TIMEOUT;
         expect(promise).toBeTruthy();
         promise.done(function (result) {
             expect("[" + operationName + "] promise resolved with: " + result).toBe("(expected rejected instead)");
@@ -243,7 +245,7 @@ define(function (require, exports, module) {
             });
         });
 
-        waitsForDone(deferred, "Create temp directory", 500);
+        waitsForDone(deferred, "Create temp directory");
     }
     
     function _resetPermissionsOnSpecialTempFolders() {
@@ -296,7 +298,7 @@ define(function (require, exports, module) {
                 console.log("boo");
             });
         
-            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
+            waitsForDone(deferred.promise(), "removeTempDirectory");
         });
     }
     
