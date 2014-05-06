@@ -537,7 +537,7 @@ define(function (require, exports, module) {
     });
     
     // Private API for unit testing and use elsewhere in Brackets core
-    exports._isUserScopeCorrupt    = function () { return PreferencesImpl._userScopeCorrupt; };
+    exports._isUserScopeCorrupt     = PreferencesImpl.isUserScopeCorrupt;
     exports._manager                = PreferencesImpl.manager;
     exports._setCurrentEditingFile  = _setCurrentEditingFile;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
