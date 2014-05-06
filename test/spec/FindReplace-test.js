@@ -1568,7 +1568,6 @@ define(function (require, exports, module) {
                 FileSystem      = testWindow.brackets.test.FileSystem;
                 File            = testWindow.brackets.test.File;
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
-                CommandManager  = testWindow.brackets.test.CommandManager;
                 ProjectManager  = testWindow.brackets.test.ProjectManager;
                 $               = testWindow.$;
             });
@@ -1578,9 +1577,10 @@ define(function (require, exports, module) {
             CommandManager  = null;
             DocumentManager = null;
             EditorManager   = null;
-            File            = null;
             FileSystem      = null;
+            File            = null;
             FindInFiles     = null;
+            ProjectManager  = null;
             $               = null;
             testWindow      = null;
             SpecRunnerUtils.closeTestWindow();
@@ -2008,7 +2008,7 @@ define(function (require, exports, module) {
                 doSearch(options);
                 
                 runs(function () {
-                    waitsForDone(FindInFiles.doReplace(searchResults, "bar"), "finish replacement");
+                    waitsForDone(FindInFiles.doReplace(searchResults, "bar", options.forceFilesOpen), "finish replacement");
                 });
                 runs(function () {
                     expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
@@ -2027,7 +2027,7 @@ define(function (require, exports, module) {
                 }
                 
                 runs(function () {
-                    FindInFiles.doReplace(searchResults, "bar")
+                    FindInFiles.doReplace(searchResults, "bar", options.forceFilesOpen)
                         .then(function () {
                             expect("should fail due to error").toBe(true);
                             done = true;
@@ -2040,23 +2040,25 @@ define(function (require, exports, module) {
                 waitsFor(function () { return done; }, 1000, "finish replacement");
             }
             
-            // Like doBasicTest, but expects one file to be open in memory and the replacements to happen there.
+            // Like doBasicTest, but expects one or more files to be open in memory and the replacements to happen there.
             function doInMemoryTest(options) {
                 // Like the basic test, we expect everything on disk to match the kgFolder (which means the file open in memory
                 // should *not* have changed on disk yet).
                 doBasicTest(options);
                 
                 runs(function () {
-                    // Check that the document open in memory was changed and matches the expected replaced version of that file.
-                    var doc = DocumentManager.getOpenDocumentForPath(testPath + options.inMemoryFile);
-                    expect(doc).toBeTruthy();
-                    expect(doc.isDirty).toBe(true);
-                    
-                    var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + options.inMemoryKGFolder + options.inMemoryFile),
-                        kgFile = FileSystem.getFileForPath(kgPath);
-                    waitsForDone(promisify(kgFile, "read").then(function (contents) {
-                        expect(doc.getText()).toEqual(contents);
-                    }), "read known good contents");
+                    waitsForDone(Async.doInParallel(options.inMemoryFiles, function (filePath) {
+                        // Check that the document open in memory was changed and matches the expected replaced version of that file.
+                        var doc = DocumentManager.getOpenDocumentForPath(testPath + filePath);
+                        expect(doc).toBeTruthy();
+                        expect(doc.isDirty).toBe(true);
+
+                        var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + options.inMemoryKGFolder + filePath),
+                            kgFile = FileSystem.getFileForPath(kgPath);
+                        return promisify(kgFile, "read").then(function (contents) {
+                            expect(doc.getText()).toEqual(contents);
+                        });
+                    }), "check in memory file contents");
                 });
             }
             
@@ -2163,7 +2165,7 @@ define(function (require, exports, module) {
                     queryInfo:        {query: "foo"},
                     numMatches:       14,
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                    inMemoryFile:     "/css/foo.css",
+                    inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
                 });
                 
@@ -2183,7 +2185,7 @@ define(function (require, exports, module) {
                     queryInfo:        {query: "foo"},
                     numMatches:       14,
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                    inMemoryFile:     "/css/foo.css",
+                    inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
                 });
                 
@@ -2208,7 +2210,7 @@ define(function (require, exports, module) {
                     queryInfo:        {query: "foo"},
                     numMatches:       14,
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                    inMemoryFile:     "/css/foo.css",
+                    inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
                 });
                 
@@ -2216,7 +2218,27 @@ define(function (require, exports, module) {
                     var workingSet = DocumentManager.getWorkingSet();
                     expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
                     doc.releaseRef();
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "close file");
+                    // Have to close all files since this document was never set as the current document.
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
+                });
+            });
+            
+            it("should open files and do all replacements in memory if forceFilesOpen is true", function () {
+                openTestProjectCopy(defaultSourcePath);
+
+                runs(function () {
+                    doInMemoryTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "simple-case-insensitive"
+                    });
+                });
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
                 });
             });
             
@@ -2227,8 +2249,6 @@ define(function (require, exports, module) {
             // regexp, both case sensitive and case insensitive (will need to retain query/match info for $-substitution)
             // file changing on disk between search and replace when results are properly auto-updated
             // file changing in memory between search and replace
-            // do replace in memory for <N documents
-            // do replace on disk for >N documents
         });
     });
 });

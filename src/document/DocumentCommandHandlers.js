@@ -1096,8 +1096,9 @@ define(function (require, exports, module) {
      * @param {!Array.<FileEntry>} list
      * @param {boolean} promptOnly
      * @param {boolean} clearCurrentDoc
+     * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
      */
-    function _closeList(list, promptOnly, clearCurrentDoc) {
+    function _closeList(list, promptOnly, clearCurrentDoc, _forceClose) {
         var result      = new $.Deferred(),
             unsavedDocs = [];
         
@@ -1108,8 +1109,8 @@ define(function (require, exports, module) {
             }
         });
         
-        if (unsavedDocs.length === 0) {
-            // No unsaved changes, so we can proceed without a prompt
+        if (unsavedDocs.length === 0 || _forceClose) {
+            // No unsaved changes or we want to ignore them, so we can proceed without a prompt
             result.resolve();
             
         } else if (unsavedDocs.length === 1) {
@@ -1200,7 +1201,7 @@ define(function (require, exports, module) {
      */
     function handleFileCloseAll(commandData) {
         return _closeList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly), true).done(function () {
+                                    (commandData && commandData.promptOnly), true, (commandData && commandData._forceClose)).done(function () {
             if (!DocumentManager.getCurrentDocument()) {
                 EditorManager._closeCustomViewer();
             }

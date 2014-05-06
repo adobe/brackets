@@ -993,7 +993,6 @@ define(function (require, exports, module) {
                 newContents = newContents.replace(/\n/g, "\r\n");
             }
 
-            // TODO: handle in-memory docs - need to just write back into editor
             return Async.promisify(file, "write", newContents);
         });
     }
@@ -1004,11 +1003,16 @@ define(function (require, exports, module) {
      * @param {string} fullPath The full path to the file.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
+     * @param {boolean} forceFileOpen If true, force the file to be opened in an editor and do the replacement there.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
-    function _doReplaceInOneFile(fullPath, matchInfo, replaceText) {
+    function _doReplaceInOneFile(fullPath, matchInfo, replaceText, forceFileOpen) {
         var doc = DocumentManager.getOpenDocumentForPath(fullPath);
-        if (doc) {
+        if (forceFileOpen && !doc) {
+            return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
+                return _doReplaceInDocument(newDoc, matchInfo, replaceText);
+            });
+        } else if (doc) {
             return _doReplaceInDocument(doc, matchInfo, replaceText);
         } else {
             return _doReplaceOnDisk(fullPath, matchInfo, replaceText);
@@ -1016,19 +1020,23 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Given a set of search results as returned from _doSearch, replaces them with the given replaceText on disk.
+     * Given a set of search results as returned from _doSearch, replaces them with the given replaceText, either on
+     * disk or in memory.
      * TODO: doesn't yet handle a lot of things, see unit test TODOs.
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
      *      The list of results to replace.
      * @param {string} replaceText The text to replace each result with.
+     * @param {boolean=} forceFilesOpen Whether to open all files in editors and do replacements there rather than doing the 
+     *      replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
+     *      done in memory.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
      *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
      *      of the `FindInFiles.ERROR_*` constants.
      */
-    function doReplace(results, replaceText) {
+    function doReplace(results, replaceText, forceFilesOpen) {
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
-            return _doReplaceInOneFile(fullPath, results[fullPath], replaceText);
+            return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, forceFilesOpen);
         });
     }
     
