@@ -1047,6 +1047,9 @@ define(function (require, exports, module) {
     function doReplace(results, replaceText, options) {
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
             return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
+        }).done(function () {
+            // For integration tests only.
+            exports._replaceDone = true;
         });
     }
     
@@ -1055,8 +1058,9 @@ define(function (require, exports, module) {
      * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
      * a find operation across all files in the project.
      * @param {?Entry} scope  Project file/subfolder to search within; else searches whole project.
+     * @param {boolean=} showReplace If true, show the Replace controls.
      */
-    function _doFindInFiles(scope) {
+    function _doFindInFiles(scope, showReplace) {
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
         if (scope && EditorManager.getCustomViewerForPath(scope.fullPath)) {
@@ -1096,7 +1100,7 @@ define(function (require, exports, module) {
         
         findBar = new FindBar({
             navigator: false,
-            replace: false,
+            replace: showReplace,
             initialQuery: initialString,
             queryPlaceholder: Strings.CMD_FIND_IN_SUBTREE,
             scopeLabel: _labelForScope(scope)
@@ -1125,28 +1129,54 @@ define(function (require, exports, module) {
             findBar.showNoResults(queryInfo.query && query === null, false);
         }
         
+        function startSearch() {
+            var queryInfo = findBar && findBar.getQueryInfo();
+            if (queryInfo && queryInfo.query) {
+                findBar.enable(false);
+                StatusBar.showBusyIndicator(true);
+
+                var filter;
+                if (filterPicker) {
+                    filter = FileFilters.commitPicker(filterPicker);
+                } else {
+                    // Single-file scope: don't use any file filters
+                    filter = null;
+                }
+                return _doSearch(queryInfo, candidateFilesPromise, filter);
+            }
+            return null;
+        }
+        
         $(findBar)
             .on("doFind.FindInFiles", function (e) {
-                var queryInfo = findBar && findBar.getQueryInfo();
-                if (queryInfo && queryInfo.query) {
-                    findBar.enable(false);
-                    StatusBar.showBusyIndicator(true);
-
-                    var filter;
-                    if (filterPicker) {
-                        filter = FileFilters.commitPicker(filterPicker);
-                    } else {
-                        // Single-file scope: don't use any file filters
-                        filter = null;
-                    }
-                    _doSearch(queryInfo, candidateFilesPromise, filter);
-                }
+                startSearch();
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
                 $(findBar).off(".FindInFiles");
                 findBar = null;
             });
+        
+        if (showReplace) {
+            $(findBar).on("doReplace.FindInFiles", function (e, all) {
+                // TODO: handle regexp
+                // TODO: shouldn't show "Replace" button - just "Replace All..."
+                if (all) {
+                    var replaceText = findBar.getReplaceText();
+                    // If the user hasn't done a find yet, do it now.
+                    if ($.isEmptyObject(searchResults)) {
+                        var promise = startSearch();
+                        if (promise) {
+                            promise.then(function () {
+                                doReplace(searchResults, replaceText);
+                            });
+                        }
+                    } else {
+                        doReplace(searchResults, replaceText);
+                    }
+                }
+            });
+        }
                 
         // Show file-exclusion UI *unless* search scope is just a single file
         if (!scope || scope.isDirectory) {
@@ -1161,6 +1191,14 @@ define(function (require, exports, module) {
         }
         
         handleQueryChange();
+    }
+    
+    /**
+     * @private
+     * Bring up the Find in Files UI with the replace options.
+     */
+    function _doReplaceInFiles() {
+        _doFindInFiles(null, true);
     }
     
     /**
@@ -1318,6 +1356,7 @@ define(function (require, exports, module) {
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,     _doFindInFiles);
+    CommandManager.register(Strings.CMD_REPLACE_IN_FILES,   Commands.CMD_REPLACE_IN_FILES,  _doReplaceInFiles);
     CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,  _doFindInSubtree);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,   _doFindInSubtree);
     

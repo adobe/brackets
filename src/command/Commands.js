@@ -116,6 +116,7 @@ define(function (require, exports, module) {
     exports.CMD_ADD_NEXT_MATCH          = "cmd.addNextMatch";           // FindReplace.js               _expandAndAddNextToSelection()
     exports.CMD_SKIP_CURRENT_MATCH      = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
+    exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFiles.js               _doReplaceInFiles()
     
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";           // SidebarView.js               toggle()

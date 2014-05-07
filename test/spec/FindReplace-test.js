@@ -1592,7 +1592,7 @@ define(function (require, exports, module) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         }
 
-        function openSearchBar(scope) {
+        function openSearchBar(scope, showReplace) {
             // Make sure search bar from previous test has animated out fully
             runs(function () {
                 waitsFor(function () {
@@ -1600,14 +1600,16 @@ define(function (require, exports, module) {
                 }, "search bar close");
             });
             runs(function () {
-                FindInFiles._doFindInFiles(scope);
+                FindInFiles._doFindInFiles(scope, showReplace);
             });
         }
 
         function executeSearch(searchString) {
-            var $searchField = $(".modal-bar #find-group input");
-            $searchField.val(searchString).trigger("input");
-            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+            runs(function () {
+                var $searchField = $("#find-what");
+                $searchField.val(searchString).trigger("input");
+                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
+            });
             waitsFor(function () {
                 return FindInFiles._searchResults;
             }, "Find in Files done");
@@ -1620,9 +1622,7 @@ define(function (require, exports, module) {
             
             it("should find all occurences in project", function () {
                 openSearchBar();
-                runs(function () {
-                    executeSearch("foo");
-                });
+                executeSearch("foo");
 
                 runs(function () {
                     var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
@@ -1645,9 +1645,7 @@ define(function (require, exports, module) {
             it("should find all occurences in folder", function () {
                 var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
                 openSearchBar(dirEntry);
-                runs(function () {
-                    executeSearch("foo");
-                });
+                executeSearch("foo");
 
                 runs(function () {
                     var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
@@ -1668,9 +1666,7 @@ define(function (require, exports, module) {
             it("should find all occurences in single file", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("foo");
-                });
+                executeSearch("foo");
 
                 runs(function () {
                     var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
@@ -1693,9 +1689,7 @@ define(function (require, exports, module) {
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("callFoo");
-                });
+                executeSearch("callFoo");
 
                 runs(function () {
                     var fileResults = FindInFiles._searchResults[filePath];
@@ -1715,9 +1709,7 @@ define(function (require, exports, module) {
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("callFoo");
-                });
+                executeSearch("callFoo");
 
                 waitsFor(function () {
                     return ($(".modal-bar").length === 0);
@@ -1736,9 +1728,7 @@ define(function (require, exports, module) {
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("abcdefghi");
-                });
+                executeSearch("abcdefghi");
 
                 waitsFor(function () {
                     return (FindInFiles._searchResults);
@@ -1769,9 +1759,7 @@ define(function (require, exports, module) {
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("foo");
-                });
+                executeSearch("foo");
 
                 runs(function () {
                     // Verify no current document
@@ -1809,9 +1797,7 @@ define(function (require, exports, module) {
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("foo");
-                });
+                executeSearch("foo");
 
                 runs(function () {
                     // Verify document is not yet in working set
@@ -1839,9 +1825,7 @@ define(function (require, exports, module) {
                     $panelResults;
 
                 openSearchBar(fileEntry);
-                runs(function () {
-                    executeSearch("foo");
-                });
+                executeSearch("foo");
 
                 runs(function () {
                     // Verify document is not yet in working set
@@ -2307,13 +2291,38 @@ define(function (require, exports, module) {
                 });
             });
             
-            // Things to test:
+            // TODO: More things to test headlessly:
             // subtree search
             // single file search
             // filters
             // subset of matches
             // file changing on disk between search and replace when results are properly auto-updated
             // file changing in memory between search and replace (when results are/aren't auto-updated?)
+            
+            describe("from Find Bar", function () {
+                function executeReplace(findText, replaceText) {
+                    runs(function () {
+                        FindInFiles._replaceDone = false;
+                        $("#find-what").val(findText).trigger("input");
+                        $("#replace-with").val(replaceText).trigger("input");
+                        $("#replace-all").click();
+                    });
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                }
+                
+                it("should do a simple search/replace all from find bar if the user didn't do a Find first", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    executeReplace("foo", "bar");
+                    runs(function () {
+                        expectProjectToMatchKnownGood("simple-case-insensitive");
+                    });
+                });
+                
+                // if user clicks Find first
+            });
         });
     });
 });
