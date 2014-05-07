@@ -12,6 +12,8 @@ define(function (require, exports, module) {
     "use strict";
 
     require("themes/MenuCommands");
+    require("themes/FontSettings");
+    require("themes/FontCommandsManager");
 
     var _                   = require("thirdparty/lodash"),
         EditorManager       = require("editor/EditorManager"),
@@ -22,10 +24,7 @@ define(function (require, exports, module) {
         themeSettings       = require("themes/ThemeSettingsDialog"),
         themeFiles          = require("themes/ThemeFiles"),
         themeApply          = require("themes/ThemeApply"),
-        scrollbarsApply     = require("themes/ScrollbarsApply"),
-        fontSettings        = require("themes/FontSettings"),
-        fontCommandsManager = require("themes/FontCommandsManager"),
-        CodeMirrorAddons    = require("themes/CodeMirrorAddons");
+        scrollbarsApply     = require("themes/ScrollbarsApply");
 
 
     // Load up reset.css to override brackground settings from brackets because
@@ -52,7 +51,7 @@ define(function (require, exports, module) {
 
         if ( force === true ) {
             loadThemes(ThemeManager.getThemes(), force === true).done(function() {
-                setDocumentTheme(Settings.getValue("theme"));
+                setDocumentTheme(Settings.getValue("themes"));
                 scrollbarsApply(ThemeManager);
 
                 if ( cm ) {
@@ -67,7 +66,7 @@ define(function (require, exports, module) {
     * Returns all current theme objects
     */
     ThemeManager.getThemes = function() {
-        return _.map(Settings.getValue("theme").slice(0), function (item) {
+        return _.map(Settings.getValue("themes").slice(0), function (item) {
             return ThemeManager.themes[item];
         });
     };
@@ -76,14 +75,16 @@ define(function (require, exports, module) {
     /**
     * Loads a theme from a file. fileName is the full path to the file
     */
-    ThemeManager.loadFile = function(fileName) {
+    ThemeManager.loadFile = function(fileName, displayName) {
         var deferred = new $.Deferred();
         var file = FileSystem.getFileForPath (fileName);
 
         file.exists(function( err, exists ) {
             if ( exists ) {
-                var theme = new Theme(file);
+                var theme = new Theme(file, displayName);
                 deferred.resolve((ThemeManager.themes[theme.name] = theme));
+                themeSettings.setThemes(ThemeManager.themes);
+
 
                 // For themes that are loaded after ThemeManager has been loaded,
                 // we should check if it the theme in the selected array so that
@@ -131,7 +132,7 @@ define(function (require, exports, module) {
             return ThemeManager.loadFile(themes.path + "/" + themeFile);
         });
 
-        return $.when.apply((void 0), deferred);
+        return $.when.apply(undefined, deferred);
     }
 
 
@@ -173,7 +174,7 @@ define(function (require, exports, module) {
             }
         });
 
-        return $.when.apply((void 0), pending);
+        return $.when.apply(undefined, pending);
     }
 
 
@@ -201,49 +202,40 @@ define(function (require, exports, module) {
     }
 
 
-    function init() {
-        return $.when(Settings.ready, CodeMirrorAddons.ready).done(function() {
-            // Very first thing is the font settings need to be setup
-            fontSettings(Settings);
-            fontCommandsManager.init();
+    ThemeManager.docMode = "";
+    ThemeManager.themes = {};
+    ThemeManager.selected = Settings.getValue("themes");
 
-            ThemeManager.docMode = "";
-            ThemeManager.themes = {};
-            ThemeManager.selected = Settings.getValue("theme");
+
+    $(EditorManager)
+        .on("activeEditorChange", function() {
             ThemeManager.refresh(true);
-            themeSettings.themes(ThemeManager.themes);
-
-            $(EditorManager)
-                .on("activeEditorChange", function() {
-                    ThemeManager.refresh();
-                });
-
-            $(Settings)
-                .on("change:theme", function(evt, theme) {
-                    setDocumentTheme(theme);
-                    ThemeManager.refresh(true);
-                })
-                .on("change:fontSize", function() {
-                    ThemeManager.refresh();
-                });
-
-            FileSystem.on("change", function(evt, file) {
-                var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
-                    theme = ThemeManager.themes[name];
-
-                if ( theme && theme.getFile().parentPath === file.parentPath ) {
-                    ThemeManager.refresh(true);
-                }
-            });
         });
-    }
+
+    $(Settings)
+        .on("change:themes", function(evt, themes) {
+            setDocumentTheme(themes);
+            ThemeManager.refresh(true);
+        })
+        .on("change:fontSize", function() {
+            ThemeManager.refresh();
+        });
+
+    FileSystem
+        .on("change", function(evt, file) {
+            var name = (file.name || "").substring(0, file.name.lastIndexOf('.')),
+                theme = ThemeManager.themes[name];
+
+            if ( theme && theme.getFile().parentPath === file.parentPath ) {
+                ThemeManager.refresh(true);
+            }
+        });
 
 
     //
     // Exposed API
     //
     return {
-        ready: init(),
         refresh: ThemeManager.refresh,
         loadFile: ThemeManager.loadFile,
         loadPackage: ThemeManager.loadPackage,

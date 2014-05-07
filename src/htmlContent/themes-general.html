@@ -3,9 +3,9 @@
         <label class="control-label">Current theme:</label>
         <div class="controls">
             <select>
-            {{#themes}}
-                <option style="text-align:left;" value="{{displayName}}" data-target="theme" theme-id="{{name}}">{{displayName}}</option>
-            {{/themes}}
+                {{#themes}}
+                <option style="text-align:left;" value="{{name}}" data-target="themes">{{displayName}}</option>
+                {{/themes}}
             </select>
         </div>
     </div>

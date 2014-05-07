@@ -8,23 +8,18 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $, define, require */
 
-define(function () {
+define(function (require) {
     "use strict";
+
+    var Settings = require("themes/SettingsManager");
+
 
     var $lineHeight = $("<style type='text/css' id='lineHeight'>").appendTo("head"),
         $fontSize = $("<style type='text/css' id='fontSize'>").appendTo("head"),
         $fontType = $("<style type='text/css' id='fontType'>").appendTo("head");
 
-    var Settings = null;
 
-
-    function FontSettings(_settings) {
-        Settings = _settings;
-        $(Settings).on("change:lineHeight", FontSettings.updateLineHeight);
-        $(Settings).on("change:fontSize", FontSettings.updateFontSize);
-        $(Settings).on("change:fontType", FontSettings.updateFontType);
-        FontSettings.update();
-    }
+    var FontSettings = {};
 
 
     FontSettings.updateLineHeight = function () {
@@ -60,6 +55,12 @@ define(function () {
         // Remove this tag that is intefering with font settings set in this module
         $("#codemirror-dynamic-fonts").remove();
     }
+
+
+    $(Settings).on("change:lineHeight", FontSettings.updateLineHeight);
+    $(Settings).on("change:fontSize", FontSettings.updateFontSize);
+    $(Settings).on("change:fontType", FontSettings.updateFontType);
+    FontSettings.update();
 
     return FontSettings;
 });

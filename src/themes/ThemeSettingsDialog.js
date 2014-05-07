@@ -25,20 +25,21 @@ define(function(require) {
     $("#generalSettings", $settings).html(tmpl.general);
 
 
-    function open(settings) {
-        var themes = _.map(_themes, function(theme) {return theme;});
-        var currentSettings = settings.getAll();
+    function show(settings) {
+        var currentSettings = settings.getAll("themes", "fontSize", "fontType", "lineHeight", "customScrollbars");
         var newSettings     = {};
-        var template = $("<div>").append($settings).html();
-        var $template = $(Mustache.render(template, {"settings": currentSettings, "themes": themes}));
+        var themes          = _.map(_themes, function(theme) {return theme;});
+        var template        = $("<div>").append($settings).html();
+        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes}));
 
         $template
             .find("[data-toggle=tab].default")
             .tab("show");
 
         // Select the correct theme by default.
-        $template.find("[theme-id='" + currentSettings.theme[0] + "']").attr("selected", "selected");
-
+        $template
+            .find("[theme-id='" + currentSettings.themes[0] + "']")
+            .attr("selected", "selected");
 
         $template
             .on("change", "[data-target]:checkbox", function() {
@@ -51,11 +52,11 @@ define(function(require) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
             })
-            .change("select", function() {
+            .on("change", function() {
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
                 if ( attr ) {
-                    settings.setValue( "theme", [$target.attr("theme-id")] );
+                    settings.setValue( attr, [$target.val()] );
                 }
             });
 
@@ -69,16 +70,15 @@ define(function(require) {
             }
         });
     }
-
-
+    
+    
     function setThemes(themes) {
         _themes = themes;
     }
 
 
     return {
-        open: open,
-        themes: setThemes
+        setThemes: setThemes,
+        show: show
     };
 });
-

@@ -16,15 +16,11 @@ define(function (require) {
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
         PreferencesManager  = require("preferences/PreferencesManager");
 
-    function ViewCommandsManager () {
-        $(ViewCommandHandlers).on("fontSizeChange", updateThemeFontSize);
-        $(Settings).on("change:fontSize", updateBracketsFontSize);
-        updateBracketsFontSize();
-    }
 
     function updateThemeFontSize (evt, adjustment, fontSize /*, lineHeight*/) {
         Settings.setValue("fontSize", fontSize);
     }
+
 
     function updateBracketsFontSize() {
         var fontSize = Settings.getValue("fontSize"),
@@ -37,8 +33,8 @@ define(function (require) {
         }
     }
 
-    // Let's make sure we use Themes fonts by default
-    return {
-        init: ViewCommandsManager
-    };
+
+    $(ViewCommandHandlers).on("fontSizeChange", updateThemeFontSize);
+    $(Settings).on("change:fontSize", updateBracketsFontSize);
+    updateBracketsFontSize();
 });

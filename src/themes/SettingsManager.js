@@ -12,46 +12,40 @@ define(function (require) {
 
     var _                   = require("thirdparty/lodash"),
         PreferencesManager  = require("preferences/PreferencesManager"),
+        PreferencesImpl     = require("preferences/PreferencesImpl"),
         DefaultSettings     = require("themes/DefaultSettings"),
         SettingsDialog      = require("themes/ThemeSettingsDialog"),
-        PREFERENCES_KEY     = "brackets-themes",
-        _settings           = PreferencesManager.getExtensionPrefs(PREFERENCES_KEY);
+        prefs               = PreferencesManager.getExtensionPrefs("brackets-themes");
+
+    var Settings = {};
 
 
-    function Settings() {
-    }
-
-    Settings.open = function() {
-        SettingsDialog.open(Settings);
+    Settings.showDialog = function() {
+        SettingsDialog.show(Settings);
     };
 
-    Settings.close = function() {
-        SettingsDialog.close();
-    };
 
     Settings.getValue = function() {
-        return _settings.get.apply(_settings, arguments);
+        return prefs.get.apply(prefs, arguments);
     };
+
 
     Settings.setValue = function() {
-        _settings.set.apply(_settings, arguments);
-        $(Settings).trigger("change", arguments);
-        $(Settings).trigger("change:" + arguments[0], [arguments[1]]);
+        prefs.set.apply(prefs, arguments);
+        prefs.save();
+        _triggerEvent(arguments[0]);
     };
 
-    Settings.getAll = function() {
-        var pathLength = _settings.prefix.length;
-        var prefix = _settings.prefix;
 
-        return _.transform(_settings.base._scopes.user.data, function(result, value, key) {
-            if ( key.indexOf(prefix) === 0 ) {
-                result[key.substr(pathLength)] = value;
-            }
+    Settings.getAll = function() {
+        return _.transform(arguments, function(result, value, key) {
+            result[value] = prefs.get(value);
         });
     };
 
+
     Settings.reset = function() {
-        Settings.setValue("theme",  DefaultSettings.theme);
+        Settings.setValue("themes",  DefaultSettings.themes);
         Settings.setValue("fontSize", DefaultSettings.fontSize + "px");
         Settings.setValue("lineHeight", DefaultSettings.lineHeight);
         Settings.setValue("fontType", DefaultSettings.fontType);
@@ -59,33 +53,41 @@ define(function (require) {
     };
 
 
-    function init() {
-        return PreferencesManager.ready.then(function() {
-            if ( Settings.getValue("theme") === undefined ) {
-                Settings.setValue("theme",  DefaultSettings.theme);
-            }
-
-            if ( Settings.getValue("fontSize") === undefined ) {
-                Settings.setValue("fontSize", DefaultSettings.fontSize + "px");
-            }
-
-            if ( Settings.getValue("lineHeight") === undefined ) {
-                Settings.setValue("lineHeight", DefaultSettings.lineHeight);
-            }
-
-            if ( Settings.getValue("fontType") === undefined ) {
-                Settings.setValue("fontType", DefaultSettings.fontType);
-            }
-
-            if ( Settings.getValue("customScrollbars") === undefined ) {
-                Settings.setValue("customScrollbars", DefaultSettings.customScrollbars);
-            }
-
-            return Settings;
-        }).promise();
+    function _triggerEvent(item) {
+        var data = prefs.get(item);
+        $(Settings).trigger("change", data);
+        $(Settings).trigger("change:" + item, [data]);
     }
+    
+
+    // Expose it so that other settings manager can trigger events as well
+    Settings._triggerEvent = _triggerEvent;
 
 
-    Settings.ready = init();
+    prefs.definePreference("themes", "array", DefaultSettings.themes)
+        .on("change", function() {
+            _triggerEvent("themes");
+        });
+
+    prefs.definePreference("fontSize", "string", DefaultSettings.fontSize + "px")
+        .on("change", function() {
+            _triggerEvent("fontSize");
+        });
+
+    prefs.definePreference("lineHeight", "string", DefaultSettings.lineHeight)
+        .on("change", function() {
+            _triggerEvent("lineHeight");
+        });
+
+    prefs.definePreference("fontType", "string", DefaultSettings.fontType)
+        .on("change", function() {
+            _triggerEvent("fontType");
+        });
+
+    prefs.definePreference("customScrollbars", "boolean", DefaultSettings.customScrollbars)
+        .on("change", function() {
+            _triggerEvent("customScrollbars");
+        });
+
     return Settings;
 });

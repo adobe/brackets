@@ -18,6 +18,6 @@ define(function(require) {
         "lineHeight": '1.3em',
         "fontType": "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace",
         "customScrollbars": true,
-        "theme": ["default"]
+        "themes": ["default"]
     };
 });

@@ -21,7 +21,7 @@ define(function (require) {
 
 
     scrollbarsApply.update = function(themeManager) {
-        theme = themeManager ? themeManager.getThemes()[0] : (theme || {});
+        theme = (themeManager && themeManager.getThemes()[0]) || theme || {};
         if ( Settings.getValue("customScrollbars") ) {
             var scrollbar = (theme.scrollbar || []).join(" ");
             $scrollbars.text(scrollbar || "");
