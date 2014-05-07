@@ -145,7 +145,7 @@ define(function (require, exports, module) {
     function loadTheme(id) {
         var extension = extensions[id];
         if ( extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme ) {
-            ThemeManager.loadFile(extension.installInfo.path + "/" + extension.installInfo.metadata.theme);
+            ThemeManager.loadPackage(extension.installInfo);
         }    
     }
     

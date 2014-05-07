@@ -102,6 +102,15 @@ define(function (require, exports, module) {
 
 
     /**
+    * Loads a theme from a file. fileName is the full path to the file
+    */
+    ThemeManager.loadPackage = function(themePackage) {
+        var fileName = themePackage.path + "/" + themePackage.metadata.theme;
+        return ThemeManager.loadFile(fileName, themePackage.metadata.title);
+    };
+
+
+    /**
     * Load css/less files from a directory to be treated as themes
     */
     ThemeManager.loadDirectory = function(path) {

@@ -24,12 +24,12 @@ define(function () {
     *
     * @constructor
     */
-    function Theme(file) {
+    function Theme(file, displayName) {
         var _self     = this,
             fileName  = file.name;
 
         _self.file        = file;
-        _self.displayName = toDisplayName(fileName);
+        _self.displayName = displayName || toDisplayName(fileName);
         _self.name        = fileName.substring(0, fileName.lastIndexOf('.'));
         _self.className   = "theme-" + _self.name;
     }
