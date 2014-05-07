@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         FindBar             = require("search/FindBar").FindBar,
+        FindUtils           = require("search/FindUtils"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
@@ -140,24 +141,6 @@ define(function (require, exports, module) {
         } else {
             state.query = parseQuery(queryInfo);
         }
-    }
-
-    // NOTE: we can't just use the ordinary replace() function here because the string has been
-    // extracted from the original text and so might be missing some context that the regexp matched.
-    function parseDollars(replaceWith, match) {
-        replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
-            var parsedIndex = parseInt(index, 10);
-            if (dollars.length % 2 === 1) { // check if dollar signs escape themselves (for example $$1, $$$$&)
-                if (index === "&") { // handle $&
-                    return dollars.substr(1) + (match[0] || "");
-                } else if (parsedIndex !== 0) { // handle $n or $nn, don't handle $0 or $00
-                    return dollars.substr(1) + (match[parsedIndex] || "");
-                }
-            }
-            return whole;
-        });
-        replaceWith = replaceWith.replace(/\$\$/g, "$"); // replace escaped dollar signs (for example $$) with single ones
-        return replaceWith;
     }
 
     /**
@@ -729,7 +712,7 @@ define(function (require, exports, module) {
                 .reverse()
                 .forEach(function (checkedRow) {
                     var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : parseDollars(replaceWith, match.result);
+                        rw    = typeof replaceWhat === "string" ? replaceWith : FindUtils.parseDollars(replaceWith, match.result);
                     editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
                 });
             _closeReplaceAllPanel();
@@ -768,7 +751,7 @@ define(function (require, exports, module) {
             findBar.close();
             _showReplaceAllPanel(editor, state.query, state.queryInfo, replaceText);
         } else {
-            cm.replaceSelection(typeof state.query === "string" ? replaceText : parseDollars(replaceText, state.lastMatch));
+            cm.replaceSelection(typeof state.query === "string" ? replaceText : FindUtils.parseDollars(replaceText, state.lastMatch));
 
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 

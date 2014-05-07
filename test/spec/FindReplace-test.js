@@ -2003,12 +2003,19 @@ define(function (require, exports, module) {
                 });
             }
             
+            function doReplace(options) {
+                return FindInFiles.doReplace(searchResults, options.replaceText, {
+                    forceFilesOpen: options.forceFilesOpen,
+                    isRegexp: options.queryInfo.isRegexp
+                });
+            }
+            
             // Does a standard test for files on disk: search, replace, and check that files on disk match.
             function doBasicTest(options) {
                 doSearch(options);
                 
                 runs(function () {
-                    waitsForDone(FindInFiles.doReplace(searchResults, "bar", options.forceFilesOpen), "finish replacement");
+                    waitsForDone(doReplace(options), "finish replacement");
                 });
                 runs(function () {
                     expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
@@ -2027,7 +2034,7 @@ define(function (require, exports, module) {
                 }
                 
                 runs(function () {
-                    FindInFiles.doReplace(searchResults, "bar", options.forceFilesOpen)
+                    doReplace(options)
                         .then(function () {
                             expect("should fail due to error").toBe(true);
                             done = true;
@@ -2071,6 +2078,7 @@ define(function (require, exports, module) {
                 doBasicTest({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
+                    replaceText:     "bar",
                     knownGoodFolder: "simple-case-insensitive"
                 });
             });
@@ -2080,15 +2088,67 @@ define(function (require, exports, module) {
                 doBasicTest({
                     queryInfo:       {query: "foo", isCaseSensitive: true},
                     numMatches:      9,
+                    replaceText:     "bar",
                     knownGoodFolder: "simple-case-sensitive"
                 });
             });
             
+            it("should replace all instances of a regexp in a project on disk case-insensitively with a simple replace string", function () {
+                openTestProjectCopy(defaultSourcePath);
+                doBasicTest({
+                    queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true},
+                    numMatches:      33,
+                    replaceText:     "CHANGED",
+                    knownGoodFolder: "regexp-case-insensitive"
+                });
+            });
+            
+            it("should replace all instances of a regexp in a project on disk case-sensitively with a simple replace string", function () {
+                openTestProjectCopy(defaultSourcePath);
+                doBasicTest({
+                    queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true, isCaseSensitive: true},
+                    numMatches:      25,
+                    replaceText:     "CHANGED",
+                    knownGoodFolder: "regexp-case-sensitive"
+                });
+            });
+            
+            it("should replace instances of a regexp with a $-substitution on disk", function () {
+                openTestProjectCopy(defaultSourcePath);
+                doBasicTest({
+                    queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
+                    numMatches:      33,
+                    replaceText:     "[$1]",
+                    knownGoodFolder: "regexp-dollar-replace"
+                });
+            });
+            
+            it("should replace instances of a regexp with a $-substitution in in-memory files", function () {
+                // This test case is necessary because the in-memory case goes through a separate code path before it deals with
+                // the replace text.
+                openTestProjectCopy(defaultSourcePath);
+
+                doInMemoryTest({
+                    queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
+                    numMatches:      33,
+                    replaceText:     "[$1]",
+                    knownGoodFolder:   "unchanged",
+                    forceFilesOpen:    true,
+                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                    inMemoryKGFolder:  "regexp-dollar-replace"
+                });
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
+                });
+            });
+
             it("should replace instances of a string in a project respecting CRLF line endings", function () {
                 openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
                 doBasicTest({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
+                    replaceText:     "bar",
                     knownGoodFolder: "simple-case-insensitive",
                     lineEndings:     FileUtils.LINE_ENDINGS_CRLF
                 });
@@ -2099,6 +2159,7 @@ define(function (require, exports, module) {
                 doBasicTest({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
+                    replaceText:     "bar",
                     knownGoodFolder: "simple-case-insensitive",
                     lineEndings:     FileUtils.LINE_ENDINGS_LF
                 });
@@ -2109,6 +2170,7 @@ define(function (require, exports, module) {
                 doTestWithErrors({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
+                    replaceText:     "bar",
                     knownGoodFolder: "changed-file",
                     test: function () {
                         // Wait for one second to make sure that the changed file gets an updated timestamp.
@@ -2149,6 +2211,7 @@ define(function (require, exports, module) {
                 doTestWithErrors({
                     queryInfo:       {query: "foo"},
                     numMatches:      14,
+                    replaceText:     "bar",
                     knownGoodFolder: "simple-case-insensitive-except-foo.css",
                     errors:          [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
                 });
@@ -2164,6 +2227,7 @@ define(function (require, exports, module) {
                 doInMemoryTest({
                     queryInfo:        {query: "foo"},
                     numMatches:       14,
+                    replaceText:      "bar",
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
                     inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
@@ -2184,6 +2248,7 @@ define(function (require, exports, module) {
                 doInMemoryTest({
                     queryInfo:        {query: "foo"},
                     numMatches:       14,
+                    replaceText:      "bar",
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
                     inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
@@ -2209,6 +2274,7 @@ define(function (require, exports, module) {
                 doInMemoryTest({
                     queryInfo:        {query: "foo"},
                     numMatches:       14,
+                    replaceText:      "bar",
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
                     inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
@@ -2226,15 +2292,14 @@ define(function (require, exports, module) {
             it("should open files and do all replacements in memory if forceFilesOpen is true", function () {
                 openTestProjectCopy(defaultSourcePath);
 
-                runs(function () {
-                    doInMemoryTest({
-                        queryInfo:         {query: "foo"},
-                        numMatches:        14,
-                        knownGoodFolder:   "unchanged",
-                        forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder:  "simple-case-insensitive"
-                    });
+                doInMemoryTest({
+                    queryInfo:         {query: "foo"},
+                    numMatches:        14,
+                    replaceText:       "bar",
+                    knownGoodFolder:   "unchanged",
+                    forceFilesOpen:    true,
+                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                    inMemoryKGFolder:  "simple-case-insensitive"
                 });
                 
                 runs(function () {
@@ -2246,9 +2311,9 @@ define(function (require, exports, module) {
             // subtree search
             // single file search
             // filters
-            // regexp, both case sensitive and case insensitive (will need to retain query/match info for $-substitution)
+            // subset of matches
             // file changing on disk between search and replace when results are properly auto-updated
-            // file changing in memory between search and replace
+            // file changing in memory between search and replace (when results are/aren't auto-updated?)
         });
     });
 });

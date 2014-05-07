@@ -64,6 +64,7 @@ define(function (require, exports, module) {
         AppInit               = require("utils/AppInit"),
         StatusBar             = require("widgets/StatusBar"),
         FindBar               = require("search/FindBar").FindBar,
+        FindUtils             = require("search/FindUtils"),
         CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror");
     
     var searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
@@ -250,11 +251,12 @@ define(function (require, exports, module) {
             line = line.substr(0, Math.min(200, line.length));
             
             matches.push({
-                start: {line: lineNum, ch: ch},
-                end:   {line: lineNum, ch: ch + matchLength},
+                start:       {line: lineNum, ch: ch},
+                end:         {line: lineNum, ch: ch + matchLength},
                 startOffset: match.index,
-                endOffset: match.index + matchLength,
-                line:  line
+                endOffset:   match.index + matchLength,
+                line:        line,
+                regexpMatchInfo: match
             });
 
             // We have the max hits in just this 1 file. Stop searching this file.
@@ -942,9 +944,10 @@ define(function (require, exports, module) {
      * @param {!Document} doc The document to do the replacements in.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`. Might be mutated.
      * @param {string} replaceText The text to replace each result with.
+     * @param {boolean=} isRegexp Whether the original query was a regexp.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
-    function _doReplaceInDocument(doc, matchInfo, replaceText) {
+    function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
         // TODO: if doc has changed since query was run, don't do replacement
         
         // Do the replacements in reverse document order so the offsets continue to be correct.
@@ -953,7 +956,7 @@ define(function (require, exports, module) {
         });
         doc.batchOperation(function () {
             matchInfo.matches.forEach(function (match) {
-                doc.replaceRange(replaceText, match.start, match.end);
+                doc.replaceRange(isRegexp ? FindUtils.parseDollars(replaceText, match.regexpMatchInfo) : replaceText, match.start, match.end);
             });
         });
         
@@ -965,9 +968,10 @@ define(function (require, exports, module) {
      * @param {string} fullPath The full path to the file.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
+     * @param {boolean=} isRegexp Whether the original query was a regexp.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
-    function _doReplaceOnDisk(fullPath, matchInfo, replaceText) {
+    function _doReplaceOnDisk(fullPath, matchInfo, replaceText, isRegexp) {
         var file = FileSystem.getFileForPath(fullPath);
         return DocumentManager.getDocumentText(file, true).then(function (contents, timestamp, lineEndings) {
             if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
@@ -982,7 +986,7 @@ define(function (require, exports, module) {
                 lastIndex = 0;
             matchInfo.matches.forEach(function (match) {
                 result.push(contents.slice(lastIndex, match.startOffset));
-                result.push(replaceText);
+                result.push(isRegexp ? FindUtils.parseDollars(replaceText, match.regexpMatchInfo) : replaceText);
                 lastIndex = match.endOffset;
             });
             result.push(contents.slice(lastIndex));
@@ -1003,40 +1007,46 @@ define(function (require, exports, module) {
      * @param {string} fullPath The full path to the file.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
-     * @param {boolean} forceFileOpen If true, force the file to be opened in an editor and do the replacement there.
+     * @param {Object=} options An options object:
+     *      forceFilesOpen: boolean - Whether to open the file in an editor and do replacements there rather than doing the 
+     *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
+     *          done in memory.
+     *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
-    function _doReplaceInOneFile(fullPath, matchInfo, replaceText, forceFileOpen) {
+    function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
         var doc = DocumentManager.getOpenDocumentForPath(fullPath);
-        if (forceFileOpen && !doc) {
+        options = options || {};
+        if (options.forceFilesOpen && !doc) {
             return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
-                return _doReplaceInDocument(newDoc, matchInfo, replaceText);
+                return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
             });
         } else if (doc) {
-            return _doReplaceInDocument(doc, matchInfo, replaceText);
+            return _doReplaceInDocument(doc, matchInfo, replaceText, options.isRegexp);
         } else {
-            return _doReplaceOnDisk(fullPath, matchInfo, replaceText);
+            return _doReplaceOnDisk(fullPath, matchInfo, replaceText, options.isRegexp);
         }
     }
     
     /**
      * Given a set of search results as returned from _doSearch, replaces them with the given replaceText, either on
      * disk or in memory.
-     * TODO: doesn't yet handle a lot of things, see unit test TODOs.
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
-     *      The list of results to replace.
+     *      The list of results to replace, as returned from _doSearch..
      * @param {string} replaceText The text to replace each result with.
-     * @param {boolean=} forceFilesOpen Whether to open all files in editors and do replacements there rather than doing the 
-     *      replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
-     *      done in memory.
+     * @param {?Object} options An options object:
+     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the 
+     *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
+     *          done in memory.
+     *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
      *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
      *      of the `FindInFiles.ERROR_*` constants.
      */
-    function doReplace(results, replaceText, forceFilesOpen) {
+    function doReplace(results, replaceText, options) {
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
-            return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, forceFilesOpen);
+            return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
         });
     }
     
