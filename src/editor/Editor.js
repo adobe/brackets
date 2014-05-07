@@ -1869,14 +1869,20 @@ define(function (require, exports, module) {
      *
      * @param {!{line: number, ch: number}} start The start of the range to check.
      * @param {!{line: number, ch: number}} end The end of the range to check.
+     * @param {boolean=} knownMixed Whether we already know we're in a mixed mode and need to check both
+     *     the start and end.
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
      *     See {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
      */
-    Editor.prototype.getModeForRange = function (start, end) {
-        var startMode = TokenUtils.getModeAt(this._codeMirror, start),
+    Editor.prototype.getModeForRange = function (start, end, knownMixed) {
+        var outerMode = this._codeMirror.getMode(),
+            startMode = TokenUtils.getModeAt(this._codeMirror, start),
             endMode = TokenUtils.getModeAt(this._codeMirror, end);
-        if (!startMode || !endMode || startMode.name !== endMode.name) {
+        if (!knownMixed && outerMode.name === startMode.name) {
+            // Mode does not vary: just use the editor-wide mode name
+            return this._codeMirror.getOption("mode");
+        } else if (!startMode || !endMode || startMode.name !== endMode.name) {
             return null;
         } else {
             return startMode;
@@ -1921,7 +1927,7 @@ define(function (require, exports, module) {
                     return false;
                 }
                 
-                var rangeMode = self.getModeForRange(sel.start, sel.end);
+                var rangeMode = self.getModeForRange(sel.start, sel.end, true);
                 return (!rangeMode || rangeMode.name !== startMode.name);
             });
             if (hasMixedSel) {
