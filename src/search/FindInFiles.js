@@ -1101,6 +1101,8 @@ define(function (require, exports, module) {
         findBar = new FindBar({
             navigator: false,
             replace: showReplace,
+            replaceAllOnly: showReplace,
+            scope: true,
             initialQuery: initialString,
             queryPlaceholder: Strings.CMD_FIND_IN_SUBTREE,
             scopeLabel: _labelForScope(scope)
@@ -1149,6 +1151,9 @@ define(function (require, exports, module) {
         
         $(findBar)
             .on("doFind.FindInFiles", function (e) {
+                // TODO: if in Replace mode, shouldn't dismiss find bar?
+                // TODO: if user hits enter in Replace field, should treat like they clicked Replace?
+                // TODO: starting to think we should have the replace field in the results area...
                 startSearch();
             })
             .on("queryChange.FindInFiles", handleQueryChange)
@@ -1160,7 +1165,6 @@ define(function (require, exports, module) {
         if (showReplace) {
             $(findBar).on("doReplace.FindInFiles", function (e, all) {
                 // TODO: handle regexp
-                // TODO: shouldn't show "Replace" button - just "Replace All..."
                 if (all) {
                     var replaceText = findBar.getReplaceText();
                     // If the user hasn't done a find yet, do it now.
@@ -1187,7 +1191,7 @@ define(function (require, exports, module) {
 
             filterPicker = FileFilters.createFilterPicker(exclusionsContext);
             // TODO: include in FindBar? (and disable it when FindBar is disabled)
-            findBar._modalBar.getRoot().find("#find-group").append(filterPicker);
+            findBar._modalBar.getRoot().find(".scope-group").append(filterPicker);
         }
         
         handleQueryChange();
@@ -1208,6 +1212,16 @@ define(function (require, exports, module) {
     function _doFindInSubtree() {
         var selectedEntry = ProjectManager.getSelectedItem();
         _doFindInFiles(selectedEntry);
+    }
+    
+    /**
+     * @private
+     * Close the open search bar, if any. For unit tests.
+     */
+    function _closeFindBar() {
+        if (findBar) {
+            findBar.close();
+        }
     }
     
     /**
@@ -1367,5 +1381,6 @@ define(function (require, exports, module) {
     
     // For unit testing
     exports._doFindInFiles = _doFindInFiles;
+    exports._closeFindBar = _closeFindBar;
     exports._searchResults = null;
 });

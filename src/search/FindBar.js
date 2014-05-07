@@ -63,7 +63,9 @@ define(function (require, exports, module) {
      * @param {{navigator: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string}} options
      *      Options for the Find bar. 
      *      navigator - true to show the Find Previous/Find Next buttons - default false
-     *      replace - true to show the Replace field - default false
+     *      replace - true to show the Replace controls - default false
+     *      replaceAllOnly - true to show only a Replace All button (no Replace button) - default false
+     *      scope - true to show the scope filter controls - default false
      *      queryPlaceholder - label to show in the Find field - default empty string
      *      initialQuery - query to populate in the Find field on open - default empty string
      *      scopeLabel - label to show for the scope of the search - default empty string
@@ -223,6 +225,7 @@ define(function (require, exports, module) {
         
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
+        templateVars.replaceAllLabel = (templateVars.replaceAllOnly ? Strings.BUTTON_REPLACE_ALL_FULL : Strings.BUTTON_REPLACE_ALL);
         
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
         

@@ -1591,17 +1591,26 @@ define(function (require, exports, module) {
             testPath = defaultSourcePath;
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         }
+        
+        function waitForSearchBarClose() {
+            // Make sure search bar from previous test has animated out fully
+            waitsFor(function () {
+                return $(".modal-bar").length === 0;
+            }, "search bar close");
+        }
 
         function openSearchBar(scope, showReplace) {
-            // Make sure search bar from previous test has animated out fully
-            runs(function () {
-                waitsFor(function () {
-                    return $(".modal-bar").length === 0;
-                }, "search bar close");
-            });
+            waitForSearchBarClose();
             runs(function () {
                 FindInFiles._doFindInFiles(scope, showReplace);
             });
+        }
+        
+        function closeSearchBar() {
+            runs(function () {
+                FindInFiles._closeFindBar();
+            });
+            waitForSearchBarClose();
         }
 
         function executeSearch(searchString) {
@@ -2312,6 +2321,16 @@ define(function (require, exports, module) {
                     }, "replace finished");
                 }
                 
+                it("should only show a Replace All button", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        expect($("#replace-yes").length).toBe(0);
+                        expect($("#replace-all").length).toBe(1);
+                    });
+                    closeSearchBar();
+                });
+                
                 it("should do a simple search/replace all from find bar if the user didn't do a Find first", function () {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
@@ -2321,7 +2340,8 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                // if user clicks Find first
+                // TODO: more tests:
+                // if user does Find first
             });
         });
     });

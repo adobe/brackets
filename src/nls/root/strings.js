@@ -133,6 +133,7 @@ define({
     "FIND_NO_RESULTS"                   : "No results",
     "REPLACE_PLACEHOLDER"               : "Replace with\u2026",
     "BUTTON_REPLACE_ALL"                : "All\u2026",
+    "BUTTON_REPLACE_ALL_FULL"           : "Replace All\u2026",
     "BUTTON_REPLACE"                    : "Replace",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
