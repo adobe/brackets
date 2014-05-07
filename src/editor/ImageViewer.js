@@ -282,7 +282,6 @@ define(function (require, exports, module) {
             }
             // get image size
             var file = FileSystem.getFileForPath(fullPath);
-            var minimumPixels = 20;     // for showing crosshair cursor
             file.stat(function (err, stat) {
                 if (err) {
                     $("#img-data").html(dimensionString);
@@ -313,15 +312,6 @@ define(function (require, exports, module) {
 
             _updateScale($(this).width());
 
-            minimumPixels = Math.floor(minimumPixels * 100 / _scale);
-
-            // If the image size is too narrow in width or height, then 
-            // show the crosshair cursor since guides are almost invisible
-            // in narrow images.
-            if (this.naturalWidth < minimumPixels || this.naturalHeight < minimumPixels) {
-                $("#img-preview").css("cursor", "crosshair");
-                $(".img-guide").css("cursor", "crosshair");
-            }
         });
         return $customViewer;
     }
