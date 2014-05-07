@@ -1530,8 +1530,8 @@ define(function (require, exports, module) {
                 filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
             );
             return false;
         }
@@ -1658,15 +1658,13 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error, entry) {
-                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
-                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
+                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var useOppositeType = (isFolder === entry.isFile);
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                useOppositeType ? oppositeEntryType : entryType,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
+                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, 
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
