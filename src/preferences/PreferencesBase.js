@@ -888,7 +888,9 @@ define(function (require, exports, module) {
          * @return {Object} The preference object.
          */
         definePreference: function (id, type, initial, options) {
-            return this.base.definePreference(this.prefix + id, type, initial, options);
+            var pref = this.base.definePreference(this.prefix + id, type, initial, options);
+            pref.idPrefix = this.prefix;
+            return pref;
         },
         
         /**
@@ -1113,10 +1115,13 @@ define(function (require, exports, module) {
                 throw new Error("Preference " + id + " was redefined");
             }
             var pref = this._knownPrefs[id] = new Preference({
+                id: id,
                 type: type,
                 initial: initial,
                 name: options.name,
                 description: options.description,
+                group: options.group,
+                template: options.template,
                 validator: options.validator
             });
             this.set(id, initial, {
@@ -1134,6 +1139,10 @@ define(function (require, exports, module) {
          */
         getPreference: function (id) {
             return this._knownPrefs[id];
+        },
+
+        getKnownPreferences: function () {
+            return Object.keys(this._knownPrefs);
         },
 
         /**

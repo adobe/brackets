@@ -59,6 +59,14 @@ define(function (require, exports, module) {
      */
     var CLIENT_ID_PREFIX = "com.adobe.brackets.";
     
+    /**
+     * Key under which information is stored about extensions who use preferences
+     * These are stored here so we can track also uninstalled extensions which left entries
+     * @const
+     * @type {string}
+     */
+    var EXTENSIONS_KEY = "registered.extensions";
+
     // Private Properties
     var preferencesKey,
         prefStorage,
@@ -301,6 +309,30 @@ define(function (require, exports, module) {
         PreferencesImpl.manager.setDefaultFilename(currentFile);
     }
     
+    var _activeExtensions = {};
+
+    function _registerExtension(id, options) {
+        var extensions = get(EXTENSIONS_KEY) || {};
+
+        extensions[id] = options || {};
+        extensions[id].id = id;
+
+        delete extensions[id].active;
+        _activeExtensions[id] = true;
+
+        set(EXTENSIONS_KEY, extensions);
+    }
+
+    function getExtensions() {
+        var result = get(EXTENSIONS_KEY) || {};
+        _.forEach(result, function (obj, id) {
+            if (_activeExtensions[id]) {
+                obj.active = true;
+            }
+        });
+        return result;
+    }
+
     /**
      * Creates an extension-specific preferences manager using the prefix given.
      * A `.` character will be appended to the prefix. So, a preference named `foo`
@@ -309,7 +341,8 @@ define(function (require, exports, module) {
      * 
      * @param {string} prefix Prefix to be applied
      */
-    function getExtensionPrefs(prefix) {
+    function getExtensionPrefs(prefix, options) {
+        _registerExtension(prefix, options);
         return PreferencesImpl.manager.getPrefixedSystem(prefix);
     }
     
@@ -558,6 +591,8 @@ define(function (require, exports, module) {
     exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
     exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);
     exports.getPreference       = PreferencesImpl.manager.getPreference.bind(PreferencesImpl.manager);
+    exports.getKnownPreferences = PreferencesImpl.manager.getKnownPreferences.bind(PreferencesImpl.manager);
+    exports.getExtensions       = getExtensions;
     exports.getExtensionPrefs   = getExtensionPrefs;
     exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;

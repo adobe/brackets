@@ -1552,3 +1552,76 @@ label input {
         transform: scale(1);
     }
 }
+
+#preferences-viewer {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    overflow: hidden;
+    .flex-box(column);
+
+    .preferences-viewer-header {
+        .modal-header();
+        .flex-item(0, 0);
+        border-bottom: 1px solid @bc-grey;
+    }
+
+    .preferences-viewer-footer {
+        .modal-footer();
+        .flex-item(0, 0);
+        border-top: 1px solid @bc-grey;
+    }
+
+    .preferences-viewer-body {
+        .flex-item(1, 1);
+        position: relative;
+
+        .tabs-left {
+            position: absolute;
+            left: 0;
+            height: 100%;
+            .nav-tabs {
+                text-align: right;
+                height: inherit;
+                width: 100%;
+            }
+        }
+
+        .tab-content {
+            position: absolute;
+            right: 0;
+            height: 100%;
+            overflow-y: scroll;
+            .control-group {
+                line-height: 25px;
+
+                @labelSize: 220px;
+                .control-label {
+                    width: @labelSize;
+                }
+                .controls {
+                    margin-left: @labelSize + 20px;
+                }
+            }
+        }
+
+        fieldset {
+            border: 1px solid @bc-grey;
+        }
+    }
+
+    .validation-error {
+        background-color: lighten(@bc-error, 25%);
+    }
+}
+
+.preferences-viewer-dialog {
+    .validation-error {
+        background-color: lighten(@bc-error, 25%);
+    }
+    textarea {
+        height: 300px;
+    }
+}

@@ -128,6 +128,7 @@ define(function (require, exports, module) {
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
+    require("preferences/PreferencesViewer");
     
     // Deprecated modules loaded just so extensions can still use them for now
     require("utils/CollectionUtils");
