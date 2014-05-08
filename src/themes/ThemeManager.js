@@ -15,16 +15,16 @@ define(function (require, exports, module) {
     require("themes/FontSettings");
     require("themes/FontCommandsManager");
 
-    var _                   = require("thirdparty/lodash"),
-        EditorManager       = require("editor/EditorManager"),
-        FileSystem          = require("filesystem/FileSystem"),
-        ExtensionUtils      = require("utils/ExtensionUtils"),
-        Settings            = require("themes/SettingsManager"),
-        Theme               = require("themes/Theme"),
-        themeSettings       = require("themes/ThemeSettingsDialog"),
-        themeFiles          = require("themes/ThemeFiles"),
-        themeApply          = require("themes/ThemeApply"),
-        scrollbarsApply     = require("themes/ScrollbarsApply");
+    var _                = require("thirdparty/lodash"),
+        EditorManager    = require("editor/EditorManager"),
+        FileSystem       = require("filesystem/FileSystem"),
+        ExtensionUtils   = require("utils/ExtensionUtils"),
+        Settings         = require("themes/SettingsManager"),
+        Theme            = require("themes/Theme"),
+        themeSettings    = require("themes/ThemeSettingsDialog"),
+        themeApply       = require("themes/ThemeApply"),
+        scrollbarsApply  = require("themes/ScrollbarsApply"),
+        fileLoader       = require("themes/FileLoader");
 
 
     // Load up reset.css to override brackground settings from brackets because
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
     * Load css/less files from a directory to be treated as themes
     */
     ThemeManager.loadDirectory = function(path) {
-        return themeFiles.loadDirectory(path).then(loadThemesFiles);
+        return fileLoader.loadDirectory(path).then(loadThemesFiles);
     };
 
 
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
             ThemeManager.refresh(true);
 
             // Expose event for theme changes
-            $(ThemeManager).trigger("change:themes", themeManager.getThemes());
+            $(ThemeManager).trigger("change:themes", ThemeManager.getThemes());
         })
         .on("change:fontSize", function() {
             ThemeManager.refresh();
@@ -233,6 +233,15 @@ define(function (require, exports, module) {
                 ThemeManager.refresh(true);
             }
         });
+
+
+    /**
+    * TODO: remove temporary code to load all themes from CodeMirror.  This is just to test
+    * the whole workflow of loading an entire directory and also to show case themes in brackets :)
+    */
+    var FileUtils = require("file/FileUtils");
+    var cm_path = FileUtils.getNativeBracketsDirectoryPath() + "/thirdparty/CodeMirror2";
+    ThemeManager.loadDirectory( cm_path + "/theme" );
 
 
     //

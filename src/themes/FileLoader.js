@@ -24,8 +24,7 @@ define(function(require) {
         var result = $.Deferred();
 
         if ( !path ) {
-            return result.resolve({
-                files: [],
+            return result.reject({
                 path: path,
                 error: "Path not defined"
             });
@@ -41,40 +40,22 @@ define(function(require) {
                 }
             }
 
-            result.resolve({
-                files: files,
-                path: path,
-                error: err
-            });
+            if ( err ) {
+                result.reject({
+                    path: path,
+                    error: err
+                });
+            }
+            else {
+                result.resolve({
+                    files: files,
+                    path: path
+                });
+            }
         }
 
-        try {
-            FileSystem.getDirectoryForPath(path).getContents(readContent);
-        }
-        catch (ex) {
-            result.resolve({
-                files: [],
-                path: path,
-                error: ex.toString()
-            });
-        }
-
+        FileSystem.getDirectoryForPath(path).getContents(readContent);
         return result.promise();
-    }
-
-
-    function loadList(paths) {
-        var i, length, directories = [];
-
-        for ( i = 0, length = paths.length; i < length; i++ ) {
-            try {
-                directories.push(loadDirectory( paths[i].path ));
-            }
-            catch(ex) {
-            }
-        }
-
-        return $.when.apply(undefined, directories).promise();
     }
 
 
@@ -85,7 +66,6 @@ define(function(require) {
 
 
     return {
-        loadList: loadList,
         loadDirectory: loadDirectory
     };
 
