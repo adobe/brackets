@@ -1631,7 +1631,7 @@ define(function (require, exports, module) {
         });
         
         function openProject(sourcePath) {
-            testPath = defaultSourcePath;
+            testPath = sourcePath;
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         }
         
@@ -1927,6 +1927,142 @@ define(function (require, exports, module) {
                     expect($panelResults.length).toBe(panelListLen - 1);
 
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "closing file");
+                });
+            });
+        });
+        
+        describe("Find results paging", function () {
+            var expectedPages = [
+                {
+                    totalResults: 500,
+                    totalFiles: 2,
+                    overallFirstIndex: 1,
+                    overallLastIndex: 100,
+                    matchRanges: [{file: 0, filename: "manyhits-1.txt", first: 0, firstLine: 1, last: 99, lastLine: 100, pattern: /i'm going to\s+find this\s+now/}],
+                    firstPageEnabled: false,
+                    lastPageEnabled: true,
+                    prevPageEnabled: false,
+                    nextPageEnabled: true
+                },
+                {
+                    totalResults: 500,
+                    totalFiles: 2,
+                    overallFirstIndex: 101,
+                    overallLastIndex: 200,
+                    matchRanges: [{file: 0, filename: "manyhits-1.txt", first: 0, firstLine: 101, last: 99, lastLine: 200, pattern: /i'm going to\s+find this\s+now/}],
+                    firstPageEnabled: true,
+                    lastPageEnabled: true,
+                    prevPageEnabled: true,
+                    nextPageEnabled: true
+                },
+                {
+                    totalResults: 500,
+                    totalFiles: 2,
+                    overallFirstIndex: 201,
+                    overallLastIndex: 300,
+                    matchRanges: [
+                        {file: 0, filename: "manyhits-1.txt", first: 0, firstLine: 201, last: 49, lastLine: 250, pattern: /i'm going to\s+find this\s+now/},
+                        {file: 1, filename: "manyhits-2.txt", first: 0, firstLine: 1, last: 49, lastLine: 50, pattern: /you're going to\s+find this\s+now/}
+                    ],
+                    firstPageEnabled: true,
+                    lastPageEnabled: true,
+                    prevPageEnabled: true,
+                    nextPageEnabled: true
+                },
+                {
+                    totalResults: 500,
+                    totalFiles: 2,
+                    overallFirstIndex: 301,
+                    overallLastIndex: 400,
+                    matchRanges: [{file: 0, filename: "manyhits-2.txt", first: 0, firstLine: 51, last: 99, lastLine: 150, pattern: /you're going to\s+find this\s+now/}],
+                    firstPageEnabled: true,
+                    lastPageEnabled: true,
+                    prevPageEnabled: true,
+                    nextPageEnabled: true
+                },
+                {
+                    totalResults: 500,
+                    totalFiles: 2,
+                    overallFirstIndex: 401,
+                    overallLastIndex: 500,
+                    matchRanges: [{file: 0, filename: "manyhits-2.txt", first: 0, firstLine: 151, last: 99, lastLine: 250, pattern: /you're going to\s+find this\s+now/}],
+                    firstPageEnabled: true,
+                    lastPageEnabled: false,
+                    prevPageEnabled: true,
+                    nextPageEnabled: false
+                }
+            ];
+            
+            function expectPageDisplay(options) {
+                // Check the title
+                expect($("#search-results .title").text().match("\\b" + options.totalResults + "\\b")).toBeTruthy();
+                expect($("#search-results .title").text().match("\\b" + options.totalFiles + "\\b")).toBeTruthy();
+                var paginationInfo = $("#search-results .pagination-col").text();
+                expect(paginationInfo.match("\\b" + options.overallFirstIndex + "\\b")).toBeTruthy();
+                expect(paginationInfo.match("\\b" + options.overallLastIndex + "\\b")).toBeTruthy();
+                
+                // Check for presence of file and first/last item rows within each file
+                options.matchRanges.forEach(function (range) {
+                    var $fileRow = $("#search-results tr.file-section[data-file='" + range.file + "']");
+                    expect($fileRow.length).toBe(1);
+                    expect($fileRow.find(".dialog-filename").text()).toEqual(range.filename);
+                    
+                    var $firstMatchRow = $("#search-results tr[data-file='" + range.file + "'][data-item='" + range.first + "']");
+                    expect($firstMatchRow.length).toBe(1);
+                    expect($firstMatchRow.find(".line-number").text().match("\\b" + range.firstLine + "\\b")).toBeTruthy();
+                    expect($firstMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();
+
+                    var $lastMatchRow = $("#search-results tr[data-file='" + range.file + "'][data-item='" + range.last + "']");
+                    expect($lastMatchRow.length).toBe(1);
+                    expect($lastMatchRow.find(".line-number").text().match("\\b" + range.lastLine + "\\b")).toBeTruthy();
+                    expect($lastMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();
+                });
+                
+                // Check enablement of buttons
+                expect($("#search-results .first-page").hasClass("disabled")).toBe(!options.firstPageEnabled);
+                expect($("#search-results .last-page").hasClass("disabled")).toBe(!options.lastPageEnabled);
+                expect($("#search-results .prev-page").hasClass("disabled")).toBe(!options.prevPageEnabled);
+                expect($("#search-results .next-page").hasClass("disabled")).toBe(!options.nextPageEnabled);
+            }
+            
+            it("should page forward, then jump back to first page, displaying correct contents at each step", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+                
+                // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
+                // be five pages, and the third page should have 50 results from the first file and 50 results
+                // from the second file.
+                executeSearch("find this");
+
+                runs(function () {
+                    var i;
+                    for (i = 0; i < 5; i++) {
+                        if (i > 0) {
+                            $("#search-results .next-page").click();
+                        }
+                        expectPageDisplay(expectedPages[i]);
+                    }
+                    
+                    $("#search-results .first-page").click();
+                    expectPageDisplay(expectedPages[0]);
+                });
+            });
+            
+            it("should jump to last page, then page backward, displaying correct contents at each step", function () {
+                openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
+                openSearchBar();
+                
+                executeSearch("find this");
+
+                runs(function () {
+                    var i;
+                    $("#search-results .last-page").click();
+                    for (i = 4; i >= 0; i--) {
+                        if (i < 4) {
+                            $("#search-results .prev-page").click();
+                        }
+                        expectPageDisplay(expectedPages[i]);
+                    }
                 });
             });
         });
