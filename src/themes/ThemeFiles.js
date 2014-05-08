@@ -10,8 +10,8 @@
 define(function(require) {
     "use strict";
 
-
-    var FileSystem  = require("filesystem/FileSystem");
+    var FileSystem = require("filesystem/FileSystem"),
+        FileUtils  = require("file/FileUtils");
 
     // Root directory for CodeMirror themes
     var validExtensions = ["css", "less"];
@@ -36,7 +36,7 @@ define(function(require) {
             entries = entries || [];
 
             for (i = 0; i < entries.length; i++) {
-                if (entries[i].isFile && validExtensions.indexOf(getExtension(entries[i].name)) !== -1) {
+                if (isValid(entries[i])) {
                     files.push(entries[i].name);
                 }
             }
@@ -74,13 +74,13 @@ define(function(require) {
             }
         }
 
-        return $.when.apply((void 0), directories).promise();
+        return $.when.apply(undefined, directories).promise();
     }
 
 
-    function getExtension(file) {
-        var lastIndexOf = file.lastIndexOf(".") + 1;
-        return file.substr(lastIndexOf);
+    function isValid(file) {
+        return file.isFile &&
+            validExtensions.indexOf(FileUtils.getFileExtension(file.name)) !== -1;
     }
 
 
