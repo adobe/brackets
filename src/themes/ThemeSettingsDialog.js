@@ -32,14 +32,16 @@ define(function(require) {
         var template        = $("<div>").append($settings).html();
         var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes}));
 
+        // Select the correct theme.
+        _.each(currentSettings.themes, function(item) {
+            $template
+                .find("[value='" + item + "']")
+                .attr("selected", "selected");
+        });
+
         $template
             .find("[data-toggle=tab].default")
             .tab("show");
-
-        // Select the correct theme by default.
-        $template
-            .find("[value='" + currentSettings.themes[0] + "']")
-            .attr("selected", "selected");
 
         $template
             .on("change", "[data-target]:checkbox", function() {
