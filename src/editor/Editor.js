@@ -81,6 +81,7 @@ define(function (require, exports, module) {
     /** Editor preferences */
     var CLOSE_BRACKETS    = "closeBrackets",
         CLOSE_TAGS        = "closeTags",
+        HIGHLIGHT_MATCHES = "highlightMatches",
         SCROLL_PAST_END   = "scrollPastEnd",
         SHOW_LINE_NUMBERS = "showLineNumbers",
         SMART_INDENT      = "smartIndent",
@@ -104,6 +105,7 @@ define(function (require, exports, module) {
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
+    cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
     cmOptions[SMART_INDENT]       = "smartIndent";
@@ -115,15 +117,16 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(CLOSE_BRACKETS,    "boolean", false);
     PreferencesManager.definePreference(CLOSE_TAGS,        "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(HIGHLIGHT_MATCHES, "boolean", false);
     PreferencesManager.definePreference(SCROLL_PAST_END,   "boolean", false);
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS, "boolean", true);
     PreferencesManager.definePreference(SMART_INDENT,      "boolean", true);
     PreferencesManager.definePreference(SOFT_TABS,         "boolean", true);
-    PreferencesManager.definePreference(SPACE_UNITS, "number", DEFAULT_SPACE_UNITS, {
+    PreferencesManager.definePreference(SPACE_UNITS,       "number", DEFAULT_SPACE_UNITS, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
     });
     PreferencesManager.definePreference(STYLE_ACTIVE_LINE, "boolean", false);
-    PreferencesManager.definePreference(TAB_SIZE, "number", DEFAULT_TAB_SIZE, {
+    PreferencesManager.definePreference(TAB_SIZE,          "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
     PreferencesManager.definePreference(USE_TAB_CHAR,      "boolean", false);
@@ -261,6 +264,7 @@ define(function (require, exports, module) {
             dragDrop                    : false,
             electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             extraKeys                   : codeMirrorKeyMap,
+            highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
