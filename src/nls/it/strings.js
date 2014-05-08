@@ -469,7 +469,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Abilita Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Registra i Log Node State nella Console",
     "CMD_RESTART_NODE"                          : "Riavvia Node",
-    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di barra di stato",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
     "ERRORS"                                    : "Errori",
 
     
