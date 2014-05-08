@@ -65,7 +65,9 @@ define(function (require, exports, module) {
         StatusBar             = require("widgets/StatusBar"),
         FindBar               = require("search/FindBar").FindBar,
         FindUtils             = require("search/FindUtils"),
-        CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror");
+        CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Dialogs               = require("widgets/Dialogs"),
+        DefaultDialogs        = require("widgets/DefaultDialogs");
     
     var searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html"),
@@ -75,7 +77,8 @@ define(function (require, exports, module) {
 
     var RESULTS_PER_PAGE = 100,
         FIND_IN_FILE_MAX = 300,
-        UPDATE_TIMEOUT   = 400;
+        UPDATE_TIMEOUT   = 400,
+        MAX_IN_MEMORY    = 10; // maximum number of files to do replacements in-memory instead of on disk
     
     /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
     var ZERO_FILES_TO_SEARCH = {};
@@ -1149,6 +1152,46 @@ define(function (require, exports, module) {
             return null;
         }
         
+        function startReplace() {
+            var replaceText = findBar.getReplaceText(), promise;
+            // If the user hasn't done a find yet, do it now.
+            if ($.isEmptyObject(searchResults)) {
+                promise = startSearch();
+            }
+            if (!promise) {
+                promise = new $.Deferred().resolve().promise();
+            }
+            promise.then(function () {
+                var fewReplacements = Object.keys(searchResults).length <= MAX_IN_MEMORY;
+                if (fewReplacements) {
+                    // Just do the replacements in memory.
+                    doReplace(searchResults, replaceText, { forceFilesOpen: true });
+                } else {
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_INFO,
+                        Strings.REPLACE_WITHOUT_UNDO_WARNING_TITLE,
+                        Strings.REPLACE_WITHOUT_UNDO_WARNING,
+                        [
+                            {
+                                className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                                id        : Dialogs.DIALOG_BTN_CANCEL,
+                                text      : Strings.CANCEL
+                            },
+                            {
+                                className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id        : Dialogs.DIALOG_BTN_OK,
+                                text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
+                            }
+                        ]
+                    ).done(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            doReplace(searchResults, replaceText);
+                        }
+                    });
+                }
+            });
+        }
+        
         $(findBar)
             .on("doFind.FindInFiles", function (e) {
                 // TODO: if in Replace mode, shouldn't dismiss find bar?
@@ -1166,18 +1209,9 @@ define(function (require, exports, module) {
             $(findBar).on("doReplace.FindInFiles", function (e, all) {
                 // TODO: handle regexp
                 if (all) {
-                    var replaceText = findBar.getReplaceText();
-                    // If the user hasn't done a find yet, do it now.
-                    if ($.isEmptyObject(searchResults)) {
-                        var promise = startSearch();
-                        if (promise) {
-                            promise.then(function () {
-                                doReplace(searchResults, replaceText);
-                            });
-                        }
-                    } else {
-                        doReplace(searchResults, replaceText);
-                    }
+                    startReplace();
+                } else {
+                    console.warn("FindInFiles: got spurious 'Replace' click");
                 }
             });
         }

@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         FileSystemError       = require("filesystem/FileSystemError"),
         FileUtils             = require("file/FileUtils"),
         Async                 = require("utils/Async"),
+        Strings               = require("strings"),
         _                     = require("thirdparty/lodash");
 
     var promisify = Async.promisify; // for convenience
@@ -1961,9 +1962,9 @@ define(function (require, exports, module) {
             }
             
             function expectProjectToMatchKnownGood(kgFolder, lineEndings) {
-                var testRootPath = ProjectManager.getProjectRoot().fullPath,
-                    kgRootPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + kgFolder + "/");
                 runs(function () {
+                    var testRootPath = ProjectManager.getProjectRoot().fullPath,
+                        kgRootPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + kgFolder + "/");
                     function compareKnownGoodToTestFile(kgContents, kgFilePath) {
                         var testFilePath = testRootPath + kgFilePath.slice(kgRootPath.length);
                         return promisify(FileSystem.getFileForPath(testFilePath), "read").then(function (testContents) {
@@ -2010,9 +2011,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     waitsForDone(doReplace(options), "finish replacement");
                 });
-                runs(function () {
-                    expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
-                });
+                expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
             }
             
             // Like doBasicTest, but expects some files to have specific errors.
@@ -2033,19 +2032,14 @@ define(function (require, exports, module) {
                             done = true;
                         }, function (errors) {
                             expect(errors).toEqual(options.errors);
-                            expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
                             done = true;
                         });
                 });
                 waitsFor(function () { return done; }, 1000, "finish replacement");
+                expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
             }
             
-            // Like doBasicTest, but expects one or more files to be open in memory and the replacements to happen there.
-            function doInMemoryTest(options) {
-                // Like the basic test, we expect everything on disk to match the kgFolder (which means the file open in memory
-                // should *not* have changed on disk yet).
-                doBasicTest(options);
-                
+            function expectInMemoryFiles(options) {
                 runs(function () {
                     waitsForDone(Async.doInParallel(options.inMemoryFiles, function (filePath) {
                         // Check that the document open in memory was changed and matches the expected replaced version of that file.
@@ -2062,8 +2056,22 @@ define(function (require, exports, module) {
                 });
             }
             
+            // Like doBasicTest, but expects one or more files to be open in memory and the replacements to happen there.
+            function doInMemoryTest(options) {
+                // Like the basic test, we expect everything on disk to match the kgFolder (which means the file open in memory
+                // should *not* have changed on disk yet).
+                doBasicTest(options);
+                expectInMemoryFiles(options);
+            }
+            
             beforeEach(function () {
                 searchResults = null;
+            });
+            
+            afterEach(function () {
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
+                });
             });
 
             it("should replace all instances of a simple string in a project on disk case-insensitively", function () {
@@ -2129,10 +2137,6 @@ define(function (require, exports, module) {
                     forceFilesOpen:    true,
                     inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
                     inMemoryKGFolder:  "regexp-dollar-replace"
-                });
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
                 });
             });
 
@@ -2225,10 +2229,6 @@ define(function (require, exports, module) {
                     inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
                 });
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "close file");
-                });
             });
             
             it("should do the replacement in memory for a file open in an Editor that's not in the working set", function () {
@@ -2245,10 +2245,6 @@ define(function (require, exports, module) {
                     knownGoodFolder:  "simple-case-insensitive-except-foo.css",
                     inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
-                });
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }), "close file");
                 });
             });
             
@@ -2277,8 +2273,6 @@ define(function (require, exports, module) {
                     var workingSet = DocumentManager.getWorkingSet();
                     expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
                     doc.releaseRef();
-                    // Have to close all files since this document was never set as the current document.
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
                 });
             });
             
@@ -2293,10 +2287,6 @@ define(function (require, exports, module) {
                     forceFilesOpen:    true,
                     inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
                     inMemoryKGFolder:  "simple-case-insensitive"
-                });
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
                 });
             });
             
@@ -2316,9 +2306,6 @@ define(function (require, exports, module) {
                         $("#replace-with").val(replaceText).trigger("input");
                         $("#replace-all").click();
                     });
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
                 }
                 
                 it("should only show a Replace All button", function () {
@@ -2331,12 +2318,68 @@ define(function (require, exports, module) {
                     closeSearchBar();
                 });
                 
-                it("should do a simple search/replace all from find bar if the user didn't do a Find first", function () {
+                it("should do a simple search/replace all from find bar, opening results in memory, if the user didn't do a Find first", function () {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
                     executeReplace("foo", "bar");
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    expectInMemoryFiles({
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+                
+                it("should warn about doing changes on disk if there are changes in >10 files", function () {
+                    openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
+                    openSearchBar(null, true);
+                    executeReplace("foo", "bar");
                     runs(function () {
-                        expectProjectToMatchKnownGood("simple-case-insensitive");
+                        expect(FindInFiles._replaceDone).toBeFalsy();
+                    });
+                    
+                    var $okButton;
+                    waitsFor(function () {
+                        $okButton = $(".dialog-button[data-button-id='ok']");
+                        return !!$okButton.length;
+                    }, "dialog appearing");
+                    runs(function () {
+                        expect($okButton.length).toBe(1);
+                        expect($okButton.text()).toBe(Strings.BUTTON_REPLACE_WITHOUT_UNDO);
+                        $okButton.click();
+                    });
+                    
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    expectProjectToMatchKnownGood("simple-case-insensitive-large");
+                });
+                
+                it("should not do changes on disk if Cancel is clicked", function () {
+                    spyOn(FindInFiles, "doReplace").andCallThrough();
+                    openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
+                    openSearchBar(null, true);
+                    executeReplace("foo", "bar");
+                    runs(function () {
+                        expect(FindInFiles._replaceDone).toBeFalsy();
+                    });
+                    
+                    var $cancelButton;
+                    waitsFor(function () {
+                        $cancelButton = $(".dialog-button[data-button-id='cancel']");
+                        return !!$cancelButton.length;
+                    });
+                    runs(function () {
+                        expect($cancelButton.length).toBe(1);
+                        $cancelButton.click();
+                    });
+                    
+                    waitsFor(function () {
+                        return $(".dialog-button[data-button-id='cancel']").length === 0;
+                    }, "dialog dismissed");
+                    runs(function () {
+                        expect(FindInFiles.doReplace).not.toHaveBeenCalled();
                     });
                 });
                 
