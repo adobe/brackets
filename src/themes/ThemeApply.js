@@ -28,7 +28,6 @@ define(function(require) {
         // Setup current and further documents to get the new theme...
         CodeMirror.defaults.theme = newThemes;
         cm.setOption("theme", newThemes);
-        $(ExtensionUtils).trigger("Themes.themeChanged", themeManager.getThemes());
     }
 
     return ThemeApply;

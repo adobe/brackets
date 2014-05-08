@@ -216,6 +216,9 @@ define(function (require, exports, module) {
         .on("change:themes", function(evt, themes) {
             setDocumentTheme(themes);
             ThemeManager.refresh(true);
+
+            // Expose event for theme changes
+            $(ThemeManager).trigger("change:themes", themeManager.getThemes());
         })
         .on("change:fontSize", function() {
             ThemeManager.refresh();
@@ -239,6 +242,7 @@ define(function (require, exports, module) {
         refresh: ThemeManager.refresh,
         loadFile: ThemeManager.loadFile,
         loadPackage: ThemeManager.loadPackage,
+        loadDirectory: ThemeManager.loadDirectory,
         getThemes: ThemeManager.getThemes
     };
 
