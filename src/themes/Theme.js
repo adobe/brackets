@@ -11,6 +11,7 @@ define(function () {
     "use strict";
 
     var FileSystem     = require("filesystem/FileSystem"),
+        FileUtils      = require("file/FileUtils"),
         ExtensionUtils = require("utils/ExtensionUtils");
 
     var commentRegex = /\/\*([\s\S]*?)\*\//mg,
@@ -51,7 +52,7 @@ define(function () {
             $(theme.css).remove();
         }
 
-        return readFile(this.getFile())
+        return FileUtils.readAsText(this.getFile())
             .then(function(content) {
                 var result = extractScrollbars(content);
                 theme.scrollbar = result.scrollbar;
@@ -84,27 +85,6 @@ define(function () {
         });
 
         return parts.join(" ");
-    }
-
-
-    function readFile(file) {
-        var deferred = $.Deferred();
-
-        try {
-            file.read(function( err, content /*, stat*/ ) {
-                if ( err ) {
-                    deferred.reject(err);
-                    return;
-                }
-
-                deferred.resolve(content);
-            });
-        }
-        catch(ex) {
-            deferred.reject(false);
-        }
-
-        return deferred.promise();
     }
 
 
