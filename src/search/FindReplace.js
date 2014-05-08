@@ -720,11 +720,13 @@ define(function (require, exports, module) {
         this._panel.$panel
             .off(".replaceAll")
             .on("click.replaceAll", ".replace-checked", function (e) {
-                self.matches.reverse().forEach(function (match) {
-                    if (match.isChecked) {
-                        var rw = typeof self.replaceWhat === "string" ? self.replaceWith : FindUtils.parseDollars(self.replaceWith, match.result);
-                        self.editor.document.replaceRange(rw, match.start, match.end, "+replaceAll");
-                    }
+                self.editor.document.batchOperation(function () {
+                    self.matches.reverse().forEach(function (match) {
+                        if (match.isChecked) {
+                            var rw = typeof self.replaceWhat === "string" ? self.replaceWith : FindUtils.parseDollars(self.replaceWith, match.result);
+                            self.editor.document.replaceRange(rw, match.start, match.end);
+                        }
+                    });
                 });
                 self.hideResults();
             });
