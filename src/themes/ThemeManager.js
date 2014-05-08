@@ -149,7 +149,7 @@ define(function (require, exports, module) {
         // will not render correctly.  Class names that start with a number are invalid
         newThemes = _.map(newThemes, function(theme){ return "theme-" + theme; }).join(" ");
         oldThemes = _.map(oldThemes, function(theme){ return "theme-" + theme; }).join(" ");
-        $("html").removeClass(oldThemes.replace(' ', ',')).addClass(newThemes.replace(' ', ','));
+        $("html").removeClass(oldThemes).addClass(newThemes);
     }
 
 

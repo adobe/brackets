@@ -56,7 +56,8 @@ define(function(require) {
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
                 if ( attr ) {
-                    settings.setValue( attr, [$target.val()] );
+                    var items = $target.map(function(i, item) {return $(item).val();}).toArray();
+                    settings.setValue( attr, items );
                 }
             });
 
