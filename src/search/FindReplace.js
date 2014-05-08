@@ -38,12 +38,14 @@ define(function (require, exports, module) {
         AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
         DocumentManager     = require("document/DocumentManager"),
+        ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
         EditorManager       = require("editor/EditorManager"),
         FindBar             = require("search/FindBar").FindBar,
         FindUtils           = require("search/FindUtils"),
+        SearchResults       = require("search/SearchResults").SearchResults,
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
@@ -52,8 +54,7 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash"),
         CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
-    var searchReplacePanelTemplate   = require("text!htmlContent/search-replace-panel.html"),
-        searchReplaceResultsTemplate = require("text!htmlContent/search-replace-results.html");
+    var replaceAllSummaryTemplate = require("text!htmlContent/search-summary-replace.html");
 
     /** @const Maximum file size to search within (in chars) */
     var FIND_MAX_FILE_SIZE  = 500000;
@@ -62,20 +63,13 @@ define(function (require, exports, module) {
     var FIND_HIGHLIGHT_MAX  = 2000;
 
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
-    var REPLACE_ALL_MAX     = 300;
+    var REPLACE_ALL_MAX     = 10000;
     
-    /** @type {!Panel} Panel that shows results of replaceAll action */
-    var replaceAllPanel = null;
-
+    /** @type {ReplaceAllResults} The find in files results. Initialized in htmlReady() */
+    var replaceAllResults;
+    
     /** @type {?Document} Instance of the currently opened document when replaceAllPanel is visible */
     var currentDocument = null;
-
-    /** @type {$.Element} jQuery elements used in the replaceAll panel */
-    var $replaceAllContainer,
-        $replaceAllWhat,
-        $replaceAllWith,
-        $replaceAllSummary,
-        $replaceAllTable;
 
     /** @type {?FindBar} Currently open Find or Find/Replace bar, if any */
     var findBar;
@@ -620,17 +614,6 @@ define(function (require, exports, module) {
         openSearchBar(editor, false);
     }
 
-    /**
-     * @private
-     * Closes a panel with search-replace results.
-     * Main purpose is to make sure that events are correctly detached from current document.
-     */
-    function _closeReplaceAllPanel() {
-        if (replaceAllPanel !== null && replaceAllPanel.isVisible()) {
-            replaceAllPanel.hide();
-        }
-        $(currentDocument).off("change.replaceAll");
-    }
     
     /**
      * @private
@@ -641,105 +624,7 @@ define(function (require, exports, module) {
         if (findBar) {
             findBar.close();
         }
-        _closeReplaceAllPanel();
-    }
-
-    /**
-     * @private
-     * Shows a panel with search results and offers to replace them,
-     * user can use checkboxes to select which results he wishes to replace.
-     * @param {Editor} editor - Currently active editor that was used to invoke this action.
-     * @param {string|RegExp} replaceWhat - Query that will be passed into CodeMirror Cursor to search for results.
-     * @param {string} replaceWith - String that should be used to replace chosen results.
-     */
-    function _showReplaceAllPanel(editor, replaceWhat, queryInfo, replaceWith) {
-        var results = [],
-            cm      = editor._codeMirror,
-            cursor  = getSearchCursor(cm, replaceWhat, queryInfo),
-            from,
-            to,
-            line,
-            multiLine,
-            matchResult = cursor.findNext();
-
-        // Collect all results from document
-        while (matchResult) {
-            from      = cursor.from();
-            to        = cursor.to();
-            line      = editor.document.getLine(from.line);
-            multiLine = from.line !== to.line;
-
-            results.push({
-                index:     results.length, // add indexes to array
-                from:      from,
-                to:        to,
-                line:      from.line + 1,
-                pre:       line.slice(0, from.ch),
-                highlight: line.slice(from.ch, multiLine ? undefined : to.ch),
-                post:      multiLine ? "\u2026" : line.slice(to.ch),
-                result:    matchResult
-            });
-
-            if (results.length >= REPLACE_ALL_MAX) {
-                break;
-            }
-            
-            matchResult = cursor.findNext();
-        }
-
-        // This text contains some formatting, so all the strings are assumed to be already escaped
-        var resultsLength = results.length,
-            summary = StringUtils.format(
-                Strings.FIND_REPLACE_TITLE_PART3,
-                resultsLength,
-                resultsLength > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                resultsLength >= REPLACE_ALL_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
-            );
-
-        // Insert the search summary
-        $replaceAllWhat.text(replaceWhat.toString());
-        $replaceAllWith.text(replaceWith.toString());
-        $replaceAllSummary.html(summary);
-
-        // All checkboxes are checked by default
-        $replaceAllContainer.find(".check-all").prop("checked", true);
-
-        // Attach event to replace button
-        $replaceAllContainer.find("button.replace-checked").off().on("click", function (e) {
-            $replaceAllTable.find(".check-one:checked")
-                .closest(".replace-row")
-                .toArray()
-                .reverse()
-                .forEach(function (checkedRow) {
-                    var match = results[$(checkedRow).data("match")],
-                        rw    = typeof replaceWhat === "string" ? replaceWith : FindUtils.parseDollars(replaceWith, match.result);
-                    editor.document.replaceRange(rw, match.from, match.to, "+replaceAll");
-                });
-            _closeReplaceAllPanel();
-        });
-
-        // Insert the search results
-        $replaceAllTable
-            .empty()
-            .append(Mustache.render(searchReplaceResultsTemplate, {searchResults: results}))
-            .off()
-            .on("click", ".check-one", function (e) {
-                e.stopPropagation();
-            })
-            .on("click", ".replace-row", function (e) {
-                var match = results[$(e.currentTarget).data("match")];
-                editor.setSelection(match.from, match.to, true);
-            });
-
-        // we can't safely replace after document has been modified
-        // this handler is only attached, when replaceAllPanel is visible
-        currentDocument = DocumentManager.getCurrentDocument();
-        $(currentDocument).on("change.replaceAll", function () {
-            _closeReplaceAllPanel();
-        });
-
-        replaceAllPanel.show();
-        $replaceAllTable.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
+        replaceAllResults.hideResults();
     }
     
     function doReplace(editor, all) {
@@ -749,7 +634,7 @@ define(function (require, exports, module) {
         
         if (all) {
             findBar.close();
-            _showReplaceAllPanel(editor, state.query, state.queryInfo, replaceText);
+            replaceAllResults.showReplaceAll(editor, state.query, state.queryInfo, replaceText);
         } else {
             cm.replaceSelection(typeof state.query === "string" ? replaceText : FindUtils.parseDollars(replaceText, state.lastMatch));
 
@@ -806,26 +691,133 @@ define(function (require, exports, module) {
             replace(editor);
         }
     }
+    
+    /**
+     * @private
+     * @constructor
+     * @extends {SearchResults}
+     * Handles the Replace All Results and the Results Panel
+     */
+    function ReplaceAllResults() {
+        this._summaryTemplate = replaceAllSummaryTemplate;
+        this._hasCheckboxes   = true;
+        
+        this.createPanel("replace-all-results", "replace-all.results");
+    }
+    
+    ReplaceAllResults.prototype = Object.create(SearchResults.prototype);
+    ReplaceAllResults.prototype.constructor = ReplaceAllResults;
+    ReplaceAllResults.prototype.parentClass = SearchResults.prototype;
+    
+    /**
+     * Adds the listeners for close, prev, next, first, last, check all and replace checked
+     */
+    ReplaceAllResults.prototype._addPanelListeners = function () {
+        var self = this;
+        this.parentClass._addPanelListeners.apply(this);
+        
+        // Attach event to replace button
+        this._panel.$panel
+            .off(".replaceAll")
+            .on("click.replaceAll", ".replace-checked", function (e) {
+                self.matches.reverse().forEach(function (match) {
+                    if (match.isChecked) {
+                        var rw = typeof self.replaceWhat === "string" ? self.replaceWith : FindUtils.parseDollars(self.replaceWith, match.result);
+                        self.editor.document.replaceRange(rw, match.start, match.end, "+replaceAll");
+                    }
+                });
+                self.hideResults();
+            });
+    };
+    
+    
+    /**
+     * Searches through the file to find all the matches and the shows the results in a panel to select which to replace
+     * @param {Editor} editor  Currently active editor that was used to invoke this action.
+     * @param {(string|RegExp)} replaceWhat  Query that will be passed into CodeMirror Cursor to search for results.
+     * @param {string} replaceWith  String that should be used to replace chosen results.
+     */
+    ReplaceAllResults.prototype.showReplaceAll = function (editor, replaceWhat, queryInfo, replaceWith) {
+        var cm          = editor._codeMirror,
+            cursor      = getSearchCursor(cm, replaceWhat, queryInfo),
+            matchResult = cursor.findNext(),
+            matches     = [],
+            self        = this,
+            from;
+        
+        this.initializeResults();
+        
+        // Collect all results from document
+        while (matchResult) {
+            from = cursor.from();
+            matches.push({
+                start:     from,
+                end:       cursor.to(),
+                line:      editor.document.getLine(from.line),
+                result:    matchResult,
+                isChecked: true
+            });
+            
+            if (matches.length >= REPLACE_ALL_MAX) {
+                break;
+            }
+            matchResult = cursor.findNext();
+        }
+        
+        this.editor      = editor;
+        this.matches     = matches;
+        this.replaceWhat = replaceWhat;
+        this.replaceWith = replaceWith;
+        
+        this.addResultMatches(ProjectManager.getSelectedItem().fullPath, matches);
+        this.showResults();
+        
+        // we can't safely replace after document has been modified
+        // this handler is only attached, when replaceAllPanel is visible
+        currentDocument = DocumentManager.getCurrentDocument();
+        $(currentDocument).on("change.replaceAll", function () {
+            self.hideResults();
+        });
+    };
+    
+    /**
+     * Shows a panel with search results and offers to replace them,
+     * user can use checkboxes to select which results he wishes to replace.
+     */
+    ReplaceAllResults.prototype.showResults = function () {
+        var count = this._countFilesMatches(),
+            self  = this,
+        
+        // This text contains some formatting, so all the strings are assumed to be already escaped
+            summary = StringUtils.format(
+                Strings.FIND_REPLACE_TITLE_PART3,
+                String(count.matches),
+                count.matches > 1 ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                count.matches >= REPLACE_ALL_MAX ? Strings.FIND_IN_FILES_MORE_THAN : ""
+            );
+
+        // Insert the search summary
+        this._showSummary({
+            replaceWhat: this.replaceWhat.toString(),
+            replaceWith: this.replaceWith.toString(),
+            summary:     summary
+        });
+
+        // Insert the search results
+        this._showResultsList();
+    };
+    
+    /**
+     * Hides the Search Results Panel
+     */
+    ReplaceAllResults.prototype.hideResults = function () {
+        this.parentClass.hideResults.apply(this);
+        $(currentDocument).off("change.replaceAll");
+    };
 
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);
-        replaceAllPanel      = PanelManager.createBottomPanel("findReplace-all.panel", $(panelHtml), 100);
-        $replaceAllContainer = replaceAllPanel.$panel;
-        $replaceAllWhat      = $replaceAllContainer.find(".replace-what");
-        $replaceAllWith      = $replaceAllContainer.find(".replace-with");
-        $replaceAllSummary   = $replaceAllContainer.find(".replace-summary");
-        $replaceAllTable     = $replaceAllContainer.children(".table-container");
-
-        // Attach events to the panel
-        replaceAllPanel.$panel
-            .on("click", ".close", function () {
-                _closeReplaceAllPanel();
-            })
-            .on("click", ".check-all", function (e) {
-                var isChecked = $(this).is(":checked");
-                replaceAllPanel.$panel.find(".check-one").prop("checked", isChecked);
-            });
+        replaceAllResults = new ReplaceAllResults();
     });
 
     $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);

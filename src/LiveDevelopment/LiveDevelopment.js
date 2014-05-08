@@ -955,6 +955,11 @@ define(function LiveDevelopment(require, exports, module) {
      * interstitial page has finished loading.
      */
     function _onInterstitialPageLoad() {
+
+        Inspector.Runtime.evaluate("window.navigator.userAgent", function (uaResponse) {
+            Inspector.setUserAgent(uaResponse.result.value);
+        });
+
         // Domains for some agents must be enabled first before loading
         var enablePromise = Inspector.Page.enable().then(_enableAgents);
         

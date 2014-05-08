@@ -36,6 +36,8 @@ define(function (require, exports, module) {
         FileSystemError       = require("filesystem/FileSystemError"),
         FileUtils             = require("file/FileUtils"),
         Async                 = require("utils/Async"),
+        LanguageManager       = require("language/LanguageManager"),
+        StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash");
 
@@ -1694,6 +1696,64 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should ignore binary files", function () {
+                var $dlg, actualMessage, expectedMessage,
+                    exists = false,
+                    done = false,
+                    imageDirPath = testPath + "/images";
+
+                runs(function () {
+                    // Set project to have only images
+                    SpecRunnerUtils.loadProjectInTestWindow(imageDirPath);
+
+                    // Verify an image exists in folder
+                    var file = FileSystem.getFileForPath(testPath + "/images/icon_twitter.png");
+
+                    file.exists(function (fileError, fileExists) {
+                        exists = fileExists;
+                        done = true;
+                    });
+                });
+
+                waitsFor(function () {
+                    return done;
+                }, "file.exists");
+
+                runs(function () {
+                    expect(exists).toBe(true);
+                    openSearchBar();
+                });
+
+                runs(function () {
+                    // Launch filter editor
+                    $(".filter-picker button").click();
+
+                    // Dialog should state there are 0 files in project
+                    $dlg = $(".modal");
+                    expectedMessage = StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, 0, Strings.FIND_IN_FILES_NO_SCOPE);
+                });
+
+                // Message loads asynchronously, but dialog should evetually state: "Allows all 0 files in project"
+                waitsFor(function () {
+                    actualMessage   = $dlg.find(".exclusions-filecount").text();
+                    return (actualMessage === expectedMessage);
+                }, "display file count");
+
+                runs(function () {
+                    // Dismiss filter dialog
+                    $dlg.find(".btn.primary").click();
+
+                    // Close search bar
+                    var $searchField = $(".modal-bar #find-group input");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
+                });
+
+                runs(function () {
+                    // Set project back to main test folder
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
             it("should find all occurences in folder", function () {
                 var dirEntry = FileSystem.getDirectoryForPath(testPath + "/css/");
                 openSearchBar(dirEntry);
@@ -1770,7 +1830,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var fileResults = FindInFiles._searchResults[filePath];
                     expect(fileResults).toBeTruthy();
-                    expect($("#search-results").is(":visible")).toBeTruthy();
+                    expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                     expect($(".modal-bar").length).toBe(0);
                 });
             });
@@ -1797,7 +1857,7 @@ define(function (require, exports, module) {
                     }
                     expect(resultFound).toBe(false);
 
-                    expect($("#search-results").is(":visible")).toBeFalsy();
+                    expect($("#find-in-files-results").is(":visible")).toBeFalsy();
                     expect($(".modal-bar").length).toBe(1);
 
                     // Close search bar
@@ -1819,7 +1879,7 @@ define(function (require, exports, module) {
                     expect(editor).toBeFalsy();
 
                     // Get panel
-                    var $searchResults = $("#search-results");
+                    var $searchResults = $("#find-in-files-results");
                     expect($searchResults.is(":visible")).toBeTruthy();
 
                     // Get list in panel
@@ -1856,7 +1916,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
 
                     // Get list in panel
-                    var $panelResults = $("#search-results table.bottom-panel-table tr");
+                    var $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
                     expect($panelResults.length).toBe(5);   // 4 hits + 1 file section
 
                     // Double-click second item which is first hit
@@ -1884,7 +1944,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.findInWorkingSet(filePath)).toBe(-1);
 
                     // Get list in panel
-                    $panelResults = $("#search-results table.bottom-panel-table tr");
+                    $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
                     expect($panelResults.length).toBe(panelListLen);
 
                     // Click second item which is first hit
@@ -1918,7 +1978,7 @@ define(function (require, exports, module) {
 
                 // Panel is updated asynchronously
                 waitsFor(function () {
-                    $panelResults = $("#search-results table.bottom-panel-table tr");
+                    $panelResults = $("#find-in-files-results table.bottom-panel-table tr");
                     return ($panelResults.length < panelListLen);
                 }, "Results panel updated");
 
@@ -1995,34 +2055,34 @@ define(function (require, exports, module) {
             
             function expectPageDisplay(options) {
                 // Check the title
-                expect($("#search-results .title").text().match("\\b" + options.totalResults + "\\b")).toBeTruthy();
-                expect($("#search-results .title").text().match("\\b" + options.totalFiles + "\\b")).toBeTruthy();
-                var paginationInfo = $("#search-results .pagination-col").text();
+                expect($("#find-in-files-results .title").text().match("\\b" + options.totalResults + "\\b")).toBeTruthy();
+                expect($("#find-in-files-results .title").text().match("\\b" + options.totalFiles + "\\b")).toBeTruthy();
+                var paginationInfo = $("#find-in-files-results .pagination-col").text();
                 expect(paginationInfo.match("\\b" + options.overallFirstIndex + "\\b")).toBeTruthy();
                 expect(paginationInfo.match("\\b" + options.overallLastIndex + "\\b")).toBeTruthy();
                 
                 // Check for presence of file and first/last item rows within each file
                 options.matchRanges.forEach(function (range) {
-                    var $fileRow = $("#search-results tr.file-section[data-file='" + range.file + "']");
+                    var $fileRow = $("#find-in-files-results tr.file-section[data-file='" + range.file + "']");
                     expect($fileRow.length).toBe(1);
                     expect($fileRow.find(".dialog-filename").text()).toEqual(range.filename);
                     
-                    var $firstMatchRow = $("#search-results tr[data-file='" + range.file + "'][data-item='" + range.first + "']");
+                    var $firstMatchRow = $("#find-in-files-results tr[data-file='" + range.file + "'][data-item='" + range.first + "']");
                     expect($firstMatchRow.length).toBe(1);
                     expect($firstMatchRow.find(".line-number").text().match("\\b" + range.firstLine + "\\b")).toBeTruthy();
                     expect($firstMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();
 
-                    var $lastMatchRow = $("#search-results tr[data-file='" + range.file + "'][data-item='" + range.last + "']");
+                    var $lastMatchRow = $("#find-in-files-results tr[data-file='" + range.file + "'][data-item='" + range.last + "']");
                     expect($lastMatchRow.length).toBe(1);
                     expect($lastMatchRow.find(".line-number").text().match("\\b" + range.lastLine + "\\b")).toBeTruthy();
                     expect($lastMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();
                 });
                 
                 // Check enablement of buttons
-                expect($("#search-results .first-page").hasClass("disabled")).toBe(!options.firstPageEnabled);
-                expect($("#search-results .last-page").hasClass("disabled")).toBe(!options.lastPageEnabled);
-                expect($("#search-results .prev-page").hasClass("disabled")).toBe(!options.prevPageEnabled);
-                expect($("#search-results .next-page").hasClass("disabled")).toBe(!options.nextPageEnabled);
+                expect($("#find-in-files-results .first-page").hasClass("disabled")).toBe(!options.firstPageEnabled);
+                expect($("#find-in-files-results .last-page").hasClass("disabled")).toBe(!options.lastPageEnabled);
+                expect($("#find-in-files-results .prev-page").hasClass("disabled")).toBe(!options.prevPageEnabled);
+                expect($("#find-in-files-results .next-page").hasClass("disabled")).toBe(!options.nextPageEnabled);
             }
             
             it("should page forward, then jump back to first page, displaying correct contents at each step", function () {
@@ -2038,12 +2098,12 @@ define(function (require, exports, module) {
                     var i;
                     for (i = 0; i < 5; i++) {
                         if (i > 0) {
-                            $("#search-results .next-page").click();
+                            $("#find-in-files-results .next-page").click();
                         }
                         expectPageDisplay(expectedPages[i]);
                     }
                     
-                    $("#search-results .first-page").click();
+                    $("#find-in-files-results .first-page").click();
                     expectPageDisplay(expectedPages[0]);
                 });
             });
@@ -2056,10 +2116,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var i;
-                    $("#search-results .last-page").click();
+                    $("#find-in-files-results .last-page").click();
                     for (i = 4; i >= 0; i--) {
                         if (i < 4) {
-                            $("#search-results .prev-page").click();
+                            $("#find-in-files-results .prev-page").click();
                         }
                         expectPageDisplay(expectedPages[i]);
                     }
@@ -2086,7 +2146,11 @@ define(function (require, exports, module) {
                 
                 function visitor(file) {
                     if (!file.isDirectory) {
-                        files.push(file);
+                        // Skip binary files, since we don't care about them for these purposes and we can't read them
+                        // to get their contents.
+                        if (!LanguageManager.getLanguageForPath(file.fullPath).isBinary()) {
+                            files.push(file);
+                        }
                     }
                     return true;
                 }
@@ -2133,6 +2197,8 @@ define(function (require, exports, module) {
                     if (lineEndings) {
                         waitsForDone(copyWithLineEndings(sourcePath, testPath, lineEndings), "copy test files with line endings");
                     } else {
+                        // Note that we don't skip image files in this case, but it doesn't matter since we'll
+                        // only compare files that have an associated file in the known goods folder.
                         waitsForDone(SpecRunnerUtils.copy(sourcePath, testPath), "copy test files");
                     }
                 });

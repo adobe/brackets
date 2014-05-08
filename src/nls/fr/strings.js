@@ -493,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
+	"ERRORS": "Erreurs",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
@@ -503,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "[7522334] !é=Show Errors in Status Bar=!",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",

@@ -966,7 +966,7 @@ a, img {
 
 /* Find in Files results panel - temporary UI, to be replaced with a richer search feature later */
 
-#search-results .title, #replace-all-results .title {
+.search-results .title {
     .sane-box-model;
     padding-right: 20px;
     width: 100%;
@@ -983,7 +983,7 @@ a, img {
         .flex-item(0, 0);
     }
     .pagination-col {
-        .flex-item(1, 0);
+        .flex-item(0, 0);
         min-width: 100px;
         word-spacing: 0;
     }
@@ -1032,7 +1032,8 @@ a, img {
     }
 }
 
-#search-results .disclosure-triangle, #problems-panel .disclosure-triangle {
+.search-results .disclosure-triangle,
+#problems-panel .disclosure-triangle {
     .jstree-sprite;
     display: inline-block;
     &.expanded {
@@ -1423,6 +1424,12 @@ textarea.exclusions-editor {
             height: 9px;
         }
     }
+    
+    &.inline {
+        margin-left: 8px;
+        position: relative;
+        top: 3px;
+    }
 }
 
 @-webkit-keyframes spinner-rotateplane {
@@ -1500,10 +1507,6 @@ label input {
 .live-preview-sync-error .CodeMirror-linenumber {
     background-color: @live-preview-sync-error-background !important;
     color: @live-preview-sync-error-color !important;
-}
-
-.install-extension-dialog .spinner {
-    margin-left: 10px;
 }
 
 /* Quick Edit, Quick Docs */
