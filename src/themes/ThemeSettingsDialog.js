@@ -38,7 +38,7 @@ define(function(require) {
 
         // Select the correct theme by default.
         $template
-            .find("[theme-id='" + currentSettings.themes[0] + "']")
+            .find("[value='" + currentSettings.themes[0] + "']")
             .attr("selected", "selected");
 
         $template
@@ -70,8 +70,8 @@ define(function(require) {
             }
         });
     }
-    
-    
+
+
     function setThemes(themes) {
         _themes = themes;
     }
