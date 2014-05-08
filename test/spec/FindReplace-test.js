@@ -1339,6 +1339,17 @@ define(function (require, exports, module) {
 
         
         describe("Search -> Replace All", function () {
+            function expectTextAtPositions(text, posArray) {
+                posArray.forEach(function (pos) {
+                    expect(myEditor.document.getRange(pos, {line: pos.line, ch: pos.ch + text.length})).toEqual(text);
+                });
+            }
+            function dontExpectTextAtPositions(text, posArray) {
+                posArray.forEach(function (pos) {
+                    expect(myEditor.document.getRange(pos, {line: pos.line, ch: pos.ch + text.length})).not.toEqual(text);
+                });
+            }
+            
             it("should find and replace all", function () {
                 runs(function () {
                     var searchText  = "require",
@@ -1354,22 +1365,53 @@ define(function (require, exports, module) {
                     tw$("#replace-all").click();
                     tw$(".replace-checked").click();
 
+                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
+                    //       but not first instance of "require" in text
+                    expectTextAtPositions(replaceText, [
+                        {line: 1, ch: 17},
+                        {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}
+                    ]);
+                });
+            });
+            
+            it("should not replace unchecked items", function () {
+                runs(function () {
+                    var searchText  = "require",
+                        replaceText = "brackets.getModule";
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
+                    tw$("#replace-all").click();
+                    
+                    // verify that all items are checked by default
+                    var $checked = tw$(".check-one:checked");
+                    expect($checked.length).toBe(4);
+                    
+                    // uncheck second and fourth
+                    $checked.eq(1).click();
+                    $checked.eq(3).click();
+                    expect(tw$(".check-one:checked").length).toBe(2);
+                    
+                    tw$(".replace-checked").click();
+
                     myEditor.setSelection({line: 1, ch: 17}, {line: 1, ch: 17 + replaceText.length});
                     expect(myEditor.getSelectedText()).toBe(replaceText);
 
-                    // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
-                    //       but not first instance of "require" in text
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
-                                          {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START + replaceText.length});
-                    expect(myEditor.getSelectedText()).toBe(replaceText);
-
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START},
-                                          {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START + replaceText.length});
-                    expect(myEditor.getSelectedText()).toBe(replaceText);
-
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START},
-                                          {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START + replaceText.length});
-                    expect(myEditor.getSelectedText()).toBe(replaceText);
+                    expectTextAtPositions(replaceText, [
+                        {line: 1, ch: 17},
+                        {line: LINE_FIRST_REQUIRE + 1, ch: CH_REQUIRE_START}
+                    ]);
+                    dontExpectTextAtPositions(replaceText, [
+                        {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
+                        {line: LINE_FIRST_REQUIRE + 2, ch: CH_REQUIRE_START}
+                    ]);
                 });
             });
 
