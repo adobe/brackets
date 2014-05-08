@@ -36,6 +36,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
     "FILE_EXISTS_ERR"                   : "Il file è già presente.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "cartella",
@@ -45,7 +46,7 @@ define({
     "OPEN_DIALOG_ERROR"                 : "Errore durante il caricamento della finestra di dialogo per l’apertura del file. (errore {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Errore durante il tentativo di caricare la cartella <span class='dialog-filename'>{0}</span>. (errore {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Errore durante la lettura del contenuto della cartella <span class='dialog-filename'>{0}</span>. (errore {1})",
-    
+
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Errore durante l’apertura del file",
     "ERROR_OPENING_FILE"                : "Errore durante il tentativo di apertura del file <span class='dialog-filename'>{0}</span>. {1}",
@@ -155,6 +156,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "nel progetto",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filtra esclude tutti i file {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "file",
     "FIND_IN_FILES_MATCH"               : "corrispondenza",
@@ -173,8 +175,9 @@ define({
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore"
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
-    "FILE_FILTER_CLIPPED_SUFFIX"    : "e {0} in più ",
-
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
+    "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
+ 
     /**
      * ProjectManager
      */
@@ -263,6 +266,7 @@ define({
     "CMD_FIND"                          : "Cerca",
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
     "CMD_FIND_IN_FILES"                 : "Cerca nei file",
+    "CMD_FIND_IN_SELECTED"              : "Cerca nel file/cartella selezionata",
     "CMD_FIND_IN_SUBTREE"               : "Cerca in\u2026",
     "CMD_FIND_NEXT"                     : "Cerca il successivo",
     "CMD_FIND_PREVIOUS"                 : "Cerca il precedente",
@@ -302,6 +306,7 @@ define({
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands
+    "FIND_MENU"                         : "Trova",
     "NAVIGATE_MENU"                     : "Naviga",
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
