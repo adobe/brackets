@@ -147,10 +147,12 @@ define(function (require, exports, module) {
         
         if (fetchData) {
             var lookupPromise = new $.Deferred(),
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
+                localVersionInfoUrl;
 
             // If the current locale isn't en, check whether we actually have a locale-specific update notification, and fall back to en if not.
-            if (brackets.getLocale() !== "en") {
+            var locale = brackets.getLocale();
+            if (locale !== "en" && locale !== "en-US") {
+                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
                 $.ajax({
                     url: localVersionInfoUrl,
                     cache: false,
@@ -175,6 +177,7 @@ define(function (require, exports, module) {
                     lookupPromise.resolve();
                 });
             } else {
+                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
                 lookupPromise.resolve();
             }
 
@@ -321,7 +324,7 @@ define(function (require, exports, module) {
         var oldValues;
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
-        var versionInfoUrl = _getVersionInfoUrl();
+        var versionInfoUrl;
         
         if (_testValues) {
             oldValues = {};
