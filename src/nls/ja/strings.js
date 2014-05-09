@@ -37,7 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
-	"UNSUPPORTED_ENCODING_ERR": "!能=[7527206] The file is not UTF-8 encoded text._=!",
+	"UNSUPPORTED_ENCODING_ERR": "ファイルは UTF-8 でエンコードされたテキストではありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
@@ -180,7 +180,6 @@ define({
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
 	"FILE_FILTER_LIST_PREFIX": "例外",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
-
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
 	"FILTER_FILE_COUNT_ALL": "{1}の全 {0} ファイルを許可",
