@@ -731,5 +731,38 @@ define(function (require, exports, module) {
                 expect(language.getId()).toBe("ruby");
             });
         });
+
+        describe("isBinary", function () {
+
+            it("should recognize known binary file extensions", function () {
+                // image
+                expect(LanguageManager.getLanguageForPath("test.gif").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.png").isBinary()).toBeTruthy();
+
+                // audio
+                expect(LanguageManager.getLanguageForPath("test.mp3").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.wav").isBinary()).toBeTruthy();
+
+                // other
+                expect(LanguageManager.getLanguageForPath("test.exe").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.dll").isBinary()).toBeTruthy();
+                expect(LanguageManager.getLanguageForPath("test.zip").isBinary()).toBeTruthy();
+            });
+
+            it("should recognize known non-binary file extensions", function () {
+                expect(LanguageManager.getLanguageForPath("test.css").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.html").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.txt").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.js").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.json").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.xml").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.css.erb").isBinary()).toBeFalsy();
+                expect(LanguageManager.getLanguageForPath("test.php.css").isBinary()).toBeFalsy();
+            });
+
+            it("should recognize unknown file extensions as non-binary", function () {
+                expect(LanguageManager.getLanguageForPath("test.abcxyz").isBinary()).toBeFalsy();
+            });
+        });
     });
 });

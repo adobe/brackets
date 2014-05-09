@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "The file is not UTF-8 encoded text.",
     "FILE_EXISTS_ERR"                   : "The file or directory already exists.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "directory",
@@ -179,7 +180,6 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
-
     "FILTER_COUNTING_FILES"             : "Counting files\u2026",
     "FILTER_FILE_COUNT"                 : "Allows {0} of {1} files {2}",
     "FILTER_FILE_COUNT_ALL"             : "Allows all {0} files {1}",
@@ -494,6 +494,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Show Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
@@ -504,6 +505,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

@@ -312,7 +312,7 @@ define({
 	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
 	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SELECTED": "[7518286] !é=Find in Selected File/Folder=!",
+	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_REPLACE": "Remplacer",
     
@@ -493,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
+	"ERRORS": "Erreurs",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
@@ -503,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",

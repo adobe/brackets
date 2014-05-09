@@ -312,7 +312,7 @@ define({
 	"CMD_ADD_NEXT_MATCH": "選択範囲に次の候補を追加",
 	"CMD_SKIP_CURRENT_MATCH": "スキップして次の候補を追加",
 	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
-	"CMD_FIND_IN_SELECTED": "!能=[7518286] Find in Selected File/Folder_=!",
+	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_REPLACE": "置換",
     
@@ -493,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
+	"ERRORS": "エラー",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
@@ -503,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Node Debugger を有効にする",
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
