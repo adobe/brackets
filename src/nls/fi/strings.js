@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Kohdehakemistoa ei voitu muuttaa.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
     "CONTENTS_MODIFIED_ERR"             : "Tiedostoa on muokattu {APP_NAME}in ulkopuolella.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Tiedosto ei ole UTF-8-kooditettua tekstiä.",
     "FILE_EXISTS_ERR"                   : "Tiedosto tai hakemisto on jo olemassa.",
     "FILE"                              : "tiedosto",
     "DIRECTORY"                         : "hakemisto",
@@ -179,7 +180,6 @@ define({
     "FILE_FILTER_INSTRUCTIONS"          : "Sulje pois tiedostoja ja kansioita sovittamalla yhteen mikä tahansa seuraavista merkkijonoista / alimerkkijonoista tai <a href='{0}' title='{0}'>jokerimerkeistä</a>. Syötä jokainen merkkijono uudelle riville.",
     "FILE_FILTER_LIST_PREFIX"           : "paitsi",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
-
     "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
     "FILTER_FILE_COUNT"                 : "Sallii {0} tiedostoa {1} tiedostosta {2}",
     "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki {0} tiedostoa {1}",
