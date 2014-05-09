@@ -585,6 +585,9 @@ define(function (require, exports, module) {
             
             // Indicate that there's an error if the query isn't blank and it's an invalid regexp.
             findBar.showNoResults(queryInfo.query && query === null, false);
+            
+            // Disable the replace button if the query is blank or invalid.
+            findBar.enableReplace(query !== null);
         }
         
         function startSearch(replaceText) {

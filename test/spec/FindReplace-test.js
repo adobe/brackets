@@ -1649,6 +1649,9 @@ define(function (require, exports, module) {
             runs(function () {
                 FindInFiles._doFindInFiles(scope, showReplace);
             });
+            waitsFor(function () {
+                return $(".modal-bar").length === 1;
+            }, "search bar open");
         }
         
         function closeSearchBar() {
@@ -2570,7 +2573,44 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should set focus to the Replace field if the user hits enter in the Find field", function () {
+                it("should disable the Replace button if query is empty", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        expect($("#replace-all").is(":disabled")).toBe(true);
+                    });
+                });
+                
+                it("should enable the Replace button if the query is a non-empty string", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        $("#find-what").val("my query").trigger("input");
+                        expect($("#replace-all").is(":disabled")).toBe(false);
+                    });
+                });
+                
+                it("should disable the Replace button if query is an invalid regexp", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        $("#find-regexp").click();
+                        $("#find-what").val("[invalid").trigger("input");
+                        expect($("#replace-all").is(":disabled")).toBe(true);
+                    });
+                });
+
+                it("should enable the Replace button if query is a valid regexp", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        $("#find-regexp").click();
+                        $("#find-what").val("[valid]").trigger("input");
+                        expect($("#replace-all").is(":disabled")).toBe(false);
+                    });
+                });
+
+                it("should set focus to the Replace field when the user hits enter in the Find field", function () {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
                     runs(function () {

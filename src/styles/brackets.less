@@ -1114,6 +1114,7 @@ a, img {
             left: 5px;
             top: 24px;
             min-width: 291px + 2px;  // to align with search field above it
+            z-index: 1; // to appear above any controls that wrap below
 
             background-color: @bc-error;
             color: @bc-white;
@@ -1142,7 +1143,7 @@ a, img {
     #find-group, #replace-group {
         display: inline-block;
         white-space: nowrap;
-    }   
+    }
     #replace-group.has-scope {
         // If scope controls are showing, force the replace controls to a second line.
         display: block;
