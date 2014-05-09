@@ -2256,6 +2256,12 @@ define(function (require, exports, module) {
                 doSearch(options);
                 
                 runs(function () {
+                    if (options.uncheckMatches) {
+                        var pathToUncheck = testPath + options.uncheckMatches;
+                        searchResults[pathToUncheck].matches.forEach(function (match) {
+                            match.isChecked = false;
+                        });
+                    }
                     waitsForDone(doReplace(options), "finish replacement");
                 });
                 expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
@@ -2409,6 +2415,18 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should not replace unchecked matches on disk", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                doBasicTest({
+                    queryInfo:         {query: "foo"},
+                    numMatches:        14,
+                    uncheckMatches:    "/css/foo.css",
+                    replaceText:       "bar",
+                    knownGoodFolder:   "simple-case-insensitive-except-foo.css"
+                });
+            });
+
             it("should not do the replacement in files that have changed on disk since the results list was last updated", function () {
                 openTestProjectCopy(defaultSourcePath);
                 doTestWithErrors({
@@ -2537,11 +2555,74 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should select the first modified file in the working set if replacements are done in memory and current editor wasn't affected", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/bar.txt"}), "open file");
+                });
+
+                doInMemoryTest({
+                    queryInfo:         {query: "foo"},
+                    numMatches:        14,
+                    replaceText:       "bar",
+                    knownGoodFolder:   "unchanged",
+                    forceFilesOpen:    true,
+                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                    inMemoryKGFolder:  "simple-case-insensitive"
+                });
+                
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                });
+            });
+            
+            it("should select the first modified file in the working set if replacements are done in memory and no editor was open", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                doInMemoryTest({
+                    queryInfo:         {query: "foo"},
+                    numMatches:        14,
+                    replaceText:       "bar",
+                    knownGoodFolder:   "unchanged",
+                    forceFilesOpen:    true,
+                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                    inMemoryKGFolder:  "simple-case-insensitive"
+                });
+                
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                });
+            });
+            
+            it("should select the first modified file in the working set if replacements are done in memory and there were no matches checked for current editor", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "open file");
+                });
+
+                doInMemoryTest({
+                    queryInfo:         {query: "foo"},
+                    numMatches:        14,
+                    uncheckMatches:    "/css/foo.css",
+                    replaceText:       "bar",
+                    knownGoodFolder:   "unchanged",
+                    forceFilesOpen:    true,
+                    inMemoryFiles:     ["/foo.html", "/foo.js"],
+                    inMemoryKGFolder:  "simple-case-insensitive-except-foo.css"
+                });
+                
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/foo.html");
+                });
+            });
+            
             // TODO: More things to test headlessly:
             // subtree search
             // single file search
             // filters
-            // subset of matches
+            // subset of matches (unchecked some in files, unchecked all in one file, in memory/on disk)
             // file changing on disk between search and replace when results are properly auto-updated
             // file changing in memory between search and replace (when results are/aren't auto-updated?)
             // file open in memory during search with in-memory changes, but then closed and changes discarded before replace
@@ -2613,6 +2694,9 @@ define(function (require, exports, module) {
                 it("should set focus to the Replace field when the user hits enter in the Find field", function () {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
+                    // A delay seems to be necessary here, possibly because focus can jump around asynchronously
+                    // when the modal bar first opens.
+                    waits(100);
                     runs(function () {
                         $("#find-what").focus();
                         SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#find-what").get(0));

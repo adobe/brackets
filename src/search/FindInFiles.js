@@ -469,10 +469,39 @@ define(function (require, exports, module) {
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
+        function hasCheckedMatches(result) {
+            return result.matches.some(function (match) { return match.isChecked; });
+        }
+        
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
             return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
         }).done(function () {
-            // For integration tests only.
+            if (options && options.forceFilesOpen) {
+                // If the currently selected document wasn't modified by the search, or there is no open document,
+                // then open the first modified document.
+                var doc = DocumentManager.getCurrentDocument();
+                if (!doc ||
+                        !results[doc.file.fullPath] ||
+                        !hasCheckedMatches(results[doc.file.fullPath])) {
+                    // Figure out the first modified document. This logic is slightly different from
+                    // SearchResults._getSortedFiles() because it doesn't sort the currently open file to
+                    // the top. But if the currently open file were in the search results, we wouldn't be
+                    // doing this anyway.
+                    var sortedPaths = Object.keys(results).sort(FileUtils.comparePaths),
+                        firstPath = _.find(sortedPaths, function (path) {
+                            return hasCheckedMatches(results[path]);
+                        });
+                    
+                    if (firstPath) {
+                        var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
+                        if (newDoc) {
+                            DocumentManager.setCurrentDocument(newDoc);
+                        }
+                    }
+                }
+            }
+            
+            // For UI integration testing only
             exports._replaceDone = true;
         });
     }

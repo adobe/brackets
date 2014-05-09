@@ -460,30 +460,7 @@ define(function (require, exports, module) {
             } else if (self._selectedEntry === key2) {
                 return 1;
             }
-            
-            var entryName1, entryName2,
-                pathParts1 = key1.split("/"),
-                pathParts2 = key2.split("/"),
-                length     = Math.min(pathParts1.length, pathParts2.length),
-                folders1   = pathParts1.length - 1,
-                folders2   = pathParts2.length - 1,
-                index      = 0;
-            
-            while (index < length) {
-                entryName1 = pathParts1[index];
-                entryName2 = pathParts2[index];
-                
-                if (entryName1 !== entryName2) {
-                    if (index < folders1 && index < folders2) {
-                        return entryName1.toLocaleLowerCase().localeCompare(entryName2.toLocaleLowerCase());
-                    } else if (index >= folders1 && index >= folders2) {
-                        return FileUtils.compareFilenames(entryName1, entryName2);
-                    }
-                    return (index >= folders1 && index < folders2) ? 1 : -1;
-                }
-                index++;
-            }
-            return 0;
+            return FileUtils.comparePaths(key1, key2);
         });
         
         return searchFiles;

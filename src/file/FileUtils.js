@@ -437,7 +437,39 @@ define(function (require, exports, module) {
         
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }
+    
+    /**
+     * Compares two paths. Useful for sorting.
+     * @param {string} filename1
+     * @param {string} filename2
+     * @param {boolean} extFirst If true it compares the extensions first and then the file names.
+     * @return {number} The result of the local compare function
+     */
+    function comparePaths(path1, path2) {
+        var entryName1, entryName2,
+            pathParts1 = path1.split("/"),
+            pathParts2 = path2.split("/"),
+            length     = Math.min(pathParts1.length, pathParts2.length),
+            folders1   = pathParts1.length - 1,
+            folders2   = pathParts2.length - 1,
+            index      = 0;
 
+        while (index < length) {
+            entryName1 = pathParts1[index];
+            entryName2 = pathParts2[index];
+
+            if (entryName1 !== entryName2) {
+                if (index < folders1 && index < folders2) {
+                    return entryName1.toLocaleLowerCase().localeCompare(entryName2.toLocaleLowerCase());
+                } else if (index >= folders1 && index >= folders2) {
+                    return compareFilenames(entryName1, entryName2);
+                }
+                return (index >= folders1 && index < folders2) ? 1 : -1;
+            }
+            index++;
+        }
+        return 0;
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -463,4 +495,5 @@ define(function (require, exports, module) {
     exports.getFileExtension               = getFileExtension;
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
+    exports.comparePaths                   = comparePaths;
 });
