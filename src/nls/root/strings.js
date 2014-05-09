@@ -396,13 +396,13 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
 
-    // String for themes-settings.html and themes-general.html
-    "CURRENT_THEME": "Current Theme",
-    "CUSTOM_SCROLLBARS": "Custom Scrollbars",
-    "FONT_SIZE": "Font Size",
-    "FONT_FAMILY": "Font Family",
-    "LINE_HEIGHT": "Line Height",
-    "GENERAL": "General",
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Current Theme",
+    "CUSTOM_SCROLLBARS"                    : "Custom Scrollbars",
+    "FONT_SIZE"                            : "Font Size",
+    "FONT_FAMILY"                          : "Font Family",
+    "LINE_HEIGHT"                          : "Line Height",
+    "GENERAL"                              : "General",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
