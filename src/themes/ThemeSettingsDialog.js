@@ -12,6 +12,7 @@ define(function(require) {
 
     var _       = require("thirdparty/lodash"),
         Dialogs = require("widgets/Dialogs"),
+        Strings = require("strings"),
 
         tmpl = {
             "settings": require("text!htmlContent/themes-settings.html"),
@@ -30,7 +31,7 @@ define(function(require) {
         var newSettings     = {};
         var themes          = _.map(_themes, function(theme) {return theme;});
         var template        = $("<div>").append($settings).html();
-        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes}));
+        var $template       = $(Mustache.render(template, {"settings": currentSettings, "themes": themes, "Strings": Strings}));
 
         // Select the correct theme.
         _.each(currentSettings.themes, function(item) {
