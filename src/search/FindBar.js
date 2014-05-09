@@ -227,7 +227,7 @@ define(function (require, exports, module) {
         
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
-        templateVars.replaceAllLabel = (templateVars.replaceAllOnly ? Strings.BUTTON_REPLACE_ALL_FULL : Strings.BUTTON_REPLACE_ALL);
+        templateVars.replaceAllLabel = (templateVars.replaceAllOnly ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
         
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
         
