@@ -161,7 +161,8 @@ define({
     // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" found",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
+    "FIND_IN_FILES_REPLACE_TITLE_PART3" : "\" &mdash; {0} {1} {2} in {3} {4}",
+    "FIND_IN_FILES_TITLE_PART3"         : " &mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",

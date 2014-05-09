@@ -2541,6 +2541,7 @@ define(function (require, exports, module) {
             // subset of matches
             // file changing on disk between search and replace when results are properly auto-updated
             // file changing in memory between search and replace (when results are/aren't auto-updated?)
+            // file open in memory during search with in-memory changes, but then closed and changes discarded before replace
             
             describe("from Find Bar", function () {
                 function executeReplace(findText, replaceText) {
@@ -2562,10 +2563,36 @@ define(function (require, exports, module) {
                     closeSearchBar();
                 });
                 
+                it("should show results from the search with all checkboxes checked", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    executeReplace("foo", "bar");
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchResults;
+                    }, "search finished");
+                    
+                    runs(function () {
+                        expect($("#find-in-files-results").length).toBe(1);
+                        expect($("#find-in-files-results .check-one").length).toBe(14);
+                        expect($("#find-in-files-results .check-one:checked").length).toBe(14);
+                    });
+                });
+                
                 it("should do a simple search/replace all from find bar, opening results in memory, if the user didn't do a Find first", function () {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
                     executeReplace("foo", "bar");
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchResults;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should kick off the replace
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
                     waitsFor(function () {
                         return FindInFiles._replaceDone;
                     }, "replace finished");
@@ -2579,6 +2606,16 @@ define(function (require, exports, module) {
                     openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
                     openSearchBar(null, true);
                     executeReplace("foo", "bar");
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchResults;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should cause the dialog to appear
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
                     runs(function () {
                         expect(FindInFiles._replaceDone).toBeFalsy();
                     });
@@ -2605,6 +2642,16 @@ define(function (require, exports, module) {
                     openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
                     openSearchBar(null, true);
                     executeReplace("foo", "bar");
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchResults;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should cause the dialog to appear
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
                     runs(function () {
                         expect(FindInFiles._replaceDone).toBeFalsy();
                     });

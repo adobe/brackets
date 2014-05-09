@@ -54,8 +54,6 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash"),
         CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
-    var replaceAllSummaryTemplate = require("text!htmlContent/search-summary-replace.html");
-
     /** @const Maximum file size to search within (in chars) */
     var FIND_MAX_FILE_SIZE  = 500000;
 
@@ -699,8 +697,7 @@ define(function (require, exports, module) {
      * Handles the Replace All Results and the Results Panel
      */
     function ReplaceAllResults() {
-        this._summaryTemplate = replaceAllSummaryTemplate;
-        this._hasCheckboxes   = true;
+        this._replace   = true;
         
         this.createPanel("replace-all-results", "replace-all.results");
     }
@@ -717,9 +714,10 @@ define(function (require, exports, module) {
         this.parentClass._addPanelListeners.apply(this);
         
         // Attach event to replace button
-        this._panel.$panel
+        // TODO: factor out the matches model and do this in the Find code, not the panel - similar to Find in Files
+        $(this)
             .off(".replaceAll")
-            .on("click.replaceAll", ".replace-checked", function (e) {
+            .on("doReplaceAll.replaceAll", function (e) {
                 self.editor.document.batchOperation(function () {
                     self.matches.reverse().forEach(function (match) {
                         if (match.isChecked) {
@@ -800,8 +798,10 @@ define(function (require, exports, module) {
 
         // Insert the search summary
         this._showSummary({
-            replaceWhat: this.replaceWhat.toString(),
+            query:       this.replaceWhat.toString(),
             replaceWith: this.replaceWith.toString(),
+            title1:      Strings.FIND_REPLACE_TITLE_PART1,
+            title2:      Strings.FIND_REPLACE_TITLE_PART2,
             summary:     summary
         });
 
@@ -814,7 +814,7 @@ define(function (require, exports, module) {
      */
     ReplaceAllResults.prototype.hideResults = function () {
         this.parentClass.hideResults.apply(this);
-        $(currentDocument).off("change.replaceAll");
+        $(currentDocument).off(".replaceAll");
     };
 
     // Initialize items dependent on HTML DOM

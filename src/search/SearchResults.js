@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
-        searchPagingTemplate  = require("text!htmlContent/search-summary-paging.html");
+        searchPagingTemplate  = require("text!htmlContent/search-summary-paging.html"),
+        searchSummaryTemplate = require("text!htmlContent/search-summary.html");
     
     
     /** @const Constants used to define the maximum results show per page and found in a single file */
@@ -50,6 +51,8 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * Handles the Search Results and the Panel
+     * Dispatches the following events:
+     *      replaceAll - when the "Replace" button is clicked.
      */
     function SearchResults() {
         return undefined;
@@ -70,17 +73,14 @@ define(function (require, exports, module) {
     /** @type {Panel} Bottom panel holding the search results */
     SearchResults.prototype._panel = null;
     
-    /** @type {string} The tempalte used for the summary */
-    SearchResults.prototype._summaryTemplate = "";
-    
     /** @type {?Entry} The File selected on the initial search */
     SearchResults.prototype._selectedEntry = null;
     
     /** @type {number} The index of the first result that is displayed */
     SearchResults.prototype._currentStart = 0;
     
-    /** @type {boolean} Determines if it should use checkboxes in the results */
-    SearchResults.prototype._hasCheckboxes = false;
+    /** @type {boolean} Determines if this is in replace mode */
+    SearchResults.prototype._replace = false;
     
     /** @type {boolean} Used to remake the replace all summary after it is changed */
     SearchResults.prototype._allChecked = false;
@@ -106,8 +106,6 @@ define(function (require, exports, module) {
         this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
-        
-        this._addPanelListeners();
     };
     
     /**
@@ -207,8 +205,8 @@ define(function (require, exports, module) {
             });
         
         
-        // Add the Click handlers for Checkboxes if required
-        if (this._hasCheckboxes) {
+        // Add the Click handlers for replace functionality if required
+        if (this._replace) {
             this._panel.$panel
                 .on("click.searchResults", ".check-all", function (e) {
                     var isChecked = $(this).is(":checked");
@@ -226,6 +224,10 @@ define(function (require, exports, module) {
 
                     self._searchResults[item.fullPath].matches[$row.data("index")].isChecked = $(this).is(":checked");
                     e.stopPropagation();
+                })
+                .on("click.searchResults", ".replace-checked", function (e) {
+                    $(self).triggerHandler("doReplaceAll");
+                    self.hideResults();
                 });
         }
     };
@@ -271,12 +273,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Hides the Search Results Panel
+     * Hides the Search Results Panel and unregisters listeners
      */
     SearchResults.prototype.hideResults = function () {
-        var self = this;
         if (this._panel.isVisible()) {
             this._panel.hide();
+            this._panel.$panel.off(".searchResults");
         }
     };
     
@@ -284,20 +286,21 @@ define(function (require, exports, module) {
     /**
      * @private
      * Shows the Results Summary
-     * @param {Object} sumaryData
+     * @param {Object} summaryData
      */
-    SearchResults.prototype._showSummary = function (sumaryData) {
+    SearchResults.prototype._showSummary = function (summaryData) {
         var count     = this._countFilesMatches(),
             lastIndex = this._getLastIndex(count.matches);
         
-        this._$summary.html(Mustache.render(this._summaryTemplate, $.extend({
+        this._$summary.html(Mustache.render(searchSummaryTemplate, $.extend({
             allChecked: this._allChecked,
             hasPages:   count.matches > RESULTS_PER_PAGE,
             results:    StringUtils.format(Strings.FIND_IN_FILES_PAGING, this._currentStart + 1, lastIndex),
             hasPrev:    this._currentStart > 0,
             hasNext:    lastIndex < count.matches,
+            replace:    this._replace,
             Strings:    Strings
-        }, sumaryData), { paging: searchPagingTemplate }));
+        }, summaryData), { paging: searchPagingTemplate }));
     };
     
     /**
@@ -393,7 +396,7 @@ define(function (require, exports, module) {
         this._$table
             .empty()
             .append(Mustache.render(searchResultsTemplate, {
-                hasCheckboxes: this._hasCheckboxes,
+                replace:       this._replace,
                 searchList:    this._searchList,
                 Strings:       Strings
             }))
@@ -414,6 +417,8 @@ define(function (require, exports, module) {
         
         this._panel.show();
         this._$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
+        
+        this._addPanelListeners();
     };
     
     /**

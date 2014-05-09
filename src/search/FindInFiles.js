@@ -66,8 +66,6 @@ define(function (require, exports, module) {
         Dialogs               = require("widgets/Dialogs"),
         DefaultDialogs        = require("widgets/DefaultDialogs");
     
-    var searchSummaryTemplate = require("text!htmlContent/search-summary-find.html");
-    
     /** @const Constants used to define the maximum results show per page and found in a single file */
     var FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400,
@@ -84,6 +82,9 @@ define(function (require, exports, module) {
     
     /** @type {RegExp} The current search query regular expression */
     var currentQueryExpr = null;
+    
+    /** @type {string} The current replacement text. */
+    var currentReplaceText = null;
     
     /** @type {?FileSystemEntry} Root of subtree to search in, or single file to search in, or null to search entire project */
     var currentScope = null;
@@ -271,9 +272,11 @@ define(function (require, exports, module) {
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object, as returned by FindBar.getQueryInfo()
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
+     * @param {boolean=} allowReplace Whether we intend to do a replace operation on the results of the search.
+     * @param {?string} replaceText If replacing, the text the user has specified for replacement.
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
-    function _doSearch(queryInfo, candidateFilesPromise, filter) {
+    function _doSearch(queryInfo, candidateFilesPromise, filter, allowReplace, replaceText) {
         currentQuery     = queryInfo;
         currentQueryExpr = _getQueryRegExp(queryInfo);
         currentFilter    = filter;
@@ -303,7 +306,9 @@ define(function (require, exports, module) {
             })
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
-                findInFilesResults.showResults(zeroFilesToken);
+                // TODO: this should probably be in a separate method
+                findInFilesResults.setAllowReplace(allowReplace);
+                findInFilesResults.showResults(zeroFilesToken, replaceText);
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
                 
@@ -333,6 +338,7 @@ define(function (require, exports, module) {
     function _resetSearch(scope) {
         currentQuery       = null;
         currentQueryExpr   = null;
+        currentReplaceText = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
         exports._searchResults = null;  // for unit tests        
@@ -370,7 +376,9 @@ define(function (require, exports, module) {
         });
         doc.batchOperation(function () {
             matchInfo.matches.forEach(function (match) {
-                doc.replaceRange(isRegexp ? FindUtils.parseDollars(replaceText, match.regexpMatchInfo) : replaceText, match.start, match.end);
+                if (match.isChecked) {
+                    doc.replaceRange(isRegexp ? FindUtils.parseDollars(replaceText, match.result) : replaceText, match.start, match.end);
+                }
             });
         });
         
@@ -399,9 +407,11 @@ define(function (require, exports, module) {
             var result = [],
                 lastIndex = 0;
             matchInfo.matches.forEach(function (match) {
-                result.push(contents.slice(lastIndex, match.startOffset));
-                result.push(isRegexp ? FindUtils.parseDollars(replaceText, match.regexpMatchInfo) : replaceText);
-                lastIndex = match.endOffset;
+                if (match.isChecked) {
+                    result.push(contents.slice(lastIndex, match.startOffset));
+                    result.push(isRegexp ? FindUtils.parseDollars(replaceText, match.result) : replaceText);
+                    lastIndex = match.endOffset;
+                }
             });
             result.push(contents.slice(lastIndex));
 
@@ -465,6 +475,44 @@ define(function (require, exports, module) {
             // For integration tests only.
             exports._replaceDone = true;
         });
+    }
+    
+    /**
+     * @private
+     * Finish a replace across files operation when the user clicks "Replace" on the results panel.
+     */
+    function _finishReplaceAll() {
+        if (currentReplaceText === null) {
+            return;
+        }
+        
+        var fewReplacements = Object.keys(findInFilesResults._searchResults).length <= MAX_IN_MEMORY;
+        if (fewReplacements) {
+            // Just do the replacements in memory.
+            doReplace(findInFilesResults._searchResults, currentReplaceText, { forceFilesOpen: true });
+        } else {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_INFO,
+                Strings.REPLACE_WITHOUT_UNDO_WARNING_TITLE,
+                Strings.REPLACE_WITHOUT_UNDO_WARNING,
+                [
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                        id        : Dialogs.DIALOG_BTN_CANCEL,
+                        text      : Strings.CANCEL
+                    },
+                    {
+                        className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                        id        : Dialogs.DIALOG_BTN_OK,
+                        text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
+                    }
+                ]
+            ).done(function (id) {
+                if (id === Dialogs.DIALOG_BTN_OK) {
+                    doReplace(findInFilesResults._searchResults, currentReplaceText);
+                }
+            });
+        }
     }
     
     /**
@@ -539,7 +587,7 @@ define(function (require, exports, module) {
             findBar.showNoResults(queryInfo.query && query === null, false);
         }
         
-        function startSearch() {
+        function startSearch(replaceText) {
             var queryInfo = findBar && findBar.getQueryInfo();
             if (queryInfo && queryInfo.query) {
                 findBar.enable(false);
@@ -552,56 +600,19 @@ define(function (require, exports, module) {
                     // Single-file scope: don't use any file filters
                     filter = null;
                 }
-                return _doSearch(queryInfo, candidateFilesPromise, filter);
+                return _doSearch(queryInfo, candidateFilesPromise, filter, showReplace, replaceText);
             }
             return null;
         }
         
         function startReplace() {
-            var replaceText = findBar.getReplaceText(), promise;
-            // If the user hasn't done a find yet, do it now.
-            if ($.isEmptyObject(findInFilesResults._searchResults)) {
-                promise = startSearch();
-            }
-            if (!promise) {
-                promise = new $.Deferred().resolve().promise();
-            }
-            promise.then(function () {
-                var fewReplacements = Object.keys(findInFilesResults._searchResults).length <= MAX_IN_MEMORY;
-                if (fewReplacements) {
-                    // Just do the replacements in memory.
-                    doReplace(findInFilesResults._searchResults, replaceText, { forceFilesOpen: true });
-                } else {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_INFO,
-                        Strings.REPLACE_WITHOUT_UNDO_WARNING_TITLE,
-                        Strings.REPLACE_WITHOUT_UNDO_WARNING,
-                        [
-                            {
-                                className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
-                                id        : Dialogs.DIALOG_BTN_CANCEL,
-                                text      : Strings.CANCEL
-                            },
-                            {
-                                className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
-                                id        : Dialogs.DIALOG_BTN_OK,
-                                text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
-                            }
-                        ]
-                    ).done(function (id) {
-                        if (id === Dialogs.DIALOG_BTN_OK) {
-                            doReplace(findInFilesResults._searchResults, replaceText);
-                        }
-                    });
-                }
-            });
+            currentReplaceText = findBar.getReplaceText();
+            startSearch(currentReplaceText);
         }
         
         $(findBar)
             .on("doFind.FindInFiles", function (e) {
-                // TODO: if in Replace mode, shouldn't dismiss find bar?
-                // TODO: if user hits enter in Replace field, should treat like they clicked Replace?
-                // TODO: starting to think we should have the replace field in the results area...
+                // TODO: if in Replace mode, treat Enter like Replace - show an error if no replace string?
                 startSearch();
             })
             .on("queryChange.FindInFiles", handleQueryChange)
@@ -672,7 +683,6 @@ define(function (require, exports, module) {
      * Handles the Find in Files Results and the Results Panel
      */
     function FindInFilesResults() {
-        this._summaryTemplate = searchSummaryTemplate;
         this._timeoutID       = null;
         
         this.createPanel("find-in-files-results", "find-in-files.results");
@@ -685,14 +695,19 @@ define(function (require, exports, module) {
     /** @type {string} The setTimeout id, used to clear it if required */
     FindInFilesResults.prototype._timeoutID = null;
     
+    /**
+     * Turns the replace functionality on or off.
+     * @param {boolean} allowReplace Whether to allow replacements.
+     */
+    FindInFilesResults.prototype.setAllowReplace = function (allowReplace) {
+        this._replace = allowReplace;
+    };
     
     /**
      * Hides the Search Results Panel
      */
     FindInFilesResults.prototype.hideResults = function () {
-        if (this._panel.isVisible()) {
-            this._panel.hide();
-        }
+        this.parentClass.hideResults.apply(this);
         this.removeListeners();
     };
     
@@ -700,8 +715,9 @@ define(function (require, exports, module) {
      * @private
      * Shows the results in a table and adds the necessary event listeners
      * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
+     * @param {?string} replaceText If in replace mode, the text the user wants to replace with.
      */
-    FindInFilesResults.prototype.showResults = function (zeroFilesToken) {
+    FindInFilesResults.prototype.showResults = function (zeroFilesToken, replaceText) {
         if (!$.isEmptyObject(this._searchResults)) {
             var count = this._countFilesMatches(),
                 self  = this;
@@ -714,7 +730,7 @@ define(function (require, exports, module) {
 
             // This text contains some formatting, so all the strings are assumed to be already escaped
             var summary = StringUtils.format(
-                Strings.FIND_IN_FILES_TITLE_PART3,
+                replaceText ? Strings.FIND_IN_FILES_REPLACE_TITLE_PART3 : Strings.FIND_IN_FILES_TITLE_PART3,
                 numMatchesStr,
                 String(count.matches),
                 (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
@@ -725,6 +741,9 @@ define(function (require, exports, module) {
             // Insert the search summary
             this._showSummary({
                 query:   (currentQuery && currentQuery.query) || "",
+                replaceWith: replaceText,
+                title1:  replaceText ? Strings.FIND_REPLACE_TITLE_PART1 : Strings.FIND_IN_FILES_TITLE_PART1,
+                title2:  replaceText ? Strings.FIND_REPLACE_TITLE_PART2 : Strings.FIND_IN_FILES_TITLE_PART2,
                 scope:   currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
                 summary: summary
             });
@@ -785,7 +804,8 @@ define(function (require, exports, module) {
                 startOffset: match.index,
                 endOffset:   match.index + matchLength,
                 line:        line,
-                regexpMatchInfo: match
+                result:      match,
+                isChecked:   true
             });
 
             // We have the max hits in just this 1 file. Stop searching this file.
@@ -1094,6 +1114,7 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         findInFilesResults = new FindInFilesResults();
+        $(findInFilesResults).on("doReplaceAll", _finishReplaceAll);
     });
     
     // Initialize: register listeners

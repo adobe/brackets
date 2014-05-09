@@ -1,0 +1,19 @@
+{{#replace}}
+<div class="fixed-col"><input type="checkbox" class="check-all" {{#allChecked}}checked="checked"{{/allChecked}} /></div>
+{{/replace}}
+<div class="fixed-col">{{title1}}</div>
+<div class="contracting-col">{{query}}</div>
+<div class="fixed-col">{{title2}}</div>
+{{#replace}}
+<div class="contracting-col">{{replaceWith}}</div>
+{{/replace}}
+{{#scope}}
+<div class="contracting-col">{{{scope}}}</div>
+{{/scope}}
+<div class="fixed-col">{{{summary}}}</div>
+{{>paging}}
+{{#replace}}
+<div class="replace-col">
+    <button class="btn small replace-checked">{{Strings.BUTTON_REPLACE}}</button>
+</div>
+{{/replace}}
