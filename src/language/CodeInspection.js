@@ -383,7 +383,7 @@ define(function (require, exports, module) {
                             aborted = true;
                         }
 
-                        if (inspectionResult.result.errors) {
+                        if (inspectionResult.result.errors.length) {
                             allErrors.push({
                                 providerName: provider.name,
                                 results:      inspectionResult.result.errors
@@ -436,18 +436,18 @@ define(function (require, exports, module) {
      * Brackets JSLint provider. This is a temporary convenience until UI exists for disabling
      * registered providers.
      * 
-     * If provider implements both scanFileAsync and scanFile functions for asynchronous and synchronous
-     * code inspection, respectively, the asynchronous version will take precedence and will be used to
-     * perform code inspection.
-     *
-     * A code inspection provider's scanFileAsync must return a {$.Promise} object which should be
-     * resolved with ?{errors:!Array, aborted:boolean}}.
-     *
+     * Providers implement scanFile() if results are available synchronously, or scanFileAsync() if results
+     * may require an async wait (if both are implemented, scanFile() is ignored). scanFileAsync() returns
+     * a {$.Promise} object resolved with the same type of value as scanFile() is expected to return.
+     * Rejecting the promise is treated as an internal error in the provider.
+     * 
      * @param {string} languageId
-     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
+     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
+     *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
+     * If no errors found, return either null or an object with a zero-length `errors` array.
      */
     function register(languageId, provider) {
         if (!_providers[languageId]) {
