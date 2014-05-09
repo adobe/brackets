@@ -28,8 +28,6 @@
 define(function(require) {
     "use strict";
 
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
-
     // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
     require("thirdparty/CodeMirror2/addon/fold/xml-fold");
     require("thirdparty/CodeMirror2/addon/edit/matchtags");
