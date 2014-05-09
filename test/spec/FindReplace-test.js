@@ -2303,7 +2303,7 @@ define(function (require, exports, module) {
                         var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + options.inMemoryKGFolder + filePath),
                             kgFile = FileSystem.getFileForPath(kgPath);
                         return promisify(kgFile, "read").then(function (contents) {
-                            expect(doc.getText()).toEqual(contents);
+                            expect(doc.getText(true)).toEqual(contents);
                         });
                     }), "check in memory file contents");
                 });
