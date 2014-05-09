@@ -53,8 +53,10 @@ define(function (require, exports, module) {
      *
      * queryChange - when the user types in the input field or sets a query option. Use getQuery()
      *      to get the current query state.
-     * doFind - when the user hits enter/shift-enter in the input field or clicks the Find Previous or Find Next button.
-     *      Parameter is a boolean, false for Find Next, true for Find Previous.
+     * doFind - when the user hits enter/shift-enter in an input field or clicks the Find Previous or Find Next button.
+     *      Parameters are:
+     *          shiftKey - boolean, false for Find Next, true for Find Previous.
+     *          replace - boolean, true if they hit enter in the Replace field
      * doReplace - when the user clicks on the Replace or Replace All button. Parameter is a boolean,
      *      false for single Replace, true for Replace All. Use getReplaceText() to get the current
      *      replacement text.
@@ -252,11 +254,11 @@ define(function (require, exports, module) {
                 self._updatePrefsFromSearchBar();
                 $(self).triggerHandler("queryChange");
             })
-            .on("keydown", function (e) {
+            .on("keydown", "#find-what, #replace-with", function (e) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
-                    $(self).triggerHandler("doFind", e.shiftKey);
+                    $(self).triggerHandler("doFind", [e.shiftKey, (e.target.id === "replace-with")]);
                 }
             });
         
@@ -434,12 +436,28 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     * Focus and select the contents of the given field.
+     * @param {string} selector The selector for the field.
+     */
+    FindBar.prototype._focus = function (selector) {
+        this.$(selector)
+            .focus()
+            .get(0).select();
+    };
+    
+    /**
      * Sets focus to the query field and selects its text.
      */
     FindBar.prototype.focusQuery = function () {
-        this.$("#find-what")
-            .focus()
-            .get(0).select();
+        this._focus("#find-what");
+    };
+    
+    /**
+     * Sets focus to the replace field and selects its text.
+     */
+    FindBar.prototype.focusReplace = function () {
+        this._focus("#replace-with");
     };
     
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);

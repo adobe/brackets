@@ -2544,14 +2544,22 @@ define(function (require, exports, module) {
             // file open in memory during search with in-memory changes, but then closed and changes discarded before replace
             
             describe("from Find Bar", function () {
-                function executeReplace(findText, replaceText) {
+                function executeReplace(findText, replaceText, fromKeyboard) {
                     runs(function () {
                         FindInFiles._replaceDone = false;
                         $("#find-what").val(findText).trigger("input");
                         $("#replace-with").val(replaceText).trigger("input");
-                        $("#replace-all").click();
+                        if (fromKeyboard) {
+                            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#replace-with").get(0));
+                        } else {
+                            $("#replace-all").click();
+                        }
                     });
                 }
+                
+                afterEach(function () {
+                    closeSearchBar();
+                });
                 
                 it("should only show a Replace All button", function () {
                     openTestProjectCopy(defaultSourcePath);
@@ -2560,7 +2568,16 @@ define(function (require, exports, module) {
                         expect($("#replace-yes").length).toBe(0);
                         expect($("#replace-all").length).toBe(1);
                     });
-                    closeSearchBar();
+                });
+                
+                it("should set focus to the Replace field if the user hits enter in the Find field", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        $("#find-what").focus();
+                        SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#find-what").get(0));
+                        expect($("#replace-with").is(":focus")).toBe(true);
+                    });
                 });
                 
                 it("should show results from the search with all checkboxes checked", function () {
@@ -2579,7 +2596,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should do a simple search/replace all from find bar, opening results in memory, if the user didn't do a Find first", function () {
+                it("should do a simple search/replace all from find bar, opening results in memory, when user clicks on Replace... button", function () {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
                     executeReplace("foo", "bar");
@@ -2602,6 +2619,29 @@ define(function (require, exports, module) {
                     });
                 });
                 
+                it("should do a simple search/replace all from find bar, opening results in memory, when user hits Enter in Replace field", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    executeReplace("foo", "bar", true);
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchResults;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should kick off the replace
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    expectInMemoryFiles({
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+
                 it("should warn about doing changes on disk if there are changes in >10 files", function () {
                     openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
                     openSearchBar(null, true);

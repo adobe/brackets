@@ -611,9 +611,15 @@ define(function (require, exports, module) {
         }
         
         $(findBar)
-            .on("doFind.FindInFiles", function (e) {
-                // TODO: if in Replace mode, treat Enter like Replace - show an error if no replace string?
-                startSearch();
+            .on("doFind.FindInFiles", function (e, shiftKey, replace) {
+                // If in Replace mode, just set focus to the Replace field.
+                if (replace) {
+                    startReplace();
+                } else if (showReplace) {
+                    findBar.focusReplace();
+                } else {
+                    startSearch();
+                }
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
@@ -623,12 +629,7 @@ define(function (require, exports, module) {
         
         if (showReplace) {
             $(findBar).on("doReplace.FindInFiles", function (e, all) {
-                // TODO: handle regexp
-                if (all) {
-                    startReplace();
-                } else {
-                    console.warn("FindInFiles: got spurious 'Replace' click");
-                }
+                startReplace();
             });
         }
                 
