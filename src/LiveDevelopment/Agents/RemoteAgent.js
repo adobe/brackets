@@ -121,25 +121,18 @@ define(function RemoteAgent(require, exports, module) {
             call("keepAlive");
         }, 1000);
     }
-
-    /**
-     * @private
-     * Cancel the keepAlive interval if the page reloads
-     */
-    function _onFrameStartedLoading(event, res) {
-        _stopKeepAliveInterval();
-    }
-
-    // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(event, res) {
+    
+    // WebInspector Event: Page.frameNavigated
+    function _onFrameNavigated(event, res) {
         // res = {timestamp}
+        _stopKeepAliveInterval();
 
         // inject RemoteFunctions
         var command = "window._LD=" + RemoteFunctions + "(" + LiveDevelopment.config.experimental + ");";
 
         Inspector.Runtime.evaluate(command, function onEvaluate(response) {
             if (response.error || response.wasThrown) {
-                _load.reject(null, response.error);
+                _load.reject(response.error);
             } else {
                 _objectId = response.result.objectId;
                 _load.resolve();
@@ -152,8 +145,8 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
-        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _onFrameStartedLoading);
+        $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
+        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
         $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
 
         return _load.promise();

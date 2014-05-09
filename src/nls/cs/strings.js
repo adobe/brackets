@@ -36,6 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
+    "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
     "FILE"                              : "Soubor",
     "DIRECTORY"                         : "Složka",
@@ -59,10 +60,14 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Chyba při mazání souboru",
     "ERROR_DELETING_FILE"               : "Došlo k chybě při mazání souboru <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Špatné jméno souboru",
-    "INVALID_FILENAME_MESSAGE"          : "Jméno souboru nemůže obsahovat znaky: {0}",
+    "INVALID_FILENAME_MESSAGE"          : "Jméno souboru nemůže obsahovat znaky: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Soubor <span class='dialog-filename'>{0}</span> již existuje.",
     "ERROR_CREATING_FILE_TITLE"         : "Chyba při tvorbě souboru",
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
+
+    // Řetězce chyb nastavení aplikace
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
+    "ERROR_PREFS_CORRUPT"               : "Soubor s nastavením není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. Pro uložení změn budete muset restartovat aplikaci {APP_NAME}.",
 
     // Řetězce chyb aplikace
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
@@ -107,6 +112,7 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdit smazání",
     "CONFIRM_FOLDER_DELETE"             : "Opravdu chcete smazat složku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Soubor smazán",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> byl změněn.<br /><br />Chcete uložit soubor a přepsat tyto změny?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn, ale neuložené změny se nachází také v {APP_NAME}.<br /><br /> Kterou verzi chcete zachovat?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
@@ -151,8 +157,17 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/zbalení všeho",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Chyba při získávání informací o aktualizaci",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nelze získat aktualizace. Ujistěte se, že máte připojení na internet a zkuste to znovu.",
+
+    // Filtry vyloučení souborů
+    "NO_FILE_FILTER"                    : "Vyloučit soubory\u2026",
+    "EDIT_FILE_FILTER"                  : "Upravit\u2026",
+    "FILE_FILTER_DIALOG"                : "Upravit filtr",
+    "FILE_FILTER_INSTRUCTIONS"          : "Vyloučit soubory a složky, které obsahují jakýkoliv z následujících řetězců / podřetězců nebo <a href='{0}' title='{0}'>vzorků</a>. Vložte každý řetězec na nový řádek.",
+    "FILE_FILTER_LIST_PREFIX"           : "mimo",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "a {0} více",
 
     /**
      * Správce projektu
@@ -184,14 +199,16 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Velikost tabulátoru:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "Řádek: {0}",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "Řádky: {0}",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Doplňky zakázány",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
 
     // CodeInspection: chyby/varování
-    "ERRORS_PANEL_TITLE"                    : "{0} chyby",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} chyby",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Lint problémy",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",
     "SINGLE_ERROR"                          : "1 {0} chyba",
     "MULTIPLE_ERRORS"                       : "{1} {0} chyby",
     "NO_ERRORS"                             : "Žádné {0} chyby - dobrá práce!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Žádné chyby nenalezeny - dobrá práce!",
     "LINT_DISABLED"                         : "Lintování je vypnuto",
     "NO_LINT_AVAILABLE"                     : "Žádný linter není dostupný pro {0}",
     "NOTHING_TO_LINT"                       : "Nic k lintování",
@@ -241,6 +258,7 @@ define({
     "CMD_SELECT_ALL"                      : "Vybrat vše",
     "CMD_SELECT_LINE"                     : "Vybrat řádek",
     "CMD_FIND"                            : "Najít",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Najít\u2026",
     "CMD_FIND_IN_FILES"                   : "Najít v souborech",
     "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
     "CMD_FIND_NEXT"                       : "Najít další",
@@ -292,6 +310,8 @@ define({
     "CMD_PREV_DOC"                        : "Předchozí dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobrazit stromovou strukturu",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
+    "CMD_SHOW_IN_EXPLORER"                : "Zobrazit v Exploreru",
+    "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
 
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
@@ -303,6 +323,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
@@ -310,6 +331,8 @@ define({
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Neukládat",
     "SAVE"                                 : "Uložit",
+    "SAVE_AS"                              : "Uložit jako\u2026",
+    "SAVE_AND_OVERWRITE"                   : "Přepsat",
     "CANCEL"                               : "Zrušit",
     "DELETE"                               : "Smazat",
     "RELOAD_FROM_DISK"                     : "Načíst z disku",
@@ -347,6 +370,7 @@ define({
     "OVERWRITE"                            : "Přepsat",
     "CANT_REMOVE_DEV"                      : "Doplněk v \"dev\" složce musí být smazán manuálně.",
     "CANT_UPDATE"                          : "Aktualizace není kompatibilní s touto verzí {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Doplňky ve složce \"dev\" nemohou být aktualizovány automaticky.",
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
     "UPDATE_EXTENSION_TITLE"               : "Aktualizovat doplněk",
     "INSTALL_EXTENSION_LABEL"              : "URL adresa doplňku",
@@ -406,11 +430,12 @@ define({
     "UNDO_REMOVE"                          : "Zpět",
     "MARKED_FOR_UPDATE"                    : "Označeno pro aktualizaci",
     "UNDO_UPDATE"                          : "Zpět",
-    "CHANGE_AND_QUIT_TITLE"                : "Změnit doplněk",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Pro aktualizaci nebo odstranění označených doplňků musíte ukončit a restartovat aplikaci {APP_NAME}. Budete vyzváni k uložení změn.",
-    "REMOVE_AND_QUIT"                      : "Odstranit doplňky a ukončit program",
-    "CHANGE_AND_QUIT"                      : "Změnit doplňky a ukončit program",
-    "UPDATE_AND_QUIT"                      : "Aktualizovat doplňky a ukončit program",
+    "CHANGE_AND_RELOAD_TITLE"              : "Změnit doplňky",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Pro aktualizaci nebo odstranění označených doplňků je třeba restartovat aplikaci {APP_NAME}. Budete vyzváni k uložení změn.",
+    "REMOVE_AND_RELOAD"                    : "Odstranit doplňky a restartovat",
+    "CHANGE_AND_RELOAD"                    : "Změnit doplňky a restartovat",
+    "UPDATE_AND_RELOAD"                    : "Aktualizovat doplňky a restartovat",
+    "PROCESSING_EXTENSIONS"                : "Zpracování změn doplňku\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Doplněk {{0}} nemohl být odstraněn, protože nebyl nainstalován.",
     "NO_EXTENSIONS"                        : "Žádný doplněk ještě nebyl nainstalován.<br />Klikněte na tlačítko Instalovat z URL pro zahájení instalace.",
     "NO_EXTENSION_MATCHES"                 : "Žádný doplněk neodpovídá hledání.",
@@ -433,6 +458,7 @@ define({
     "DEBUG_MENU"                          : "Nástroje",
     "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
     "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"        : "Restartovat bez doplňků",
     "CMD_NEW_BRACKETS_WINDOW"             : "Nové okno {APP_NAME}",
     "CMD_SWITCH_LANGUAGE"                 : "Změnit jazyk",
     "CMD_RUN_UNIT_TESTS"                  : "Spustit testy",
@@ -447,35 +473,12 @@ define({
     "LANGUAGE_CANCEL"                   : "Zrušit",
     "LANGUAGE_SYSTEM_DEFAULT"           : "Výchozí",
 
-    /**
-     * Jazyky
-     */
-    "LOCALE_CS"                                 : "Česky",
-    "LOCALE_DE"                                 : "Německy",
-    "LOCALE_EN"                                 : "Anglicky",
-    "LOCALE_ES"                                 : "Španělsky",
-    "LOCALE_FR"                                 : "Francouzsky",
-    "LOCALE_IT"                                 : "Italsky",
-    "LOCALE_JA"                                 : "Japonsky",
-    "LOCALE_NB"                                 : "Norsky",
-    "LOCALE_NL"                                 : "Holandsky",
-    "LOCALE_FA_IR"                              : "Persky-perština",
-    "LOCALE_PL"                                 : "Polsky",
-    "LOCALE_PT_BR"                              : "Portugalsky, Brazílie",
-    "LOCALE_PT_PT"                              : "Portugalsky",
-    "LOCALE_RO"                                 : "Rumunsky",
-    "LOCALE_RU"                                 : "Rusky",
-    "LOCALE_SK"                                 : "Slovensky",
-	"LOCALE_SR"									: "Srbština",
-    "LOCALE_SV"                                 : "Švédsky",
-    "LOCALE_TR"                                 : "Turecky",
-    "LOCALE_FI"                                 : "Finsky",
-    "LOCALE_ZH_CN"                              : "Čínsky",
-    "LOCALE_HU"                                 : "Maďarsky",
-
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Postup",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Posunout vybraný bod <br><kbd class='text'>Shift</kbd> Posunout o deset jednotek",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Zvýšení nebo snížení kroků<br><kbd>←</kbd><kbd>→</kbd> 'Start' nebo 'End'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Stará hodnota <code>{0}</code> není platná, proto zobrazená funkce byla změněna na <code>{1}</code>. Dokument bude aktualizován při první úpravě.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Současná barva",

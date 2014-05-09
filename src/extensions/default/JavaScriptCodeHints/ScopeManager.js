@@ -29,7 +29,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, CodeMirror, $, Worker, setTimeout */
+/*global define, brackets, $, Worker, setTimeout */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,6 +42,9 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
+        CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        globmatch           = brackets.getModule("thirdparty/globmatch"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
@@ -215,7 +218,18 @@ define(function (require, exports, module) {
             return false;
         }
         
-        return excludes.test(file.name);
+        if (excludes.test(file.name)) {
+            return true;
+        }
+
+        var defaultExclusions = PreferencesManager.get("jscodehints.defaultExclusions");
+
+        // The defaultExclusions are the ones we ship with Brackets to filter out files that we know
+        // to be troublesome with current versions of Tern. They can be overridden with a .brackets.json
+        // file in your project. defaultExclusions is an array of globs.
+        return defaultExclusions &&
+            _.isArray(defaultExclusions) &&
+            _.some(defaultExclusions, _.partial(globmatch, file.fullPath));
     }
 
     /**
@@ -738,7 +752,7 @@ define(function (require, exports, module) {
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
         }
-
+        
         /**
          * Handle a request from the worker for text of a file
          *
@@ -789,8 +803,8 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = name.substring(name.lastIndexOf("/"));
-                
+                var fileName = name.substring(name.lastIndexOf("/") + 1);
+
                 function _fileFilter(entry) {
                     return entry.name === fileName;
                 }
@@ -1320,29 +1334,32 @@ define(function (require, exports, module) {
      *  Track the update area of the current document so we can tell if we can send
      *  partial updates to tern or not.
      *
-     * @param {{from: {line:number, ch: number}, to: {line:number, ch: number},
-     * text: Array<string>}} changeList - the document changes (since last change or cumlative?)
+     * @param {Array.<{from: {line:number, ch: number}, to: {line:number, ch: number},
+     *     text: Array<string>}>} changeList - the document changes from the current change event
      */
     function trackChange(changeList) {
-        var changed = documentChanges;
+        var changed = documentChanges, i;
         if (changed === null) {
-            documentChanges = changed = {from: changeList.from.line, to: changeList.from.line};
+            documentChanges = changed = {from: changeList[0].from.line, to: changeList[0].from.line};
             if (config.debug) {
                 console.debug("ScopeManager: document has changed");
             }
         }
 
-        var end = changeList.from.line + (changeList.text.length - 1);
-        if (changeList.from.line < changed.to) {
-            changed.to = changed.to - (changeList.to.line - end);
-        }
+        for (i = 0; i < changeList.length; i++) {
+            var thisChange = changeList[i],
+                end = thisChange.from.line + (thisChange.text.length - 1);
+            if (thisChange.from.line < changed.to) {
+                changed.to = changed.to - (thisChange.to.line - end);
+            }
 
-        if (end >= changed.to) {
-            changed.to = end + 1;
-        }
+            if (end >= changed.to) {
+                changed.to = end + 1;
+            }
 
-        if (changed.from > changeList.from.line) {
-            changed.from = changeList.from.line;
+            if (changed.from > thisChange.from.line) {
+                changed.from = thisChange.from.line;
+            }
         }
     }
 

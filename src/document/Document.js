@@ -32,7 +32,9 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
-        LanguageManager     = require("language/LanguageManager");
+        LanguageManager     = require("language/LanguageManager"),
+        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        _                   = require("thirdparty/lodash");
     
     /**
      * @constructor
@@ -43,13 +45,12 @@ define(function (require, exports, module) {
      *
      * change -- When the text of the editor changes (including due to undo/redo). 
      *
-     *        Passes ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
+     *        Passes ({Document}, {ChangeList}), where ChangeList is an array
      *        of change record objects. Each change record looks like:
      *
      *            { from: start of change, expressed as {line: <line number>, ch: <character offset>},
      *              to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
-     *              text: array of lines of text to replace existing text,
-     *              next: next change record in the linked list, or undefined if this is the last record }
+     *              text: array of lines of text to replace existing text }
      *      
      *        The line and ch offsets are both 0-based.
      *
@@ -62,9 +63,6 @@ define(function (require, exports, module) {
      *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
      *        (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
      *        event.
-     *  
-     *        (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
-     *        it an ordinary array)
      *
      * deleted -- When the file for this document has been deleted. All views onto the document should
      *      be closed. The document will no longer be editable or dispatch "change" events.
@@ -108,6 +106,12 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     Document.prototype.isDirty = false;
+    
+    /**
+     * Whether this document is currently being saved.
+     * @type {boolean}
+     */
+    Document.prototype.isSaving = false;
     
     /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
@@ -295,7 +299,7 @@ define(function (require, exports, module) {
             // TODO: Dumb to split it here just to join it again in the change handler, but this is
             // the CodeMirror change format. Should we document our change format to allow this to
             // either be an array of lines or a single string?
-            $(this).triggerHandler("change", [this, {text: text.split(/\r?\n/)}]);
+            $(this).triggerHandler("change", [this, [{text: text.split(/\r?\n/)}]]);
         }
         this._updateTimestamp(newTimestamp);
        
@@ -447,6 +451,192 @@ define(function (require, exports, module) {
             }
             $(exports).triggerHandler("_documentSaved", thisDoc);
         });
+    };
+    
+    /**
+     * Adjusts a given position taking a given replaceRange-type edit into account. 
+     * If the position is within the original edit range (start and end inclusive),
+     * it gets pushed to the end of the content that replaced the range. Otherwise, 
+     * if it's after the edit, it gets adjusted so it refers to the same character
+     * it did before the edit.
+     * @param {!{line:number, ch: number}} pos The position to adjust.
+     * @param {!Array.<string>} textLines The text of the change, split into an array of lines.
+     * @param {!{line: number, ch: number}} start The start of the edit.
+     * @param {!{line: number, ch: number}} end The end of the edit.
+     * @return {{line: number, ch: number}} The adjusted position.
+     */
+    Document.prototype.adjustPosForChange = function (pos, textLines, start, end) {
+        // Same as CodeMirror.adjustForChange(), but that's a private function
+        // and Marijn would rather not expose it publicly.
+        var change = { text: textLines, from: start, to: end };
+
+        if (CodeMirror.cmpPos(pos, start) < 0) {
+            return pos;
+        }
+        if (CodeMirror.cmpPos(pos, end) <= 0) {
+            return CodeMirror.changeEnd(change);
+        }
+
+        var line = pos.line + change.text.length - (change.to.line - change.from.line) - 1,
+            ch = pos.ch;
+        if (pos.line === change.to.line) {
+            ch += CodeMirror.changeEnd(change).ch - change.to.ch;
+        }
+        return {line: line, ch: ch};
+    };
+    
+    /**
+     * Like _.each(), but if given a single item not in an array, acts as
+     * if it were an array containing just that item.
+     */
+    function oneOrEach(itemOrArr, cb) {
+        if (Array.isArray(itemOrArr)) {
+            _.each(itemOrArr, cb);
+        } else {
+            cb(itemOrArr, 0);
+        }
+    }
+    
+    /**
+     * Helper function for edit operations that operate on multiple selections. Takes an "edit list"
+     * that specifies a list of replaceRanges that should occur, but where all the positions are with
+     * respect to the document state before all the edits (i.e., you don't have to figure out how to fix
+     * up the selections after each sub-edit). Edits must be non-overlapping (in original-document terms).
+     * All the edits are done in a single batch.
+     *
+     * If your edits are structured in such a way that each individual edit would cause its associated
+     * selection to be properly updated, then all you need to specify are the edits themselves, and the
+     * selections will automatically be updated as the edits are performed. However, for some
+     * kinds of edits, you need to fix up the selection afterwards. In that case, you can specify one
+     * or more selections to be associated with each edit. Those selections are assumed to be in terms
+     * of the document state after the edit, *as if* that edit were the only one being performed (i.e.,
+     * you don't have to worry about adjusting for the effect of other edits). If you supply these selections,
+     * then this function will adjust them as necessary for the effects of other edits, and then return a
+     * flat list of all the selections, suitable for passing to `setSelections()`.
+     *
+     * @param {!Array.<{edit: {text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}
+     *                        | Array.<{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}>,
+     *                  selection: ?{start:{line:number, ch:number}, end:{line:number, ch:number}, 
+     *                              primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}
+     *                        | ?Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, 
+     *                                  primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}>} edits
+     *     Specifies the list of edits to perform in a manner similar to CodeMirror's `replaceRange`. This array
+     *     will be mutated.
+     *
+     *     `edit` is the edit to perform:
+     *         `text` will replace the current contents of the range between `start` and `end`. 
+     *         If `end` is unspecified, the text is inserted at `start`.
+     *         `start` and `end` should be positions relative to the document *ignoring* all other edit descriptions
+     *         (i.e., as if you were only performing this one edit on the document).
+     *     If any of the edits overlap, an error will be thrown.
+     *
+     *     If `selection` is specified, it should be a selection associated with this edit.
+     *          If `isBeforeEdit` is set on the selection, the selection will be fixed up for this edit.
+     *          If not, it won't be fixed up for this edit, meaning it should be expressed in terms of
+     *          the document state after this individual edit is performed (ignoring any other edits).
+     *          Note that if you were planning on just specifying `isBeforeEdit` for every selection, you can
+     *          accomplish the same thing by simply not passing any selections and letting the editor update
+     *          the existing selections automatically.
+     *
+     *     Note that `edit` and `selection` can each be either an individual edit/selection, or a group of
+     *     edits/selections to apply in order. This can be useful if you need to perform multiple edits in a row
+     *     and then specify a resulting selection that shouldn't be fixed up for any of those edits (but should be
+     *     fixed up for edits related to other selections). It can also be useful if you have several selections
+     *     that should ignore the effects of a given edit because you've fixed them up already (this commonly happens
+     *     with line-oriented edits where multiple cursors on the same line should be ignored, but still tracked). 
+     *     Within an edit group, edit positions must be specified relative to previous edits within that group. Also,
+     *     the total bounds of edit groups must not overlap (e.g. edits in one group can't surround an edit from another group).
+     *
+     * @param {?string} origin An optional edit origin that's passed through to each replaceRange().
+     * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
+     *     The list of passed selections adjusted for the performed edits, if any.
+     */
+    Document.prototype.doMultipleEdits = function (edits, origin) {
+        var self = this;
+        
+        // Sort the edits backwards, so we don't have to adjust the edit positions as we go along
+        // (though we do have to adjust the selection positions).
+        edits.sort(function (editDesc1, editDesc2) {
+            var edit1 = (Array.isArray(editDesc1.edit) ? editDesc1.edit[0] : editDesc1.edit),
+                edit2 = (Array.isArray(editDesc2.edit) ? editDesc2.edit[0] : editDesc2.edit);
+            // Treat all no-op edits as if they should happen before all other edits (the order
+            // doesn't really matter, as long as they sort out of the way of the real edits).
+            if (!edit1) {
+                return -1;
+            } else if (!edit2) {
+                return 1;
+            } else {
+                return CodeMirror.cmpPos(edit2.start, edit1.start);
+            }
+        });
+        
+        // Pull out the selections, in the same order as the edits.
+        var result = _.cloneDeep(_.pluck(edits, "selection"));
+        
+        // Preflight the edits to specify "end" if unspecified and make sure they don't overlap. 
+        // (We don't want to do it during the actual edits, since we don't want to apply some of
+        // the edits before we find out.)
+        _.each(edits, function (editDesc, index) {
+            oneOrEach(editDesc.edit, function (edit) {
+                if (edit) {
+                    if (!edit.end) {
+                        edit.end = edit.start;
+                    }
+                    if (index > 0) {
+                        var prevEditGroup = edits[index - 1].edit;
+                        // The edits are in reverse order, so we want to make sure this edit ends
+                        // before any of the previous ones start.
+                        oneOrEach(prevEditGroup, function (prevEdit) {
+                            if (CodeMirror.cmpPos(edit.end, prevEdit.start) > 0) {
+                                throw new Error("Document.doMultipleEdits(): Overlapping edits specified");
+                            }
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Perform the edits.
+        this.batchOperation(function () {
+            _.each(edits, function (editDesc, index) {
+                // Perform this group of edits. The edit positions are guaranteed to be okay
+                // since all the previous edits we've done have been later in the document. However,
+                // we have to fix up any selections that overlap or come after the edit.
+                oneOrEach(editDesc.edit, function (edit) {
+                    if (edit) {
+                        self.replaceRange(edit.text, edit.start, edit.end, origin);
+
+                        // Fix up all the selections *except* the one(s) related to this edit list that
+                        // are not "before-edit" selections.
+                        var textLines = edit.text.split("\n");
+                        _.each(result, function (selections, selIndex) {
+                            if (selections) {
+                                oneOrEach(selections, function (sel) {
+                                    if (sel.isBeforeEdit || selIndex !== index) {
+                                        sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
+                                        sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        });
+        
+        result = _.chain(result)
+            .filter(function (item) {
+                return item !== undefined;
+            })
+            .flatten()
+            .sort(function (sel1, sel2) {
+                return CodeMirror.cmpPos(sel1.start, sel2.start);
+            })
+            .value();
+        _.each(result, function (item) {
+            delete item.isBeforeEdit;
+        });
+        return result;
     };
     
     /* (pretty toString(), to aid debugging) */

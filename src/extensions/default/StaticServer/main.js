@@ -49,7 +49,7 @@ define(function (require, exports, module) {
      * @type {NodeDomain}
      */
     var _nodeDomain = new NodeDomain("staticServer", _domainPath);
-    
+
     /**
      * @private
      * @return {StaticServerProvider} The singleton StaticServerProvider initialized
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         
         return new StaticServer(config);
     }
-    
+
     AppInit.appReady(function () {
         LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
     });

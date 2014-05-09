@@ -27,25 +27,29 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit             = brackets.getModule("utils/AppInit"),
+    var _                   = brackets.getModule("thirdparty/lodash"),
+        AppInit             = brackets.getModule("utils/AppInit"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        StringMatch         = brackets.getModule("utils/StringMatch"),
         CSSProperties       = require("text!CSSProperties.json"),
         properties          = JSON.parse(CSSProperties);
     
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.
-    var lastContext;
+    var lastContext,
+        stringMatcherOptions = { preferPrefixMatches: true };
     
     /**
      * @constructor
      */
     function CssPropHints() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
-        this.secondaryTriggerKeys = ": ";
+        this.secondaryTriggerKeys = ":";
         this.exclusion = null;
     }
 
@@ -171,7 +175,42 @@ define(function (require, exports, module) {
         
         return true;
     };
-       
+
+    /*
+     * Returns a sorted and formatted list of hints with the query substring
+     * highlighted.
+     * 
+     * @param {Array.<Object>} hints - the list of hints to format
+     * @param {string} query - querystring used for highlighting matched
+     *      poritions of each hint
+     * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
+     */
+    function formatHints(hints, query) {
+        StringMatch.basicMatchSort(hints);
+        return hints.map(function (token) {
+            var $hintObj = $("<span>").addClass("brackets-css-hints");
+
+            // highlight the matched portion of each hint
+            if (token.stringRanges) {
+                token.stringRanges.forEach(function (item) {
+                    if (item.matched) {
+                        $hintObj.append($("<span>")
+                            .text(item.text)
+                            .addClass("matched-hint"));
+                    } else {
+                        $hintObj.append(item.text);
+                    }
+                });
+            } else {
+                $hintObj.text(token.value);
+            }
+
+            $hintObj.data("token", token);
+
+            return $hintObj;
+        });
+    }
+    
     /**
      * Returns a list of availble CSS propertyname or -value hints if possible for the current
      * editor context. 
@@ -199,7 +238,7 @@ define(function (require, exports, module) {
     CssPropHints.prototype.getHints = function (implicitChar) {
         this.cursor = this.editor.getCursorPos();
         this.info = CSSUtils.getInfoAtPos(this.editor, this.cursor);
-
+        
         var needle = this.info.name,
             valueNeedle = "",
             context = this.info.context,
@@ -208,7 +247,6 @@ define(function (require, exports, module) {
             result,
             selectInitial = false;
             
-        
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
         
@@ -249,14 +287,15 @@ define(function (require, exports, module) {
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {
-                if (pvalue.indexOf(valueNeedle) === 0) {
-                    return pvalue;
+                var result = StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions);
+                if (result) {
+                    return result;
                 }
-            }).sort();
-            
+            });
+
             return {
-                hints: result,
-                match: valueNeedle,
+                hints: formatHints(result, valueNeedle),
+                match: null, // the CodeHintManager should not format the results
                 selectInitial: selectInitial
             };
         } else if (context === CSSUtils.PROP_NAME) {
@@ -268,15 +307,17 @@ define(function (require, exports, module) {
             
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
+   
             result = $.map(properties, function (pvalues, pname) {
-                if (pname.indexOf(needle) === 0) {
-                    return pname;
+                var result = StringMatch.stringMatch(pname, needle, stringMatcherOptions);
+                if (result) {
+                    return result;
                 }
-            }).sort();
+            });
             
             return {
-                hints: result,
-                match: needle,
+                hints: formatHints(result, needle),
+                match: null, // the CodeHintManager should not format the results
                 selectInitial: selectInitial,
                 handleWideResults: false
             };
@@ -303,6 +344,10 @@ define(function (require, exports, module) {
             adjustCursor = false,
             newCursor,
             ctx;
+        
+        if (hint.jquery) {
+            hint = hint.text();
+        }
         
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
@@ -386,6 +431,8 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         var cssPropHints = new CssPropHints();
         CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 0);
+        
+        ExtensionUtils.loadStyleSheet(module, "styles/brackets-css-hints.css");
         
         // For unit testing
         exports.cssPropHintProvider = cssPropHints;

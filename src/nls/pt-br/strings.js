@@ -296,6 +296,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
     "CMD_TWITTER"                         : "{TWITTER_NAME} no Twitter",
     "CMD_ABOUT"                           : "Sobre o {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de configurações",
 
 
     // Special commands invoked by the native shell
@@ -437,25 +438,6 @@ define({
     "LANGUAGE_SUBMIT"                           : "Recarregar {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Padrão do sistema",
-    
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tcheco",
-    "LOCALE_DE"                                 : "Alemão",
-    "LOCALE_EN"                                 : "Inglês",
-    "LOCALE_ES"                                 : "Espanhol",
-    "LOCALE_FI"                                 : "Finlandês",
-    "LOCALE_FR"                                 : "Francês",
-    "LOCALE_IT"                                 : "Italiano",
-    "LOCALE_JA"                                 : "Japonês",
-    "LOCALE_NB"                                 : "Norueguês",
-    "LOCALE_PL"                                 : "Polonês",
-    "LOCALE_PT_BR"                              : "Português do Brasil",
-    "LOCALE_PT_PT"                              : "Português",
-    "LOCALE_RU"                                 : "Russo",
-    "LOCALE_SV"                                 : "Sueco",
-    "LOCALE_TR"                                 : "Turco",
-    "LOCALE_ZH_CN"                              : "Chinês Simplificado",
-    "LOCALE_HU"                                 : "Húngaro",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Cor atual",

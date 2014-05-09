@@ -24,17 +24,19 @@
 
 // FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var DocumentManager     = require("document/DocumentManager"),
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        InlineWidget        = require("editor/InlineWidget").InlineWidget;
+        InlineWidget        = require("editor/InlineWidget").InlineWidget,
+        KeyEvent            = require("utils/KeyEvent");
 
     /**
      * Returns editor holder width (not CodeMirror's width).
@@ -80,6 +82,10 @@ define(function (require, exports, module) {
 
         /* @type {Editor}*/
         this.editor = null;
+        
+        // We need to set this as a capture handler so CodeMirror doesn't handle Esc before we see it.
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.htmlContent.addEventListener("keydown", this.handleKeyDown, true);
     }
     InlineTextEditor.prototype = Object.create(InlineWidget.prototype);
     InlineTextEditor.prototype.constructor = InlineTextEditor;
@@ -137,6 +143,7 @@ define(function (require, exports, module) {
         
         // Destroy the inline editor.
         this.setInlineContent(null);
+        this.htmlContent.removeEventListener("keydown", this.handleKeyDown, true);
     };
     
     /**
@@ -193,6 +200,17 @@ define(function (require, exports, module) {
         return null;
     };
 
+    /**
+     * @private
+     * Make sure that if we want to handle Esc to cancel a multiple selection, we don't let it bubble
+     * up to InlineWidget, which will close the edit.
+     */
+    InlineTextEditor.prototype.handleKeyDown = function (e) {
+        if (e.keyCode === KeyEvent.DOM_VK_ESCAPE && this.editor && this.editor.getSelections().length > 1) {
+            CodeMirror.commands.singleSelection(this.editor._codeMirror);
+            e.stopImmediatePropagation();
+        }
+    };
 
     /**
      * Sets the document and range to show in the inline editor, or null to destroy the current editor and leave
@@ -226,6 +244,7 @@ define(function (require, exports, module) {
         // dirty indicator, with file path stored on it
         var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
+            .html("&bull;")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         

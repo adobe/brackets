@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, CodeMirror, _parseRuleList: true */
+/*global define, $, _parseRuleList: true */
 
 // JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
 // It was added to this list to prevent JSLint warning about being used before being defined.
@@ -34,12 +34,14 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async               = require("utils/Async"),
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         ProjectManager      = require("project/ProjectManager"),
-        TokenUtils          = require("utils/TokenUtils");
+        TokenUtils          = require("utils/TokenUtils"),
+        _                   = require("thirdparty/lodash");
 
     // Constants
     var SELECTOR   = "selector",
@@ -127,20 +129,25 @@ define(function (require, exports, module) {
      * @param {Array.<string>=} values An array of property values 
      * @param {boolean=} isNewItem If this is true, then the value in index refers to the index at which a new item  
      *     is going to be inserted and should not be used for accessing an existing value in values array. 
+     * @param {{start: {line: number, ch: number},
+     *          end: {line: number, ch: number}}=} range A range object with a start position and an end position
      * @return {{context: string,
      *           offset: number,
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
-    function createInfo(context, offset, name, index, values, isNewItem) {
+    function createInfo(context, offset, name, index, values, isNewItem, range) {
         var ruleInfo = { context: context || "",
                          offset: offset || 0,
                          name: name || "",
                          index: -1,
                          values: [],
-                         isNewItem: (isNewItem) ? true : false };
+                         isNewItem: (isNewItem === true),
+                         range: range };
         
         if (context === PROP_VALUE || context === SELECTOR || context === IMPORT_URL) {
             ruleInfo.index = index;
@@ -152,13 +159,76 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Scan backwards to check for any prefix if the current context is property name.
+     * If the current context is in a prefix (either 'meta' or '-'), then scan forwards 
+     * to collect the entire property name. Return the name of the property in the CSS 
+     * context info object if there is one that seems to be valid. Return an empty context
+     * info when we find an invalid one.
+     *
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx  context
+     * @return {{context: string,
+     *           offset: number,
+     *           name: string,
+     *           index: number,
+     *           values: Array.<string>,
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
+     */
+    function _getPropNameInfo(ctx) {
+        var propName = "",
+            offset = TokenUtils.offsetInToken(ctx),
+            tokenString = ctx.token.string,
+            excludedCharacters = [";", "{", "}"];
+        
+        if (ctx.token.type === "property" || ctx.token.type === "property error" ||
+                ctx.token.type === "tag") {
+            propName = tokenString;
+            if (TokenUtils.movePrevToken(ctx) && /\S/.test(ctx.token.string) &&
+                    excludedCharacters.indexOf(ctx.token.string) === -1) {
+                propName = ctx.token.string + tokenString;
+                offset += ctx.token.string.length;
+            }
+        } else if (ctx.token.type === "meta" || tokenString === "-") {
+            propName = tokenString;
+            if (TokenUtils.moveNextToken(ctx) &&
+                    (ctx.token.type === "property" || ctx.token.type === "property error" ||
+                    ctx.token.type === "tag")) {
+                propName += ctx.token.string;
+            }
+        } else if (/\S/.test(tokenString) && excludedCharacters.indexOf(tokenString) === -1) {
+            // We're not inside the property name context.
+            return createInfo();
+        } else {
+            var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                testToken = ctx.editor.getTokenAt(testPos, true);
+
+            if (testToken.type === "property" || testToken.type === "property error" ||
+                    testToken.type === "tag") {
+                propName = testToken.string;
+                offset = 0;
+            }
+        }
+
+        // If we're in the property name context but not in an existing property name, 
+        // then reset offset to zero.
+        if (propName === "") {
+            offset = 0;
+        }
+
+        return createInfo(PROP_NAME, offset, propName);
+    }
+    
+    /**
+     * @private
      * Scans backwards from the current context and returns the name of the property if there is 
      * a valid one. 
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {string} the property name of the current rule.
      */
     function _getPropNameStartingFromPropValue(ctx) {
-        var ctxClone = $.extend({}, ctx);
+        var ctxClone = $.extend({}, ctx),
+            propName = "";
         do {
             // If we're no longer in the property value before seeing a colon, then we don't
             // have a valid property name. Just return an empty string.
@@ -169,10 +239,13 @@ define(function (require, exports, module) {
         
         if (ctxClone.token.string === ":" && TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxClone) &&
                 (ctxClone.token.type === "property" || ctxClone.token.type === "property error")) {
-            return ctxClone.token.string;
+            propName = ctxClone.token.string;
+            if (TokenUtils.movePrevToken(ctxClone) && ctxClone.token.type === "meta") {
+                propName = ctxClone.token.string + propName;
+            }
         }
         
-        return "";
+        return propName;
     }
     
     /**
@@ -272,6 +345,43 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Return a range object with a start position and an end position after
+     * skipping any whitespaces and all separators used before and after a
+     * valid property value.
+     *
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} startCtx context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} endCtx context
+     * @return {{start: {line: number, ch: number},
+     *           end: {line: number, ch: number}}} A range object.
+     */
+    function _getRangeForPropValue(startCtx, endCtx) {
+        var range = { "start": {},
+                      "end": {} };
+        
+        // Skip the ":" and any leading whitespace
+        while (TokenUtils.moveNextToken(startCtx)) {
+            if (/\S/.test(startCtx.token.string)) {
+                break;
+            }
+        }
+        
+        // Skip the trailing whitespace and property separators.
+        while (endCtx.token.string === ";" || endCtx.token.string === "}" ||
+                !/\S/.test(endCtx.token.string)) {
+            TokenUtils.movePrevToken(endCtx);
+        }
+        
+        range.start = _.clone(startCtx.pos);
+        range.start.ch = startCtx.token.start;
+        
+        range.end = _.clone(endCtx.pos);
+        range.end.ch = endCtx.token.end;
+        
+        return range;
+    }
+    
+    /**
+     * @private
      * Returns a context info object for the current CSS style rule
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @param {!Editor} editor
@@ -280,7 +390,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getRuleInfoStartingFromPropValue(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
@@ -296,7 +408,8 @@ define(function (require, exports, module) {
             canAddNewOne = false,
             testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
             testToken = editor._codeMirror.getTokenAt(testPos, true),
-            propName;
+            propName,
+            range;
         
         // Get property name first. If we don't have a valid property name, then 
         // return a default rule info.
@@ -348,13 +461,21 @@ define(function (require, exports, module) {
         forwardCtx = TokenUtils.getInitialContext(editor._codeMirror, forwardPos);
         propValues = propValues.concat(_getSucceedingPropValues(forwardCtx, lastValue));
         
+        if (propValues.length) {
+            range = _getRangeForPropValue(backwardCtx, forwardCtx);
+        } else {
+            // No property value, so just return the cursor pos as range
+            range = { "start": _.clone(ctx.pos),
+                      "end": _.clone(ctx.pos) };
+        }
+        
         // If current index is more than the propValues size, then the cursor is 
         // at the end of the existing property values and is ready for adding another one.
         if (index === propValues.length) {
             canAddNewOne = true;
         }
         
-        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne);
+        return createInfo(PROP_VALUE, offset, propName, index, propValues, canAddNewOne, range);
     }
     
     /**
@@ -367,7 +488,9 @@ define(function (require, exports, module) {
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
         var propNamePos = $.extend({}, ctx.pos),
@@ -382,7 +505,7 @@ define(function (require, exports, module) {
             testToken = editor._codeMirror.getTokenAt(testPos, true);
 
         // Currently only support url. May be null if starting to type
-        if (ctx.token.className && ctx.token.className !== "string") {
+        if (ctx.token.type && ctx.token.type !== "string") {
             return createInfo();
         }
 
@@ -392,11 +515,11 @@ define(function (require, exports, module) {
         propValues[0] = backwardCtx.token.string;
 
         while (TokenUtils.movePrevToken(backwardCtx)) {
-            if (backwardCtx.token.className === "def" && backwardCtx.token.string === "@import") {
+            if (backwardCtx.token.type === "def" && backwardCtx.token.string === "@import") {
                 break;
             }
             
-            if (backwardCtx.token.className && backwardCtx.token.className !== "tag" && backwardCtx.token.string !== "url") {
+            if (backwardCtx.token.type && backwardCtx.token.type !== "tag" && backwardCtx.token.string !== "url") {
                 // Previous token may be white-space
                 // Otherwise, previous token may only be "url("
                 break;
@@ -406,7 +529,7 @@ define(function (require, exports, module) {
             offset += backwardCtx.token.string.length;
         }
         
-        if (backwardCtx.token.className !== "def" || backwardCtx.token.string !== "@import") {
+        if (backwardCtx.token.type !== "def" || backwardCtx.token.string !== "@import") {
             // Not in url
             return createInfo();
         }
@@ -430,13 +553,15 @@ define(function (require, exports, module) {
     /**
      * Returns a context info object for the given cursor position
      * @param {!Editor} editor
-     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
      * @return {{context: string,
      *           offset: number,
      *           name: string,
      *           index: number,
      *           values: Array.<string>,
-     *           isNewItem: boolean}} A CSS context info object.
+     *           isNewItem: boolean,
+     *           range: {start: {line: number, ch: number},
+     *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
@@ -453,25 +578,7 @@ define(function (require, exports, module) {
         }
 
         if (_isInPropName(ctx)) {
-            if (ctx.token.type === "property" || ctx.token.type === "property error" || ctx.token.type === "tag") {
-                propName = ctx.token.string;
-            } else {
-                var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
-                    testToken = editor._codeMirror.getTokenAt(testPos, true);
-                
-                if (testToken.type === "property" || testToken.type === "property error" || testToken.type === "tag") {
-                    propName = testToken.string;
-                    offset = 0;
-                }
-            }
-            
-            // If we're in property name context but not in an existing property name, 
-            // then reset offset to zero.
-            if (propName === "") {
-                offset = 0;
-            }
-            
-            return createInfo(PROP_NAME, offset, propName);
+            return _getPropNameInfo(ctx, editor);
         }
         
         if (_isInPropValue(ctx)) {
@@ -926,7 +1033,7 @@ define(function (require, exports, module) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
                 // Special case for tag selectors - match "*" as the rightmost character
-                if (entry.selector.trim().search(/\*$/) !== -1) {
+                if (/\*\s*$/.test(entry.selector)) {
                     result.push(entry);
                 }
             }
@@ -1095,7 +1202,7 @@ define(function (require, exports, module) {
                     }
                     
                     // Stop once we've reached a <style ...> tag
-                    if (ctx.token.string === "<style") {
+                    if (ctx.token.string === "style" && ctx.token.type === "tag") {
                         // Remove everything up to end-of-tag from selector
                         var eotIndex = selector.indexOf(">");
                         if (eotIndex !== -1) {
@@ -1123,7 +1230,7 @@ define(function (require, exports, module) {
                     selector = _parseSelector(ctx);
                     break;
                 } else {
-                    if (ctx.token.string.trim() !== "") {
+                    if (/\S/.test(ctx.token.string)) {
                         foundChars = true;
                     }
                 }
@@ -1142,7 +1249,7 @@ define(function (require, exports, module) {
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace
         if (!selector && !foundChars) {
-            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && ctx.token.string.trim() !== "") {
+            if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && /\S/.test(ctx.token.string)) {
                 foundChars = true;
                 ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
             }

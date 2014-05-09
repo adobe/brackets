@@ -40,6 +40,14 @@ require.config({
     }
 });
 
+if (window.location.search.indexOf("testEnvironment") > -1) {
+    require.config({
+        paths: {
+            "preferences/PreferencesImpl": "../test/TestPreferencesImpl"
+        }
+    });
+}
+
 // hack for r.js optimization, move locale to another config call
 
 // Use custom brackets property until CEF sets the correct navigator.language
