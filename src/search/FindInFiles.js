@@ -69,7 +69,7 @@ define(function (require, exports, module) {
     /** @const Constants used to define the maximum results show per page and found in a single file */
     var FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400,
-        MAX_IN_MEMORY    = 10; // maximum number of files to do replacements in-memory instead of on disk
+        MAX_IN_MEMORY    = 20; // maximum number of files to do replacements in-memory instead of on disk
     
     /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
     var ZERO_FILES_TO_SEARCH = {};
@@ -518,12 +518,13 @@ define(function (require, exports, module) {
         var fewReplacements = Object.keys(findInFilesResults._searchResults).length <= MAX_IN_MEMORY;
         if (fewReplacements) {
             // Just do the replacements in memory.
+            findInFilesResults.hideResults();
             doReplace(findInFilesResults._searchResults, currentReplaceText, { forceFilesOpen: true });
         } else {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
                 Strings.REPLACE_WITHOUT_UNDO_WARNING_TITLE,
-                Strings.REPLACE_WITHOUT_UNDO_WARNING,
+                StringUtils.format(Strings.REPLACE_WITHOUT_UNDO_WARNING, MAX_IN_MEMORY),
                 [
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
@@ -538,6 +539,7 @@ define(function (require, exports, module) {
                 ]
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
+                    findInFilesResults.hideResults();
                     doReplace(findInFilesResults._searchResults, currentReplaceText);
                 }
             });

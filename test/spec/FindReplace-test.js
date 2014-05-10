@@ -2696,6 +2696,7 @@ define(function (require, exports, module) {
                     openSearchBar(null, true);
                     // A delay seems to be necessary here, possibly because focus can jump around asynchronously
                     // when the modal bar first opens.
+                    // TODO: this test is still flaky. Need to figure out why it sometimes fails.
                     waits(100);
                     runs(function () {
                         $("#find-what").focus();
@@ -2766,7 +2767,7 @@ define(function (require, exports, module) {
                     });
                 });
 
-                it("should warn about doing changes on disk if there are changes in >10 files", function () {
+                it("should warn and do changes on disk if there are changes in >20 files", function () {
                     openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
                     openSearchBar(null, true);
                     executeReplace("foo", "bar");
@@ -2801,7 +2802,7 @@ define(function (require, exports, module) {
                     expectProjectToMatchKnownGood("simple-case-insensitive-large");
                 });
                 
-                it("should not do changes on disk if Cancel is clicked", function () {
+                it("should not do changes on disk if Cancel is clicked in 'too many files' dialog", function () {
                     spyOn(FindInFiles, "doReplace").andCallThrough();
                     openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
                     openSearchBar(null, true);
@@ -2835,6 +2836,8 @@ define(function (require, exports, module) {
                     }, "dialog dismissed");
                     runs(function () {
                         expect(FindInFiles.doReplace).not.toHaveBeenCalled();
+                        // Panel should be left open.
+                        expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                     });
                 });
                 

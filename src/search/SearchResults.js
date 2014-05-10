@@ -227,7 +227,6 @@ define(function (require, exports, module) {
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
                     $(self).triggerHandler("doReplaceAll");
-                    self.hideResults();
                 });
         }
     };
