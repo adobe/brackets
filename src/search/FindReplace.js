@@ -76,9 +76,6 @@ define(function (require, exports, module) {
     /** @type {?FindBar} Currently open Find or Find/Replace bar, if any */
     var findBar;
     
-    /** @type {!function():void} API from FindInFiles for closing its conflicting search bar, if open */
-    var closeFindInFilesBar;
-    
     function SearchState() {
         this.searchStartPos = null;
         this.queryInfo = null;
