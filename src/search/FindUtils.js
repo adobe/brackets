@@ -74,11 +74,8 @@ define(function (require, exports, module) {
         // TODO: if doc has changed since query was run, don't do replacement
         
         // Do the replacements in reverse document order so the offsets continue to be correct.
-        matchInfo.matches.sort(function (match1, match2) {
-            return CodeMirror.cmpPos(match2.start, match1.start);
-        });
         doc.batchOperation(function () {
-            matchInfo.matches.forEach(function (match) {
+            matchInfo.matches.reverse().forEach(function (match) {
                 if (match.isChecked) {
                     doc.replaceRange(isRegexp ? parseDollars(replaceText, match.result) : replaceText, match.start, match.end);
                 }
