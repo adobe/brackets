@@ -74,8 +74,8 @@ define(function (require, exports, module) {
     /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
     var ZERO_FILES_TO_SEARCH = {};
     
-    /** @type {SearchModel} The search results model. */
-    var resultsModel;
+    /** @type {SearchModel} The search query and results model. */
+    var searchModel;
     
     /** @type {FindInFilesResults} The find in files results. Initialized in htmlReady() */
     var findInFilesResults;
@@ -259,10 +259,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter, allowReplace, replaceText) {
-        resultsModel.queryInfo = queryInfo;
-        resultsModel.isReplace = !(replaceText === undefined || replaceText === null);
-        resultsModel.replaceText = replaceText;
-        resultsModel.scope = currentScope;
+        searchModel.queryInfo = queryInfo;
+        searchModel.isReplace = !(replaceText === undefined || replaceText === null);
+        searchModel.replaceText = replaceText;
+        searchModel.scope = currentScope;
         
         currentQuery     = queryInfo;
         currentQueryExpr = _getQueryRegExp(queryInfo);
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
                 // Done searching all files: show results
                 exports._searchDone = true; // for unit tests
                 
-                if (resultsModel.hasResults()) {
+                if (searchModel.hasResults()) {
                     findInFilesResults.showResults();
 
                     if (findBar) {
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
                 // Listen for FS & Document changes to keep results up to date
                 findInFilesResults.addListeners();
                 
-                deferred.resolve(resultsModel.results);
+                deferred.resolve(searchModel.results);
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
         currentQueryExpr   = null;
         currentReplaceText = null;
         currentScope       = scope;
-        resultsModel.clear();
+        searchModel.clear();
         findInFilesResults.initializeResults();
     }
     
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
         }
         
         // Clone the search results so that they don't get updated in the middle of the replacement.
-        var resultsClone = _.cloneDeep(resultsModel.results),
+        var resultsClone = _.cloneDeep(searchModel.results),
             replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             });
@@ -659,7 +659,7 @@ define(function (require, exports, module) {
             // This fixed issue #1829 where code hangs on too many hits.
             if (matches.length >= FIND_IN_FILE_MAX) {
                 queryExpr.lastIndex = 0;
-                resultsModel.foundMaximum = true;
+                searchModel.foundMaximum = true;
                 break;
             }
         }
@@ -950,11 +950,11 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        resultsModel = new SearchModel();
-        findInFilesResults = new FindInFilesResults(resultsModel, "find-in-files-results", "find-in-files-results.panel");
+        searchModel = new SearchModel();
+        findInFilesResults = new FindInFilesResults(searchModel, "find-in-files-results", "find-in-files-results.panel");
         $(findInFilesResults).on("doReplaceAll", _finishReplaceAll);
 
-        exports._resultsModel = resultsModel; // for UI integration tests
+        exports._searchModel = searchModel; // for UI integration tests
     });
     
     // Initialize: register listeners

@@ -486,8 +486,8 @@ define(function (require, exports, module) {
                     executeSearch("{1}");
                 });
                 runs(function () {
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.css"]).toBeTruthy();
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.css"]).toBeTruthy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
             
@@ -511,8 +511,8 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // *.css should have been excluded this time
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.css"]).toBeFalsy();
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.css"]).toBeFalsy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
             
@@ -527,8 +527,8 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // *.css should have been excluded this time
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.css"]).toBeFalsy();
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.css"]).toBeFalsy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
             
@@ -545,7 +545,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // ignore *.css exclusion since we're explicitly searching this file
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.css"]).toBeTruthy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.css"]).toBeTruthy();
                 });
             });
             
@@ -601,8 +601,8 @@ define(function (require, exports, module) {
                     waits(800);  // ensure _documentChangeHandler()'s timeout has time to run
                 });
                 runs(function () {
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.css"]).toBeFalsy();  // *.css should still be excluded
-                    expect(FindInFiles._resultsModel.results[testPath + "/test1.html"]).toBeTruthy();
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.css"]).toBeFalsy();  // *.css should still be excluded
+                    expect(FindInFiles._searchModel.results[testPath + "/test1.html"]).toBeTruthy();
                 });
             });
         });

@@ -1704,18 +1704,18 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._resultsModel.results[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles._searchModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.html"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(7);
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.js"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(4);
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(3);
                 });
@@ -1785,16 +1785,16 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._resultsModel.results[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles._searchModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.html"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.js"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(3);
                 });
@@ -1806,17 +1806,17 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._resultsModel.results[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles._searchModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.html"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.js"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(4);
 
-                    fileResults = FindInFiles._resultsModel.results[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles._searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeFalsy();
                 });
             });
@@ -1829,7 +1829,7 @@ define(function (require, exports, module) {
                 executeSearch("callFoo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._resultsModel.results[filePath];
+                    var fileResults = FindInFiles._searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(1);
 
@@ -1853,7 +1853,7 @@ define(function (require, exports, module) {
                 }, "search bar close");
 
                 runs(function () {
-                    var fileResults = FindInFiles._resultsModel.results[filePath];
+                    var fileResults = FindInFiles._searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                     expect($(".modal-bar").length).toBe(0);
@@ -1874,9 +1874,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     var result, resultFound = false;
 
-                    // verify _resultsModel.results Object is empty
-                    for (result in FindInFiles._resultsModel.results) {
-                        if (FindInFiles._resultsModel.results.hasOwnProperty(result)) {
+                    // verify _searchModel.results Object is empty
+                    for (result in FindInFiles._searchModel.results) {
+                        if (FindInFiles._searchModel.results.hasOwnProperty(result)) {
                             resultFound = true;
                         }
                     }

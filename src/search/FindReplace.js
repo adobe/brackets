@@ -67,8 +67,8 @@ define(function (require, exports, module) {
     /** @type {SearchResultsView} The search results panel. Initialized in htmlReady() */
     var resultsView;
     
-    /** @type {SearchModel} The search results data. */
-    var resultsModel;
+    /** @type {SearchModel} The search query and results data. */
+    var searchModel;
     
     /** @type {?Document} Instance of the currently opened document when replaceAllPanel is visible */
     var currentDocument = null;
@@ -626,7 +626,7 @@ define(function (require, exports, module) {
         if (findBar) {
             findBar.close();
         }
-        resultsModel.clear();
+        searchModel.clear();
     }
     
     /**
@@ -679,14 +679,14 @@ define(function (require, exports, module) {
         
         if (all) {
             findBar.close();
-            doFindAll(editor, state.query, state.queryInfo, replaceText, resultsModel);
+            doFindAll(editor, state.query, state.queryInfo, replaceText, searchModel);
             resultsView.showResults();
         
             // we can't safely replace after document has been modified
             // this handler is only attached when replaceAllPanel is visible
             currentDocument = DocumentManager.getCurrentDocument();
             $(currentDocument).on("change.replaceAll", function () {
-                resultsModel.clear();
+                searchModel.clear();
                 $(currentDocument).off(".replaceAll");
             });
         } else {
@@ -748,11 +748,11 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        resultsModel = new SearchModel();
-        resultsView = new SearchResultsView(resultsModel, "replace-all-results", "replace-all-results.panel");
+        searchModel = new SearchModel();
+        resultsView = new SearchResultsView(searchModel, "replace-all-results", "replace-all-results.panel");
         $(resultsView).on("doReplaceAll", function () {
-            if (resultsModel.hasResults()) {
-                FindUtils.performReplacements(resultsModel.results, resultsModel.replaceText, {isRegexp: resultsModel.queryInfo.isRegexp});
+            if (searchModel.hasResults()) {
+                FindUtils.performReplacements(searchModel.results, searchModel.replaceText, {isRegexp: searchModel.queryInfo.isRegexp});
             }
         });
     });
