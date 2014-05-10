@@ -453,6 +453,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Returns true if a search result has any checked matches.
+     */
+    function _hasCheckedMatches(result) {
+        return result.matches.some(function (match) { return match.isChecked; });
+    }
+        
+    /**
      * Given a set of search results as returned from _doSearch, replaces them with the given replaceText, either on
      * disk or in memory.
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
@@ -469,10 +477,6 @@ define(function (require, exports, module) {
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
-        function hasCheckedMatches(result) {
-            return result.matches.some(function (match) { return match.isChecked; });
-        }
-        
         return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
             return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
         }).done(function () {
@@ -482,14 +486,14 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getCurrentDocument();
                 if (!doc ||
                         !results[doc.file.fullPath] ||
-                        !hasCheckedMatches(results[doc.file.fullPath])) {
+                        !_hasCheckedMatches(results[doc.file.fullPath])) {
                     // Figure out the first modified document. This logic is slightly different from
                     // SearchResults._getSortedFiles() because it doesn't sort the currently open file to
                     // the top. But if the currently open file were in the search results, we wouldn't be
                     // doing this anyway.
                     var sortedPaths = Object.keys(results).sort(FileUtils.comparePaths),
                         firstPath = _.find(sortedPaths, function (path) {
-                            return hasCheckedMatches(results[path]);
+                            return _hasCheckedMatches(results[path]);
                         });
                     
                     if (firstPath) {
@@ -515,11 +519,16 @@ define(function (require, exports, module) {
             return;
         }
         
-        var fewReplacements = Object.keys(findInFilesResults._searchResults).length <= MAX_IN_MEMORY;
-        if (fewReplacements) {
+        // Clone the search results so that they don't get updated in the middle of the replacement.
+        var resultsClone = _.cloneDeep(findInFilesResults._searchResults),
+            replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
+                return _hasCheckedMatches(resultsClone[path]);
+            });
+                
+        if (replacedFiles.length <= MAX_IN_MEMORY) {
             // Just do the replacements in memory.
             findInFilesResults.hideResults();
-            doReplace(findInFilesResults._searchResults, currentReplaceText, { forceFilesOpen: true });
+            doReplace(resultsClone, currentReplaceText, { forceFilesOpen: true });
         } else {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
@@ -540,7 +549,7 @@ define(function (require, exports, module) {
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     findInFilesResults.hideResults();
-                    doReplace(findInFilesResults._searchResults, currentReplaceText);
+                    doReplace(resultsClone, currentReplaceText);
                 }
             });
         }
