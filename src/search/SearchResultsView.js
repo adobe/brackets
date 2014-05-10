@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         ProjectManager        = require("project/ProjectManager"),
         FileViewController    = require("project/FileViewController"),
         FileUtils             = require("file/FileUtils"),
+        FindUtils             = require("search/FindUtils"),
         PanelManager          = require("view/PanelManager"),
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
@@ -44,55 +45,62 @@ define(function (require, exports, module) {
     
     
     /** @const Constants used to define the maximum results show per page and found in a single file */
-    var RESULTS_PER_PAGE = 100;
-    
-    
+    var RESULTS_PER_PAGE = 100,
+        UPDATE_TIMEOUT   = 400;
     
     /**
      * @constructor
-     * Handles the Search Results and the Panel
+     * Handles the search results panel.
      * Dispatches the following events:
      *      replaceAll - when the "Replace" button is clicked.
+     *
+     * @param {SearchModel} model The model that this view is showing.
+     * @param {string} panelID The CSS ID to use for the panel.
+     * @param {string} panelName The name to use for the panel, as passed to PanelManager.createBottomPanel().
      */
-    function SearchResults() {
-        return undefined;
+    function SearchResultsView(model, panelID, panelName) {
+        this._model = model;
+        $(model).on("clear", this._handleModelClear.bind(this));
+        $(model).on("change", this._handleModelChange.bind(this));
+        
+        this.createPanel(panelID, panelName);
     }
     
     /**
-     * Map of all the last search results
-     * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
+     * The search results model we're viewing.
+     * @type {SearchModel}
      */
-    SearchResults.prototype._searchResults = {};
+    SearchResultsView.prototype._model = null;
     
     /**
      * Array with content used in the Results Panel
      * @type {Array.<{file: number, filename: string, fullPath: string, items: Array.<Object>}>}
      */
-    SearchResults.prototype._searchList = [];
+    SearchResultsView.prototype._searchList = [];
     
     /** @type {Panel} Bottom panel holding the search results */
-    SearchResults.prototype._panel = null;
+    SearchResultsView.prototype._panel = null;
     
     /** @type {?Entry} The File selected on the initial search */
-    SearchResults.prototype._selectedEntry = null;
+    SearchResultsView.prototype._selectedEntry = null;
     
     /** @type {number} The index of the first result that is displayed */
-    SearchResults.prototype._currentStart = 0;
-    
-    /** @type {boolean} Determines if this is in replace mode */
-    SearchResults.prototype._replace = false;
-    
+    SearchResultsView.prototype._currentStart = 0;
+        
     /** @type {boolean} Used to remake the replace all summary after it is changed */
-    SearchResults.prototype._allChecked = false;
+    SearchResultsView.prototype._allChecked = false;
     
     /** @type {$.Element} The currently selected row */
-    SearchResults.prototype._$selectedRow = null;
+    SearchResultsView.prototype._$selectedRow = null;
     
     /** @type {$.Element} The element where the title is placed */
-    SearchResults.prototype._$summary = null;
+    SearchResultsView.prototype._$summary = null;
     
     /** @type {$.Element} The table that holds the results */
-    SearchResults.prototype._$table = null;
+    SearchResultsView.prototype._$table = null;
+    
+    /** @type {number} The ID we use for timeouts when handling model changes. */
+    SearchResultsView.prototype._timeoutID = null;
     
     
     /**
@@ -100,7 +108,7 @@ define(function (require, exports, module) {
      * @param {string} panelID
      * @param {string} panelName
      */
-    SearchResults.prototype.createPanel = function (panelID, panelName) {
+    SearchResultsView.prototype.createPanel = function (panelID, panelName) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
         
         this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
@@ -110,9 +118,39 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Handles when the model is cleared out.
+     */
+    SearchResultsView.prototype._handleModelClear = function () {
+        if (this._$table) {
+            this._$table.empty();
+        }
+        this.hideResults();
+    };
+    
+    /**
+     * @private
+     * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
+     */
+    SearchResultsView.prototype._handleModelChange = function (quickChange) {
+        var self = this;
+        if (this._timeoutID) {
+            window.clearTimeout(this._timeoutID);
+        }
+        if (quickChange) {
+            this._timeoutID = window.setTimeout(function () {
+                self.restoreResults();
+                self._timeoutID = null;
+            }, UPDATE_TIMEOUT);
+        } else {
+            this.restoreResults();
+        }
+    };
+    
+    /**
+     * @private
      * Adds the listeners for close, prev, next, first, last and check all
      */
-    SearchResults.prototype._addPanelListeners = function () {
+    SearchResultsView.prototype._addPanelListeners = function () {
         var self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
@@ -163,7 +201,7 @@ define(function (require, exports, module) {
                     // This is a file title row, expand/collapse on click
                     if ($row.hasClass("file-section")) {
                         var $titleRows,
-                            collapsed = !self._searchResults[fullPath].collapsed;
+                            collapsed = !self._model.results[fullPath].collapsed;
 
                         if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
                             $titleRows = $(e.target).closest("table").find(".file-section");
@@ -174,7 +212,7 @@ define(function (require, exports, module) {
 
                         $titleRows.each(function () {
                             fullPath   = self._searchList[$(this).data("file")].fullPath;
-                            searchItem = self._searchResults[fullPath];
+                            searchItem = self._model.results[fullPath];
 
                             if (searchItem.collapsed !== collapsed) {
                                 searchItem.collapsed = collapsed;
@@ -185,7 +223,7 @@ define(function (require, exports, module) {
 
                         //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
                         if (e.metaKey || e.ctrlKey) {
-                            _.forEach(self._searchResults, function (item) {
+                            _.forEach(self._model.results, function (item) {
                                 item.collapsed = collapsed;
                             });
                         }
@@ -206,11 +244,11 @@ define(function (require, exports, module) {
         
         
         // Add the Click handlers for replace functionality if required
-        if (this._replace) {
+        if (this._model.isReplace) {
             this._panel.$panel
                 .on("click.searchResults", ".check-all", function (e) {
                     var isChecked = $(this).is(":checked");
-                    _.forEach(self._searchResults, function (results) {
+                    _.forEach(self._model.results, function (results) {
                         results.matches.forEach(function (match) {
                             match.isChecked = isChecked;
                         });
@@ -222,7 +260,7 @@ define(function (require, exports, module) {
                     var $row = $(e.target).closest("tr"),
                         item = self._searchList[$row.data("file")];
 
-                    self._searchResults[item.fullPath].matches[$row.data("index")].isChecked = $(this).is(":checked");
+                    self._model.results[item.fullPath].matches[$row.data("index")].isChecked = $(this).is(":checked");
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
@@ -235,8 +273,7 @@ define(function (require, exports, module) {
     /**
      * Initializes the Search Results
      */
-    SearchResults.prototype.initializeResults = function () {
-        this._searchResults = {};
+    SearchResultsView.prototype.initializeResults = function () {
         this._currentStart  = 0;
         this._$selectedRow  = null;
         this._allChecked    = true;
@@ -251,77 +288,83 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Adds the given Result Matches to the search results
-     * @param {string} fullpath
-     * @param {Array.<Object>} matches
-     */
-    SearchResults.prototype.addResultMatches = function (fullpath, matches, timestamp) {
-        this._searchResults[fullpath] = {
-            matches:   matches,
-            collapsed: false,
-            timestamp: timestamp
-        };
-    };
-    
-    
-    /**
-     * Shows the Results Panel
-     */
-    SearchResults.prototype.showResults = function () {
-        return undefined;
-    };
-    
-    /**
      * Hides the Search Results Panel and unregisters listeners
      */
-    SearchResults.prototype.hideResults = function () {
-        if (this._panel.isVisible()) {
+    SearchResultsView.prototype.hideResults = function () {
+        if (this._panel && this._panel.isVisible()) {
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
         }
     };
     
-    
     /**
      * @private
      * Shows the Results Summary
-     * @param {Object} summaryData
      */
-    SearchResults.prototype._showSummary = function (summaryData) {
-        var count     = this._countFilesMatches(),
-            lastIndex = this._getLastIndex(count.matches);
+    SearchResultsView.prototype._showSummary = function () {
+        var count     = this._model.countFilesMatches(),
+            lastIndex = this._getLastIndex(count.matches),
+            fileList  = Object.keys(this._model.results),
+            filesStr,
+            summary;
         
-        this._$summary.html(Mustache.render(searchSummaryTemplate, $.extend({
-            allChecked: this._allChecked,
-            hasPages:   count.matches > RESULTS_PER_PAGE,
-            results:    StringUtils.format(Strings.FIND_IN_FILES_PAGING, this._currentStart + 1, lastIndex),
-            hasPrev:    this._currentStart > 0,
-            hasNext:    lastIndex < count.matches,
-            replace:    this._replace,
-            Strings:    Strings
-        }, summaryData), { paging: searchPagingTemplate }));
+        if (fileList.length === 1) {
+            filesStr = FileUtils.getBaseName(fileList[0]);
+        } else {
+            filesStr = StringUtils.format(
+                Strings.FIND_NUM_FILES,
+                count.files,
+                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+            );
+        }
+        
+        // This text contains some formatting, so all the strings are assumed to be already escaped
+        summary = StringUtils.format(
+            this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART3 : Strings.FIND_TITLE_PART3,
+            this._model.foundMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
+            String(count.matches),
+            (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+            filesStr
+        );
+
+        this._$summary.html(Mustache.render(searchSummaryTemplate, {
+            query:       _.escape((this._model.queryInfo.query && this._model.queryInfo.query.toString()) || ""),
+            replaceWith: _.escape(this._model.replaceWith),
+            title1:      this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART1 : Strings.FIND_TITLE_PART1,
+            title2:      this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART2 : Strings.FIND_TITLE_PART2,
+            scope:       this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
+            summary:     summary,
+            allChecked:  this._allChecked,
+            hasPages:    count.matches > RESULTS_PER_PAGE,
+            results:     StringUtils.format(Strings.FIND_IN_FILES_PAGING, this._currentStart + 1, lastIndex),
+            hasPrev:     this._currentStart > 0,
+            hasNext:     lastIndex < count.matches,
+            replace:     this._model.isReplace,
+            Strings:     Strings
+        }, { paging: searchPagingTemplate }));
     };
     
     /**
      * @private
-     * Shows the Results List
+     * Shows the current set of results.
      */
-    SearchResults.prototype._showResultsList = function () {
+    SearchResultsView.prototype.showResults = function () {
         var searchItems, match, i, item, multiLine,
-            count          = this._countFilesMatches(),
-            searchFiles    = this._getSortedFiles(),
+            count          = this._model.countFilesMatches(),
+            searchFiles    = this._model.getSortedFiles(),
             lastIndex      = this._getLastIndex(count.matches),
             matchesCounter = 0,
             showMatches    = false,
             self           = this;
         
+        this._showSummary();
         this._searchList   = [];
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
         searchFiles.some(function (fullPath) {
             showMatches = true;
-            item = self._searchResults[fullPath];
+            item = self._model.results[fullPath];
 
             // Since the amount of matches on this item plus the amount of matches we skipped until
             // now is still smaller than the first match that we want to display, skip these.
@@ -395,7 +438,7 @@ define(function (require, exports, module) {
         this._$table
             .empty()
             .append(Mustache.render(searchResultsTemplate, {
-                replace:       this._replace,
+                replace:       this._model.isReplace,
                 searchList:    this._searchList,
                 Strings:       Strings
             }))
@@ -403,8 +446,8 @@ define(function (require, exports, module) {
             .find(".file-section").each(function () {
                 var fullPath = self._searchList[$(this).data("file")].fullPath;
 
-                if (self._searchResults[fullPath].collapsed) {
-                    self._searchResults[fullPath].collapsed = false;
+                if (self._model.results[fullPath].collapsed) {
+                    self._model.results[fullPath].collapsed = false;
                     $(this).trigger("click");
                 }
             });
@@ -423,11 +466,11 @@ define(function (require, exports, module) {
     /**
      * Restores the state of the Results Panel
      */
-    SearchResults.prototype.restoreResults = function () {
+    SearchResultsView.prototype.restoreResults = function () {
         if (this._panel.isVisible()) {
             var scrollTop  = this._$table.scrollTop(),
                 index      = this._$selectedRow ? this._$selectedRow.index() : null,
-                numMatches = this._countFilesMatches().matches;
+                numMatches = this._model.countFilesMatches().matches;
 
             if (this._currentStart > numMatches) {
                 this._currentStart = this._getLastCurrentStart(numMatches);
@@ -442,53 +485,14 @@ define(function (require, exports, module) {
             }
         }
     };
-    
-    
-    /**
-     * @private
-     * Sorts the file keys to show the results from the selected file first and the rest sorted by path
-     * @return {Array.<string>}
-     */
-    SearchResults.prototype._getSortedFiles = function () {
-        var searchFiles = Object.keys(this._searchResults),
-            self        = this;
         
-        searchFiles.sort(function (key1, key2) {
-            if (self._selectedEntry === key1) {
-                return -1;
-            } else if (self._selectedEntry === key2) {
-                return 1;
-            }
-            return FileUtils.comparePaths(key1, key2);
-        });
-        
-        return searchFiles;
-    };
-    
-    
-    
-    /**
-     * @private
-     * Counts the total number of matches and files
-     * @return {{files: number, matches: number}}
-     */
-    SearchResults.prototype._countFilesMatches = function () {
-        var numFiles = 0, numMatches = 0;
-        _.forEach(this._searchResults, function (item) {
-            numFiles++;
-            numMatches += item.matches.length;
-        });
-
-        return {files: numFiles, matches: numMatches};
-    };
-    
     /**
      * @private
      * Returns the last result index displayed
      * @param {number} numMatches
      * @return {number}
      */
-    SearchResults.prototype._getLastIndex = function (numMatches) {
+    SearchResultsView.prototype._getLastIndex = function (numMatches) {
         return Math.min(this._currentStart + RESULTS_PER_PAGE, numMatches);
     };
     
@@ -498,14 +502,11 @@ define(function (require, exports, module) {
      * @param {number=} numMatches
      * @return {number}
      */
-    SearchResults.prototype._getLastCurrentStart = function (numMatches) {
-        numMatches = numMatches || this._countFilesMatches().matches;
+    SearchResultsView.prototype._getLastCurrentStart = function (numMatches) {
+        numMatches = numMatches || this._model.countFilesMatches().matches;
         return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
     };
     
-    
-    
-    
     // Public API
-    exports.SearchResults = SearchResults;
+    exports.SearchResultsView = SearchResultsView;
 });

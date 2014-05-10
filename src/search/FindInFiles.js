@@ -55,7 +55,8 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         FileUtils             = require("file/FileUtils"),
         LanguageManager       = require("language/LanguageManager"),
-        SearchResults         = require("search/SearchResults").SearchResults,
+        SearchResultsView     = require("search/SearchResultsView").SearchResultsView,
+        SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
         InMemoryFile          = require("document/InMemoryFile"),
         AppInit               = require("utils/AppInit"),
@@ -68,11 +69,13 @@ define(function (require, exports, module) {
     
     /** @const Constants used to define the maximum results show per page and found in a single file */
     var FIND_IN_FILE_MAX = 300,
-        UPDATE_TIMEOUT   = 400,
         MAX_IN_MEMORY    = 20; // maximum number of files to do replacements in-memory instead of on disk
     
     /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
     var ZERO_FILES_TO_SEARCH = {};
+    
+    /** @type {SearchModel} The search results model. */
+    var resultsModel;
     
     /** @type {FindInFilesResults} The find in files results. Initialized in htmlReady() */
     var findInFilesResults;
@@ -91,9 +94,6 @@ define(function (require, exports, module) {
     
     /** @type {string} Compiled filter from FileFilters */
     var currentFilter = null;
-    
-    /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
-    var maxHitsFoundInFile = false;
     
     /** @type {FindBar} Find bar containing the search UI. */
     var findBar = null;
@@ -138,27 +138,7 @@ define(function (require, exports, module) {
             return new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
         }
     }
-    
-    /**
-     * @private
-     * Returns label text to indicate the search scope. Already HTML-escaped.
-     * @param {?Entry} scope
-     * @return {string}
-     */
-    function _labelForScope(scope) {
-        var projName = ProjectManager.getProjectRoot().name;
-        if (scope) {
-            return StringUtils.format(
-                Strings.FIND_IN_FILES_SCOPED,
-                StringUtils.breakableUrl(
-                    ProjectManager.makeProjectRelativeIfPossible(scope.fullPath)
-                )
-            );
-        } else {
-            return Strings.FIND_IN_FILES_NO_SCOPE;
-        }
-    }
-    
+        
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
      * should be in the search set, use _inSearchScope() instead - a supserset of this.
@@ -254,6 +234,8 @@ define(function (require, exports, module) {
         
         DocumentManager.getDocumentText(file)
             .done(function (text, timestamp) {
+                // Note that we don't fire a model change here, since this is always called by some outer batch
+                // operation that will fire it once it's done.
                 var foundMatches = findInFilesResults._addSearchMatches(file.fullPath, text, currentQueryExpr, timestamp);
                 result.resolve(foundMatches);
             })
@@ -273,10 +255,15 @@ define(function (require, exports, module) {
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
      * @param {boolean=} allowReplace Whether we intend to do a replace operation on the results of the search.
-     * @param {?string} replaceText If replacing, the text the user has specified for replacement.
+     * @param {?string} replaceText If replacing, the text the user has specified for replacement, or undefined/null if not replacing.
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter, allowReplace, replaceText) {
+        resultsModel.queryInfo = queryInfo;
+        resultsModel.isReplace = !(replaceText === undefined || replaceText === null);
+        resultsModel.replaceText = replaceText;
+        resultsModel.scope = currentScope;
+        
         currentQuery     = queryInfo;
         currentQueryExpr = _getQueryRegExp(queryInfo);
         currentFilter    = filter;
@@ -306,19 +293,38 @@ define(function (require, exports, module) {
             })
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
-                // TODO: this should probably be in a separate method
-                findInFilesResults.setAllowReplace(allowReplace);
-                findInFilesResults.showResults(zeroFilesToken, replaceText);
+                exports._searchDone = true; // for unit tests
+                
+                if (resultsModel.hasResults()) {
+                    findInFilesResults.showResults();
+
+                    if (findBar) {
+                        findBar.close();
+                    }
+
+                } else {
+                    findInFilesResults.hideResults();
+
+                    if (findBar) {
+                        var showMessage = false;
+                        findBar.enable(true);
+                        findBar.focusQuery();
+                        if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
+                            findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(currentScope)), true);
+                        } else {
+                            showMessage = true;
+                        }
+                        findBar.showNoResults(true, showMessage);
+                    }
+                }
+
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
                 
                 // Listen for FS & Document changes to keep results up to date
                 findInFilesResults.addListeners();
                 
-                // TODO: might be better to still keep the search results data here (as a model),
-                // and then pass a reference to it into FindInFilesResults
-                exports._searchResults = findInFilesResults._searchResults;  // for UI integration tests that don't call doSearchInScope() directly
-                deferred.resolve(findInFilesResults._searchResults);
+                deferred.resolve(resultsModel.results);
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -340,8 +346,7 @@ define(function (require, exports, module) {
         currentQueryExpr   = null;
         currentReplaceText = null;
         currentScope       = scope;
-        maxHitsFoundInFile = false;
-        exports._searchResults = null;  // for unit tests        
+        resultsModel.clear();
         findInFilesResults.initializeResults();
     }
     
@@ -360,109 +365,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Does a set of replacements in a single document in memory.
-     * @param {!Document} doc The document to do the replacements in.
-     * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`. Might be mutated.
-     * @param {string} replaceText The text to replace each result with.
-     * @param {boolean=} isRegexp Whether the original query was a regexp.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
-     */
-    function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
-        // TODO: if doc has changed since query was run, don't do replacement
-        
-        // Do the replacements in reverse document order so the offsets continue to be correct.
-        matchInfo.matches.sort(function (match1, match2) {
-            return CodeMirror.cmpPos(match2.start, match1.start);
-        });
-        doc.batchOperation(function () {
-            matchInfo.matches.forEach(function (match) {
-                if (match.isChecked) {
-                    doc.replaceRange(isRegexp ? FindUtils.parseDollars(replaceText, match.result) : replaceText, match.start, match.end);
-                }
-            });
-        });
-        
-        return new $.Deferred().resolve().promise();
-    }
-    
-    /**
-     * Does a set of replacements in a single file on disk.
-     * @param {string} fullPath The full path to the file.
-     * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
-     * @param {string} replaceText The text to replace each result with.
-     * @param {boolean=} isRegexp Whether the original query was a regexp.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
-     */
-    function _doReplaceOnDisk(fullPath, matchInfo, replaceText, isRegexp) {
-        var file = FileSystem.getFileForPath(fullPath);
-        return DocumentManager.getDocumentText(file, true).then(function (contents, timestamp, lineEndings) {
-            if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
-                // Return a promise that we'll reject immediately. (We can't just return the
-                // error since this is the success handler.)
-                return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
-            }
-
-            // Note that this assumes that the matches are sorted.
-            // TODO: is there a more efficient way to do this in a large string?
-            var result = [],
-                lastIndex = 0;
-            matchInfo.matches.forEach(function (match) {
-                if (match.isChecked) {
-                    result.push(contents.slice(lastIndex, match.startOffset));
-                    result.push(isRegexp ? FindUtils.parseDollars(replaceText, match.result) : replaceText);
-                    lastIndex = match.endOffset;
-                }
-            });
-            result.push(contents.slice(lastIndex));
-
-            var newContents = result.join("");
-            // TODO: duplicated logic from Document - should refactor this?
-            if (lineEndings === FileUtils.LINE_ENDINGS_CRLF) {
-                newContents = newContents.replace(/\n/g, "\r\n");
-            }
-
-            return Async.promisify(file, "write", newContents);
-        });
-    }
-    
-    /**
-     * Does a set of replacements in a single file. If the file is already open in a Document in memory,
-     * will do the replacement there, otherwise does it directly on disk.
-     * @param {string} fullPath The full path to the file.
-     * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
-     * @param {string} replaceText The text to replace each result with.
-     * @param {Object=} options An options object:
-     *      forceFilesOpen: boolean - Whether to open the file in an editor and do replacements there rather than doing the 
-     *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
-     *          done in memory.
-     *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
-     * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
-     */
-    function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
-        var doc = DocumentManager.getOpenDocumentForPath(fullPath);
-        options = options || {};
-        if (options.forceFilesOpen && !doc) {
-            return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
-                return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
-            });
-        } else if (doc) {
-            return _doReplaceInDocument(doc, matchInfo, replaceText, options.isRegexp);
-        } else {
-            return _doReplaceOnDisk(fullPath, matchInfo, replaceText, options.isRegexp);
-        }
-    }
-    
-    /**
-     * @private
-     * Returns true if a search result has any checked matches.
-     */
-    function _hasCheckedMatches(result) {
-        return result.matches.some(function (match) { return match.isChecked; });
-    }
-        
-    /**
-     * Given a set of search results as returned from _doSearch, replaces them with the given replaceText, either on
-     * disk or in memory.
+     * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
      *      The list of results to replace, as returned from _doSearch..
      * @param {string} replaceText The text to replace each result with.
@@ -477,34 +380,7 @@ define(function (require, exports, module) {
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
-        return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
-            return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
-        }).done(function () {
-            if (options && options.forceFilesOpen) {
-                // If the currently selected document wasn't modified by the search, or there is no open document,
-                // then open the first modified document.
-                var doc = DocumentManager.getCurrentDocument();
-                if (!doc ||
-                        !results[doc.file.fullPath] ||
-                        !_hasCheckedMatches(results[doc.file.fullPath])) {
-                    // Figure out the first modified document. This logic is slightly different from
-                    // SearchResults._getSortedFiles() because it doesn't sort the currently open file to
-                    // the top. But if the currently open file were in the search results, we wouldn't be
-                    // doing this anyway.
-                    var sortedPaths = Object.keys(results).sort(FileUtils.comparePaths),
-                        firstPath = _.find(sortedPaths, function (path) {
-                            return _hasCheckedMatches(results[path]);
-                        });
-                    
-                    if (firstPath) {
-                        var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
-                        if (newDoc) {
-                            DocumentManager.setCurrentDocument(newDoc);
-                        }
-                    }
-                }
-            }
-            
+        return FindUtils.performReplacements(results, replaceText, options).then(function () {
             // For UI integration testing only
             exports._replaceDone = true;
         });
@@ -520,9 +396,9 @@ define(function (require, exports, module) {
         }
         
         // Clone the search results so that they don't get updated in the middle of the replacement.
-        var resultsClone = _.cloneDeep(findInFilesResults._searchResults),
+        var resultsClone = _.cloneDeep(resultsModel.results),
             replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
-                return _hasCheckedMatches(resultsClone[path]);
+                return FindUtils.hasCheckedMatches(resultsClone[path]);
             });
                 
         if (replacedFiles.length <= MAX_IN_MEMORY) {
@@ -601,7 +477,7 @@ define(function (require, exports, module) {
             scope: true,
             initialQuery: initialString,
             queryPlaceholder: Strings.CMD_FIND_IN_SUBTREE,
-            scopeLabel: _labelForScope(scope)
+            scopeLabel: FindUtils.labelForScope(scope)
         });
         findBar.open();
 
@@ -679,7 +555,7 @@ define(function (require, exports, module) {
         // Show file-exclusion UI *unless* search scope is just a single file
         if (!scope || scope.isDirectory) {
             var exclusionsContext = {
-                label: _labelForScope(scope),
+                label: FindUtils.labelForScope(scope),
                 promise: candidateFilesPromise
             };
 
@@ -723,29 +599,17 @@ define(function (require, exports, module) {
     /**
      * @private
      * @constructor
-     * @extends {SearchResults}
+     * @extends {SearchResultsView}
      * Handles the Find in Files Results and the Results Panel
+     * @param {SearchModel} model The model this panel is viewing.
      */
-    function FindInFilesResults() {
-        this._timeoutID       = null;
-        
-        this.createPanel("find-in-files-results", "find-in-files.results");
+    function FindInFilesResults(model, panelID, panelName) {
+        SearchResultsView.apply(this, arguments);
     }
     
-    FindInFilesResults.prototype = Object.create(SearchResults.prototype);
+    FindInFilesResults.prototype = Object.create(SearchResultsView.prototype);
     FindInFilesResults.prototype.constructor = FindInFilesResults;
-    FindInFilesResults.prototype.parentClass = SearchResults.prototype;
-    
-    /** @type {string} The setTimeout id, used to clear it if required */
-    FindInFilesResults.prototype._timeoutID = null;
-    
-    /**
-     * Turns the replace functionality on or off.
-     * @param {boolean} allowReplace Whether to allow replacements.
-     */
-    FindInFilesResults.prototype.setAllowReplace = function (allowReplace) {
-        this._replace = allowReplace;
-    };
+    FindInFilesResults.prototype.parentClass = SearchResultsView.prototype;
     
     /**
      * Hides the Search Results Panel
@@ -753,67 +617,6 @@ define(function (require, exports, module) {
     FindInFilesResults.prototype.hideResults = function () {
         this.parentClass.hideResults.apply(this);
         this.removeListeners();
-    };
-    
-    /**
-     * @private
-     * Shows the results in a table and adds the necessary event listeners
-     * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
-     * @param {?string} replaceText If in replace mode, the text the user wants to replace with.
-     */
-    FindInFilesResults.prototype.showResults = function (zeroFilesToken, replaceText) {
-        if (!$.isEmptyObject(this._searchResults)) {
-            var count = this._countFilesMatches(),
-                self  = this;
-            
-            // Show result summary in header
-            var numMatchesStr = "";
-            if (maxHitsFoundInFile) {
-                numMatchesStr = Strings.FIND_IN_FILES_MORE_THAN;
-            }
-
-            // This text contains some formatting, so all the strings are assumed to be already escaped
-            var summary = StringUtils.format(
-                replaceText ? Strings.FIND_IN_FILES_REPLACE_TITLE_PART3 : Strings.FIND_IN_FILES_TITLE_PART3,
-                numMatchesStr,
-                String(count.matches),
-                (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
-                count.files,
-                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
-            );
-            
-            // Insert the search summary
-            this._showSummary({
-                query:   (currentQuery && currentQuery.query) || "",
-                replaceWith: replaceText,
-                title1:  replaceText ? Strings.FIND_REPLACE_TITLE_PART1 : Strings.FIND_IN_FILES_TITLE_PART1,
-                title2:  replaceText ? Strings.FIND_REPLACE_TITLE_PART2 : Strings.FIND_IN_FILES_TITLE_PART2,
-                scope:   currentScope ? "&nbsp;" + _labelForScope(currentScope) + "&nbsp;" : "",
-                summary: summary
-            });
-            
-            // Create the results template search list
-            this._showResultsList();
-            
-            if (findBar) {
-                findBar.close();
-            }
-        
-        } else {
-            this.hideResults();
-
-            if (findBar) {
-                var showMessage = false;
-                findBar.enable(true);
-                findBar.focusQuery();
-                if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
-                    findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, _labelForScope(currentScope)), true);
-                } else {
-                    showMessage = true;
-                }
-                findBar.showNoResults(true, showMessage);
-            }
-        }
     };
     
     /**
@@ -856,7 +659,7 @@ define(function (require, exports, module) {
             // This fixed issue #1829 where code hangs on too many hits.
             if (matches.length >= FIND_IN_FILE_MAX) {
                 queryExpr.lastIndex = 0;
-                maxHitsFoundInFile = true;
+                resultsModel.foundMaximum = true;
                 break;
             }
         }
@@ -876,7 +679,7 @@ define(function (require, exports, module) {
         var matches = this._getSearchMatches(contents, queryExpr);
         
         if (matches && matches.length) {
-            this.addResultMatches(fullPath, matches, timestamp);
+            this._model.addResultMatches(fullPath, matches, timestamp);
             return true;
         }
         return false;
@@ -895,7 +698,7 @@ define(function (require, exports, module) {
      * Add listeners to track events that might change the search result set
      */
     FindInFilesResults.prototype.addListeners = function () {
-        if (!$.isEmptyObject(this._searchResults)) {
+        if (this._model.hasResults()) {
             // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
             this.removeListeners();
 
@@ -913,20 +716,9 @@ define(function (require, exports, module) {
      *      A linked list as described in the Document constructor
      */
     FindInFilesResults.prototype._documentChangeHandler = function (event, document, change) {
-        var self = this, updateResults;
+        var self = this;
         if (_inSearchScope(document.file)) {
-            updateResults = this._updateResults(document, change, false);
-            
-            if (this._timeoutID) {
-                window.clearTimeout(this._timeoutID);
-                updateResults = true;
-            }
-            if (updateResults) {
-                this._timeoutID = window.setTimeout(function () {
-                    self.restoreResults();
-                    self._timeoutID = null;
-                }, UPDATE_TIMEOUT);
-            }
+            this._updateResults(document, change, false);
         }
     };
     
@@ -936,7 +728,6 @@ define(function (require, exports, module) {
      * @param {Document} doc  The Document that changed, should be the current one
      * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}>} changeList
      *      An array of changes as described in the Document constructor
-     * @return {boolean}  True when the search results changed from a file change
      */
     FindInFilesResults.prototype._updateResults = function (doc, changeList) {
         var i, diff, matches, lines, start, howMany,
@@ -968,10 +759,10 @@ define(function (require, exports, module) {
                     diff = lines.length - 1;
                 }
 
-                if (self._searchResults[fullPath]) {
+                if (self._model.results[fullPath]) {
                     // Search the last match before a replacement, the amount of matches deleted and update
                     // the lines values for all the matches after the change
-                    self._searchResults[fullPath].matches.forEach(function (item) {
+                    self._model.results[fullPath].matches.forEach(function (item) {
                         if (item.end.line < change.from.line) {
                             start++;
                         } else if (item.end.line <= change.to.line) {
@@ -984,7 +775,7 @@ define(function (require, exports, module) {
 
                     // Delete the lines that where deleted or replaced
                     if (howMany > 0) {
-                        self._searchResults[fullPath].matches.splice(start, howMany);
+                        self._model.results[fullPath].matches.splice(start, howMany);
                     }
                     resultsChanged = true;
                 }
@@ -999,12 +790,12 @@ define(function (require, exports, module) {
                     });
 
                     // If the file index exists, add the new matches to the file at the start index found before
-                    if (self._searchResults[fullPath]) {
-                        Array.prototype.splice.apply(self._searchResults[fullPath].matches, [start, 0].concat(matches));
+                    if (self._model.results[fullPath]) {
+                        Array.prototype.splice.apply(self._model.results[fullPath].matches, [start, 0].concat(matches));
                     // If not, add the matches to a new file index
                     } else {
-                        // TODO: add unit test exercising timestamp logic in this case
-                        self._searchResults[fullPath] = {
+                        // TODO: add unit test exercising timestamp logic in self case
+                        self._model.results[fullPath] = {
                             matches:   matches,
                             collapsed: false,
                             timestamp: doc.diskTimestamp
@@ -1014,14 +805,16 @@ define(function (require, exports, module) {
                 }
 
                 // All the matches where deleted, remove the file from the results
-                if (self._searchResults[fullPath] && !self._searchResults[fullPath].matches.length) {
-                    delete self._searchResults[fullPath];
+                if (self._model.results[fullPath] && !self._model.results[fullPath].matches.length) {
+                    delete self._model.results[fullPath];
                     resultsChanged = true;
                 }
             }
         });
         
-        return resultsChanged;
+        if (resultsChanged) {
+            this._model.fireChanged();
+        }
     };
     
     
@@ -1038,17 +831,17 @@ define(function (require, exports, module) {
         
         if (this._panel.isVisible()) {
             // Update the search results
-            _.forEach(this._searchResults, function (item, fullPath) {
+            _.forEach(this._model.results, function (item, fullPath) {
                 if (fullPath.match(oldName)) {
-                    self._searchResults[fullPath.replace(oldName, newName)] = item;
-                    delete self._searchResults[fullPath];
+                    self._model.results[fullPath.replace(oldName, newName)] = item;
+                    delete self._model.results[fullPath];
                     resultsChanged = true;
                 }
             });
 
             // Restore the results if needed
             if (resultsChanged) {
-                this.restoreResults();
+                this._model.fireChanged();
             }
         }
     };
@@ -1070,9 +863,9 @@ define(function (require, exports, module) {
          * @param {(File|Directory)} entry
          */
         function _removeSearchResultsForEntry(entry) {
-            Object.keys(self._searchResults).forEach(function (fullPath) {
+            Object.keys(self._model.results).forEach(function (fullPath) {
                 if (fullPath.indexOf(entry.fullPath) === 0) {
-                    delete self._searchResults[fullPath];
+                    delete self._model.results[fullPath];
                     resultsChanged = true;
                 }
             });
@@ -1149,7 +942,7 @@ define(function (require, exports, module) {
         addPromise.always(function () {
             // Restore the results if needed
             if (resultsChanged) {
-                self.restoreResults();
+                self._model.fireChanged();
             }
         });
     };
@@ -1157,8 +950,11 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        findInFilesResults = new FindInFilesResults();
+        resultsModel = new SearchModel();
+        findInFilesResults = new FindInFilesResults(resultsModel, "find-in-files-results", "find-in-files-results.panel");
         $(findInFilesResults).on("doReplaceAll", _finishReplaceAll);
+
+        exports._resultsModel = resultsModel; // for UI integration tests
     });
     
     // Initialize: register listeners
@@ -1174,10 +970,8 @@ define(function (require, exports, module) {
     // Public exports
     exports.doSearchInScope     = doSearchInScope;
     exports.doReplace           = doReplace;
-    exports.ERROR_FILE_CHANGED  = "fileChanged";
     
     // For unit testing
     exports._doFindInFiles = _doFindInFiles;
-    exports._closeFindBar = _closeFindBar;
-    exports._searchResults = null;
+    exports._closeFindBar  = _closeFindBar;
 });

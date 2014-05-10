@@ -153,16 +153,16 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
-    // Replace All (in single file)
+    // Find and Replace
     "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_PART1"                  : "\"",
+    "FIND_TITLE_PART2"                  : "\" found",
+    "FIND_TITLE_PART3"                  : " &mdash; {0} {1} {2} in {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" found",
-    "FIND_IN_FILES_REPLACE_TITLE_PART3" : "\" &mdash; {0} {1} {2} in {3} {4}",
-    "FIND_IN_FILES_TITLE_PART3"         : " &mdash; {0} {1} {2} in {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_ZERO_FILES"          : "Filter excludes all files {0}",

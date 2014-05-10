@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         FileSystemError       = require("filesystem/FileSystemError"),
         FileUtils             = require("file/FileUtils"),
+        FindUtils             = require("search/FindUtils"),
         Async                 = require("utils/Async"),
         LanguageManager       = require("language/LanguageManager"),
         StringUtils           = require("utils/StringUtils"),
@@ -1378,6 +1379,26 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should close panel if document modified", function () {
+                runs(function () {
+                    var searchText  = "require",
+                        replaceText = "brackets.getModule";
+                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    enterSearchText(searchText);
+                    enterReplaceText(replaceText);
+
+                    expectSelection({start: {line: 1, ch: 17}, end: {line: 1, ch: 17 + searchText.length}});
+                    expect(myEditor.getSelectedText()).toBe(searchText);
+
+                    expect(tw$("#replace-all").is(":enabled")).toBe(true);
+                    tw$("#replace-all").click();
+                    
+                    expect(tw$("#replace-all-results").is(":visible")).toBe(true);
+                    myEditor.document.replaceRange("", {line: 0, ch: 0}, {line: 1, ch: 0});
+                    expect(tw$("#replace-all-results").is(":visible")).toBe(false);
+                });
+            });
+            
             it("should not replace unchecked items", function () {
                 runs(function () {
                     var searchText  = "require",
@@ -1647,6 +1668,7 @@ define(function (require, exports, module) {
         function openSearchBar(scope, showReplace) {
             waitForSearchBarClose();
             runs(function () {
+                FindInFiles._searchDone = false;
                 FindInFiles._doFindInFiles(scope, showReplace);
             });
             waitsFor(function () {
@@ -1668,7 +1690,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $searchField[0]);
             });
             waitsFor(function () {
-                return FindInFiles._searchResults;
+                return FindInFiles._searchDone;
             }, "Find in Files done");
         }
 
@@ -1682,18 +1704,18 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles._resultsModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(7);
 
-                    fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(4);
 
-                    fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(3);
                 });
@@ -1763,16 +1785,16 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles._resultsModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(3);
                 });
@@ -1784,17 +1806,17 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchResults[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles._resultsModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchResults[testPath + "/foo.html"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchResults[testPath + "/foo.js"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(4);
 
-                    fileResults = FindInFiles._searchResults[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles._resultsModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeFalsy();
                 });
             });
@@ -1807,7 +1829,7 @@ define(function (require, exports, module) {
                 executeSearch("callFoo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchResults[filePath];
+                    var fileResults = FindInFiles._resultsModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(1);
 
@@ -1831,7 +1853,7 @@ define(function (require, exports, module) {
                 }, "search bar close");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchResults[filePath];
+                    var fileResults = FindInFiles._resultsModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                     expect($(".modal-bar").length).toBe(0);
@@ -1846,15 +1868,15 @@ define(function (require, exports, module) {
                 executeSearch("abcdefghi");
 
                 waitsFor(function () {
-                    return (FindInFiles._searchResults);
+                    return (FindInFiles._searchDone);
                 }, "search complete");
 
                 runs(function () {
                     var result, resultFound = false;
 
-                    // verify _searchResults Object is empty
-                    for (result in FindInFiles._searchResults) {
-                        if (FindInFiles._searchResults.hasOwnProperty(result)) {
+                    // verify _resultsModel.results Object is empty
+                    for (result in FindInFiles._resultsModel.results) {
+                        if (FindInFiles._resultsModel.results.hasOwnProperty(result)) {
                             resultFound = true;
                         }
                     }
@@ -2449,7 +2471,7 @@ define(function (require, exports, module) {
                             waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
                         });
                     },
-                    errors:          [{item: testPath + "/css/foo.css", error: FindInFiles.ERROR_FILE_CHANGED}]
+                    errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
                 });
             });
             
@@ -2711,7 +2733,7 @@ define(function (require, exports, module) {
                     executeReplace("foo", "bar");
                     
                     waitsFor(function () {
-                        return FindInFiles._searchResults;
+                        return FindInFiles._searchDone;
                     }, "search finished");
                     
                     runs(function () {
@@ -2727,7 +2749,7 @@ define(function (require, exports, module) {
                     executeReplace("foo", "bar");
                     
                     waitsFor(function () {
-                        return FindInFiles._searchResults;
+                        return FindInFiles._searchDone;
                     }, "search finished");
                     
                     // Click the "Replace" button in the search panel - this should kick off the replace
@@ -2750,7 +2772,7 @@ define(function (require, exports, module) {
                     executeReplace("foo", "bar", true);
                     
                     waitsFor(function () {
-                        return FindInFiles._searchResults;
+                        return FindInFiles._searchDone;
                     }, "search finished");
                     
                     // Click the "Replace" button in the search panel - this should kick off the replace
@@ -2773,7 +2795,7 @@ define(function (require, exports, module) {
                     executeReplace("foo", "bar");
                     
                     waitsFor(function () {
-                        return FindInFiles._searchResults;
+                        return FindInFiles._searchDone;
                     }, "search finished");
                     
                     // Click the "Replace" button in the search panel - this should cause the dialog to appear
@@ -2809,7 +2831,7 @@ define(function (require, exports, module) {
                     executeReplace("foo", "bar");
                     
                     waitsFor(function () {
-                        return FindInFiles._searchResults;
+                        return FindInFiles._searchDone;
                     }, "search finished");
                     
                     // Click the "Replace" button in the search panel - this should cause the dialog to appear
