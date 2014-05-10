@@ -667,8 +667,7 @@ define(function (require, exports, module) {
         model.queryInfo = queryInfo;
         model.isReplace = true;
         model.replaceText = replaceWith;
-        model.scope = DocumentManager.getCurrentDocument().file;
-        model.addResultMatches(model.scope.fullPath, matches);
+        model.addResultMatches(DocumentManager.getCurrentDocument().file.fullPath, matches);
         model.fireChanged();
     }
     

@@ -329,7 +329,7 @@ define(function (require, exports, module) {
 
         this._$summary.html(Mustache.render(searchSummaryTemplate, {
             query:       _.escape((this._model.queryInfo.query && this._model.queryInfo.query.toString()) || ""),
-            replaceWith: _.escape(this._model.replaceWith),
+            replaceWith: _.escape(this._model.replaceText),
             title1:      this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART1 : Strings.FIND_TITLE_PART1,
             title2:      this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART2 : Strings.FIND_TITLE_PART2,
             scope:       this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
