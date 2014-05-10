@@ -80,14 +80,8 @@ define(function (require, exports, module) {
     /** @type {FindInFilesResults} The find in files results. Initialized in htmlReady() */
     var findInFilesResults;
     
-    /** @type {{query: string, caseSensitive: boolean, isRegexp: boolean}} The current search query */
-    var currentQuery = null;
-    
     /** @type {RegExp} The current search query regular expression */
     var currentQueryExpr = null;
-    
-    /** @type {string} The current replacement text. */
-    var currentReplaceText = null;
     
     /** @type {?FileSystemEntry} Root of subtree to search in, or single file to search in, or null to search entire project */
     var currentScope = null;
@@ -254,17 +248,12 @@ define(function (require, exports, module) {
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object, as returned by FindBar.getQueryInfo()
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
-     * @param {boolean=} allowReplace Whether we intend to do a replace operation on the results of the search.
-     * @param {?string} replaceText If replacing, the text the user has specified for replacement, or undefined/null if not replacing.
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
-    function _doSearch(queryInfo, candidateFilesPromise, filter, allowReplace, replaceText) {
+    function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.queryInfo = queryInfo;
-        searchModel.isReplace = !(replaceText === undefined || replaceText === null);
-        searchModel.replaceText = replaceText;
         searchModel.scope = currentScope;
         
-        currentQuery     = queryInfo;
         currentQueryExpr = _getQueryRegExp(queryInfo);
         currentFilter    = filter;
         
@@ -342,11 +331,9 @@ define(function (require, exports, module) {
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
     function _resetSearch(scope) {
-        currentQuery       = null;
-        currentQueryExpr   = null;
-        currentReplaceText = null;
-        currentScope       = scope;
         searchModel.clear();
+        currentQueryExpr   = null;
+        currentScope       = scope;
         findInFilesResults.initializeResults();
     }
     
@@ -391,7 +378,7 @@ define(function (require, exports, module) {
      * Finish a replace across files operation when the user clicks "Replace" on the results panel.
      */
     function _finishReplaceAll() {
-        if (currentReplaceText === null) {
+        if (searchModel.replaceText === null) {
             return;
         }
         
@@ -404,7 +391,7 @@ define(function (require, exports, module) {
         if (replacedFiles.length <= MAX_IN_MEMORY) {
             // Just do the replacements in memory.
             findInFilesResults.hideResults();
-            doReplace(resultsClone, currentReplaceText, { forceFilesOpen: true });
+            doReplace(resultsClone, searchModel.replaceText, { forceFilesOpen: true });
         } else {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
@@ -425,7 +412,7 @@ define(function (require, exports, module) {
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     findInFilesResults.hideResults();
-                    doReplace(resultsClone, currentReplaceText);
+                    doReplace(resultsClone, searchModel.replaceText);
                 }
             });
         }
@@ -506,7 +493,7 @@ define(function (require, exports, module) {
             findBar.enableReplace(query !== null);
         }
         
-        function startSearch(replaceText) {
+        function startSearch() {
             var queryInfo = findBar && findBar.getQueryInfo();
             if (queryInfo && queryInfo.query) {
                 findBar.enable(false);
@@ -519,14 +506,15 @@ define(function (require, exports, module) {
                     // Single-file scope: don't use any file filters
                     filter = null;
                 }
-                return _doSearch(queryInfo, candidateFilesPromise, filter, showReplace, replaceText);
+                return _doSearch(queryInfo, candidateFilesPromise, filter);
             }
             return null;
         }
         
         function startReplace() {
-            currentReplaceText = findBar.getReplaceText();
-            startSearch(currentReplaceText);
+            searchModel.isReplace = true;
+            searchModel.replaceText = findBar.getReplaceText();
+            startSearch();
         }
         
         $(findBar)
