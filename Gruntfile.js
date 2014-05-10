@@ -64,16 +64,29 @@ module.exports = function (grunt) {
                             'LiveDevelopment/launch.html'
                         ]
                     },
+                    /* node domains are not minified and must be copied to dist */
+                    {
+                        expand: true,
+                        dest: 'dist/',
+                        cwd: 'src/',
+                        src: [
+                            'extensibility/node/**',
+                            '!extensibility/node/spec/**',
+                            'filesystem/impls/appshell/node/**',
+                            '!filesystem/impls/appshell/node/spec/**'
+                        ]
+                    },
                     /* extensions and CodeMirror modes */
                     {
                         expand: true,
                         dest: 'dist/',
                         cwd: 'src/',
                         src: [
-                            'extensibility/**/*',
                             '!extensions/default/*/unittest-files/**/*',
                             '!extensions/default/*/unittests.js',
                             'extensions/default/*/**/*',
+                            'extensions/dev/*',
+                            'extensions/samples/**/*',
                             'thirdparty/CodeMirror2/addon/{,*/}*',
                             'thirdparty/CodeMirror2/keymap/{,*/}*',
                             'thirdparty/CodeMirror2/lib/{,*/}*',
@@ -233,7 +246,7 @@ module.exports = function (grunt) {
                 specs : '<%= meta.specs %>',
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
-                    'src/thirdparty/jquery-2.0.1.min.js',
+                    'src/thirdparty/jquery-2.1.0.min.js',
                     'src/thirdparty/CodeMirror2/lib/codemirror.js',
                     'src/thirdparty/CodeMirror2/lib/util/dialog.js',
                     'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',

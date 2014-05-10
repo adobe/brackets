@@ -65,37 +65,19 @@
             "platform": "mac"
         }
     ],
-    "edit.find":  [
-        "Ctrl-F"
+    "edit.splitSelIntoLines": [
+        "Ctrl-Alt-L"
     ],
-    "edit.findInFiles":  [
-        "Ctrl-Shift-F"
-    ],
-    "edit.findNext":  [
+    "edit.addCursorToPrevLine": [
         {
-            "key": "F3"
-        },
-        {
-            "key": "Cmd-G",
-            "platform": "mac"
+            "key": "Shift-Alt-Up",
+            "displayKey": "Shift-Alt-↑"
         }
     ],
-    "edit.findPrevious":  [
+    "edit.addCursorToNextLine": [
         {
-            "key": "Shift-F3"
-        },
-        {
-            "key": "Cmd-Shift-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.replace":  [
-        {
-            "key": "Ctrl-H"
-        },
-        {
-            "key": "Cmd-Alt-F",
-            "platform": "mac"
+            "key": "Shift-Alt-Down",
+            "displayKey": "Shift-Alt-↓"
         }
     ],
     "edit.indent":  [
@@ -160,6 +142,58 @@
         },
         {
             "key": "Ctrl-Space",
+            "platform": "mac"
+        }
+    ],
+    "cmd.find":  [
+        "Ctrl-F"
+    ],
+    "cmd.findInFiles":  [
+        "Ctrl-Shift-F"
+    ],
+    "cmd.findNext":  [
+        {
+            "key": "F3"
+        },
+        {
+            "key": "Cmd-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findPrevious":  [
+        {
+            "key": "Shift-F3"
+        },
+        {
+            "key": "Cmd-Shift-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findAllAndSelect": [
+        {
+            "key": "Alt-F3"
+        },
+        {
+            "key": "Cmd-Ctrl-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.addNextMatch": [
+        {
+            "key": "Ctrl-B"
+        }
+    ],
+    "cmd.skipCurrentMatch": [
+        {
+            "key": "Ctrl-Shift-B"
+        }
+    ],
+    "cmd.replace":  [
+        {
+            "key": "Ctrl-H"
+        },
+        {
+            "key": "Cmd-Alt-F",
             "platform": "mac"
         }
     ],
@@ -283,5 +317,8 @@
     ],
     "file.rename":  [
         "F2"
+    ],
+    "help.support": [
+        "F1"
     ]
 }

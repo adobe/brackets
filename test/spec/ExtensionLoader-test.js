@@ -95,6 +95,18 @@ define(function (require, exports, module) {
             testLoadExtension("InitResolvedAsync", "resolved");
         });
 
+        it("should load a basic extension that uses requirejs-config.json", function () {
+            runs(function () {
+                spyOn(console, "log").andCallThrough();
+            });
+            
+            testLoadExtension("RequireJSConfig", "resolved");
+            
+            runs(function () {
+                expect(console.log.mostRecentCall.args[0]).toBe("bar_exported");
+            });
+        });
+
         it("should log an error if an extension fails to init", function () {
             testLoadExtension("InitFail", "rejected", "[Extension] Error -- failed initExtension for InitFail");
         });
@@ -116,7 +128,11 @@ define(function (require, exports, module) {
         });
 
         it("should log an error if an extension fails during RequireJS loading", function () {
-            testLoadExtension("BadRequire", "rejected", /\[Extension\] failed to load.*BadRequire.*/);
+            testLoadExtension("BadRequire", "rejected", /\[Extension\] failed to load.*BadRequire.* Error: Script error for: notdefined/);
+        });
+
+        it("should log an error if an extension uses an invalid requirejs-config.json", function () {
+            testLoadExtension("BadRequireConfig", "rejected", /\[Extension\] failed to load.*BadRequireConfig.*failed to parse requirejs-config.json/);
         });
 
     });

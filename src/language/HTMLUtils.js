@@ -23,18 +23,22 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var TokenUtils = require("utils/TokenUtils");
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror"),
+        TokenUtils = require("utils/TokenUtils");
     
-    //constants
+    // Constants
     var TAG_NAME = "tagName",
         CLOSING_TAG = "closingTag",
         ATTR_NAME = "attr.name",
         ATTR_VALUE = "attr.value";
+    
+    // Regular expression for token types with "tag" prefixed
+    var tagPrefixedRegExp = /^tag/;
     
    /**
      * @private
@@ -113,7 +117,13 @@ define(function (require, exports, module) {
         var mode = ctx.editor.getMode(),
             innerModeData = CodeMirror.innerMode(mode, ctx.token.state);
 
-        return innerModeData.state.tagName;
+        if (ctx.token.type === "tag bracket") {
+            return innerModeData.state.tagName;
+        }
+        
+        // If the ctx is inside the tag name of an end tag, innerModeData.state.tagName is
+        // undefined. So return token string as the tag name.
+        return innerModeData.state.tagName || ctx.token.string;
     }
     
     /**
@@ -128,8 +138,8 @@ define(function (require, exports, module) {
             forwardCtx  = $.extend({}, backwardCtx);
         
         if (editor.getModeForSelection() === "html") {
-            if (backwardCtx.token && backwardCtx.token.type !== "tag") {
-                while (TokenUtils.movePrevToken(backwardCtx) && backwardCtx.token.type !== "tag") {
+            if (backwardCtx.token && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
+                while (TokenUtils.movePrevToken(backwardCtx) && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
                     if (backwardCtx.token.type === "error" && backwardCtx.token.string.indexOf("<") === 0) {
                         break;
                     }
@@ -138,7 +148,7 @@ define(function (require, exports, module) {
                     }
                 }
                 
-                while (TokenUtils.moveNextToken(forwardCtx) && forwardCtx.token.type !== "tag") {
+                while (TokenUtils.moveNextToken(forwardCtx) && !tagPrefixedRegExp.test(forwardCtx.token.type)) {
                     if (forwardCtx.token.type === "attribute") {
                         // If the current tag is not closed, codemirror may return the next opening
                         // tag as an attribute. Stop the search loop in that case.
@@ -152,7 +162,7 @@ define(function (require, exports, module) {
                         }
                         // If we type the first letter of the next attribute, it comes as an error
                         // token. We need to double check for possible invalidated attributes.
-                        if (forwardCtx.token.string.trim() !== "" &&
+                        if (/\S/.test(forwardCtx.token.string) &&
                                 forwardCtx.token.string.indexOf("\"") === -1 &&
                                 forwardCtx.token.string.indexOf("'") === -1 &&
                                 forwardCtx.token.string.indexOf("=") === -1) {
@@ -292,7 +302,7 @@ define(function (require, exports, module) {
      *      className:string    string:""open-files-disclosure-arrow""
      *      className:tag       string:"></span>"
      * @param {Editor} editor An instance of a Brackets editor
-     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursorPos())
      * @return {{tagName:string,
      *           attr:{name:string, value:string, valueAssigned:boolean, quoteChar:string, hasEndQuote:boolean},
      *           position:{tokenType:string, offset:number}
@@ -309,13 +319,13 @@ define(function (require, exports, module) {
             tagInfo,
             tokenType;
         
-        // check if this is inside a style block.
+        // Check if this is inside a style block.
         if (editor.getModeForSelection() !== "html") {
             return createTagInfo();
         }
         
-        //check and see where we are in the tag
-        if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+        // Check and see where we are in the tag
+        if (ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
 
             // token at (i.e. before) pos is whitespace, so test token at next pos
             //
@@ -325,13 +335,14 @@ define(function (require, exports, module) {
             var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                 testToken = editor._codeMirror.getTokenAt(testPos, true);
 
-            if (testToken.string.length > 0 && testToken.string.trim().length > 0 &&
+            if (testToken.string.length > 0 && /\S/.test(testToken.string) &&
                     testToken.string.charAt(0) !== ">") {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
-                if (ctx.token.type === "tag" ||
-                        (ctx.token.type && ctx.token.type.indexOf("error") !== -1)) {
+                // Check whether the token type is one of the types prefixed with "tag"
+                // (e.g. "tag", "tag error", "tag brackets")
+                if (tagPrefixedRegExp.test(ctx.token.type)) {
                     // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
@@ -364,7 +375,7 @@ define(function (require, exports, module) {
 
                 if (ctx.token.type === "comment") {
                     return createTagInfo();
-                } else if (ctx.token.type !== "tag" && ctx.token.string !== "=") {
+                } else if (!tagPrefixedRegExp.test(ctx.token.type) && ctx.token.string !== "=") {
                     // If it wasn't the tag name, assume it was an attr value
                     // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
@@ -372,9 +383,9 @@ define(function (require, exports, module) {
                     // Check to see if this is the closing of a tag (either the start or end)
                     // or a comment tag.
                     if (ctx.token.type === "comment" ||
-                            (ctx.token.type === "tag" &&
+                            (tagPrefixedRegExp.test(ctx.token.type) &&
                             (ctx.token.string === ">" || ctx.token.string === "/>" ||
-                                (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")))) {
+                                ctx.token.string === "</"))) {
                         return createTagInfo();
                     }
                     
@@ -397,11 +408,21 @@ define(function (require, exports, module) {
             }
         }
         
-        if (ctx.token.type === "tag" ||
-                (ctx.token.type && ctx.token.type.indexOf("error") !== -1)) {
-            // Check if the user just typed a white space after "<" that made an existing tag invalid.
-            if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
-                return createTagInfo();
+        if (tagPrefixedRegExp.test(ctx.token.type)) {
+            if (ctx.token.type !== "tag bracket") {
+                // Check if the user just typed a white space after "<" that made an existing tag invalid.
+                if (TokenUtils.movePrevToken(ctx) && !/\S/.test(ctx.token.string)) {
+                    return createTagInfo();
+                }
+
+                // Check to see if this is a closing tag
+                if (ctx.token.type === "tag bracket" && ctx.token.string === "</") {
+                    tokenType = CLOSING_TAG;
+                }
+
+                // Restore the original ctx by moving back to next context since we call
+                // movePrevToken above to detect "<" or "</".
+                TokenUtils.moveNextToken(ctx);
             }
             
             // Check to see if this is the closing of a start tag or a self closing tag
@@ -409,16 +430,25 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            // Check to see if this is a closing tag
-            if (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/") {
-                return createTagInfo(CLOSING_TAG, offset - 2, ctx.token.string.slice(2));
-            }
-            
             // Make sure the cursor is not after an equal sign or a quote before we report the context as a tag.
             if (ctx.token.string !== "=" && ctx.token.string.match(/^["']/) === null) {
                 if (!tokenType) {
                     tokenType = TAG_NAME;
-                    offset--; //need to take off 1 for the leading "<"
+                    if (ctx.token.type === "tag bracket") {
+                        // Check to see if this is a closing tag
+                        if (ctx.token.string === "</") {
+                            tokenType = CLOSING_TAG;
+                            offset -= 2;
+                        } else {
+                            offset = 0;
+                        }
+                        // If the cursor is right after the "<" or "</", then 
+                        // move context to next one so that _extractTagName
+                        // call below can get the tag name if there is one.
+                        if (offset === 0) {
+                            TokenUtils.moveNextToken(ctx);
+                        }
+                    }
                 }
                 
                 // We're actually in the tag, just return that as we have no relevant 
@@ -484,7 +514,8 @@ define(function (require, exports, module) {
             currentBlock = null,
             inBlock = false,
             outerMode = editor._codeMirror.getMode(),
-            tokenModeName;
+            tokenModeName,
+            previousMode;
         
         while (TokenUtils.moveNextToken(ctx, false)) {
             tokenModeName = CodeMirror.innerMode(outerMode, ctx.token.state).mode.name;
@@ -494,7 +525,7 @@ define(function (require, exports, module) {
                     currentBlock.end = currentBlock.start;
                 }
                 // Check for end of this block
-                if (tokenModeName !== modeName) {
+                if (tokenModeName === previousMode) {
                     // currentBlock.end is already set to pos of the last token by now
                     currentBlock.text = editor.document.getRange(currentBlock.start, currentBlock.end);
                     inBlock = false;
@@ -509,6 +540,8 @@ define(function (require, exports, module) {
                     };
                     blocks.push(currentBlock);
                     inBlock = true;
+                } else {
+                    previousMode = tokenModeName;
                 }
                 // else, random token: ignore
             }

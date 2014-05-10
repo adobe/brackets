@@ -36,6 +36,7 @@ define({
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
+	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
@@ -59,10 +60,14 @@ define({
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de {0} incorrect",
-	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\| ou utiliser des termes réservés au système.",
+	"INVALID_FILENAME_MESSAGE": "Les noms de fichiers ne peuvent pas contenir les caractères {0} ni utiliser des termes réservés au système.",
 	"FILE_ALREADY_EXISTS": "Le {0} <span class='dialog-filename'>{1}</span> existe déjà.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
+
+    // Application preferences corrupt error strings
+	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
+	"ERROR_PREFS_CORRUPT": "Votre fichier de préférences n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite redémarrer {APP_NAME} pour que les modifications prennent effet.",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -72,7 +77,7 @@ define({
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
 
-    // Live Development error strings
+    // Live Preview error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "Erreur lors du lancement du navigateur",
 	"ERROR_CANT_FIND_CHROME": "Le navigateur Google Chrome est introuvable. Assurez-vous qu’il est installé.",
 	"ERROR_LAUNCHING_BROWSER": "Une erreur s’est produite lors du lancement du navigateur. (Erreur {0})",
@@ -80,13 +85,13 @@ define({
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur du module Aperçu en direct",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
-	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Live Development",
+	"LIVE_DEV_LOADING_ERROR_MESSAGE": "Impossible de charger la page Aperçu en direct",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML ou vérifiez qu’il y a un fichier index.html dans votre projet pour pouvoir lancer l’aperçu en direct.",
 	"LIVE_DEV_NEED_BASEURL_MESSAGE": "Pour lancer l’Aperçu en direct avec un fichier de serveur, vous devez indiquer une URL de base pour ce projet.",
-	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers de développement en direct. Veuillez réessayer.",
+	"LIVE_DEV_SERVER_NOT_READY_MESSAGE": "Une erreur s’est produite au démarrage du serveur HTTP pour les fichiers d’aperçu en direct. Veuillez réessayer.",
 	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version du logiciel {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec <strong>Google Chrome</strong> et affiche les mises à jour en direct, dès que vous modifiez des <strong>fichiers CSS ou HTML</strong>. Les modifications apportées aux fichiers JavaScript sont automatiquement rechargées lorsque vous enregistrez.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
-	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour plus d’informations, consultez la page <a href='{0}' title='{0}'>Résolution des erreurs de connexion Live Development</a>.",
+	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "Pour plus d’informations, consultez la page <a href='{0}' title='{0}'>Résolution des erreurs de connexion à l’Aperçu en direct</a>.",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion\u2026",
@@ -107,6 +112,7 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
+	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
 	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
 	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
@@ -115,10 +121,12 @@ define({
 	"CANCEL": "Annuler",
 	"DONT_SAVE": "Ne pas enregistrer",
 	"SAVE": "Enregistrer",
+	"SAVE_AS": "Enregistrer sous\u2026",
+	"SAVE_AND_OVERWRITE": "Remplacer",
 	"DELETE": "Supprimer",
 	"BUTTON_YES": "Oui",
 	"BUTTON_NO": "Non",
-    
+        
     // Find, Replace, Find in Files
 	"FIND_RESULT_COUNT": "{0} résultats",
 	"FIND_RESULT_COUNT_SINGLE": "1 résultat",
@@ -151,7 +159,8 @@ define({
 	"FIND_IN_FILES_TITLE_PART2": " » trouvé",
 	"FIND_IN_FILES_TITLE_PART3": "&mdash; {0} {1} {2} dans {3} {4}",
 	"FIND_IN_FILES_SCOPED": "dans <span class='dialog-filename'>{0}</span>",
-	"FIND_IN_FILES_NO_SCOPE": "dans le projet",
+	"FIND_IN_FILES_NO_SCOPE": "du projet",
+	"FIND_IN_FILES_ZERO_FILES": "Le filtre exclut tous les fichiers {0}",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
@@ -159,8 +168,33 @@ define({
 	"FIND_IN_FILES_MORE_THAN": "Plus de ",
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
+	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
+    
+    // File exclusion filters
+	"NO_FILE_FILTER": "Exclure des fichiers\u2026",
+	"EDIT_FILE_FILTER": "Modifier\u2026",
+	"FILE_FILTER_DIALOG": "Modifier le filtre",
+	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
+	"FILE_FILTER_LIST_PREFIX": "sauf",
+	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
+
+	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
+	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
+	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
+
+    // Quick Edit
+	"ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND": "Fonction Edition rapide non disponible pour la position actuelle du curseur",
+	"ERROR_CSSQUICKEDIT_BETWEENCLASSES": "Edition rapide CSS : placez le curseur sur un seul nom de classe",
+	"ERROR_CSSQUICKEDIT_CLASSNOTFOUND": "Edition rapide CSS : attribut de classe incomplet",
+	"ERROR_CSSQUICKEDIT_IDNOTFOUND": "Edition rapide CSS : attribut d’ID incomplet",
+	"ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR": "Edition rapide CSS : placez le curseur dans la balise, la classe ou l’ID",
+	"ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX": "Edition rapide des fonctions de temporisation CSS : syntaxe incorrecte",
+	"ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND": "Edition rapide JS : placez le curseur dans le nom de fonction",
+
+    // Quick Docs
+	"ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND": "Fonction Documentation rapide non disponible pour la position actuelle du curseur",
 
     /**
      * ProjectManager
@@ -184,6 +218,7 @@ define({
 	"STATUSBAR_SELECTION_CH_PLURAL": " \u2014 {0} colonnes sélectionnées",
 	"STATUSBAR_SELECTION_LINE_SINGULAR": " \u2014 {0} ligne sélectionnée",
 	"STATUSBAR_SELECTION_LINE_PLURAL": " \u2014 {0} lignes sélectionnées",
+	"STATUSBAR_SELECTION_MULTIPLE": " \u2014 {0} sélections",
 	"STATUSBAR_INDENT_TOOLTIP_SPACES": "Cliquez ici pour remplacer la mise en retrait par des espaces.",
 	"STATUSBAR_INDENT_TOOLTIP_TABS": "Cliquez ici pour remplacer la mise en retrait par des tabulations.",
 	"STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES": "Cliquez ici pour changer le nombre d’espaces utilisés lors de la mise en retrait.",
@@ -192,17 +227,21 @@ define({
 	"STATUSBAR_TAB_SIZE": "Taille de tabulation :",
 	"STATUSBAR_LINE_COUNT_SINGULAR": "\u2014 {0} ligne",
 	"STATUSBAR_LINE_COUNT_PLURAL": "\u2014 {0} lignes",
+	"STATUSBAR_USER_EXTENSIONS_DISABLED": "Extensions désactivées",
+	"STATUSBAR_INSERT": "INS",
+	"STATUSBAR_OVERWRITE": "RFP",
 
     // CodeInspection: errors/warnings
-	"ERRORS_PANEL_TITLE": "Erreurs {0}",
-	"ERRORS_PANEL_TITLE_SINGLE": "Problèmes {0}",
-	"ERRORS_PANEL_TITLE_MULTI": "Problèmes Lint",
-	"SINGLE_ERROR": "1 erreur {0}",
-	"MULTIPLE_ERRORS": "{1} erreurs {0}",
-	"NO_ERRORS": "Aucune erreur {0} – félicitations !",
+	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
+	"SINGLE_ERROR": "1 problème {0}",
+	"MULTIPLE_ERRORS": "{1} problèmes {0}",
+	"NO_ERRORS": "Aucun problème {0} détecté, félicitations !",
+	"NO_ERRORS_MULTIPLE_PROVIDER": "Aucun problème détecté, félicitations !",
 	"LINT_DISABLED": "L’analyse lint est désactivée",
 	"NO_LINT_AVAILABLE": "Aucun programme lint disponible pour {0}",
 	"NOTHING_TO_LINT": "Rien à analyser",
+	"LINTER_TIMED_OUT": "Délai dépassé pour {0} après une attente de {1} ms",
+	"LINTER_FAILED": "{0} arrêté avec l’erreur suivante : {1}",
     
     
     /**
@@ -232,7 +271,7 @@ define({
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
+	"CMD_EXTENSION_MANAGER": "Gestionnaire d'extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
@@ -247,12 +286,9 @@ define({
 	"CMD_PASTE": "Coller",
 	"CMD_SELECT_ALL": "Sélectionner tout",
 	"CMD_SELECT_LINE": "Sélectionner la ligne",
-	"CMD_FIND": "Rechercher",
-	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
-	"CMD_FIND_NEXT": "Rechercher suivant",
-	"CMD_FIND_PREVIOUS": "Rechercher précédent",
-	"CMD_REPLACE": "Remplacer",
+	"CMD_SPLIT_SEL_INTO_LINES": "Scinder la sélection en lignes",
+	"CMD_ADD_CUR_TO_NEXT_LINE": "Ajouter un curseur à la ligne suivante",
+	"CMD_ADD_CUR_TO_PREV_LINE": "Ajouter un curseur à la ligne précédente",
 	"CMD_INDENT": "Retrait",
 	"CMD_UNINDENT": "Annuler le retrait",
 	"CMD_DUPLICATE": "Dupliquer",
@@ -265,6 +301,20 @@ define({
 	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
 	"CMD_SHOW_CODE_HINTS": "Afficher les indicateurs de code",
+    
+    // Search menu commands
+	"FIND_MENU": "Rechercher",
+	"CMD_FIND": "Rechercher",
+	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
+	"CMD_FIND_NEXT": "Rechercher suivant",
+	"CMD_FIND_PREVIOUS": "Rechercher précédent",
+	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
+	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
+	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
+	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
+	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
+	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
+	"CMD_REPLACE": "Remplacer",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -299,18 +349,22 @@ define({
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
+	"CMD_SHOW_IN_EXPLORER": "Afficher dans l’Explorateur",
+	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
 	"CMD_SHOW_IN_OS": "Afficher dans le SE",
     
     // Help menu commands
 	"HELP_MENU": "Aide",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 	"CMD_HOW_TO_USE_BRACKETS": "Comment utiliser {APP_NAME}",
-	"CMD_FORUM": "Forum {APP_NAME}",
+	"CMD_SUPPORT": "Assistance {APP_NAME}",
+	"CMD_SUGGEST": "Suggérer une fonctionnalité",
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
-	"CMD_REPORT_AN_ISSUE": "Signaler un problème",
+	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
+	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
@@ -350,6 +404,7 @@ define({
 	"OVERWRITE": "Remplacer",
 	"CANT_REMOVE_DEV": "Les extensions du dossier \"dev\" doivent être supprimées manuellement.",
 	"CANT_UPDATE": "La mise à jour n’est pas disponible avec cette version de l’application {APP_NAME}.",
+	"CANT_UPDATE_DEV": "Les extensions du dossier « dev » ne peuvent pas être mises à jour automatiquement.",
 	"INSTALL_EXTENSION_TITLE": "Installer l’extension",
 	"UPDATE_EXTENSION_TITLE": "Mettre à jour l’extension",
 	"INSTALL_EXTENSION_LABEL": "URL de l’extension ",
@@ -397,23 +452,24 @@ define({
 	"EXTENSION_ERROR": "Erreur d’extension",
 	"EXTENSION_KEYWORDS": "Mots-clés",
 	"EXTENSION_INSTALLED": "Installée",
-	"EXTENSION_UPDATE_INSTALLED": "Cette mise à jour d’extension a été téléchargée et sera installée lorsque vous quitterez {APP_NAME}.",
+	"EXTENSION_UPDATE_INSTALLED": "Cette mise à jour d’extension a été téléchargée et va être installée une fois le rechargement de {APP_NAME} effectué.",
 	"EXTENSION_SEARCH_PLACEHOLDER": "Rechercher",
 	"EXTENSION_MORE_INFO_LINK": "Plus",
 	"BROWSE_EXTENSIONS": "Parcourir les extensions",
 	"EXTENSION_MANAGER_REMOVE": "Supprimer l’extension",
-	"EXTENSION_MANAGER_REMOVE_ERROR": "Impossible de supprimer une ou plusieurs extensions : {0}. {APP_NAME} va être fermé malgré tout.",
+	"EXTENSION_MANAGER_REMOVE_ERROR": "Impossible de supprimer une ou plusieurs extensions : {0}. {APP_NAME} va être rechargé malgré tout.",
 	"EXTENSION_MANAGER_UPDATE": "Mettre à jour l’extension",
-	"EXTENSION_MANAGER_UPDATE_ERROR": "Impossible de mettre à jour une ou plusieurs extensions : {0}. {APP_NAME} va être fermé malgré tout.",
+	"EXTENSION_MANAGER_UPDATE_ERROR": "Impossible de mettre à jour une ou plusieurs extensions : {0}. {APP_NAME} va être rechargé malgré tout.",
 	"MARKED_FOR_REMOVAL": "Marquée pour suppression",
 	"UNDO_REMOVE": "Annuler",
 	"MARKED_FOR_UPDATE": "Marquée pour mise à jour",
 	"UNDO_UPDATE": "Annuler",
-	"CHANGE_AND_QUIT_TITLE": "Modifier les extensions",
-	"CHANGE_AND_QUIT_MESSAGE": "Pour mettre à jour ou supprimer les extensions marquées, vous devez quitter puis relancer {APP_NAME}. Vous serez invité à enregistrer vos modifications.",
-	"REMOVE_AND_QUIT": "Supprimer les extensions et quitter",
-	"CHANGE_AND_QUIT": "Modifier les extensions et quitter",
-	"UPDATE_AND_QUIT": "Mettre à jour les extensions et quitter",
+	"CHANGE_AND_RELOAD_TITLE": "Modifier les extensions",
+	"CHANGE_AND_RELOAD_MESSAGE": "Pour mettre à jour ou supprimer les extensions marquées, {APP_NAME} va devoir être rechargé. Vous serez invité à enregistrer vos modifications.",
+	"REMOVE_AND_RELOAD": "Supprimer les extensions et recharger",
+	"CHANGE_AND_RELOAD": "Modifier les extensions et recharger",
+	"UPDATE_AND_RELOAD": "Mettre à jour les extensions et recharger",
+	"PROCESSING_EXTENSIONS": "Traitement des changements d’extension\u2026",
 	"EXTENSION_NOT_INSTALLED": "Impossible de supprimer l’extension {0} car elle n’est pas installée.",
 	"NO_EXTENSIONS": "Aucune extension installée pour le moment.<br>Cliquez sur l’onglet Disponibles ci-dessus pour vous lancer.",
 	"NO_EXTENSION_MATCHES": "Aucune extension ne correspond à votre recherche.",
@@ -425,6 +481,9 @@ define({
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
 	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
+
+    // Custom Viewers
+	"IMAGE_VIEWER_LARGEST_ICON": "maximum",
     
     /**
      * Unit names
@@ -434,8 +493,10 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
+	"ERRORS": "Erreurs",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
-	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
+	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
+	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
@@ -443,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
@@ -450,33 +512,12 @@ define({
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
     
-    // Locales (used by Debug > Switch Language)
-	"LOCALE_CS": "Tchèque",
-	"LOCALE_DE": "Allemand",
-	"LOCALE_EN": "Anglais",
-	"LOCALE_ES": "Espagnol",
-	"LOCALE_FI": "Finnois",
-	"LOCALE_FR": "Français",
-	"LOCALE_IT": "Italien",
-	"LOCALE_JA": "Japonais",
-	"LOCALE_NB": "Norvégien",
-	"LOCALE_NL": "Hollandais",
-	"LOCALE_FA_IR": "Persan/Farsi",
-	"LOCALE_PL": "Polonais",
-	"LOCALE_PT_BR": "Portugais (Brésil)",
-	"LOCALE_PT_PT": "Portugais",
-	"LOCALE_RO": "Roumain",
-	"LOCALE_RU": "Russe",
-	"LOCALE_SK": "Slovaque",
-	"LOCALE_SR": "Serbe",
-	"LOCALE_SV": "Suédois",
-	"LOCALE_TR": "Turc",
-	"LOCALE_ZH_CN": "Chinois (simplifié)",
-	"LOCALE_HU": "Hongrois",
-    
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Maj</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
+	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
+	"INLINE_TIMING_EDITOR_INVALID": "L’ancienne valeur <code>{0}</code> n’est pas valide et a donc été remplacée par <code>{1}</code> pour la fonction affichée. Le document sera mis à jour à la première modification.",
     
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "Couleur actuelle",

@@ -119,10 +119,16 @@
 
 /* background color of the line that has the cursor */
 @activeline-bgcolor: #ebefef;
+@activeline-number-bgcolor: #dde4e5;
 
 /* custom scrollbar colors */
-@custom-scrollbar-thumb: rgba(0, 0, 0, 0.24);
-@custom-scrollbar-thumb-inactive: rgba(0, 0, 0, 0.12);
+@win-scrollbar-track: rgb(240, 240, 240);
+@win-scrollbar-thumb: rgb(206, 206, 206);
+@win-scrollbar-thumb-hover: rgb(166, 166, 166);
+@win-scrollbar-thumb-active: rgb(96, 96, 96);
+
+@linux-scrollbar-thumb: rgba(0, 0, 0, 0.24);
+@linux-scrollbar-thumb-inactive: rgba(0, 0, 0, 0.12);
 
 /* live preview */
 @live-preview-sync-error-background: #ff5d99;
@@ -138,10 +144,8 @@
  */
 .code-font() {
     color: @content-color;
-    // line-height must be specified in px not em because the code font and line number font sizes are different.
-    // Sizing via em will cause the code and line numbers to misalign
-    line-height: 15px;
     font-size: 12px;
+    line-height: 1.25;
     font-family: "SourceCodePro-Medium", "ＭＳ ゴシック", "MS Gothic", monospace;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@ define({
     "NOT_READABLE_ERR"                  : "Filen kunde inte läsas.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Målmappen kunde inte ändras.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Du har inte behörighet att modifiera filen.",
+    "CONTENTS_MODIFIED_ERR"             : "Filen har ändrats utanför {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Filen eller mappen existerar redan.",
     "FILE"                              : "fil",
     "DIRECTORY"                         : "mapp",
@@ -59,10 +60,14 @@ define({
     "ERROR_DELETING_FILE_TITLE"         : "Filen kunde inte raderas",
     "ERROR_DELETING_FILE"               : "Ett fel uppstod när filen <span class='dialog-filename'>{0}</span> skulle tas bort. {1}",
     "INVALID_FILENAME_TITLE"            : "Ogiltigt filnamn",
-    "INVALID_FILENAME_MESSAGE"          : "Filnamn får inte innehålla följande tecken: /?*:;{}<>\\| eller innehålla ord som reserverats av systemet.",
+    "INVALID_FILENAME_MESSAGE"          : "Filnamn får inte innehålla följande tecken: {0} eller innehålla ord som reserverats av systemet.",
     "FILE_ALREADY_EXISTS"               : "En fil med namnet <span class='dialog-filename'>{0}</span> existerar redan.",
     "ERROR_CREATING_FILE_TITLE"         : "Filen {0} kunde inte skapas",
     "ERROR_CREATING_FILE"               : "Ett fel uppstod när {0} <span class='dialog-filename'>{1}</span> skulle skapas. {2}",
+
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Kunde inte läsa inställningar",
+    "ERROR_PREFS_CORRUPT"               : "Din inställningsfil är inte korrekt formaterad JSON. Filen kommer att öppnas så att du kan korrigera felet. Du kommer att behöva starta om {APP_NAME} för att ändringarna ska träda i kraft.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ajdå! {APP_NAME} körs inte i webbläsaren ännu.",
@@ -72,7 +77,7 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Fel vid indexering av filer",
     "ERROR_MAX_FILES"                   : "Det maximala antalet filer har indexerats. Funktioner som använder sig av indexet kanske inte kommer att fungera som förväntat.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Webbläsaren kunde inte öppnas.",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome kunde inte hittas. Kontrollera att den är installerad.",
     "ERROR_LAUNCHING_BROWSER"           : "Ett fel inträffade då webbläsaren skulle startas. (fel {0})",
@@ -107,25 +112,34 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekräfta borttagning",
     "CONFIRM_FOLDER_DELETE"             : "Är du säker att du vill radera mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Filen raderades",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har ändrats.<br /><br />Vill du spara filen och skriva över dessa ändringar?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> har ändrats men har också osparade ändringar i {APP_NAME}.<br /><br />Vilken version vill du behålla?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> har raderats man har också osparade ändringar i {APP_NAME}.<br /><br />Vill du behålla dina ändringar?",
     
+    // Generic dialog/button labels
+    "OK"                                : "OK",
+    "CANCEL"                            : "Avbryt",
+    "DONT_SAVE"                         : "Spara inte",
+    "SAVE"                              : "Spara",
+    "SAVE_AS"                           : "Spara som\u2026",
+    "SAVE_AND_OVERWRITE"                : "Spara och skriv över",
+    "DELETE"                            : "Radera",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nej",
+    
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Använd /re/ syntax för regexp-sökning",
     "FIND_RESULT_COUNT"                 : "{0} träffar",
     "FIND_RESULT_COUNT_SINGLE"          : "1 träff",
     "FIND_NO_RESULTS"                   : "Inga träffar",
-    "WITH"                              : "med",
-    "BUTTON_YES"                        : "Ja",
-    "BUTTON_NO"                         : "Nej",
+    "REPLACE_PLACEHOLDER"               : "Ersätt med\u2026",
     "BUTTON_REPLACE_ALL"                : "Alla\u2026",
-    "BUTTON_STOP"                       : "Avbryt",
     "BUTTON_REPLACE"                    : "Ersätt",
-            
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Nästa träff",
     "BUTTON_PREV_HINT"                  : "Föregående träff",
+    "BUTTON_CASESENSITIVE_HINT"         : "Skiftlägeskänslig",
+    "BUTTON_REGEXP_HINT"                : "Regular Expression",
 
     "OPEN_FILE"                         : "Öppna fil",
     "SAVE_FILE_AS"                      : "Spara fil som",
@@ -135,15 +149,18 @@ define({
     "NO_UPDATE_TITLE"                   : "Du är uppdaterad!",
     "NO_UPDATE_MESSAGE"                 : "Du använder den senaste versionen av {APP_NAME}.",
 
+    // Replace All (in single file)
     "FIND_REPLACE_TITLE_PART1"          : "Ersätt \"",
     "FIND_REPLACE_TITLE_PART2"          : "\" med \"",
     "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
+    // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" hittades",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} i {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "i <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "i projekt",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter exkluderar alla filer {0}",
     "FIND_IN_FILES_FILE"                : "fil",
     "FIND_IN_FILES_FILES"               : "filer",
     "FIND_IN_FILES_MATCH"               : "träff",
@@ -151,8 +168,33 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Mer än ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd-klicka för att expandera/minimera alla",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fel vid hämtning av versioninformation",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Det gick inte att hämta versionsinformation från servern. Kontrollera din internetuppkoppling och försök igen.",
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Exkludera filer\u2026",
+    "EDIT_FILE_FILTER"                  : "Redigera\u2026",
+    "FILE_FILTER_DIALOG"                : "Redigera filter",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exkludera filer och mappar som matchar någon av följande strängar, substrängar eller <a href='{0}' title='{0}'>wildcards</a>. Ange varje sträng på en ny rad.",
+    "FILE_FILTER_LIST_PREFIX"           : "utom",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "och {0} till",
+
+    "FILTER_COUNTING_FILES"             : "Räknar filer\u2026",
+    "FILTER_FILE_COUNT"                 : "Tillåter {0} av {1} filer {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Tillåter alla {0} filer {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Ingen Quick Edit är tillgänglig vid markörens nuvarande position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: placera markören på ett klassnamn",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: ofullständigt klassattribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: ofullständigt ID-attribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: placera markören inom en tagg, klass eller ID",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS tidsfunktion Quick Edit: felaktigt syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: placera markören på ett funktionsnamn",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Inga Quick Docs är tillgängliga vid markörens nuvarande position",
 
     /**
      * ProjectManager
@@ -176,6 +218,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Markerade {0} kolumner",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Markerade {0} rad",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Markerade {0} rader",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} markeringar",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicka för att använda mellanslag för indrag",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicka för att använda tabbar för indrag",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicka för att ändra antalet mellanslag som används för indrag",
@@ -184,17 +227,21 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Tabbstorlek:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rad",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} rader",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Tillägg har avaktiverats",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "ÖVR",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} fel",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} problem",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Lint-problem",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} fel",
     "SINGLE_ERROR"                          : "1 {0} fel",
     "MULTIPLE_ERRORS"                       : "{1} {0} fel",
-    "NO_ERRORS"                             : "Inga {0} fel - bra jobbat!",
+    "NO_ERRORS"                             : "Inga {0} fel funna - bra jobbat!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Inga fel funna - bra jobbat!",
     "LINT_DISABLED"                         : "Linting är avaktiverat.",
     "NO_LINT_AVAILABLE"                     : "Ingen linter är tillgänglig för {0}",
     "NOTHING_TO_LINT"                       : "Ingenting att linta",
+    "LINTER_TIMED_OUT"                      : "{0} har avbrutits efter att ha väntat {1} ms",
+    "LINTER_FAILED"                         : "{0} avbröts efter ett fel: {1}",
     
     
     /**
@@ -239,11 +286,18 @@ define({
     "CMD_PASTE"                           : "Klistra in",
     "CMD_SELECT_ALL"                      : "Markera alla",
     "CMD_SELECT_LINE"                     : "Markera rad",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Dela markering i rader",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Lägg till markör på nästa rad",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Lägg till markör på föregående rad",
     "CMD_FIND"                            : "Hitta",
-    "CMD_FIND_IN_FILES"                   : "Hitta i filer",
-    "CMD_FIND_IN_SUBTREE"                 : "Hitta i\u2026",
-    "CMD_FIND_NEXT"                       : "Hitta nästa",
-    "CMD_FIND_PREVIOUS"                   : "Hitta föregående",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Sök\u2026",
+    "CMD_FIND_IN_FILES"                   : "Sök i filer",
+    "CMD_FIND_IN_SUBTREE"                 : "Sök i\u2026",
+    "CMD_FIND_NEXT"                       : "Sök nästa",
+    "CMD_FIND_PREVIOUS"                   : "Sök föregående",
+    "CMD_FIND_ALL_AND_SELECT"             : "Sök alla och markera",
+    "CMD_ADD_NEXT_MATCH"                  : "Lägg till nästa träff till markering",
+    "CMD_SKIP_CURRENT_MATCH"              : "Hoppa över och markera nästa träff",
     "CMD_REPLACE"                         : "Ersätt",
     "CMD_INDENT"                          : "Öka indrag",
     "CMD_UNINDENT"                        : "Minska indrag",
@@ -291,27 +345,26 @@ define({
     "CMD_NEXT_DOC"                        : "Nästa dokument",
     "CMD_PREV_DOC"                        : "Föregående dokument",
     "CMD_SHOW_IN_TREE"                    : "Visa i filträdet",
+    "CMD_SHOW_IN_EXPLORER"                : "Visa i Utforskaren",
+    "CMD_SHOW_IN_FINDER"                  : "Visa i Finder",
     "CMD_SHOW_IN_OS"                      : "Visa i operativsystemet",
     
     // Help menu commands
     "HELP_MENU"                           : "Hjälp",
     "CMD_CHECK_FOR_UPDATE"                : "Sök efter uppdateringar",
     "CMD_HOW_TO_USE_BRACKETS"             : "Hur du använder {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME}-forum",
+    "CMD_SUPPORT"                         : "{APP_NAME}-forum",
+    "CMD_SUGGEST"                         : "Föreslå en funktion",
     "CMD_RELEASE_NOTES"                   : "Versionsinformation",
-    "CMD_REPORT_AN_ISSUE"                 : "Rapportera en bugg",
+    "CMD_GET_INVOLVED"                    : "Engagera dig",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa tilläggsmapp",
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
+    "CMD_OPEN_PREFERENCES"                : "Öppna inställningsfil",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
     "DEVELOPMENT_BUILD"                    : "development build",
-    "OK"                                   : "OK",
-    "DONT_SAVE"                            : "Spara inte",
-    "SAVE"                                 : "Spara",
-    "CANCEL"                               : "Avbryt",
-    "DELETE"                               : "Radera",
     "RELOAD_FROM_DISK"                     : "Ladda om",
     "KEEP_CHANGES_IN_EDITOR"               : "Behåll ändringar i editorn",
     "CLOSE_DONT_SAVE"                      : "Stäng (spara inte)",
@@ -347,6 +400,7 @@ define({
     "OVERWRITE"                            : "Skriv över",
     "CANT_REMOVE_DEV"                      : "Tillägg i mappen \"dev\" måste raderas manuellt.",
     "CANT_UPDATE"                          : "Uppdateringen är inte kompatibel med denna version av {APP_NAME}.",
+    "CANT_UPDATE_DEV"                      : "Tilläggen i mappen \"dev\" kan inte uppdateras automatiskt.",
     "INSTALL_EXTENSION_TITLE"              : "Installera tillägg",
     "UPDATE_EXTENSION_TITLE"               : "Uppdatera tillägg",
     "INSTALL_EXTENSION_LABEL"              : "Tilläggets URL",
@@ -394,23 +448,24 @@ define({
     "EXTENSION_ERROR"                      : "Tilläggsfel",
     "EXTENSION_KEYWORDS"                   : "Nyckelord",
     "EXTENSION_INSTALLED"                  : "Installerade",
-    "EXTENSION_UPDATE_INSTALLED"           : "Uppdateringen av detta tillägg har laddats ner och kommer att installeras när du avslutar {APP_NAME}.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Uppdateringen av detta tillägg har laddats ner och kommer att installeras när {APP_NAME} startas om.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Sök",
     "EXTENSION_MORE_INFO_LINK"             : "Mer",
     "BROWSE_EXTENSIONS"                    : "Bläddra bland tillägg",
     "EXTENSION_MANAGER_REMOVE"             : "Ta bort tillägg",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Kunde inte ta bort ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att avslutas.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Kunde inte ta bort ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att startas om.",
     "EXTENSION_MANAGER_UPDATE"             : "Uppdatera tillägg",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Kunde inte uppdatera ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att avslutas.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Kunde inte uppdatera ett eller flera tillägg: {0}. {APP_NAME} kommer fortfarande att startas om.",
     "MARKED_FOR_REMOVAL"                   : "Markerad för borttagning",
     "UNDO_REMOVE"                          : "Ångra",
     "MARKED_FOR_UPDATE"                    : "Markerad för uppdatering",
     "UNDO_UPDATE"                          : "Ångra",
-    "CHANGE_AND_QUIT_TITLE"                : "Ändra tillägg",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Du måste avsluta och starta om {APP_NAME} för att uppdatera eller ta bort markerade tillägg. Du kommer att få en fråga om eventuella osparade ändringar.",
-    "REMOVE_AND_QUIT"                      : "Ta bort tillägg och avsluta",
-    "CHANGE_AND_QUIT"                      : "Ändra tillägg och avsluta",
-    "UPDATE_AND_QUIT"                      : "Uppdatera tillägg och avsluta",
+    "CHANGE_AND_RELOAD_TITLE"              : "Ändra tillägg",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "{APP_NAME} måste startas om för att uppdatera eller ta bort markerade tillägg. Du kommer att få en fråga om att spara eventuella osparade ändringar.",
+    "REMOVE_AND_RELOAD"                    : "Ta bort tillägg och starta om",
+    "CHANGE_AND_RELOAD"                    : "Ta bort tillägg och starta om",
+    "UPDATE_AND_RELOAD"                    : "Ändra tillägg och starta om",
+    "PROCESSING_EXTENSIONS"                : "Genomför förändringar av tillägg\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Kunde inte radera tillägget {0} då det inte är installerat.",
     "NO_EXTENSIONS"                        : "Inga tillägg har installerats ännu.<br>Klicka på fliken Tillgängliga för att komma igång.",
     "NO_EXTENSION_MATCHES"                 : "Inga tillägg matchade din sökning.",
@@ -422,6 +477,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Inga träffar tillgängliga.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Det finns inga CSS-regler som matchar din markering.<br> Klicka på \"Ny regel\" för att skapa en.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Det finns inga stilmallar i ditt projekt.<br>Skapa en flr att lägga till CSS-regler.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "största",
     
     /**
      * Unit names
@@ -432,7 +490,8 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Visa utvecklarverktyg",
-    "CMD_REFRESH_WINDOW"                        : "Ladda om {APP_NAME}",
+    "CMD_REFRESH_WINDOW"                        : "Starta om med tillägg",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Starta om utan tillägg",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nytt {APP_NAME}-fönster",
     "CMD_SWITCH_LANGUAGE"                       : "Byt språk",
     "CMD_RUN_UNIT_TESTS"                        : "Kör tester",
@@ -447,33 +506,12 @@ define({
     "LANGUAGE_CANCEL"                           : "Avbryt",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "Tjeckiska",
-    "LOCALE_DE"                                 : "Tyska",
-    "LOCALE_EN"                                 : "Engelska",
-    "LOCALE_ES"                                 : "Spanska",
-    "LOCALE_FI"                                 : "Finska",
-    "LOCALE_FR"                                 : "Franska",
-    "LOCALE_IT"                                 : "Italienska",
-    "LOCALE_JA"                                 : "Japanska",
-    "LOCALE_NB"                                 : "Norska",
-    "LOCALE_NL"                                 : "Holländska",
-    "LOCALE_FA_IR"                              : "Persiska-Farsi",
-    "LOCALE_PL"                                 : "Polska",
-    "LOCALE_PT_BR"                              : "Portugisiska, Brasilien",
-    "LOCALE_PT_PT"                              : "Portugisiska",
-    "LOCALE_RO"                                 : "Rumänska",
-    "LOCALE_RU"                                 : "Ryska",
-    "LOCALE_SK"                                 : "Slovakiska",
-    "LOCALE_SR"                                 : "Serbiska",
-    "LOCALE_SV"                                 : "Svenska",
-    "LOCALE_TR"                                 : "Turkiska",
-    "LOCALE_ZH_CN"                              : "Kinesiska, förenklad",
-    "LOCALE_HU"                                 : "Ungerska",
-    
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Flytta markerad punkt<br><kbd class='text'>Shift</kbd> Flytta tio enheter",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Öka eller minska antal steg<br><kbd>←</kbd><kbd>→</kbd> 'Start' eller 'Slut'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Det tidigare värdet <code>{0}</code> är inte korrekt så den visade funktionen har ändrats till <code>{1}</code>. Dokumentet kommer att uppdateras med det första värdet.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nuvarande färg",
@@ -501,3 +539,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
+
+/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, CodeMirror, beforeFirst, afterLast */
+/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
+        rangesTestCss              = require("text!spec/CSSUtils-test-files/ranges.css"),
         simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
     
     /**
@@ -567,6 +568,33 @@ define(function (require, exports, module) {
                     ];
                 
                 expect(result).toEqual(expected);
+            });
+        });
+        
+        describe("findSelectorAtDocumentPos in embedded <style> blocks", function () {
+            var editor;
+            
+            beforeEach(function () {
+                init(this, embeddedHtmlFileEntry);
+                runs(function () {
+                    editor = SpecRunnerUtils.createMockEditor(this.fileContent, "html").editor;
+                });
+            });
+            
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(editor.document);
+                editor = null;
+            });
+            
+            // Indexes of external UI are 1-based. Internal indexes are 0-based.
+            it("should find the first selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 6, ch: 0});
+                expect(selector).toEqual("div");
+            });
+
+            it("should find the second selector when pos is at beginning of selector name", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 11, ch: 0});
+                expect(selector).toEqual(".foo");
             });
         });
     }); // describe("CSSUtils")
@@ -1746,6 +1774,7 @@ define(function (require, exports, module) {
             expect(result.isNewItem).toBe(expected.isNewItem === undefined ? false : expected.isNewItem);
             expect(result.index).toBe(expected.index === undefined ? -1 : expected.index);
             expect(result.values).toEqual(expected.values === undefined ? [] : expected.values);
+            expect(result.range).toEqual(expected.range);
         }
         
         function checkInfoAtOffsets(first, last, expected) {
@@ -1808,6 +1837,8 @@ define(function (require, exports, module) {
                 
             it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
                 [9, 85].forEach(function (offset) {
+                    var range = (offset === 9) ? {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
+                                               : {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }};
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -1815,7 +1846,8 @@ define(function (require, exports, module) {
                         name: "width",
                         index: 0,
                         values: ["100%"],
-                        isNewItem: true
+                        isNewItem: true,
+                        range: range
                     });
                 });
             });
@@ -1826,14 +1858,16 @@ define(function (require, exports, module) {
                     name: "width",
                     index: 0,
                     values: ["100%"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
                 });
                 checkInfoAtOffsets(86, 88, {
                     context: CSSUtils.PROP_VALUE,
                     name: "width",
                     index: 0,
                     values: ["100%"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }}
                 });
             });
                 
@@ -1842,7 +1876,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value property", function () {
@@ -1853,7 +1888,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 1,
-                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with correct values at beginning/middle of second multi-value property", function () {
@@ -1861,7 +1897,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 1,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of second multi-value property", function () {
@@ -1872,7 +1909,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value property", function () {
@@ -1881,7 +1919,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             
@@ -1891,7 +1930,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
@@ -1902,7 +1942,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property", function () {
@@ -1910,7 +1951,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 1,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
@@ -1921,7 +1963,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property", function () {
@@ -1930,7 +1973,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 
@@ -1942,7 +1986,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 
@@ -1955,7 +2000,8 @@ define(function (require, exports, module) {
                             offset: 0,
                             isNewItem: true,
                             index: i,
-                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                            range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                         });
                     }
 
@@ -1967,7 +2013,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
             }); // multi-line cases
@@ -1980,7 +2027,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace)", function () {
@@ -1992,7 +2040,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ["Arial,"]
+                        values: ["Arial,"],
+                        range: {start: { line: 28 + ((i - 46) * 3), ch: 17 }, end: { line: 28 + ((i - 46) * 3), ch: 23 }}
                     });
                 }
                 for (i = 48; i <= 49; i++) {
@@ -2003,12 +2052,15 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ["Arial, "]
+                        values: ["Arial, "],
+                        range: {start: { line: 34 + ((i - 48) * 3), ch: 17 }, end: { line: 34 + ((i - 48) * 3), ch: 23 }}
                     });
                 }
             });
             
             it("should return PROP_VALUE with 'new value' flag at end of line when there are no existing values", function () {
+                var lineArray = [41, 44, 47, 50, 112],
+                    columnArray = [10, 11, 10, 11, 10];
                 for (i = 70; i <= 74; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
                     expect(result).toEqual({
@@ -2017,7 +2069,9 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: []
+                        values: [],
+                        range: {start: { line: lineArray[i - 70], ch: columnArray[i - 70] },
+                                end: { line: lineArray[i - 70], ch: columnArray[i - 70] }}
                     });
                 }
             });
@@ -2032,9 +2086,73 @@ define(function (require, exports, module) {
                         offset: 0,
                         index: i,
                         values: ["rgba(50, ", "100, ", "200, ", "0.3)"],
-                        isNewItem: false
+                        isNewItem: false,
+                        range: {start: { line: 54, ch: 11 }, end: { line: 54, ch: 34 }}
                     });
                 }
+            });
+            
+            it("should return a separate token for each param in a functional value notation", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[109]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "background",
+                    offset: 1,
+                    index: 1,
+                    values: ["linear-gradient(to ", "right, ", "rgba(255,", "255,", "0), ", "#fff)"],
+                    isNewItem: false,
+                    range: {start: { line: 71, ch: 16 }, end: { line: 71, ch: 64 }}
+                });
+            });
+            
+            it("should return PROP_VALUE when inside functional value notation - simple", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[107]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "shape-inside",
+                    offset: 1,
+                    index: 1,
+                    values: ["polygon(", "0 ", "0)"],
+                    isNewItem: false,
+                    range: {start: { line: 58, ch: 18 }, end: { line: 58, ch: 30 }}
+                });
+            });
+            
+            it("should return PROP_VALUE when inside functional value notation with modifier", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[108]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_VALUE,
+                    name: "shape-inside",
+                    offset: 1,
+                    index: 1,
+                    values: ["polygon(", "nonzero, ", "0 ", "0)"],
+                    isNewItem: false,
+                    range: {start: { line: 62, ch: 18 }, end: { line: 62, ch: 39 }}
+                });
+            });
+            
+            it("should return unprefixed PROP_NAME", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[111]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_NAME,
+                    name: "transform",
+                    offset: 1,
+                    index: -1,
+                    values: [],
+                    isNewItem: false
+                });
+            });
+
+            it("should return prefixed PROP_NAME when inside a prefixed property name", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[110]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_NAME,
+                    name: "-webkit-transform",
+                    offset: 1,
+                    index: -1,
+                    values: [],
+                    isNewItem: false
+                });
             });
         });
         
@@ -2046,7 +2164,8 @@ define(function (require, exports, module) {
                     name: "font-family",
                     index: 0,
                     values: ["'Helvetica Neue', ", "Arial"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 75, ch: 17 }, end: { line: 75, ch: 40 }}
                 });
             });
             it("should properly parse values with special characters", function () {
@@ -2059,12 +2178,14 @@ define(function (require, exports, module) {
                         name: "font-family",
                         index: 0,
                         values: [values[i]],
-                        isNewItem: false
+                        isNewItem: false,
+                        range: {start: { line: 79 + i, ch: 17 }, end: { line: 79 + i, ch: 17 + values[i].length }}
                     });
                 }
             });
             
         });
+
         
         describe("invalid contexts", function () {
             
@@ -2102,6 +2223,95 @@ define(function (require, exports, module) {
 
             it("should return empty context for comment in declaration", function () {
                 expectEmptyInfo(80);
+            });
+        });
+    });
+    
+    // These are tests related to Shapes editor requirements for determining the start/end range of a css property
+    describe("CSS Context Info Ranges", function () {
+
+        // NOTE: check ranges for simple cases without whitespace is 
+        describe("ranging for getInfoAtPos results with whitespace", function () {
+            var testEditor,
+                result;
+            
+            beforeEach(function () {
+                var mock = SpecRunnerUtils.createMockEditor(rangesTestCss, "css");
+                testEditor = mock.editor;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testEditor.document);
+                testEditor = null;
+            });
+
+            it("should return the correct range of a prop when cursor is on whitespace between function args", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 20, line: 4});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 3
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 6
+                });
+            });
+            
+            it("should return the correct range of a prop when cursor is between characters in function args", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 26, line: 9});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 8
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 13
+                });
+            });
+            it("should return the correct range of a prop when cursor is between characters in prop name with function args with whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 21, line: 15});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 15
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 22
+                });
+            });
+            it("should return the correct range of a prop when cursor is on function arg delimiter with whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 29, line: 30});
+                expect(result.range.start).toEqual({
+                    ch: 0,
+                    line: 26
+                });
+                expect(result.range.end).toEqual({
+                    ch: 41,
+                    line: 36
+                });
+            });
+            it("should return the correct range of a prop when cursor is between value and unit with whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 85, line: 49});
+                expect(result.range.start).toEqual({
+                    ch: 12,
+                    line: 49
+                });
+                expect(result.range.end).toEqual({
+                    ch: 90,
+                    line: 50
+                });
+            });
+            
+            it("should return the correct range of a prop when cursor is at the start of whitespace of a vendor prop value w/whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 13, line: 49});
+                expect(result.range.start).toEqual({
+                    ch: 12,
+                    line: 49
+                });
+                expect(result.range.end).toEqual({
+                    ch: 90,
+                    line: 50
+                });
             });
         });
     });

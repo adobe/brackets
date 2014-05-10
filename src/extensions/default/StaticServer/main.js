@@ -34,32 +34,22 @@ define(function (require, exports, module) {
         FileUtils            = brackets.getModule("file/FileUtils"),
         LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
         BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
-        NodeConnection       = brackets.getModule("utils/NodeConnection"),
+        NodeDomain           = brackets.getModule("utils/NodeDomain"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
-        StaticServer         = require("StaticServer").StaticServer;
+        StaticServer         = require("StaticServer");
+    
+    /**
+     * @private
+     * @type {string} fullPath of the StaticServerDomain implementation
+     */
+    var _domainPath = ExtensionUtils.getModulePath(module, "node/StaticServerDomain");
+    
+    /**
+     * @private
+     * @type {NodeDomain}
+     */
+    var _nodeDomain = new NodeDomain("staticServer", _domainPath);
 
-    /**
-     * @const
-     * Amount of time to wait before automatically rejecting the connection
-     * deferred. If we hit this timeout, we'll never have a node connection
-     * for the static server in this run of Brackets.
-     */
-    var NODE_CONNECTION_TIMEOUT = 5000; // 5 seconds
-    
-    /**
-     * @private
-     * @type{jQuery.Deferred.<NodeConnection>}
-     * A deferred which is resolved with a NodeConnection or rejected if
-     * we are unable to connect to Node.
-     */
-    var _nodeConnectionDeferred = new $.Deferred();
-    
-    /**
-     * @private
-     * @type {NodeConnection}
-     */
-    var _nodeConnection = new NodeConnection();
-    
     /**
      * @private
      * @return {StaticServerProvider} The singleton StaticServerProvider initialized
@@ -67,7 +57,7 @@ define(function (require, exports, module) {
      */
     function _createStaticServer() {
         var config = {
-            nodeConnection  : _nodeConnection,
+            nodeDomain      : _nodeDomain,
             pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
             root            : ProjectManager.getProjectRoot().fullPath
         };
@@ -75,53 +65,11 @@ define(function (require, exports, module) {
         return new StaticServer(config);
     }
 
-    /**
-     * Allows access to the deferred that manages the node connection. This
-     * is *only* for unit tests. Messing with this not in testing will
-     * potentially break everything.
-     *
-     * @private
-     * @return {jQuery.Deferred} The deferred that manages the node connection
-     */
-    function _getNodeConnectionDeferred() {
-        return _nodeConnectionDeferred;
-    }
+    AppInit.appReady(function () {
+        LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
+    });
     
-    function initExtension() {
-        // Start up the node connection, which is held in the
-        // _nodeConnectionDeferred module variable. (Use 
-        // _nodeConnectionDeferred.done() to access it.
-        var connectionTimeout = setTimeout(function () {
-            console.error("[StaticServer] Timed out while trying to connect to node");
-            _nodeConnectionDeferred.reject();
-        }, NODE_CONNECTION_TIMEOUT);
-        
-        _nodeConnection.connect(true).then(function () {
-            _nodeConnection.loadDomains(
-                [ExtensionUtils.getModulePath(module, "node/StaticServerDomain")],
-                true
-            ).then(
-                function () {
-                    clearTimeout(connectionTimeout);
-
-                    // Register as a Live Development server provider
-                    LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
-
-                    _nodeConnectionDeferred.resolveWith(null, [_nodeConnection]);
-                },
-                function () { // Failed to connect
-                    console.error("[StaticServer] Failed to connect to node", arguments);
-                    _nodeConnectionDeferred.reject();
-                }
-            );
-        });
-
-        return _nodeConnectionDeferred.promise();
-    }
-
-    exports.initExtension = initExtension;
-
     // For unit tests only
     exports._getStaticServerProvider = _createStaticServer;
-    exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
+    exports._nodeDomain = _nodeDomain;
 });

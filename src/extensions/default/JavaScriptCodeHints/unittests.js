@@ -1409,7 +1409,8 @@ define(function (require, exports, module) {
             });
 
             // Test reading multiple files and subdirectories
-            it("should handle reading all files when modules not used", function () {
+            // Turned for per #7646
+            xit("should handle reading all files when modules not used", function () {
                 var start = { line: 8, ch: 8 };
 
                 runs(function () {
@@ -1806,6 +1807,32 @@ define(function (require, exports, module) {
 
         });
 
+        describe("Code Hinting Regression", function () {
+            var testFile = extensionPath + "/unittest-files/module-test-files/china/cupFiller.js";
+
+            beforeEach(function () {
+                setupTest(testFile, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            // The test is disabled, because the TernWorker will consult the ProjectManager to
+            // determine all the files in the project root. We don't have a project root for this
+            // testcase. Perhaps we need to change the testsetup or find another way of dealing with this
+            // Test makes sure that http://github.com/adobe/brackets/issue/6931 doesn't show up
+            xit("should show hints for members of referenced class", function () {
+                var start = { line: 8, ch: 15 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["empty", "emptyIt", "fill", "full"]);
+                });
+            });
+        });
+
         describe("JavaScript Code Hinting format parameters tests", function () {
 
             it("should format parameters with no params", function () {
@@ -1859,7 +1886,5 @@ define(function (require, exports, module) {
             });
 
         });
-
-
     });
 });

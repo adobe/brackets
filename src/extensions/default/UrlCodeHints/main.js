@@ -41,6 +41,7 @@ define(function (require, exports, module) {
 
         Data                = require("text!data.json"),
 
+        urlHints,
         data,
         htmlAttrs;
     
@@ -56,37 +57,48 @@ define(function (require, exports, module) {
      * @return {Array.<string>|$.Deferred} The (possibly deferred) hints.
      */
     UrlCodeHints.prototype._getUrlList = function (query) {
-        var doc,
-            result = [];
-        
-        // site-root relative links are not yet supported, so filter them out
-        if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
+        var directory,
+            doc,
+            docDir,
+            editor,
+            queryDir = "",
+            queryUrl,
+            result = [],
+            self,
+            targetDir,
+            unfiltered = [];
+
+        // get path to document in focused editor
+        editor = EditorManager.getFocusedEditor();
+        if (!editor) {
             return result;
         }
 
-        // get path to current document
-        doc = DocumentManager.getCurrentDocument();
+        doc = editor.document;
         if (!doc || !doc.file) {
             return result;
         }
 
-        var docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
+        docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
         
         // get relative path from query string
-        // TODO: handle site-root relative
-        var queryDir = "";
-        var queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = window.PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
 
         // build target folder path
-        var targetDir = docDir + decodeURI(queryDir);
+        if (queryDir.length > 0 && queryDir[0] === "/") {
+            // site-root relative path
+            targetDir = ProjectManager.getProjectRoot().fullPath +
+                        decodeURI(queryDir).substring(1);
+        } else {
+            // page relative path
+            targetDir = docDir + decodeURI(queryDir);
+        }
 
-        // get list of files from target folder
-        var unfiltered = [];
-
-        // Getting the file/folder info is an asynch operation, so it works like this:
+        // Get list of files from target folder. Getting the file/folder info is an
+        // asynch operation, so it works like this:
         //
         // The initial pass initiates the asynchronous retrieval of data and returns an
         // empty list, so no code hints are displayed. In the async callback, the code
@@ -121,8 +133,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var directory = FileSystem.getDirectoryForPath(targetDir),
-                self = this;
+            directory = FileSystem.getDirectoryForPath(targetDir);
+            self = this;
 
             if (self.cachedHints && self.cachedHints.deferred) {
                 self.cachedHints.deferred.reject();
@@ -133,11 +145,16 @@ define(function (require, exports, module) {
             self.cachedHints.unfiltered = [];
 
             directory.getContents(function (err, contents) {
+                var currentDeferred, entryStr, syncResults;
+
                 if (!err) {
                     contents.forEach(function (entry) {
                         if (ProjectManager.shouldShow(entry)) {
                             // convert to doc relative path
-                            var entryStr = entry.fullPath.replace(docDir, "");
+                            entryStr = queryDir + entry._name;
+                            if (entry._isDirectory) {
+                                entryStr += "/";
+                            }
 
                             // code hints show the unencoded string so the
                             // choices are easier to read.  The encoded string
@@ -152,11 +169,12 @@ define(function (require, exports, module) {
                     self.cachedHints.docDir     = docDir;
                     
                     if (self.cachedHints.deferred.state() !== "rejected") {
-                        var currentDeferred = self.cachedHints.deferred;
+                        currentDeferred = self.cachedHints.deferred;
+
                         // Since we've cached the results, the next call to _getUrlList should be synchronous.
                         // If it isn't, we've got a problem and should reject both the current deferred
                         // and any new deferred that got created on the call.
-                        var syncResults = self._getUrlList(query);
+                        syncResults = self._getUrlList(query);
                         if (syncResults instanceof Array) {
                             currentDeferred.resolveWith(self, [syncResults]);
                         } else {
@@ -340,17 +358,20 @@ define(function (require, exports, module) {
                     query = "";
                 }
                 
-                var hintsAndSortFunc = this._getUrlHints({queryStr: query});
-                var hints = hintsAndSortFunc.hints;
+                var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
+                    hints = hintsAndSortFunc.hints;
+
                 if (hints instanceof Array) {
                     // If we got synchronous hints, check if we have something we'll actually use
                     var i, foundPrefix = false;
+                    query = query.toLowerCase();
                     for (i = 0; i < hints.length; i++) {
-                        if (hints[i].indexOf(query) === 0) {
+                        if (hints[i].toLowerCase().indexOf(query) === 0) {
                             foundPrefix = true;
                             break;
                         }
                     }
+
                     if (!foundPrefix) {
                         query = null;
                     }
@@ -461,9 +482,10 @@ define(function (require, exports, module) {
 
         if (hints instanceof Array && hints.length) {
             // Array was returned
+            var lowerCaseFilter = filter.toLowerCase();
             console.assert(!result.length);
             result = $.map(hints, function (item) {
-                if (item.indexOf(filter) === 0) {
+                if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                     return item;
                 }
             }).sort(sortFunc);
@@ -479,8 +501,15 @@ define(function (require, exports, module) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
+                var lowerCaseFilter = filter.toLowerCase();
+                result = $.map(asyncHints, function (item) {
+                    if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
+                        return item;
+                    }
+                }).sort(sortFunc);
+
                 deferred.resolveWith(this, [{
-                    hints: asyncHints,
+                    hints: result,
                     match: query.queryStr,
                     selectInitial: true,
                     handleWideResults: false
@@ -632,9 +661,19 @@ define(function (require, exports, module) {
             hasClosingParen = (closingPos.index !== -1);
         }
 
-        // Adjust insert char positions to replace existing value, if there is a closing paren
-        if (closingPos.index !== -1) {
-            end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+        // Insert folder names, but replace file names, so if a file is selected
+        // (i.e. closeOnSelect === true), then adjust insert char positions to
+        // replace existing value, if there is a closing paren
+        if (this.closeOnSelect) {
+            if (closingPos.index !== -1) {
+                end.ch += this.getCharOffset(this.info.values, this.info, closingPos);
+            }
+        } else {
+            // If next char is "/", then overwrite it since we're inserting a "/"
+            var nextSlash = this.findNextPosInArray(this.info.values, "/", this.info);
+            if (nextSlash.index === this.info.index && nextSlash.offset === this.info.offset) {
+                end.ch += 1;
+            }
         }
         if (this.info.filter.length > 0) {
             start.ch -= this.info.filter.length;
@@ -697,15 +736,16 @@ define(function (require, exports, module) {
             charCount = 0,
             replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
-            shouldReplace = true;
+            shouldReplace = false;
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
-            charCount = tagInfo.attr.value.length;
-            
             // Special handling for URL hinting -- if the completion is a file name
             // and not a folder, then close the code hint list.
             if (!this.closeOnSelect && completion.match(/\/$/) === null) {
                 this.closeOnSelect = true;
+
+                // Insert folder names, but replace file names
+                shouldReplace = true;
             }
             
             if (!tagInfo.attr.hasEndQuote) {
@@ -718,19 +758,26 @@ define(function (require, exports, module) {
             } else if (completion === tagInfo.attr.value) {
                 shouldReplace = false;
             }
+
+            if (shouldReplace) {
+                // Replace entire value
+                charCount = tagInfo.attr.value.length;
+            } else {
+                // Replace filter (to insert new selection)
+                charCount = this.info.filter.length;
+
+                // If next char is "/", then overwrite it since we're inserting a "/"
+                if (this.info.attr.value.length > charCount && this.info.attr.value[charCount] === "/") {
+                    charCount += 1;
+                }
+            }
         }
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (shouldReplace) {
-            if (start.ch !== end.ch) {
-                this.editor.document.replaceRange(completion, start, end);
-            } else {
-                this.editor.document.replaceRange(completion, start);
-            }
-        }
+        this.editor.document.replaceRange(completion, start, end);
 
         if (!this.closeOnSelect) {
             // If we append the missing quote, then we need to adjust the cursor postion
@@ -749,19 +796,24 @@ define(function (require, exports, module) {
         return false;
     };
 
-    AppInit.appReady(function () {
-        data            = JSON.parse(Data);
-        htmlAttrs       = data.htmlAttrs;
+    function _clearCachedHints() {
+        // Verify cache exists and is not deferred
+        if (urlHints && urlHints.cachedHints && urlHints.cachedHints.deferred &&
+                urlHints.cachedHints.deferred.state() !== "pending") {
 
-        var urlHints = new UrlCodeHints();
-        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
-        
-        function _clearCachedHints() {
             // Cache may or may not be stale. Main benefit of cache is to limit async lookups
             // during typing. File tree updates cannot happen during typing, so it's probably
             // not worth determining whether cache may still be valid. Just delete it.
             urlHints.cachedHints = null;
         }
+    }
+        
+    AppInit.appReady(function () {
+        data            = JSON.parse(Data);
+        htmlAttrs       = data.htmlAttrs;
+
+        urlHints        = new UrlCodeHints();
+        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
         
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);

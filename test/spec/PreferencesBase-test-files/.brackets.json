@@ -1,0 +1,8 @@
+{
+    "spaceUnits": 9,
+    "path": {
+        "foo.go": {
+            "spaceUnits": 7
+        }
+    }
+}

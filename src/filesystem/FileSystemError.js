@@ -35,14 +35,19 @@ define(function (require, exports, module) {
     "use strict";
 
     module.exports = {
-        UNKNOWN             : "Unknown",
-        INVALID_PARAMS      : "InvalidParams",
-        NOT_FOUND           : "NotFound",
-        NOT_READABLE        : "NotReadable",
-        NOT_WRITABLE        : "NotWritable",
-        OUT_OF_SPACE        : "OutOfSpace",
-        TOO_MANY_ENTRIES    : "TooManyEntries",
-        ALREADY_EXISTS      : "AlreadyExists"
+        UNKNOWN                     : "Unknown",
+        INVALID_PARAMS              : "InvalidParams",
+        NOT_FOUND                   : "NotFound",
+        NOT_READABLE                : "NotReadable",
+        UNSUPPORTED_ENCODING        : "UnsupportedEncoding",
+        NOT_SUPPORTED               : "NotSupported",
+        NOT_WRITABLE                : "NotWritable",
+        OUT_OF_SPACE                : "OutOfSpace",
+        TOO_MANY_ENTRIES            : "TooManyEntries",
+        ALREADY_EXISTS              : "AlreadyExists",
+        CONTENTS_MODIFIED           : "ContentsModified",
+        ROOT_NOT_WATCHED            : "RootNotBeingWatched"
+        
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };
 });

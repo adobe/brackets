@@ -53,7 +53,10 @@ define(function (require, exports, module) {
         StringMatch         = require("utils/StringMatch"),
         ViewUtils           = require("utils/ViewUtils");
     
-
+    
+    /** @const {RegExp} The regular expression to check the cursor position */
+    var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
+    
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
 
@@ -219,12 +222,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * Remembers the selection state in origDocPath that was present when showDialog() was called. Focusing on an
      * item can change the selection; we restore this original selection if the user presses Escape. Null if
      * no document was open when Quick Open was invoked.
-     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * @type {?Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>}
      */
-    QuickNavigateDialog.prototype._origSelection = null;
+    QuickNavigateDialog.prototype._origSelections = null;
     
     /**
      * @private
@@ -251,23 +254,28 @@ define(function (require, exports, module) {
      * is followed by a colon. Callers should explicitly test result with isNaN()
      * 
      * @param {string} query string to extract line number from
-     * @returns {number} line number. Returns NaN to indicate no line number was found
+     * @return {{query: string, local: boolean, line: number, ch: number}} An object with
+     *      the extracted line and column numbers, and two additional fields: query with the original position 
+     *      string and local indicating if the cursor position should be applied to the current file.
+     *      Or null if the query is invalid
      */
-    function extractLineNumber(query) {
-        // only match : at beginning of query for now
-        // TODO: match any location of : when QuickOpen._handleItemFocus() is modified to
-        // dynamic open files
-        if (query.indexOf(":") !== 0) {
-            return NaN;
+    function extractCursorPos(query) {
+        var regInfo = query.match(CURSOR_POS_EXP),
+            result;
+        
+        if (query.length <= 1 || !regInfo ||
+                (regInfo[1] && isNaN(regInfo[1])) ||
+                (regInfo[3] && isNaN(regInfo[3]))) {
+            
+            return null;
         }
-
-        var result = NaN;
-        var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
-        if (regInfo) {
-            result = regInfo[2] - 1;
-        }
-
-        return result;
+            
+        return {
+            query:  regInfo[0],
+            local:  query.indexOf(":") === 0,
+            line:   regInfo[1] - 1 || 0,
+            ch:     regInfo[3] - 1 || 0
+        };
     }
     
     /** Returns the last return value of _filterCallback(), which Smart Autocomplete helpfully caches */
@@ -312,18 +320,15 @@ define(function (require, exports, module) {
         }
         
         var selectedItem = domItemToSearchResult(selectedDOMItem),
-            doClose = true,
-            self = this;
+            doClose      = true,
+            self         = this,
+            query        = this.$searchField.val(),
+            cursorPos    = extractCursorPos(query);
 
         // Delegate to current plugin
         if (currentPlugin) {
             currentPlugin.itemSelect(selectedItem);
         } else {
-
-            // extract line number, if any
-            var query = this.$searchField.val(),
-                gotoLine = extractLineNumber(query);
-
             // Navigate to file and line number
             var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
@@ -336,16 +341,16 @@ define(function (require, exports, module) {
                 this.modalBar.prepareClose();
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
-                        if (!isNaN(gotoLine)) {
+                        if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
-                            editor.setCursorPos(gotoLine, 0, true);
+                            editor.setCursorPos(cursorPos.line, cursorPos.ch, true);
                         }
                     })
                     .always(function () {
                         self.close();
                     });
-            } else if (!isNaN(gotoLine)) {
-                EditorManager.getCurrentFullEditor().setCursorPos(gotoLine, 0, true);
+            } else if (cursorPos) {
+                EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
             }
         }
 
@@ -401,7 +406,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelection);
+                    self.close(self._origScrollPos, self._origSelections);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -422,11 +427,11 @@ define(function (require, exports, module) {
             return true;
         }
         
-        var lineNum = extractLineNumber(query),
-            editor = EditorManager.getCurrentFullEditor();
+        var cursorPos = extractCursorPos(query),
+            editor    = EditorManager.getCurrentFullEditor();
         
         // We could just use 0 and lineCount() here, but in future we might want this logic to work for inline editors as well.
-        return (!isNaN(lineNum) && editor && lineNum >= editor.getFirstVisibleLine() && lineNum <= editor.getLastVisibleLine());
+        return (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine());
     };
     
     /**
@@ -457,11 +462,11 @@ define(function (require, exports, module) {
      * searching is done.
      * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
      *     position when closing the ModalBar.
-     * @param {{start: {line: number, ch: number}, end: {line: number, ch: number}} selection If specified,
-     *     restore the given selection when closing the ModalBar.
+     * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
+     *     selections If specified, restore the given selections when closing the ModalBar.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selection) {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -498,8 +503,8 @@ define(function (require, exports, module) {
             // `ModalBar.close()` (before the animation completes).
             // See description of `restoreScrollPos` in `ModalBar.close()`.
             var editor = EditorManager.getCurrentFullEditor();
-            if (selection) {
-                editor.setSelection(selection.start, selection.end);
+            if (selections) {
+                editor.setSelections(selections);
             }
             if (scrollPos) {
                 editor.setScrollPos(scrollPos.x, scrollPos.y);
@@ -545,6 +550,11 @@ define(function (require, exports, module) {
             return asyncResult.promise();
         }
         
+        var cursorPos = extractCursorPos(query);
+        if (cursorPos && !cursorPos.local && cursorPos.query !== "") {
+            query = query.replace(cursorPos.query, "");
+        }
+
         // First pass: filter based on search string; convert to SearchResults containing extra info
         // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
@@ -584,10 +594,10 @@ define(function (require, exports, module) {
         }
         
         // "Go to line" mode is special-cased
-        var gotoLine = extractLineNumber(query);
-        if (!isNaN(gotoLine)) {
-            var from = {line: gotoLine, ch: 0};
-            var to = {line: gotoLine, ch: 99999};
+        var cursorPos = extractCursorPos(query);
+        if (cursorPos && cursorPos.local) {
+            var from = {line: cursorPos.line, ch: cursorPos.ch},
+                to   = {line: cursorPos.line};
             
             EditorManager.getCurrentFullEditor().setSelection(from, to, true);
         }
@@ -751,17 +761,17 @@ define(function (require, exports, module) {
             // Update the dialog label based on the current prefix.
             switch (prefix) {
             case ":":
-                dialogLabel = Strings.CMD_GOTO_LINE;
+                dialogLabel = Strings.CMD_GOTO_LINE + "\u2026";
                 break;
             case "@":
-                dialogLabel = Strings.CMD_GOTO_DEFINITION;
+                dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
                 break;
             default:
-                dialogLabel = Strings.CMD_QUICK_OPEN;
+                dialogLabel = "";
                 break;
             }
         }
-        $(".find-dialog-label", this.dialog).text(dialogLabel + ":");
+        $(".find-dialog-label", this.dialog).text(dialogLabel);
     };
     
     /**
@@ -806,15 +816,15 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            this._origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            this._origSelections = EditorManager.getCurrentFullEditor().getSelections();
             this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
-            this._origSelection = null;
+            this._origSelections = null;
             this._origScrollPos = null;
         }
 
         // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><span class='find-dialog-label'></span> <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'></div>";
+        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(dialogHTML, false);
         this.$searchField = $("input#quickOpenSearch");
 
@@ -847,10 +857,16 @@ define(function (require, exports, module) {
         });
 
         this.setSearchFieldValue(prefix, initialString);
+
+        // Return files that are non-binary, or binary files that have a custom viewer
+        function _filter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
+        }
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
-        // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = ProjectManager.getAllFiles(true)
+        // Start fetching the file list, which will be needed the first time the user enters
+        // an un-prefixed query. If file index caches are out of date, this list might take
+        // some time to asynchronously build. See searchFileList() for how this is handled.
+        fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
