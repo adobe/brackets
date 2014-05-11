@@ -176,8 +176,11 @@ define(function (require, exports, module) {
                         }).always(function (jqXHR, status, error) {
                             lookupPromise.resolve();
                         });
+                    } else {
+                        localVersionInfoUrl = _getVersionInfoUrl("en");
+                        lookupPromise.resolve();
                     }
-                }).always(function (jqXHR, status, error) {
+                }).done(function (jqXHR, status, error) {
                     lookupPromise.resolve();
                 });
             } else {
