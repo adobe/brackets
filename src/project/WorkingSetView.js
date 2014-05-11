@@ -242,6 +242,9 @@ define(function (require, exports, module) {
             interval        = false,
             moved           = false;
         
+        // Don't redraw the working set for the next events
+        _suppressSortRedraw = true;
+        
         function drag(e) {
             var top = e.pageY - startPageY;
             
@@ -301,9 +304,6 @@ define(function (require, exports, module) {
             if (!moved && Math.abs(top) > 3) {
                 Menus.closeAll();
                 moved = true;
-                
-                // Don't redraw the working set for the next events
-                _suppressSortRedraw = true;
             }
         }
         
@@ -374,10 +374,10 @@ define(function (require, exports, module) {
                 if (addBottomShadow) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
-                
-                // The drag is done, so set back to the default
-                _suppressSortRedraw = false;
             }
+            
+            // The drag is done, so set back to the default
+            _suppressSortRedraw = false;
         }
         
         
@@ -395,16 +395,17 @@ define(function (require, exports, module) {
         
         // Style the element
         $listItem.css("position", "relative").css("z-index", 1);
-                
+        
         // Envent Handlers
-        $openFilesContainer.on("mousemove.workingSet", function (e) {
+        var $holder = $openFilesContainer.parent();
+        $holder.on("mousemove.workingSet", function (e) {
             if (hasScroll) {
                 scroll(e);
             }
             drag(e);
         });
-        $openFilesContainer.on("mouseup.workingSet mouseleave.workingSet", function (e) {
-            $openFilesContainer.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
+        $holder.on("mouseup.workingSet mouseleave.workingSet", function (e) {
+            $holder.off("mousemove.workingSet mouseup.workingSet mouseleave.workingSet");
             drop();
         });
     }
