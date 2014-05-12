@@ -726,14 +726,17 @@ define(function (require, exports, module) {
             return;
         }
         
-        var doc            = editor.document,
-            lineSelections = editor.convertToLineSelections(editor.getSelections()),
-            isInlineWidget = !!EditorManager.getFocusedInlineWidget(),
-            firstLine      = editor.getFirstVisibleLine(),
-            lastLine       = editor.getLastVisibleLine(),
-            totalLines     = editor.lineCount(),
-            lineLength     = 0,
-            edits          = [];
+        var doc             = editor.document,
+            lineSelections  = editor.convertToLineSelections(editor.getSelections()),
+            isInlineWidget  = !!EditorManager.getFocusedInlineWidget(),
+            firstLine       = editor.getFirstVisibleLine(),
+            lastLine        = editor.getLastVisibleLine(),
+            totalLines      = editor.lineCount(),
+            lineLength      = 0,
+            edits           = [],
+            newSels         = [],
+            sel             = {},
+            pos             = {};
         
         _.each(lineSelections, function (lineSel) {
             var sel = lineSel.selectionForEdit,
@@ -799,11 +802,26 @@ define(function (require, exports, module) {
                 break;
             }
         });
+
+        // Make sure correct selections are made and scrolled into view
         if (edits.length) {
-            var newSels = doc.doMultipleEdits(edits);
+            newSels = doc.doMultipleEdits(edits);
+
             if (direction === DIRECTION_UP) {
                 editor.setSelections(newSels);
+                sel = _.first(editor.getSelections());
+                pos.ch = sel.start.ch;
+                pos.line = sel.start.line;
+            } else if (direction === DIRECTION_DOWN) {
+                sel = _.last(editor.getSelections());
+                pos.ch = sel.end.ch;
+                pos.line = sel.end.line;
+            } else {
+                console.error("EditorCommandHandler.moveLine() called with invalid argument 'direction' = %d", direction);
+                pos = null;
             }
+
+            editor._codeMirror.scrollIntoView(pos);
         }
     }
     
