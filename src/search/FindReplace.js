@@ -45,8 +45,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FindBar             = require("search/FindBar").FindBar,
         FindUtils           = require("search/FindUtils"),
-        SearchResultsView   = require("search/SearchResultsView").SearchResultsView,
-        SearchModel         = require("search/SearchModel").SearchModel,
+        FindInFiles         = require("search/FindInFiles"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
@@ -63,12 +62,6 @@ define(function (require, exports, module) {
 
     /** @const Maximum number of matches to collect for Replace All; any additional matches are not listed in the panel & are not replaced */
     var REPLACE_ALL_MAX     = 10000;
-    
-    /** @type {SearchResultsView} The search results panel. Initialized in htmlReady() */
-    var resultsView;
-    
-    /** @type {SearchModel} The search query and results data. */
-    var searchModel;
     
     /** @type {?Document} Instance of the currently opened document when replaceAllPanel is visible */
     var currentDocument = null;
@@ -623,49 +616,6 @@ define(function (require, exports, module) {
         if (findBar) {
             findBar.close();
         }
-        searchModel.clear();
-    }
-    
-    /**
-     * Finds all instances of the given item in the document in preparation for a Replace All, and adds them
-     * to the given replaceModel.
-     * TODO: unify this with _findAllAndSelect(), or just use FindInFiles search code for a single document
-     * @param {Editor} editor  Currently active editor that was used to invoke this action.
-     * @param {(string|RegExp)} replaceWhat  Query that will be passed into CodeMirror Cursor to search for results.
-     * @param {string} replaceWith  String that should be used to replace chosen results.
-     */
-    function doFindAll(editor, replaceWhat, queryInfo, replaceWith, model) {
-        var cm          = editor._codeMirror,
-            cursor      = getSearchCursor(cm, replaceWhat, queryInfo),
-            matchResult = cursor.findNext(),
-            matches     = [],
-            from;
-
-        model.clear();
-        
-        // Collect all results from document
-        while (matchResult) {
-            from = cursor.from();
-            matches.push({
-                start:     from,
-                end:       cursor.to(),
-                line:      editor.document.getLine(from.line),
-                result:    matchResult,
-                isChecked: true
-            });
-            
-            if (matches.length >= REPLACE_ALL_MAX) {
-                model.foundMaximum = true;
-                break;
-            }
-            matchResult = cursor.findNext();
-        }
-        
-        model.queryInfo = queryInfo;
-        model.isReplace = true;
-        model.replaceText = replaceWith;
-        model.addResultMatches(DocumentManager.getCurrentDocument().file.fullPath, matches);
-        model.fireChanged();
     }
     
     function doReplace(editor, all) {
@@ -675,16 +625,8 @@ define(function (require, exports, module) {
         
         if (all) {
             findBar.close();
-            doFindAll(editor, state.query, state.queryInfo, replaceText, searchModel);
-            resultsView.showResults();
-        
-            // we can't safely replace after document has been modified
-            // this handler is only attached when replaceAllPanel is visible
-            currentDocument = DocumentManager.getCurrentDocument();
-            $(currentDocument).on("change.replaceAll", function () {
-                searchModel.clear();
-                $(currentDocument).off(".replaceAll");
-            });
+            // Delegate to Replace in Files.
+            FindInFiles.doSearchInScope(state.queryInfo, editor.document.file, null, replaceText);
         } else {
             cm.replaceSelection(typeof state.query === "string" ? replaceText : FindUtils.parseDollars(replaceText, state.lastMatch));
 
@@ -742,17 +684,6 @@ define(function (require, exports, module) {
         }
     }
     
-    // Initialize items dependent on HTML DOM
-    AppInit.htmlReady(function () {
-        searchModel = new SearchModel();
-        resultsView = new SearchResultsView(searchModel, "replace-all-results", "replace-all-results.panel");
-        $(resultsView).on("doReplaceAll", function () {
-            if (searchModel.hasResults()) {
-                FindUtils.performReplacements(searchModel.results, searchModel.replaceText, {isRegexp: searchModel.queryInfo.isRegexp});
-            }
-        });
-    });
-
     $(DocumentManager).on("currentDocumentChange", _handleDocumentChange);
 
     CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);

@@ -172,7 +172,15 @@ define(function (require, exports, module) {
             return _subtreeFilter(file, currentScope) && _isReadableText(file.fullPath);
         }
         
-        return ProjectManager.getAllFiles(filter, true);
+        // If the scope is a single file, just check if the file passes the filter directly rather than
+        // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
+        // in-memory file might be an untitled document or external file that doesn't show up in
+        // getAllFiles().
+        if (currentScope && currentScope.isFile) {
+            return new $.Deferred().resolve(filter(currentScope) ? [currentScope] : []).promise();
+        } else {
+            return ProjectManager.getAllFiles(filter, true);
+        }
     }
     
     /**
@@ -339,14 +347,19 @@ define(function (require, exports, module) {
     
     /**
      * Does a search in the given scope with the given filter. Used when you want to start a search
-     * programmatically.
+     * programmatically. Shows the result list once the search is complete.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object, as returned by FindBar.getQueryInfo()
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
+     * @param {?string} replaceText If this is a replacement, the text to replace matches with.
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
-    function doSearchInScope(queryInfo, scope, filter) {
+    function doSearchInScope(queryInfo, scope, filter, replaceText) {
         _resetSearch(scope);
+        if (replaceText !== undefined) {
+            searchModel.isReplace = true;
+            searchModel.replaceText = replaceText;
+        }
         var candidateFilesPromise = getCandidateFiles();
         return _doSearch(queryInfo, candidateFilesPromise, filter);
     }
@@ -386,12 +399,13 @@ define(function (require, exports, module) {
         var resultsClone = _.cloneDeep(searchModel.results),
             replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
-            });
+            }),
+            isRegexp = searchModel.queryInfo.isRegexp;
                 
         if (replacedFiles.length <= MAX_IN_MEMORY) {
             // Just do the replacements in memory.
             findInFilesResults.hideResults();
-            doReplace(resultsClone, searchModel.replaceText, { forceFilesOpen: true });
+            doReplace(resultsClone, searchModel.replaceText, { forceFilesOpen: true, isRegexp: isRegexp });
         } else {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
@@ -412,7 +426,7 @@ define(function (require, exports, module) {
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     findInFilesResults.hideResults();
-                    doReplace(resultsClone, searchModel.replaceText);
+                    doReplace(resultsClone, searchModel.replaceText, { isRegexp: isRegexp });
                 }
             });
         }
@@ -706,6 +720,12 @@ define(function (require, exports, module) {
     FindInFilesResults.prototype._documentChangeHandler = function (event, document, change) {
         var self = this;
         if (_inSearchScope(document.file)) {
+            // For now, if this is a replace, just clear the results and abort the replace.
+            if (this._model.isReplace) {
+                this._model.clear();
+                return;
+            }
+
             this._updateResults(document, change, false);
         }
     };
@@ -829,7 +849,13 @@ define(function (require, exports, module) {
 
             // Restore the results if needed
             if (resultsChanged) {
-                this._model.fireChanged();
+                // For now, if this is a replace, just clear the results and abort the replace.
+                // (We do this check here so we know whether the change was actually relevant to the search results.)
+                if (this._model.isReplace) {
+                    this._model.clear();
+                } else {        
+                    this._model.fireChanged();
+                }
             }
         }
     };
@@ -930,7 +956,13 @@ define(function (require, exports, module) {
         addPromise.always(function () {
             // Restore the results if needed
             if (resultsChanged) {
-                self._model.fireChanged();
+                // For now, if this is a replace, just clear the results and abort the replace.
+                // (We do this check here so we know whether the change was actually relevant to the search results.)
+                if (this._model.isReplace) {
+                    this._model.clear();
+                } else {
+                    self._model.fireChanged();
+                }
             }
         });
     };

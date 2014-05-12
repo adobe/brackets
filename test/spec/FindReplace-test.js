@@ -327,7 +327,7 @@ define(function (require, exports, module) {
         ];
         
 
-        var testWindow, twCommandManager, twEditorManager, tw$;
+        var testWindow, twCommandManager, twEditorManager, twFindInFiles, tw$;
         var myDocument, myEditor;
         
         // Helper functions for testing cursor position / selection range
@@ -444,6 +444,7 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 twCommandManager = testWindow.brackets.test.CommandManager;
                 twEditorManager  = testWindow.brackets.test.EditorManager;
+                twFindInFiles    = testWindow.brackets.test.FindInFiles;
                 tw$              = testWindow.$;
 
                 SpecRunnerUtils.loadProjectInTestWindow(SpecRunnerUtils.getTempDirectory());
@@ -454,6 +455,7 @@ define(function (require, exports, module) {
             testWindow       = null;
             twCommandManager = null;
             twEditorManager  = null;
+            twFindInFiles    = null;
             tw$              = null;
             SpecRunnerUtils.closeTestWindow();
             
@@ -564,7 +566,7 @@ define(function (require, exports, module) {
             });
             
             it("should have a scroll track marker for every match", function () {
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
 
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
@@ -814,21 +816,21 @@ define(function (require, exports, module) {
             
             it("should use empty initial query for single cursor selection", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("");
             });
             
             it("should use empty initial query for multiple cursor selection", function () {
                 myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
                                         {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("");
             });
             
             it("should get single selection as initial query", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
                                       {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
-                twCommandManager.execute(Commands.EDIT_FIND);
+                twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("require");
             });
             
@@ -1135,7 +1137,7 @@ define(function (require, exports, module) {
 
             it("should find and skip then replace string", function () {
                 runs(function () {
-                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText("foo");
                     enterReplaceText("bar");
                     
@@ -1341,7 +1343,7 @@ define(function (require, exports, module) {
         });
 
         
-        describe("Search -> Replace All", function () {
+        describe("Search -> Replace All in untitled document", function () {
             function expectTextAtPositions(text, posArray) {
                 posArray.forEach(function (pos) {
                     expect(myEditor.document.getRange(pos, {line: pos.line, ch: pos.ch + text.length})).toEqual(text);
@@ -1353,11 +1355,16 @@ define(function (require, exports, module) {
                 });
             }
             
+            beforeEach(function () {
+                twFindInFiles._searchDone = false;
+                twFindInFiles._replaceDone = false;
+            });
+            
             it("should find and replace all", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
                 runs(function () {
-                    var searchText  = "require",
-                        replaceText = "brackets.getModule";
-                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText(searchText);
                     enterReplaceText(replaceText);
 
@@ -1366,8 +1373,21 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     // Note: LINE_FIRST_REQUIRE and CH_REQUIRE_START refer to first call to "require",
                     //       but not first instance of "require" in text
                     expectTextAtPositions(replaceText, [
@@ -1380,10 +1400,10 @@ define(function (require, exports, module) {
             });
             
             it("should close panel if document modified", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
                 runs(function () {
-                    var searchText  = "require",
-                        replaceText = "brackets.getModule";
-                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText(searchText);
                     enterReplaceText(replaceText);
 
@@ -1392,18 +1412,24 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    
-                    expect(tw$("#replace-all-results").is(":visible")).toBe(true);
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+
+                runs(function () {
+                    expect(tw$("#find-in-files-results").is(":visible")).toBe(true);
                     myEditor.document.replaceRange("", {line: 0, ch: 0}, {line: 1, ch: 0});
-                    expect(tw$("#replace-all-results").is(":visible")).toBe(false);
+                    expect(tw$("#find-in-files-results").is(":visible")).toBe(false);
                 });
             });
             
             it("should not replace unchecked items", function () {
+                var searchText  = "require",
+                    replaceText = "brackets.getModule";
                 runs(function () {
-                    var searchText  = "require",
-                        replaceText = "brackets.getModule";
-                    twCommandManager.execute(Commands.EDIT_REPLACE);
+                    twCommandManager.execute(Commands.CMD_REPLACE);
                     enterSearchText(searchText);
                     enterReplaceText(replaceText);
 
@@ -1412,7 +1438,13 @@ define(function (require, exports, module) {
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+
+                runs(function () {
                     // verify that all items are checked by default
                     var $checked = tw$(".check-one:checked");
                     expect($checked.length).toBe(4);
@@ -1423,6 +1455,13 @@ define(function (require, exports, module) {
                     expect(tw$(".check-one:checked").length).toBe(2);
                     
                     tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
 
                     myEditor.setSelection({line: 1, ch: 17}, {line: 1, ch: 17 + replaceText.length});
                     expect(myEditor.getSelectedText()).toBe(replaceText);
@@ -1439,21 +1478,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $n", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2:$1");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
+                
+                runs(function () {
                     tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
 
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1466,21 +1518,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $n (empty subexpression)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)(.*)\\/(\\w+)");
                     enterReplaceText("$3$2:$1");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1493,21 +1558,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $nn (n has two digits)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("()()()()()()()()()()(modules)\\/()()()(\\w+)");
                     enterReplaceText("$15:$11");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo:modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1520,21 +1598,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $$n (not a subexpression, escaped dollar)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$$2_$$10:$2");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/\$2_\$10:Foo/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1547,21 +1638,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $$$n (correct subexpression)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("$2$$$1");
                     
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection(expectedMatch.start, expectedMatch.end);
                     expect(/Foo\$modules/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1574,21 +1678,34 @@ define(function (require, exports, module) {
             });
 
             it("should find all regexps and replace them with $& (whole match)", function () {
+                var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
+
                 runs(function () {
                     twCommandManager.execute(Commands.CMD_REPLACE);
                     toggleRegexp(true);
                     enterSearchText("(modules)\\/(\\w+)");
                     enterReplaceText("_$&-$2$$&");
 
-                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 23}, end: {line: LINE_FIRST_REQUIRE, ch: 34}};
-
                     expectSelection(expectedMatch);
                     expect(/foo/i.test(myEditor.getSelectedText())).toBe(true);
 
                     expect(tw$("#replace-all").is(":enabled")).toBe(true);
                     tw$("#replace-all").click();
-                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._searchDone;
+                }, "search finished");
 
+                runs(function () {
+                    tw$(".replace-checked").click();
+                });
+                
+                waitsFor(function () {
+                    return twFindInFiles._replaceDone;
+                }, "replace finished");
+
+                runs(function () {
                     myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 23}, {line: LINE_FIRST_REQUIRE, ch: 41});
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
                     
@@ -1674,6 +1791,15 @@ define(function (require, exports, module) {
             waitsFor(function () {
                 return $(".modal-bar").length === 1;
             }, "search bar open");
+            runs(function () {
+                // Reset the regexp and case-sensitivity toggles.
+                ["#find-regexp", "#find-case-sensitive"].forEach(function (button) {
+                    if ($(button).is(".active")) {
+                        $(button).click();
+                        expect($(button).is(".active")).toBe(false);
+                    }
+                });
+            });
         }
         
         function closeSearchBar() {
@@ -2317,8 +2443,18 @@ define(function (require, exports, module) {
             function expectInMemoryFiles(options) {
                 runs(function () {
                     waitsForDone(Async.doInParallel(options.inMemoryFiles, function (filePath) {
+                        var fullPath;
+                        
+                        // If this is a full file path (as would be the case for an external file), handle it specially.
+                        if (typeof filePath === "object" && filePath.fullPath) {
+                            fullPath = filePath.fullPath;
+                            filePath = "/" + FileUtils.getBaseName(fullPath);
+                        } else {
+                            fullPath = testPath + filePath;
+                        }
+                        
                         // Check that the document open in memory was changed and matches the expected replaced version of that file.
-                        var doc = DocumentManager.getOpenDocumentForPath(testPath + filePath);
+                        var doc = DocumentManager.getOpenDocumentForPath(fullPath);
                         expect(doc).toBeTruthy();
                         expect(doc.isDirty).toBe(true);
 
@@ -2652,6 +2788,7 @@ define(function (require, exports, module) {
             describe("from Find Bar", function () {
                 function executeReplace(findText, replaceText, fromKeyboard) {
                     runs(function () {
+                        FindInFiles._searchDone = false;
                         FindInFiles._replaceDone = false;
                         $("#find-what").val(findText).trigger("input");
                         $("#replace-with").val(replaceText).trigger("input");
@@ -2788,6 +2925,58 @@ define(function (require, exports, module) {
                         inMemoryKGFolder: "simple-case-insensitive"
                     });
                 });
+                
+                it("should do a regexp search/replace from find bar", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        $("#find-regexp").click();
+                    });
+                    executeReplace("\\b([a-z]{3})\\b", "[$1]", true);
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchDone;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should kick off the replace
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    expectInMemoryFiles({
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "regexp-dollar-replace"
+                    });
+                });
+
+                it("should do a case-sensitive search/replace from find bar", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    runs(function () {
+                        $("#find-case-sensitive").click();
+                    });
+                    executeReplace("foo", "bar", true);
+                    
+                    waitsFor(function () {
+                        return FindInFiles._searchDone;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should kick off the replace
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    expectInMemoryFiles({
+                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder: "simple-case-sensitive"
+                    });
+                });
 
                 it("should warn and do changes on disk if there are changes in >20 files", function () {
                     openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
@@ -2862,6 +3051,79 @@ define(function (require, exports, module) {
                         expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                     });
                 });
+                
+                it("should do single-file Replace All in an open file in the project", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "open file");
+                    });
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
+                    });
+                    waitsFor(function () {
+                        return $(".modal-bar").length === 1;
+                    }, "search bar open");
+                    
+                    executeReplace("foo", "bar");
+                    waitsFor(function () {
+                        return FindInFiles._searchDone;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should kick off the replace
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    
+                    expectInMemoryFiles({
+                        inMemoryFiles: ["/foo.js"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+
+                it("should do single-file Replace All in a non-project file", function () {
+                    // Open an empty project.
+                    var blankProject = SpecRunnerUtils.getTempDirectory() + "/blank-project",
+                        externalFilePath = defaultSourcePath + "/foo.js";
+                    runs(function () {
+                        var dirEntry = FileSystem.getDirectoryForPath(blankProject);
+                        waitsForDone(promisify(dirEntry, "create"));
+                    });
+                    SpecRunnerUtils.loadProjectInTestWindow(blankProject);
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: externalFilePath }), "open external file");
+                    });
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
+                    });
+                    waitsFor(function () {
+                        return $(".modal-bar").length === 1;
+                    }, "search bar open");
+
+                    executeReplace("foo", "bar");
+                    waitsFor(function () {
+                        return FindInFiles._searchDone;
+                    }, "search finished");
+                    
+                    // Click the "Replace" button in the search panel - this should kick off the replace
+                    runs(function () {
+                        $(".replace-checked").click();
+                    });
+
+                    waitsFor(function () {
+                        return FindInFiles._replaceDone;
+                    }, "replace finished");
+                    
+                    expectInMemoryFiles({
+                        inMemoryFiles: [{fullPath: externalFilePath}], // pass a full file path since this is an external file
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+                
+                // Untitled documents are covered in the "Search -> Replace All in untitled document" cases above.
                 
                 // TODO: more tests:
                 // if user does Find first
