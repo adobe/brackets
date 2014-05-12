@@ -1,0 +1,17 @@
+<ul id="filter-dropdown" class="dropdown-menu" tabindex="-1">
+    <li><a id="new-filter-link">{{Strings.NEW_FILE_FILTER}}</a></li>
+    <li><a id="remove-filter-link">{{Strings.CLEAR_FILE_FILTER}}</a></li>
+    
+    {{#filterList.length}}
+    <li class="divider"></li>
+    {{/filterList.length}}
+    
+    {{#filterList}}
+    <li>
+        <a class="recent-filter-link" data-filter="{{filter}}">
+            <span class="recent-filter-name">{{name}}</span>
+            <span class="recent-filter-patterns">{{rest}}</span>
+        </a>
+    </li>
+    {{/filterList}}
+</ul>
