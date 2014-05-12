@@ -1019,6 +1019,7 @@ define(function (require, exports, module) {
 
             filterPicker = FileFilters.createFilterPicker(exclusionsContext);
             this.modalBar.getRoot().find("#find-group").append(filterPicker);
+            FileFilters.attachPickerToDropdown();
         }
         
         // Initial UI state (including prepopulated initialString passed into template)

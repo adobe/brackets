@@ -1199,19 +1199,124 @@ a, img {
 }
 
 // File exclusion filter (used only in Find in Files search bar, for now)
-.filter-picker {
+.filter-dropdown-arrow {
     display: inline-block;
-    margin-left: 8px;
-    button {
-        margin-left: 8px;
-    }
+    top: -2px;
+    width: 7px;
+    height: 5px;
+    margin-left: 4px;
+    background-image: url("images/down-arrow.svg");
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.filter-trash-icon {
+    position: absolute;
+    left: 7px;
+    width: 16px;
+    height: 16px;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 15px;
+    text-align: center;
+}
+
+.filter-trash-icon:hover {
+    color: rgba(0, 0, 0, 1);
+}
+
+.filter-edit-icon {
+    /*display: inline-block;*/
+    float: right;
+    width: 13px;
+    height: 13px;
+    background-image: url("images/edit-icon.svg");
+    background-repeat: no-repeat;
+}
+
+#filter-dropdown-toggle {
+    display: inline-block;
+    margin-left: 10px;
+    overflow: hidden;
+    padding: 2px 7px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+#filter-title {
+    /* vertical align center text */
+    height: 21px;
+    line-height: 21px;
+    padding-right: 30px;
+}
+
+#filter-dropdown-toggle:hover .dropdown-arrow {
+    background-image: url("down-arrow.svg");
+}
+
+#filter-dropdown.dropdown-menu:focus {
+    outline: none;
+}
+
+#filter-dropdown.dropdown-menu {
+    position: absolute;
+    
+    /* offset for better alignment with the button */
+    margin-top: -1px;
+    margin-left: 1px;
+    
+    display: block;
+    max-width: none;
+    z-index: 100;
+}
+
+#filter-dropdown.dropdown-menu .divider {
+    margin: 5px 1px;
+}
+
+.recent-filter-link, .recent-filter-name, .recent-filter-patterns {
+    white-space: nowrap;
+}
+
+#filter-dropdown.dropdown-menu .recent-filter-link,
+#filter-dropdown.dropdown-menu #new-filter-link,
+#filter-dropdown.dropdown-menu #remove-filter-link {
+	display: block;
+    width: 85%;
+    box-sizing: padding-box; 
+	padding: 5px 50px 5px 26px;
+}
+
+.recent-filter-name, #new-filter-link, #remove-filter-link {
+    color: #454545;
+}
+
+.recent-filter-patterns {
+    color: #aaa;
+}
+
+#filter-dropdown.dropdown-menu a.selected {
+    background: #E0F0FA;
+}
+
+#filter-dropdown.dropdown-menu a:not(.selected):hover {
+     background: none;
 }
 
 // File exclusion filter editor dialog
+input.exclusions-name {
+    display: block;
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box; // needed for width: 100% since it has padding
+    margin-top: 12px;
+    margin-bottom: 0;
+    .code-font();
+}
 textarea.exclusions-editor {
     display: block;
     width: 100%;
-    height: 160px;
+    height: 120px;
     box-sizing: border-box; // needed for width: 100% since it has padding
     margin-top: 12px;
     margin-bottom: 0;

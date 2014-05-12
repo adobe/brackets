@@ -173,11 +173,13 @@ define({
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
     
     // File exclusion filters
-    "NO_FILE_FILTER"                    : "Exclude files\u2026",
+    "NEW_FILE_FILTER"                   : "New Exclusion Set\u2026",
+    "CLEAR_FILE_FILTER"                 : "Don't Exclude Files",
+    "NO_FILE_FILTER"                    : "No Files Excluded",
+    "EXCLUDE_FILE_FILTER"               : "Exclude {0}",
     "EDIT_FILE_FILTER"                  : "Edit\u2026",
-    "FILE_FILTER_DIALOG"                : "Edit Filter",
+    "FILE_FILTER_DIALOG"                : "Edit Exclusion Set",
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
-    "FILE_FILTER_LIST_PREFIX"           : "except",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "and {0} more",
 
     "FILTER_COUNTING_FILES"             : "Counting files\u2026",
