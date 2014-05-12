@@ -36,6 +36,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
     "FILE_EXISTS_ERR"                   : "Il file è già presente.",
     "FILE"                              : "file",
     "DIRECTORY"                         : "cartella",
@@ -45,7 +46,7 @@ define({
     "OPEN_DIALOG_ERROR"                 : "Errore durante il caricamento della finestra di dialogo per l’apertura del file. (errore {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Errore durante il tentativo di caricare la cartella <span class='dialog-filename'>{0}</span>. (errore {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Errore durante la lettura del contenuto della cartella <span class='dialog-filename'>{0}</span>. (errore {1})",
-    
+
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "Errore durante l’apertura del file",
     "ERROR_OPENING_FILE"                : "Errore durante il tentativo di apertura del file <span class='dialog-filename'>{0}</span>. {1}",
@@ -155,6 +156,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "nel progetto",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filtra esclude tutti i file {0}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "file",
     "FIND_IN_FILES_MATCH"               : "corrispondenza",
@@ -164,7 +166,18 @@ define({
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Si è verificato un errore nel recuperare le informazioni aggiornate",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Si è verificato un errore nel recuperare le informazioni aggiornate dal server. Assicurati di essere connesso a internet e riprova.",
-
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES" : "CSS Quick Edit: posiziona il cursore sul nome di una classe singola.",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"  : "CSS Quick Edit: attributo classe incompleto",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"     : "CSS Quick Edit: attributo id incompleto",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della funziona",
+    "EDIT_FILE_FILTER"  : "Modifica\u2026",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
+    "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
+ 
     /**
      * ProjectManager
      */
@@ -253,6 +266,7 @@ define({
     "CMD_FIND"                          : "Cerca",
     "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
     "CMD_FIND_IN_FILES"                 : "Cerca nei file",
+    "CMD_FIND_IN_SELECTED"              : "Cerca nel file/cartella selezionata",
     "CMD_FIND_IN_SUBTREE"               : "Cerca in\u2026",
     "CMD_FIND_NEXT"                     : "Cerca il successivo",
     "CMD_FIND_PREVIOUS"                 : "Cerca il precedente",
@@ -263,6 +277,8 @@ define({
     "CMD_DELETE_LINES"                  : "Elimina linea",
     "CMD_COMMENT"                       : "Commenta/De-commenta linee",
     "CMD_BLOCK_COMMENT"                 : "Commenta/De-commenta blocco",
+    "CMD_ADD_NEXT_MATCH"                : "Aggiungi la prossima correspondenza alla selezione",
+    "CMD_SKIP_CURRENT_MATCH"            : "Salta e aggiungi prossima correspondenza",
     "CMD_LINE_UP"                       : "Sposta la riga in alto",
     "CMD_LINE_DOWN"                     : "Sposta la riga in basso",
     "CMD_OPEN_LINE_ABOVE"               : "Apri linea sopra",
@@ -290,6 +306,7 @@ define({
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands
+    "FIND_MENU"                         : "Trova",
     "NAVIGATE_MENU"                     : "Naviga",
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
@@ -315,12 +332,18 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
+    "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
+    "CMD_SHOW_IN_FINDER"                : "Mostra nel finder",
+
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "Build sperimentale",
     "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
+    "CMD_SUGGEST"                       : "Suggerisci una feature",
+    "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
+    "CMD_GET_INVOLVED"                  : "Far parte",
     "KEEP_CHANGES_IN_EDITOR"            : "Conserva le modifiche nell’editor",
     "CLOSE_DONT_SAVE"                   : "Chiudi (non salvare)",
     "RELAUNCH_CHROME"                   : "Riavvia Google Chrome",
@@ -451,6 +474,9 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Abilita Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Registra i Log Node State nella Console",
     "CMD_RESTART_NODE"                          : "Riavvia Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
+    "ERRORS"                                    : "Errori",
+
     
     "LANGUAGE_TITLE"                            : "Cambia la lingua",
     "LANGUAGE_MESSAGE"                          : "Lingua:",
@@ -491,4 +517,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 9b6c0bdafc63db035ffba98c008700e8cef1f19b */
+/* Last translation of: e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
+
