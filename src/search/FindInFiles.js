@@ -80,59 +80,9 @@ define(function (require, exports, module) {
     /** @type {FindInFilesResults} The find in files results. Initialized in htmlReady() */
     var findInFilesResults;
     
-    /** @type {RegExp} The current search query regular expression */
-    var currentQueryExpr = null;
-    
-    /** @type {?FileSystemEntry} Root of subtree to search in, or single file to search in, or null to search entire project */
-    var currentScope = null;
-    
-    /** @type {string} Compiled filter from FileFilters */
-    var currentFilter = null;
-    
     /** @type {FindBar} Find bar containing the search UI. */
     var findBar = null;
     
-    /**
-     * @private
-     * Returns a regular expression from the given query and shows an error in the modal-bar if it was invalid
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo  The query info from the find bar
-     * @return {RegExp}
-     */
-    function _getQueryRegExp(queryInfo) {
-        if (findBar) {
-            findBar.showError(null);
-        }
-        
-        // TODO: only apparent difference between this one and the one in FindReplace is that this one returns
-        // null instead of "" for a bad query, and this always returns a regexp even for simple strings. Reconcile.
-        if (!queryInfo || !queryInfo.query) {
-            return null;
-        }
-
-        // For now, treat all matches as multiline (i.e. ^/$ match on every line, not the whole
-        // document). This is consistent with how single-file find works. Eventually we should add
-        // an option for this.
-        var flags = "gm";
-        if (!queryInfo.isCaseSensitive) {
-            flags += "i";
-        }
-        
-        // Is it a (non-blank) regex?
-        if (queryInfo.isRegexp) {
-            try {
-                return new RegExp(queryInfo.query, flags);
-            } catch (e) {
-                if (findBar) {
-                    findBar.showError(e.message);
-                }
-                return null;
-            }
-        } else {
-            // Query is a plain string. Turn it into a regexp
-            return new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
-        }
-    }
-        
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
      * should be in the search set, use _inSearchScope() instead - a supserset of this.
@@ -164,20 +114,20 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Finds all candidate files to search in currentScope's subtree that are not binary content. Does NOT apply
-     * currentFilter yet.
+     * Finds all candidate files to search in the given scope's subtree that are not binary content. Does NOT apply
+     * the current filter yet.
      */
-    function getCandidateFiles() {
+    function getCandidateFiles(scope) {
         function filter(file) {
-            return _subtreeFilter(file, currentScope) && _isReadableText(file.fullPath);
+            return _subtreeFilter(file, scope) && _isReadableText(file.fullPath);
         }
         
         // If the scope is a single file, just check if the file passes the filter directly rather than
         // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
         // in-memory file might be an untitled document or external file that doesn't show up in
         // getAllFiles().
-        if (currentScope && currentScope.isFile) {
-            return new $.Deferred().resolve(filter(currentScope) ? [currentScope] : []).promise();
+        if (scope && scope.isFile) {
+            return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
         } else {
             return ProjectManager.getAllFiles(filter, true);
         }
@@ -193,8 +143,8 @@ define(function (require, exports, module) {
      */
     function _inSearchScope(file) {
         // Replicate the checks getCandidateFiles() does
-        if (currentScope) {
-            if (!_subtreeFilter(file, currentScope)) {
+        if (searchModel && searchModel.scope) {
+            if (!_subtreeFilter(file, searchModel.scope)) {
                 return false;
             }
         } else {
@@ -215,7 +165,7 @@ define(function (require, exports, module) {
         }
         
         // Replicate the filtering filterFileList() does
-        return FileFilters.filterPath(currentFilter, file.fullPath);
+        return FileFilters.filterPath(searchModel.filter, file.fullPath);
     }
 
     
@@ -238,7 +188,7 @@ define(function (require, exports, module) {
             .done(function (text, timestamp) {
                 // Note that we don't fire a model change here, since this is always called by some outer batch
                 // operation that will fire it once it's done.
-                var foundMatches = findInFilesResults._addSearchMatches(file.fullPath, text, currentQueryExpr, timestamp);
+                var foundMatches = findInFilesResults._addSearchMatches(file.fullPath, text, searchModel.queryExpr, timestamp);
                 result.resolve(foundMatches);
             })
             .fail(function () {
@@ -252,28 +202,26 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Executes the Find in Files search inside the 'currentScope'
+     * Executes the Find in Files search inside the current scope.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object, as returned by FindBar.getQueryInfo()
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      * @param {?string} filter A "compiled" filter as returned by FileFilters.compile(), or null for no filter
-     * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
+     * @return {?$.Promise} A promise that's resolved with the search results or rejected when the find competes. Will be null if the query
+     *      is invalid.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
-        searchModel.queryInfo = queryInfo;
-        searchModel.scope = currentScope;
-        
-        currentQueryExpr = _getQueryRegExp(queryInfo);
-        currentFilter    = filter;
-        
-        if (!currentQueryExpr) {
+        searchModel.filter = filter;
+
+        var queryResult = searchModel.setQueryInfo(queryInfo);
+        if (!queryResult.valid) {
             StatusBar.hideBusyIndicator();
-            if (findBar) {
+            if (findBar && !queryResult.empty) {
                 findBar.close();
             }
-            return;
+            return null;
         }
         
-        var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
+        var scopeName = searchModel.scope ? searchModel.scope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query),
             deferred = new $.Deferred();
         
@@ -307,7 +255,7 @@ define(function (require, exports, module) {
                         findBar.enable(true);
                         findBar.focusQuery();
                         if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
-                            findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(currentScope)), true);
+                            findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(searchModel.scope)), true);
                         } else {
                             showMessage = true;
                         }
@@ -340,8 +288,7 @@ define(function (require, exports, module) {
      */
     function _resetSearch(scope) {
         searchModel.clear();
-        currentQueryExpr   = null;
-        currentScope       = scope;
+        searchModel.scope = scope;
         findInFilesResults.initializeResults();
     }
     
@@ -360,7 +307,7 @@ define(function (require, exports, module) {
             searchModel.isReplace = true;
             searchModel.replaceText = replaceText;
         }
-        var candidateFilesPromise = getCandidateFiles();
+        var candidateFilesPromise = getCandidateFiles(scope);
         return _doSearch(queryInfo, candidateFilesPromise, filter);
     }
     
@@ -491,20 +438,27 @@ define(function (require, exports, module) {
             return !findBar.isEnabled() || $(".modal.instance .exclusions-editor").length > 0;
         };
         
-        var candidateFilesPromise = getCandidateFiles(),  // used for eventual search, and in exclusions editor UI
+        var candidateFilesPromise = getCandidateFiles(scope),  // used for eventual search, and in exclusions editor UI
             filterPicker;
         
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
             // to any RegEx syntax errors immediately.
-            var queryInfo = findBar && findBar.getQueryInfo(),
-                query = _getQueryRegExp(queryInfo);
-            
-            // Indicate that there's an error if the query isn't blank and it's an invalid regexp.
-            findBar.showNoResults(queryInfo.query && query === null, false);
-            
-            // Disable the replace button if the query is blank or invalid.
-            findBar.enableReplace(query !== null);
+            if (findBar) {
+                var queryInfo = findBar.getQueryInfo(),
+                    queryResult = searchModel.setQueryInfo(queryInfo);
+
+                // Enable the replace button appropriately.
+                findBar.enableReplace(queryResult.valid);
+                
+                if (queryResult.valid || queryResult.empty) {
+                    findBar.showNoResults(false);
+                    findBar.showError(null);
+                } else {
+                    findBar.showNoResults(true, false);
+                    findBar.showError(queryResult.error);
+                }
+            }
         }
         
         function startSearch() {
@@ -751,7 +705,7 @@ define(function (require, exports, module) {
             // There is no from or to positions, so the entire file changed, we must search all over again
             if (!change.from || !change.to) {
                 // TODO: add unit test exercising timestamp logic in this case
-                self._addSearchMatches(fullPath, doc.getText(), currentQueryExpr, doc.diskTimestamp);
+                self._addSearchMatches(fullPath, doc.getText(), searchModel.queryExpr, doc.diskTimestamp);
                 resultsChanged = true;
 
             } else {
@@ -789,7 +743,7 @@ define(function (require, exports, module) {
                 }
 
                 // Searches only over the lines that changed
-                matches = self._getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+                matches = self._getSearchMatches(lines.join("\r\n"), searchModel.queryExpr);
                 if (matches && matches.length) {
                     // Updates the line numbers, since we only searched part of the file
                     matches.forEach(function (value, key) {
@@ -853,7 +807,7 @@ define(function (require, exports, module) {
                 // (We do this check here so we know whether the change was actually relevant to the search results.)
                 if (this._model.isReplace) {
                     this._model.clear();
-                } else {        
+                } else {
                     this._model.fireChanged();
                 }
             }
@@ -958,8 +912,8 @@ define(function (require, exports, module) {
             if (resultsChanged) {
                 // For now, if this is a replace, just clear the results and abort the replace.
                 // (We do this check here so we know whether the change was actually relevant to the search results.)
-                if (this._model.isReplace) {
-                    this._model.clear();
+                if (self._model.isReplace) {
+                    self._model.clear();
                 } else {
                     self._model.fireChanged();
                 }

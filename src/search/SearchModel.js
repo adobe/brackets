@@ -26,8 +26,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _         = require("thirdparty/lodash"),
-        FileUtils = require("file/FileUtils");
+    var _           = require("thirdparty/lodash"),
+        FileUtils   = require("file/FileUtils"),
+        StringUtils = require("utils/StringUtils");
     
     /**
      * @constructor
@@ -52,6 +53,12 @@ define(function (require, exports, module) {
      * @type {{query: string, caseSensitive: boolean, isRegexp: boolean}}
      */
     SearchModel.prototype.queryInfo = null;
+    
+    /**
+     * The compiled query, expressed as a regexp.
+     * @type {RegExp}
+     */
+    SearchModel.prototype.queryExpr = null;
 
     /**
      * Whether this is a find/replace query.
@@ -70,6 +77,12 @@ define(function (require, exports, module) {
      * @type {string}
      */
     SearchModel.prototype.scope = null;
+    
+    /**
+     * A file filter (as returned from FileFilters) to apply within the main scope.
+     * @type {string}
+     */
+    SearchModel.prototype.filter = null;
 
     /**
      * Whether or not we hit the maximum number of results for the type of search we did.
@@ -83,11 +96,53 @@ define(function (require, exports, module) {
     SearchModel.prototype.clear = function () {
         this.results = {};
         this.queryInfo = null;
+        this.queryExpr = null;
         this.isReplace = false;
         this.replaceText = null;
         this.scope = null;
         this.foundMaximum = false;
         $(this).triggerHandler("clear");
+    };
+    
+    /**
+     * Sets the given query info and stores a compiled RegExp query in this.queryExpr. Returns info on whether the
+     * query was valid or not. If the query is invalid, then this.queryExpr will be null.
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+     * @return {{valid: boolean, empty: boolean, error: string}}
+     *      valid - set to true if query is a nonempty string or a valid regexp.
+     *      empty - set to true if query was empty.
+     *      error - set to an error string if valid is false and query is nonempty.
+     */
+    SearchModel.prototype.setQueryInfo = function (queryInfo) {
+        this.queryInfo = queryInfo;
+        this.queryExpr = null;
+        
+        // TODO: only apparent difference between this one and the one in FindReplace is that this one returns
+        // null instead of "" for a bad query, and this always returns a regexp even for simple strings. Reconcile.
+        if (!queryInfo || !queryInfo.query) {
+            return {empty: true};
+        }
+
+        // For now, treat all matches as multiline (i.e. ^/$ match on every line, not the whole
+        // document). This is consistent with how single-file find works. Eventually we should add
+        // an option for this.
+        var flags = "gm";
+        if (!queryInfo.isCaseSensitive) {
+            flags += "i";
+        }
+        
+        // Is it a (non-blank) regex?
+        if (queryInfo.isRegexp) {
+            try {
+                this.queryExpr = new RegExp(queryInfo.query, flags);
+            } catch (e) {
+                return {valid: false, error: e.message};
+            }
+        } else {
+            // Query is a plain string. Turn it into a regexp
+            this.queryExpr = new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
+        }
+        return {valid: true};
     };
 
     /**
