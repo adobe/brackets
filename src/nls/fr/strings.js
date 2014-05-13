@@ -37,6 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
+	"UNSUPPORTED_ENCODING_ERR": "Le fichier n’est pas codé au format UTF-8.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
@@ -179,7 +180,6 @@ define({
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
 	"FILE_FILTER_LIST_PREFIX": "sauf",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
-
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
 	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
@@ -504,7 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
-	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "[7522334] !é=Show Errors in Status Bar=!",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
