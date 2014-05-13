@@ -289,16 +289,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Dividir selección en líneas",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Agregar cursor a la siguiente línea",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Agregar cursor a la línea anterior",
-    "CMD_FIND"                            : "Buscar",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Buscar\u2026",
-    "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
-    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
-    "CMD_FIND_NEXT"                       : "Buscar siguiente",
-    "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
-    "CMD_FIND_ALL_AND_SELECT"             : "Buscar todo y seleccionar",
-    "CMD_ADD_NEXT_MATCH"                  : "Agregar la siguiente coincidencia a la selección",
-    "CMD_SKIP_CURRENT_MATCH"              : "Omitir y agregar la siguiente coincidencia",
-    "CMD_REPLACE"                         : "Reemplazar",
     "CMD_INDENT"                          : "Aumentar sangría",
     "CMD_UNINDENT"                        : "Disminuir sangría",
     "CMD_DUPLICATE"                       : "Duplicar",
@@ -311,6 +301,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
     "CMD_SHOW_CODE_HINTS"                 : "Mostrar sugerencias de código",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Buscar",
+    "CMD_FIND"                            : "Buscar",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Buscar\u2026",
+    "CMD_FIND_NEXT"                       : "Buscar siguiente",
+    "CMD_FIND_PREVIOUS"                   : "Buscar anterior",
+    "CMD_FIND_ALL_AND_SELECT"             : "Buscar todo y seleccionar",
+    "CMD_ADD_NEXT_MATCH"                  : "Agregar la siguiente coincidencia a la selección",
+    "CMD_SKIP_CURRENT_MATCH"              : "Omitir y agregar la siguiente coincidencia",
+    "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
+    "CMD_FIND_IN_SELECTED"                : "Buscar en el archivo/directorio seleccionado",
+    "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
+    "CMD_REPLACE"                         : "Reemplazar",
     
     // View menu commands
     "VIEW_MENU"                           : "Ver",
@@ -489,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Desarrollo",
+    "ERRORS"                                    : "Errores",
     "CMD_SHOW_DEV_TOOLS"                        : "Mostrar herramientas para desarrolladores",
     "CMD_REFRESH_WINDOW"                        : "Recargar con extensiones",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Recargar sin extensiones",
@@ -499,6 +504,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Habilitar depuración de Node",
     "CMD_LOG_NODE_STATE"                        : "Mostrar estado de Node en Consola",
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostrar errores en la barra de estado",
     
     "LANGUAGE_TITLE"                            : "Cambiar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
@@ -540,4 +546,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */
+/* Last translated for e47dc5b16ec4bfabacfdb5c62f67a94feca85d50 */
