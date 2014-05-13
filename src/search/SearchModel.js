@@ -36,7 +36,6 @@ define(function (require, exports, module) {
      * Dispatches these events:
      *      "change" - whenever the results have been updated. Note that it's up to people who
      *      edit the model to call fireChange() when necessary - it doesn't automatically fire.
-     *      "clear" - when the model is cleared to an empty state.
      */
     function SearchModel() {
         this.clear();
@@ -101,7 +100,6 @@ define(function (require, exports, module) {
         this.replaceText = null;
         this.scope = null;
         this.foundMaximum = false;
-        $(this).triggerHandler("clear");
     };
     
     /**

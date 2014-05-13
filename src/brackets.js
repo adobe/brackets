@@ -171,6 +171,7 @@ define(function (require, exports, module) {
             FileSystem              : FileSystem,
             FileViewController      : FileViewController,
             FindInFiles             : require("search/FindInFiles"),
+            FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),

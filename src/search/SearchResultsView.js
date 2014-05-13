@@ -53,6 +53,7 @@ define(function (require, exports, module) {
      * Handles the search results panel.
      * Dispatches the following events:
      *      replaceAll - when the "Replace" button is clicked.
+     *      close - when the panel is closed.
      *
      * @param {SearchModel} model The model that this view is showing.
      * @param {string} panelID The CSS ID to use for the panel.
@@ -60,9 +61,6 @@ define(function (require, exports, module) {
      */
     function SearchResultsView(model, panelID, panelName) {
         this._model = model;
-        $(model).on("clear", this._handleModelClear.bind(this));
-        $(model).on("change", this._handleModelChange.bind(this));
-        
         this.createPanel(panelID, panelName);
     }
     
@@ -118,20 +116,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Handles when the model is cleared out.
-     */
-    SearchResultsView.prototype._handleModelClear = function () {
-        if (this._$table) {
-            this._$table.empty();
-        }
-        this.hideResults();
-    };
-    
-    /**
-     * @private
      * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
      */
     SearchResultsView.prototype._handleModelChange = function (quickChange) {
+        // If this is a replace, to avoid complications with updating, just close ourselves if we hear about
+        // a results model change after we've already shown the results initially.
+        // TODO: notify user, re-do search in file
+        if (this._model.isReplace) {
+            this.close();
+            return;
+        }
+        
         var self = this;
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
@@ -155,7 +150,7 @@ define(function (require, exports, module) {
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
             .on("click.searchResults", ".close", function () {
-                self.hideResults();
+                self.close();
             })
             // The link to go the first page
             .on("click.searchResults", ".first-page:not(.disabled)", function () {
@@ -290,10 +285,13 @@ define(function (require, exports, module) {
     /**
      * Hides the Search Results Panel and unregisters listeners
      */
-    SearchResultsView.prototype.hideResults = function () {
+    SearchResultsView.prototype.close = function () {
         if (this._panel && this._panel.isVisible()) {
+            this._$table.empty();
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
+            $(this._model).off("change.SearchResultsView");
+            $(this).triggerHandler("close");
         }
     };
     
@@ -461,6 +459,9 @@ define(function (require, exports, module) {
         this._$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
         
         this._addPanelListeners();
+        
+        // Start listening for change events on the model.
+        $(this._model).on("change.SearchResultsView", this._handleModelChange.bind(this));
     };
     
     /**

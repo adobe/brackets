@@ -1733,6 +1733,7 @@ define(function (require, exports, module) {
             FileSystem,
             File,
             FindInFiles,
+            FindInFilesUI,
             ProjectManager,
             testWindow,
             $;
@@ -1751,6 +1752,7 @@ define(function (require, exports, module) {
                 FileSystem      = testWindow.brackets.test.FileSystem;
                 File            = testWindow.brackets.test.File;
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
+                FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
                 ProjectManager  = testWindow.brackets.test.ProjectManager;
                 $               = testWindow.$;
             });
@@ -1763,6 +1765,7 @@ define(function (require, exports, module) {
             FileSystem      = null;
             File            = null;
             FindInFiles     = null;
+            FindInFilesUI   = null;
             ProjectManager  = null;
             $               = null;
             testWindow      = null;
@@ -1786,7 +1789,7 @@ define(function (require, exports, module) {
             waitForSearchBarClose();
             runs(function () {
                 FindInFiles._searchDone = false;
-                FindInFiles._doFindInFiles(scope, showReplace);
+                FindInFilesUI._showFindBar(scope, showReplace);
             });
             waitsFor(function () {
                 return $(".modal-bar").length === 1;
@@ -1804,7 +1807,7 @@ define(function (require, exports, module) {
         
         function closeSearchBar() {
             runs(function () {
-                FindInFiles._closeFindBar();
+                FindInFilesUI._closeFindBar();
             });
             waitForSearchBarClose();
         }
@@ -1830,18 +1833,18 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchModel.results[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles.searchModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.html"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(7);
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.js"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(4);
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(3);
                 });
@@ -1911,16 +1914,16 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchModel.results[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles.searchModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.html"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.js"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(3);
                 });
@@ -1932,17 +1935,17 @@ define(function (require, exports, module) {
                 executeSearch("foo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchModel.results[testPath + "/bar.txt"];
+                    var fileResults = FindInFiles.searchModel.results[testPath + "/bar.txt"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.html"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/foo.html"];
                     expect(fileResults).toBeFalsy();
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/foo.js"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/foo.js"];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(4);
 
-                    fileResults = FindInFiles._searchModel.results[testPath + "/css/foo.css"];
+                    fileResults = FindInFiles.searchModel.results[testPath + "/css/foo.css"];
                     expect(fileResults).toBeFalsy();
                 });
             });
@@ -1955,7 +1958,7 @@ define(function (require, exports, module) {
                 executeSearch("callFoo");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchModel.results[filePath];
+                    var fileResults = FindInFiles.searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect(fileResults.matches.length).toBe(1);
 
@@ -1979,7 +1982,7 @@ define(function (require, exports, module) {
                 }, "search bar close");
 
                 runs(function () {
-                    var fileResults = FindInFiles._searchModel.results[filePath];
+                    var fileResults = FindInFiles.searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect($("#find-in-files-results").is(":visible")).toBeTruthy();
                     expect($(".modal-bar").length).toBe(0);
@@ -2000,9 +2003,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     var result, resultFound = false;
 
-                    // verify _searchModel.results Object is empty
-                    for (result in FindInFiles._searchModel.results) {
-                        if (FindInFiles._searchModel.results.hasOwnProperty(result)) {
+                    // verify searchModel.results Object is empty
+                    for (result in FindInFiles.searchModel.results) {
+                        if (FindInFiles.searchModel.results.hasOwnProperty(result)) {
                             resultFound = true;
                         }
                     }
@@ -2382,7 +2385,7 @@ define(function (require, exports, module) {
             
             function doSearch(options) {
                 runs(function () {
-                    FindInFiles.doSearchInScope(options.queryInfo, null, null).done(function (results) {
+                    FindInFiles.doSearchInScope(options.queryInfo, null, null, options.replaceText).done(function (results) {
                         searchResults = results;
                     });
                 });

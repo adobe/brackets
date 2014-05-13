@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FindBar             = require("search/FindBar").FindBar,
         FindUtils           = require("search/FindUtils"),
-        FindInFiles         = require("search/FindInFiles"),
+        FindInFilesUI       = require("search/FindInFilesUI"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         PanelManager        = require("view/PanelManager"),
         Resizer             = require("utils/Resizer"),
@@ -626,7 +626,7 @@ define(function (require, exports, module) {
         if (all) {
             findBar.close();
             // Delegate to Replace in Files.
-            FindInFiles.doSearchInScope(state.queryInfo, editor.document.file, null, replaceText);
+            FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
             cm.replaceSelection(typeof state.query === "string" ? replaceText : FindUtils.parseDollars(replaceText, state.lastMatch));
 
