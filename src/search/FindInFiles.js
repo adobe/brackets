@@ -409,7 +409,8 @@ define(function (require, exports, module) {
                 } else {
                     return searchModel.results;
                 }
-            }, function () {
+            }, function (err) {
+                console.log("find in files failed: ", err);
                 PerfUtils.finalizeMeasurement(perfTimer);
             });
     }
