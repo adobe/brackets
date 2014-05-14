@@ -112,9 +112,13 @@ define(function (require, exports, module) {
     DropdownButton.prototype._renderList = function () {
         var html = "";
         this.items.forEach(function (item, i) {
-            html += "<li><a class='stylesheet-link' data-index='" + i + "'>";
-            html += this.itemRenderer(item, i);
-            html += "</a></li>";
+            if (item === "---") {
+                html += "<li class='divider' data-index='" + i + "'></li>";
+            } else {
+                html += "<li><a class='stylesheet-link' data-index='" + i + "'>";
+                html += this.itemRenderer(item, i);
+                html += "</a></li>";
+            }
         }.bind(this));
         return html;
     };
@@ -178,6 +182,8 @@ define(function (require, exports, module) {
         $dropdown.focus();
         
         this.$dropdown = $dropdown;
+
+        $(this).triggerHandler("openDropdown", [$dropdown]);
     };
     
     /**

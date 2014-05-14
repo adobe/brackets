@@ -36,16 +36,35 @@ define(function (require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         Dialogs              = require("widgets/Dialogs"),
         DropdownButton       = require("widgets/DropdownButton").DropdownButton,
-        Menus                = require("command/Menus"),
-        PopUpManager         = require("widgets/PopUpManager"),
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
-        PreferencesManager   = require("preferences/PreferencesManager"),
-        ProjectsMenuTemplate = require("text!htmlContent/filters-menu.html");
+        PreferencesManager   = require("preferences/PreferencesManager");
     
-    var _context      = null,
-        _$pickerLabel = null;
+    var FIRST_FILTER_INDEX = 3;
+    var _context = null,
+        _picker  = null;
     
+    
+    /**
+     * Populate the list of dropdown menu with two filter commands and
+     * the list of saved filter sets.
+     */
+    function _doPopulate() {
+        var dropdownItems = [Strings.NEW_FILE_FILTER, Strings.CLEAR_FILE_FILTER],
+            filterSets = PreferencesManager.get("fileFilters") || [];
+
+        if (filterSets.length) {
+            dropdownItems.push("---");
+            dropdownItems = dropdownItems.concat(filterSets);
+        }
+        _picker.items = dropdownItems;
+    }
+    
+    /**
+     * Find the index of a filter set in the list of saved filter sets.
+     * @param {Array.<{name: string, patterns: Array.<string>}>} filterSets
+     * @param {{name: string, patterns: Array.<string>}} filter
+     */
     function _getFilterIndex(filterSets, filter) {
         var index = -1,
             found = false;
@@ -67,7 +86,7 @@ define(function (require, exports, module) {
     /**
      * A search filter is an array of one or more glob strings. The filter must be 'compiled' via compile()
      * before passing to filterPath()/filterFileList().
-     * @return {?Array.<string>}
+     * @return {?{name: string, patterns: Array.<string>}}
      */
     function getLastFilter() {
         var filterSets        = PreferencesManager.get("fileFilters") || [],
@@ -93,7 +112,11 @@ define(function (require, exports, module) {
         return activeFilter;
     }
     
-    function _itemRenderer(filter) {
+    /**
+     * Get the condensed form of the filter set by joining the first two in the set with
+     * a comma separator and appending a short message with the number of filters being clipped.
+     */
+    function _getCondensedForm(filter) {
         // Format filter in condensed form
         if (filter.length > 2) {
             return filter.slice(0, 2).join(", ") + " " +
@@ -103,22 +126,26 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Update the picker button label with the name/patterns of the selected filter or 
+     * No Files Excluded if no filter is selected.
+     */
     function _updatePicker() {
         var filter = getLastFilter();
         if (filter && filter.patterns.length) {
-            var label = filter.name || _itemRenderer(filter.patterns);
-            _$pickerLabel.text(StringUtils.format(Strings.EXCLUDE_FILE_FILTER, label));
+            var label = filter.name || _getCondensedForm(filter.patterns);
+            _picker.$button.text(StringUtils.format(Strings.EXCLUDE_FILE_FILTER, label));
         } else {
-            _$pickerLabel.text(Strings.NO_FILE_FILTER);
+            _picker.$button.text(Strings.NO_FILE_FILTER);
         }
     }
     
     /**
-     * Sets the value of getLastFilter(). Automatically set when editFilter() is completed.
-     * If no filter is passed in, then clear the last active filter index.
+     * Sets and save the index of the active filter. Automatically set when editFilter() is completed.
+     * If no filter is passed in, then clear the last active filter index by setting it to -1.
      *
      * @param {{name: string, patterns: Array.<string>}=} filter
-     * @param {number=} index The index of the filter set in the MRU list or -1 if it is a new one
+     * @param {number=} index The index of the filter set in the list of saved filter sets or -1 if it is a new one
      */
     function setLastFilter(filter, index) {
         var filterSets = PreferencesManager.get("fileFilters") || [];
@@ -246,9 +273,11 @@ define(function (require, exports, module) {
     /**
      * Opens a dialog box to edit the given filter. When editing is finished, the value of getLastFilter() changes to
      * reflect the edits. If the dialog was canceled, the preference is left unchanged.
-     * @param {!Array.<string>} filter
+     * @param {!{name: string, patterns: Array.<string>}} filter
      * @param {?{label:string, promise:$.Promise}} context Info on which files the filter will be applied to. If specified,
      *          editing UI will indicate how many files are excluded by the filter. Label should be of the form "in ..."
+     * @param {number} index The index of the filter set to be edited or created. The value is -1 if it is for a new one 
+     *          to be created, 
      * @return {!$.Promise} Dialog box promise
      */
     function editFilter(filter, context, index) {
@@ -280,6 +309,7 @@ define(function (require, exports, module) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
                 setLastFilter({ name: $nameField.val(), patterns: getValue() }, index);
+                _doPopulate();
             }
         });
         
@@ -320,218 +350,51 @@ define(function (require, exports, module) {
         return (filter && filter.patterns.length) ? compile(filter.patterns) : "";
     }
     
-    /** @type {$.Element} jQuery elements used for the dropdown menu */
-    var $dropdown,
-        $dropdownItem;
-
     /**
-     * Close the dropdown.
+     * Set up mouse click events for 'Delete' and 'Edit' buttons
+     * when the dropdown is open.
+     * @param {!Event>} event openDropdown event triggered when the dropdown is open
+     * @param {!jQueryObject} $dropdown the jQuery DOM node of the dropdown list
      */
-    function closeDropdown() {
-        // Since we passed "true" for autoRemove to addPopUp(), this will
-        // automatically remove the dropdown from the DOM. Also, PopUpManager
-        // will call cleanupDropdown().
-        if ($dropdown) {
-            PopUpManager.removePopUp($dropdown);
-        }
-    }
-
-    /**
-     * Remove the various event handlers that close the dropdown. This is called by the
-     * PopUpManager when the dropdown is closed.
-     */
-    function cleanupDropdown() {
-        $("html").off("click", closeDropdown);
-        $dropdown = null;
-    }
-
-    /**
-     * Check the list of items to see if any of them are hovered, and if so trigger a mouseenter.
-     * Normally the mouseenter event handles this, but when a previous item is deleted and the next
-     * item moves up to be underneath the mouse, we don't get a mouseenter event for that item.
-     */
-    function checkHovers(pageX, pageY) {
-        $dropdown.children().each(function () {
-            var offset = $(this).offset(),
-                width  = $(this).outerWidth(),
-                height = $(this).outerHeight();
-
-            if (pageX >= offset.left && pageX <= offset.left + width &&
-                    pageY >= offset.top && pageY <= offset.top + height) {
-                $(".recent-filter-link", this).triggerHandler("mouseenter");
-            }
-        });
-    }
-
-    /**
-     * Create the "delete" button that shows up when you hover over a filter set.
-     */
-    function renderDelete() {
-        return $("<div id='recent-filter-delete' class='filter-trash-icon'>&times;</div>")
-            .mouseup(function (e) {
-                // Don't let the click bubble upward.
-                e.stopPropagation();
-
+    function _handleListEvents(event, $dropdown) {
+        $dropdown.find(".filter-trash-icon")
+            .on("click", function (e) {
                 // Remove the filter set from the preferences and 
                 // clear the active filter set index from view state.
                 var filterSets        = PreferencesManager.get("fileFilters") || [],
-                    activeFilter      = getLastFilter(),
-                    activeFilterIndex = _getFilterIndex(filterSets, activeFilter),
-                    filterIndex       = _getFilterIndex(filterSets, $(this).parent().data("filter"));
-                
-                filterSets.splice(filterIndex, 1);
-                PreferencesManager.set("fileFilters", filterSets);
-                
-                if (activeFilterIndex === filterIndex) {
-                    setLastFilter();
-                } else if (activeFilterIndex > filterIndex) {
-                    // Adjust the active filter index after the removal of a filter set before it.
-                    setLastFilter(filterSets[--activeFilterIndex], activeFilterIndex);
-                }
+                    activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
+                    filterIndex       = $(this).parent().data("index") - FIRST_FILTER_INDEX;
 
-                $(this).closest("li").remove();
-                checkHovers(e.pageX, e.pageY);
-            });
-    }
-
-    /**
-     * Create the "edit" button that shows up when you hover over a filter set.
-     */
-    function renderEdit() {
-        return $("<span id='recent-filter-edit' class='filter-edit-icon'></span>")
-            .mouseup(function (e) {
-                var filter     = $(this).parent().data("filter"),
-                    filterSets = PreferencesManager.get("fileFilters") || [];
-                
                 // Don't let the click bubble upward.
                 e.stopPropagation();
-                editFilter(filter, _context, _getFilterIndex(filterSets, filter));
-            });
-    }
 
-    /**
-     * Hide the delete and edit button.
-     */
-    function removeDeleteAndEditButtons() {
-        $("#recent-filter-delete").remove();
-        $("#recent-filter-edit").remove();
-    }
+                filterSets.splice(filterIndex, 1);
+                PreferencesManager.set("fileFilters", filterSets);
 
-    /**
-     * Show the delete and edit buttons over a given target.
-     * @param {!jQueryObject} $target the dropdown menu item for delete and edit buttons
-     */
-    function addDeleteAndEditButtons($target) {
-        removeDeleteAndEditButtons();
-        renderDelete()
-            .css("top", $target.position().top + 6)
-            .prependTo($target);
-        renderEdit()
-            .appendTo($target);
-    }
-
-    /**
-     * Adds the click and mouse enter/leave events to the dropdown
-     */
-    function _handleListEvents() {
-        $dropdown
-            .on("click", "a", function () {
-                var $link      = $(this),
-                    id         = $link.attr("id"),
-                    filter     = $link.data("filter"),
-                    filterSets = PreferencesManager.get("fileFilters") || [];
-
-                if (filter) {
-                    setLastFilter(filter, _getFilterIndex(filterSets, filter));
-                    closeDropdown();
-                } else if (id === "new-filter-link") {
-                    editFilter({ name: "", patterns: [] }, _context, -1);
-                } else if (id === "remove-filter-link") {
+                if (activeFilterIndex === filterIndex) {
+                    // Removing the active filter, so clear the active filter 
+                    // both in the view state and the picker button label.
                     setLastFilter();
                 }
-            })
-            .on("mouseenter", "a", function () {
-                if ($dropdownItem) {
-                    $dropdownItem.removeClass("selected");
-                }
-                $dropdownItem = $(this).addClass("selected");
+                
+                _doPopulate();
+                
+                // Explicitly remove the list item to refresh the dropdown menu
+                $(this).closest("li").remove();
+            });
+        
+        $dropdown.find(".filter-edit-icon")
+            .on("click", function (e) {
+                var filterSets        = PreferencesManager.get("fileFilters") || [],
+                    filterIndex       = $(this).parent().data("index") - FIRST_FILTER_INDEX;
 
-                if ($dropdownItem.hasClass("recent-filter-link")) {
-                    // Note: we can't depend on the event here because this can be triggered
-                    // manually from checkHovers().
-                    addDeleteAndEditButtons($(this));
-                }
-            })
-            .on("mouseleave", "a", function () {
-                var $link = $(this).removeClass("selected");
+                // Don't let the click bubble upward.
+                e.stopPropagation();
 
-                if ($link.get(0) === $dropdownItem.get(0)) {
-                    $dropdownItem = null;
-                }
-                if ($link.hasClass("recent-filter-link")) {
-                    removeDeleteAndEditButtons();
-                }
+                editFilter(filterSets[filterIndex], _context, filterIndex);
             });
     }
-
-    /**
-     * Create the list of filter sets in the dropdown menu.
-     * @return {string} The html content
-     */
-    function renderList() {
-        var templateVars   = {
-                filterList : [],
-                Strings    : Strings
-            },
-            filterSets = PreferencesManager.get("fileFilters") || [];
-
-        filterSets.forEach(function (filter) {
-            var condensedPatterns = _itemRenderer(filter.patterns),
-                menuItem = {
-                    filter: JSON.stringify(filter),
-                    name  : filter.name || condensedPatterns,
-                    rest  : filter.name ? " - " + condensedPatterns : ""
-                };
-            
-            templateVars.filterList.push(menuItem);
-        });
-
-        return Mustache.render(ProjectsMenuTemplate, templateVars);
-    }
-
-    /**
-     * Show or hide the recent projects dropdown.
-     *
-     * @param {{pageX:number, pageY:number}} position - the absolute position where to open the dropdown
-     */
-    function showDropdown(position) {
-        // If the dropdown is already visible, just return (so the root 
-        // click handler on htmlwill close it).
-        if ($dropdown) {
-            return;
-        }
-
-        Menus.closeAll();
-
-        $dropdown = $(renderList())
-            .css({
-                // Use the relatrive coordinate of the toggle button for "left" since 
-                // the dropdown menu is appended to the Find Bar and not to the document.
-                left: $("#filter-dropdown-toggle").position().left + 10,
-                top: position.pageY + 1
-            })
-            .appendTo($("#find-group"));    // Append to Find Bar
-
-//        $dropdown.css("left", $dropdown.position().left - $dropdown.width() + $("#filter-dropdown-toggle").innerWidth());
-        PopUpManager.addPopUp($dropdown, cleanupDropdown, true);
-
-        // TODO: should use capture, otherwise clicking on the menus doesn't close it. More fallout
-        // from the fact that we can't use the Boostrap (1.4) dropdowns.
-        $("html").on("click", closeDropdown);
-
-        _handleListEvents();
-    }
-
+                      
     /**
      * Creates a UI element for selecting a filter, populated with a list of recently used filters, an option to
      * edit the selected filter and another option to create a new filter. The client should call commitDropdown() 
@@ -542,29 +405,55 @@ define(function (require, exports, module) {
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
     function createFilterPicker(context) {
-        var $picker = $("<div id='filter-dropdown-toggle' class='btn'>" +
-                        "<span id='filter-title' class='title'></span>" +
-                        "<span class='filter-dropdown-arrow'></span></div>");
+
+        function itemRenderer(item, index) {
+            if (index < FIRST_FILTER_INDEX) {
+                if (index === FIRST_FILTER_INDEX - 1) {
+                    // Return an empty string for the divider
+                    return "";
+                }
+                // Prefix the two filter commands with 'recent-filter-name' so that
+                // they also get the same padding-left as the actual filters.
+                return "<span class='recent-filter-name'></span>" + _.escape(item);
+            }
             
+            var condensedPatterns = _getCondensedForm(item.patterns),
+                menuItem = "<div class='filter-trash-icon'>&times;</div>" +
+                           "<span class='recent-filter-name'>";
+            
+            menuItem += _.escape(item.name || condensedPatterns);
+            menuItem += "</span><span class='recent-filter-patterns'>";
+            menuItem += (item.name ? _.escape(" - " + condensedPatterns) : "");
+            menuItem += "</span><span class='filter-edit-icon'></span>";
+            
+            return menuItem;
+        }
+
         _context = context;
-        _$pickerLabel = $picker.find("#filter-title");
+        _picker = new DropdownButton("", [], itemRenderer);
+        _doPopulate();
         _updatePicker();
         
-        return $picker;
-    }
-    
-    /**
-     * 
-     */
-    function attachPickerToDropdown() {
-        var cmenuAdapter = {
-            open: showDropdown,
-            close: closeDropdown,
-            isOpen: function () {
-                return !!$dropdown;
+        // Add 'file-filter-picker' to keep some margin space on the left of the button
+        _picker.$button.addClass("file-filter-picker");
+        
+        // Set up mouse click events for 'Delete' and 'Edit' buttons
+        $(_picker).on("openDropdown", _handleListEvents);
+        
+        $(_picker).on("select", function (event, item, itemIndex) {
+            if (itemIndex === 0) {
+                // Create a new filter set
+                editFilter({ name: "", patterns: [] }, _context, -1);
+            } else if (itemIndex === 1) {
+                // Clear the active filter
+                setLastFilter();
+            } else if (itemIndex >= FIRST_FILTER_INDEX && item) {
+                var filterSets = PreferencesManager.get("fileFilters") || [];
+                setLastFilter(item, itemIndex - FIRST_FILTER_INDEX);
             }
-        };
-        Menus.ContextMenu.assignContextMenuToSelector("#filter-dropdown-toggle", cmenuAdapter);
+        });
+        
+        return _picker.$button;
     }
     
     exports.createFilterPicker     = createFilterPicker;
@@ -574,5 +463,4 @@ define(function (require, exports, module) {
     exports.compile                = compile;
     exports.filterPath             = filterPath;
     exports.filterFileList         = filterFileList;
-    exports.attachPickerToDropdown = attachPickerToDropdown;
 });
