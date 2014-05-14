@@ -1126,17 +1126,7 @@ define(function (require, exports, module) {
             
         } else {
             // Multiple unsaved files: show a single bulk prompt listing all files
-            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
-            
-            message += "<ul class='dialog-list'>";
-            unsavedDocs.forEach(function (doc) {
-                var fullPath = doc.file.fullPath;
-                
-                message += "<li><span class='dialog-filename'>";
-                message += StringUtils.breakableUrl(_shortTitleForDocument(doc));
-                message += "</span></li>";
-            });
-            message += "</ul>";
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + StringUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,

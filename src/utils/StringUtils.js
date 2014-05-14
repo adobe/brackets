@@ -197,7 +197,21 @@ define(function (require, exports, module) {
         
         return returnVal;
     }
-        
+    
+    /**
+     * Creates an HTML string for a list of files to be reported on, suitable for use in a dialog.
+     * @param {Array.<string>} Array of filenames or paths to display.
+     */
+    function makeDialogFileList(paths) {
+        var result = "<ul class='dialog-list'>";
+        paths.forEach(function (path) {
+            result += "<li><span class='dialog-filename'>";
+            result += breakableUrl(path);
+            result += "</span></li>";
+        });
+        result += "</ul>";
+        return result;
+    }
 
     // Define public API
     exports.format              = format;
@@ -210,4 +224,5 @@ define(function (require, exports, module) {
     exports.breakableUrl        = breakableUrl;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
+    exports.makeDialogFileList  = makeDialogFileList;
 });

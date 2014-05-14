@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
 /*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, window, jasmine, spyOn */
 
 define(function (require, exports, module) {
@@ -910,7 +910,64 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should not do the replacement in files that have changed on disk since the results list was last updated", function () {
+            it("should do all in-memory replacements synchronously, so user can't accidentally edit document after start of replace process", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                // Open two of the documents we want to replace in memory.
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                });
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "opening document");
+                });
+                
+                // We can't use expectInMemoryFiles(), since this test requires everything to happen fully synchronously
+                // (no file reads) once the replace has started. So we read the files here.
+                var kgFileContents = {};
+                runs(function () {
+                    var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/simple-case-insensitive");
+                    waitsForDone(visitAndProcessFiles(kgPath, function (contents, fullPath) {
+                        // Translate line endings to in-memory document style (always LF)
+                        kgFileContents[fullPath.slice(kgPath.length)] = FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF);
+                    }), "reading known good");
+                });
+                
+                doSearch({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    replaceText:     "bar"
+                });
+                
+                runs(function () {
+                    // Start the replace, but don't wait for it to complete. Since the in-memory replacements should occur
+                    // synchronously, the in-memory documents should have already been changed. This means we don't have to
+                    // worry about detecting changes in documents once the replace starts. (If the user had  changed
+                    // the document after the search but before the replace started, we would have already closed the panel,
+                    // preventing the user from doing a replace.)
+                    var promise = FindInFiles.doReplace(searchResults, "bar");
+                    
+                    // Check the in-memory contents against the known goods.
+                    ["/css/foo.css", "/foo.js"].forEach(function (filename) {
+                        var fullPath = testPath + filename,
+                            doc = DocumentManager.getOpenDocumentForPath(fullPath);
+                        expect(doc).toBeTruthy();
+                        expect(doc.isDirty).toBe(true);
+                        expect(doc.getText()).toEqual(kgFileContents[filename]);
+                    });
+                    
+                    // Finish the replace operation, which should go ahead and do the file on disk.
+                    waitsForDone(promise);
+                });
+                
+                runs(function () {
+                    // Now the file on disk should have been replaced too.
+                    waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "read").then(function (contents) {
+                        expect(FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF)).toEqual(kgFileContents["/foo.html"]);
+                    }), "checking known good");
+                });
+            });
+            
+            it("should return an error and not do the replacement in files that have changed on disk since the search", function () {
                 openTestProjectCopy(defaultSourcePath);
                 doTestWithErrors({
                     queryInfo:       {query: "foo"},
@@ -962,6 +1019,33 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should return an error if a match timestamp doesn't match an in-memory document timestamp", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                });
+                
+                doTestWithErrors({
+                    queryInfo:       {query: "foo"},
+                    numMatches:      14,
+                    replaceText:     "bar",
+                    knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                    test: function () {
+                        runs(function () {
+                            // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
+                            // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                            // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
+                            // file on disk anyway.
+                            searchResults = _.cloneDeep(searchResults);
+                            var oldTimestamp = searchResults[testPath + "/css/foo.css"].timestamp;
+                            searchResults[testPath + "/css/foo.css"].timestamp = new Date(oldTimestamp.getTime() - 5000);
+                        });
+                    },
+                    errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
+                });
+            });
+
             it("should do the replacement in memory for a file open in an Editor in the working set", function () {
                 openTestProjectCopy(defaultSourcePath);
                 
@@ -1106,11 +1190,9 @@ define(function (require, exports, module) {
             // single file search
             // filters
             // subset of matches (unchecked some in files, unchecked all in one file, in memory/on disk)
-            // file changing on disk between search and replace when results are properly auto-updated
-            // file changing in memory between search and replace (when results are/aren't auto-updated?)
-            // file open in memory during search with in-memory changes, but then closed and changes discarded before replace
+            // file open in memory with changes before search - make sure find/replace operates on (dirty) in-memory content
             
-            describe("from Find Bar", function () {
+            describe("UI", function () {
                 function executeReplace(findText, replaceText, fromKeyboard) {
                     runs(function () {
                         FindInFiles._searchDone = false;
@@ -1138,307 +1220,344 @@ define(function (require, exports, module) {
                     closeSearchBar();
                 });
                 
-                it("should only show a Replace All button", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        expect($("#replace-yes").length).toBe(0);
-                        expect($("#replace-all").length).toBe(1);
+                describe("Replace in Files Bar", function () {
+                    it("should only show a Replace All button", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            expect($("#replace-yes").length).toBe(0);
+                            expect($("#replace-all").length).toBe(1);
+                        });
+                    });
+
+                    it("should disable the Replace button if query is empty", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            expect($("#replace-all").is(":disabled")).toBe(true);
+                        });
+                    });
+
+                    it("should enable the Replace button if the query is a non-empty string", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            $("#find-what").val("my query").trigger("input");
+                            expect($("#replace-all").is(":disabled")).toBe(false);
+                        });
+                    });
+
+                    it("should disable the Replace button if query is an invalid regexp", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            $("#find-regexp").click();
+                            $("#find-what").val("[invalid").trigger("input");
+                            expect($("#replace-all").is(":disabled")).toBe(true);
+                        });
+                    });
+
+                    it("should enable the Replace button if query is a valid regexp", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            $("#find-regexp").click();
+                            $("#find-what").val("[valid]").trigger("input");
+                            expect($("#replace-all").is(":disabled")).toBe(false);
+                        });
+                    });
+
+                    it("should set focus to the Replace field when the user hits enter in the Find field", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        // A delay seems to be necessary here, possibly because focus can jump around asynchronously
+                        // when the modal bar first opens.
+                        // TODO: this test is still flaky. Need to figure out why it sometimes fails.
+                        waits(100);
+                        runs(function () {
+                            $("#find-what").focus();
+                            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#find-what").get(0));
+                            expect($("#replace-with").is(":focus")).toBe(true);
+                        });
                     });
                 });
                 
-                it("should disable the Replace button if query is empty", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        expect($("#replace-all").is(":disabled")).toBe(true);
-                    });
-                });
-                
-                it("should enable the Replace button if the query is a non-empty string", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        $("#find-what").val("my query").trigger("input");
-                        expect($("#replace-all").is(":disabled")).toBe(false);
-                    });
-                });
-                
-                it("should disable the Replace button if query is an invalid regexp", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        $("#find-regexp").click();
-                        $("#find-what").val("[invalid").trigger("input");
-                        expect($("#replace-all").is(":disabled")).toBe(true);
-                    });
-                });
-
-                it("should enable the Replace button if query is a valid regexp", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        $("#find-regexp").click();
-                        $("#find-what").val("[valid]").trigger("input");
-                        expect($("#replace-all").is(":disabled")).toBe(false);
-                    });
-                });
-
-                it("should set focus to the Replace field when the user hits enter in the Find field", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    // A delay seems to be necessary here, possibly because focus can jump around asynchronously
-                    // when the modal bar first opens.
-                    // TODO: this test is still flaky. Need to figure out why it sometimes fails.
-                    waits(100);
-                    runs(function () {
-                        $("#find-what").focus();
-                        SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#find-what").get(0));
-                        expect($("#replace-with").is(":focus")).toBe(true);
-                    });
-                });
-                
-                it("should show results from the search with all checkboxes checked", function () {
-                    showSearchResults("foo", "bar");
-                    runs(function () {
-                        expect($("#find-in-files-results").length).toBe(1);
-                        expect($("#find-in-files-results .check-one").length).toBe(14);
-                        expect($("#find-in-files-results .check-one:checked").length).toBe(14);
-                    });
-                });
-                
-                it("should do a simple search/replace all from find bar, opening results in memory, when user clicks on Replace... button", function () {
-                    showSearchResults("foo", "bar");
-                    // Click the "Replace" button in the search panel - this should kick off the replace
-                    runs(function () {
-                        $(".replace-checked").click();
+                describe("Full workflow", function () {
+                    it("should show results from the search with all checkboxes checked", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            expect($("#find-in-files-results").length).toBe(1);
+                            expect($("#find-in-files-results .check-one").length).toBe(14);
+                            expect($("#find-in-files-results .check-one:checked").length).toBe(14);
+                        });
                     });
 
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    expectInMemoryFiles({
-                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder: "simple-case-insensitive"
-                    });
-                });
-                
-                it("should do a simple search/replace all from find bar, opening results in memory, when user hits Enter in Replace field", function () {
-                    showSearchResults("foo", "bar");
-                    // Click the "Replace" button in the search panel - this should kick off the replace
-                    runs(function () {
-                        $(".replace-checked").click();
+                    it("should do a simple search/replace all from find bar, opening results in memory, when user clicks on Replace... button", function () {
+                        showSearchResults("foo", "bar");
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                            inMemoryKGFolder: "simple-case-insensitive"
+                        });
                     });
 
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    expectInMemoryFiles({
-                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder: "simple-case-insensitive"
-                    });
-                });
-                
-                it("should do a regexp search/replace from find bar", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        $("#find-regexp").click();
-                    });
-                    executeReplace("\\b([a-z]{3})\\b", "[$1]", true);
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
-                    // Click the "Replace" button in the search panel - this should kick off the replace
-                    runs(function () {
-                        $(".replace-checked").click();
+                    it("should do a simple search/replace all from find bar, opening results in memory, when user hits Enter in Replace field", function () {
+                        showSearchResults("foo", "bar");
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                            inMemoryKGFolder: "simple-case-insensitive"
+                        });
                     });
 
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    expectInMemoryFiles({
-                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder: "regexp-dollar-replace"
-                    });
-                });
+                    it("should do a regexp search/replace from find bar", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            $("#find-regexp").click();
+                        });
+                        executeReplace("\\b([a-z]{3})\\b", "[$1]", true);
 
-                it("should do a case-sensitive search/replace from find bar", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    runs(function () {
-                        $("#find-case-sensitive").click();
-                    });
-                    executeReplace("foo", "bar", true);
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
-                    // Click the "Replace" button in the search panel - this should kick off the replace
-                    runs(function () {
-                        $(".replace-checked").click();
-                    });
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
 
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    expectInMemoryFiles({
-                        inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
-                        inMemoryKGFolder: "simple-case-sensitive"
-                    });
-                });
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
 
-                it("should warn and do changes on disk if there are changes in >20 files", function () {
-                    openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
-                    openSearchBar(null, true);
-                    executeReplace("foo", "bar");
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
-                    // Click the "Replace" button in the search panel - this should cause the dialog to appear
-                    runs(function () {
-                        $(".replace-checked").click();
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                            inMemoryKGFolder: "regexp-dollar-replace"
+                        });
                     });
 
-                    runs(function () {
-                        expect(FindInFiles._replaceDone).toBeFalsy();
-                    });
-                    
-                    var $okButton;
-                    waitsFor(function () {
-                        $okButton = $(".dialog-button[data-button-id='ok']");
-                        return !!$okButton.length;
-                    }, "dialog appearing");
-                    runs(function () {
-                        expect($okButton.length).toBe(1);
-                        expect($okButton.text()).toBe(Strings.BUTTON_REPLACE_WITHOUT_UNDO);
-                        $okButton.click();
-                    });
-                    
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    expectProjectToMatchKnownGood("simple-case-insensitive-large");
-                });
-                
-                it("should not do changes on disk if Cancel is clicked in 'too many files' dialog", function () {
-                    spyOn(FindInFiles, "doReplace").andCallThrough();
-                    openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
-                    openSearchBar(null, true);
-                    executeReplace("foo", "bar");
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
-                    // Click the "Replace" button in the search panel - this should cause the dialog to appear
-                    runs(function () {
-                        $(".replace-checked").click();
+                    it("should do a case-sensitive search/replace from find bar", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        openSearchBar(null, true);
+                        runs(function () {
+                            $("#find-case-sensitive").click();
+                        });
+                        executeReplace("foo", "bar", true);
+
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/css/foo.css", "/foo.html", "/foo.js"],
+                            inMemoryKGFolder: "simple-case-sensitive"
+                        });
                     });
 
-                    runs(function () {
-                        expect(FindInFiles._replaceDone).toBeFalsy();
-                    });
-                    
-                    var $cancelButton;
-                    waitsFor(function () {
-                        $cancelButton = $(".dialog-button[data-button-id='cancel']");
-                        return !!$cancelButton.length;
-                    });
-                    runs(function () {
-                        expect($cancelButton.length).toBe(1);
-                        $cancelButton.click();
-                    });
-                    
-                    waitsFor(function () {
-                        return $(".dialog-button[data-button-id='cancel']").length === 0;
-                    }, "dialog dismissed");
-                    runs(function () {
-                        expect(FindInFiles.doReplace).not.toHaveBeenCalled();
-                        // Panel should be left open.
-                        expect($("#find-in-files-results").is(":visible")).toBeTruthy();
-                    });
-                });
-                
-                it("should do single-file Replace All in an open file in the project", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "open file");
-                    });
-                    runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
-                    });
-                    waitsFor(function () {
-                        return $(".modal-bar").length === 1;
-                    }, "search bar open");
-                    
-                    executeReplace("foo", "bar");
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
-                    // Click the "Replace" button in the search panel - this should kick off the replace
-                    runs(function () {
-                        $(".replace-checked").click();
+                    it("should warn and do changes on disk if there are changes in >20 files", function () {
+                        openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
+                        openSearchBar(null, true);
+                        executeReplace("foo", "bar");
+
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+
+                        // Click the "Replace" button in the search panel - this should cause the dialog to appear
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        runs(function () {
+                            expect(FindInFiles._replaceDone).toBeFalsy();
+                        });
+
+                        var $okButton;
+                        waitsFor(function () {
+                            $okButton = $(".dialog-button[data-button-id='ok']");
+                            return !!$okButton.length;
+                        }, "dialog appearing");
+                        runs(function () {
+                            expect($okButton.length).toBe(1);
+                            expect($okButton.text()).toBe(Strings.BUTTON_REPLACE_WITHOUT_UNDO);
+                            $okButton.click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+                        expectProjectToMatchKnownGood("simple-case-insensitive-large");
                     });
 
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    
-                    expectInMemoryFiles({
-                        inMemoryFiles: ["/foo.js"],
-                        inMemoryKGFolder: "simple-case-insensitive"
-                    });
-                });
+                    it("should not do changes on disk if Cancel is clicked in 'too many files' dialog", function () {
+                        spyOn(FindInFiles, "doReplace").andCallThrough();
+                        openTestProjectCopy(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-large"));
+                        openSearchBar(null, true);
+                        executeReplace("foo", "bar");
 
-                it("should do single-file Replace All in a non-project file", function () {
-                    // Open an empty project.
-                    var blankProject = SpecRunnerUtils.getTempDirectory() + "/blank-project",
-                        externalFilePath = defaultSourcePath + "/foo.js";
-                    runs(function () {
-                        var dirEntry = FileSystem.getDirectoryForPath(blankProject);
-                        waitsForDone(promisify(dirEntry, "create"));
-                    });
-                    SpecRunnerUtils.loadProjectInTestWindow(blankProject);
-                    runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: externalFilePath }), "open external file");
-                    });
-                    runs(function () {
-                        waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
-                    });
-                    waitsFor(function () {
-                        return $(".modal-bar").length === 1;
-                    }, "search bar open");
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
 
-                    executeReplace("foo", "bar");
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
-                    // Click the "Replace" button in the search panel - this should kick off the replace
-                    runs(function () {
-                        $(".replace-checked").click();
+                        // Click the "Replace" button in the search panel - this should cause the dialog to appear
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        runs(function () {
+                            expect(FindInFiles._replaceDone).toBeFalsy();
+                        });
+
+                        var $cancelButton;
+                        waitsFor(function () {
+                            $cancelButton = $(".dialog-button[data-button-id='cancel']");
+                            return !!$cancelButton.length;
+                        });
+                        runs(function () {
+                            expect($cancelButton.length).toBe(1);
+                            $cancelButton.click();
+                        });
+
+                        waitsFor(function () {
+                            return $(".dialog-button[data-button-id='cancel']").length === 0;
+                        }, "dialog dismissed");
+                        runs(function () {
+                            expect(FindInFiles.doReplace).not.toHaveBeenCalled();
+                            // Panel should be left open.
+                            expect($("#find-in-files-results").is(":visible")).toBeTruthy();
+                        });
                     });
 
-                    waitsFor(function () {
-                        return FindInFiles._replaceDone;
-                    }, "replace finished");
-                    
-                    expectInMemoryFiles({
-                        inMemoryFiles: [{fullPath: externalFilePath}], // pass a full file path since this is an external file
-                        inMemoryKGFolder: "simple-case-insensitive"
+                    it("should do single-file Replace All in an open file in the project", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "open file");
+                        });
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
+                        });
+                        waitsFor(function () {
+                            return $(".modal-bar").length === 1;
+                        }, "search bar open");
+
+                        executeReplace("foo", "bar");
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+
+                        expectInMemoryFiles({
+                            inMemoryFiles: ["/foo.js"],
+                            inMemoryKGFolder: "simple-case-insensitive"
+                        });
+                    });
+
+                    it("should do single-file Replace All in a non-project file", function () {
+                        // Open an empty project.
+                        var blankProject = SpecRunnerUtils.getTempDirectory() + "/blank-project",
+                            externalFilePath = defaultSourcePath + "/foo.js";
+                        runs(function () {
+                            var dirEntry = FileSystem.getDirectoryForPath(blankProject);
+                            waitsForDone(promisify(dirEntry, "create"));
+                        });
+                        SpecRunnerUtils.loadProjectInTestWindow(blankProject);
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: externalFilePath }), "open external file");
+                        });
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.CMD_REPLACE), "open single-file replace bar");
+                        });
+                        waitsFor(function () {
+                            return $(".modal-bar").length === 1;
+                        }, "search bar open");
+
+                        executeReplace("foo", "bar");
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+
+                        // Click the "Replace" button in the search panel - this should kick off the replace
+                        runs(function () {
+                            $(".replace-checked").click();
+                        });
+
+                        waitsFor(function () {
+                            return FindInFiles._replaceDone;
+                        }, "replace finished");
+
+                        expectInMemoryFiles({
+                            inMemoryFiles: [{fullPath: externalFilePath}], // pass a full file path since this is an external file
+                            inMemoryKGFolder: "simple-case-insensitive"
+                        });
+                    });
+
+                    it("should show an error dialog if errors occurred during the replacement", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            spyOn(FindInFiles, "doReplace").andCallFake(function () {
+                                return new $.Deferred().reject([
+                                    {item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED},
+                                    {item: testPath + "/foo.html", error: FileSystemError.NOT_WRITABLE}
+                                ]);
+                            });
+                        });
+                        runs(function () {
+                            // This will call our mock doReplace
+                            $(".replace-checked").click();
+                        });
+
+                        var $dlg;
+                        waitsFor(function () {
+                            $dlg = $(".error-dialog");
+                            return !!$dlg.length;
+                        }, "dialog appearing");
+                        runs(function () {
+                            expect($dlg.length).toBe(1);
+                            
+                            // Both files should be mentioned in the dialog.
+                            var text = $dlg.find(".dialog-message").text();
+                            // Have to check this in a funny way because breakableUrl() adds a special character after the slash.
+                            expect(text.match(/css\/.*foo.css/)).not.toBe(-1);
+                            expect(text.indexOf(StringUtils.breakableUrl("foo.html"))).not.toBe(-1);
+                            $dlg.find(".dialog-button[data-button-id='ok']").click();
+                            expect($(".error-dialog").length).toBe(0);
+                        });
                     });
                 });
                 
                 // TODO: these could be split out into unit tests, but would need to be able to instantiate
                 // a SearchResultsView in the test runner window.
-                describe("checkbox interactions", function () {
+                describe("Checkbox interactions", function () {
                     it("should uncheck all checkboxes and update model when Check All is clicked while checked", function () {
                         showSearchResults("foo", "bar");
                         runs(function () {
@@ -1491,11 +1610,12 @@ define(function (require, exports, module) {
                     
                     // TODO: checkboxes with paging
                 });
-                
                 // Untitled documents are covered in the "Search -> Replace All in untitled document" cases above.
-                
-                // TODO: more tests:
-                // if user does Find first
+
+                // TODO: Test panel closing cases
+                // change document before search
+                // change file before search
+                // file open in memory during search with in-memory changes, but then closed and changes discarded before replace
             });
         });
     });

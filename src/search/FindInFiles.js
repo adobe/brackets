@@ -459,7 +459,7 @@ define(function (require, exports, module) {
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
-        return FindUtils.performReplacements(results, replaceText, options).then(function () {
+        return FindUtils.performReplacements(results, replaceText, options).always(function () {
             // For UI integration testing only
             exports._replaceDone = true;
         });

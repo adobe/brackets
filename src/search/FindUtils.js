@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         return replaceWith;
     }
     
-        /**
+    /**
      * Does a set of replacements in a single document in memory.
      * @param {!Document} doc The document to do the replacements in.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`. Might be mutated.
@@ -71,8 +71,14 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
      */
     function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
-        // TODO: if doc has changed since query was run, don't do replacement
-        
+        // Double-check that the open document's timestamp matches the one we recorded. This
+        // should normally never go out of sync, because if it did we wouldn't start the
+        // replace in the first place, but we want to double-check. This will *not* handle
+        // cases where the document has been edited in memory since the matchInfo was generated.
+        if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
+            return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
+        }
+
         // Do the replacements in reverse document order so the offsets continue to be correct.
         doc.batchOperation(function () {
             matchInfo.matches.reverse().forEach(function (match) {
@@ -162,6 +168,14 @@ define(function (require, exports, module) {
         
     /**
      * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
+     * Checks timestamps to ensure replacements are not performed in files that have changed on disk since
+     * the original search results were generated. However, does *not* check whether edits have been performed
+     * in in-memory documents since the search; it's up to the caller to guarantee this hasn't happened.
+     * 
+     * Replacements in documents that are already open in memory at the start of the replacement are guaranteed to
+     * happen synchronously; replacements in files on disk will return an error if the on-disk file changes between
+     * the time performReplacements() is called and the time the replacement actually happens.
+     *
      * @param {Object.<fullPath: string, {matches: Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, startOffset: number, endOffset: number, line: string}>, collapsed: boolean}>} results
      *      The list of results to replace, as returned from _doSearch..
      * @param {string} replaceText The text to replace each result with.

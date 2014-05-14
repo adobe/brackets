@@ -268,12 +268,41 @@ define(function (require, exports, module) {
             replacedFiles = _.filter(Object.keys(resultsClone), function (path) {
                 return FindUtils.hasCheckedMatches(resultsClone[path]);
             }),
-            isRegexp = model.queryInfo.isRegexp;
+            isRegexp = model.queryInfo.isRegexp,
+            replacePromise;
+        
+        function processReplace(forceFilesOpen) {
+            StatusBar.showBusyIndicator(true);
+            FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
+                .fail(function (errors) {
+                    var message = Strings.REPLACE_IN_FILES_ERRORS + StringUtils.makeDialogFileList(
+                            _.map(errors, function (errorInfo) {
+                                return ProjectManager.makeProjectRelativeIfPossible(errorInfo.item);
+                            })
+                        );
+                    
+                    Dialogs.showModalDialog(
+                        DefaultDialogs.DIALOG_ID_ERROR,
+                        Strings.REPLACE_IN_FILES_ERRORS_TITLE,
+                        message,
+                        [
+                            {
+                                className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                                id        : Dialogs.DIALOG_BTN_OK,
+                                text      : Strings.BUTTON_REPLACE_WITHOUT_UNDO
+                            }
+                        ]
+                    );
+                })
+                .always(function () {
+                    StatusBar.hideBusyIndicator();
+                });
+        }
                 
         if (replacedFiles.length <= MAX_IN_MEMORY) {
             // Just do the replacements in memory.
             _resultsView.close();
-            FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: true, isRegexp: isRegexp });
+            processReplace(true);
         } else {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
@@ -294,7 +323,7 @@ define(function (require, exports, module) {
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_OK) {
                     _resultsView.close();
-                    FindInFiles.doReplace(resultsClone, replaceText, { isRegexp: isRegexp });
+                    processReplace(false);
                 }
             });
         }
