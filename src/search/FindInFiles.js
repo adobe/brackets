@@ -43,9 +43,6 @@ define(function (require, exports, module) {
         PerfUtils       = require("utils/PerfUtils"),
         FindUtils       = require("search/FindUtils");
     
-    /** @const Constants used to define the maximum results show per page and found in a single file */
-    var FIND_IN_FILE_MAX = 300;
-    
     /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
     var ZERO_FILES_TO_SEARCH = {};
     
@@ -82,8 +79,8 @@ define(function (require, exports, module) {
      * @return {Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
      */
     function _getSearchMatches(contents, queryExpr) {
-        // Quick exit if not found
-        if (contents.search(queryExpr) === -1) {
+        // Quick exit if not found or if we hit the limit
+        if (searchModel.foundMaximum || contents.search(queryExpr) === -1) {
             return null;
         }
         
@@ -112,9 +109,8 @@ define(function (require, exports, module) {
 
             // We have the max hits in just this 1 file. Stop searching this file.
             // This fixed issue #1829 where code hangs on too many hits.
-            if (matches.length >= FIND_IN_FILE_MAX) {
+            if (matches.length >= SearchModel.MAX_TOTAL_RESULTS) {
                 queryExpr.lastIndex = 0;
-                searchModel.foundMaximum = true;
                 break;
             }
         }

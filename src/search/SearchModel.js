@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     var _           = require("thirdparty/lodash"),
         FileUtils   = require("file/FileUtils"),
         StringUtils = require("utils/StringUtils");
-    
+
     /**
      * @constructor
      * Manages a set of search query and result data.
@@ -41,6 +41,12 @@ define(function (require, exports, module) {
         this.clear();
     }
 
+    /** @const Constant used to define the maximum results found. 
+     *  Note that this is a soft limit - we'll likely go slightly over it since
+     *  we always add all the searches in a given file.
+     */
+    SearchModel.MAX_TOTAL_RESULTS = 100000;
+        
     /** 
      * The current set of results.
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean, timestamp: Date}>}
@@ -147,13 +153,25 @@ define(function (require, exports, module) {
      * Adds the given result matches to the search results
      * @param {string} fullpath
      * @param {Array.<Object>} matches
+     * @return true if at least some matches were added, false if we've hit the limit on how many can be added
      */
     SearchModel.prototype.addResultMatches = function (fullpath, matches, timestamp) {
+        if (this.foundMaximum) {
+            return false;
+        }
+        
         this.results[fullpath] = {
             matches:   matches,
             collapsed: false,
             timestamp: timestamp
         };
+        
+        var curNumMatches = this.countFilesMatches().matches;
+        if (curNumMatches >= SearchModel.MAX_TOTAL_RESULTS) {
+            this.foundMaximum = true;
+        }
+        
+        return true;
     };
 
     /**
