@@ -464,7 +464,7 @@ a:focus {
     &.dropdown-menu {
         border: none;
         border-radius: @tc-control-border-radius;
-        padding: 0;
+        padding: 5px 0;
         position: absolute;
         display: block;
         box-shadow: @tc-dropdown-shadow;
@@ -490,6 +490,10 @@ a:focus {
 
     &.dropdown-menu a:not(.selected):hover {
          background: none;
+    }
+    
+    .divider {
+        margin: 5px 1px;
     }
 }
 
