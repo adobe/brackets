@@ -37,6 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
+	"UNSUPPORTED_ENCODING_ERR": "ファイルは UTF-8 でエンコードされたテキストではありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
@@ -179,7 +180,6 @@ define({
 	"FILE_FILTER_INSTRUCTIONS": "次の文字列やサブストリング、または<a href='{0}' title='{0}'>ワイルドカード</a>のいずれかに一致するファイルおよびフォルダーを除外します。各文字列を新しい行に入力してください。",
 	"FILE_FILTER_LIST_PREFIX": "例外",
 	"FILE_FILTER_CLIPPED_SUFFIX": "さらに {0} 件",
-
 	"FILTER_COUNTING_FILES": "ファイル数を確認中\u2026",
 	"FILTER_FILE_COUNT": "{2}の {1} ファイル中 {0} ファイルを許可",
 	"FILTER_FILE_COUNT_ALL": "{1}の全 {0} ファイルを許可",
@@ -289,16 +289,6 @@ define({
 	"CMD_SPLIT_SEL_INTO_LINES": "選択範囲を行に分ける",
 	"CMD_ADD_CUR_TO_NEXT_LINE": "次の行にカーソルを追加",
 	"CMD_ADD_CUR_TO_PREV_LINE": "前の行にカーソルを追加",
-	"CMD_FIND": "検索",
-	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
-	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
-	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
-	"CMD_FIND_NEXT": "次を検索",
-	"CMD_FIND_PREVIOUS": "前を検索",
-	"CMD_FIND_ALL_AND_SELECT": "すべて検索して選択",
-	"CMD_ADD_NEXT_MATCH": "選択範囲に次の候補を追加",
-	"CMD_SKIP_CURRENT_MATCH": "スキップして次の候補を追加",
-	"CMD_REPLACE": "置換",
 	"CMD_INDENT": "インデント",
 	"CMD_UNINDENT": "インデント解除",
 	"CMD_DUPLICATE": "行を複製",
@@ -311,6 +301,20 @@ define({
 	"CMD_OPEN_LINE_BELOW": "下の行を開く",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
 	"CMD_SHOW_CODE_HINTS": "コードヒントを表示",
+    
+    // Search menu commands
+	"FIND_MENU": "検索",
+	"CMD_FIND": "検索",
+	"CMD_FIND_FIELD_PLACEHOLDER": "検索\u2026",
+	"CMD_FIND_NEXT": "次を検索",
+	"CMD_FIND_PREVIOUS": "前を検索",
+	"CMD_FIND_ALL_AND_SELECT": "すべて検索して選択",
+	"CMD_ADD_NEXT_MATCH": "選択範囲に次の候補を追加",
+	"CMD_SKIP_CURRENT_MATCH": "スキップして次の候補を追加",
+	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
+	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
+	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
+	"CMD_REPLACE": "置換",
     
     // View menu commands
 	"VIEW_MENU": "表示",
@@ -489,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "デバッグ",
+	"ERRORS": "エラー",
 	"CMD_SHOW_DEV_TOOLS": "開発者ツールを表示",
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
@@ -499,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Node Debugger を有効にする",
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
     
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",

@@ -37,6 +37,7 @@ define({
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
+	"UNSUPPORTED_ENCODING_ERR": "Le fichier n’est pas codé au format UTF-8.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
@@ -179,9 +180,8 @@ define({
 	"FILE_FILTER_INSTRUCTIONS": "Exclure les fichiers et dossiers correspondant à l’une des chaînes/sous-chaînes ou aux <a href='{0}' title='{0}'>caractères génériques</a> suivants. Entrez chaque chaîne sur une ligne différente.",
 	"FILE_FILTER_LIST_PREFIX": "sauf",
 	"FILE_FILTER_CLIPPED_SUFFIX": "et {0} autre(s)",
-
 	"FILTER_COUNTING_FILES": "Comptage des fichiers\u2026",
-	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} que compte {2}",
+	"FILTER_FILE_COUNT": "Autorise {0} fichier(s) sur les {1} {2}",
 	"FILTER_FILE_COUNT_ALL": "Autorise les {0} fichiers {1}",
 
     // Quick Edit
@@ -271,7 +271,7 @@ define({
 	"CMD_FILE_RENAME": "Renommer",
 	"CMD_FILE_DELETE": "Supprimer",
 	"CMD_INSTALL_EXTENSION": "Installer une extension\u2026",
-	"CMD_EXTENSION_MANAGER": "Le gestionnaire d'extensions\u2026",
+	"CMD_EXTENSION_MANAGER": "Gestionnaire d'extensions\u2026",
 	"CMD_FILE_REFRESH": "Actualiser l’arborescence de fichiers",
 	"CMD_QUIT": "Quitter",
     // Used in native File menu on Windows
@@ -289,16 +289,6 @@ define({
 	"CMD_SPLIT_SEL_INTO_LINES": "Scinder la sélection en lignes",
 	"CMD_ADD_CUR_TO_NEXT_LINE": "Ajouter un curseur à la ligne suivante",
 	"CMD_ADD_CUR_TO_PREV_LINE": "Ajouter un curseur à la ligne précédente",
-	"CMD_FIND": "Rechercher",
-	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
-	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
-	"CMD_FIND_NEXT": "Rechercher suivant",
-	"CMD_FIND_PREVIOUS": "Rechercher précédent",
-	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
-	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
-	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
-	"CMD_REPLACE": "Remplacer",
 	"CMD_INDENT": "Retrait",
 	"CMD_UNINDENT": "Annuler le retrait",
 	"CMD_DUPLICATE": "Dupliquer",
@@ -311,6 +301,20 @@ define({
 	"CMD_OPEN_LINE_BELOW": "Ouvrir une ligne en dessous",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "Fermeture automatique des accolades",
 	"CMD_SHOW_CODE_HINTS": "Afficher les indicateurs de code",
+    
+    // Search menu commands
+	"FIND_MENU": "Rechercher",
+	"CMD_FIND": "Rechercher",
+	"CMD_FIND_FIELD_PLACEHOLDER": "Rechercher\u2026",
+	"CMD_FIND_NEXT": "Rechercher suivant",
+	"CMD_FIND_PREVIOUS": "Rechercher précédent",
+	"CMD_FIND_ALL_AND_SELECT": "Rechercher et sélectionner tout",
+	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
+	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
+	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
+	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
+	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
+	"CMD_REPLACE": "Remplacer",
     
     // View menu commands
 	"VIEW_MENU": "Affichage",
@@ -489,6 +493,7 @@ define({
 
     // extensions/default/DebugCommands
 	"DEBUG_MENU": "Déboguer",
+	"ERRORS": "Erreurs",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
@@ -499,6 +504,7 @@ define({
 	"CMD_ENABLE_NODE_DEBUGGER": "Activer le débogage de nœud",
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
+	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
     
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
@@ -509,7 +515,7 @@ define({
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
-	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Décaler</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
+	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Déplacer le point sélectionné<br><kbd class='text'>Maj</kbd> Déplacer de dix unités<br><kbd class='text'>Tabulation</kbd> Permuter les points",
 	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> Augmenter ou réduire les pas<br><kbd>←</kbd><kbd>→</kbd> 'Démarrer' ou 'Arrêter'",
 	"INLINE_TIMING_EDITOR_INVALID": "L’ancienne valeur <code>{0}</code> n’est pas valide et a donc été remplacée par <code>{1}</code> pour la fonction affichée. Le document sera mis à jour à la première modification.",
     

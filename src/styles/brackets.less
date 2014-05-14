@@ -303,10 +303,11 @@ a, img {
     }
 
     .img-guide,
-    #img-preview {
-        cursor: none;
+    #img-tip, 
+    #img-scale {
+        pointer-events: none;
     }
-
+    
     #img-scale {
         display: block;
         position: absolute;
@@ -500,7 +501,10 @@ a, img {
 }
 
 #toolbar-extension-manager {
-    .sprite-icon(0, 0, 24px, 24px, "images/topcoat-plugin-20.svg");
+    .sprite-icon(0, 0, 24px, 24px, "images/extension-manager-sprite.svg");
+    &.updatesAvailable {
+        .sprite-icon(0, 24px, 24px, 24px, "images/extension-manager-sprite.svg");
+    }
 }
 
 /* Project panel */
@@ -1074,14 +1078,10 @@ a, img {
     }
 
     &.offscreen {
-        -webkit-transform: translate(0, -44px);
-        transform: translate(0, -44px);
+        -webkit-transform: translate(0, -100%);
+        transform: translate(0, -100%);
         transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
-
-        body:not(.has-appshell-menus) & {
-            top: 37px;
-        }
     }
 
     input {
@@ -1415,6 +1415,12 @@ textarea.exclusions-editor {
             height: 9px;
         }
     }
+    
+    &.inline {
+        margin-left: 8px;
+        position: relative;
+        top: 3px;
+    }
 }
 
 @-webkit-keyframes spinner-rotateplane {
@@ -1492,10 +1498,6 @@ label input {
 .live-preview-sync-error .CodeMirror-linenumber {
     background-color: @live-preview-sync-error-background !important;
     color: @live-preview-sync-error-color !important;
-}
-
-.install-extension-dialog .spinner {
-    margin-left: 10px;
 }
 
 /* Quick Edit, Quick Docs */
