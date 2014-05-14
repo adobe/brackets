@@ -103,7 +103,7 @@ Subfolders can be added in the path field.
 Existing files can be edited directly in
 [brackets repo on github](https://github.com/adobe/brackets).
 
-Either case will create a pull request with a branch named something like
+Either case will create and submit a pull request with a branch named something like
 `patch-1` on your github fork of brackets of the brackets repository
 (`https://github.com/user1/brackets`).
 If you have not yet forked brackets "repo", it's done automatically.
@@ -113,10 +113,12 @@ be merged. If changes need to be made, the reviewer will post comments in the
 pull request which will send you an e-mail notification.
 
 You can make updates in the `patch-1` branch in your github fork of brackets.
-Edits show up as a new commit, so they automatically show up in the original
-pull request. After making an update, follow the link in the notification
-e-mail to the pull request and add a comment such as "Changes made -- ready
-for another review" to notify reviewer that it's time to review the changes again.
+Follow the link in the notification e-mail to the pull request if you need
+to determine which branch to edit.
+Saved edits show up as a new commit, so they automatically show up in the original
+pull request. After making an update, add a comment to the pull request such as
+"Changes made -- ready for another review" to notify reviewer
+that it's time to review the changes again.
 
 
 # Translation limitations
