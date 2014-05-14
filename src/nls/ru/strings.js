@@ -494,7 +494,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Отладка",
-    "ERRORS"                                    : "Ощибки",
+    "ERRORS"                                    : "Ошибки",
     "CMD_SHOW_DEV_TOOLS"                        : "Показать инструменты разработчика",
     "CMD_REFRESH_WINDOW"                        : "Перезагрузить {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Перегрузить без расширений",
