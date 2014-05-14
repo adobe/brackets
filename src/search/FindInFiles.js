@@ -327,7 +327,7 @@ define(function (require, exports, module) {
      */
     _documentChangeHandler = function (event, document, change) {
         if (_inSearchScope(document.file)) {
-            _updateResults(document, change, false);
+            _updateResults(document, change);
         }
     };
     
