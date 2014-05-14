@@ -31,15 +31,15 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _                    = require("thirdparty/lodash"),
-        ProjectManager       = require("project/ProjectManager"),
-        DefaultDialogs       = require("widgets/DefaultDialogs"),
-        Dialogs              = require("widgets/Dialogs"),
-        DropdownButton       = require("widgets/DropdownButton").DropdownButton,
-        StringUtils          = require("utils/StringUtils"),
-        Strings              = require("strings"),
-        PreferencesManager   = require("preferences/PreferencesManager");
-    
+    var _                  = require("thirdparty/lodash"),
+        ProjectManager     = require("project/ProjectManager"),
+        DefaultDialogs     = require("widgets/DefaultDialogs"),
+        Dialogs            = require("widgets/Dialogs"),
+        DropdownButton     = require("widgets/DropdownButton").DropdownButton,
+        StringUtils        = require("utils/StringUtils"),
+        Strings            = require("strings"),
+        PreferencesManager = require("preferences/PreferencesManager");
+  
     var FIRST_FILTER_INDEX = 3;
     var _context = null,
         _picker  = null;
@@ -456,11 +456,11 @@ define(function (require, exports, module) {
         return _picker.$button;
     }
     
-    exports.createFilterPicker     = createFilterPicker;
-    exports.commitPicker           = commitPicker;
-    exports.getLastFilter          = getLastFilter;
-    exports.editFilter             = editFilter;
-    exports.compile                = compile;
-    exports.filterPath             = filterPath;
-    exports.filterFileList         = filterFileList;
+    exports.createFilterPicker = createFilterPicker;
+    exports.commitPicker       = commitPicker;
+    exports.getLastFilter      = getLastFilter;
+    exports.editFilter         = editFilter;
+    exports.compile            = compile;
+    exports.filterPath         = filterPath;
+    exports.filterFileList     = filterFileList;
 });
