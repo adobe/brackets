@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     
     var CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
+        DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         ProjectManager        = require("project/ProjectManager"),
         FileViewController    = require("project/FileViewController"),
@@ -60,14 +61,15 @@ define(function (require, exports, module) {
      * @param {string} panelName The name to use for the panel, as passed to PanelManager.createBottomPanel().
      */
     function SearchResultsView(model, panelID, panelName) {
-        this._model = model;
-        this.createPanel(panelID, panelName);
+        var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
+
+        this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
+        this._$summary = this._panel.$panel.find(".title");
+        this._$table   = this._panel.$panel.find(".table-container");
+        this._model    = model;
     }
     
-    /**
-     * The search results model we're viewing.
-     * @type {SearchModel}
-     */
+    /** @type {SearchModel} The search results model we're viewing. */
     SearchResultsView.prototype._model = null;
     
     /**
@@ -79,8 +81,8 @@ define(function (require, exports, module) {
     /** @type {Panel} Bottom panel holding the search results */
     SearchResultsView.prototype._panel = null;
     
-    /** @type {?Entry} The File selected on the initial search */
-    SearchResultsView.prototype._selectedEntry = null;
+    /** @type {?string} The full path of the file that was open in the main editor on the initial search */
+    SearchResultsView.prototype._initialFilePath = null;
     
     /** @type {number} The index of the first result that is displayed */
     SearchResultsView.prototype._currentStart = 0;
@@ -99,21 +101,7 @@ define(function (require, exports, module) {
     
     /** @type {number} The ID we use for timeouts when handling model changes. */
     SearchResultsView.prototype._timeoutID = null;
-    
-    
-    /**
-     * Creates the Bottom Panel using the given name
-     * @param {string} panelID
-     * @param {string} panelName
-     */
-    SearchResultsView.prototype.createPanel = function (panelID, panelName) {
-        var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
         
-        this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
-        this._$summary = this._panel.$panel.find(".title");
-        this._$table   = this._panel.$panel.find(".table-container");
-    };
-    
     /**
      * @private
      * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
@@ -133,11 +121,11 @@ define(function (require, exports, module) {
         }
         if (quickChange) {
             this._timeoutID = window.setTimeout(function () {
-                self.restoreResults();
+                self._updateResults();
                 self._timeoutID = null;
             }, UPDATE_TIMEOUT);
         } else {
-            this.restoreResults();
+            this._updateResults();
         }
     };
     
@@ -155,22 +143,22 @@ define(function (require, exports, module) {
             // The link to go the first page
             .on("click.searchResults", ".first-page:not(.disabled)", function () {
                 self._currentStart = 0;
-                self.showResults();
+                self._render();
             })
             // The link to go the previous page
             .on("click.searchResults", ".prev-page:not(.disabled)", function () {
                 self._currentStart -= RESULTS_PER_PAGE;
-                self.showResults();
+                self._render();
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
                 self._currentStart += RESULTS_PER_PAGE;
-                self.showResults();
+                self._render();
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
                 self._currentStart = self._getLastCurrentStart();
-                self.showResults();
+                self._render();
             })
             
             // Add the file to the working set on double click
@@ -253,9 +241,14 @@ define(function (require, exports, module) {
                 })
                 .on("click.searchResults", ".check-one", function (e) {
                     var $row = $(e.target).closest("tr"),
-                        item = self._searchList[$row.data("file")];
+                        item = self._searchList[$row.data("file")],
+                        match = self._model.results[item.fullPath].matches[$row.data("index")],
+                        $checkAll = self._panel.$panel.find(".check-all");
 
-                    self._model.results[item.fullPath].matches[$row.data("index")].isChecked = $(this).is(":checked");
+                    match.isChecked = $(this).is(":checked");
+                    if (!match.isChecked && $checkAll.is(":checked")) {
+                        $checkAll.prop("checked", false);
+                    }
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
@@ -264,36 +257,6 @@ define(function (require, exports, module) {
         }
     };
     
-    
-    /**
-     * Initializes the Search Results
-     */
-    SearchResultsView.prototype.initializeResults = function () {
-        this._currentStart  = 0;
-        this._$selectedRow  = null;
-        this._allChecked    = true;
-        
-        // Save the currently selected file's fullpath if there is one selected and if it is a file
-        var selectedItem = ProjectManager.getSelectedItem();
-        if (selectedItem && !selectedItem.isDirectory) {
-            this._selectedEntry = selectedItem.fullPath;
-        } else {
-            this._selectedEntry = null;
-        }
-    };
-    
-    /**
-     * Hides the Search Results Panel and unregisters listeners
-     */
-    SearchResultsView.prototype.close = function () {
-        if (this._panel && this._panel.isVisible()) {
-            this._$table.empty();
-            this._panel.hide();
-            this._panel.$panel.off(".searchResults");
-            $(this._model).off("change.SearchResultsView");
-            $(this).triggerHandler("close");
-        }
-    };
     
     /**
      * @private
@@ -346,10 +309,10 @@ define(function (require, exports, module) {
      * @private
      * Shows the current set of results.
      */
-    SearchResultsView.prototype.showResults = function () {
+    SearchResultsView.prototype._render = function () {
         var searchItems, match, i, item, multiLine,
             count          = this._model.countFilesMatches(),
-            searchFiles    = this._model.getSortedFiles(),
+            searchFiles    = this._model.getSortedFiles(this._initialFilePath),
             lastIndex      = this._getLastIndex(count.matches),
             matchesCounter = 0,
             showMatches    = false,
@@ -457,17 +420,12 @@ define(function (require, exports, module) {
         
         this._panel.show();
         this._$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
-        
-        this._addPanelListeners();
-        
-        // Start listening for change events on the model.
-        $(this._model).on("change.SearchResultsView", this._handleModelChange.bind(this));
     };
     
     /**
-     * Restores the state of the Results Panel
+     * Updates the results view after a model change, preserving scroll position and selection.
      */
-    SearchResultsView.prototype.restoreResults = function () {
+    SearchResultsView.prototype._updateResults = function () {
         if (this._panel.isVisible()) {
             var scrollTop  = this._$table.scrollTop(),
                 index      = this._$selectedRow ? this._$selectedRow.index() : null,
@@ -477,7 +435,7 @@ define(function (require, exports, module) {
                 this._currentStart = this._getLastCurrentStart(numMatches);
             }
             
-            this.showResults();
+            this._render();
 
             this._$table.scrollTop(scrollTop);
             if (index) {
@@ -506,6 +464,39 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._getLastCurrentStart = function (numMatches) {
         numMatches = numMatches || this._model.countFilesMatches().matches;
         return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
+    };
+    
+    /**
+     * Opens the results panel and displays the current set of results from the model.
+     */
+    SearchResultsView.prototype.open = function () {
+        // Clear out any paging/selection state.
+        this._currentStart  = 0;
+        this._$selectedRow  = null;
+        this._allChecked    = true;
+        
+        // Save the currently open document's fullpath, if any, so we can sort it to the top of the result list.
+        var currentDoc = DocumentManager.getCurrentDocument();
+        this._initialFilePath = currentDoc ? currentDoc.file.fullPath : null;
+
+        this._render();
+        
+        // Listen for user interaction events with the panel and change events from the model.
+        this._addPanelListeners();
+        $(this._model).on("change.SearchResultsView", this._handleModelChange.bind(this));
+    };
+    
+    /**
+     * Hides the Search Results Panel and unregisters listeners.
+     */
+    SearchResultsView.prototype.close = function () {
+        if (this._panel && this._panel.isVisible()) {
+            this._$table.empty();
+            this._panel.hide();
+            this._panel.$panel.off(".searchResults");
+            $(this._model).off("change.SearchResultsView");
+            $(this).triggerHandler("close");
+        }
     };
     
     // Public API

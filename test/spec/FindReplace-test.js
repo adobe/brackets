@@ -2803,6 +2803,15 @@ define(function (require, exports, module) {
                     });
                 }
                 
+                function showSearchResults(findText, replaceText, fromKeyboard) {
+                    openTestProjectCopy(defaultSourcePath);
+                    openSearchBar(null, true);
+                    executeReplace(findText, replaceText, fromKeyboard);
+                    waitsFor(function () {
+                        return FindInFiles._searchDone;
+                    }, "search finished");
+                }
+                
                 afterEach(function () {
                     closeSearchBar();
                 });
@@ -2868,14 +2877,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show results from the search with all checkboxes checked", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    executeReplace("foo", "bar");
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
+                    showSearchResults("foo", "bar");
                     runs(function () {
                         expect($("#find-in-files-results").length).toBe(1);
                         expect($("#find-in-files-results .check-one").length).toBe(14);
@@ -2884,14 +2886,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should do a simple search/replace all from find bar, opening results in memory, when user clicks on Replace... button", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    executeReplace("foo", "bar");
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
+                    showSearchResults("foo", "bar");
                     // Click the "Replace" button in the search panel - this should kick off the replace
                     runs(function () {
                         $(".replace-checked").click();
@@ -2907,14 +2902,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should do a simple search/replace all from find bar, opening results in memory, when user hits Enter in Replace field", function () {
-                    openTestProjectCopy(defaultSourcePath);
-                    openSearchBar(null, true);
-                    executeReplace("foo", "bar", true);
-                    
-                    waitsFor(function () {
-                        return FindInFiles._searchDone;
-                    }, "search finished");
-                    
+                    showSearchResults("foo", "bar");
                     // Click the "Replace" button in the search panel - this should kick off the replace
                     runs(function () {
                         $(".replace-checked").click();
@@ -3124,6 +3112,62 @@ define(function (require, exports, module) {
                         inMemoryFiles: [{fullPath: externalFilePath}], // pass a full file path since this is an external file
                         inMemoryKGFolder: "simple-case-insensitive"
                     });
+                });
+                
+                // TODO: these could be split out into unit tests, but would need to be able to instantiate
+                // a SearchResultsView in the test runner window.
+                describe("checkbox interactions", function () {
+                    it("should uncheck all checkboxes and update model when Check All is clicked while checked", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            expect($(".check-all").is(":checked")).toBeTruthy();
+                            $(".check-all").click();
+                            expect($(".check-all").is(":checked")).toBeFalsy();
+                            expect($(".check-one:checked").length).toBe(0);
+                            expect(_.find(FindInFiles.searchModel.results, function (result) {
+                                return _.find(result.matches, function (match) { return match.isChecked; });
+                            })).toBeFalsy();
+                        });
+                    });
+
+                    it("should uncheck one checkbox and update model, unchecking the Check All checkbox", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            $(".check-one").eq(1).click();
+                            expect($(".check-one").eq(1).is(":checked")).toBeFalsy();
+                            expect($(".check-all").is(":checked")).toBeFalsy();
+                            // In the sorting, this item should be the second match in the first file, which is css/foo.css.
+                            var uncheckedMatch = FindInFiles.searchModel.results[testPath + "/css/foo.css"].matches[1];
+                            expect(uncheckedMatch.isChecked).toBe(false);
+                            // Check that all items in the model besides the unchecked one to be checked.
+                            expect(_.every(FindInFiles.searchModel.results, function (result) {
+                                return _.every(result.matches, function (match) {
+                                    if (match === uncheckedMatch) {
+                                        // This one is already expected to be unchecked.
+                                        return true;
+                                    }
+                                    return match.isChecked;
+                                });
+                            })).toBeTruthy();
+                        });
+                    });
+
+                    it("should re-check unchecked checkbox and update model after clicking Check All again", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            $(".check-one").eq(1).click();
+                            expect($(".check-one").eq(1).is(":checked")).toBeFalsy();
+                            expect($(".check-all").is(":checked")).toBeFalsy();
+                            $(".check-all").click();
+                            expect($(".check-all").is(":checked")).toBeTruthy();
+                            expect($(".check-one:checked").length).toEqual($(".check-one").length);
+                            expect(_.every(FindInFiles.searchModel.results, function (result) {
+                                return _.every(result.matches, function (match) { return match.isChecked; });
+                            })).toBeTruthy();
+                        });
+                    });
+                    
+                    // TODO: checkboxes with paging
                 });
                 
                 // Untitled documents are covered in the "Search -> Replace All in untitled document" cases above.

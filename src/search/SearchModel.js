@@ -179,16 +179,17 @@ define(function (require, exports, module) {
 
     /**
      * Sorts the file keys to show the results from the selected file first and the rest sorted by path
+     * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
      * @return {Array.<string>}
      */
-    SearchModel.prototype.getSortedFiles = function () {
+    SearchModel.prototype.getSortedFiles = function (firstFile) {
         var searchFiles = Object.keys(this.results),
             self        = this;
 
         searchFiles.sort(function (key1, key2) {
-            if (self._selectedEntry === key1) {
+            if (firstFile === key1) {
                 return -1;
-            } else if (self._selectedEntry === key2) {
+            } else if (firstFile === key2) {
                 return 1;
             }
             return FileUtils.comparePaths(key1, key2);

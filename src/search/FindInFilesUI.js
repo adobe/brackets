@@ -80,7 +80,7 @@ define(function (require, exports, module) {
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
-                    _resultsView.showResults();
+                    _resultsView.open();
 
                     if (_findBar) {
                         _findBar.close();
