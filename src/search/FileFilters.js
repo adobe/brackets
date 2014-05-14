@@ -44,7 +44,6 @@ define(function (require, exports, module) {
     var _context = null,
         _picker  = null;
     
-    
     /**
      * Populate the list of dropdown menu with two filter commands and
      * the list of saved filter sets.
@@ -281,6 +280,8 @@ define(function (require, exports, module) {
      * @return {!$.Promise} Dialog box promise
      */
     function editFilter(filter, context, index) {
+        var lastFocus = window.document.activeElement;
+        
         var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url) +
             "<input type='text' class='exclusions-name' placeholder='Name this exclusion set (optional)'>" +
             "<textarea class='exclusions-editor'></textarea><div class='exclusions-filecount'>" +
@@ -311,6 +312,7 @@ define(function (require, exports, module) {
                 setLastFilter({ name: $nameField.val(), patterns: getValue() }, index);
                 _doPopulate();
             }
+            lastFocus.focus();  // restore focus to old po
         });
         
         // Code to update the file count readout at bottom of dialog (if context provided)
@@ -390,7 +392,12 @@ define(function (require, exports, module) {
 
                 // Don't let the click bubble upward.
                 e.stopPropagation();
-
+                
+                // Close the dropdown first before opening the edit filter dialog 
+                // so that it will restore focus to the DOM element that has focus
+                // prior to opening it.
+                _picker.closeDropdown();
+                
                 editFilter(filterSets[filterIndex], _context, filterIndex);
             });
     }
@@ -436,12 +443,18 @@ define(function (require, exports, module) {
         
         // Add 'file-filter-picker' to keep some margin space on the left of the button
         _picker.$button.addClass("file-filter-picker");
+        _picker.$button.addClass("no-focus");
         
         // Set up mouse click events for 'Delete' and 'Edit' buttons
         $(_picker).on("openDropdown", _handleListEvents);
         
         $(_picker).on("select", function (event, item, itemIndex) {
             if (itemIndex === 0) {
+                // Close the dropdown first before opening the edit filter dialog 
+                // so that it will restore focus to the DOM element that has focus
+                // prior to opening it.
+                _picker.closeDropdown();
+
                 // Create a new filter set
                 editFilter({ name: "", patterns: [] }, _context, -1);
             } else if (itemIndex === 1) {
