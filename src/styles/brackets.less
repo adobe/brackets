@@ -1222,7 +1222,15 @@ a, img {
     height: 13px;
     background-image: url("images/edit-icon.svg");
     background-repeat: no-repeat;
+    opacity: 0.5;
     visibility: hidden;
+    position: relative;
+    top: 2px;
+    right: -4px;    
+}
+
+.filter-edit-icon:hover {
+    opacity: 1;
 }
 
 li:hover .filter-trash-icon,
@@ -1235,6 +1243,7 @@ li:hover .filter-edit-icon {
 }
 
 .recent-filter-patterns {
+    color: @tc-light-weight-quiet-text;
     padding-right: 52px;
 }
 
@@ -1250,20 +1259,19 @@ input.exclusions-name {
     box-sizing: border-box; // needed for width: 100% since it has padding
     margin-top: 12px;
     margin-bottom: 0;
-    .code-font();
 }
 textarea.exclusions-editor {
     display: block;
     width: 100%;
     height: 120px;
     box-sizing: border-box; // needed for width: 100% since it has padding
-    margin-top: 12px;
+    margin-top: 5px;
     margin-bottom: 0;
     .code-font();
 }
 .exclusions-filecount {
     margin: 12px 0 -20px 0;
-    padding: 4px 6px;
+    padding: 4px 8px;
     background-color: @tc-highlight;
     border-radius: @tc-control-border-radius;
 }
