@@ -37,7 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Nie można zmienić folderu docelowego.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Brak pozwolenia na modyfikację.",
     "CONTENTS_MODIFIED_ERR"             : "Plik został zmodyfikowany z zewnątrz.",
-    "UNSUPPORTED_ENCODING_ERR"          : "The file is not UTF-8 encoded text.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Ten plik nie jest w stronie kodowej UTF-8.",
     "FILE_EXISTS_ERR"                   : "Plik już istnieje.",
     "FILE"                              : "plik",
     "DIRECTORY"                         : "folder",
