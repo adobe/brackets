@@ -89,6 +89,36 @@ point the process will switch to the one above. But until then, please _do not
 use_ http://translate.adobe.com for these languages.
 
 
+# Contributing Translations directly from github.com
+
+You must be logged in to your github.com id (e.g. `user1`).
+
+### Adding a New Translation
+New translations can be added by navigating to the
+[nls folder on github](https://github.com/adobe/brackets/tree/master/src/nls)
+and then clicking on the [+] button to add a new file.
+Subfolders can be added in the path field.
+
+### Editing an Existing Translation
+Existing files can be edited directly in
+[brackets repo on github](https://github.com/adobe/brackets).
+
+Either case will create a pull request with a branch named something like
+`patch-1` on your github fork of brackets of the brackets repository
+(`https://github.com/user1/brackets`).
+If you have not yet forked brackets "repo", it's done automatically.
+
+Someone on the Brackets team will review the pull request. If it's ok, it will
+be merged. If changes need to be made, the reviewer will post comments in the
+pull request which will send you an e-mail notification.
+
+You can make updates in the `patch-1` branch in your github fork of brackets.
+Edits show up as a new commit, so they automatically show up in the original
+pull request. After making an update, follow the link in the notification
+e-mail to the pull request and add a comment such as "Changes made -- ready
+for another review" to notify reviewer that it's time to review the changes again.
+
+
 # Translation limitations
 
 Some strings cannot be localized yet:
