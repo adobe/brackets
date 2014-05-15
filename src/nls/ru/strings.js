@@ -353,6 +353,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Показать в Проводнике",
     "CMD_SHOW_IN_FINDER"                  : "Показать в Finder",
     "CMD_SHOW_IN_OS"                      : "Показать в операционной системе",
+    "CMD_SHOW_IN_EXPLORER"                : "Показать в операционной системе",
     
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
