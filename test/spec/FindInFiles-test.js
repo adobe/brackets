@@ -117,6 +117,7 @@ define(function (require, exports, module) {
                 return $(".modal-bar").length === 1;
             }, "search bar open");
             runs(function () {
+                var $oldFocus = $(".modal-bar").find(":focus");
                 // Reset the regexp and case-sensitivity toggles.
                 ["#find-regexp", "#find-case-sensitive"].forEach(function (button) {
                     if ($(button).is(".active")) {
@@ -124,6 +125,7 @@ define(function (require, exports, module) {
                         expect($(button).is(".active")).toBe(false);
                     }
                 });
+                $oldFocus.focus();
             });
         }
         
@@ -681,18 +683,21 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             }
             
-            function expectProjectToMatchKnownGood(kgFolder, lineEndings) {
+            function expectProjectToMatchKnownGood(kgFolder, lineEndings, filesToSkip) {
                 runs(function () {
                     var testRootPath = ProjectManager.getProjectRoot().fullPath,
                         kgRootPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + kgFolder + "/");
+                    
                     function compareKnownGoodToTestFile(kgContents, kgFilePath) {
                         var testFilePath = testRootPath + kgFilePath.slice(kgRootPath.length);
-                        return promisify(FileSystem.getFileForPath(testFilePath), "read").then(function (testContents) {
-                            if (lineEndings) {
-                                kgContents = FileUtils.translateLineEndings(kgContents, lineEndings);
-                            }
-                            expect(testContents).toEqual(kgContents);
-                        });
+                        if (!filesToSkip || filesToSkip.indexOf(testFilePath) === -1) {
+                            return promisify(FileSystem.getFileForPath(testFilePath), "read").then(function (testContents) {
+                                if (lineEndings) {
+                                    kgContents = FileUtils.translateLineEndings(kgContents, lineEndings);
+                                }
+                                expect(testContents).toEqual(kgContents);
+                            });
+                        }
                     }
                     
                     waitsForDone(visitAndProcessFiles(kgRootPath, compareKnownGoodToTestFile), "project comparison done");
@@ -1061,6 +1066,33 @@ define(function (require, exports, module) {
                     inMemoryFiles:    ["/css/foo.css"],
                     inMemoryKGFolder: "simple-case-insensitive"
                 });
+            });
+            
+            it("should do the search/replace in the current document content for a dirty in-memory document", function () {
+                openTestProjectCopy(defaultSourcePath);
+                
+                var options = {
+                    queryInfo:        {query: "foo"},
+                    numMatches:       15,
+                    replaceText:      "bar",
+                    inMemoryFiles:    ["/css/foo.css"],
+                    inMemoryKGFolder: "simple-case-insensitive-modified"
+                };
+                
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/css/foo.css");
+                    expect(doc).toBeTruthy();
+                    doc.replaceRange("/* added a foo line */\n", {line: 0, ch: 0});
+                });
+                doSearch(options);
+                runs(function () {
+                    waitsForDone(doReplace(options), "replace done");
+                });
+                expectInMemoryFiles(options);
+                expectProjectToMatchKnownGood("simple-case-insensitive-modified", null, [testPath + "/css/foo.css"]);
             });
             
             it("should do the replacement in memory for a file open in an Editor that's not in the working set", function () {
