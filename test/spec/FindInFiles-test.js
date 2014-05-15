@@ -1186,11 +1186,11 @@ define(function (require, exports, module) {
             });
             
             // TODO: More things to test headlessly:
+            // subset of matches (unchecked some in files, unchecked all in one file, in memory/on disk)
+            // file open in memory with changes before search - make sure find/replace operates on (dirty) in-memory content
             // -- when we implement Replace in... from context menu:
             //      subtree search
             //      single file search (kind of already tested by Replace All in single file)
-            // subset of matches (unchecked some in files, unchecked all in one file, in memory/on disk)
-            // file open in memory with changes before search - make sure find/replace operates on (dirty) in-memory content
             
             describe("UI", function () {
                 function executeReplace(findText, replaceText, fromKeyboard) {
@@ -1267,15 +1267,11 @@ define(function (require, exports, module) {
                         });
                     });
 
-                    it("should set focus to the Replace field when the user hits enter in the Find field", function () {
+                    it("should start with focus in Find, and set focus to the Replace field when the user hits enter in the Find field", function () {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
-                        // A delay seems to be necessary here, possibly because focus can jump around asynchronously
-                        // when the modal bar first opens.
-                        // TODO: this test is still flaky. Need to figure out why it sometimes fails.
-                        waits(100);
                         runs(function () {
-                            $("#find-what").focus();
+                            expect($("#find-what").is(":focus")).toBe(true);
                             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#find-what").get(0));
                             expect($("#replace-with").is(":focus")).toBe(true);
                         });
