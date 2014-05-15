@@ -1186,9 +1186,9 @@ define(function (require, exports, module) {
             });
             
             // TODO: More things to test headlessly:
-            // subtree search
-            // single file search
-            // filters
+            // -- when we implement Replace in... from context menu:
+            //      subtree search
+            //      single file search (kind of already tested by Replace All in single file)
             // subset of matches (unchecked some in files, unchecked all in one file, in memory/on disk)
             // file open in memory with changes before search - make sure find/replace operates on (dirty) in-memory content
             
@@ -1612,10 +1612,78 @@ define(function (require, exports, module) {
                 });
                 // Untitled documents are covered in the "Search -> Replace All in untitled document" cases above.
 
-                // TODO: Test panel closing cases
-                // change document before search
-                // change file before search
-                // file open in memory during search with in-memory changes, but then closed and changes discarded before replace
+                describe("Panel closure on changes", function () {
+                    it("should close the panel and detach listeners if a file is modified on disk", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            expect($("#find-in-files-results").is(":visible")).toBe(true);
+                            waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "write", "changed content"));
+                        });
+                        runs(function () {
+                            expect($("#find-in-files-results").is(":visible")).toBe(false);
+                        });
+                    });
+
+                    it("should close the panel if a file is modified in memory", function () {
+                        openTestProjectCopy(defaultSourcePath);
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                        });
+                        openSearchBar(null, true);
+                        executeReplace("foo", "bar");
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+                        runs(function () {
+                            expect($("#find-in-files-results").is(":visible")).toBe(true);
+                            
+                            var doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
+                            expect(doc).toBeTruthy();
+                            doc.replaceRange("", {line: 0, ch: 0}, {line: 1, ch: 0});
+                            
+                            expect($("#find-in-files-results").is(":visible")).toBe(false);
+                        });
+                    });
+                    
+                    // TODO: this test fails because we don't get a change event for the closed document, since the
+                    // revert doesn't happen if it has no refs (and we don't ref it since we don't want to hang onto
+                    // documents).
+/*                    
+                    it("should close the panel if a document was open and modified before the search, but then the file was closed and changes dropped", function () {
+                        var doc;
+                        
+                        openTestProjectCopy(defaultSourcePath);
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.html" }), "open file");
+                        });
+                        runs(function () {
+                            doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
+                            expect(doc).toBeTruthy();
+                            doc.replaceRange("", {line: 0, ch: 0}, {line: 1, ch: 0});
+                        });
+                        openSearchBar(null, true);
+                        executeReplace("foo", "bar");
+                        waitsFor(function () {
+                            return FindInFiles._searchDone;
+                        }, "search finished");
+                        runs(function () {
+                            expect($("#find-in-files-results").is(":visible")).toBe(true);
+                            
+                            // We have to go through the dialog workflow for closing the file without saving changes,
+                            // because the "revert" behavior only happens in that workflow (it doesn't happen if you
+                            // do forceClose, since that's only intended as a shortcut for the end of a unit test).
+                            var closePromise = CommandManager.execute(Commands.FILE_CLOSE, { file: doc.file }),
+                                $dontSaveButton = $(".dialog-button[data-button-id='dontsave']");
+                            expect($dontSaveButton.length).toBe(1);
+                            $dontSaveButton.click();
+                            waitsForDone(closePromise);
+                        });
+                        runs(function () {
+                            expect($("#find-in-files-results").is(":visible")).toBe(false);
+                        });
+                    });
+*/
+                });
             });
         });
     });
