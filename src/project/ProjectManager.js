@@ -1664,7 +1664,7 @@ define(function (require, exports, module) {
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
-                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, 
+                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
