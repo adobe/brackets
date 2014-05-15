@@ -204,7 +204,7 @@ define(function (require, exports, module) {
         $statusOverwrite.text(newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT);
 
         if (!doNotAnimate) {
-            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash");
+            AnimationUtils.animateUsingClass($statusOverwrite[0], "flash", 1500);
         }
     }
 

@@ -31,6 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var Async   = require("utils/Async");
+    
     /**
      * Start an animation by adding the given class to the given target. When the
      * animation is complete, removes the class, clears the event handler we attach
@@ -40,9 +42,11 @@ define(function (require, exports, module) {
      * @param {string} animClass The class that applies the animation/transition to the target.
      * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
      */
-    function animateUsingClass(target, animClass) {
+    function animateUsingClass(target, animClass, timeoutDuration) {
         var result  = new $.Deferred(),
             $target = $(target);
+        
+        timeoutDuration = timeoutDuration || 1000;
         
         function finish(e) {
             if (e.target === target) {
@@ -63,6 +67,10 @@ define(function (require, exports, module) {
             $target
                 .addClass(animClass)
                 .on("webkitTransitionEnd", finish);
+            
+            // Use timeout in case transition never ends
+            Async.withTimeout(result.promise(), timeoutDuration)
+                .fail(result.reject);
         }
         
         return result.promise();
