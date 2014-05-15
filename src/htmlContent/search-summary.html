@@ -1,11 +1,13 @@
 {{#replace}}
 <div class="fixed-col"><input type="checkbox" class="check-all" {{#allChecked}}checked="checked"{{/allChecked}} /></div>
 {{/replace}}
-<div class="fixed-col">{{title1}}</div>
+<div class="fixed-col">{{titleLabel}} &quot;</div>
 <div class="contracting-col">{{query}}</div>
-<div class="fixed-col">{{title2}}</div>
+<div class="fixed-col">&quot;</div>
 {{#replace}}
+<div class="fixed-col">{{Strings.FIND_REPLACE_TITLE_WITH}} &quot;</div>
 <div class="contracting-col">{{replaceWith}}</div>
+<div class="fixed-col">&quot;</div>
 {{/replace}}
 {{#scope}}
 <div class="contracting-col">{{{scope}}}</div>

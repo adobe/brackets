@@ -155,12 +155,10 @@ define({
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
     // Find and Replace
-    "FIND_REPLACE_TITLE_PART1"          : "Replace \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" with \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {0} {1} {2} in {3}",
-    "FIND_TITLE_PART1"                  : "\"",
-    "FIND_TITLE_PART2"                  : "\" found",
-    "FIND_TITLE_PART3"                  : " &mdash; {0} {1} {2} in {3}",
+    "FIND_REPLACE_TITLE_LABEL"          : "Replace",
+    "FIND_REPLACE_TITLE_WITH"           : "with",
+    "FIND_TITLE_LABEL"                  : "Found",
+    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",

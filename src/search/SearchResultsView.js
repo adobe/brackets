@@ -269,19 +269,15 @@ define(function (require, exports, module) {
             filesStr,
             summary;
         
-        if (fileList.length === 1) {
-            filesStr = FileUtils.getBaseName(fileList[0]);
-        } else {
-            filesStr = StringUtils.format(
-                Strings.FIND_NUM_FILES,
-                count.files,
-                (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
-            );
-        }
+        filesStr = StringUtils.format(
+            Strings.FIND_NUM_FILES,
+            count.files,
+            (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+        );
         
         // This text contains some formatting, so all the strings are assumed to be already escaped
         summary = StringUtils.format(
-            this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART3 : Strings.FIND_TITLE_PART3,
+            Strings.FIND_TITLE_SUMMARY,
             this._model.foundMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
             (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
@@ -291,8 +287,7 @@ define(function (require, exports, module) {
         this._$summary.html(Mustache.render(searchSummaryTemplate, {
             query:       _.escape((this._model.queryInfo.query && this._model.queryInfo.query.toString()) || ""),
             replaceWith: _.escape(this._model.replaceText),
-            title1:      this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART1 : Strings.FIND_TITLE_PART1,
-            title2:      this._model.isReplace ? Strings.FIND_REPLACE_TITLE_PART2 : Strings.FIND_TITLE_PART2,
+            titleLabel:  this._model.isReplace ? Strings.FIND_REPLACE_TITLE_LABEL : Strings.FIND_TITLE_LABEL,
             scope:       this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
             summary:     summary,
             allChecked:  this._allChecked,
