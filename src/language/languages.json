@@ -148,7 +148,7 @@
     "clojure": {
         "name": "Clojure",
         "mode": "clojure",
-        "fileExtensions": ["clj"],
+        "fileExtensions": ["clj", "cljs", "cljx"],
         "lineComment": [";", ";;"]
     },
 
