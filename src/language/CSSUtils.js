@@ -84,6 +84,19 @@ define(function (require, exports, module) {
      * @return {boolean} true if the context is in property value
      */
     function _isInPropValue(ctx) {
+        
+        function isInsideParens(context) {
+            if (context.type !== "parens" || !context.prev) {
+                return false;
+            }
+                                                             
+            if (context.prev.type === "prop") {
+                return true;
+            }
+            
+            return isInsideParen(context.prev);
+        }
+        
         var state;
         if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
@@ -96,7 +109,7 @@ define(function (require, exports, module) {
         }
         return ((state.context.type === "prop" &&
                     (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
-                    (state.context.type === "parens" && state.context.prev.type === "prop"));
+                    isInsideParens(state.context));
     }
     
     /**
