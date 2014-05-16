@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         ImageHolderTemplate = require("text!htmlContent/image-holder.html"),
-        PanelManager        = require("view/PanelManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
         ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
      * the image viewer
      */
     function onRemove() {
-        $(PanelManager).off("editorAreaResize", _onEditorAreaResize);
+        $(WorkspaceManager).off("editorAreaResize", _onEditorAreaResize);
         $(DocumentManager).off("fileNameChange", _onFileNameChange);
         $("#img").off("mousemove", "#img-preview", _showImageTip)
                  .off("mouseleave", "#img-preview", _hideImageTip);
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
             $("#image-holder").show();
             
             // listen to resize to  update the scale sticker
-            $(PanelManager).on("editorAreaResize", _onEditorAreaResize);
+            $(WorkspaceManager).on("editorAreaResize", _onEditorAreaResize);
             
             // make sure we always show the right file name
             $(DocumentManager).on("fileNameChange", _onFileNameChange);

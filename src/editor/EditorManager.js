@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands            = require("command/Commands"),
-        PanelManager        = require("view/PanelManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -461,20 +461,20 @@ define(function (require, exports, module) {
 
     /**
      * Must be called whenever the size/visibility of editor area siblings is changed without going through
-     * PanelManager or Resizer. Resizable panels created via PanelManager do not require this manual call.
+     * WorkspaceManager or Resizer. Resizable panels created via WorkspaceManager do not require this manual call.
      */
     function resizeEditor() {
         if (!_editorHolder) {
             return;  // still too early during init
         }
-        // PanelManager computes the correct editor-holder size & calls us back with it, via _onEditorAreaResize()
-        PanelManager._notifyLayoutChange();
+        // WorkspaceManager computes the correct editor-holder size & calls us back with it, via _onEditorAreaResize()
+        WorkspaceManager._notifyLayoutChange();
     }
     
     /**
      * Update the current CodeMirror editor's size. Must be called any time the contents of the editor area
      * are swapped or any time the editor-holder area has changed height. EditorManager calls us in the swap
-     * case. PanelManager calls us in the most common height-change cases (panel and/or window resize), but
+     * case. WorkspaceManager calls us in the most common height-change cases (panel and/or window resize), but
      * some other cases are handled by external code calling resizeEditor() (e.g. ModalBar hide/show).
      * 
      * @param {number} editorAreaHt
@@ -560,7 +560,7 @@ define(function (require, exports, module) {
         
         // Resize and refresh the editor, since it might have changed size or had other edits applied
         // since it was last visible.
-        PanelManager._notifyLayoutChange(REFRESH_FORCE);
+        WorkspaceManager._notifyLayoutChange(REFRESH_FORCE);
     }
 
     /**
@@ -1051,7 +1051,7 @@ define(function (require, exports, module) {
     $(DocumentManager).on("workingSetRemove",      _onWorkingSetRemove);
     $(DocumentManager).on("workingSetRemoveList",  _onWorkingSetRemoveList);
     $(DocumentManager).on("fileNameChange",        _onFileNameChange);
-    $(PanelManager).on("editorAreaResize",         _onEditorAreaResize);
+    $(WorkspaceManager).on("editorAreaResize",         _onEditorAreaResize);
 
 
     // For unit tests and internal use only

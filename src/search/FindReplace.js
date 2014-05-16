@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         ModalBar            = require("widgets/ModalBar").ModalBar,
         KeyEvent            = require("utils/KeyEvent"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
-        PanelManager        = require("view/PanelManager"),
+        WorkspaceManager    = require("view/WorkspaceManager"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -892,7 +892,7 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var panelHtml        = Mustache.render(searchReplacePanelTemplate, Strings);
-        replaceAllPanel      = PanelManager.createBottomPanel("findReplace-all.panel", $(panelHtml), 100);
+        replaceAllPanel      = WorkspaceManager.createBottomPanel("findReplace-all.panel", $(panelHtml), 100);
         $replaceAllContainer = replaceAllPanel.$panel;
         $replaceAllWhat      = $replaceAllContainer.find(".replace-what");
         $replaceAllWith      = $replaceAllContainer.find(".replace-with");

@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
-        PanelManager            = require("view/PanelManager"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
         Menus                   = require("command/Menus"),
         ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
         this._dropdownEventHandler.open();
 
         window.document.body.addEventListener("click", this._onClickOutside, true);
-        $(PanelManager).on("editorAreaResize", this.closeDropdown);
+        $(WorkspaceManager).on("editorAreaResize", this.closeDropdown);
         
         // Manage focus
         this._lastFocus = window.document.activeElement;
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      */
     DropdownButton.prototype._onDropdownClose = function () {
         window.document.body.removeEventListener("click", this._onClickOutside, true);
-        $(PanelManager).off("editorAreaResize", this.closeDropdown);
+        $(WorkspaceManager).off("editorAreaResize", this.closeDropdown);
 
         // Restore focus to old pos, unless "select" handler changed it
         if (window.document.activeElement === this.$dropdown[0]) {

@@ -26,7 +26,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PanelManager        = require("view/PanelManager"),
+    var WorkspaceManager        = require("view/WorkspaceManager"),
         EditorManager       = require("editor/EditorManager");
     
     function _onWorkspaceAreaResize(event, editorAreaHt, refreshFlag) {
@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     }
     
     
-    $(PanelManager).on("workspaceAreaResize",  _onWorkspaceAreaResize);
+    $(WorkspaceManager).on("workspaceAreaResize",  _onWorkspaceAreaResize);
     
     // Define public API
     /* 
