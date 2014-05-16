@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                 return true;
             }
             
-            return isInsideParen(context.prev);
+            return isInsideParens(context.prev);
         }
         
         var state;
