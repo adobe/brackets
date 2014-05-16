@@ -408,6 +408,10 @@ define(function (require, exports, module) {
             }, function (err) {
                 console.log("find in files failed: ", err);
                 PerfUtils.finalizeMeasurement(perfTimer);
+                
+                // In jQuery promises, returning the error here propagates the rejection,
+                // unlike in Promises/A, where we would need to re-throw it to do so.
+                return err;
             });
     }
     
