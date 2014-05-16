@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-eslint', 'eslint-json']});
     grunt.loadTasks('tasks');
 
     var common = require("./tasks/lib/common")(grunt);
@@ -290,6 +290,14 @@ module.exports = function (grunt) {
             options: {
                 jshintrc: '.jshintrc'
             }
+        },
+        eslint: {                                // task
+            options: {
+                config: 'config/eslint.json',        // custom config
+                rulesdir: 'config/eslint-rules'            // custom rules
+                // format: require('eslint-json')
+            },
+            target: ['<%= meta.src %>']                    // array of files
         },
         shell: {
             repo: grunt.option("shell-repo") || "../brackets-shell",

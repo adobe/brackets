@@ -1,0 +1,25 @@
+{
+    "env": {
+        "browser": false,
+        "node": true,
+        "amd": true
+    },
+    "rules": {
+        no-underscore-dangle: false,
+        no-unused-vars: true,
+        quotes: "double",
+        camelcase: false,
+        consistent-return: false,
+        no-undef: true,
+        no-mixed-requires: true,
+        handle-callback-err: true,
+        no-shadow: true,
+        no-extra-strict: false,
+        no-constant-condition: true,
+        no-alert: true,
+        no-use-before-define: true,
+        no-yoda: false,
+        new-cap: true,
+        deferred-without-new: 1
+    }
+}
