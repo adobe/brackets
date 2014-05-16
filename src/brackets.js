@@ -124,7 +124,7 @@ define(function (require, exports, module) {
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
     require("help/HelpCommandHandlers");
-    require("search/FindInFiles");
+    require("search/FindInFilesUI");
     require("search/FindReplace");
     require("extensibility/InstallExtensionDialog");
     require("extensibility/ExtensionManagerDialog");
