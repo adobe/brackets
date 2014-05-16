@@ -1713,10 +1713,6 @@ define(function (require, exports, module) {
                         });
                     });
                     
-                    // TODO: this test fails because we don't get a change event for the closed document, since the
-                    // revert doesn't happen if it has no refs (and we don't ref it since we don't want to hang onto
-                    // documents).
-/*                    
                     it("should close the panel if a document was open and modified before the search, but then the file was closed and changes dropped", function () {
                         var doc;
                         
@@ -1750,7 +1746,6 @@ define(function (require, exports, module) {
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
                         });
                     });
-*/
                 });
             });
         });

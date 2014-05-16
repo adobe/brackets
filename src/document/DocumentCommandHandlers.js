@@ -666,10 +666,13 @@ define(function (require, exports, module) {
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileSystemError if the
-     *      file cannot be read (after showing an error dialog to the user).
+     * @param {boolean=} suppressError If true, then a failure to read the file will be ignored and the
+     *      resulting promise will be resolved rather than rejected.
+     * @return {$.Promise} a Promise that's resolved when done, or (if suppressError is false) 
+     *      rejected with a FileSystemError if the file cannot be read (after showing an error 
+     *      dialog to the user).
      */
-    function doRevert(doc) {
+    function doRevert(doc, suppressError) {
         var result = new $.Deferred();
         
         FileUtils.readAsText(doc.file)
@@ -678,10 +681,14 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error, doc.file.fullPath)
-                    .done(function () {
-                        result.reject(error);
-                    });
+                if (suppressError) {
+                    result.resolve();
+                } else {
+                    FileUtils.showFileOpenError(error, doc.file.fullPath)
+                        .done(function () {
+                            result.reject(error);
+                        });
+                }
             });
         
         return result.promise();
@@ -1070,13 +1077,19 @@ define(function (require, exports, module) {
                         // copy of whatever's on disk.
                         doClose(file);
                         
-                        // Only reload from disk if we've executed the Close for real,
-                        // *and* if at least one other view still exists
-                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                            doRevert(doc)
-                                .then(result.resolve, result.reject);
-                        } else {
+                        // Only reload from disk if we've executed the Close for real.
+                        if (promptOnly) {
                             result.resolve();
+                        } else {
+                            // Even if there are no listeners attached to the document at this point, we want
+                            // to do the revert anyway, because clients who are listening to the global documentChange
+                            // event from the Document module (rather than attaching to the document directly),
+                            // such as the Find in Files panel, should get a change event. However, in that case,
+                            // we want to ignore errors during the revert, since we don't want a failed revert
+                            // to throw a dialog if the document isn't actually open in the UI.
+                            var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
+                            doRevert(doc, suppressError)
+                                .then(result.resolve, result.reject);
                         }
                     }
                 });
