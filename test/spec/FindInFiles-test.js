@@ -117,7 +117,6 @@ define(function (require, exports, module) {
                 return $(".modal-bar").length === 1;
             }, "search bar open");
             runs(function () {
-                var $oldFocus = $(".modal-bar").find(":focus");
                 // Reset the regexp and case-sensitivity toggles.
                 ["#find-regexp", "#find-case-sensitive"].forEach(function (button) {
                     if ($(button).is(".active")) {
@@ -125,7 +124,6 @@ define(function (require, exports, module) {
                         expect($(button).is(".active")).toBe(false);
                     }
                 });
-                $oldFocus.focus();
             });
         }
         
@@ -666,10 +664,10 @@ define(function (require, exports, module) {
                 });
             }
             
+            // Creates a clean copy of the test project before each test. We don't delete the old
+            // folders as we go along (to avoid problems with deleting the project out from under the
+            // open test window); we just delete the whole temp folder at the end.
             function openTestProjectCopy(sourcePath, lineEndings) {
-                // Create a clean copy of the test project before each test. We don't delete the old
-                // folders as we go along (to avoid problems with deleting the project out from under the
-                // open test window); we just delete the whole temp folder at the end.
                 testPath = SpecRunnerUtils.getTempDirectory() + "/find-in-files-test-" + (nextFolderIndex++);
                 runs(function () {
                     if (lineEndings) {
@@ -730,14 +728,26 @@ define(function (require, exports, module) {
             }
             
             // Does a standard test for files on disk: search, replace, and check that files on disk match.
+            // Options:
+            //      knownGoodFolder: name of folder containing known goods to match to project files on disk
+            //      lineEndings: optional, one of the FileUtils.LINE_ENDINGS_* constants
+            //          - if specified, files on disk are expected to have these line endings
+            //      uncheckMatches: optional array of {file: string, index: number} items to uncheck; if
+            //          index unspecified, will uncheck all matches in file
             function doBasicTest(options) {
                 doSearch(options);
                 
                 runs(function () {
                     if (options.uncheckMatches) {
-                        var pathToUncheck = testPath + options.uncheckMatches;
-                        searchResults[pathToUncheck].matches.forEach(function (match) {
-                            match.isChecked = false;
+                        options.uncheckMatches.forEach(function (matchToUncheck) {
+                            var matches = searchResults[testPath + matchToUncheck.file].matches;
+                            if (matchToUncheck.index) {
+                                matches[matchToUncheck.index].isChecked = false;
+                            } else {
+                                matches.forEach(function (match) {
+                                    match.isChecked = false;
+                                });
+                            }
                         });
                     }
                     waitsForDone(doReplace(options), "finish replacement");
@@ -746,6 +756,10 @@ define(function (require, exports, module) {
             }
             
             // Like doBasicTest, but expects some files to have specific errors.
+            // Options: same as doBasicTest, plus:
+            //      test: optional function (which must contain one or more runs blocks) to run between
+            //          search and replace
+            //      errors: array of errors expected to occur (in the same format as performReplacement() returns)
             function doTestWithErrors(options) {
                 var done = false;
                 
@@ -798,6 +812,9 @@ define(function (require, exports, module) {
             }
             
             // Like doBasicTest, but expects one or more files to be open in memory and the replacements to happen there.
+            // Options: same as doBasicTest, plus:
+            //      inMemoryFiles: array of project-relative paths (each starting with "/") to files that should be open in memory
+            //      inMemoryKGFolder: folder containing known goods to compare each of the inMemoryFiles to
             function doInMemoryTest(options) {
                 // Like the basic test, we expect everything on disk to match the kgFolder (which means the file open in memory
                 // should *not* have changed on disk yet).
@@ -815,414 +832,436 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should replace all instances of a simple string in a project on disk case-insensitively", function () {
-                openTestProjectCopy(defaultSourcePath);
-                doBasicTest({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar",
-                    knownGoodFolder: "simple-case-insensitive"
-                });
-            });
-
-            it("should replace all instances of a simple string in a project on disk case-sensitively", function () {
-                openTestProjectCopy(defaultSourcePath);
-                doBasicTest({
-                    queryInfo:       {query: "foo", isCaseSensitive: true},
-                    numMatches:      9,
-                    replaceText:     "bar",
-                    knownGoodFolder: "simple-case-sensitive"
-                });
-            });
-            
-            it("should replace all instances of a regexp in a project on disk case-insensitively with a simple replace string", function () {
-                openTestProjectCopy(defaultSourcePath);
-                doBasicTest({
-                    queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true},
-                    numMatches:      33,
-                    replaceText:     "CHANGED",
-                    knownGoodFolder: "regexp-case-insensitive"
-                });
-            });
-            
-            it("should replace all instances of a regexp in a project on disk case-sensitively with a simple replace string", function () {
-                openTestProjectCopy(defaultSourcePath);
-                doBasicTest({
-                    queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true, isCaseSensitive: true},
-                    numMatches:      25,
-                    replaceText:     "CHANGED",
-                    knownGoodFolder: "regexp-case-sensitive"
-                });
-            });
-            
-            it("should replace instances of a regexp with a $-substitution on disk", function () {
-                openTestProjectCopy(defaultSourcePath);
-                doBasicTest({
-                    queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
-                    numMatches:      33,
-                    replaceText:     "[$1]",
-                    knownGoodFolder: "regexp-dollar-replace"
-                });
-            });
-            
-            it("should replace instances of a regexp with a $-substitution in in-memory files", function () {
-                // This test case is necessary because the in-memory case goes through a separate code path before it deals with
-                // the replace text.
-                openTestProjectCopy(defaultSourcePath);
-
-                doInMemoryTest({
-                    queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
-                    numMatches:      33,
-                    replaceText:     "[$1]",
-                    knownGoodFolder:   "unchanged",
-                    forceFilesOpen:    true,
-                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                    inMemoryKGFolder:  "regexp-dollar-replace"
-                });
-            });
-
-            it("should replace instances of a string in a project respecting CRLF line endings", function () {
-                openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
-                doBasicTest({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar",
-                    knownGoodFolder: "simple-case-insensitive",
-                    lineEndings:     FileUtils.LINE_ENDINGS_CRLF
-                });
-            });
-
-            it("should replace instances of a string in a project respecting LF line endings", function () {
-                openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_LF);
-                doBasicTest({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar",
-                    knownGoodFolder: "simple-case-insensitive",
-                    lineEndings:     FileUtils.LINE_ENDINGS_LF
-                });
-            });
-            
-            it("should not replace unchecked matches on disk", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                doBasicTest({
-                    queryInfo:         {query: "foo"},
-                    numMatches:        14,
-                    uncheckMatches:    "/css/foo.css",
-                    replaceText:       "bar",
-                    knownGoodFolder:   "simple-case-insensitive-except-foo.css"
-                });
-            });
-
-            it("should do all in-memory replacements synchronously, so user can't accidentally edit document after start of replace process", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                // Open two of the documents we want to replace in memory.
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
-                });
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "opening document");
-                });
-                
-                // We can't use expectInMemoryFiles(), since this test requires everything to happen fully synchronously
-                // (no file reads) once the replace has started. So we read the files here.
-                var kgFileContents = {};
-                runs(function () {
-                    var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/simple-case-insensitive");
-                    waitsForDone(visitAndProcessFiles(kgPath, function (contents, fullPath) {
-                        // Translate line endings to in-memory document style (always LF)
-                        kgFileContents[fullPath.slice(kgPath.length)] = FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF);
-                    }), "reading known good");
-                });
-                
-                doSearch({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar"
-                });
-                
-                runs(function () {
-                    // Start the replace, but don't wait for it to complete. Since the in-memory replacements should occur
-                    // synchronously, the in-memory documents should have already been changed. This means we don't have to
-                    // worry about detecting changes in documents once the replace starts. (If the user had  changed
-                    // the document after the search but before the replace started, we would have already closed the panel,
-                    // preventing the user from doing a replace.)
-                    var promise = FindInFiles.doReplace(searchResults, "bar");
-                    
-                    // Check the in-memory contents against the known goods.
-                    ["/css/foo.css", "/foo.js"].forEach(function (filename) {
-                        var fullPath = testPath + filename,
-                            doc = DocumentManager.getOpenDocumentForPath(fullPath);
-                        expect(doc).toBeTruthy();
-                        expect(doc.isDirty).toBe(true);
-                        expect(doc.getText()).toEqual(kgFileContents[filename]);
+            describe("Engine", function () {
+                it("should replace all instances of a simple string in a project on disk case-insensitively", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-case-insensitive"
                     });
-                    
-                    // Finish the replace operation, which should go ahead and do the file on disk.
-                    waitsForDone(promise);
                 });
-                
-                runs(function () {
-                    // Now the file on disk should have been replaced too.
-                    waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "read").then(function (contents) {
-                        expect(FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF)).toEqual(kgFileContents["/foo.html"]);
-                    }), "checking known good");
+
+                it("should replace all instances of a simple string in a project on disk case-sensitively", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "foo", isCaseSensitive: true},
+                        numMatches:      9,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-case-sensitive"
+                    });
                 });
-            });
-            
-            it("should return an error and not do the replacement in files that have changed on disk since the search", function () {
-                openTestProjectCopy(defaultSourcePath);
-                doTestWithErrors({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar",
-                    knownGoodFolder: "changed-file",
-                    test: function () {
-                        // Wait for one second to make sure that the changed file gets an updated timestamp.
-                        // TODO: this seems like a FileSystem issue - we don't get timestamp changes with a resolution
-                        // of less than one second.
-                        waits(1000);
-                        
-                        runs(function () {
-                            // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
-                            // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
-                            // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
-                            // file on disk anyway.
-                            searchResults = _.cloneDeep(searchResults);
-                            waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
+
+                it("should replace all instances of a regexp in a project on disk case-insensitively with a simple replace string", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true},
+                        numMatches:      33,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder: "regexp-case-insensitive"
+                    });
+                });
+
+                it("should replace all instances of a regexp in a project on disk case-sensitively with a simple replace string", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "\\b[a-z]{3}\\b", isRegexp: true, isCaseSensitive: true},
+                        numMatches:      25,
+                        replaceText:     "CHANGED",
+                        knownGoodFolder: "regexp-case-sensitive"
+                    });
+                });
+
+                it("should replace instances of a regexp with a $-substitution on disk", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
+                        numMatches:      33,
+                        replaceText:     "[$1]",
+                        knownGoodFolder: "regexp-dollar-replace"
+                    });
+                });
+
+                it("should replace instances of a regexp with a $-substitution in in-memory files", function () {
+                    // This test case is necessary because the in-memory case goes through a separate code path before it deals with
+                    // the replace text.
+                    openTestProjectCopy(defaultSourcePath);
+
+                    doInMemoryTest({
+                        queryInfo:       {query: "\\b([a-z]{3})\\b", isRegexp: true},
+                        numMatches:      33,
+                        replaceText:     "[$1]",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "regexp-dollar-replace"
+                    });
+                });
+
+                it("should replace instances of a string in a project respecting CRLF line endings", function () {
+                    openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
+                    doBasicTest({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-case-insensitive",
+                        lineEndings:     FileUtils.LINE_ENDINGS_CRLF
+                    });
+                });
+
+                it("should replace instances of a string in a project respecting LF line endings", function () {
+                    openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_LF);
+                    doBasicTest({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-case-insensitive",
+                        lineEndings:     FileUtils.LINE_ENDINGS_LF
+                    });
+                });
+
+                it("should not replace unchecked matches on disk", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    doBasicTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        uncheckMatches:    [{file: "/css/foo.css"}],
+                        replaceText:       "bar",
+                        knownGoodFolder:   "simple-case-insensitive-except-foo.css"
+                    });
+                });
+
+                it("should do all in-memory replacements synchronously, so user can't accidentally edit document after start of replace process", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    // Open two of the documents we want to replace in memory.
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                    });
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/foo.js" }), "opening document");
+                    });
+
+                    // We can't use expectInMemoryFiles(), since this test requires everything to happen fully synchronously
+                    // (no file reads) once the replace has started. So we read the files here.
+                    var kgFileContents = {};
+                    runs(function () {
+                        var kgPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/simple-case-insensitive");
+                        waitsForDone(visitAndProcessFiles(kgPath, function (contents, fullPath) {
+                            // Translate line endings to in-memory document style (always LF)
+                            kgFileContents[fullPath.slice(kgPath.length)] = FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF);
+                        }), "reading known good");
+                    });
+
+                    doSearch({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar"
+                    });
+
+                    runs(function () {
+                        // Start the replace, but don't wait for it to complete. Since the in-memory replacements should occur
+                        // synchronously, the in-memory documents should have already been changed. This means we don't have to
+                        // worry about detecting changes in documents once the replace starts. (If the user had  changed
+                        // the document after the search but before the replace started, we would have already closed the panel,
+                        // preventing the user from doing a replace.)
+                        var promise = FindInFiles.doReplace(searchResults, "bar");
+
+                        // Check the in-memory contents against the known goods.
+                        ["/css/foo.css", "/foo.js"].forEach(function (filename) {
+                            var fullPath = testPath + filename,
+                                doc = DocumentManager.getOpenDocumentForPath(fullPath);
+                            expect(doc).toBeTruthy();
+                            expect(doc.isDirty).toBe(true);
+                            expect(doc.getText()).toEqual(kgFileContents[filename]);
                         });
-                    },
-                    errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
-                });
-            });
-            
-            it("should return an error if a write fails", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                // Return a fake error when we try to write to the CSS file. (Note that this is spying on the test window's File module.)
-                var writeSpy = spyOn(File.prototype, "write").andCallFake(function (data, options, callback) {
-                    if (typeof options === "function") {
-                        callback = options;
-                    } else {
-                        callback = callback || function () {};
-                    }
-                    if (this.fullPath === testPath + "/css/foo.css") {
-                        callback(FileSystemError.NOT_WRITABLE);
-                    } else {
-                        return writeSpy.originalValue.apply(this, arguments);
-                    }
-                });
-                
-                doTestWithErrors({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar",
-                    knownGoodFolder: "simple-case-insensitive-except-foo.css",
-                    errors:          [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
-                });
-            });
-            
-            it("should return an error if a match timestamp doesn't match an in-memory document timestamp", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
-                });
-                
-                doTestWithErrors({
-                    queryInfo:       {query: "foo"},
-                    numMatches:      14,
-                    replaceText:     "bar",
-                    knownGoodFolder: "simple-case-insensitive-except-foo.css",
-                    test: function () {
-                        runs(function () {
-                            // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
-                            // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
-                            // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
-                            // file on disk anyway.
-                            searchResults = _.cloneDeep(searchResults);
-                            var oldTimestamp = searchResults[testPath + "/css/foo.css"].timestamp;
-                            searchResults[testPath + "/css/foo.css"].timestamp = new Date(oldTimestamp.getTime() - 5000);
-                        });
-                    },
-                    errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
-                });
-            });
 
-            it("should do the replacement in memory for a file open in an Editor in the working set", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
-                });
-                
-                doInMemoryTest({
-                    queryInfo:        {query: "foo"},
-                    numMatches:       14,
-                    replaceText:      "bar",
-                    knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                    inMemoryFiles:    ["/css/foo.css"],
-                    inMemoryKGFolder: "simple-case-insensitive"
-                });
-            });
-            
-            it("should do the search/replace in the current document content for a dirty in-memory document", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                var options = {
-                    queryInfo:        {query: "foo"},
-                    numMatches:       15,
-                    replaceText:      "bar",
-                    inMemoryFiles:    ["/css/foo.css"],
-                    inMemoryKGFolder: "simple-case-insensitive-modified"
-                };
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
-                });
-                runs(function () {
-                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/css/foo.css");
-                    expect(doc).toBeTruthy();
-                    doc.replaceRange("/* added a foo line */\n", {line: 0, ch: 0});
-                });
-                doSearch(options);
-                runs(function () {
-                    waitsForDone(doReplace(options), "replace done");
-                });
-                expectInMemoryFiles(options);
-                expectProjectToMatchKnownGood("simple-case-insensitive-modified", null, [testPath + "/css/foo.css"]);
-            });
-            
-            it("should do the replacement in memory for a file open in an Editor that's not in the working set", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/css/foo.css"}), "open file");
-                });
-                
-                doInMemoryTest({
-                    queryInfo:        {query: "foo"},
-                    numMatches:       14,
-                    replaceText:      "bar",
-                    knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                    inMemoryFiles:    ["/css/foo.css"],
-                    inMemoryKGFolder: "simple-case-insensitive"
-                });
-            });
-            
-            it("should open the document in an editor and do the replacement there if the document is open but not in an Editor", function () {
-                var doc, openFilePath;
-                openTestProjectCopy(defaultSourcePath);
+                        // Finish the replace operation, which should go ahead and do the file on disk.
+                        waitsForDone(promise);
+                    });
 
-                runs(function () {
-                    openFilePath = testPath + "/css/foo.css";
-                    waitsForDone(DocumentManager.getDocumentForPath(openFilePath).done(function (d) {
-                        doc = d;
-                        doc.addRef();
-                    }), "get document");
-                });
-                    
-                doInMemoryTest({
-                    queryInfo:        {query: "foo"},
-                    numMatches:       14,
-                    replaceText:      "bar",
-                    knownGoodFolder:  "simple-case-insensitive-except-foo.css",
-                    inMemoryFiles:    ["/css/foo.css"],
-                    inMemoryKGFolder: "simple-case-insensitive"
-                });
-                
-                runs(function () {
-                    var workingSet = DocumentManager.getWorkingSet();
-                    expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
-                    doc.releaseRef();
-                });
-            });
-            
-            it("should open files and do all replacements in memory if forceFilesOpen is true", function () {
-                openTestProjectCopy(defaultSourcePath);
-
-                doInMemoryTest({
-                    queryInfo:         {query: "foo"},
-                    numMatches:        14,
-                    replaceText:       "bar",
-                    knownGoodFolder:   "unchanged",
-                    forceFilesOpen:    true,
-                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                    inMemoryKGFolder:  "simple-case-insensitive"
-                });
-            });
-            
-            it("should select the first modified file in the working set if replacements are done in memory and current editor wasn't affected", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/bar.txt"}), "open file");
+                    runs(function () {
+                        // Now the file on disk should have been replaced too.
+                        waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "read").then(function (contents) {
+                            expect(FileUtils.translateLineEndings(contents, FileUtils.LINE_ENDINGS_LF)).toEqual(kgFileContents["/foo.html"]);
+                        }), "checking known good");
+                    });
                 });
 
-                doInMemoryTest({
-                    queryInfo:         {query: "foo"},
-                    numMatches:        14,
-                    replaceText:       "bar",
-                    knownGoodFolder:   "unchanged",
-                    forceFilesOpen:    true,
-                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                    inMemoryKGFolder:  "simple-case-insensitive"
-                });
-                
-                runs(function () {
-                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
-                });
-            });
-            
-            it("should select the first modified file in the working set if replacements are done in memory and no editor was open", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                doInMemoryTest({
-                    queryInfo:         {query: "foo"},
-                    numMatches:        14,
-                    replaceText:       "bar",
-                    knownGoodFolder:   "unchanged",
-                    forceFilesOpen:    true,
-                    inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
-                    inMemoryKGFolder:  "simple-case-insensitive"
-                });
-                
-                runs(function () {
-                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
-                });
-            });
-            
-            it("should select the first modified file in the working set if replacements are done in memory and there were no matches checked for current editor", function () {
-                openTestProjectCopy(defaultSourcePath);
-                
-                runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "open file");
+                it("should return an error and not do the replacement in files that have changed on disk since the search", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doTestWithErrors({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar",
+                        knownGoodFolder: "changed-file",
+                        test: function () {
+                            // Wait for one second to make sure that the changed file gets an updated timestamp.
+                            // TODO: this seems like a FileSystem issue - we don't get timestamp changes with a resolution
+                            // of less than one second.
+                            waits(1000);
+
+                            runs(function () {
+                                // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
+                                // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                                // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
+                                // file on disk anyway.
+                                searchResults = _.cloneDeep(searchResults);
+                                waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/css/foo.css"), "write", "/* changed content */"), "modify file");
+                            });
+                        },
+                        errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
+                    });
                 });
 
-                doInMemoryTest({
-                    queryInfo:         {query: "foo"},
-                    numMatches:        14,
-                    uncheckMatches:    "/css/foo.css",
-                    replaceText:       "bar",
-                    knownGoodFolder:   "unchanged",
-                    forceFilesOpen:    true,
-                    inMemoryFiles:     ["/foo.html", "/foo.js"],
-                    inMemoryKGFolder:  "simple-case-insensitive-except-foo.css"
+                it("should return an error if a write fails", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    // Return a fake error when we try to write to the CSS file. (Note that this is spying on the test window's File module.)
+                    var writeSpy = spyOn(File.prototype, "write").andCallFake(function (data, options, callback) {
+                        if (typeof options === "function") {
+                            callback = options;
+                        } else {
+                            callback = callback || function () {};
+                        }
+                        if (this.fullPath === testPath + "/css/foo.css") {
+                            callback(FileSystemError.NOT_WRITABLE);
+                        } else {
+                            return writeSpy.originalValue.apply(this, arguments);
+                        }
+                    });
+
+                    doTestWithErrors({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                        errors:          [{item: testPath + "/css/foo.css", error: FileSystemError.NOT_WRITABLE}]
+                    });
+                });
+
+                it("should return an error if a match timestamp doesn't match an in-memory document timestamp", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: testPath + "/css/foo.css" }), "opening document");
+                    });
+
+                    doTestWithErrors({
+                        queryInfo:       {query: "foo"},
+                        numMatches:      14,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-case-insensitive-except-foo.css",
+                        test: function () {
+                            runs(function () {
+                                // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
+                                // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                                // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
+                                // file on disk anyway.
+                                searchResults = _.cloneDeep(searchResults);
+                                var oldTimestamp = searchResults[testPath + "/css/foo.css"].timestamp;
+                                searchResults[testPath + "/css/foo.css"].timestamp = new Date(oldTimestamp.getTime() - 5000);
+                            });
+                        },
+                        errors:          [{item: testPath + "/css/foo.css", error: FindUtils.ERROR_FILE_CHANGED}]
+                    });
+                });
+
+                it("should do the replacement in memory for a file open in an Editor in the working set", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:        {query: "foo"},
+                        numMatches:       14,
+                        replaceText:      "bar",
+                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+
+                it("should do the search/replace in the current document content for a dirty in-memory document", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    var options = {
+                        queryInfo:        {query: "foo"},
+                        numMatches:       15,
+                        replaceText:      "bar",
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "simple-case-insensitive-modified"
+                    };
+
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "add file to working set");
+                    });
+                    runs(function () {
+                        var doc = DocumentManager.getOpenDocumentForPath(testPath + "/css/foo.css");
+                        expect(doc).toBeTruthy();
+                        doc.replaceRange("/* added a foo line */\n", {line: 0, ch: 0});
+                    });
+                    doSearch(options);
+                    runs(function () {
+                        waitsForDone(doReplace(options), "replace done");
+                    });
+                    expectInMemoryFiles(options);
+                    expectProjectToMatchKnownGood("simple-case-insensitive-modified", null, [testPath + "/css/foo.css"]);
+                });
+
+                it("should do the replacement in memory for a file open in an Editor that's not in the working set", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/css/foo.css"}), "open file");
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:        {query: "foo"},
+                        numMatches:       14,
+                        replaceText:      "bar",
+                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+                });
+
+                it("should open the document in an editor and do the replacement there if the document is open but not in an Editor", function () {
+                    var doc, openFilePath;
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        openFilePath = testPath + "/css/foo.css";
+                        waitsForDone(DocumentManager.getDocumentForPath(openFilePath).done(function (d) {
+                            doc = d;
+                            doc.addRef();
+                        }), "get document");
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:        {query: "foo"},
+                        numMatches:       14,
+                        replaceText:      "bar",
+                        knownGoodFolder:  "simple-case-insensitive-except-foo.css",
+                        inMemoryFiles:    ["/css/foo.css"],
+                        inMemoryKGFolder: "simple-case-insensitive"
+                    });
+
+                    runs(function () {
+                        var workingSet = DocumentManager.getWorkingSet();
+                        expect(workingSet.some(function (file) { return file.fullPath === openFilePath; })).toBe(true);
+                        doc.releaseRef();
+                    });
+                });
+
+                it("should open files and do all replacements in memory if forceFilesOpen is true", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    doInMemoryTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        replaceText:       "bar",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "simple-case-insensitive"
+                    });
+                });
+
+                it("should not perform unchecked matches in memory", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    doInMemoryTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        uncheckMatches:    [{file: "/css/foo.css", index: 1}, {file: "/foo.html", index: 3}],
+                        replaceText:       "bar",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "simple-case-insensitive-unchecked"
+                    });
+                });
+            
+                it("should not perform unchecked matches on disk", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    doBasicTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        uncheckMatches:    [{file: "/css/foo.css", index: 1}, {file: "/foo.html", index: 3}],
+                        replaceText:       "bar",
+                        knownGoodFolder:   "simple-case-insensitive-unchecked"
+                    });
                 });
                 
-                runs(function () {
-                    expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/foo.html");
+                it("should select the first modified file in the working set if replacements are done in memory and current editor wasn't affected", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/bar.txt"}), "open file");
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        replaceText:       "bar",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "simple-case-insensitive"
+                    });
+
+                    runs(function () {
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                    });
+                });
+
+                it("should select the first modified file in the working set if replacements are done in memory and no editor was open", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    doInMemoryTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        replaceText:       "bar",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "simple-case-insensitive"
+                    });
+
+                    runs(function () {
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                    });
+                });
+
+                it("should select the first modified file in the working set if replacements are done in memory and there were no matches checked for current editor", function () {
+                    openTestProjectCopy(defaultSourcePath);
+
+                    runs(function () {
+                        waitsForDone(CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/css/foo.css"}), "open file");
+                    });
+
+                    doInMemoryTest({
+                        queryInfo:         {query: "foo"},
+                        numMatches:        14,
+                        uncheckMatches:    [{file: "/css/foo.css"}],
+                        replaceText:       "bar",
+                        knownGoodFolder:   "unchanged",
+                        forceFilesOpen:    true,
+                        inMemoryFiles:     ["/foo.html", "/foo.js"],
+                        inMemoryKGFolder:  "simple-case-insensitive-except-foo.css"
+                    });
+
+                    runs(function () {
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/foo.html");
+                    });
                 });
             });
-            
-            // TODO: More things to test headlessly:
-            // subset of matches (unchecked some in files, unchecked all in one file, in memory/on disk)
-            // file open in memory with changes before search - make sure find/replace operates on (dirty) in-memory content
-            // -- when we implement Replace in... from context menu:
-            //      subtree search
-            //      single file search (kind of already tested by Replace All in single file)
             
             describe("UI", function () {
                 function executeReplace(findText, replaceText, fromKeyboard) {
@@ -1303,9 +1342,10 @@ define(function (require, exports, module) {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
                         runs(function () {
-                            expect($("#find-what").is(":focus")).toBe(true);
+                            // For some reason using $().is(":focus") here is flaky.
+                            expect(testWindow.document.activeElement).toBe($("#find-what").get(0));
                             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $("#find-what").get(0));
-                            expect($("#replace-with").is(":focus")).toBe(true);
+                            expect(testWindow.document.activeElement).toBe($("#replace-with").get(0));
                         });
                     });
                 });
