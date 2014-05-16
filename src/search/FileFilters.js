@@ -171,8 +171,6 @@ define(function (require, exports, module) {
             // Explicitly set to -1 to remove the active file filter
             PreferencesManager.setViewState("activeFileFilter", -1);
         }
-        
-        _updatePicker();
     }
     
     
@@ -310,6 +308,7 @@ define(function (require, exports, module) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
                 setLastFilter({ name: $nameField.val(), patterns: getValue() }, index);
+                _updatePicker();
                 _doPopulate();
             }
             lastFocus.focus();  // restore focus to old po
@@ -359,6 +358,19 @@ define(function (require, exports, module) {
      * @param {!jQueryObject} $dropdown the jQuery DOM node of the dropdown list
      */
     function _handleListEvents(event, $dropdown) {
+
+        function adjustSuccedingFilters(removedFilterIndex) {
+            $dropdown.children().each(function () {
+                var index = $(".stylesheet-link", this).data("index");
+                if (index > removedFilterIndex) {
+                    if (index === removedFilterIndex + 1) {
+                        $(this).find("a").addClass("selected");
+                    }
+                    $(".stylesheet-link", this).data("index", index - 1);
+                }
+            });
+        }
+        
         $dropdown.find(".filter-trash-icon")
             .on("click", function (e) {
                 // Remove the filter set from the preferences and 
@@ -373,16 +385,28 @@ define(function (require, exports, module) {
                 filterSets.splice(filterIndex, 1);
                 PreferencesManager.set("fileFilters", filterSets);
 
-                if (activeFilterIndex === filterIndex) {
-                    // Removing the active filter, so clear the active filter 
-                    // both in the view state and the picker button label.
-                    setLastFilter();
-                }
-                
                 _doPopulate();
                 
                 // Explicitly remove the list item to refresh the dropdown menu
                 $(this).closest("li").remove();
+                
+                if (filterSets.length === 0) {
+                    $dropdown.find(".divider").remove();
+                }
+
+                if (activeFilterIndex === filterIndex) {
+                    // Removing the active filter, so clear the active filter 
+                    // both in the view state and the picker button label.
+                    setLastFilter();
+                } else if (activeFilterIndex > filterIndex) {
+                    // Adjust the active filter index after the removal of a filter set before it.
+                    setLastFilter(filterSets[--activeFilterIndex], activeFilterIndex);
+                }
+
+                // Also adjust the data-index of all filter sets in the dropdown that are after the deleted one
+                adjustSuccedingFilters(filterIndex + FIRST_FILTER_INDEX);
+                
+                _updatePicker();
             });
         
         $dropdown.find(".filter-edit-icon")
@@ -415,12 +439,8 @@ define(function (require, exports, module) {
 
         function itemRenderer(item, index) {
             if (index < FIRST_FILTER_INDEX) {
-                if (index === FIRST_FILTER_INDEX - 1) {
-                    // Return an empty string for the divider
-                    return "";
-                }
                 // Prefix the two filter commands with 'recent-filter-name' so that
-                // they also get the same padding-left as the actual filters.
+                // they also get the same margin-left as the actual filters.
                 return "<span class='recent-filter-name'></span>" + _.escape(item);
             }
             
@@ -442,8 +462,7 @@ define(function (require, exports, module) {
         _updatePicker();
         
         // Add 'file-filter-picker' to keep some margin space on the left of the button
-        _picker.$button.addClass("file-filter-picker");
-        _picker.$button.addClass("no-focus");
+        _picker.$button.addClass("file-filter-picker no-focus");
         
         // Set up mouse click events for 'Delete' and 'Edit' buttons
         $(_picker).on("openDropdown", _handleListEvents);
@@ -460,15 +479,20 @@ define(function (require, exports, module) {
             } else if (itemIndex === 1) {
                 // Clear the active filter
                 setLastFilter();
+                _updatePicker();
             } else if (itemIndex >= FIRST_FILTER_INDEX && item) {
                 var filterSets = PreferencesManager.get("fileFilters") || [];
                 setLastFilter(item, itemIndex - FIRST_FILTER_INDEX);
+                _updatePicker();
             }
         });
         
         return _picker.$button;
     }
     
+    // For unit tests only
+    exports.setLastFilter      = setLastFilter;
+
     exports.createFilterPicker = createFilterPicker;
     exports.commitPicker       = commitPicker;
     exports.getLastFilter      = getLastFilter;

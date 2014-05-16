@@ -184,7 +184,12 @@ define(function (require, exports, module) {
             }
         }
 
-        this._setSelectedIndex(pos, true);
+        // If the item to be selected is a divider, then rotate one more.
+        if ($(this.$items[pos]).hasClass("divider")) {
+            this._rotateSelection((distance > 0) ? ++distance : --distance);
+        } else {
+            this._setSelectedIndex(pos, true);
+        }
     };
 
     /**

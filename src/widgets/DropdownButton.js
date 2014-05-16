@@ -113,7 +113,7 @@ define(function (require, exports, module) {
         var html = "";
         this.items.forEach(function (item, i) {
             if (item === "---") {
-                html += "<li class='divider' data-index='" + i + "'></li>";
+                html += "<li class='divider'></li>";
             } else {
                 html += "<li><a class='stylesheet-link' data-index='" + i + "'>";
                 html += this.itemRenderer(item, i);
