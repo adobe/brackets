@@ -183,9 +183,13 @@ define(function (require, exports, module) {
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         
-        // Add final divider only if we have a twitter URL or about item
-        if (hasAboutItem || brackets.config.twitter_url) {
+        // Add final divider only if we have a homepage URL or twitter URL or about item
+        if (hasAboutItem || brackets.config.homepage_url || brackets.config.twitter_url) {
             menu.addMenuDivider();
+        }
+        
+        if (brackets.config.homepage_url) {
+            menu.addMenuItem(Commands.HELP_HOMEPAGE);
         }
         
         if (brackets.config.twitter_url) {
