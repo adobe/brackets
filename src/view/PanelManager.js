@@ -146,7 +146,7 @@ define(function (require, exports, module) {
         });
 
         // Scroll to show cursor above panel if necessary
-        $panel.on("panelExpanded panelResizeEnd", function () {
+        $panel.on("panelExpanded", function () {
             var _currentEditor = EditorManager.getCurrentFullEditor();
             
             // Make sure that we're not switching files and still on an active editor
