@@ -53,6 +53,10 @@ define(function (require, exports, module) {
     
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
+    
+    // Init default last info URL fetch time
+    PreferencesManager.stateManager.definePreference("lastInfoURLFetchTime", "number", 0);
+    
     // Time of last registry check for update
     PreferencesManager.stateManager.definePreference("lastExtensionRegistryCheckTime", "number", 0);
     // Data about available updates in the registry
