@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Soubor není kódován v UTF-8.",
     "FILE_EXISTS_ERR"                   : "Soubor již existuje.",
     "FILE"                              : "Soubor",
     "DIRECTORY"                         : "Složka",
@@ -150,6 +151,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} v {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projektu",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filtr vyloučil všechny soubory {0}",
     "FIND_IN_FILES_FILE"                : "souboru",
     "FIND_IN_FILES_FILES"               : "souborech",
     "FIND_IN_FILES_MATCH"               : "výsledek",
@@ -169,12 +171,27 @@ define({
     "FILE_FILTER_LIST_PREFIX"           : "mimo",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "a {0} více",
 
+    "FILTER_COUNTING_FILES"             : "Počítat soubory\u2026",
+    "FILTER_FILE_COUNT"                 : "Povolit {0} z {1} souborů {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Povolit všechny {0} soubory {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit není dostupný pro aktuální pozici kurzoru",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: umístěte kurzor do jména class selektoru",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: neúplný class atribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: neúplný id atribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: umístěte kurzor do elementu, class nebo id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: neplatný syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: umístěte kurzor do jména funkce",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs není dostupný pro aktuální pozici kurzoru",
     /**
      * Správce projektu
      */
     "PROJECT_LOADING" : "Načítání\u2026",
-    "UNTITLED" : "Nový",
-    "WORKING_FILES"     : "Pracovní soubory",
+    "UNTITLED"        : "Nový",
+    "WORKING_FILES"   : "Pracovní soubory",
 
     /**
      * Jména kláves
@@ -190,6 +207,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Vybrány {0} sloupce",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Vybrán {0} řádek",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Vybrány {0} řádky",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} výběry",
     "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Přepnout odsazení na mezery",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
@@ -212,6 +230,8 @@ define({
     "LINT_DISABLED"                         : "Lintování je vypnuto",
     "NO_LINT_AVAILABLE"                     : "Žádný linter není dostupný pro {0}",
     "NOTHING_TO_LINT"                       : "Nic k lintování",
+    "LINTER_TIMED_OUT"                      : "{0} byl ukončen po čekání po dobu {1} ms ",
+    "LINTER_FAILED"                         : "{0} byl ukončen s chybou: {1}",
 
 
     /**
@@ -257,12 +277,20 @@ define({
     "CMD_PASTE"                           : "Vložit",
     "CMD_SELECT_ALL"                      : "Vybrat vše",
     "CMD_SELECT_LINE"                     : "Vybrat řádek",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Rozdělit výběr do řádků",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Přidat kurzor na další řádek",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Přidat kurzor na předchozí řádek",
     "CMD_FIND"                            : "Najít",
+    "FIND_MENU"                           : "Najít",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Najít\u2026",
     "CMD_FIND_IN_FILES"                   : "Najít v souborech",
+    "CMD_FIND_IN_SELECTED"                : "Najít ve vybraném souboru/složce",
     "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
     "CMD_FIND_NEXT"                       : "Najít další",
     "CMD_FIND_PREVIOUS"                   : "Najít předchozí",
+    "CMD_FIND_ALL_AND_SELECT"             : "Najít vše a vybrat",
+    "CMD_ADD_NEXT_MATCH"                  : "Přidat další shodu k výběru",
+    "CMD_SKIP_CURRENT_MATCH"              : "Přeskočit a přidat další shodu",
     "CMD_REPLACE"                         : "Nahradit",
     "CMD_INDENT"                          : "Odsadit",
     "CMD_UNINDENT"                        : "Vrátit odsazení",
@@ -317,9 +345,10 @@ define({
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak používat {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} fórum",
+    "CMD_SUPPORT"                         : "{APP_NAME} podpora",
+    "CMD_SUGGEST"                         : "Navrhněte funkci",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
-    "CMD_REPORT_AN_ISSUE"                 : "Nahlásit problém",
+    "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
@@ -448,6 +477,9 @@ define({
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
 
+    // Vlastní prohlížeče
+    "IMAGE_VIEWER_LARGEST_ICON"            : "největší",
+
     /**
      * Jména jednotek
      */
@@ -456,6 +488,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                          : "Nástroje",
+    "ERRORS"                              : "Chyby",
     "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
     "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"        : "Restartovat bez doplňků",
@@ -466,6 +499,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"            : "Povolit Node Debugger",
     "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
     "CMD_RESTART_NODE"                    : "Restartovat Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"       : "Zobrazit chyby ve stavovém řádku",
 
     "LANGUAGE_TITLE"                    : "Změnit jazyk",
     "LANGUAGE_MESSAGE"                  : "Prosím, vyberte jazyk ze seznamu:",
