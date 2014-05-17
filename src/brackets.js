@@ -294,20 +294,19 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
-        // Check for updates
-        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
-            AppInit.appReady(function () {
-                // launches periodic checks for updates cca every 24 hours
-                UpdateNotification.launchAutomaticUpdate();
-            });
-        }
     }
     
     /**
      * Setup event handlers prior to dispatching AppInit.HTML_READY
      */
     function _beforeHTMLReady() {
+        
+        // Check for updates
+        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+            // launches periodic checks for updates cca every 24 hours
+            UpdateNotification.launchAutomaticUpdate();
+        }
+
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
         
