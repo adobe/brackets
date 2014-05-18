@@ -449,14 +449,7 @@ define(function (require, exports, module) {
      * @private
      * A Regex containing all invalid characters for a specific platform.
      */
-    var _invalidChars;
-
-    // Init invalid characters string 
-    if (brackets.platform === "mac" || brackets.platform === "linux") {
-        _invalidChars = /[\/?:|*]+/;
-    } else {
-        _invalidChars = /[\/?*:<>\\|\"]+/;  // invalid characters on Windows
-    }
+    var _invalidChars = /[\\?*]+/;
     
     /**
      * Check a filename for illegal characters. If any are found, show an error
@@ -468,7 +461,6 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if no illegal characters are found
      */
     function checkForValidFilename(filename) {
-        // Validate file name
         if ((filename.search(_invalidChars) !== -1) || filename.match(_illegalFilenamesRegEx)) {
             return false;
         }
@@ -480,7 +472,22 @@ define(function (require, exports, module) {
      * A string representation of the invalid characters for a given platform.
      * For use in error dialogs.
      */
-    var invalidCharsString = _invalidChars.source.substr(1, _invalidChars.source.indexOf(']') - 1).replace(/\\/g, '');
+    var invalidCharsString = "\\?*";
+    
+    /**
+     * Show an error dialog if there is an invalid filename
+     *
+     * @param {boolean} If the error is with a folder name
+     * @return {Dialog} Displays error dialog
+     */
+    
+    function showIllegalFilenameError(isFolder) {
+        return Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
+            StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, invalidCharsString)
+        );
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -508,4 +515,5 @@ define(function (require, exports, module) {
     exports.compareFilenames               = compareFilenames;
     exports.checkForValidFilename          = checkForValidFilename;
     exports.invalidCharsString             = invalidCharsString;
+    exports.showIllegalFilenameError       = showIllegalFilenameError;
 });

@@ -807,11 +807,7 @@ define(function (require, exports, module) {
                         var filename = selectedPath.substr(selectedPath.lastIndexOf("/") + 1);
                         //Check with the FileUtils method
                         if (!FileUtils.checkForValidFilename(filename)) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                StringUtils.format(Strings.INVALID_FILENAME_TITLE, Strings.FILE),
-                                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, FileUtils.invalidCharsString)
-                            );
+                            FileUtils.showIllegalFilenameError(false);
                             result.reject();
                         } else {
                             _doSaveAfterSaveDialog(selectedPath);
