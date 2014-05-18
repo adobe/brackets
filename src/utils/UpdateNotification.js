@@ -346,9 +346,9 @@ define(function (require, exports, module) {
                 usingOverrides = true;
             }
 
-            if (_testValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
-                oldValues._lastNotifiedBuildNumber = lastNotifiedBuildNumber;
-                lastNotifiedBuildNumber = _testValues._lastNotifiedBuildNumber;
+            if (_testValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                oldValues.lastNotifiedBuildNumber = lastNotifiedBuildNumber;
+                lastNotifiedBuildNumber = _testValues.lastNotifiedBuildNumber;
                 usingOverrides = true;
             }
 
@@ -409,8 +409,8 @@ define(function (require, exports, module) {
                     if (oldValues.hasOwnProperty("_buildNumber")) {
                         _buildNumber = oldValues._buildNumber;
                     }
-                    if (oldValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
-                        lastNotifiedBuildNumber = oldValues._lastNotifiedBuildNumber;
+                    if (oldValues.hasOwnProperty("lastNotifiedBuildNumber")) {
+                        lastNotifiedBuildNumber = oldValues.lastNotifiedBuildNumber;
                     }
                 }
                 result.resolve();
