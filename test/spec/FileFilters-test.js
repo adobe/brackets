@@ -27,11 +27,12 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var FileFilters     = require("search/FileFilters"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        Dialogs         = require("widgets/Dialogs"),
-        Commands        = require("command/Commands"),
-        KeyEvent        = require("utils/KeyEvent");
+    var FileFilters        = require("search/FileFilters"),
+        SpecRunnerUtils    = require("spec/SpecRunnerUtils"),
+        Dialogs            = require("widgets/Dialogs"),
+        Commands           = require("command/Commands"),
+        KeyEvent           = require("utils/KeyEvent"),
+        PreferencesManager = require("preferences/PreferencesManager");
 
     describe("FileFilters", function () {
         
@@ -419,6 +420,69 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Multiple filter sets preferences", function () {
+            it("should not have any filter sets in preferences initially", function () {
+                expect(PreferencesManager.get("fileFilters")).toBeFalsy();
+            });
+            
+            it("should migrate old filter sets to the new multiple filter sets pref", function () {
+                PreferencesManager.setViewState("search.exclusions", "*.css, *.less");
+                expect(FileFilters.getLastFilter()).toEqual({name: "", patterns: "*.css, *.less"});
+                expect(PreferencesManager.get("fileFilters")).toEqual([{name: "", patterns: "*.css, *.less"}]);
+                expect(PreferencesManager.getViewState("activeFileFilter")).toBe(0);
+            });
+            
+            it("should select the newly added filter set as the active one", function () {
+                var existingFilters = [{name: "Node Modules", patterns: "node_module"},
+                                       {name: "Mark Down Files", patterns: "*.md"}],
+                    newFilterSet    = {name: "CSS Files", patterns: "*.css, *.less"};
+                
+                // Create two filter sets and make the first one active.
+                PreferencesManager.set("fileFilters", existingFilters);
+                PreferencesManager.setViewState("activeFileFilter", 0);
+                
+                // Add a new filter set as the last one.
+                FileFilters.setLastFilter(newFilterSet, -1);
+                expect(FileFilters.getLastFilter()).toEqual(newFilterSet);
+                expect(PreferencesManager.getViewState("activeFileFilter")).toBe(2);
+                expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters.concat([newFilterSet]));
+            });
+            
+            it("should select the just edited filter set as the active one", function () {
+                var existingFilters = [{name: "Node Modules", patterns: "node_module"},
+                                       {name: "Mark Down Files", patterns: "*.md"}],
+                    newFilterSet    = {name: "CSS Files", patterns: "*.css, *.less"};
+                
+                // Create two filter sets and make the first one active.
+                PreferencesManager.set("fileFilters", existingFilters);
+                PreferencesManager.setViewState("activeFileFilter", 0);
+                
+                // Replace the second filter set with a new one.
+                FileFilters.setLastFilter(newFilterSet, 1);
+                expect(FileFilters.getLastFilter()).toEqual(newFilterSet);
+                expect(PreferencesManager.getViewState("activeFileFilter")).toBe(1);
+
+                existingFilters.splice(1, 1, newFilterSet);
+                expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters);
+            });
+            
+            it("should not have an active filter set after removing the current active one", function () {
+                var existingFilters = [{name: "Node Modules", patterns: "node_module"},
+                                       {name: "Mark Down Files", patterns: "*.md"}];
+                
+                // Create two filter sets and make the second one active.
+                PreferencesManager.set("fileFilters", existingFilters);
+                PreferencesManager.setViewState("activeFileFilter", 1);
+                
+                expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters);
+                expect(PreferencesManager.getViewState("activeFileFilter")).toBe(1);
+
+                // Remove the current active filter
+                FileFilters.setLastFilter();
+                
+                expect(PreferencesManager.getViewState("activeFileFilter")).toBe(-1);                
+            });            
+        });
         
         describe("Find in Files filtering", function () {
             
@@ -493,7 +557,7 @@ define(function (require, exports, module) {
             // This finishes async, since clickDialogButton() finishes async (dialogs close asynchronously)
             function setExcludeCSSFiles() {
                 // Launch filter editor
-                $(".filter-picker button").click();
+                FileFilters.editFilter({ name: "", patterns: [] }, -1);
 
                 // Edit the filter & confirm changes
                 $(".modal.instance textarea").val("*.css");
@@ -537,7 +601,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     // Cannot explicitly set *.css filter in dialog because button is hidden
                     // (which is verified here), but filter persists from previous test
-                    expect($(".filter-picker button").is(":visible")).toBeFalsy();
+                    expect($("button.file-filter-picker").is(":visible")).toBeFalsy();
                 });
                 runs(function () {
                     executeSearch("{1}");
@@ -552,7 +616,7 @@ define(function (require, exports, module) {
                 openSearchBar();
                 runs(function () {
                     // Launch filter editor
-                    $(".filter-picker button").click();
+                    FileFilters.editFilter({ name: "", patterns: [] }, -1);
 
                     // Edit the filter & confirm changes
                     $(".modal.instance textarea").val("test1.*\n*.css");

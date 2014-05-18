@@ -40,9 +40,17 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         PreferencesManager = require("preferences/PreferencesManager");
   
+    /** @type {number} Constant: first filter index in the filter dropdown list */
     var FIRST_FILTER_INDEX = 3;
-    var _context = null,
-        _picker  = null;
+    
+    /** @type {?{label:string, promise:$.Promise}} context Info on which files the filter will be applied to. 
+     *          It will be initialized when createFilterPicker is called and if specified, editing UI will 
+     *          indicate how many files are excluded by the filter. Label should be of the form "in ..."
+     */
+    var _context = null;
+    
+    /** @type {DropdownButton} */
+    var _picker  = null;
     
     /**
      * Populate the list of dropdown menu with two filter commands and
@@ -271,13 +279,11 @@ define(function (require, exports, module) {
      * Opens a dialog box to edit the given filter. When editing is finished, the value of getLastFilter() changes to
      * reflect the edits. If the dialog was canceled, the preference is left unchanged.
      * @param {!{name: string, patterns: Array.<string>}} filter
-     * @param {?{label:string, promise:$.Promise}} context Info on which files the filter will be applied to. If specified,
-     *          editing UI will indicate how many files are excluded by the filter. Label should be of the form "in ..."
      * @param {number} index The index of the filter set to be edited or created. The value is -1 if it is for a new one 
      *          to be created, 
      * @return {!$.Promise} Dialog box promise
      */
-    function editFilter(filter, context, index) {
+    function editFilter(filter, index) {
         var lastFocus = window.document.activeElement;
         
         var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url) +
@@ -318,18 +324,18 @@ define(function (require, exports, module) {
         var $fileCount = dialog.getElement().find(".exclusions-filecount");
         
         function updateFileCount() {
-            context.promise.done(function (files) {
+            _context.promise.done(function (files) {
                 var filter = getValue();
                 if (filter.length) {
                     var filtered = filterFileList(compile(filter), files);
-                    $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT, filtered.length, files.length, context.label));
+                    $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT, filtered.length, files.length, _context.label));
                 } else {
-                    $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, files.length, context.label));
+                    $fileCount.html(StringUtils.format(Strings.FILTER_FILE_COUNT_ALL, files.length, _context.label));
                 }
             });
         }
         
-        if (context) {
+        if (_context) {
             $editField.on("input", _.debounce(updateFileCount, 400));
             updateFileCount();
         } else {
@@ -422,7 +428,7 @@ define(function (require, exports, module) {
                 // prior to opening it.
                 _picker.closeDropdown();
                 
-                editFilter(filterSets[filterIndex], _context, filterIndex);
+                editFilter(filterSets[filterIndex], filterIndex);
             });
     }
                       
@@ -475,7 +481,7 @@ define(function (require, exports, module) {
                 _picker.closeDropdown();
 
                 // Create a new filter set
-                editFilter({ name: "", patterns: [] }, _context, -1);
+                editFilter({ name: "", patterns: [] }, -1);
             } else if (itemIndex === 1) {
                 // Clear the active filter
                 setLastFilter();
@@ -490,12 +496,10 @@ define(function (require, exports, module) {
         return _picker.$button;
     }
     
-    // For unit tests only
-    exports.setLastFilter      = setLastFilter;
-
     exports.createFilterPicker = createFilterPicker;
     exports.commitPicker       = commitPicker;
     exports.getLastFilter      = getLastFilter;
+    exports.setLastFilter      = setLastFilter;
     exports.editFilter         = editFilter;
     exports.compile            = compile;
     exports.filterPath         = filterPath;

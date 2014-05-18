@@ -1540,6 +1540,7 @@ define(function (require, exports, module) {
             CommandManager,
             DocumentManager,
             EditorManager,
+            FileFilters,
             FileSystem,
             FindInFiles,
             testWindow,
@@ -1554,6 +1555,7 @@ define(function (require, exports, module) {
                 CommandManager  = testWindow.brackets.test.CommandManager;
                 DocumentManager = testWindow.brackets.test.DocumentManager;
                 EditorManager   = testWindow.brackets.test.EditorManager;
+                FileFilters     = testWindow.brackets.test.FileFilters;
                 FileSystem      = testWindow.brackets.test.FileSystem;
                 FindInFiles     = testWindow.brackets.test.FindInFiles;
                 CommandManager  = testWindow.brackets.test.CommandManager;
@@ -1650,7 +1652,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 // Launch filter editor
-                $(".filter-picker button").click();
+                FileFilters.editFilter({ name: "", patterns: [] }, -1);
 
                 // Dialog should state there are 0 files in project
                 $dlg = $(".modal");
