@@ -122,7 +122,9 @@ define(function (require, exports, module) {
                     "name": "CoffeeScript",
                     "mode": "coffeescript",
                     "fileExtensions": ["coffee", "cf", "cson"],
-                    "fileNames": ["cakefile"]
+                    "fileNames": ["cakefile"],
+                    "lineComment": ["#"],
+                    "blockComment": {prefix: "###", suffix: "###"}
                 };
 
                 validateLanguage(def, coffee);

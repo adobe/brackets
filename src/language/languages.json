@@ -142,7 +142,9 @@
         "name": "CoffeeScript",
         "mode": "coffeescript",
         "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
-        "fileNames": ["Cakefile"]
+        "fileNames": ["Cakefile"],
+        "blockComment": ["###", "###"],
+        "lineComment": ["#"]
     },
 
     "clojure": {
@@ -185,7 +187,9 @@
     "lua": {
         "name": "Lua",
         "mode": "lua",
-        "fileExtensions": ["lua"]
+        "fileExtensions": ["lua"],
+        "blockComment": ["--[[", "]]"],
+        "lineComment": ["--"]
     },
 
     "sql": {
