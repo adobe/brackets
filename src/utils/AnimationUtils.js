@@ -41,23 +41,29 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
      */
     function animateUsingClass(target, animClass) {
-        var result = new $.Deferred();
+        var result  = new $.Deferred(),
+            $target = $(target);
         
         function finish(e) {
             if (e.target === target) {
-                $(target)
+                $target
                     .removeClass(animClass)
                     .off("webkitTransitionEnd", finish);
                 result.resolve();
             }
         }
         
-        // Note that we can't just use $.one() here because we only want to remove
-        // the handler when we get the transition end event for the correct target (not
-        // a child).
-        $(target)
-            .addClass(animClass)
-            .on("webkitTransitionEnd", finish);
+        if ($target.is(":hidden")) {
+            // Don't do anything if the element is hidden because webkitTransitionEnd wouldn't fire
+            result.resolve();
+        } else {
+            // Note that we can't just use $.one() here because we only want to remove
+            // the handler when we get the transition end event for the correct target (not
+            // a child).
+            $target
+                .addClass(animClass)
+                .on("webkitTransitionEnd", finish);
+        }
         
         return result.promise();
     }

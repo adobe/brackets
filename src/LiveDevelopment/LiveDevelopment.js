@@ -273,7 +273,7 @@ define(function LiveDevelopment(require, exports, module) {
      * given file is no longer associated with the HTML document that is live (e.g.
      * if the related file has been deleted on disk).
      */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
+    function _closeRelatedDocument(liveDoc) {
         if (_relatedDocuments[liveDoc.doc.url]) {
             delete _relatedDocuments[liveDoc.doc.url];
         }
@@ -284,7 +284,7 @@ define(function LiveDevelopment(require, exports, module) {
         
         _closeDocument(liveDoc);
     }
-
+    
     /**
      * Update the status. Triggers a statusChange event.
      * @param {number} status new status
@@ -469,7 +469,9 @@ define(function LiveDevelopment(require, exports, module) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
 
-                    $(liveDoc).on("deleted.livedev", _handleRelatedDocumentDeleted);
+                    $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
+                        _closeRelatedDocument(liveDoc);
+                    });
                 }
             }
         });
@@ -548,7 +550,7 @@ define(function LiveDevelopment(require, exports, module) {
             promises = [],
             enableAgentsPromise,
             allAgentsPromise;
-
+        
         _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
@@ -898,6 +900,15 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         unloadAgents();
+        
+        // Clear any existing related documents before we reload the agents.
+        // We need to recreate them for the reloaded document due to some
+        // desirable side-effects (see #7606). Eventually, we should simplify
+        // the way we get that behavior.
+        _.forOwn(_relatedDocuments, function (relatedDoc) {
+            _closeRelatedDocument(relatedDoc);
+        });
+
         return loadAgents();
     }
 
@@ -955,6 +966,11 @@ define(function LiveDevelopment(require, exports, module) {
      * interstitial page has finished loading.
      */
     function _onInterstitialPageLoad() {
+
+        Inspector.Runtime.evaluate("window.navigator.userAgent", function (uaResponse) {
+            Inspector.setUserAgent(uaResponse.result.value);
+        });
+
         // Domains for some agents must be enabled first before loading
         var enablePromise = Inspector.Page.enable().then(_enableAgents);
         

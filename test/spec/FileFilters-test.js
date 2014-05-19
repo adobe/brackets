@@ -427,6 +427,7 @@ define(function (require, exports, module) {
             var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
                 testWindow,
                 FileFilters,
+                FileSystem,
                 FindInFiles,
                 CommandManager,
                 $;
@@ -438,6 +439,7 @@ define(function (require, exports, module) {
 
                     // Load module instances from brackets.test
                     FileFilters     = testWindow.brackets.test.FileFilters;
+                    FileSystem      = testWindow.brackets.test.FileSystem;
                     FindInFiles     = testWindow.brackets.test.FindInFiles;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     $               = testWindow.$;
@@ -448,6 +450,7 @@ define(function (require, exports, module) {
 
             afterLast(function () {
                 testWindow = null;
+                FileSystem = null;
                 FileFilters = null;
                 FindInFiles = null;
                 CommandManager = null;
@@ -455,7 +458,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.closeTestWindow();
             });
             
-            function openSearchBar() {
+            function openSearchBar(scope) {
                 // Make sure search bar from previous test has animated out fully
                 runs(function () {
                     waitsFor(function () {
@@ -463,7 +466,7 @@ define(function (require, exports, module) {
                     }, "search bar close");
                 });
                 runs(function () {
-                    waitsForDone(CommandManager.execute(Commands.EDIT_FIND_IN_FILES));
+                    FindInFiles._doFindInFiles(scope);
                 });
             }
 
@@ -506,8 +509,73 @@ define(function (require, exports, module) {
                     executeSearch("{1}");
                 });
                 runs(function () {
-                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();  // *.css should have been excluded this time
+                    // *.css should have been excluded this time
+                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();
                     expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                });
+            });
+            
+            it("should respect filter when searching folder", function () {
+                var dirEntry = FileSystem.getDirectoryForPath(testPath);
+                openSearchBar(dirEntry);
+                runs(function () {
+                    setExcludeCSSFiles();
+                });
+                runs(function () {
+                    executeSearch("{1}");
+                });
+                runs(function () {
+                    // *.css should have been excluded this time
+                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeFalsy();
+                    expect(FindInFiles._searchResults[testPath + "/test1.html"]).toBeTruthy();
+                });
+            });
+            
+            it("should ignore filter when searching a single file", function () {
+                var fileEntry = FileSystem.getFileForPath(testPath + "/test1.css");
+                openSearchBar(fileEntry);
+                runs(function () {
+                    // Cannot explicitly set *.css filter in dialog because button is hidden
+                    // (which is verified here), but filter persists from previous test
+                    expect($(".filter-picker button").is(":visible")).toBeFalsy();
+                });
+                runs(function () {
+                    executeSearch("{1}");
+                });
+                runs(function () {
+                    // ignore *.css exclusion since we're explicitly searching this file
+                    expect(FindInFiles._searchResults[testPath + "/test1.css"]).toBeTruthy();
+                });
+            });
+            
+            it("should show error when filter excludes all files", function () {
+                openSearchBar();
+                runs(function () {
+                    // Launch filter editor
+                    $(".filter-picker button").click();
+
+                    // Edit the filter & confirm changes
+                    $(".modal.instance textarea").val("test1.*\n*.css");
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_OK);
+                });
+                runs(function () {
+                    executeSearch("{1}");
+                });
+                runs(function () {
+                    var $modalBar = $(".modal-bar");
+
+                    // Dialog still showing
+                    expect($modalBar.length).toBe(1);
+
+                    // Error message displayed
+                    expect($modalBar.find("#find-group div.error").is(":visible")).toBeTruthy();
+
+                    // Search panel not showing
+                    expect($("#search-results").is(":visible")).toBeFalsy();
+
+                    // Close search bar
+                    var $searchField = $modalBar.find("#find-group input");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
                 });
             });
             

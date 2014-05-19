@@ -160,7 +160,7 @@ define(function (require, exports, module) {
         case appshell.fs.ERR_CANT_WRITE:
             return FileSystemError.NOT_WRITABLE;
         case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return FileSystemError.NOT_READABLE;
+            return FileSystemError.UNSUPPORTED_ENCODING;
         case appshell.fs.ERR_OUT_OF_SPACE:
             return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:

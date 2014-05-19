@@ -84,6 +84,19 @@ define(function (require, exports, module) {
      * @return {boolean} true if the context is in property value
      */
     function _isInPropValue(ctx) {
+        
+        function isInsideParens(context) {
+            if (context.type !== "parens" || !context.prev) {
+                return false;
+            }
+                                                             
+            if (context.prev.type === "prop") {
+                return true;
+            }
+            
+            return isInsideParens(context.prev);
+        }
+        
         var state;
         if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
             return false;
@@ -96,7 +109,7 @@ define(function (require, exports, module) {
         }
         return ((state.context.type === "prop" &&
                     (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
-                    (state.context.type === "parens" && state.context.prev.type === "prop"));
+                    isInsideParens(state.context));
     }
     
     /**
@@ -1202,7 +1215,7 @@ define(function (require, exports, module) {
                     }
                     
                     // Stop once we've reached a <style ...> tag
-                    if (ctx.token.string === "<style") {
+                    if (ctx.token.string === "style" && ctx.token.type === "tag") {
                         // Remove everything up to end-of-tag from selector
                         var eotIndex = selector.indexOf(">");
                         if (eotIndex !== -1) {
