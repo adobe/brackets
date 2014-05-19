@@ -266,8 +266,8 @@ define(function (require, exports, module) {
             hint.elem.css("display", "block");
         } else if (hint.shown) {
             hint.animationInProgress = true;
-            AnimationUtils.animateUsingClass(hint.elem[0], "fadeout")
-                .done(function () {
+            AnimationUtils.animateUsingClass(hint.elem[0], "fadeout", 750)
+                .always(function () {
                     if (hint.animationInProgress) { // do this only if the animation was not cancelled
                         hint.elem.hide();
                     }

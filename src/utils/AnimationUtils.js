@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         var result  = new $.Deferred(),
             $target = $(target);
         
-        timeoutDuration = timeoutDuration || 1000;
+        timeoutDuration = timeoutDuration || 400;
         
         function finish(e) {
             if (e.target === target) {
