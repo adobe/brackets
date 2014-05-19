@@ -150,7 +150,7 @@ define(function (require, exports, module) {
         for (i = startLine; i <= endLine; i++) {
             line = editor.document.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then a line comment prefix
-            if (!line.length || (line.match(/\S/) && !_matchExpressions(line, lineExp))) {
+            if (line.match(/\S/) && !_matchExpressions(line, lineExp)) {
                 containsNotLineComment = true;
                 break;
             }
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             editGroup      = [],
             edit;
         
-        var searchCtx, atSuffix, initialPos, endLine;
+        var searchCtx, atSuffix, suffixEnd, initialPos, endLine;
         
         if (!selectionsToTrack) {
             // Track the original selection.
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
                 isBlockComment = true;
                 
                 // If we are in a line that only has a prefix or a suffix and the prefix and suffix are the same string,
-                // lets find first if this is a prefix or suffix and move the token to the inside of the block comment.
+                // lets find first if this is a prefix or suffix and move the context position to the inside of the block comment.
                 // This means that the token will be anywere inside the block comment, including the lines with the delimiters.
                 // This is required so that later we can find the prefix by moving backwards and the suffix by moving forwards.
                 if (ctx.token.string === prefix && prefix === suffix) {
@@ -406,8 +406,10 @@ define(function (require, exports, module) {
                 } while (result && !ctx.token.string.match(prefixExp));
                 invalidComment = result && !!ctx.token.string.match(prefixExp);
                 
-                // We moved the token at the start when it was in a whitespace, but maybe we shouldn't have done it
-                if ((suffixPos && CodeMirror.cmpPos(sel.start, suffixPos) > 0) || (prefixPos && CodeMirror.cmpPos(sel.end, prefixPos) < 0)) {
+                // Make sure we didn't search so far backward or forward that we actually found a block comment
+                // that's entirely before or after the selection.
+                suffixEnd = suffixPos && { line: suffixPos.line, ch: suffixPos.ch + suffix.length };
+                if ((suffixEnd && CodeMirror.cmpPos(sel.start, suffixEnd) > 0) || (prefixPos && CodeMirror.cmpPos(sel.end, prefixPos) < 0)) {
                     canComment = true;
                 }
 

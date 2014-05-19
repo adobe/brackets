@@ -419,6 +419,31 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
             });
             
+            it("should uncomment ragged partial comments with empty lines in-between", function () {
+                // Start with lines 1-5 commented out, with "//" snug up against each non-blank line's code
+                var lines = defaultContent.split("\n");
+                lines[1] = "    //function bar() {";
+                lines[2] = "";
+                lines[3] = "        //a();";
+                lines[4] = "";
+                lines[5] = "    //}";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+                
+                // select lines 1-5
+                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
+                
+                lines = defaultContent.split("\n");
+                lines[2] = "";
+                lines[4] = "";
+                var expectedText = lines.join("\n");
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
+            });
+            
             it("should uncomment ragged partial comments", function () {
                 // Start with lines 1-5 commented out, with "//" snug up against each non-blank line's code
                 var lines = defaultContent.split("\n");
@@ -630,6 +655,7 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
             });
         });
+        
         describe("Line comment in languages with no given line comment prefix", function () {
             beforeEach(function () {
                 setupFullEditor(null, "unknown");
@@ -741,6 +767,22 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(defaultContent);
                 expectCursorAt({line: 1, ch: 16});
+            });
+            
+            it("should block uncomment, cursor within existing block comment suffix", function () {
+                // Start with part of line 1 wrapped in a block comment
+                var lines = defaultContent.split("\n");
+                lines[1] = "    function /*bar()*/ {";
+                var startingContent = lines.join("\n");
+                myDocument.setText(startingContent);
+
+                // put cursor within block
+                myEditor.setCursorPos(1, 21);
+                
+                CommandManager.execute(Commands.EDIT_BLOCK_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectCursorAt({line: 1, ch: 18});
             });
 
             it("should block uncomment, selection covering whole sub-line block comment", function () {
