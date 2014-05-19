@@ -491,6 +491,24 @@ define(function (require, exports, module) {
             this.storage.fileChanged(filePath);
         },
         
+        languageChanged: function (languageID, oldLanguageID) {
+            var changes = [],
+                data    = this.data;
+            
+            _.each(this._layers, function (layer) {
+                if (layer.languageChanged && data[layer.key]) {
+                    var changesInLayer = layer.languageChanged(data[layer.key],
+                                                              languageID,
+                                                              oldLanguageID);
+                    if (changesInLayer) {
+                        changes.push(changesInLayer);
+                    }
+                }
+            });
+            
+            return _.union.apply(null, changes);
+        },
+        
         /**
          * Determines if there are likely to be any changes based on a change
          * to the default filename used in lookups.
@@ -670,6 +688,137 @@ define(function (require, exports, module) {
 //            "linting.enabled": false
 //        }
 //    }
+    
+    function LanguageLayer() {
+        this.data = undefined;
+        this.language = undefined;
+    }
+    
+    LanguageLayer.prototype = {
+        key: "language",
+        
+        /**
+         * Retrieve the current value based on the current project path
+         * in the layer.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         */
+        get: function (data, id) {
+            if (!data || !this.language) {
+                return;
+            }
+
+            if (data[this.language] && data[this.language][id]) {
+                return data[this.language][id];
+            }
+            return;
+        },
+        
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this language layer for the current language.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @return {string} the Layer ID, in this case the current language.
+         */
+        getPreferenceLocation: function (data, id) {
+            if (!data || !this.language) {
+                return;
+            }
+
+            if (data[this.language] && data[this.language][id]) {
+                return this.language;
+            }
+
+            return;
+        },
+        /**
+         * Retrieves the keys provided by this layer object.
+         * 
+         * @param {Object} data the preference data from the Scope
+         */
+        getKeys: function (data) {
+            if (!data) {
+                return;
+            }
+            
+            if (data[this.language]) {
+                return _.union.apply(null, _.map(_.values(data[this.language]), _.keys));
+            }
+            return;
+        },
+
+        /**
+         * Sets the data used by this scope.
+         *
+         * @param {Object} data Data that this scope will look at to see if the layer applies
+         */
+        setData: function (data) {
+            this.data = data;
+        },
+
+        /**
+         * Sets the preference value in the given data structure for the layerID provided. If no
+         * layerID is provided, then the current language is used. If a layerID is provided 
+         * and it does not exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {Object} value new value to assign to the preference
+         * @param {Object} context Object with scope and layer key-value pairs (not yet used in project layer)
+         * @param {string=} layerID language to be used for setting value
+         * @return {boolean} true if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
+                    delete section[id];
+                } else {
+                    section[id] = _.cloneDeep(value);
+                }
+                return true;
+            }
+            return false;
+        },
+
+        /**
+         * Sets the language currently being edited (which determines the prefs applied).
+         *
+         * @param {string} languageID Identifier for the language that is currently being edited.
+         */
+        languageChanged: function (data, languageID, oldLanguageID) {
+            
+            this.language = languageID;
+
+            if (languageID === oldLanguageID) {
+                return;
+            }
+            if (languageID === undefined) {
+                return _.keys(data[oldLanguageID]);
+            }
+            if (oldLanguageID === undefined) {
+                return _.keys(data[languageID]);
+            }
+            
+            return _.union(_.keys(data[languageID]), _.keys(data[languageID]));
+        }
+    };
     
     /**
      * There can be multiple paths and they are each checked in turn. The first that matches the
@@ -1589,6 +1738,31 @@ define(function (require, exports, module) {
             return deferred.promise();
         },
         
+        setLanguage: function (languageID) {
+            var oldLanguageID = this._defaultContext.language;
+            if (oldLanguageID === languageID) {
+                return;
+            }
+            
+            var changes = [];
+            
+            _.each(this._scopes, function (scope) {
+                var changesInScope = scope.languageChanged(languageID, oldLanguageID);
+                if (changesInScope) {
+                    changes.push(changesInScope);
+                }
+            });
+            
+            this._defaultContext.language = languageID;
+            
+            changes = _.union.apply(null, changes);
+            if (changes.length > 0) {
+                this._triggerChange({
+                    ids: changes
+                });
+            }
+        },
+        
         /**
          * Sets the default filename used for computing preferences when there are PathLayers.
          * This should be the filename of the file being edited.
@@ -1746,10 +1920,11 @@ define(function (require, exports, module) {
     });
     
     // Public interface
-    exports.PreferencesSystem  = PreferencesSystem;
-    exports.Scope              = Scope;
-    exports.MemoryStorage      = MemoryStorage;
-    exports.PathLayer          = PathLayer;
-    exports.ProjectLayer       = ProjectLayer;
-    exports.FileStorage        = FileStorage;
+    exports.PreferencesSystem   = PreferencesSystem;
+    exports.Scope               = Scope;
+    exports.MemoryStorage       = MemoryStorage;
+    exports.PathLayer           = PathLayer;
+    exports.ProjectLayer        = ProjectLayer;
+    exports.LanguageLayer       = LanguageLayer;
+    exports.FileStorage         = FileStorage;
 });

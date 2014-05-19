@@ -474,7 +474,7 @@ define(function (require, exports, module) {
         if (_currentDocument === doc) {
             return;
         }
-
+        
         var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
         // If file is untitled or otherwise not within project tree, add it to
@@ -491,6 +491,11 @@ define(function (require, exports, module) {
         // Make it the current document
         var previousDocument = _currentDocument;
         _currentDocument = doc;
+
+        // change the language layer in prefs *before* triggering the currentDocumentChange event
+        var newLanguageID = _currentDocument.getLanguage().getId();
+        PreferencesManager._manager.setLanguage(newLanguageID);
+        
         $(exports).triggerHandler("currentDocumentChange", [_currentDocument, previousDocument]);
         // (this event triggers EditorManager to actually switch editors in the UI)
         
