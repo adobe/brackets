@@ -362,6 +362,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Notas da versão",
     "CMD_GET_INVOLVED"                    : "Envolva-se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
+    "CMD_HOMEPAGE"                        : "Página do Brackets",
     "CMD_TWITTER"                         : "{TWITTER_NAME} no Twitter",
     "CMD_ABOUT"                           : "Sobre o {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de configurações",
@@ -546,4 +547,4 @@ define({
     "DOCS_MORE_LINK"                            : "Leia mais"
 });
 
-/* Last translated for 143aac5dc44a3e285bb708870b41d1cd0e2b1a64 */
+/* Last translated for 368a63c4d682185da0a90f9538c1e7fc0612c9c9 */
