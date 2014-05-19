@@ -62,15 +62,6 @@ define(function (require, exports, module) {
         });
         
         describe("Path Layer", function () {
-            var data = {
-                spaceUnits: 4,
-                useTabChar: false,
-                path: {
-                    "*.html": {
-                        spaceUnits: 2
-                    }
-                }
-            };
             
             it("handles a variety of glob patterns", function () {
                 var data = {
