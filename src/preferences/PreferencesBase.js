@@ -690,10 +690,8 @@ define(function (require, exports, module) {
 //    }
     
     function LanguageLayer() {
-        this.data = undefined;
-        this.language = undefined;
     }
-    
+   
     LanguageLayer.prototype = {
         key: "language",
         
@@ -704,13 +702,13 @@ define(function (require, exports, module) {
          * @param {Object} data the preference data from the Scope
          * @param {string} id preference ID to look up
          */
-        get: function (data, id) {
-            if (!data || !this.language) {
+        get: function (data, id, context) {
+            if (!data || !context.language) {
                 return;
             }
 
-            if (data[this.language] && data[this.language][id]) {
-                return data[this.language][id];
+            if (data[context.language] && data[context.language][id]) {
+                return data[context.language][id];
             }
             return;
         },
@@ -723,13 +721,13 @@ define(function (require, exports, module) {
          * @param {string} id preference ID to look up
          * @return {string} the Layer ID, in this case the current language.
          */
-        getPreferenceLocation: function (data, id) {
-            if (!data || !this.language) {
+        getPreferenceLocation: function (data, id, context) {
+            if (!data || !context.language) {
                 return;
             }
 
-            if (data[this.language] && data[this.language][id]) {
-                return this.language;
+            if (data[context.language] && data[context.language][id]) {
+                return context.language;
             }
 
             return;
@@ -739,24 +737,20 @@ define(function (require, exports, module) {
          * 
          * @param {Object} data the preference data from the Scope
          */
-        getKeys: function (data) {
+        getKeys: function (data, context) {
             if (!data) {
                 return;
             }
             
-            if (data[this.language]) {
-                return _.union.apply(null, _.map(_.values(data[this.language]), _.keys));
+            if (!_.isEmpty(context)) {
+                if (data[context.language]) {
+                    return _.keys(data[context.language]);
+                } else {
+                    return [];
+                }
+            } else {
+                return _.union.apply(null, _.map(_.values(data), _.keys));
             }
-            return;
-        },
-
-        /**
-         * Sets the data used by this scope.
-         *
-         * @param {Object} data Data that this scope will look at to see if the layer applies
-         */
-        setData: function (data) {
-            this.data = data;
         },
 
         /**
@@ -775,7 +769,7 @@ define(function (require, exports, module) {
          */
         set: function (data, id, value, context, layerID) {
             if (!layerID) {
-                layerID = this.getPreferenceLocation(data, id);
+                layerID = this.getPreferenceLocation(data, id, context);
             }
 
             if (!layerID) {
@@ -789,6 +783,9 @@ define(function (require, exports, module) {
             if (!_.isEqual(section[id], value)) {
                 if (value === undefined) {
                     delete section[id];
+                    if (_.isEmpty(section)) {
+                        delete data[layerID];
+                    }
                 } else {
                     section[id] = _.cloneDeep(value);
                 }
@@ -796,7 +793,7 @@ define(function (require, exports, module) {
             }
             return false;
         },
-
+        
         /**
          * Sets the language currently being edited (which determines the prefs applied).
          *
@@ -804,8 +801,6 @@ define(function (require, exports, module) {
          */
         languageChanged: function (data, languageID, oldLanguageID) {
             
-            this.language = languageID;
-
             if (languageID === oldLanguageID) {
                 return;
             }

@@ -211,6 +211,144 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Language Layer", function () {
+            
+            it("returns the setting for the corresponding language", function () {
+                var data = {
+                    "html": {
+                        spaceUnits: 2
+                    },
+                    "json": {
+                        spaceUnits: 3
+                    },
+                    "css": {
+                        spaceUnits: 4
+                    },
+                    "javascript": {
+                        spaceUnits: 5
+                    }
+                };
+                
+                var layer = new PreferencesBase.LanguageLayer();
+                
+                expect(layer.get(data, "spaceUnits", {language: "html"})).toBe(2);
+                
+                expect(layer.get(data, "spaceUnits", {language: "json"})).toBe(3);
+                
+                expect(layer.get(data, "spaceUnits", {language: "javascript"})).toBe(5);
+                
+                expect(layer.get(data, "spaceUnits", {language: "cobol"})).toBeUndefined();
+                
+                expect(layer.get(data, "spaceUnits", {language: "css"})).toBe(4);
+                
+            });
+            
+            it("can retrieve the location of the pref value", function () {
+                var data = {
+                    "html": {
+                        spaceUnits: 2
+                    },
+                    "javascript": {
+                        spaceUnits: 3
+                    }
+                };
+                
+                var layer = new PreferencesBase.LanguageLayer();
+                
+                expect(layer.getPreferenceLocation(data, "spaceUnits", {language: "text"})).toBeUndefined();
+                
+                expect(layer.getPreferenceLocation(data, "spaceUnits", {language: "html"})).toEqual("html");
+                
+                expect(layer.getPreferenceLocation(data, "spaceUnits", {language: "javascript"})).toEqual("javascript");
+            });
+            
+            it("can set values in any of the patterns", function () {
+                var data = {
+                    "html": {
+                        spaceUnits: 2
+                    },
+                    "css": {
+                        spaceUnits: 3
+                    }
+                };
+                
+                var originalData = _.clone(data, true);
+                
+                var layer = new PreferencesBase.LanguageLayer();
+                
+                expect(layer.set(data, "spaceUnits", 10, {}, "javascript")).toBe(true);
+                
+                expect(data).toEqual({
+                    "html": {
+                        spaceUnits: 2
+                    },
+                    "css": {
+                        spaceUnits: 3
+                    },
+                    "javascript": {
+                        spaceUnits: 10
+                    }
+                });
+                
+                expect(layer.set(data, "spaceUnits", undefined, {}, "javascript")).toBe(true);
+                expect(data).toEqual(originalData);
+                
+                expect(layer.set(data, "spaceUnits", 11, {}, "html")).toBe(true);
+                expect(data).toEqual({
+                    "html": {
+                        spaceUnits: 11
+                    },
+                    "css": {
+                        spaceUnits: 3
+                    }
+                });
+                
+                expect(layer.set(data, "spaceUnits", 12, {language: "css"})).toBe(true);
+                
+                expect(data).toEqual({
+                    "html": {
+                        spaceUnits: 11
+                    },
+                    "css": {
+                        spaceUnits: 12
+                    }
+                });
+                
+            });
+
+            it("should not set the same value twice", function () {
+                var data = {
+                    "html": {
+                        spaceUnits: 2
+                    },
+                    "javascript": {
+                        spaceUnits: 4
+                    }
+                };
+                
+                var originalData = _.clone(data, true);
+                
+                var layer = new PreferencesBase.LanguageLayer();
+                
+                expect(layer.set(data, "spaceUnits", 11, {}, "javascript")).toBe(true);
+
+                // Try to set the same value again.
+                expect(layer.set(data, "spaceUnits", 11, {}, "javascript")).toBe(false);
+                
+                // And again with the language set
+                expect(layer.set(data, "spaceUnits", 11, {language: "javascript"})).toBe(false);
+
+                expect(data).toEqual({
+                    "html": {
+                        spaceUnits: 2
+                    },
+                    "javascript": {
+                        spaceUnits: 11
+                    }
+                });
+            });
+        });
+
         describe("Scope", function () {
             it("should look up a value", function () {
                 var data = {
@@ -347,6 +485,28 @@ define(function (require, exports, module) {
                 })).toBe(4);
             });
             
+            it("should look up a value using language layer", function () {
+                var data = {
+                    spaceUnits: 4,
+                    language: {
+                        html: {
+                            spaceUnits: 2
+                        }
+                    }
+                };
+                var layer = new PreferencesBase.LanguageLayer();
+                var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
+                scope.load();
+                
+                expect(scope.get("language")).toBeDefined();
+                
+                scope.addLayer(layer);
+                expect(scope.get("language")).toBeUndefined();
+                
+                expect(scope.get("spaceUnits")).toBe(4);
+                expect(scope.get("spaceUnits", {language: "html"})).toBe(2);
+            });
+            
             it("can look up the location of a preference", function () {
                 var data = {
                     spaceUnits: 4,
@@ -354,17 +514,25 @@ define(function (require, exports, module) {
                         "src/*js": {
                             spaceUnits: 2
                         }
+                    },
+                    language: {
+                        "cobol": {
+                            spaceUnits: 5
+                        }
                     }
                 };
                 
-                var layer = new PreferencesBase.PathLayer("/.brackets.json");
+                var pathLayer = new PreferencesBase.PathLayer("/.brackets.json");
+                var languageLayer = new PreferencesBase.LanguageLayer();
                 var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
                 scope.load();
                 
-                scope.addLayer(layer);
+                scope.addLayer(pathLayer);
+                scope.addLayer(languageLayer);
                 
                 expect(scope.getPreferenceLocation("unknown")).toBeUndefined();
                 expect(scope.getPreferenceLocation("path")).toBeUndefined();
+                expect(scope.getPreferenceLocation("language")).toBeUndefined();
                 expect(scope.getPreferenceLocation("spaceUnits")).toEqual({});
                 
                 expect(scope.getPreferenceLocation("spaceUnits", {
@@ -377,6 +545,11 @@ define(function (require, exports, module) {
                 expect(scope.getPreferenceLocation("spaceUnits", {
                     filename: "/index.md"
                 })).toEqual({});
+                
+                expect(scope.getPreferenceLocation("spaceUnits", {language: "cobol"})).toEqual({
+                    layer: "language",
+                    layerID: "cobol"
+                });
             });
             
             it("can set a preference at any layer", function () {
@@ -389,14 +562,25 @@ define(function (require, exports, module) {
                         "*.html": {
                             spaceUnits: 1
                         }
+                    },
+                    language: {
+                        html: {
+                            spaceUnits: 11
+                        },
+                        css: {
+                            spaceUnits: 13
+                        }
                     }
                 };
                 
-                var layer = new PreferencesBase.PathLayer("/.brackets.json");
+                var pathLayer = new PreferencesBase.PathLayer("/.brackets.json");
+                var languageLayer = new PreferencesBase.LanguageLayer();
                 var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
                 scope.load();
                 
-                scope.addLayer(layer);
+                scope.addLayer(pathLayer);
+                scope.addLayer(languageLayer);
+                
                 expect(scope.set("spaceUnits", 5)).toBe(true);
                 expect(data.spaceUnits).toBe(5);
                 expect(scope._dirty).toBe(true);
@@ -436,9 +620,28 @@ define(function (require, exports, module) {
                 expect(data.path["*.html"].spaceUnits).toBe(1);
                 expect(scope._dirty).toBe(true);
                 
+                expect(scope.set("spaceUnits", 12, {}, {
+                    layer: "language",
+                    layerID: "html"
+                })).toBe(true);
+                expect(data.spaceUnits).toBe(9);
+                expect(data.path["*.html"].spaceUnits).toBe(1);
+                expect(data.language.html.spaceUnits).toBe(12);
+                expect(scope._dirty).toBe(true);
+                
+                expect(scope.set("spaceUnits", undefined, {}, {
+                    layer: "language",
+                    layerID: "css"
+                })).toBe(true);
+                expect(data.spaceUnits).toBe(9);
+                expect(data.path["*.html"].spaceUnits).toBe(1);
+                expect(data.language.html.spaceUnits).toBe(12);
+                expect(data.language.css).toBeUndefined();
+                expect(scope._dirty).toBe(true);
+                
                 expect(scope.set("spaceUnits", undefined, {}, {})).toBe(true);
                 expect(data.spaceUnits).toBeUndefined();
-                expect(Object.keys(data)).toEqual(["path"]);
+                expect(Object.keys(data)).toEqual(["path", "language"]);
                 
                 expect(scope.set("spaceUnits", undefined, {}, {
                     layer: "path",
@@ -460,15 +663,21 @@ define(function (require, exports, module) {
                             markdown: false,
                             useEmojiForTabs: false
                         }
+                    },
+                    language: {
+                        "html": {
+                            niceHTMLOption: true
+                        }
                     }
                 };
                 
                 var scope = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage(data));
                 scope.addLayer(new PreferencesBase.PathLayer("/"));
+                scope.addLayer(new PreferencesBase.LanguageLayer());
                 scope.load();
                 
                 var keys = scope.getKeys();
-                var expected = ["spaceUnits", "useEmojiForTabs", "showNonWhitespace", "markdown"];
+                var expected = ["spaceUnits", "useEmojiForTabs", "showNonWhitespace", "markdown", "niceHTMLOption"];
                 expect(keys.sort()).toEqual(expected.sort());
                 
                 keys = scope.getKeys({
@@ -481,6 +690,13 @@ define(function (require, exports, module) {
                     filename: "/README.md"
                 });
                 expected = ["spaceUnits", "useEmojiForTabs", "markdown"];
+                expect(keys.sort()).toEqual(expected.sort());
+                
+                keys = scope.getKeys({
+                    filename: "/test.js",
+                    language: "html"
+                });
+                expected = ["spaceUnits", "useEmojiForTabs", "showNonWhitespace", "niceHTMLOption"];
                 expect(keys.sort()).toEqual(expected.sort());
             });
             
@@ -498,6 +714,7 @@ define(function (require, exports, module) {
                 var storage = new PreferencesBase.MemoryStorage(data1);
                 var scope = new PreferencesBase.Scope(storage);
                 scope.addLayer(new PreferencesBase.PathLayer("/"));
+                scope.addLayer(new PreferencesBase.LanguageLayer());
                 scope.load();
                 
                 var data2 = {
@@ -513,16 +730,44 @@ define(function (require, exports, module) {
                 };
                 
                 storage.data = data2;
-                var events = [];
+                var events1 = [];
                 $(scope).on("change", function (e, data) {
-                    events.push(data);
+                    events1.push(data);
                 });
                 scope.load();
                 
-                expect(events.length).toBe(1);
-                expect(events[0].ids.sort()).toEqual(
+                expect(events1.length).toBe(1);
+                expect(events1[0].ids.sort()).toEqual(
                     ["spaceUnits", "cursorSize", "statusBarElephants", "trafficLight"].sort()
+
                 );
+                var data3 = {
+                    spaceUnits: 4,
+                    path: {
+                        "**.js": {
+                            trafficLight: "green"
+                        },
+                        "**.md": {
+                            statusBarElephants: true
+                        }
+                    },
+                    language: {
+                        html: {
+                            spaceshipColor: "silver"
+                        }
+                    }
+                };
+
+                storage.data = data3;
+                var events2 = [];
+                $(scope).on("change", function (e, data) {
+                    events2.push(data);
+                });
+                scope.load();
+
+                expect(events2.length).toBe(1);
+                expect(events2[0].ids.sort()).toEqual(["spaceUnits", "statusBarElephants", "trafficLight", "spaceshipColor"].sort());
+
             });
         });
         
