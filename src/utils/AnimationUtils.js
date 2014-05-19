@@ -40,6 +40,7 @@ define(function (require, exports, module) {
      *
      * @param {Element} target The DOM node to animate.
      * @param {string} animClass The class that applies the animation/transition to the target.
+     * @param {number} timeoutDuration Time to wait in ms before rejecting promise
      * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
      */
     function animateUsingClass(target, animClass, timeoutDuration) {
@@ -67,13 +68,10 @@ define(function (require, exports, module) {
             $target
                 .addClass(animClass)
                 .on("webkitTransitionEnd", finish);
-            
-            // Use timeout in case transition never ends
-            Async.withTimeout(result.promise(), timeoutDuration)
-                .fail(result.reject);
         }
         
-        return result.promise();
+        // Use timeout in case transition end event is not sent
+        return Async.withTimeout(result.promise(), timeoutDuration);
     }
     
     exports.animateUsingClass = animateUsingClass;
