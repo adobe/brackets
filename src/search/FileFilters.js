@@ -496,6 +496,28 @@ define(function (require, exports, module) {
         return _picker.$button;
     }
     
+    /**
+     * Allows unit tests to open the file filter dropdown list.
+     */
+    function showDropdown() {
+        if (_picker) {
+            _picker.showDropdown();
+        }
+    }
+    
+    /**
+     * Allows unit tests to close the file filter dropdown list.
+     */
+    function closeDropdown() {
+        if (_picker) {
+            _picker.closeDropdown();
+        }
+    }
+    
+    // For unit tests only
+    exports.showDropdown       = showDropdown;
+    exports.closeDropdown      = closeDropdown;
+
     exports.createFilterPicker = createFilterPicker;
     exports.commitPicker       = commitPicker;
     exports.getLastFilter      = getLastFilter;
