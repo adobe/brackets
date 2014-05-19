@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -26,7 +26,7 @@
 /*global define, $, window, brackets  */
 
 /**
- * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
+ * PaneListView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  *
  */
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _scrollSelectedDocIntoView() {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.PANE_LIST_VIEW) {
             return;
         }
 
@@ -360,7 +360,7 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_CLOSE, {file: $listItem.data(_FILE_KEY)});
                 } else {
                     // Normal right and left click - select the item
-                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+                    FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.PANE_LIST_VIEW);
                 }
             
             } else {
@@ -524,7 +524,7 @@ define(function (require, exports, module) {
      */
     function _updateListSelection() {
         var doc;
-        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
+        if (FileViewController.getFileSelectionFocus() === FileViewController.PANE_LIST_VIEW) {
             doc = DocumentManager.getCurrentDocument();
         } else {
             doc = null;

@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
         JSUtils                 = require("language/JSUtils"),
-        WorkingSetView          = require("project/WorkingSetView"),
+        PaneListView            = require("project/PaneListView"),
         WorkingSetSort          = require("project/WorkingSetSort"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
-            WorkingSetView          : WorkingSetView,
+            PaneListView            : PaneListView,
 
             doneLoading             : false
         };
