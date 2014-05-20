@@ -41,6 +41,11 @@ define({
     "FILE_EXISTS_ERR"                   : "Arquivo ou pasta já existe.",
     "FILE"                              : "arquivo",
     "DIRECTORY"                         : "diretório",
+    "DIRECTORY_NAMES_LEDE"              : "Nomes de diretórios",
+    "FILENAMES_LEDE"                    : "Nomes de arquivos",
+    "FILENAME"                          : "Nome de arquivo",
+    "DIRECTORY_NAME"                    : "Nome de diretório",
+    
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Erro ao carregar o projeto",
@@ -60,9 +65,9 @@ define({
     "ERROR_RENAMING_FILE"               : "Ocorreu um erro ao tentar renomear o arquivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Erro ao excluir arquivo",
     "ERROR_DELETING_FILE"               : "Ocorreu um erro ao tentar excluir o arquivo <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Nome de {0} inválido",
-    "INVALID_FILENAME_MESSAGE"          : "Nomes de arquivos não podem conter os seguintes caracteres: {0} nem usar palavras reservadas do sistema.",
-    "FILE_ALREADY_EXISTS"               : "Já existe um {0} chamado <span class='dialog-filename'>{1}</span>.",
+    "INVALID_FILENAME_TITLE"            : "{0} inválido",
+    "INVALID_FILENAME_MESSAGE"          : "{0} não podem usar palavras reservadas do sistema, terminar com pontos (.) ou conter qualquer um dos seguintes caracteres: <code class='emphasized'>{1}</code>.",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Já existe um arquivo ou diretório como o nome <span class='dialog-filename'>{0}</span>.",
     "ERROR_CREATING_FILE_TITLE"         : "Erro ao criar {0}",
     "ERROR_CREATING_FILE"               : "Ocorreu um erro ao tentar criar o {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -362,7 +367,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Notas da versão",
     "CMD_GET_INVOLVED"                    : "Envolva-se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar pasta de extensões",
-    "CMD_HOMEPAGE"                        : "Página do Brackets",
+    "CMD_HOMEPAGE"                        : "Página do {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} no Twitter",
     "CMD_ABOUT"                           : "Sobre o {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de configurações",
@@ -547,4 +552,4 @@ define({
     "DOCS_MORE_LINK"                            : "Leia mais"
 });
 
-/* Last translated for 368a63c4d682185da0a90f9538c1e7fc0612c9c9 */
+/* Last translated for 5af956bd6a7b12345e0f1db2c0459a05067ccc58 */
