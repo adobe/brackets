@@ -1434,7 +1434,7 @@ define(function (require, exports, module) {
             // Set up the widget to start closed, then animate open when its initial height is set.
             inlineWidget.$htmlContent.height(0);
             AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                .always(function () {
+                .done(function () {
                     deferred.resolve();
                 });
 
@@ -1487,7 +1487,7 @@ define(function (require, exports, module) {
             // back to the editor.)
             if (self.isFullyVisible()) {
                 AnimationUtils.animateUsingClass(inlineWidget.htmlContent, "animating")
-                    .always(finishRemoving);
+                    .done(finishRemoving);
                 inlineWidget.$htmlContent.height(0);
             } else {
                 finishRemoving();
@@ -1679,7 +1679,7 @@ define(function (require, exports, module) {
         _addListeners();
 
         // Animate open
-        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").always(function () {
+        AnimationUtils.animateUsingClass(this._$messagePopover[0], "animateOpen").done(function () {
             // Make sure we still have a popover
             if (self._$messagePopover && self._$messagePopover.length > 0) {
                 self._$messagePopover.addClass("open");
@@ -1690,7 +1690,7 @@ define(function (require, exports, module) {
 
                 // Animate closed -- which includes delay to show message
                 AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 600)
-                    .always(_removeMessagePopover);
+                    .done(_removeMessagePopover);
             }
         });
     };

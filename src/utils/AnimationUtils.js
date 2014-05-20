@@ -41,8 +41,7 @@ define(function (require, exports, module) {
      * @param {Element} target The DOM node to animate.
      * @param {string} animClass The class that applies the animation/transition to the target.
      * @param {number=} timeoutDuration Time to wait in ms before rejecting promise. Default is 400.
-     * @return {$.Promise} A promise that is resolved if the animation completes,
-     *                     otherwise it times out and is rejected.
+     * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
      */
     function animateUsingClass(target, animClass, timeoutDuration) {
         var result  = new $.Deferred(),
@@ -72,7 +71,7 @@ define(function (require, exports, module) {
         }
         
         // Use timeout in case transition end event is not sent
-        return Async.withTimeout(result.promise(), timeoutDuration);
+        return Async.withTimeout(result.promise(), timeoutDuration, true);
     }
     
     exports.animateUsingClass = animateUsingClass;
