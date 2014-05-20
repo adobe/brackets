@@ -492,7 +492,7 @@ define(function (require, exports, module) {
         var previousDocument = _currentDocument;
         _currentDocument = doc;
 
-        // change the language layer in prefs *before* triggering the currentDocumentChange event
+        // Change the language layer in prefs
         var newLanguageID = _currentDocument.getLanguage().getId();
         PreferencesManager._manager.setLanguage(newLanguageID);
         

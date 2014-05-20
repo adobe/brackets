@@ -491,6 +491,14 @@ define(function (require, exports, module) {
             this.storage.fileChanged(filePath);
         },
         
+        /**
+         * Determines if there are likely to be any changes based on the current
+         * language.
+         * 
+         * @param {string} languageID New language id
+         * @param {string} oldLanguageID Old language id
+         * @return {Array.<string>} List of changed IDs
+         */
         languageChanged: function (languageID, oldLanguageID) {
             var changes = [],
                 data    = this.data;
@@ -677,18 +685,12 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Provides layered preferences based on file globs, generally following the model provided
-     * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
-     * (switching to single line comments because the glob interferes with the multiline comment):
+     * @constructor
+     * 
+     * Create a language layer object. Language Layer is comletely stateless, it
+     * only knows how look up and process prefs set in the language layer. Desired
+     * language id should be specified in the "language" field of the context. 
      */
-    
-//    "path": {
-//        "src/thirdparty/CodeMirror2/**/*.js": {
-//            "spaceUnits": 2,
-//            "linting.enabled": false
-//        }
-//    }
-    
     function LanguageLayer() {
     }
    
@@ -696,11 +698,13 @@ define(function (require, exports, module) {
         key: "language",
         
         /**
-         * Retrieve the current value based on the current project path
-         * in the layer.
+         * Retrieve the current value based on the specified context. If the context
+         * does contain language field, undefined is returned.
          * 
          * @param {Object} data the preference data from the Scope
          * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {*|undefined} property value
          */
         get: function (data, id, context) {
             if (!data || !context.language) {
@@ -719,7 +723,8 @@ define(function (require, exports, module) {
          * 
          * @param {Object} data the preference data from the Scope
          * @param {string} id preference ID to look up
-         * @return {string} the Layer ID, in this case the current language.
+         * @param {{language: string}} context Context to operate with
+         * @return {string|undefined} the Layer ID, in this case the current language
          */
         getPreferenceLocation: function (data, id, context) {
             if (!data || !context.language) {
@@ -733,15 +738,20 @@ define(function (require, exports, module) {
             return;
         },
         /**
-         * Retrieves the keys provided by this layer object.
+         * Retrieves the keys provided by this layer object. If the context is
+         * empty, it will return all the keys provided in all the layerIDs
+         * (languages).
          * 
          * @param {Object} data the preference data from the Scope
+         * @param {{language: string}} context Context to operate with
+         * @return {Array<{string}>|undefined} An array of pref ids
          */
         getKeys: function (data, context) {
             if (!data) {
                 return;
             }
             
+            // do not upset other layers if context for the this one is not specified
             if (!_.isEmpty(context)) {
                 if (data[context.language]) {
                     return _.keys(data[context.language]);
@@ -754,18 +764,19 @@ define(function (require, exports, module) {
         },
 
         /**
-         * Sets the preference value in the given data structure for the layerID provided. If no
-         * layerID is provided, then the current language is used. If a layerID is provided 
-         * and it does not exist, it will be created.
+         * Sets the preference value in the given data structure for the layerID
+         * provided. If no layerID is provided, then it will be determined using
+         * getPreferenceLocation. If a layerID is located, but it does not
+         * exist, it will be created.
          * 
          * This function returns whether or not a value was set.
          * 
-         * @param {Object} data the preference data from the Scope
-         * @param {string} id preference ID to look up
-         * @param {Object} value new value to assign to the preference
-         * @param {Object} context Object with scope and layer key-value pairs (not yet used in project layer)
-         * @param {string=} layerID language to be used for setting value
-         * @return {boolean} true if the value was set
+         * @param {Object} data The preference data from the Scope
+         * @param {string} id Preference ID to look up
+         * @param {Object} value New value to assign to the preference
+         * @param {{language: string}} context Context to operate with
+         * @param {string=} layerID Language to be used for setting value
+         * @return {boolean} True if the value was set
          */
         set: function (data, id, value, context, layerID) {
             if (!layerID) {
@@ -795,9 +806,13 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets the language currently being edited (which determines the prefs applied).
-         *
-         * @param {string} languageID Identifier for the language that is currently being edited.
+         * Determines if there are preference IDs that could change as a result of
+         * the language change.
+         * 
+         * @param {Object} data Data in the Scope
+         * @param {string} languageID New language id
+         * @param {string} oldLanguageID Old language id
+         * @return {Array.<string>|undefined} list of preference IDs that could have changed
          */
         languageChanged: function (data, languageID, oldLanguageID) {
             
@@ -814,6 +829,19 @@ define(function (require, exports, module) {
             return _.union(_.keys(data[languageID]), _.keys(data[languageID]));
         }
     };
+    
+    /**
+     * Provides layered preferences based on file globs, generally following the model provided
+     * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
+     * (switching to single line comments because the glob interferes with the multiline comment):
+     */
+    
+//    "path": {
+//        "src/thirdparty/CodeMirror2/**/*.js": {
+//            "spaceUnits": 2,
+//            "linting.enabled": false
+//        }
+//    }
     
     /**
      * There can be multiple paths and they are each checked in turn. The first that matches the
@@ -1733,6 +1761,15 @@ define(function (require, exports, module) {
             return deferred.promise();
         },
         
+        /**
+         * Sets the current language used for computing preferences when there are
+         * LanguageLayers. This should be the language of the file being edited.
+         * 
+         * Calling this function will cause all the listeners to get notified if there're
+         * potential changes in the preferences due to the language change
+         * 
+         * @param {string} filename New language id used to look up preferences
+         */
         setLanguage: function (languageID) {
             var oldLanguageID = this._defaultContext.language;
             if (oldLanguageID === languageID) {
