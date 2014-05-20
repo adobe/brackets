@@ -387,7 +387,7 @@ define(function (require, exports, module) {
                     // before we locate the colon following it.
                     TokenUtils.moveNextToken(ctx);
                 }
-                if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ": ") {
+                if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) && ctx.token.string === ":") {
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
