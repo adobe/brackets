@@ -129,14 +129,14 @@ define(function (require, exports, module) {
         });
 
         it("should find preferences in the project", function () {
-            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
+            var projectWithoutSettings = SpecRunnerUtils.getTestPath("/spec/PaneListView-test-files"),
                 FileViewController = testWindow.brackets.test.FileViewController;
             waitsForDone(SpecRunnerUtils.openProjectFiles(".brackets.json"));
             
             runs(function () {
                 expect(PreferencesManager.get("spaceUnits")).toBe(9);
                 waitsForDone(FileViewController.openAndSelectDocument(nonProjectFile,
-                             FileViewController.WORKING_SET_VIEW));
+                             FileViewController.PANE_LIST_VIEW));
             
             });
             
