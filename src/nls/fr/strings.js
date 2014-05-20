@@ -41,10 +41,10 @@ define({
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"DIRECTORY": "répertoire",
-	"DIRECTORY_NAMES_LEDE": "[7549928] !é=Directory names=!",
-	"FILENAMES_LEDE": "Noms de fichiers",
-	"FILENAME": "[7549930] !é=filename=!",
-	"DIRECTORY_NAME": "[7549927] !é=directory name=!",
+	"DIRECTORY_NAMES_LEDE": "Noms de répertoire",
+	"FILENAMES_LEDE": "Noms de fichier",
+	"FILENAME": "nom de fichier",
+	"DIRECTORY_NAME": "nom de répertoire",
     
 
     // Project error strings
@@ -65,9 +65,9 @@ define({
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lorsque vous avez tenté de renommer le fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du fichier",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"INVALID_FILENAME_TITLE": "[6307153] !é=Invalid {0}=!",
-	"INVALID_FILENAME_MESSAGE": "[6307152] !é={0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>=!",
-	"ENTRY_WITH_SAME_NAME_EXISTS": "[7549929] !é=A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.=!",
+	"INVALID_FILENAME_TITLE": "{0} non valide",
+	"INVALID_FILENAME_MESSAGE": "Le {0} ne peut pas utiliser de termes réservés au système, finir par un point (.) ou contenir l’un des caractères suivants : <code class='emphasized'>{1}</code>",
+	"ENTRY_WITH_SAME_NAME_EXISTS": "Il existe déjà un fichier ou un répertoire portant le nom <span class='dialog-filename'>{0}</span>.",
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création du {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -367,7 +367,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_HOMEPAGE": "[7540036] !é={APP_TITLE} Homepage=!",
+	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
