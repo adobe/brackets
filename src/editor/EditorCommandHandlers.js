@@ -735,7 +735,6 @@ define(function (require, exports, module) {
             lineLength      = 0,
             edits           = [],
             newSels         = [],
-            sel             = {},
             pos             = {};
         
         _.each(lineSelections, function (lineSel) {
@@ -803,19 +802,17 @@ define(function (require, exports, module) {
             }
         });
 
-        // Make sure correct selections are made and scrolled into view
+        // Make sure selections are correct and primary selection is scrolled into view
         if (edits.length) {
             newSels = doc.doMultipleEdits(edits);
 
+            pos.ch = 0;
+
             if (direction === DIRECTION_UP) {
                 editor.setSelections(newSels);
-                sel = _.first(editor.getSelections());
-                pos.ch = sel.start.ch;
-                pos.line = sel.start.line;
+                pos.line = editor.getSelection().start.line;
             } else if (direction === DIRECTION_DOWN) {
-                sel = _.last(editor.getSelections());
-                pos.ch = sel.end.ch;
-                pos.line = sel.end.line;
+                pos.line = editor.getSelection().end.line;
             } else {
                 console.error("EditorCommandHandler.moveLine() called with invalid argument 'direction' = %d", direction);
                 pos = null;
