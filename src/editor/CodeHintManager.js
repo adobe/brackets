@@ -453,6 +453,12 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     _beginSession = function (editor) {
+        // Don't start a session if we have a multiple selection.
+        var selection = editor.getSelections();
+        if (selection.length > 1) {
+            return;
+        }
+        
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
@@ -560,6 +566,21 @@ define(function (require, exports, module) {
             }
         }
     }
+    
+    /**
+     * Handle a selection change event in the editor. If the selection becomes a
+     * multiple selection, end our current session.
+     * @param {Event} jqEvent
+     * @param {Editor} editor
+     */
+    function _handleCursorActivity(jqEvent, editor) {
+        if (_inSession(editor)) {
+            var selection = editor.getSelections();
+            if (selection.length > 1) {
+                _endSession();
+            }
+        }
+    }
 
     /**
      * Start a new implicit hinting session, or update the existing hint list.
@@ -640,6 +661,7 @@ define(function (require, exports, module) {
             $(current).on("keydown",  _handleKeydownEvent);
             $(current).on("keypress", _handleKeypressEvent);
             $(current).on("keyup",    _handleKeyupEvent);
+            $(current).on("cursorActivity", _handleCursorActivity);
         }
 
         if (previous) {
@@ -648,6 +670,7 @@ define(function (require, exports, module) {
             $(previous).off("keydown",  _handleKeydownEvent);
             $(previous).off("keypress", _handleKeypressEvent);
             $(previous).off("keyup",    _handleKeyupEvent);
+            $(previous).off("cursorActivity", _handleCursorActivity);
         }
     }
 
