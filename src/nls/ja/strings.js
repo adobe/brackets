@@ -41,6 +41,11 @@ define({
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"DIRECTORY": "ディレクトリ",
+	"DIRECTORY_NAMES_LEDE": "!能=[7549928] Directory names_=!",
+	"FILENAMES_LEDE": "ファイル名",
+	"FILENAME": "!能=[7549930] filename_=!",
+	"DIRECTORY_NAME": "!能=[7549927] directory name_=!",
+    
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "プロジェクトの読み込みに失敗しました。",
@@ -60,9 +65,9 @@ define({
 	"ERROR_RENAMING_FILE": "ファイル <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
 	"ERROR_DELETING_FILE_TITLE": "ファイル削除のエラー",
 	"ERROR_DELETING_FILE": "ファイルを削除する際にエラーが発生しました <span class='dialog-filename'>{0}</span>。{1}",
-	"INVALID_FILENAME_TITLE": "無効な{0}名",
-	"INVALID_FILENAME_MESSAGE": "ファイル名には、次の文字を含めることはできません : {0} またはシステムの予約語すべて。",
-	"FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span> は既に存在しています。",
+	"INVALID_FILENAME_TITLE": "!能=[6307153] Invalid {0}_=!",
+	"INVALID_FILENAME_MESSAGE": "!能=[6307152] {0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>_=!",
+	"ENTRY_WITH_SAME_NAME_EXISTS": "!能=[7549929] A file or directory with the name <span class='dialog-filename'>{0}</span> already exists._=!",
 	"ERROR_CREATING_FILE_TITLE": "{0}を作成する際にエラーが発生しました",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 
@@ -362,7 +367,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
-	"CMD_HOMEPAGE": "Brackets のホームページ",
+	"CMD_HOMEPAGE": "!能=[7540036] {APP_TITLE} Homepage_=!",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
 	"CMD_OPEN_PREFERENCES": "環境設定ファイルを開く",
