@@ -101,6 +101,7 @@ New translations can be added by navigating to the
 [nls folder on github](https://github.com/adobe/brackets/tree/master/src/nls)
 and then clicking on the [+] button to add a new file.
 You will be taken to a New File page where you:
+
 1. Specify the file name as *language-id*/strings.js
 2. Paste in the contents of root/strings.js and edit strings for new language
 3. Add short and (optional) long description of new file
@@ -112,6 +113,7 @@ Existing files can be edited directly in
 
 Navigate to the file to edit and click "Edit" button above file.
 You will be taken to an Edit File page where you:
+
 1. Make desired edits to file
 2. Add short and (optional) long description of Commit changes
 3. Click "Commit changes" button
