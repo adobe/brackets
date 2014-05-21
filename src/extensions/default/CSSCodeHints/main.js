@@ -382,7 +382,7 @@ define(function (require, exports, module) {
                 // adjust the cursor position and show code hints for property values.
                 end.ch = start.ch + this.info.name.length;
                 ctx = TokenUtils.getInitialContext(this.editor._codeMirror, cursor);
-                if (ctx.token.string.length > 0 && !ctx.token.string.match(/\S/)) {
+                if (ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
                     // We're at the very beginning of a property name. So skip it 
                     // before we locate the colon following it.
                     TokenUtils.moveNextToken(ctx);
@@ -391,6 +391,10 @@ define(function (require, exports, module) {
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
+                    // Adjust cursor to the position after any whitespace that follows the colon, if there is any.
+                    if (TokenUtils.moveNextToken(ctx) && ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
+                        newCursor.ch += ctx.token.string.length;
+                    }
                 } else {
                     hint += ": ";
                 }
