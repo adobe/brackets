@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         FileUtils               = require("file/FileUtils"),
         AppInit                 = require("utils/AppInit"),
-        Strings                 = require("strings");
+        Strings                 = require("strings"),
+        _                       = require("thirdparty/lodash");
     
     var defaultPrefs = {
         currentSort:   Commands.SORT_WORKINGSET_BY_ADDED,
@@ -264,22 +265,13 @@ define(function (require, exports, module) {
     
     
     /** Command Handlers */
-    function _handleSortWorkingSetByAdded() {
-        get(Commands.SORT_WORKINGSET_BY_ADDED).execute();
-    }
-    
-    function _handleSortWorkingSetByName() {
-        get(Commands.SORT_WORKINGSET_BY_NAME).execute();
-    }
-    
-    function _handleSortWorkingSetByType() {
-        get(Commands.SORT_WORKINGSET_BY_TYPE).execute();
-    }
-    
-    function _handleAutomaticSort() {
+    function _handleToggleAuto() {
         setAutomatic(!getAutomatic());
     }
     
+    function _handleSort(commandId) {
+        get(commandId).execute();
+    }
     
     // Register Sort Methods
     register(
@@ -309,10 +301,10 @@ define(function (require, exports, module) {
     
     
     // Register Command Handlers
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_ADDED, Commands.SORT_WORKINGSET_BY_ADDED, _handleSortWorkingSetByAdded);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_NAME,  Commands.SORT_WORKINGSET_BY_NAME,  _handleSortWorkingSetByName);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_TYPE,  Commands.SORT_WORKINGSET_BY_TYPE,  _handleSortWorkingSetByType);
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,     Commands.SORT_WORKINGSET_AUTO,     _handleAutomaticSort);
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_ADDED, Commands.SORT_WORKINGSET_BY_ADDED, _.partial(_handleSort, Commands.SORT_WORKINGSET_BY_ADDED));
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_NAME,  Commands.SORT_WORKINGSET_BY_NAME,  _.partial(_handleSort, Commands.SORT_WORKINGSET_BY_NAME));
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_BY_TYPE,  Commands.SORT_WORKINGSET_BY_TYPE,  _.partial(_handleSort, Commands.SORT_WORKINGSET_BY_NAME));
+    CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,     Commands.SORT_WORKINGSET_AUTO,     _handleToggleAuto);
     
     
     // Initialize default values for sorting preferences
