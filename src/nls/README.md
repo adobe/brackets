@@ -104,19 +104,32 @@ You will be taken to a New File page where you:
 1. Specify the file name as *language-id*/strings.js
 2. Paste in the contents of root/strings.js and edit strings for new language
 3. Add short and (optional) long description of new file
-4. CLick "Propose New File" button
+4. Click "Propose New File" button
 
 ### Editing an Existing Translation
 Existing files can be edited directly in
 [brackets repo on github](https://github.com/adobe/brackets).
 
-###Branch and Pull Request
-Either case will create and submit a pull request with a branch named something like
-`patch-1` on your github fork of brackets of the brackets repository
-(`https://github.com/user1/brackets`).
-If you have not yet forked brackets "repo", it's done automatically.
+Navigate to the file to edit and click "Edit" button above file.
+You will be taken to an Edit File page where you:
+1. Make desired edits to file
+2. Add short and (optional) long description of Commit changes
+3. Click "Commit changes" button
 
-###Code Review
+### Branch and Pull Request
+If you have not yet forked the brackets repository in your github account
+(`https://github.com/user1/brackets`), it's done automatically.
+A new branch will be created in your brackets fork with a unique name
+which is something like `patch-1` that contains your changes.
+
+You are then taken to the New Pull Request dialog which is filled in
+with all of the information from previous dialog.
+It also shows contents of new file or a "diff" of changes to existing file.
+You can make any changes if desired, then click "Send Pull Request" when done
+(or close page to Cancel).
+A pull request for your branch is created and submitted to the brackets "repo".
+
+### Code Review
 Someone on the Brackets team will review the pull request. If it's ok, it will
 be merged. If changes need to be made, the reviewer will post comments in the
 pull request which will send you an e-mail notification.
@@ -128,7 +141,10 @@ to see all changes at once, and can even create conflicts that are
 very difficult to resolve.
 
 Follow the link in the notification e-mail to the pull request if you need
-to determine which branch to edit.
+to determine which branch to edit. Once in the branch, navigate to the file
+to edit (same as you would in main repo) and click "Edit" button.
+Make any changes following directions for Editing an Existing Translation.
+
 Saved edits show up as a new commit, so they automatically show up in the original
 pull request. After making an update, add a comment to the pull request such as
 "Changes made -- ready for another review" to notify reviewer
