@@ -454,8 +454,7 @@ define(function (require, exports, module) {
      */
     _beginSession = function (editor) {
         // Don't start a session if we have a multiple selection.
-        var selection = editor.getSelections();
-        if (selection.length > 1) {
+        if (editor.getSelections().length > 1) {
             return;
         }
         
@@ -575,8 +574,7 @@ define(function (require, exports, module) {
      */
     function _handleCursorActivity(jqEvent, editor) {
         if (_inSession(editor)) {
-            var selection = editor.getSelections();
-            if (selection.length > 1) {
+            if (editor.getSelections().length > 1) {
                 _endSession();
             }
         }
