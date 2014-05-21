@@ -37,6 +37,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR"       : "Целевая директория не может быть изменена.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Ограничение прав не позволяет сделать изменения.",
     "CONTENTS_MODIFIED_ERR"             : "Файл был изменен другим приложением.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Файл не является текстовым файлом в кодировке UTF-8.",
     "FILE_EXISTS_ERR"                   : "Файл уже существует.",
     "FILE"                              : "файл",
     "DIRECTORY"                         : "директория",
@@ -65,6 +66,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Ошибка создания файла",
     "ERROR_CREATING_FILE"               : "Произошла ошибка при попытке создать файл <span class='dialog-filename'>{0}</span>. {1}",
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Ошибка чтения настроек",
+    "ERROR_PREFS_CORRUPT"               : "Обнаружена ошибка формата JSON в файле настроек. Он будет открыт для того, чтобы исправить ошибку вручную. Вам будет необходимо перезагрузить {APP_NAME}, чтобы исправления вступили в силу.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "К сожалению, запуск {APP_NAME} в браузере пока что не поддерживается.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} разработан на HTML, но пока что может работать только как настольное приложение, чтобы вы могли редактировать локальные файлы. Пожалуйста, используйте специальную оболочку (проект <b>github.com/adobe/brackets-shell</b>) для запуска {APP_NAME}.",
@@ -73,7 +78,7 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Ошибка индексирования файлов",
     "ERROR_MAX_FILES"                   : "Количество файлов превышает предельно допустимое. Команды использующие индекс файлов могут работать некорректно.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Ошибка запуска браузера.",
     "ERROR_CANT_FIND_CHROME"            : "Браузер Google Chrome не найден. Пожалуйста, убедитесь, что он установлен.",
     "ERROR_LAUNCHING_BROWSER"           : "Произошла ошибка при запуске браузера. (ошибка {0})",
@@ -156,6 +161,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} в {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "в <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "в проекте",
+    "FIND_IN_FILES_ZERO_FILES"          : "Фильтр исключает все файлы {0}",
     "FIND_IN_FILES_FILE"                : "файле",
     "FIND_IN_FILES_FILES"               : "файлах",
     "FIND_IN_FILES_MATCH"               : "совпадение",
@@ -163,8 +169,33 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Более ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd-клик чтобы развернуть/свернуть все",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Ошибка при получении информации об обновлениях",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ошибка при получении информации о последних обновлениях с сервера. Пожалуйста, убедитесь, что вы подключены к интернету и попробуйте снова. ",
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Исключить файлы\u2026",
+    "EDIT_FILE_FILTER"                  : "Редактировать\u2026",
+    "FILE_FILTER_DIALOG"                : "Редактировать фильтр",
+    "FILE_FILTER_INSTRUCTIONS"          : "Исключить файлы и директории содержащие любую из перечисленных строк, возможно использование <a href='{0}' title='{0}'>групповых символов</a>. Указывайте по одной строке на линию.",
+    "FILE_FILTER_LIST_PREFIX"           : "кроме",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "и еще {0}",
+
+    "FILTER_COUNTING_FILES"             : "Подсчет количества файлов\u2026",
+    "FILTER_FILE_COUNT"                 : "Фильтр оставляет {0} из {1} файлов/а {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Фильтр оставляет все {0} файлов/а {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Быстрое редактирование недоступно для данной позиции курсора",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Быстрое редактирование CSS: установите курсор на одном из имен класса",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "Быстрое редактирование CSS: отсутствует имя класса",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "Быстрое редактирование CSS: отсутствует имя идентификатора",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Быстрое редактирование CSS: установите курсор на теге, классе или идентификаторе",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Быстрое редактирование временной функции CSS: некорректный синтаксис",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Быстрое редактирование JS: установите курсор на имени функции",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Быстрая документация для текущей позиции курсора отсутствет",
 
     /**
      * ProjectManager
@@ -188,6 +219,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Выделено {0} столбцов",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Выделена {0} строка",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Выделено {0} строк",
+    "STATUSBAR_SELECTION_MULTIPLE"          : "\u2014 {0} выбранных элементов",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Нажмите чтобы использовать пробелы для отступа",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Нажмите чтобы использовать табуляцию для отступа",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Нажмите чтобы изменить количества пробелов для отступа",
@@ -197,6 +229,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} строка",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} строк",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Расширения отключены",
+    "STATUSBAR_INSERT"                      : "ВСТ",
+    "STATUSBAR_OVERWRITE"                   : "ЗАМ",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} ошибок",
@@ -207,6 +241,8 @@ define({
     "LINT_DISABLED"                         : "Статический анализ отключен",
     "NO_LINT_AVAILABLE"                     : "Нет статического анализатора для {0}",
     "NOTHING_TO_LINT"                       : "Не подлежит статическому анализу",
+    "LINTER_TIMED_OUT"                      : "{0} превысил время ожидания {1} мс",
+    "LINTER_FAILED"                         : "{0} завершил исполнение с ошибкой: {1}",
     
     
     /**
@@ -220,7 +256,7 @@ define({
     "CMD_FILE_NEW_FOLDER"                 : "Новая директория",
     "CMD_FILE_OPEN"                       : "Открыть\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Добавить в рабочий набор",
-
+    "CMD_OPEN_DROPPED_FILES"              : "Открыть перетащенные файлы",
     "CMD_OPEN_FOLDER"                     : "Открыть директорию\u2026",
     "CMD_FILE_CLOSE"                      : "Закрыть",
     "CMD_FILE_CLOSE_ALL"                  : "Закрыть все",
@@ -251,13 +287,9 @@ define({
     "CMD_PASTE"                           : "Вставить",
     "CMD_SELECT_ALL"                      : "Выделить все",
     "CMD_SELECT_LINE"                     : "Выделить строку",
-    "CMD_FIND"                            : "Найти",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Найти\u2026",
-    "CMD_FIND_IN_FILES"                   : "Найти в файлах",
-    "CMD_FIND_IN_SUBTREE"                 : "Найти в\u2026",
-    "CMD_FIND_NEXT"                       : "Найти след.",
-    "CMD_FIND_PREVIOUS"                   : "Найти пред.",
-    "CMD_REPLACE"                         : "Заменить",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Разбить выделенное на линии",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Добавить курсор к следующей линии",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Добавить курсор к предыдущей линии",
     "CMD_INDENT"                          : "Сделать отступ",
     "CMD_UNINDENT"                        : "Убрать отступ",
     "CMD_DUPLICATE"                       : "Дублировать",
@@ -270,6 +302,20 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Вставить строку снизу",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Автоматически закрывать скобки",
     "CMD_SHOW_CODE_HINTS"                 : "Показывать подсказки в коде",
+
+    // Search menu commands
+    "FIND_MENU"                           : "Поиск",
+    "CMD_FIND"                            : "Найти",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Найти\u2026",
+    "CMD_FIND_NEXT"                       : "Найти след.",
+    "CMD_FIND_PREVIOUS"                   : "Найти пред.",
+    "CMD_FIND_ALL_AND_SELECT"             : "Найти все и выделить",
+    "CMD_ADD_NEXT_MATCH"                  : "Добавить следущее найденное к выделению",
+    "CMD_SKIP_CURRENT_MATCH"              : "Пропустить и добавить следующее найденное",
+    "CMD_FIND_IN_FILES"                   : "Найти в файлах",
+    "CMD_FIND_IN_SELECTED"                : "Найти в выделенном файле/директории",
+    "CMD_FIND_IN_SUBTREE"                 : "Найти в\u2026",
+    "CMD_REPLACE"                         : "Заменить",
     
     // View menu commands
     "VIEW_MENU"                           : "Вид",
@@ -304,15 +350,18 @@ define({
     "CMD_NEXT_DOC"                        : "Следующий документ",
     "CMD_PREV_DOC"                        : "Предыдущий документ",
     "CMD_SHOW_IN_TREE"                    : "Показать в дереве проекта",
+    "CMD_SHOW_IN_EXPLORER"                : "Показать в Проводнике",
+    "CMD_SHOW_IN_FINDER"                  : "Показать в Finder",
     "CMD_SHOW_IN_OS"                      : "Показать в операционной системе",
     
     // Help menu commands
     "HELP_MENU"                           : "Помощь",
     "CMD_CHECK_FOR_UPDATE"                : "Проверить на обновления",
     "CMD_HOW_TO_USE_BRACKETS"             : "Как использовать {APP_NAME}",
-    "CMD_FORUM"                           : "Форум {APP_NAME}",
+    "CMD_SUPPORT"                         : "Поддержка {APP_NAME}",
+    "CMD_SUGGEST"                         : "Предложить улучшение",
     "CMD_RELEASE_NOTES"                   : "Примечания к выпуску",
-    "CMD_REPORT_AN_ISSUE"                 : "Сообщить о проблеме",
+    "CMD_GET_INVOLVED"                    : "Примите участие в проекте",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Показать директорию расширений",
     "CMD_TWITTER"                         : "{TWITTER_NAME} в Twitter",
     "CMD_ABOUT"                           : "О {APP_TITLE}",
@@ -433,6 +482,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Нет найдено совпадений.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Существующих правил CSS соответвующих выделенному тексту не определено. <br> Выберите \"Новое правило\" чтобы создать новое.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Ваш проект не содержит таблиц стилей (stylesheets).<br>Создайте его чтобы добавить правило CSS.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "наибольший размер",
     
     /**
      * Unit names
@@ -442,6 +494,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Отладка",
+    "ERRORS"                                    : "Ошибки",
     "CMD_SHOW_DEV_TOOLS"                        : "Показать инструменты разработчика",
     "CMD_REFRESH_WINDOW"                        : "Перезагрузить {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Перегрузить без расширений",
@@ -452,6 +505,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Включить отладчик node",
     "CMD_LOG_NODE_STATE"                        : "Отображать состояние node в консоли",
     "CMD_RESTART_NODE"                          : "Перезапустить node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Показывать ошибки в строке состояния",
     
     "LANGUAGE_TITLE"                            : "Изменить язык",
     "LANGUAGE_MESSAGE"                          : "Пожалуйста, выберите желаемый язык из списка ниже:",
@@ -464,6 +518,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Прогрессия",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Передвинуть выделенную точку<br><kbd class='text'>Shift</kbd> Передвигать на десять единиц",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Увеличить или уменьшить шаги<br><kbd>←</kbd><kbd>→</kbd> 'Начало' or 'Конец'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Старое значение <code>{0}</code> некорректно, отображаемая функция была заменена на <code>{1}</code>. Документ будет обновлен с первой правкой.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Текущий цвет",

@@ -93,7 +93,9 @@
     "php": {
         "name": "PHP",
         "mode": "php",
-        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"]
+        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//", "#"]
     },
 
     "c": {
@@ -120,13 +122,6 @@
         "lineComment": ["//"]
     },
 
-    "clike": {
-        "name": "clike",
-        "mode": "clike",
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//", "#"]
-    },
-
     "java": {
         "name": "Java",
         "mode": ["clike", "text/x-java"],
@@ -138,14 +133,18 @@
     "scala": {
         "name": "Scala",
         "mode": ["clike", "text/x-scala"],
-        "fileExtensions": ["scala", "sbt"]
+        "fileExtensions": ["scala", "sbt"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
     },
 
     "coffeescript": {
         "name": "CoffeeScript",
         "mode": "coffeescript",
         "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
-        "fileNames": ["Cakefile"]
+        "fileNames": ["Cakefile"],
+        "blockComment": ["###", "###"],
+        "lineComment": ["#"]
     },
 
     "clojure": {
@@ -188,7 +187,9 @@
     "lua": {
         "name": "Lua",
         "mode": "lua",
-        "fileExtensions": ["lua"]
+        "fileExtensions": ["lua"],
+        "blockComment": ["--[[", "]]"],
+        "lineComment": ["--"]
     },
 
     "sql": {
@@ -234,13 +235,27 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
         "isBinary": true
     },
     
     "audio": {
         "name": "Audio",
         "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
+        "isBinary": true
+    },
+    
+    "binary": {
+        "name": "Other Binary",
+        "fileExtensions": [
+            "a", "ai", "avi", "bin", "cab", "com", "db", "dll", "dmg",
+            "doc", "docx", "dot", "dotx", "dsym", "dylib", "egg", "epub", "eot",
+            "exe", "flv", "gz", "gzip", "htmz", "htmlz", "ipch", "iso", "jar",
+            "jsz", "lib", "mpeg", "mpg", "mp4", "msi", "node", "o", "obj", "odc",
+            "odb", "odf", "odg", "odp", "ods", "odt", "otf", "pak", "pdb", "pdf",
+            "pdi", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite", "suo", "svgz",
+            "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
+        ],
         "isBinary": true
     }
 }

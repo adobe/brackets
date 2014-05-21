@@ -1,0 +1,55 @@
+/* */
+
+.foo {
+    shape-inside: circle(0
+                         at
+                         0 0
+    );
+    
+    shape-inside: circle   (0px 
+                         at 
+                            0px 
+                         
+        0px
+    );     
+    
+    shape-inside: polygon(0 0, 
+                          100px
+        
+        0, 
+                          100px 100px
+    
+    
+    );
+    
+    
+    shape-inside: 
+polygon(
+        
+        
+        nonzero, 
+                          0 0, 
+                          100px 
+0, 
+                                                                                    100px 
+        
+        100px
+                                        );
+                                }
+
+
+
+@keyframes colorize {
+    0% {
+        -webkit-filter: grayscale(100%);
+    }
+    100% {
+        -webkit-filter: 
+            
+            
+            grayscale   
+                                                                                (  0  %  )
+            
+;
+    }
+}

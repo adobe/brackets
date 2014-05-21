@@ -396,6 +396,52 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should work with multiple classes when the cursor is on the first class in the list", function () {
+                initInlineTest("test1.html", 14);
+
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(infos["test1.css"].offsets[1]);
+
+                    inlineWidget = null;
+                });
+            });
+
+            it("should work when the cursor is between classes", function () {
+                initInlineTest("test1.html", 15, false);
+
+                runs(function () {
+                    // verify no inline editor open
+                    expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+
+                    // verify popover message is displayed with correct string
+                    expectPopoverMessageWithText(Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES);
+
+                    // verify popover message is automatically dismissed after short wait
+                    // current delay is 5 sec + 0.5 sec fade-out transition
+                    waits(6000);
+                });
+            });
+
+
+            it("should work with multiple classes when the cursor is on the first class in the list", function () {
+                initInlineTest("test1.html", 16);
+
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editor.getCursorPos();
+
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(infos["test1.css"].offsets[8]);
+
+                    inlineWidget = null;
+                });
+            });
+            
+            
             it("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
@@ -536,6 +582,7 @@ define(function (require, exports, module) {
                 });
             });
             
+                        
             it("should close popover message on selection change", function () {
                 var editor,
                     openFile = "test1.html";
@@ -648,7 +695,7 @@ define(function (require, exports, module) {
                     widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
-                    expect(inlineEditor.lineCount()).toBe(12);
+                    expect(inlineEditor.lineCount()).toBe(16);
                     
                     // change inline editor content
                     var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
@@ -661,7 +708,7 @@ define(function (require, exports, module) {
                     );
                     
                     // verify widget resizes when contents is changed
-                    expect(inlineEditor.lineCount()).toBe(17);
+                    expect(inlineEditor.lineCount()).toBe(21);
                     expect(inlineEditor.totalHeight()).toBeGreaterThan(widgetHeight);
                     
                     inlineEditor = null;
@@ -678,7 +725,7 @@ define(function (require, exports, module) {
                     widgetHeight = inlineEditor.totalHeight();
                     
                     // verify original line count
-                    expect(inlineEditor.lineCount()).toBe(12);
+                    expect(inlineEditor.lineCount()).toBe(16);
                     
                     // replace the entire .foo rule with an empty string
                     // set text on the editor, can't mutate document directly at this point
@@ -689,7 +736,7 @@ define(function (require, exports, module) {
                     );
                     
                     // verify widget resizes when contents is changed
-                    expect(inlineEditor.lineCount()).toBe(10);
+                    expect(inlineEditor.lineCount()).toBe(14);
                     expect(inlineEditor.totalHeight()).toBeLessThan(widgetHeight);
 
                     inlineEditor = null;

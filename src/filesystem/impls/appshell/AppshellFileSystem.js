@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         NodeDomain          = require("utils/NodeDomain");
     
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
-    
+
     /**
      * Callback to notify FileSystem of watcher changes
      * @type {?function(string, FileSystemStats=)}
@@ -91,7 +91,8 @@ define(function (require, exports, module) {
                         if (needsStats) {
                             exports.stat(path, function (err, stats) {
                                 if (err) {
-                                    console.warn("Unable to stat changed path: ", path, err);
+                                    // warning has been removed due to spamming the console - see #7332
+                                    // console.warn("Unable to stat changed path: ", path, err);
                                     return;
                                 }
                                 _changeCallback(path, stats);
@@ -159,7 +160,7 @@ define(function (require, exports, module) {
         case appshell.fs.ERR_CANT_WRITE:
             return FileSystemError.NOT_WRITABLE;
         case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return FileSystemError.NOT_READABLE;
+            return FileSystemError.UNSUPPORTED_ENCODING;
         case appshell.fs.ERR_OUT_OF_SPACE:
             return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:

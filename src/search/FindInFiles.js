@@ -79,6 +79,9 @@ define(function (require, exports, module) {
         FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400;
     
+    /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
+    var ZERO_FILES_TO_SEARCH = {};
+    
     /**
      * Map of all the last search results
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
@@ -346,8 +349,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * Shows the results in a table and adds the necessary event listeners
+     * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
      */
-    function _showSearchResults() {
+    function _showSearchResults(zeroFilesToken) {
         if (!$.isEmptyObject(searchResults)) {
             var count = _countFilesMatches();
             
@@ -580,7 +584,13 @@ define(function (require, exports, module) {
                     .addClass("no-results")
                     .removeAttr("disabled")
                     .get(0).select();
-                $(".modal-bar .no-results-message").show();
+                if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
+                    $(".modal-bar .error")
+                        .show()
+                        .html(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, _labelForScope(currentScope)));
+                } else {
+                    $(".modal-bar .no-results-message").show();
+                }
             }
         }
     }
@@ -721,44 +731,58 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Filters out files that are known binary types (currently just image/audio; ideally we'd filter out ALL binary files).
-     * On Mac these would silently fail to be read, but on Windows we'd read the garbled content & try to search it.
-     * @param {File} file
+     * Filters out files that are known binary types.
+     * @param {string} fullPath
      * @return {boolean} True if the file's contents can be read as text
      */
-    function _isReadableText(file) {
-        var language = LanguageManager.getLanguageForPath(file.fullPath);
-        return !language.isBinary();
+    function _isReadableText(fullPath) {
+        return !LanguageManager.getLanguageForPath(fullPath).isBinary();
+    }
+    
+    /**
+     * Finds all candidate files to search in currentScope's subtree that are not binary content. Does NOT apply
+     * currentFilter yet.
+     */
+    function getCandidateFiles() {
+        function filter(file) {
+            return _subtreeFilter(file, currentScope) && _isReadableText(file.fullPath);
+        }
+        
+        return ProjectManager.getAllFiles(filter, true);
     }
     
     /**
      * Checks that the file is eligible for inclusion in the search (matches the user's subtree scope and
      * file exclusion filters, and isn't binary). Used when updating results incrementally - during the
-     * initial search, the filter and part of the scope are taken care of in bulk instead, so _subtreeFilter()
-     * is just called directly.
+     * initial search, these checks are done in bulk via getCandidateFiles() and the filterFileList() call
+     * after it.
      * @param {!File} file
      * @return {boolean}
      */
     function _inSearchScope(file) {
+        // Replicate the checks getCandidateFiles() does
         if (currentScope) {
             if (!_subtreeFilter(file, currentScope)) {
                 return false;
             }
         } else {
             // Still need to make sure it's within project or working set
-            // In the initial search, this is covered by getAllFiles()
+            // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
             if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
                 var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
                     return wsFile.fullPath === file.fullPath;
                 });
-                return inWorkingSet;
+                if (!inWorkingSet) {
+                    return false;
+                }
             }
         }
-        // In the initial search, this is passed as a getAllFiles() filter
-        if (!_isReadableText(file)) {
+
+        if (!_isReadableText(file.fullPath)) {
             return false;
         }
-        // In the initial search, this is covered by the filterFileList() pass
+        
+        // Replicate the filtering filterFileList() does
         return FileFilters.filterPath(currentFilter, file.fullPath);
     }
 
@@ -789,31 +813,38 @@ define(function (require, exports, module) {
         }
     };
     
-    function _doSearchInOneFile(addMatches, file) {
+    /**
+     * Finds search results in the given file and adds them to 'searchResults.' Resolves with
+     * true if any matches found, false if none found. Errors reading the file are treated the
+     * same as if no results found.
+     * 
+     * Does not perform any filtering - assumes caller has already vetted this file as a search
+     * candidate.
+     */
+    function _doSearchInOneFile(file) {
         var result = new $.Deferred();
-                    
-        if (!_subtreeFilter(file, currentScope)) {
-            result.resolve();
-        } else {
-            DocumentManager.getDocumentText(file)
-                .done(function (text) {
-                    addMatches(file.fullPath, text, currentQueryExpr);
-                })
-                .always(function () {
-                    // Always resolve. If there is an error, this file
-                    // is skipped and we move on to the next file.
-                    result.resolve();
-                });
-        }
+        
+        DocumentManager.getDocumentText(file)
+            .done(function (text) {
+                var foundMatches = _addSearchMatches(file.fullPath, text, currentQueryExpr);
+                result.resolve(foundMatches);
+            })
+            .fail(function () {
+                // Always resolve. If there is an error, this file
+                // is skipped and we move on to the next file.
+                result.resolve();
+            });
+        
         return result.promise();
     }
-
+    
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
+     * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      */
-    function _doSearch(query) {
+    function _doSearch(query, candidateFilesPromise) {
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
@@ -826,18 +857,21 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        ProjectManager.getAllFiles(_isReadableText, true)
+        candidateFilesPromise
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(currentFilter, fileListResult);
                 
-                var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
-                return Async.doInParallel(fileListResult, doSearch);
+                if (fileListResult.length) {
+                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                } else {
+                    return ZERO_FILES_TO_SEARCH;
+                }
             })
-            .done(function () {
+            .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 _sortResultFiles();
-                _showSearchResults();
+                _showSearchResults(zeroFilesToken);
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
                 
@@ -927,6 +961,7 @@ define(function (require, exports, module) {
         };
         
         var $searchField = $("input#find-what"),
+            candidateFilesPromise = getCandidateFiles(),  // used for eventual search, and in exclusions editor UI
             filterPicker;
         
         function handleQueryChange() {
@@ -954,8 +989,14 @@ define(function (require, exports, module) {
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
-                        currentFilter = FileFilters.commitPicker(filterPicker);
-                        _doSearch(query);
+                        
+                        if (filterPicker) {
+                            currentFilter = FileFilters.commitPicker(filterPicker);
+                        } else {
+                            // Single-file scope: don't use any file filters
+                            currentFilter = null;
+                        }
+                        _doSearch(query, candidateFilesPromise);
                     }
                 }
             })
@@ -969,8 +1010,16 @@ define(function (require, exports, module) {
             handleQueryChange();  // re-validate regexp if needed
         });
         
-        filterPicker = FileFilters.createFilterPicker();
-        this.modalBar.getRoot().find("#find-group").append(filterPicker);
+        // Show file-exclusion UI *unless* search scope is just a single file
+        if (!scope || scope.isDirectory) {
+            var exclusionsContext = {
+                label: _labelForScope(scope),
+                promise: candidateFilesPromise
+            };
+
+            filterPicker = FileFilters.createFilterPicker(exclusionsContext);
+            this.modalBar.getRoot().find("#find-group").append(filterPicker);
+        }
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();
@@ -992,7 +1041,7 @@ define(function (require, exports, module) {
         
         if (scope instanceof InMemoryFile) {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.CMD_FIND);
             });
             return;
         }
@@ -1097,17 +1146,11 @@ define(function (require, exports, module) {
             var addedFiles = [],
                 deferred = new $.Deferred();
             
-            var doSearch = _doSearchInOneFile.bind(undefined, function () {
-                if (_addSearchMatches.apply(undefined, arguments)) {
-                    resultsChanged = true;
-                }
-            });
-            
             // gather up added files
             var visitor = function (child) {
                 // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile && !ProjectManager.isBinaryFile(child.name)) {
+                    if (child.isFile && _isReadableText(child.name)) {
                         // Re-check the filtering that the initial search applied
                         if (_inSearchScope(child)) {
                             addedFiles.push(child);
@@ -1125,7 +1168,12 @@ define(function (require, exports, module) {
                 }
                 
                 // find additional matches in all added files
-                Async.doInParallel(addedFiles, doSearch).always(deferred.resolve);
+                Async.doInParallel(addedFiles, function (file) {
+                    return _doSearchInOneFile(file)
+                        .done(function (foundMatches) {
+                            resultsChanged = resultsChanged || foundMatches;
+                        });
+                }).always(deferred.resolve);
             });
     
             return deferred.promise();
@@ -1188,9 +1236,11 @@ define(function (require, exports, module) {
     });
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
-    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,     _doFindInFiles);
+    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,  _doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,   _doFindInSubtree);
     
-    // For unit testing - updated in _doSearch() when search complete
+    // For unit testing
+    exports._doFindInFiles = _doFindInFiles;
     exports._searchResults = null;
 });

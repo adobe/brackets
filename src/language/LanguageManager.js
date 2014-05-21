@@ -24,6 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
+/*unittests: LanguageManager*/
 
 /**
  * LanguageManager provides access to the languages supported by Brackets
@@ -117,17 +118,45 @@ define(function (require, exports, module) {
     var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
-        _defaultLanguagesJSON = require("text!language/languages.json");
-    
+        _defaultLanguagesJSON = require("text!language/languages.json"),
+        _                     = require("thirdparty/lodash"),
+        
+        // PreferencesManager is loaded near the end of the file
+        PreferencesManager;
     
     // State
-    var _fallbackLanguage           = null,
-        _pendingLanguages           = {},
-        _languages                  = {},
-        _fileExtensionToLanguageMap = {},
-        _fileNameToLanguageMap      = {},
-        _modeToLanguageMap          = {},
+    var _fallbackLanguage               = null,
+        _pendingLanguages               = {},
+        _languages                      = {},
+        _baseFileExtensionToLanguageMap = {},
+        _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap),
+        _fileNameToLanguageMap          = {},
+        _modeToLanguageMap              = {},
         _ready;
+    
+    // Constants
+    
+    var _EXTENSION_MAP_PREF = "language.fileExtensions",
+        _NAME_MAP_PREF      = "language.fileNames";
+    
+    // Tracking for changes to mappings made by preferences
+    var _prefState = {};
+    
+    _prefState[_EXTENSION_MAP_PREF] = {
+        last: {},
+        overridden: {},
+        add: "addFileExtension",
+        remove: "removeFileExtension",
+        get: "getLanguageForExtension"
+    };
+    
+    _prefState[_NAME_MAP_PREF] = {
+        last: {},
+        overridden: {},
+        add: "addFileName",
+        remove: "removeFileName",
+        get: "getLanguageForPath"
+    };
     
     // Helper functions
     
@@ -475,11 +504,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds a file extension to this language.
-     * @param {!string} extension A file extension used by this language
-     * @return {boolean} Whether adding the file extension was successful or not
+     * Adds one or more file extensions to this language.
+     * @param {!string|Array.<string>} extension A file extension (or array thereof) used by this language
      */
     Language.prototype.addFileExtension = function (extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(this._addFileExtension.bind(this));
+        } else {
+            this._addFileExtension(extension);
+        }
+    };
+    Language.prototype._addFileExtension = function (extension) {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -503,11 +538,47 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds a file name to the language which is used to match files that don't have extensions like "Makefile" for example.
-     * @param {!string} extension An extensionless file name used by this language
-     * @return {boolean} Whether adding the file name was successful or not
+     * Unregisters one or more file extensions from this language.
+     * @param {!string|Array.<string>} extension File extension (or array thereof) to stop using for this language
+     */
+    Language.prototype.removeFileExtension = function (extension) {
+        if (Array.isArray(extension)) {
+            extension.forEach(this._removeFileExtension.bind(this));
+        } else {
+            this._removeFileExtension(extension);
+        }
+    };
+    Language.prototype._removeFileExtension = function (extension) {
+        // Remove a leading dot if present
+        if (extension.charAt(0) === ".") {
+            extension = extension.substr(1);
+        }
+        
+        // Make checks below case-INsensitive
+        extension = extension.toLowerCase();
+        
+        var index = this._fileExtensions.indexOf(extension);
+        if (index !== -1) {
+            this._fileExtensions.splice(index, 1);
+            
+            delete _fileExtensionToLanguageMap[extension];
+            
+            this._wasModified();
+        }
+    };
+
+    /**
+     * Adds one or more file names to the language which is used to match files that don't have extensions like "Makefile" for example.
+     * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
      */
     Language.prototype.addFileName = function (name) {
+        if (Array.isArray(name)) {
+            name.forEach(this._addFileName.bind(this));
+        } else {
+            this._addFileName(name);
+        }
+    };
+    Language.prototype._addFileName = function (name) {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
         
@@ -523,7 +594,31 @@ define(function (require, exports, module) {
             
             this._wasModified();
         }
-        return true;
+    };
+
+    /**
+     * Unregisters one or more file names from this language.
+     * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
+     */
+    Language.prototype.removeFileName = function (name) {
+        if (Array.isArray(name)) {
+            name.forEach(this._removeFileName.bind(this));
+        } else {
+            this._removeFileName(name);
+        }
+    };
+    Language.prototype._removeFileName = function (name) {
+        // Make checks below case-INsensitive
+        name = name.toLowerCase();
+        
+        var index = this._fileNames.indexOf(name);
+        if (index !== -1) {
+            this._fileNames.splice(index, 1);
+            
+            delete _fileNameToLanguageMap[name];
+            
+            this._wasModified();
+        }
     };
 
     /**
@@ -774,16 +869,100 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * @private
+     * 
+     * If a default file extension or name was overridden by a pref, restore it.
+     * 
+     * @param {string} name Extension or filename that should be restored
+     * @param {{overridden: string, add: string}} prefState object for the pref that is currently being updated
+     */
+    function _restoreOverriddenDefault(name, state) {
+        if (state.overridden[name]) {
+            var language = getLanguage(state.overridden[name]);
+            language[state.add](name);
+            delete state.overridden[name];
+        }
+    }
+    
+    /**
+     * @private
+     * 
+     * Updates extension and filename mappings from languages based on the current preferences values.
+     * 
+     * The preferences look like this in a prefs file:
+     * 
+     * Map *.foo to javascript, *.vm to html
+     * "language.fileExtensions": {
+     *     "foo": "javascript",
+     *     "vm": "html"
+     * }
+     * 
+     * Map "Gemfile" to ruby:
+     * "language.fileNames": {
+     *     "Gemfile": "ruby"
+     * }
+     */
+    function _updateFromPrefs(pref) {
+        var newMapping = PreferencesManager.get(pref) || {},
+            newNames = Object.keys(newMapping),
+            state = _prefState[pref],
+            last = state.last,
+            overridden = state.overridden;
+        
+        // Look for added and changed names (extensions or filenames)
+        newNames.forEach(function (name) {
+            var language;
+            if (newMapping[name] !== last[name]) {
+                if (last[name]) {
+                    language = getLanguage(last[name]);
+                    if (language) {
+                        language[state.remove](name);
+                        
+                        // If this name that was previously mapped was overriding a default
+                        // restore it now.
+                        _restoreOverriddenDefault(name, state);
+                    }
+                }
+                
+                language = exports[state.get](name);
+                if (language) {
+                    language[state.remove](name);
+                    
+                    // We're removing a name that was defined in Brackets or an extension,
+                    // so keep track of how it used to be mapped.
+                    if (!overridden[name]) {
+                        overridden[name] = language.getId();
+                    }
+                }
+                language = getLanguage(newMapping[name]);
+                if (language) {
+                    language[state.add](name);
+                }
+            }
+        });
+        
+        // Look for removed names (extensions or filenames)
+        _.difference(Object.keys(last), newNames).forEach(function (name) {
+            var language = getLanguage(last[name]);
+            if (language) {
+                language[state.remove](name);
+                _restoreOverriddenDefault(name, state);
+            }
+        });
+        state.last = newMapping;
+    }
+    
    
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
     
     // Define a custom MIME mode here instead of putting it directly into languages.json
-    // because JSON files must not contain regular expressions. Also, all other modes so
+    // because JSON files can't contain regular expressions. Also, all other modes so
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars-template|\/x-mustache/i,
+        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
                        "mode": null}]
     });
  
@@ -805,9 +984,37 @@ define(function (require, exports, module) {
         // But for now, we need to associate this madeup "html" mode with our HTML language object.
         _setLanguageForMode("html", html);
         
+        // Similarly, the php mode uses clike internally for the PHP parts
+        var php = getLanguage("php");
+        php._setLanguageForMode("clike", php);
+
+        // Similar hack to the above for dealing with SCSS/CSS.
+        var scss = getLanguage("scss");
+        scss._setLanguageForMode("css", scss);
+        
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
+        
+        // There is a circular dependency between FileUtils and LanguageManager which
+        // was introduced in 254b01e2f2eebea4416026d0f40d017b8ca6dbc9
+        // and may be preventing us from importing PreferencesManager (which also
+        // depends on FileUtils) here. Using the async form of require fixes this.
+        require(["preferences/PreferencesManager"], function (pm) {
+            PreferencesManager = pm;
+            _updateFromPrefs(_EXTENSION_MAP_PREF);
+            _updateFromPrefs(_NAME_MAP_PREF);
+            pm.definePreference(_EXTENSION_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
+            });
+            pm.definePreference(_NAME_MAP_PREF, "object").on("change", function () {
+                _updateFromPrefs(_NAME_MAP_PREF);
+            });
+        });
     });
+    
+    // Private for unit tests
+    exports._EXTENSION_MAP_PREF     = _EXTENSION_MAP_PREF;
+    exports._NAME_MAP_PREF          = _NAME_MAP_PREF;
     
     // Public methods
     exports.ready                   = _ready;

@@ -18,6 +18,10 @@
         },
         "*.jsx": {
             "linting.enabled": false
+        },
+        "src/thirdparty/globmatch.js": {
+            "spaceUnits": 2,
+            "linting.enabled": false
         }
     },
     "spaceUnits": 4,

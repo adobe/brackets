@@ -30,7 +30,8 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - beforeProjectClose -- before _projectRoot changes
+ *    - beforeProjectClose -- before _projectRoot changes, but working set files still open
+ *    - projectClose       -- *just* before _projectRoot changes; working set already cleared & project root unwatched
  *    - beforeAppClose     -- before Brackets quits entirely
  *    - projectOpen        -- after _projectRoot changes and the tree is re-rendered
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
@@ -59,6 +60,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -112,13 +114,6 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * File names which are not showed in quick open dialog
-     * @type {RegExp}
-     */
-    var _binaryExclusionListRegEx = /\.svgz$|\.jsz$|\.zip$|\.gz$|\.htmz$|\.htmlz$|\.rar$|\.tar$|\.exe$|\.bin$/;
-    
-    /**
-     * @private
      * Filename to use for project settings files.
      * @type {string}
      */
@@ -164,6 +159,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * @see getProjectRoot()
+     * @type {Directory}
      */
     var _projectRoot = null;
 
@@ -194,7 +190,8 @@ define(function (require, exports, module) {
      * RegEx to validate if a filename is not allowed even if the system allows it.
      * This is done to prevent cross-platform issues.
      */
-    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux)$/i;
+            
+    var _illegalFilenamesRegEx = /^(\.+|com[1-9]|lpt[1-9]|nul|con|prn|aux|)$|\.+$/i;
     
     var suppressToggleOpen = false;
     
@@ -697,15 +694,15 @@ define(function (require, exports, module) {
                 var events        = $._data(_projectTree[0], "events"),
                     eventsForType = events ? events[type] : null,
                     event         = eventsForType ? _.find(eventsForType, function (e) {
-                                        return e.namespace === namespace && e.selector === selector;
-                                    }) : null,
+                        return e.namespace === namespace && e.selector === selector;
+                    }) : null,
                     eventHandler  = event ? event.handler : null;
                 if (!eventHandler) {
                     console.error(type + "." + namespace + " " + selector + " handler not found!");
                 }
                 return eventHandler;
             };
-            var createCustomHandler = function(originalHandler) {
+            var createCustomHandler = function (originalHandler) {
                 return function (event) {
                     var $node = $(event.target).parent("li"),
                         methodName;
@@ -773,12 +770,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
      * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
      * @param {string} fileName
      * @return {boolean}
      */
     function isBinaryFile(fileName) {
-        return fileName.match(_binaryExclusionListRegEx);
+        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
+        return LanguageManager.getLanguageForPath(fileName).isBinary();
     }
     
     /**
@@ -1097,6 +1096,20 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Reloads the project preferences.
+     */
+    function _reloadProjectPreferencesScope() {
+        var root = getProjectRoot();
+        if (root) {
+            // Alias the "project" Scope to the path Scope for the project-level settings file
+            PreferencesManager._setProjectSettingsFile(root.fullPath + SETTINGS_FILENAME);
+        } else {
+            PreferencesManager._setProjectSettingsFile();
+        }
+    }
+    
+    /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
@@ -1125,8 +1138,9 @@ define(function (require, exports, module) {
             if (_projectRoot && _projectRoot.fullPath === rootPath) {
                 return (new $.Deferred()).resolve().promise();
             }
+            
+            // About to close current project (if any)
             if (_projectRoot) {
-                // close current project
                 $(exports).triggerHandler("beforeProjectClose", _projectRoot);
             }
             
@@ -1134,6 +1148,11 @@ define(function (require, exports, module) {
             DocumentManager.closeAll();
     
             _unwatchProjectRoot().always(function () {
+                // Done closing old project (if any)
+                if (_projectRoot) {
+                    $(exports).triggerHandler("projectClose", _projectRoot);
+                }
+                
                 startLoad.resolve();
             });
         }
@@ -1165,15 +1184,20 @@ define(function (require, exports, module) {
                 var rootEntry = FileSystem.getDirectoryForPath(rootPath);
                 rootEntry.exists(function (err, exists) {
                     if (exists) {
-                        PreferencesManager._setCurrentEditingFile(rootPath);
                         var projectRootChanged = (!_projectRoot || !rootEntry) ||
                             _projectRoot.fullPath !== rootEntry.fullPath;
                         var i;
-
+                        
                         // Success!
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectRoot = rootEntry;
+                        
+                        if (projectRootChanged) {
+                            _reloadProjectPreferencesScope();
+                            PreferencesManager._setCurrentEditingFile(rootPath);
+                        }
+
                         _projectBaseUrl = PreferencesManager.getViewState("project.baseUrl", context) || "";
                         _allFilesCachePromise = null;  // invalidate getAllFiles() cache as soon as _projectRoot changes
 
@@ -1529,8 +1553,8 @@ define(function (require, exports, module) {
                 filename.match(_illegalFilenamesRegEx)) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
-                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY : Strings.FILE),
-                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, _invalidChars)
+                StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME),
+                StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE,  _invalidChars)
             );
             return false;
         }
@@ -1657,15 +1681,13 @@ define(function (require, exports, module) {
                 };
                 
                 var errorCallback = function (error, entry) {
-                    var entryType = isFolder ? Strings.DIRECTORY : Strings.FILE,
-                        oppositeEntryType = isFolder ? Strings.FILE : Strings.DIRECTORY;
+                    var titleType = isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME,
+                        entryType = isFolder ? Strings.DIRECTORY : Strings.FILE;
                     if (error === FileSystemError.ALREADY_EXISTS) {
-                        var useOppositeType = (isFolder === entry.isFile);
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
-                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, entryType),
-                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                useOppositeType ? oppositeEntryType : entryType,
+                            StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType),
+                            StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS,
                                 StringUtils.breakableUrl(data.rslt.name))
                         );
                     } else {
@@ -2019,7 +2041,7 @@ define(function (require, exports, module) {
                 allFiles = [],
                 allFilesVisitor = function (entry) {
                     if (shouldShow(entry)) {
-                        if (entry.isFile && !isBinaryFile(entry.name)) {
+                        if (entry.isFile) {
                             allFiles.push(entry);
                         }
                         return true;
@@ -2045,7 +2067,7 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files filtered
-     * out by shouldShow() OR isBinaryFile() are excluded.
+     * out by shouldShow().
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
@@ -2304,6 +2326,13 @@ define(function (require, exports, module) {
     }
     
     $(exports).on("projectOpen", _reloadProjectPreferencesScope);
+    // Initialize the sort prefixes and make sure to change them when the sort pref changes
+    _generateSortPrefixes();
+    PreferencesManager.on("change", "sortDirectoriesFirst", function () {
+        if (_generateSortPrefixes()) {
+            refreshFileTree();
+        }
+    });
     
     // Event Handlers
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);

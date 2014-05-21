@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
-        this._origin = "*InlineTimingFunctionEditor_" + (lastOriginId++);
+        this._origin = "+InlineTimingFunctionEditor_" + (lastOriginId++);
 
         this._handleTimingFunctionChange = this._handleTimingFunctionChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -169,10 +169,8 @@ define(function (require, exports, module) {
                 this._isOwnChange = true;
                 this.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, this._origin);
                 this._isOwnChange = false;
-                this.hostEditor.setSelection(range.start, {
-                    line: range.start.line,
-                    ch: range.start.ch + timingFunctionString.length
-                });
+                var newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
+                this.hostEditor.setSelection(range.start, newEnd, false, 0, this._origin);
             }
             
             this._timingFunction = timingFunctionMatch;

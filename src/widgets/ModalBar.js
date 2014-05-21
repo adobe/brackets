@@ -153,6 +153,13 @@ define(function (require, exports, module) {
         
         this._$root.addClass("popout");
         
+        // Since the modal bar has now an absolute position relative to the editor holder,
+        // when there are html menus we need to adjust the top position
+        if (!brackets.nativeMenus) {
+            var top = $("#titlebar").outerHeight();
+            this._$root.css("top", top + "px");
+        }
+        
         // Preserve scroll position of the current full editor across the editor refresh, adjusting for the 
         // height of the modal bar so the code doesn't appear to shift if possible.
         var fullEditor = EditorManager.getCurrentFullEditor(),

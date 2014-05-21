@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
 
 define(function (require, exports, module) {
     'use strict';
@@ -206,8 +206,37 @@ define(function (require, exports, module) {
                     expectAndDelete(newFilePath);
                 });
             });
+			
+            // from Issue #6121
+            it("should recognize that a previously untitled, but now saved, document can be saved without prompting for a filename", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    
+                    waitsForDone(promise, "FILE_NEW_UNTITLED");
+                });
+                     
+                runs(function () {
+                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
 
-            it("should swap out untitled document from working set even when not current", function () {
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog).toHaveBeenCalled();   // first save should prompt user for filename
+                });
+                
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    
+                    waitsForDone(promise, "FILE_SAVE");
+                    
+                    expect(FileSystem.showSaveDialog.callCount).toEqual(1); // second save should not prompt
+                });
+            });
+
+            xit("should swap out untitled document from working set even when not current", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
