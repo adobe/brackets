@@ -282,21 +282,21 @@ define(function (require, exports, module) {
             
             return index1 - index2;
         },
-        "workingSetAdd workingSetAddList"
+        "paneListAdd paneListAddList"
     );
     register(
         Commands.SORT_WORKINGSET_BY_NAME,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, false);
         },
-        "workingSetAdd workingSetAddList"
+        "paneListAdd paneListAddList"
     );
     register(
         Commands.SORT_WORKINGSET_BY_TYPE,
         function (file1, file2) {
             return FileUtils.compareFilenames(file1.name, file2.name, true);
         },
-        "workingSetAdd workingSetAddList"
+        "paneListAdd paneListAddList"
     );
     
     

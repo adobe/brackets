@@ -79,7 +79,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(DocumentManager).on("workingSetAdd", function (event, addedFile) {
+                testWindow.$(DocumentManager).on("paneListAdd", function (event, addedFile) {
                     workingSetCount++;
                 });
             });

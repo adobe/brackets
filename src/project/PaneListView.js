@@ -645,11 +645,11 @@ define(function (require, exports, module) {
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
-        $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
+        $(DocumentManager).on("paneListAdd", function (event, addedFile) {
             _handleFileAdded(addedFile);
         });
 
-        $(DocumentManager).on("workingSetAddList", function (event, addedFiles) {
+        $(DocumentManager).on("paneListAddList", function (event, addedFiles) {
             _handleFileListAdded(addedFiles);
         });
 

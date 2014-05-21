@@ -63,9 +63,9 @@
  *      is the current document and 3rd argument is the previous document.
  *
  *    To listen for working set changes, you must listen to *all* of these events:
- *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
+ *    - paneListAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
  *      to the listener is the added File, and the 3rd arg is the index it was inserted at.
- *    - workingSetAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
+ *    - paneListAddList -- When multiple files are added to the working set (e.g. project open, multiple file open).
  *      The 2nd arg to the listener is the array of added File objects.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed File.
@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      * Contains the same set of items as _workingSet, but ordered in the way they where added to _workingSet (0 = last added).
      * @type {Array.<File>}
      */
-    var _workingSetAddedOrder = [];
+    var _paneListAddedOrder = [];
     
     /**
      * While true, the MRU order is frozen
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
     /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
-     * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
+     * When a file is added this list, DocumentManager dispatches a "paneListAdd" event.
      * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
      * To listen for ALL changes to this list, you must listen for both events.
      *
@@ -195,13 +195,13 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the index of the file matching fullPath in _workingSetAddedOrder.
+     * Returns the index of the file matching fullPath in _paneListAddedOrder.
      * Returns -1 if not found.
      * @param {!string} fullPath
      * @returns {number} index
      */
     function findInWorkingSetAddedOrder(fullPath) {
-        return findInWorkingSet(fullPath, _workingSetAddedOrder);
+        return findInWorkingSet(fullPath, _paneListAddedOrder);
     }
 
     /**
@@ -267,13 +267,13 @@ define(function (require, exports, module) {
         }
         
         // Add first to Added order
-        _workingSetAddedOrder.unshift(file);
+        _paneListAddedOrder.unshift(file);
         
         // Dispatch event
         if (!indexRequested) {
             index = _workingSet.length - 1;
         }
-        $(exports).triggerHandler("workingSetAdd", [file, index]);
+        $(exports).triggerHandler("paneListAdd", [file, index]);
     }
     
     /**
@@ -307,13 +307,13 @@ define(function (require, exports, module) {
                 }
                 
                 // Add first to Added order
-                _workingSetAddedOrder.splice(index, 1, file);
+                _paneListAddedOrder.splice(index, 1, file);
             }
         });
         
 
         // Dispatch event
-        $(exports).triggerHandler("workingSetAddList", [uniqueFileList]);
+        $(exports).triggerHandler("paneListAddList", [uniqueFileList]);
     }
 
     /**
@@ -333,7 +333,7 @@ define(function (require, exports, module) {
         // Remove
         _workingSet.splice(index, 1);
         _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+        _paneListAddedOrder.splice(findInWorkingSet(file.fullPath, _paneListAddedOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw]);
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
         // Remove all
         _workingSet = [];
         _workingSetMRUOrder = [];
-        _workingSetAddedOrder = [];
+        _paneListAddedOrder = [];
 
         // Dispatch event
         $(exports).triggerHandler("workingSetRemoveList", [fileList]);
@@ -592,7 +592,7 @@ define(function (require, exports, module) {
                 
                 _workingSet.splice(index, 1);
                 _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-                _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+                _paneListAddedOrder.splice(findInWorkingSet(file.fullPath, _paneListAddedOrder), 1);
             }
         });
         
