@@ -89,30 +89,44 @@ point the process will switch to the one above. But until then, please _do not
 use_ http://translate.adobe.com for these languages.
 
 
-# Contributing Translations directly from github.com
+## Contributing Translations directly from github.com
 
 You must be logged in to your github.com id (e.g. `user1`).
 
 ### Adding a New Translation
+To add a new translation, you need to start with a copy of the
+root `strings.js` file which is located at
+[https://github.com/adobe/brackets/blob/master/src/nls/root/strings.js](https://github.com/adobe/brackets/blob/master/src/nls/root/strings.js).
 New translations can be added by navigating to the
 [nls folder on github](https://github.com/adobe/brackets/tree/master/src/nls)
 and then clicking on the [+] button to add a new file.
-Subfolders can be added in the path field.
+You will be taken to a New File page where you:
+1. Specify the file name as *language-id*/strings.js
+2. Paste in the contents of root/strings.js and edit strings for new language
+3. Add short and (optional) long description of new file
+4. CLick "Propose New File" button
 
 ### Editing an Existing Translation
 Existing files can be edited directly in
 [brackets repo on github](https://github.com/adobe/brackets).
 
+###Branch and Pull Request
 Either case will create and submit a pull request with a branch named something like
 `patch-1` on your github fork of brackets of the brackets repository
 (`https://github.com/user1/brackets`).
 If you have not yet forked brackets "repo", it's done automatically.
 
+###Code Review
 Someone on the Brackets team will review the pull request. If it's ok, it will
 be merged. If changes need to be made, the reviewer will post comments in the
 pull request which will send you an e-mail notification.
 
-You can make updates in the `patch-1` branch in your github fork of brackets.
+You should make updates in the `patch-1` branch in your github fork of brackets
+so all of your changes for this update are in a single branch.
+Creating a new branch for every update makes it difficult for core team
+to see all changes at once, and can even create conflicts that are
+very difficult to resolve.
+
 Follow the link in the notification e-mail to the pull request if you need
 to determine which branch to edit.
 Saved edits show up as a new commit, so they automatically show up in the original
