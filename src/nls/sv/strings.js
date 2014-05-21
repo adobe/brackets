@@ -326,9 +326,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Automatisk radbrytning",
     "CMD_LIVE_HIGHLIGHT"                  : "Markera förhandsvisning",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Linta filer vid spara",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortera efter senast tillagd",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortera efter namn",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortera efter typ",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortera efter senast tillagd",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Sortera efter namn",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortera efter typ",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisk sortering",
 
     // Navigate menu Commands

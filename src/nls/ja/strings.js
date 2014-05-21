@@ -330,9 +330,9 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "折り返し",
 	"CMD_LIVE_HIGHLIGHT": "ライブプレビューハイライト",
 	"CMD_VIEW_TOGGLE_INSPECTION": "保存時にファイルを Lint チェック",
-	"CMD_SORT_WORKINGSET_BY_ADDED": "追加日時順",
-	"CMD_SORT_WORKINGSET_BY_NAME": "名前順",
-	"CMD_SORT_WORKINGSET_BY_TYPE": "種類順",
+	"CMD_SORT_PANELIST_BY_ADDED": "追加日時順",
+	"CMD_SORT_PANELIST_BY_NAME": "名前順",
+	"CMD_SORT_PANELIST_BY_TYPE": "種類順",
 	"CMD_SORT_WORKINGSET_AUTO": "自動ソート",
 
     // Navigate menu Commands

@@ -300,9 +300,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"              : "A capo automaticamente",
     "CMD_LIVE_HIGHLIGHT"                : "Ispezione Anteprima Live",
     "CMD_VIEW_TOGGLE_INSPECTION"        : "Lint Files al salvataggio",
-    "CMD_SORT_WORKINGSET_BY_ADDED"      : "Ordina per data di aggiunta",
-    "CMD_SORT_WORKINGSET_BY_NAME"       : "Ordina per nome",
-    "CMD_SORT_WORKINGSET_BY_TYPE"       : "Ordina per tipo",
+    "CMD_SORT_PANELIST_BY_ADDED"      : "Ordina per data di aggiunta",
+    "CMD_SORT_PANELIST_BY_NAME"       : "Ordina per nome",
+    "CMD_SORT_PANELIST_BY_TYPE"       : "Ordina per tipo",
     "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands

@@ -270,9 +270,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstin rivitys",
     "CMD_LIVE_HIGHLIGHT"                  : "Esikatselun korostus",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Tarkista tiedostot tallennettaessa",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Järjestä lisäysajan mukaan",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Järjestä nimen mukaan",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Järjestä tyypin mukaan",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Järjestä lisäysajan mukaan",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Järjestä nimen mukaan",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Järjestä tyypin mukaan",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automaattinen järjestys",
 
     // Navigate menu Commands

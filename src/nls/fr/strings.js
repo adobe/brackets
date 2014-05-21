@@ -330,9 +330,9 @@ define({
 	"CMD_TOGGLE_WORD_WRAP": "Renvoi à la ligne",
 	"CMD_LIVE_HIGHLIGHT": "Surlignement dans l’Aperçu en direct",
 	"CMD_VIEW_TOGGLE_INSPECTION": "Effectuer une analyse lint des fichiers à l’enregistrement",
-	"CMD_SORT_WORKINGSET_BY_ADDED": "Trier par date d’ajout",
-	"CMD_SORT_WORKINGSET_BY_NAME": "Trier par nom",
-	"CMD_SORT_WORKINGSET_BY_TYPE": "Trier par type",
+	"CMD_SORT_PANELIST_BY_ADDED": "Trier par date d’ajout",
+	"CMD_SORT_PANELIST_BY_NAME": "Trier par nom",
+	"CMD_SORT_PANELIST_BY_TYPE": "Trier par type",
 	"CMD_SORT_WORKINGSET_AUTO": "Tri automatique",
 
     // Navigate menu Commands

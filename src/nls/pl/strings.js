@@ -212,9 +212,9 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Numery linii",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Podświetl bieżącą linię",
     "CMD_TOGGLE_WORD_WRAP"                : "Zawijaj wiersze",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortuj według dodanych",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortuj według nazwy",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortuj według typu",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortuj według dodanych",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Sortuj według nazwy",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortuj według typu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatyczne sortowanie",
 
     // Navigate menu Commands

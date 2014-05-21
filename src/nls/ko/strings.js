@@ -280,9 +280,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP": "자동 줄내림",
     "CMD_LIVE_HIGHLIGHT": "실시간 프리뷰 하이라이트",
     "CMD_VIEW_TOGGLE_INSPECTION": "저장시 파일 Lint표시",
-    "CMD_SORT_WORKINGSET_BY_ADDED": "추가순으로 워킹셋 정렬",
-    "CMD_SORT_WORKINGSET_BY_NAME": "이름순으로 워킹셋 정렬",
-    "CMD_SORT_WORKINGSET_BY_TYPE": "타입별로 워킹셋 정렬",
+    "CMD_SORT_PANELIST_BY_ADDED": "추가순으로 워킹셋 정렬",
+    "CMD_SORT_PANELIST_BY_NAME": "이름순으로 워킹셋 정렬",
+    "CMD_SORT_PANELIST_BY_TYPE": "타입별로 워킹셋 정렬",
     "CMD_SORT_WORKINGSET_AUTO": "자동으로 워킹셋 정렬",
 
     // Navigate menu Commands

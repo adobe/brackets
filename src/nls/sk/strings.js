@@ -246,9 +246,9 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla riadkov",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýrazniť aktívny riadok",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomenie riadkov",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Usporiadať podľa dátumu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Usporiadať podľa mena",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Usporiadať podľa typu",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Usporiadať podľa dátumu",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Usporiadať podľa mena",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Usporiadať podľa typu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatické usporiadanie",
 
     // Navigate menu Commands

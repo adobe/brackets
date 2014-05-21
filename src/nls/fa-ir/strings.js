@@ -286,9 +286,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "شکستن عبارات طولانی",
 	"CMD_LIVE_HIGHLIGHT"                  : "نشانه گذاری پیش نمایش",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "نشانه گذاری فایل های تغییر یافته برای ذخیره سازی",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "مرتب سازی بر اساس ترتیب افزودن",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "مرتب سازی بر اساس نام",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "مرتب سازی بر اساس نوع",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "مرتب سازی بر اساس ترتیب افزودن",
+    "CMD_SORT_PANELIST_BY_NAME"         : "مرتب سازی بر اساس نام",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "مرتب سازی بر اساس نوع",
     "CMD_SORT_WORKINGSET_AUTO"            : "مرتب سازی خودکار",
 
     // Navigate menu Commands

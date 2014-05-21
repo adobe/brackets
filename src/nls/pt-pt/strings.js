@@ -192,9 +192,9 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamanho da fonte",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuir tamanho da fonte",
     "CMD_RESTORE_FONT_SIZE"               : "Restaurar tamanho da fonte",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por data adicionado",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por nome",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por tipo",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por data adicionado",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por nome",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenação automática",
 
     // Navigate menu Commands

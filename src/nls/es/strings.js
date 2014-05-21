@@ -330,9 +330,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Habilitar ajuste de línea",
     "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vista Previa en Vivo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Inspeccionar el código al guardar",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nombre",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por Añadido",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por Nombre",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
 
     // Navigate menu Commands

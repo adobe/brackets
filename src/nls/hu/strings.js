@@ -230,9 +230,9 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Sorok száma",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktív sor megjelölése",
     "CMD_TOGGLE_WORD_WRAP"                : "Sortörés",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Rendezés Név Szerint",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Rendezés Típus Szerint",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Rendezés Név Szerint",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Rendezés Típus Szerint",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatikus Rendezés",
 
     // Navigate menu Commands

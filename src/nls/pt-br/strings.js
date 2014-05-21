@@ -266,9 +266,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Quebra automática de linha",
     "CMD_LIVE_HIGHLIGHT"                  : "Destacar Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Analisar arquivos ao salvar",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Data de Adição",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nome",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por Data de Adição",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por Nome",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenação automática",
 
     // Navigate menu Commands

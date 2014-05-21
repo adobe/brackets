@@ -286,9 +286,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Tandai Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Berkas Saat Disimpan",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Urutkan berdasarkan Waktu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Urutkan Berdasarkan Nama",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Urutkan berdasarkan Waktu",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Urutkan Berdasarkan Nama",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
     "CMD_SORT_WORKINGSET_AUTO"            : "Urutkan Secara Otomatis",
 
     // Navigate menu Commands

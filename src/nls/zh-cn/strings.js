@@ -307,9 +307,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "自动换行",
     "CMD_LIVE_HIGHLIGHT"                  : "实时预览高亮",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "保存时检查文件",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "根据添加时间排序",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "根据名称排序",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "根据类型排序",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "根据添加时间排序",
+    "CMD_SORT_PANELIST_BY_NAME"         : "根据名称排序",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "根据类型排序",
     "CMD_SORT_WORKINGSET_AUTO"            : "自动排序",
 
     // Navigate menu Commands

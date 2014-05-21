@@ -265,9 +265,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Voorbeeld Markeren",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Bestanden bij Opslaan",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sorteer op Toegevoegd",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sorteer op Naam",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sorteer op Type",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Sorteer op Toegevoegd",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Sorteer op Naam",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Sorteer op Type",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch Sorteren",
 
     // Navigate menu Commands

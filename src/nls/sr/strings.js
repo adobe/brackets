@@ -265,9 +265,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Прелом текста",
     "CMD_LIVE_HIGHLIGHT"                  : "Обележи живи приказ",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Преконтролиши датотеке приликом чувања",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Сортирај по датуму додавања",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Сортирај по имену",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Сортирај по типу",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Сортирај по датуму додавања",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Сортирај по имену",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Сортирај по типу",
     "CMD_SORT_WORKINGSET_AUTO"            : "Аутоматско сортирање",
 
     // Navigate menu Commands

@@ -130,9 +130,9 @@ define(function (require, exports, module) {
 
     exports.CMD_ADD_TO_PANE_LIST        = "cmd.addToPaneList";          // DocumentCommandHandlers.js   handleFileAddToWorkingSet()
     
-    exports.SORT_WORKINGSET_BY_ADDED    = "view.sortWorkingSetByAdded"; // WorkingSetSort.js            _handleSortWorkingSetByAdded()
-    exports.SORT_WORKINGSET_BY_NAME     = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
-    exports.SORT_WORKINGSET_BY_TYPE     = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
+    exports.SORT_PANELIST_BY_ADDED      = "view.sortWorkingSetByAdded"; // WorkingSetSort.js            _handleSortWorkingSetByAdded()
+    exports.SORT_PANELIST_BY_NAME       = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
+    exports.SORT_PANELIST_BY_TYPE       = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
     exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
     
     // NAVIGATE
@@ -171,6 +171,9 @@ define(function (require, exports, module) {
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
+    
+    // DEPRECATED: Working Set Commands
+    _deprecateCommand("FILE_ADD_TO_WORKING_SET",    "CMD_ADD_TO_PANE_LIST");
     
     // DEPRECATED: Edit commands that were moved from the Edit Menu to the Find Menu
     _deprecateCommand("EDIT_FIND",                  "CMD_FIND");

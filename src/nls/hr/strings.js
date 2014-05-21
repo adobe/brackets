@@ -319,9 +319,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Prijelom teksta",
     "CMD_LIVE_HIGHLIGHT"                  : "Obilježi prikaz uživo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Prekontroliraj datoteke prilikom spremanja",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortiraj po datumu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortiraj po imenu",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortiraj po tipu",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortiraj po datumu",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Sortiraj po imenu",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortiraj po tipu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatsko sortiranje",
 
     // Navigate menu Commands

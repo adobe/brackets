@@ -221,9 +221,9 @@ define(function (require, exports, module) {
         
         
         var working_set_settings_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_SETTINGS_MENU);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_ADDED);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_NAME);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_BY_TYPE);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_ADDED);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_NAME);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_TYPE);
         working_set_settings_cmenu.addMenuDivider();
         working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
 

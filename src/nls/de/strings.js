@@ -330,9 +330,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Beim Speichern linten",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Nach Name sortieren",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Nach Typ sortieren",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
 
     // Navigate menu Commands

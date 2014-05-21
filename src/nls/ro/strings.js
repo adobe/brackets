@@ -286,9 +286,9 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Potrivește cuvintele în rând",
     "CMD_LIVE_HIGHLIGHT"                  : "Evidențiere Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Verifică codul din fișiere la salvare",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortare după adăugare",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortare după nume",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortare după tip",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Sortare după adăugare",
+    "CMD_SORT_PANELIST_BY_NAME"         : "Sortare după nume",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Sortare după tip",
     "CMD_SORT_WORKINGSET_AUTO"            : "Sortare automată",
 
     // Navigate menu Commands

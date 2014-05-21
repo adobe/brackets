@@ -211,9 +211,9 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Font Boyutunu Büyült",
     "CMD_DECREASE_FONT_SIZE"              : "Font Boyutunu Küçült",
     "CMD_RESTORE_FONT_SIZE"               : "Font Boyutunu Sıfırla",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Eklenmeye Göre Sırala",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "İsme Göre Sırala",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Türüne Göre Sırala",
+    "CMD_SORT_PANELIST_BY_ADDED"        : "Eklenmeye Göre Sırala",
+    "CMD_SORT_PANELIST_BY_NAME"         : "İsme Göre Sırala",
+    "CMD_SORT_PANELIST_BY_TYPE"         : "Türüne Göre Sırala",
     "CMD_SORT_WORKINGSET_AUTO"            : "Otomatik Sırala",
 
     // Navigate menu Commands
