@@ -112,7 +112,7 @@ define(function (require, exports, module) {
     function setAutomatic(enable) {
         _automaticSort = enable;
         PreferencesManager.setViewState("automaticSort", _automaticSort);
-        CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setChecked(_automaticSort);
+        CommandManager.get(Commands.SORT_PANEWLIST_AUTO).setChecked(_automaticSort);
         
         if (enable) {
             _currentSort.sort();
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
                 command.setChecked(true);
             }
             
-            CommandManager.get(Commands.SORT_WORKINGSET_AUTO).setEnabled(!!newSort.getEvents());
+            CommandManager.get(Commands.SORT_PANEWLIST_AUTO).setEnabled(!!newSort.getEvents());
             _currentSort = newSort;
             PreferencesManager.setViewState("currentSort", _currentSort.getCommandID());
         }
@@ -304,7 +304,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SORT_PANELIST_BY_ADDED, Commands.SORT_PANELIST_BY_ADDED, _.partial(_handleSort, Commands.SORT_PANELIST_BY_ADDED));
     CommandManager.register(Strings.CMD_SORT_PANELIST_BY_NAME,  Commands.SORT_PANELIST_BY_NAME,  _.partial(_handleSort, Commands.SORT_PANELIST_BY_NAME));
     CommandManager.register(Strings.CMD_SORT_PANELIST_BY_TYPE,  Commands.SORT_PANELIST_BY_TYPE,  _.partial(_handleSort, Commands.SORT_PANELIST_BY_NAME));
-    CommandManager.register(Strings.CMD_SORT_WORKINGSET_AUTO,     Commands.SORT_WORKINGSET_AUTO,     _handleToggleAuto);
+    CommandManager.register(Strings.CMD_SORT_PANEWLIST_AUTO,     Commands.SORT_PANEWLIST_AUTO,     _handleToggleAuto);
     
     
     // Initialize default values for sorting preferences

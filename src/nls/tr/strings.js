@@ -214,7 +214,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Eklenmeye Göre Sırala",
     "CMD_SORT_PANELIST_BY_NAME"         : "İsme Göre Sırala",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Türüne Göre Sırala",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Otomatik Sırala",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Otomatik Sırala",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Git",

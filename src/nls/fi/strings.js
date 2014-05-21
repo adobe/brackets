@@ -273,7 +273,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Järjestä lisäysajan mukaan",
     "CMD_SORT_PANELIST_BY_NAME"         : "Järjestä nimen mukaan",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Järjestä tyypin mukaan",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automaattinen järjestys",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Automaattinen järjestys",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Siirry",

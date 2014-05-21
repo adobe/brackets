@@ -333,7 +333,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por Añadido",
     "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por Nombre",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por Tipo",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Ordenación automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",

@@ -233,7 +233,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
     "CMD_SORT_PANELIST_BY_NAME"         : "Rendezés Név Szerint",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Rendezés Típus Szerint",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatikus Rendezés",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Automatikus Rendezés",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigálás",

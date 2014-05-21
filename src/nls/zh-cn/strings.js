@@ -310,7 +310,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "根据添加时间排序",
     "CMD_SORT_PANELIST_BY_NAME"         : "根据名称排序",
     "CMD_SORT_PANELIST_BY_TYPE"         : "根据类型排序",
-    "CMD_SORT_WORKINGSET_AUTO"            : "自动排序",
+    "CMD_SORT_PANEWLIST_AUTO"            : "自动排序",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "导航",

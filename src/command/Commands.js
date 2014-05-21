@@ -133,7 +133,7 @@ define(function (require, exports, module) {
     exports.SORT_PANELIST_BY_ADDED      = "view.sortWorkingSetByAdded"; // WorkingSetSort.js            _handleSortWorkingSetByAdded()
     exports.SORT_PANELIST_BY_NAME       = "view.sortWorkingSetByName";  // WorkingSetSort.js            _handleSortWorkingSetByName()
     exports.SORT_PANELIST_BY_TYPE       = "view.sortWorkingSetByType";  // WorkingSetSort.js            _handleSortWorkingSetByType()
-    exports.SORT_WORKINGSET_AUTO        = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
+    exports.SORT_PANEWLIST_AUTO         = "view.sortWorkingSetAuto";    // WorkingSetSort.js            _handleAutomaticSort()
     
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()

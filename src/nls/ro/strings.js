@@ -289,7 +289,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Sortare după adăugare",
     "CMD_SORT_PANELIST_BY_NAME"         : "Sortare după nume",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Sortare după tip",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Sortare automată",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Sortare automată",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigare",

@@ -195,7 +195,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por data adicionado",
     "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por nome",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por tipo",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenação automática",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Ordenação automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegar",

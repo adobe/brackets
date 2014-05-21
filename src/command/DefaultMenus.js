@@ -225,7 +225,7 @@ define(function (require, exports, module) {
         working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_NAME);
         working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_TYPE);
         working_set_settings_cmenu.addMenuDivider();
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_WORKINGSET_AUTO);
+        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANEWLIST_AUTO);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);

@@ -269,7 +269,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Ordenar por Data de Adição",
     "CMD_SORT_PANELIST_BY_NAME"         : "Ordenar por Nome",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Ordenar por Tipo",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenação automática",
+    "CMD_SORT_PANEWLIST_AUTO"            : "Ordenação automática",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegar",

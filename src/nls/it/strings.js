@@ -303,7 +303,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"      : "Ordina per data di aggiunta",
     "CMD_SORT_PANELIST_BY_NAME"       : "Ordina per nome",
     "CMD_SORT_PANELIST_BY_TYPE"       : "Ordina per tipo",
-    "CMD_SORT_WORKINGSET_AUTO"          : "Ordinamento automatico",
+    "CMD_SORT_PANEWLIST_AUTO"          : "Ordinamento automatico",
 
     // Navigate menu Commands
     "FIND_MENU"                         : "Trova",

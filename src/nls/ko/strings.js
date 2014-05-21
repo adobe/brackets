@@ -283,7 +283,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED": "추가순으로 워킹셋 정렬",
     "CMD_SORT_PANELIST_BY_NAME": "이름순으로 워킹셋 정렬",
     "CMD_SORT_PANELIST_BY_TYPE": "타입별로 워킹셋 정렬",
-    "CMD_SORT_WORKINGSET_AUTO": "자동으로 워킹셋 정렬",
+    "CMD_SORT_PANEWLIST_AUTO": "자동으로 워킹셋 정렬",
 
     // Navigate menu Commands
     "NAVIGATE_MENU": "탐색",
