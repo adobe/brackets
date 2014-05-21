@@ -184,13 +184,13 @@ define(function (require, exports, module) {
      */
     function addToWorkingSetAndSelect(fullPath, selectIn, index) {
         var result = new $.Deferred(),
-            promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath, index: index});
+            promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_LIST, {fullPath: fullPath, index: index});
 
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
         promise.done(function (doc) {
-            // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
+            // CMD_ADD_TO_PANE_LIST command sets the current document. Update the 
             // selection focus only if doc is not null. When double-clicking on an
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _selectCurrentDocument

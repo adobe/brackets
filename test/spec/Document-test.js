@@ -407,7 +407,7 @@ define(function (require, exports, module) {
                     cssMasterEditor;
                 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_LIST, {fullPath: HTML_FILE});
                     waitsForDone(promise, "Open into working set");
                 });
                 runs(function () {

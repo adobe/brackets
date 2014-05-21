@@ -254,7 +254,7 @@ define(function (require, exports, module) {
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                             FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                                 if (!err) {
-                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: file.fullPath });
+                                    var promise = CommandManager.execute(Commands.CMD_ADD_TO_PANE_LIST, { fullPath: file.fullPath });
                                     promise.then(deferred.resolve, deferred.reject);
                                 } else {
                                     deferred.reject();
