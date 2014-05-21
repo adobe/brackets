@@ -49,11 +49,14 @@ define(function (require, exports, module) {
         
         timeoutDuration = timeoutDuration || 400;
         
+        function cleanup() {
+            $target
+                .removeClass(animClass)
+                .off(".asyncWithTimeout");
+        }
+        
         function finish(e) {
             if (e.target === target) {
-                $target
-                    .removeClass(animClass)
-                    .off("webkitTransitionEnd", finish);
                 result.resolve();
             }
         }
@@ -67,11 +70,12 @@ define(function (require, exports, module) {
             // a child).
             $target
                 .addClass(animClass)
-                .on("webkitTransitionEnd", finish);
+                .on("webkitTransitionEnd.asyncWithTimeout", finish);
         }
         
         // Use timeout in case transition end event is not sent
-        return Async.withTimeout(result.promise(), timeoutDuration, true);
+        return Async.withTimeout(result.promise(), timeoutDuration, true)
+            .done(cleanup);
     }
     
     exports.animateUsingClass = animateUsingClass;
