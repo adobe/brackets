@@ -104,8 +104,13 @@ You will be taken to a New File page where you:
 
 1. Specify the file name as *language-id*/strings.js
 2. Paste in the contents of root/strings.js and edit strings for new language
-3. Add short and (optional) long description of new file
-4. Click "Propose New File" button
+3. Add this comment `/* Last translated for SHA_of_root_strings.js */`
+at the end of your strings.js and replace `SHA_of_root_strings.js` with the actual SHA.
+You can copy the actual SHA in this
+[history page](https://github.com/adobe/brackets/commits/master/src/nls/root/strings.js)
+by hovering on the one you used for this translation and click on Copy SHA button.
+4. Add short and (optional) long description of new file
+5. Click "Propose New File" button
 
 ### Editing an Existing Translation
 Existing files can be edited directly in
@@ -115,8 +120,12 @@ Navigate to the file to edit and click "Edit" button above file.
 You will be taken to an Edit File page where you:
 
 1. Make desired edits to file
-2. Add short and (optional) long description of Commit changes
-3. Click "Commit changes" button
+2. Make sure that you also update the comment on the last line with the correct SHA of
+strings.js from root directory, which you used for your translation. If the SHA comment
+is missing, then add one with the correct SHA. See step 6 in How to add translations
+for a new locale section for adding a new one.
+3. Add short and (optional) long description of Commit changes
+4. Click "Commit changes" button
 
 ### Branch and Pull Request
 For either case, if you have not yet forked the brackets repository in your
