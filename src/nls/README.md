@@ -119,8 +119,8 @@ You will be taken to an Edit File page where you:
 3. Click "Commit changes" button
 
 ### Branch and Pull Request
-If you have not yet forked the brackets repository in your github account
-(`https://github.com/user1/brackets`), it's done automatically.
+For either case, if you have not yet forked the brackets repository in your
+github account (`https://github.com/user1/brackets`), it's done automatically.
 A new branch will be created in your brackets fork with a unique name
 which is something like `patch-1` that contains your changes.
 
