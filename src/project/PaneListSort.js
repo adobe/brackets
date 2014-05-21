@@ -131,7 +131,7 @@ define(function (require, exports, module) {
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })
-                .on("workingSetDisableAutoSorting.sort", function () {
+                .on("paneListDisableAutoSorting.sort", function () {
                     setAutomatic(false);
                 });
         }

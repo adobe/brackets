@@ -74,7 +74,7 @@
  *    - workingSetSort -- When the workingSet array is reordered without additions or removals.
  *      Listener receives no arguments.
  *
- *    - workingSetDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
+ *    - paneListDisableAutoSorting -- Dispatched in addition to workingSetSort when the reorder was caused
  *      by manual dragging and dropping. Listener receives no arguments.
  *
  *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
@@ -382,7 +382,7 @@ define(function (require, exports, module) {
             _workingSet[index2] = temp;
             
             $(exports).triggerHandler("workingSetSort");
-            $(exports).triggerHandler("workingSetDisableAutoSorting");
+            $(exports).triggerHandler("paneListDisableAutoSorting");
         }
     }
     
