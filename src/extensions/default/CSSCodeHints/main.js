@@ -391,7 +391,7 @@ define(function (require, exports, module) {
                     adjustCursor = true;
                     newCursor = { line: cursor.line,
                                   ch: cursor.ch + (hint.length - this.info.name.length) };
-                    // Adjust cursor to the position after the trailing whitespace if there is any.
+                    // Adjust cursor to the position after any whitespace that follows the colon, if there is any.
                     if (TokenUtils.moveNextToken(ctx) && ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
                         newCursor.ch += ctx.token.string.length;
                     }
