@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         DropdownButton     = require("widgets/DropdownButton").DropdownButton,
         StringUtils        = require("utils/StringUtils"),
         Strings            = require("strings"),
-        ViewUtils          = require("utils/ViewUtils"),
         PreferencesManager = require("preferences/PreferencesManager"),
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html");
   
