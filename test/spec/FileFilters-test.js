@@ -429,7 +429,7 @@ define(function (require, exports, module) {
             
             it("should migrate old filter sets to the new multiple filter sets pref", function () {
                 PreferencesManager.setViewState("search.exclusions", "*.css, *.less");
-                expect(FileFilters.getLastFilter()).toEqual({name: "", patterns: "*.css, *.less"});
+                expect(FileFilters.getActiveFilter()).toEqual({name: "", patterns: "*.css, *.less"});
                 expect(PreferencesManager.get("fileFilters")).toEqual([{name: "", patterns: "*.css, *.less"}]);
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(0);
             });
@@ -444,8 +444,8 @@ define(function (require, exports, module) {
                 PreferencesManager.setViewState("activeFileFilter", 0);
                 
                 // Add a new filter set as the last one.
-                FileFilters.setLastFilter(newFilterSet, -1);
-                expect(FileFilters.getLastFilter()).toEqual(newFilterSet);
+                FileFilters.setActiveFilter(newFilterSet, -1);
+                expect(FileFilters.getActiveFilter()).toEqual(newFilterSet);
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(2);
                 expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters.concat([newFilterSet]));
             });
@@ -460,8 +460,8 @@ define(function (require, exports, module) {
                 PreferencesManager.setViewState("activeFileFilter", 0);
                 
                 // Replace the second filter set with a new one.
-                FileFilters.setLastFilter(newFilterSet, 1);
-                expect(FileFilters.getLastFilter()).toEqual(newFilterSet);
+                FileFilters.setActiveFilter(newFilterSet, 1);
+                expect(FileFilters.getActiveFilter()).toEqual(newFilterSet);
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(1);
 
                 existingFilters.splice(1, 1, newFilterSet);
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(1);
 
                 // Remove the current active filter
-                FileFilters.setLastFilter();
+                FileFilters.setActiveFilter();
                 
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(-1);
             });
@@ -723,10 +723,20 @@ define(function (require, exports, module) {
             }
 
             function closeSearchBar() {
-                var $searchField = $(".modal-bar #find-group input");
-                SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
+                runs(function () {
+                    var $searchField = $(".modal-bar #find-group input");
+                    SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
+                });
             }
 
+            beforeEach(function () {
+                openSearchBar();
+            });
+            
+            afterEach(function () {
+                closeSearchBar();
+            });
+            
             function verifyButtonLabel(expectedLabel) {
                 var newButtonLabel  = StringUtils.format(Strings.EXCLUDE_FILE_FILTER, expectedLabel);
 
@@ -758,18 +768,12 @@ define(function (require, exports, module) {
             }
             
             it("should show 'No files Excluded' in filter picker button by default", function () {
-                openSearchBar();
                 runs(function () {
                     verifyButtonLabel();
-                });
-                
-                runs(function () {
-                    closeSearchBar();
                 });
             });
             
             it("should show two filter commands by default", function () {
-                openSearchBar();
                 runs(function () {
                     FileFilters.showDropdown();
                 });
@@ -785,15 +789,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     FileFilters.closeDropdown();
                 });
-
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should launch filter editor and add a new filter set when invoked from new filter command", function () {
                 var $dropdown;
-                openSearchBar();
                 runs(function () {
                     FileFilters.showDropdown();
                 });
@@ -831,15 +830,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     FileFilters.closeDropdown();
                 });
-
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should clear the active filter set when invoked from clear filter command", function () {
                 var $dropdown;
-                openSearchBar();
                 runs(function () {
                     FileFilters.showDropdown();
                 });
@@ -878,15 +872,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     FileFilters.closeDropdown();
                 });
-
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should switch the active filter set to the selected one", function () {
                 var $dropdown;
-                openSearchBar();
                 runs(function () {
                     // Verify that there is no active filter (was set from the previous test).
                     verifyButtonLabel();
@@ -905,15 +894,10 @@ define(function (require, exports, module) {
                     verifyButtonLabel("CSS Files");
                     expect($dropdown.is(":visible")).toBeFalsy();
                 });
-                
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should launch filter editor and fill in the text fields with selected filter info", function () {
                 var $dropdown;
-                openSearchBar();
 
                 runs(function () {
                     FileFilters.showDropdown();
@@ -940,10 +924,6 @@ define(function (require, exports, module) {
                     verifyButtonLabel("*.css");
                     expect($dropdown.is(":visible")).toBeFalsy();
                 });
-                
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should remove selected filter from filter sets preferences without changing picker button label", function () {
@@ -952,8 +932,6 @@ define(function (require, exports, module) {
                                {name: "Mark Down Files", patterns: ["*.md"]},
                                {name: "CSS Files", patterns: ["*.css", "*.less"]}];
                 
-                openSearchBar();
-
                 // Create three filter sets and make the last one active.
                 runs(function () {
                     FileFilters.editFilter(filters[0], 0);
@@ -1001,16 +979,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     FileFilters.closeDropdown();
                 });
-
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should remove selected filter from filter sets preferences plus changing picker button label", function () {
                 var $dropdown;
-                
-                openSearchBar();
 
                 runs(function () {
                     verifyButtonLabel("CSS Files");
@@ -1039,16 +1011,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     FileFilters.closeDropdown();
                 });
-
-                runs(function () {
-                    closeSearchBar();
-                });
             });
 
             it("should also remove the divider from the dropdown list after removing the last remaining filter set", function () {
                 var $dropdown;
-                
-                openSearchBar();
 
                 runs(function () {
                     verifyButtonLabel();
@@ -1076,10 +1042,6 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     FileFilters.closeDropdown();
-                });
-
-                runs(function () {
-                    closeSearchBar();
                 });
             });
         });
