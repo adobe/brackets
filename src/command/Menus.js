@@ -61,8 +61,8 @@ define(function (require, exports, module) {
         EDITOR_MENU:               "editor-context-menu",
         INLINE_EDITOR_MENU:        "inline-editor-context-menu",
         PROJECT_MENU:              "project-context-menu",
-        WORKING_SET_MENU:          "working-set-context-menu",
-        WORKING_SET_SETTINGS_MENU: "working-set-settings-context-menu"
+        PANE_LIST_CONTEXT_MENU:    "pane-list-context-menu",
+        PANE_LIST_CONFIG_MENU: "pane-list-configuration-menu"
     };
 
 
