@@ -133,18 +133,18 @@ define(function (require, exports, module) {
      * @type {Array.<File>}
      * @see DocumentManager.getWorkingSet()
      */
-    var _workingSet = [];
+    var _paneList = [];
     
     /**
      * @private
-     * Contains the same set of items as _workingSet, but ordered by how recently they were _currentDocument (0 = most recent).
+     * Contains the same set of items as _paneList, but ordered by how recently they were _currentDocument (0 = most recent).
      * @type {Array.<File>}
      */
-    var _workingSetMRUOrder = [];
+    var _paneListMRUOrder = [];
     
     /**
      * @private
-     * Contains the same set of items as _workingSet, but ordered in the way they where added to _workingSet (0 = last added).
+     * Contains the same set of items as _paneList, but ordered in the way they where added to _paneList (0 = last added).
      * @type {Array.<File>}
      */
     var _paneListAddedOrder = [];
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        return _.clone(_workingSet);
+        return _.clone(_paneList);
     }
 
     /**
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
      * @returns {number} index
      */
     function findInWorkingSet(fullPath, list) {
-        list = list || _workingSet;
+        list = list || _paneList;
         
         return _.findIndex(list, function (file, i) {
             return file.fullPath === fullPath;
@@ -244,8 +244,8 @@ define(function (require, exports, module) {
         if (curIndex !== -1) {
             // File is in working set, but not at the specifically requested index - only need to reorder
             if (forceRedraw || (indexRequested && curIndex !== index)) {
-                var entry = _workingSet.splice(curIndex, 1)[0];
-                _workingSet.splice(index, 0, entry);
+                var entry = _paneList.splice(curIndex, 1)[0];
+                _paneList.splice(index, 0, entry);
                 $(exports).triggerHandler("workingSetSort");
             }
             return;
@@ -253,17 +253,17 @@ define(function (require, exports, module) {
 
         if (!indexRequested) {
             // If no index is specified, just add the file to the end of the working set.
-            _workingSet.push(file);
+            _paneList.push(file);
         } else {
             // If specified, insert into the working set list at this 0-based index
-            _workingSet.splice(index, 0, file);
+            _paneList.splice(index, 0, file);
         }
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            _workingSetMRUOrder.unshift(file);
+            _paneListMRUOrder.unshift(file);
         } else {
-            _workingSetMRUOrder.push(file);
+            _paneListMRUOrder.push(file);
         }
         
         // Add first to Added order
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         
         // Dispatch event
         if (!indexRequested) {
-            index = _workingSet.length - 1;
+            index = _paneList.length - 1;
         }
         $(exports).triggerHandler("paneListAdd", [file, index]);
     }
@@ -297,13 +297,13 @@ define(function (require, exports, module) {
                 uniqueFileList.push(file);
 
                 // Add
-                _workingSet.push(file);
+                _paneList.push(file);
 
                 // Add to MRU order: either first or last, depending on whether it's already the current doc or not
                 if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-                    _workingSetMRUOrder.unshift(file);
+                    _paneListMRUOrder.unshift(file);
                 } else {
-                    _workingSetMRUOrder.push(file);
+                    _paneListMRUOrder.push(file);
                 }
                 
                 // Add first to Added order
@@ -331,8 +331,8 @@ define(function (require, exports, module) {
         }
         
         // Remove
-        _workingSet.splice(index, 1);
-        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+        _paneList.splice(index, 1);
+        _paneListMRUOrder.splice(findInWorkingSet(file.fullPath, _paneListMRUOrder), 1);
         _paneListAddedOrder.splice(findInWorkingSet(file.fullPath, _paneListAddedOrder), 1);
         
         // Dispatch event
@@ -343,11 +343,11 @@ define(function (require, exports, module) {
      * Removes all files from the working set list.
      */
     function _removeAllFromWorkingSet() {
-        var fileList = _workingSet;
+        var fileList = _paneList;
 
         // Remove all
-        _workingSet = [];
-        _workingSetMRUOrder = [];
+        _paneList = [];
+        _paneListMRUOrder = [];
         _paneListAddedOrder = [];
 
         // Dispatch event
@@ -359,10 +359,10 @@ define(function (require, exports, module) {
      * @param {!Document}
      */
     function _markMostRecent(doc) {
-        var mruI = findInWorkingSet(doc.file.fullPath, _workingSetMRUOrder);
+        var mruI = findInWorkingSet(doc.file.fullPath, _paneListMRUOrder);
         if (mruI !== -1) {
-            _workingSetMRUOrder.splice(mruI, 1);
-            _workingSetMRUOrder.unshift(doc.file);
+            _paneListMRUOrder.splice(mruI, 1);
+            _paneListMRUOrder.unshift(doc.file);
         }
     }
     
@@ -373,13 +373,13 @@ define(function (require, exports, module) {
      * @param {number} index  New file index
      */
     function swapWorkingSetIndexes(index1, index2) {
-        var length = _workingSet.length - 1;
+        var length = _paneList.length - 1;
         var temp;
         
         if (index1 >= 0 && index2 <= length && index1 >= 0 && index2 <= length) {
-            temp = _workingSet[index1];
-            _workingSet[index1] = _workingSet[index2];
-            _workingSet[index2] = temp;
+            temp = _paneList[index1];
+            _paneList[index1] = _paneList[index2];
+            _paneList[index2] = temp;
             
             $(exports).triggerHandler("workingSetSort");
             $(exports).triggerHandler("paneListDisableAutoSorting");
@@ -387,7 +387,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Sorts _workingSet using the compare function
+     * Sorts _paneList using the compare function
      * @param {function(File, File): number} compareFn  The function that will be used inside JavaScript's
      *      sort function. The return a value should be >0 (sort a to a lower index than b), =0 (leaves a and b
      *      unchanged with respect to each other) or <0 (sort b to a lower index than a) and must always returns
@@ -395,7 +395,7 @@ define(function (require, exports, module) {
      *      Documentation: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort
      */
     function sortWorkingSet(compareFn) {
-        _workingSet.sort(compareFn);
+        _paneList.sort(compareFn);
         $(exports).triggerHandler("workingSetSort");
     }
     
@@ -436,22 +436,22 @@ define(function (require, exports, module) {
         }
         
         if (EditorManager.getCurrentlyViewedPath()) {
-            var mruI = findInWorkingSet(EditorManager.getCurrentlyViewedPath(), _workingSetMRUOrder);
+            var mruI = findInWorkingSet(EditorManager.getCurrentlyViewedPath(), _paneListMRUOrder);
             if (mruI === -1) {
                 // If doc not in working set, return most recent working set item
-                if (_workingSetMRUOrder.length > 0) {
-                    return _workingSetMRUOrder[0];
+                if (_paneListMRUOrder.length > 0) {
+                    return _paneListMRUOrder[0];
                 }
             } else {
                 // If doc is in working set, return next/prev item with wrap-around
                 var newI = mruI + inc;
-                if (newI >= _workingSetMRUOrder.length) {
+                if (newI >= _paneListMRUOrder.length) {
                     newI = 0;
                 } else if (newI < 0) {
-                    newI = _workingSetMRUOrder.length - 1;
+                    newI = _paneListMRUOrder.length - 1;
                 }
                 
-                return _workingSetMRUOrder[newI];
+                return _paneListMRUOrder[newI];
             }
         }
         
@@ -588,10 +588,10 @@ define(function (require, exports, module) {
             index = findInWorkingSet(file.fullPath);
             
             if (index !== -1) {
-                fileList.push(_workingSet[index]);
+                fileList.push(_paneList[index]);
                 
-                _workingSet.splice(index, 1);
-                _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
+                _paneList.splice(index, 1);
+                _paneListMRUOrder.splice(findInWorkingSet(file.fullPath, _paneListMRUOrder), 1);
                 _paneListAddedOrder.splice(findInWorkingSet(file.fullPath, _paneListAddedOrder), 1);
             }
         });
@@ -887,8 +887,8 @@ define(function (require, exports, module) {
         EditorManager._resetViewStates(viewStates);
 
         // Initialize the active editor
-        if (!activeFile && _workingSet.length > 0) {
-            activeFile = _workingSet[0].fullPath;
+        if (!activeFile && _paneList.length > 0) {
+            activeFile = _paneList[0].fullPath;
         }
 
         if (activeFile) {

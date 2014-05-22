@@ -36,6 +36,9 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
+        // TODO: We want to remove this dependency.
+        //           This is just here until we've migrated everything related view related into MainViewManager
+        MainViewManager     = require("view/MainViewManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
@@ -416,7 +419,7 @@ define(function (require, exports, module) {
      * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
      *   working set list (defaults to last); optional flag to force working set redraw
      */
-    function handleFileAddToWorkingSet(commandData) {
+    function handleOpenDocumentInNewPane(commandData) {
         return handleFileOpen(commandData).done(function (doc) {
             // addToWorkingSet is synchronous
             // When opening a file with a custom viewer, we get a null doc.
@@ -735,7 +738,7 @@ define(function (require, exports, module) {
                     // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
                     DocumentManager.removeFromWorkingSet(doc.file, true);
                     // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleFileAddToWorkingSet({fullPath: path, index: index, forceRedraw: true});
+                    fileOpenPromise = handleOpenDocumentInNewPane({fullPath: path, index: index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
@@ -1573,7 +1576,7 @@ define(function (require, exports, module) {
 
     // Register global commands
     CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_PANE_LIST,   Commands.CMD_ADD_TO_PANE_LIST, handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_ADD_TO_PANE_LIST,   Commands.CMD_ADD_TO_PANE_LIST, handleOpenDocumentInNewPane);
     CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,  Commands.FILE_NEW_UNTITLED, handleFileNew);
     CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
     CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);

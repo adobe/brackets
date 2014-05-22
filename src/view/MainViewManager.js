@@ -26,9 +26,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var WorkspaceManager        = require("view/WorkspaceManager"),
-        EditorManager       = require("editor/EditorManager");
-    
+    var WorkspaceManager    = require("view/WorkspaceManager"),
+        EditorManager       = require("editor/EditorManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Strings             = require("strings");
+        
     function _onWorkspaceAreaResize(event, editorAreaHt, refreshFlag) {
         
     }
@@ -37,8 +40,13 @@ define(function (require, exports, module) {
     $(WorkspaceManager).on("workspaceAreaResize",  _onWorkspaceAreaResize);
     
     // Define public API
-    /* 
-    //TODO
-    exports.xxx    = xxx;
-    */
+    function addToPaneList(file, index, forceRedraw) {
+        
+    }
+
+    
+    
+    exports.addToPaneList    = addToPaneList;
+    
+    
 });
