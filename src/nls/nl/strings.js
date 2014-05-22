@@ -159,7 +159,7 @@ define({
      */
     "PROJECT_LOADING"   : "Laden\u2026",
     "UNTITLED"          : "Naamloos",
-    "WORKING_FILES"     : "Werkbestanden",
+    "OPEN_PANES"     : "Werkbestanden",
 
     /**
      * Keyboard modifier names

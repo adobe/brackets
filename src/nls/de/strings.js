@@ -201,7 +201,7 @@ define({
      */
     "PROJECT_LOADING"  : "Lädt\u2026",
     "UNTITLED"         : "Unbenannt",
-    "WORKING_FILES"    : "Offene Dateien",
+    "OPEN_PANES"    : "Offene Dateien",
 
     /**
      * Keyboard modifier names

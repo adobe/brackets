@@ -202,7 +202,7 @@ define({
      */
     "PROJECT_LOADING"   : "Загрузка\u2026",
     "UNTITLED"          : "Без названия",
-    "WORKING_FILES"     : "Рабочие файлы",
+    "OPEN_PANES"     : "Рабочие файлы",
 
     /**
      * Keyboard modifier names

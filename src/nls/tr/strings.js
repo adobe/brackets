@@ -127,7 +127,7 @@ define({
      */
     "PROJECT_LOADING"   : "Proje Yükleniyor\u2026",
     "UNTITLED" : "Adsız",
-    "WORKING_FILES"     : "Çalışılan Dosyalar",
+    "OPEN_PANES"     : "Çalışılan Dosyalar",
 
     /**
      * Keyboard modifier names

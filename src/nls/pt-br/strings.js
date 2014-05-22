@@ -160,7 +160,7 @@ define({
      */
     "PROJECT_LOADING"   : "Carregando\u2026",
     "UNTITLED"          : "Sem título",
-    "WORKING_FILES"     : "Arquivos abertos",
+    "OPEN_PANES"     : "Arquivos abertos",
 
     /**
      * Keyboard modifier names

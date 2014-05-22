@@ -140,7 +140,7 @@ define({
      */
     "PROJECT_LOADING"   : "Betöltés\u2026",
     "UNTITLED"          : "Névtelen",
-    "WORKING_FILES"     : "Munka fájlok",
+    "OPEN_PANES"     : "Munka fájlok",
 
     /**
      * Keyboard modifier names

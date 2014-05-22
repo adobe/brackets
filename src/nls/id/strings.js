@@ -172,7 +172,7 @@ define({
      */
     "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
-    "WORKING_FILES"     : "Berkas aktif",
+    "OPEN_PANES"     : "Berkas aktif",
 
     /**
      * Keyboard modifier names

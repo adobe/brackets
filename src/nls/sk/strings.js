@@ -151,7 +151,7 @@ define({
      */
     "PROJECT_LOADING"   : "Načítavanie\u2026",
     "UNTITLED"          : "bez názvu",
-    "WORKING_FILES"     : "Otvorené súbory",
+    "OPEN_PANES"     : "Otvorené súbory",
 
     /**
      * Keyboard modifier names

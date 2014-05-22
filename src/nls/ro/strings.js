@@ -172,7 +172,7 @@ define({
      */
     "PROJECT_LOADING"   : "Încărcare\u2026",
     "UNTITLED"          : "Neintitulat",
-    "WORKING_FILES"     : "Fișierele active",
+    "OPEN_PANES"     : "Fișierele active",
 
     /**
      * Keyboard modifier names

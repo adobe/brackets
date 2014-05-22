@@ -201,7 +201,7 @@ define({
      */
     "PROJECT_LOADING"   : "Cargando\u2026",
     "UNTITLED"          : "Sin título",
-    "WORKING_FILES"     : "Área de trabajo",
+    "OPEN_PANES"     : "Área de trabajo",
     
     /**
      * Keyboard modifier names

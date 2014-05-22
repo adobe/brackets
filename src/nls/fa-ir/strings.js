@@ -173,7 +173,7 @@ define({
      */
     "PROJECT_LOADING"   : "درحال بارگذاری\u2026",
     "UNTITLED"          : "عنوان گذاری نشده",
-    "WORKING_FILES"     : "پرونده های کاری",
+    "OPEN_PANES"     : "پرونده های کاری",
 
     /**
      * Keyboard modifier names

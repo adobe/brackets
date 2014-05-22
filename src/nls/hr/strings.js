@@ -197,7 +197,7 @@ define({
      */
     "PROJECT_LOADING"   : "Učitavanje\u2026",
     "UNTITLED"          : "Neimenovan",
-    "WORKING_FILES"     : "Radne datoteke",
+    "OPEN_PANES"     : "Radne datoteke",
 
     /**
      * Keyboard modifier names

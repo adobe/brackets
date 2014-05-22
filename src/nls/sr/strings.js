@@ -159,7 +159,7 @@ define({
      */
     "PROJECT_LOADING"   : "Учитавање\u2026",
     "UNTITLED"          : "Неименовани документ",
-    "WORKING_FILES"     : "Радне датотеке",
+    "OPEN_PANES"     : "Радне датотеке",
 
     /**
      * Keyboard modifier names

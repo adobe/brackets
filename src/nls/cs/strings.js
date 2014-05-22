@@ -174,7 +174,7 @@ define({
      */
     "PROJECT_LOADING" : "Načítání\u2026",
     "UNTITLED" : "Nový",
-    "WORKING_FILES"     : "Pracovní soubory",
+    "OPEN_PANES"     : "Pracovní soubory",
 
     /**
      * Jména kláves

@@ -183,7 +183,7 @@ define({
      */
     "PROJECT_LOADING"   : "Caricamento\u2026",
     "UNTITLED"          : "Senza titolo",
-    "WORKING_FILES"     : "File attivi",
+    "OPEN_PANES"     : "File attivi",
 
     /**
      * Keyboard modifier names

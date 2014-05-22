@@ -201,7 +201,7 @@ define({
      */
 	"PROJECT_LOADING": "読み込んでいます\u2026",
 	"UNTITLED": "名称未設定",
-	"WORKING_FILES": "作業中ファイル",
+	"OPEN_PANES": "作業中ファイル",
 
     /**
      * Keyboard modifier names

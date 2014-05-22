@@ -167,7 +167,7 @@ define({
      */
     "PROJECT_LOADING": "프로젝트 여는중\u2026",
     "UNTITLED": "제목없음",
-    "WORKING_FILES": "현재 파일",
+    "OPEN_PANES": "현재 파일",
 
     /**
      * Keyboard modifier names

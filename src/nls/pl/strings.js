@@ -377,7 +377,7 @@ define({
     "FIND_IN_FILES_TITLE_PART2"         : "” ",
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "WORKING_FILES"     : "Otwarte pliki",
+    "OPEN_PANES"     : "Otwarte pliki",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Zaznaczono {0} kolumnę",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Zaznaczono {0} kolumn",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Zaznaczono {0} linię",

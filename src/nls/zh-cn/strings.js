@@ -184,7 +184,7 @@ define({
      */
     "PROJECT_LOADING"   : "载入中\u2026",
     "UNTITLED"          : "无标题",
-    "WORKING_FILES"     : "工作区",
+    "OPEN_PANES"     : "工作区",
 
     /**
      * Keyboard modifier names

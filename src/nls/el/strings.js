@@ -159,7 +159,7 @@ define({
      */
     "PROJECT_LOADING"   : "Φόρτωση\u2026",
     "UNTITLED"          : "Άτιτλο",
-    "WORKING_FILES"     : "Αρχεία Εργασίας",
+    "OPEN_PANES"     : "Αρχεία Εργασίας",
 
     /**
      * Keyboard modifier names
