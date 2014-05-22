@@ -293,7 +293,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Řadit podle data",
     "CMD_SORT_PANELIST_BY_NAME"         : "Řadit podle jména",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Řadit podle typu",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Automatické řazení",
+    "CMD_TOGGLE_AUTO_SORT"            : "Automatické řazení",
 
     // Příkazy menu Navigace
     "NAVIGATE_MENU"                       : "Navigace",

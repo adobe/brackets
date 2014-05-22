@@ -221,11 +221,11 @@ define(function (require, exports, module) {
         
         
         var working_set_settings_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_SETTINGS_MENU);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_ADDED);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_NAME);
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANELIST_BY_TYPE);
+        working_set_settings_cmenu.addMenuItem(Commands.CMD_SORT_PANELIST_BY_ADDED);
+        working_set_settings_cmenu.addMenuItem(Commands.CMD_SORT_PANELIST_BY_NAME);
+        working_set_settings_cmenu.addMenuItem(Commands.CMD_SORT_PANELIST_BY_TYPE);
         working_set_settings_cmenu.addMenuDivider();
-        working_set_settings_cmenu.addMenuItem(Commands.SORT_PANEWLIST_AUTO);
+        working_set_settings_cmenu.addMenuItem(Commands.CMD_TOGGLE_AUTO_SORT);
 
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);

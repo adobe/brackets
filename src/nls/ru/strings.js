@@ -334,7 +334,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Сортировать по порядку добавления",
     "CMD_SORT_PANELIST_BY_NAME"         : "Сортировать по имени",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Сортировать по типу",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Автоматическая сортировка",
+    "CMD_TOGGLE_AUTO_SORT"            : "Автоматическая сортировка",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Навигация",

@@ -322,7 +322,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Sortiraj po datumu",
     "CMD_SORT_PANELIST_BY_NAME"         : "Sortiraj po imenu",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Sortiraj po tipu",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Automatsko sortiranje",
+    "CMD_TOGGLE_AUTO_SORT"            : "Automatsko sortiranje",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigacija",

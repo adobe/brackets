@@ -333,7 +333,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
     "CMD_SORT_PANELIST_BY_NAME"         : "Nach Name sortieren",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Nach Typ sortieren",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Automatisch sortieren",
+    "CMD_TOGGLE_AUTO_SORT"            : "Automatisch sortieren",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",

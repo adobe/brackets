@@ -289,7 +289,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Urutkan berdasarkan Waktu",
     "CMD_SORT_PANELIST_BY_NAME"         : "Urutkan Berdasarkan Nama",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Urutkan Secara Otomatis",
+    "CMD_TOGGLE_AUTO_SORT"            : "Urutkan Secara Otomatis",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigasi",

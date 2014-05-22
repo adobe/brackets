@@ -329,7 +329,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Sortera efter senast tillagd",
     "CMD_SORT_PANELIST_BY_NAME"         : "Sortera efter namn",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Sortera efter typ",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Automatisk sortering",
+    "CMD_TOGGLE_AUTO_SORT"            : "Automatisk sortering",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigera",

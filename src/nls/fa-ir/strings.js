@@ -289,7 +289,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "مرتب سازی بر اساس ترتیب افزودن",
     "CMD_SORT_PANELIST_BY_NAME"         : "مرتب سازی بر اساس نام",
     "CMD_SORT_PANELIST_BY_TYPE"         : "مرتب سازی بر اساس نوع",
-    "CMD_SORT_PANEWLIST_AUTO"            : "مرتب سازی خودکار",
+    "CMD_TOGGLE_AUTO_SORT"            : "مرتب سازی خودکار",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "انتقال",

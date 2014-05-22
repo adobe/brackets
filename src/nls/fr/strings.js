@@ -333,7 +333,7 @@ define({
 	"CMD_SORT_PANELIST_BY_ADDED": "Trier par date d’ajout",
 	"CMD_SORT_PANELIST_BY_NAME": "Trier par nom",
 	"CMD_SORT_PANELIST_BY_TYPE": "Trier par type",
-	"CMD_SORT_PANEWLIST_AUTO": "Tri automatique",
+	"CMD_TOGGLE_AUTO_SORT": "Tri automatique",
 
     // Navigate menu Commands
 	"NAVIGATE_MENU": "Naviguer",

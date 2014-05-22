@@ -249,7 +249,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Usporiadať podľa dátumu",
     "CMD_SORT_PANELIST_BY_NAME"         : "Usporiadať podľa mena",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Usporiadať podľa typu",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Automatické usporiadanie",
+    "CMD_TOGGLE_AUTO_SORT"            : "Automatické usporiadanie",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigácia",

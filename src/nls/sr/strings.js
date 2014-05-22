@@ -268,7 +268,7 @@ define({
     "CMD_SORT_PANELIST_BY_ADDED"        : "Сортирај по датуму додавања",
     "CMD_SORT_PANELIST_BY_NAME"         : "Сортирај по имену",
     "CMD_SORT_PANELIST_BY_TYPE"         : "Сортирај по типу",
-    "CMD_SORT_PANEWLIST_AUTO"            : "Аутоматско сортирање",
+    "CMD_TOGGLE_AUTO_SORT"            : "Аутоматско сортирање",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Навигација",
