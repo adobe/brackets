@@ -88,10 +88,16 @@ define(function Inspector(require, exports, module) {
     // jQuery exports object for events
     var $exports = $(exports);
 
-    var _messageId = 1; // id used for remote method calls, auto-incrementing
-    var _messageCallbacks = {}; // {id -> function} for remote method calls
-    var _socket; // remote debugger WebSocket
-    var _connectDeferred; // The deferred connect
+    /**
+     * Map message IDs to the callback function and original JSON message
+     * @type {Object.<number, {callback: function, message: Object}}
+     */
+    var _messageCallbacks = {};
+
+    var _messageId = 1,     // id used for remote method calls, auto-incrementing
+        _socket,            // remote debugger WebSocket
+        _connectDeferred,   // The deferred connect
+        _userAgent = "";    // user agent string
 
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
@@ -125,7 +131,7 @@ define(function Inspector(require, exports, module) {
             return (new $.Deferred()).reject().promise();
         }
 
-        var id, callback, args, i, params = {}, promise;
+        var id, callback, args, i, params = {}, promise, msg;
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
@@ -144,7 +150,6 @@ define(function Inspector(require, exports, module) {
         }
 
         id = _messageId++;
-        _messageCallbacks[id] = callback;
 
         // verify the parameters against the method signature
         // this also constructs the params object of type {name -> value}
@@ -156,7 +161,10 @@ define(function Inspector(require, exports, module) {
             }
         }
 
-        _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+        // Store message callback and send message
+        msg = { method: method, id: id, params: params };
+        _messageCallbacks[id] = { callback: callback, message: msg };
+        _socket.send(JSON.stringify(msg));
 
         return promise;
     }
@@ -204,10 +212,12 @@ define(function Inspector(require, exports, module) {
      * @param {object} message
      */
     function _onMessage(message) {
-        var response = JSON.parse(message.data),
-            callback = _messageCallbacks[response.id];
+        var response    = JSON.parse(message.data),
+            msgRecord   = _messageCallbacks[response.id],
+            callback    = msgRecord && msgRecord.callback,
+            msgText     = (msgRecord && msgRecord.message) || "No message";
 
-        if (callback) {
+        if (msgRecord) {
             // Messages with an ID are a response to a command, fire callback
             callback(response.result, response.error);
             delete _messageCallbacks[response.id];
@@ -224,7 +234,7 @@ define(function Inspector(require, exports, module) {
         $exports.triggerHandler("message", [response]);
 
         if (response.error) {
-            $exports.triggerHandler("error", [response.error]);
+            $exports.triggerHandler("error", [response.error, msgText]);
         }
     }
 
@@ -359,6 +369,22 @@ define(function Inspector(require, exports, module) {
         return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
+    /**
+     * Get user agent string
+     * @return {string}
+     */
+    function getUserAgent() {
+        return _userAgent;
+    }
+
+    /**
+     * Set user agent string
+     * @param {string} userAgent User agent string returned from Chrome
+     */
+    function setUserAgent(userAgent) {
+        _userAgent = userAgent;
+    }
+
     /** Initialize the Inspector
      * Read the Inspector.json configuration and define the command objects
      * -> Inspector.domain.command()
@@ -381,13 +407,15 @@ define(function Inspector(require, exports, module) {
     }
 
     // Export public functions
+    exports.connect              = connect;
+    exports.connected            = connected;
+    exports.connectToURL         = connectToURL;
+    exports.disconnect           = disconnect;
     exports.getDebuggableWindows = getDebuggableWindows;
-    exports.on = on;
-    exports.off = off;
-    exports.disconnect = disconnect;
-    exports.connect = connect;
-    exports.connectToURL = connectToURL;
-    exports.connected = connected;
-    exports.send = send;
-    exports.init = init;
+    exports.getUserAgent         = getUserAgent;
+    exports.init                 = init;
+    exports.off                  = off;
+    exports.on                   = on;
+    exports.send                 = send;
+    exports.setUserAgent         = setUserAgent;
 });

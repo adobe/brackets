@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -65,6 +65,10 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Filen {0} kunde inte skapas",
     "ERROR_CREATING_FILE"               : "Ett fel uppstod när {0} <span class='dialog-filename'>{1}</span> skulle skapas. {2}",
 
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Kunde inte läsa inställningar",
+    "ERROR_PREFS_CORRUPT"               : "Din inställningsfil är inte korrekt formaterad JSON. Filen kommer att öppnas så att du kan korrigera felet. Du kommer att behöva starta om {APP_NAME} för att ändringarna ska träda i kraft.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ajdå! {APP_NAME} körs inte i webbläsaren ännu.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} är byggd i HTML, men körs just nu som en skrivbordsapplikation så att du kan använda den för att redigera lokala filer. Vänligen använd skalapplikationen <b>github.com/adobe/brackets-shell</b> för att köra {APP_NAME}.",
@@ -73,7 +77,7 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Fel vid indexering av filer",
     "ERROR_MAX_FILES"                   : "Det maximala antalet filer har indexerats. Funktioner som använder sig av indexet kanske inte kommer att fungera som förväntat.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Webbläsaren kunde inte öppnas.",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome kunde inte hittas. Kontrollera att den är installerad.",
     "ERROR_LAUNCHING_BROWSER"           : "Ett fel inträffade då webbläsaren skulle startas. (fel {0})",
@@ -156,6 +160,7 @@ define({
     "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} i {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "i <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "i projekt",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter exkluderar alla filer {0}",
     "FIND_IN_FILES_FILE"                : "fil",
     "FIND_IN_FILES_FILES"               : "filer",
     "FIND_IN_FILES_MATCH"               : "träff",
@@ -163,8 +168,33 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Mer än ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd-klicka för att expandera/minimera alla",
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fel vid hämtning av versioninformation",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Det gick inte att hämta versionsinformation från servern. Kontrollera din internetuppkoppling och försök igen.",
+    
+    // File exclusion filters
+    "NO_FILE_FILTER"                    : "Exkludera filer\u2026",
+    "EDIT_FILE_FILTER"                  : "Redigera\u2026",
+    "FILE_FILTER_DIALOG"                : "Redigera filter",
+    "FILE_FILTER_INSTRUCTIONS"          : "Exkludera filer och mappar som matchar någon av följande strängar, substrängar eller <a href='{0}' title='{0}'>wildcards</a>. Ange varje sträng på en ny rad.",
+    "FILE_FILTER_LIST_PREFIX"           : "utom",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "och {0} till",
+
+    "FILTER_COUNTING_FILES"             : "Räknar filer\u2026",
+    "FILTER_FILE_COUNT"                 : "Tillåter {0} av {1} filer {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Tillåter alla {0} filer {1}",
+
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Ingen Quick Edit är tillgänglig vid markörens nuvarande position",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: placera markören på ett klassnamn",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: ofullständigt klassattribut",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: ofullständigt ID-attribut",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: placera markören inom en tagg, klass eller ID",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS tidsfunktion Quick Edit: felaktigt syntax",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: placera markören på ett funktionsnamn",
+
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Inga Quick Docs är tillgängliga vid markörens nuvarande position",
 
     /**
      * ProjectManager
@@ -188,6 +218,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Markerade {0} kolumner",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Markerade {0} rad",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Markerade {0} rader",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} markeringar",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klicka för att använda mellanslag för indrag",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klicka för att använda tabbar för indrag",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klicka för att ändra antalet mellanslag som används för indrag",
@@ -197,6 +228,8 @@ define({
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} rad",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} rader",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Tillägg har avaktiverats",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "ÖVR",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} fel",
@@ -207,6 +240,8 @@ define({
     "LINT_DISABLED"                         : "Linting är avaktiverat.",
     "NO_LINT_AVAILABLE"                     : "Ingen linter är tillgänglig för {0}",
     "NOTHING_TO_LINT"                       : "Ingenting att linta",
+    "LINTER_TIMED_OUT"                      : "{0} har avbrutits efter att ha väntat {1} ms",
+    "LINTER_FAILED"                         : "{0} avbröts efter ett fel: {1}",
     
     
     /**
@@ -251,12 +286,18 @@ define({
     "CMD_PASTE"                           : "Klistra in",
     "CMD_SELECT_ALL"                      : "Markera alla",
     "CMD_SELECT_LINE"                     : "Markera rad",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Dela markering i rader",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Lägg till markör på nästa rad",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Lägg till markör på föregående rad",
     "CMD_FIND"                            : "Hitta",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Sök\u2026",
     "CMD_FIND_IN_FILES"                   : "Sök i filer",
     "CMD_FIND_IN_SUBTREE"                 : "Sök i\u2026",
     "CMD_FIND_NEXT"                       : "Sök nästa",
     "CMD_FIND_PREVIOUS"                   : "Sök föregående",
+    "CMD_FIND_ALL_AND_SELECT"             : "Sök alla och markera",
+    "CMD_ADD_NEXT_MATCH"                  : "Lägg till nästa träff till markering",
+    "CMD_SKIP_CURRENT_MATCH"              : "Hoppa över och markera nästa träff",
     "CMD_REPLACE"                         : "Ersätt",
     "CMD_INDENT"                          : "Öka indrag",
     "CMD_UNINDENT"                        : "Minska indrag",
@@ -304,15 +345,18 @@ define({
     "CMD_NEXT_DOC"                        : "Nästa dokument",
     "CMD_PREV_DOC"                        : "Föregående dokument",
     "CMD_SHOW_IN_TREE"                    : "Visa i filträdet",
+    "CMD_SHOW_IN_EXPLORER"                : "Visa i Utforskaren",
+    "CMD_SHOW_IN_FINDER"                  : "Visa i Finder",
     "CMD_SHOW_IN_OS"                      : "Visa i operativsystemet",
     
     // Help menu commands
     "HELP_MENU"                           : "Hjälp",
     "CMD_CHECK_FOR_UPDATE"                : "Sök efter uppdateringar",
     "CMD_HOW_TO_USE_BRACKETS"             : "Hur du använder {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME}-forum",
+    "CMD_SUPPORT"                         : "{APP_NAME}-forum",
+    "CMD_SUGGEST"                         : "Föreslå en funktion",
     "CMD_RELEASE_NOTES"                   : "Versionsinformation",
-    "CMD_REPORT_AN_ISSUE"                 : "Rapportera en bugg",
+    "CMD_GET_INVOLVED"                    : "Engagera dig",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Visa tilläggsmapp",
     "CMD_TWITTER"                         : "{TWITTER_NAME} på Twitter",
     "CMD_ABOUT"                           : "Om {APP_TITLE}",
@@ -433,6 +477,9 @@ define({
     "INLINE_EDITOR_NO_MATCHES"             : "Inga träffar tillgängliga.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Det finns inga CSS-regler som matchar din markering.<br> Klicka på \"Ny regel\" för att skapa en.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Det finns inga stilmallar i ditt projekt.<br>Skapa en flr att lägga till CSS-regler.",
+
+    // Custom Viewers
+    "IMAGE_VIEWER_LARGEST_ICON"            : "största",
     
     /**
      * Unit names
@@ -464,6 +511,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Flytta markerad punkt<br><kbd class='text'>Shift</kbd> Flytta tio enheter",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Öka eller minska antal steg<br><kbd>←</kbd><kbd>→</kbd> 'Start' eller 'Slut'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Det tidigare värdet <code>{0}</code> är inte korrekt så den visade funktionen har ändrats till <code>{1}</code>. Dokumentet kommer att uppdateras med det första värdet.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nuvarande färg",
@@ -491,3 +539,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
+
+/* Last translated for c3411bb7f686f98381b18e729c097b6c5e270694 */

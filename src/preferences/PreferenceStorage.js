@@ -27,6 +27,8 @@
 /**
  * PreferenceStorage defines an interface for persisting preference data as
  * name/value pairs for a module or plugin.
+ * 
+ * @deprecated Use PreferencesManager APIs instead.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -98,6 +100,7 @@ define(function (require, exports, module) {
      * @param {!string} key A unique identifier
      */
     PreferenceStorage.prototype.remove = function (key) {
+        DeprecationWarning.deprecationWarning("remove is called to remove a preference '" + key + ",' use PreferencesManager.set (with value of undefined) instead.");
         // remove value from JSON storage
         delete this._json[key];
         _commit();
@@ -145,6 +148,8 @@ define(function (require, exports, module) {
      *  all existing preferences are deleted before writing new properties from the JSON object.
      */
     PreferenceStorage.prototype.setAllValues = function (obj, append) {
+        DeprecationWarning.deprecationWarning("setAllValues is called to set preferences '" + Object.keys(obj) + ",' use PreferencesManager.set (probably with doNotSave flag) instead.");
+
         var self = this,
             error = null;
         
@@ -215,6 +220,13 @@ define(function (require, exports, module) {
             var rule = rules[key];
             if (!rule && prefCheckCallback) {
                 rule = prefCheckCallback(key);
+            } else if (prefCheckCallback) {
+                // Check whether we have a new preference key-value pair
+                // for an old preference.
+                var newRule = prefCheckCallback(key, prefs[key]);
+                if (newRule) {
+                    rule = _.cloneDeep(newRule);
+                }
             }
             if (!rule) {
                 console.warn("Preferences conversion for ", self._clientID, " has no rule for", key);
@@ -235,6 +247,11 @@ define(function (require, exports, module) {
                     manager.set(newKey, prefs[key], options);
                     convertedKeys.push(key);
                 }
+            } else if (_.isObject(rule)) {
+                Object.keys(rule).forEach(function (ruleKey) {
+                    manager.set(ruleKey, rule[ruleKey]);
+                });
+                convertedKeys.push(key);
             } else {
                 complete = false;
             }

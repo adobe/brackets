@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, window, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, window, jasmine, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,7 +32,8 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        MockFileSystemImpl  = require("./MockFileSystemImpl");
+        MockFileSystemImpl  = require("./MockFileSystemImpl"),
+        Async               = require("utils/Async");
     
     
     describe("FileSystem", function () {
@@ -292,10 +293,12 @@ define(function (require, exports, module) {
             });
             it("should have a parentPath property if it is not a root directory", function () {
                 var file = fileSystem.getFileForPath("/subdir/file3.txt"),
-                    directory = fileSystem.getDirectoryForPath("/subdir/foo/");
+                    directory = fileSystem.getDirectoryForPath("/subdir/foo/"),
+                    inRoot = fileSystem.getDirectoryForPath("/inRoot.txt");
                 
                 expect(file.parentPath).toBe("/subdir/");
                 expect(directory.parentPath).toBe("/subdir/");
+                expect(inRoot.parentPath).toBe("/");
             });
             it("should not have a parentPath property if it is a root directory", function () {
                 var unixRootDir = fileSystem.getDirectoryForPath("/"),
@@ -303,6 +306,8 @@ define(function (require, exports, module) {
                 
                 expect(unixRootDir.parentPath).toBeNull();
                 expect(winRootDir.parentPath).toBeNull();
+                expect(unixRootDir.name).toBe("");
+                expect(winRootDir.name).toBe("B:");
             });
         });
         
@@ -351,6 +356,7 @@ define(function (require, exports, module) {
                     }
                     if (expectedType) {
                         expect(cb.entry instanceof expectedType).toBeTruthy();
+                        expect(cb.entry.fullPath).toBe(path);
                     }
                 });
             }
@@ -360,6 +366,9 @@ define(function (require, exports, module) {
             });
             it("should resolve a Directory", function () {
                 testResolve("/subdir/", null, Directory);
+            });
+            it("should resolve the root", function () {
+                testResolve("/", null, Directory);
             });
             it("should return an error if the File/Directory is not found", function () {
                 testResolve("/doesnt-exist.txt", FileSystemError.NOT_FOUND);
@@ -445,7 +454,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; });
                 runs(function () {
                     expect(cb.error).toBeFalsy();
-                    expect(cb.contents.length).toBe(2);
+                    expect(cb.contents.length).toBe(3);
                     expect(cb.contents[0].fullPath).toBe("/subdir/file3.txt");
                 });
             });
@@ -1089,7 +1098,7 @@ define(function (require, exports, module) {
                     expect(file._hash).toBeTruthy();
                     expect(writeCalls).toBe(1);
                 });
-            });            
+            });
             
             it("should persist data on write and update cached data", function () {
                 var file = fileSystem.getFileForPath(filename),
@@ -1200,6 +1209,87 @@ define(function (require, exports, module) {
                 });
             });
             
+            // Issue #7006
+            it("should invalidate cache when grandparent and parent directories change", function () {
+                var filename = "/subdir/child/file5.txt",
+                    grandparent = fileSystem.getDirectoryForPath("/subdir/"),
+                    parent = fileSystem.getDirectoryForPath("/subdir/child/"),
+                    file = fileSystem.getFileForPath(filename),
+                    cb1 = readCallback(),
+                    cb2 = readCallback(),
+                    fileChanged = false,
+                    savedHash;
+                
+                MockFileSystemImpl.when("readFile", filename, function (cb) {
+                    return function () {
+                        var args = arguments;
+                        readCalls++;
+                        cb.apply(undefined, args);
+                    };
+                });
+                
+                // confirm empty cached data and then read
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy();
+                    expect(file._hash).toBeFalsy();
+                    expect(readCalls).toBe(0);
+                    
+                    file.read(cb1);
+                });
+                waitsFor(function () { return cb1.wasCalled; });
+                
+                // confirm impl read and cached data and then fire a synthetic change event
+                runs(function () {
+                    expect(cb1.error).toBeFalsy();
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBe(cb1.stat);
+                    expect(file._contents).toBe(cb1.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(1);
+                    
+                    savedHash = file._hash;
+                    
+                    $(fileSystem).on("change", function (event, filename) {
+                        fileChanged = true;
+                    });
+                    
+                    // Start by invalidating the grandparent
+                    fileSystem._handleExternalChange(grandparent.fullPath);
+                });
+                waitsFor(function () { return fileChanged; });
+                
+                runs(function () {
+                    expect(file._contents).toBe(cb1.data);
+                    fileChanged = false;
+                    
+                    // Next, invalidate the parent which should also cause the
+                    // file's contents cache to be cleared
+                    fileSystem._handleExternalChange(parent.fullPath);
+                });
+                waitsFor(function () { return fileChanged; });
+                
+                // confirm cached contents were cleared
+                runs(function () {
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._contents).toBeFalsy(); // contents and stat should be cleared
+                    expect(file._hash).toBe(savedHash); // but hash should not be cleared
+                    
+                    file.read(cb2);
+                });
+                waitsFor(function () { return cb2.wasCalled; });
+                
+                // confirm impl read and new cached data
+                runs(function () {
+                    expect(cb2.error).toBeFalsy();
+                    expect(file._isWatched()).toBe(true);
+                    expect(file._stat).toBe(cb2.stat);
+                    expect(file._contents).toBe(cb2.data);
+                    expect(file._hash).toBeTruthy();
+                    expect(readCalls).toBe(2); // The impl should have been called a second time
+                });
+            });
+            
             it("should not cache data for unwatched files", function () {
                 var file,
                     cb0 = errorCallback(),
@@ -1261,13 +1351,70 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should invalidate cached data after unwatch", function () {
+            it("should recursively invalidate cached data after unwatch", function () {
+                var file1       = fileSystem.getFileForPath("/file1.txt"),
+                    subdir      = fileSystem.getDirectoryForPath("/subdir"),
+                    file4       = fileSystem.getFileForPath("/subdir/file4.txt"),
+                    childSubdir = fileSystem.getDirectoryForPath("/subdir/child"),
+                    file5       = fileSystem.getFileForPath("/subdir/child/file5.txt"),
+                    entries     = [file1, subdir, file4, childSubdir, file5],
+                    unwatchCb   = errorCallback();
+                
+                runs(function () {
+                    var readAllPromise = Async.doInParallel(entries, function (entry) {
+                        // Confirm watched and no cached data yet
+                        expect(entry._isWatched()).toBe(true);
+                        expect(entry._contents).toBeFalsy();
+                        
+                        // Read contents
+                        var result = new $.Deferred(),
+                            cb = function (err, contents) {
+                                expect(err).toBeFalsy();
+                                result.resolve();
+                            };
+                        if (entry.isFile) {
+                            entry.read(cb);
+                        } else {
+                            entry.getContents(cb);
+                        }
+                        return result;
+                    });
+                        
+                    waitsForDone(readAllPromise);
+                });
+                runs(function () {
+                    // Confirm all entries now have cached data
+                    entries.forEach(function (entry) {
+                        expect(entry._contents).toBeTruthy();
+                    });
+                    
+                    // Unwatch and count how many visitAll() calls it took
+                    spyOn(fileSystem._index, "visitAll").andCallThrough();
+                    
+                    fileSystem.unwatch(fileSystem.getDirectoryForPath("/"), unwatchCb);
+                });
+                waitsFor(function () { return unwatchCb.wasCalled; });
+                
+                runs(function () {
+                    // Confirm visitAll() didn't traverse the whole index multiple times (#7150).
+                    // One call expected for _unwatchEntry() calling _clearCachedData(), one for unwatch() calling removeEntry().
+                    expect(fileSystem._index.visitAll.callCount).toBe(2);
+                    
+                    // Confirm all entries have become uncached
+                    entries.forEach(function (entry) {
+                        expect(entry._isWatched()).toBe(false);
+                        expect(entry._contents).toBeFalsy();
+                    });
+                });
+            });
+            
+            it("should invalidate cached data after unwatch, but allow read again", function () {
                 var file,
                     cb0 = readCallback(),
                     cb1 = errorCallback(),
                     cb2 = readCallback(),
                     savedHash;
-
+                
                 // confirm watched and empty cached data
                 runs(function () {
                     file = fileSystem.getFileForPath(filename);
@@ -1306,6 +1453,7 @@ define(function (require, exports, module) {
                     expect(cb2.error).toBeFalsy();
                     expect(cb2.data).toBe(cb0.data);
                     expect(file._isWatched()).toBe(false);
+                    expect(file._contents).toBeFalsy();
                     expect(file._hash).toBeTruthy();
                     expect(readCalls).toBe(2);
                 });

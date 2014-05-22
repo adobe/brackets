@@ -76,7 +76,8 @@ define(function (require, exports, module) {
      * Constants for the preferences defined in this file.
      */
     var PREF_ENABLED = "enabled",
-        PREF_COLLAPSED = "collapsed";
+        PREF_COLLAPSED = "collapsed",
+        PREF_ASYNC_TIMEOUT = "asyncTimeout";
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -120,7 +121,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {Object.<languageId:string, Array.<{name:string, scanFile:function(string, string):Object}>>}
+     * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>}}
      */
     var _providers = {};
 
@@ -129,6 +130,15 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _hasErrors;
+    
+    /**
+     * Promise of the returned by the last call to inspectFile or null if linting is disabled. Used to prevent any stale promises
+     * to cause updates of the UI.
+     *
+     * @private
+     * @type {$.Promise}
+     */
+    var _currentPromise = null;
 
     /**
      * Enable or disable the "Go to First Error" command
@@ -148,7 +158,7 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} provider
+     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
         return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
@@ -166,7 +176,7 @@ define(function (require, exports, module) {
      * If there are no providers registered for this file, the Promise yields null instead.
      *
      * @param {!File} file File that will be inspected for errors.
-     * @param {?Array.<{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
+     * @param {?Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
      * @return {$.Promise} a jQuery promise that will be resolved with ?Array.<{provider:Object, result: ?{errors:!Array, aborted:boolean}}>
      */
     function inspectFile(file, providerList) {
@@ -179,29 +189,72 @@ define(function (require, exports, module) {
             response.resolve(null);
             return response.promise();
         }
-
+        
         DocumentManager.getDocumentText(file)
             .done(function (fileText) {
-                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath);
+                var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
+                    masterPromise;
 
-                providerList.forEach(function (provider) {
-                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath);
-
-                    try {
-                        var scanResult = provider.scanFile(fileText, file.fullPath);
+                masterPromise = Async.doInParallel(providerList, function (provider) {
+                    var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
+                        runPromise = new $.Deferred();
+                    
+                    runPromise.done(function (scanResult) {
                         results.push({provider: provider, result: scanResult});
-                    } catch (err) {
-                        console.error("[CodeInspection] Provider " + provider.name + " threw an error: " + err);
-                        response.reject(err);
-                        return;
+                    });
+                    
+                    if (provider.scanFileAsync) {
+                        window.setTimeout(function () {
+                            // timeout error
+                            var errTimeout = {
+                                pos: { line: -1, col: 0},
+                                message: StringUtils.format(Strings.LINTER_TIMED_OUT, provider.name, prefs.get(PREF_ASYNC_TIMEOUT)),
+                                type: Type.ERROR
+                            };
+                            runPromise.resolve({errors: [errTimeout]});
+                        }, prefs.get(PREF_ASYNC_TIMEOUT));
+                        provider.scanFileAsync(fileText, file.fullPath)
+                            .done(function (scanResult) {
+                                PerfUtils.addMeasurement(perfTimerProvider);
+                                runPromise.resolve(scanResult);
+                            })
+                            .fail(function (err) {
+                                var errError = {
+                                    pos: {line: -1, col: 0},
+                                    message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
+                                    type: Type.ERROR
+                                };
+                                console.error("[CodeInspection] Provider " + provider.name + " (async) failed: " + err);
+                                runPromise.resolve({errors: [errError]});
+                            });
+                    } else {
+                        try {
+                            var scanResult = provider.scanFile(fileText, file.fullPath);
+                            PerfUtils.addMeasurement(perfTimerProvider);
+                            runPromise.resolve(scanResult);
+                        } catch (err) {
+                            var errError = {
+                                pos: {line: -1, col: 0},
+                                message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
+                                type: Type.ERROR
+                            };
+                            console.error("[CodeInspection] Provider " + provider.name + " (sync) threw an error: " + err);
+                            runPromise.resolve({errors: [errError]});
+                        }
                     }
+                    return runPromise.promise();
 
-                    PerfUtils.addMeasurement(perfTimerProvider);
+                }, false);
+                
+                masterPromise.then(function () {
+                    // sync async may have pushed results in different order, restore the original order
+                    results.sort(function (a, b) {
+                        return providerList.indexOf(a.provider) - providerList.indexOf(b.provider);
+                    });
+                    PerfUtils.addMeasurement(perfTimerInspector);
+                    response.resolve(results);
                 });
 
-                PerfUtils.addMeasurement(perfTimerInspector);
-
-                response.resolve(results);
             })
             .fail(function (err) {
                 console.error("[CodeInspection] Could not read file for inspection: " + file.fullPath);
@@ -216,7 +269,7 @@ define(function (require, exports, module) {
      * change based on the number of problems reported and how many provider reported problems.
      * 
      * @param {Number} numProblems - total number of problems across all providers
-     * @param {Array.<{name:string, scanFile:function(string, string):Object}>} providersReportingProblems - providers that reported problems
+     * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
     function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
@@ -261,6 +314,7 @@ define(function (require, exports, module) {
     function run() {
         if (!_enabled) {
             _hasErrors = false;
+            _currentPromise = null;
             Resizer.hide($problemsPanel);
             StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.LINT_DISABLED);
             setGotoEnabled(false);
@@ -278,12 +332,12 @@ define(function (require, exports, module) {
             var providersReportingProblems = [];
 
             // run all the providers registered for this file type
-            inspectFile(currentDoc.file, providerList).then(function (results) {
-                // check if current document wasn't changed while inspectFile was running
-                if (currentDoc !== DocumentManager.getCurrentDocument()) {
+            (_currentPromise = inspectFile(currentDoc.file, providerList)).then(function (results) {
+                // check if promise has not changed while inspectFile was running
+                if (this !== _currentPromise) {
                     return;
                 }
-
+                
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
 
@@ -329,7 +383,7 @@ define(function (require, exports, module) {
                             aborted = true;
                         }
 
-                        if (inspectionResult.result.errors) {
+                        if (inspectionResult.result.errors.length) {
                             allErrors.push({
                                 providerName: provider.name,
                                 results:      inspectionResult.result.errors
@@ -361,6 +415,7 @@ define(function (require, exports, module) {
         } else {
             // No provider for current file
             _hasErrors = false;
+            _currentPromise = null;
             Resizer.hide($problemsPanel);
             var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
             if (language) {
@@ -380,18 +435,25 @@ define(function (require, exports, module) {
      * Registering any provider for the "javascript" language automatically unregisters the built-in
      * Brackets JSLint provider. This is a temporary convenience until UI exists for disabling
      * registered providers.
-     *
+     * 
+     * Providers implement scanFile() if results are available synchronously, or scanFileAsync() if results
+     * may require an async wait (if both are implemented, scanFile() is ignored). scanFileAsync() returns
+     * a {$.Promise} object resolved with the same type of value as scanFile() is expected to return.
+     * Rejecting the promise is treated as an internal error in the provider.
+     * 
      * @param {string} languageId
-     * @param {{name:string, scanFile:function(string, string):?{errors:!Array, aborted:boolean}} provider
+     * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
+     *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
      *
      * Each error is: { pos:{line,ch}, endPos:?{line,ch}, message:string, type:?Type }
      * If type is unspecified, Type.WARNING is assumed.
+     * If no errors found, return either null or an object with a zero-length `errors` array.
      */
     function register(languageId, provider) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
         }
-
+        
         if (languageId === "javascript") {
             // This is a special case to enable extension provider to replace the JSLint provider
             // in favor of their own implementation
@@ -399,7 +461,7 @@ define(function (require, exports, module) {
                 return registeredProvider.name === "JSLint";
             });
         }
-
+        
         _providers[languageId].push(provider);
         
         run();  // in case a file of this type is open currently
@@ -446,6 +508,7 @@ define(function (require, exports, module) {
         updateListeners();
         if (!doNotSave) {
             prefs.set(PREF_ENABLED, _enabled);
+            prefs.save();
         }
     
         // run immediately
@@ -507,7 +570,7 @@ define(function (require, exports, module) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
@@ -570,12 +633,13 @@ define(function (require, exports, module) {
     });
 
     // Testing
-    exports._unregisterAll = _unregisterAll;
+    exports._unregisterAll          = _unregisterAll;
+    exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
 
     // Public API
     exports.register       = register;
     exports.Type           = Type;
     exports.toggleEnabled  = toggleEnabled;
     exports.inspectFile    = inspectFile;
-    exports.requestRun    = run;
+    exports.requestRun     = run;
 });

@@ -42,14 +42,15 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash");
-    
-    var Async                 = require("utils/Async"),
+    var _                     = require("thirdparty/lodash"),
+        FileFilters           = require("search/FileFilters"),
+        Async                 = require("utils/Async"),
         Resizer               = require("utils/Resizer"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
         Strings               = require("strings"),
         StringUtils           = require("utils/StringUtils"),
+        PreferencesManager    = require("preferences/PreferencesManager"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
@@ -78,6 +79,9 @@ define(function (require, exports, module) {
         FIND_IN_FILE_MAX = 300,
         UPDATE_TIMEOUT   = 400;
     
+    /** @const @type {!Object} Token used to indicate a specific reason for zero search results */
+    var ZERO_FILES_TO_SEARCH = {};
+    
     /**
      * Map of all the last search results
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean}>}
@@ -102,8 +106,11 @@ define(function (require, exports, module) {
     /** @type {RegExp} The current search query regular expression */
     var currentQueryExpr = null;
     
-    /** @type {Array.<File>} An array of the files where it should look or null/empty to search the entire project */
+    /** @type {?FileSystemEntry} Root of subtree to search in, or single file to search in, or null to search entire project */
     var currentScope = null;
+    
+    /** @type {string} Compiled filter from FileFilters */
+    var currentFilter = null;
     
     /** @type {boolean} True if the matches in a file reached FIND_IN_FILE_MAX */
     var maxHitsFoundInFile = false;
@@ -121,12 +128,16 @@ define(function (require, exports, module) {
     var dialog = null;
     
     /**
-     * FileSystem change event handler. Updates the search results based on a changed
-     * entry and optionally sets of added and removed child entries.
-     * 
-     * @type {function(FileSystemEntry, Array.<FileSystemEntry>=, Array.<FileSystemEntry>=)}
+     * Updates search results in response to FileSystem "change" event. (Declared here to appease JSLint)
+     * @type {Function}
      **/
     var _fileSystemChangeHandler;
+    
+    /**
+     * Updates the search results in response to (unsaved) text edits. (Declared here to appease JSLint)
+     * @type {Function}
+     **/
+    var _documentChangeHandler;
 
     /**
      * @private
@@ -180,6 +191,21 @@ define(function (require, exports, module) {
         }
     }
     
+    /** Remove listeners that were tracking potential search result changes */
+    function _removeListeners() {
+        $(DocumentModule).off(".findInFiles");
+        FileSystem.off("change", _fileSystemChangeHandler);
+    }
+    
+    /** Add listeners to track events that might change the search result set */
+    function _addListeners() {
+        // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
+        _removeListeners();
+        
+        $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+        FileSystem.on("change", _fileSystemChangeHandler);
+    }
+    
     /**
      * @private
      * Hides the Search Results Panel
@@ -187,10 +213,8 @@ define(function (require, exports, module) {
     function _hideSearchResults() {
         if (searchResultsPanel.isVisible()) {
             searchResultsPanel.hide();
-            $(DocumentModule).off(".findInFiles");
         }
-        
-        FileSystem.off("change", _fileSystemChangeHandler);
+        _removeListeners();
     }
     
     /**
@@ -325,8 +349,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * Shows the results in a table and adds the necessary event listeners
+     * @param {?Object} zeroFilesToken The 'ZERO_FILES_TO_SEARCH' token, if no results found for this reason
      */
-    function _showSearchResults() {
+    function _showSearchResults(zeroFilesToken) {
         if (!$.isEmptyObject(searchResults)) {
             var count = _countFilesMatches();
             
@@ -551,8 +576,6 @@ define(function (require, exports, module) {
                 dialog._close();
             }
             
-            FileSystem.on("change", _fileSystemChangeHandler);
-        
         } else {
             _hideSearchResults();
 
@@ -561,7 +584,13 @@ define(function (require, exports, module) {
                     .addClass("no-results")
                     .removeAttr("disabled")
                     .get(0).select();
-                $(".modal-bar .no-results-message").show();
+                if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
+                    $(".modal-bar .error")
+                        .show()
+                        .html(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, _labelForScope(currentScope)));
+                } else {
+                    $(".modal-bar .no-results-message").show();
+                }
             }
         }
     }
@@ -593,99 +622,102 @@ define(function (require, exports, module) {
      * @private
      * Update the search results using the given list of changes fr the given document
      * @param {Document} doc  The Document that changed, should be the current one
-     * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
-     *      A linked list as described in the Document constructor
-     * @param {boolean} resultsChanged  True when the search results changed from a file change
+     * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}>} changeList
+     *      An array of changes as described in the Document constructor
+     * @return {boolean}  True when the search results changed from a file change
      */
-    function _updateSearchResults(doc, change, resultsChanged) {
+    function _updateSearchResults(doc, changeList) {
         var i, diff, matches,
+            resultsChanged = false,
             fullPath = doc.file.fullPath,
-            lines    = [],
-            start    = 0,
-            howMany  = 0;
-            
-        // There is no from or to positions, so the entire file changed, we must search all over again
-        if (!change.from || !change.to) {
-            _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
-            resultsChanged = true;
+            lines, start, howMany;
         
-        } else {
-            // Get only the lines that changed
-            for (i = 0; i < change.text.length; i++) {
-                lines.push(doc.getLine(change.from.line + i));
-            }
-            
-            // We need to know how many lines changed to update the rest of the lines
-            if (change.from.line !== change.to.line) {
-                diff = change.from.line - change.to.line;
+        changeList.forEach(function (change) {
+            lines = [];
+            start = 0;
+            howMany = 0;
+
+            // There is no from or to positions, so the entire file changed, we must search all over again
+            if (!change.from || !change.to) {
+                _addSearchMatches(fullPath, doc.getText(), currentQueryExpr);
+                resultsChanged = true;
+
             } else {
-                diff = lines.length - 1;
-            }
-            
-            if (searchResults[fullPath]) {
-                // Search the last match before a replacement, the amount of matches deleted and update
-                // the lines values for all the matches after the change
-                searchResults[fullPath].matches.forEach(function (item) {
-                    if (item.end.line < change.from.line) {
-                        start++;
-                    } else if (item.end.line <= change.to.line) {
-                        howMany++;
-                    } else {
-                        item.start.line += diff;
-                        item.end.line   += diff;
-                    }
-                });
-                
-                // Delete the lines that where deleted or replaced
-                if (howMany > 0) {
-                    searchResults[fullPath].matches.splice(start, howMany);
+                // Get only the lines that changed
+                for (i = 0; i < change.text.length; i++) {
+                    lines.push(doc.getLine(change.from.line + i));
                 }
-                resultsChanged = true;
-            }
-            
-            // Searches only over the lines that changed
-            matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
-            if (matches && matches.length) {
-                // Updates the line numbers, since we only searched part of the file
-                matches.forEach(function (value, key) {
-                    matches[key].start.line += change.from.line;
-                    matches[key].end.line   += change.from.line;
-                });
-                
-                // If the file index exists, add the new matches to the file at the start index found before
-                if (searchResults[fullPath]) {
-                    Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
-                // If not, add the matches to a new file index
+
+                // We need to know how many lines changed to update the rest of the lines
+                if (change.from.line !== change.to.line) {
+                    diff = change.from.line - change.to.line;
                 } else {
-                    searchResults[fullPath] = {
-                        matches:   matches,
-                        collapsed: false
-                    };
+                    diff = lines.length - 1;
                 }
-                resultsChanged = true;
+
+                if (searchResults[fullPath]) {
+                    // Search the last match before a replacement, the amount of matches deleted and update
+                    // the lines values for all the matches after the change
+                    searchResults[fullPath].matches.forEach(function (item) {
+                        if (item.end.line < change.from.line) {
+                            start++;
+                        } else if (item.end.line <= change.to.line) {
+                            howMany++;
+                        } else {
+                            item.start.line += diff;
+                            item.end.line   += diff;
+                        }
+                    });
+
+                    // Delete the lines that where deleted or replaced
+                    if (howMany > 0) {
+                        searchResults[fullPath].matches.splice(start, howMany);
+                    }
+                    resultsChanged = true;
+                }
+
+                // Searches only over the lines that changed
+                matches = _getSearchMatches(lines.join("\r\n"), currentQueryExpr);
+                if (matches && matches.length) {
+                    // Updates the line numbers, since we only searched part of the file
+                    matches.forEach(function (value, key) {
+                        matches[key].start.line += change.from.line;
+                        matches[key].end.line   += change.from.line;
+                    });
+
+                    // If the file index exists, add the new matches to the file at the start index found before
+                    if (searchResults[fullPath]) {
+                        Array.prototype.splice.apply(searchResults[fullPath].matches, [start, 0].concat(matches));
+                    // If not, add the matches to a new file index
+                    } else {
+                        searchResults[fullPath] = {
+                            matches:   matches,
+                            collapsed: false
+                        };
+                    }
+                    resultsChanged = true;
+                }
+
+                // All the matches where deleted, remove the file from the results
+                if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
+                    delete searchResults[fullPath];
+                    resultsChanged = true;
+                }
             }
-            
-            // All the matches where deleted, remove the file from the results
-            if (searchResults[fullPath] && !searchResults[fullPath].matches.length) {
-                delete searchResults[fullPath];
-                resultsChanged = true;
-            }
-            
-            // This is link to the next change object, so we need to keep searching
-            if (change.next) {
-                return _updateSearchResults(doc, change.next, resultsChanged);
-            }
-        }
+        });
+        
         return resultsChanged;
     }
 
     /**
-     * @private
-     * @param {!File} file File in question
-     * @param {?Entry} scope Search scope, or null if whole project
+     * Checks that the file matches the given subtree scope. To fully check whether the file
+     * should be in the search set, use _inSearchScope() instead - a supserset of this.
+     * 
+     * @param {!File} file
+     * @param {?FileSystemEntry} scope Search scope, or null if whole project
      * @return {boolean}
      */
-    function _inScope(file, scope) {
+    function _subtreeFilter(file, scope) {
         if (scope) {
             if (scope.isDirectory) {
                 // Dirs always have trailing slash, so we don't have to worry about being
@@ -697,17 +729,74 @@ define(function (require, exports, module) {
         }
         return true;
     }
+    
+    /**
+     * Filters out files that are known binary types.
+     * @param {string} fullPath
+     * @return {boolean} True if the file's contents can be read as text
+     */
+    function _isReadableText(fullPath) {
+        return !LanguageManager.getLanguageForPath(fullPath).isBinary();
+    }
+    
+    /**
+     * Finds all candidate files to search in currentScope's subtree that are not binary content. Does NOT apply
+     * currentFilter yet.
+     */
+    function getCandidateFiles() {
+        function filter(file) {
+            return _subtreeFilter(file, currentScope) && _isReadableText(file.fullPath);
+        }
+        
+        return ProjectManager.getAllFiles(filter, true);
+    }
+    
+    /**
+     * Checks that the file is eligible for inclusion in the search (matches the user's subtree scope and
+     * file exclusion filters, and isn't binary). Used when updating results incrementally - during the
+     * initial search, these checks are done in bulk via getCandidateFiles() and the filterFileList() call
+     * after it.
+     * @param {!File} file
+     * @return {boolean}
+     */
+    function _inSearchScope(file) {
+        // Replicate the checks getCandidateFiles() does
+        if (currentScope) {
+            if (!_subtreeFilter(file, currentScope)) {
+                return false;
+            }
+        } else {
+            // Still need to make sure it's within project or working set
+            // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
+            if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
+                var inWorkingSet = DocumentManager.getWorkingSet().some(function (wsFile) {
+                    return wsFile.fullPath === file.fullPath;
+                });
+                if (!inWorkingSet) {
+                    return false;
+                }
+            }
+        }
+
+        if (!_isReadableText(file.fullPath)) {
+            return false;
+        }
+        
+        // Replicate the filtering filterFileList() does
+        return FileFilters.filterPath(currentFilter, file.fullPath);
+    }
 
     /**
      * @private
-     * Tries to update the search result on document changes
+     * Updates the search results in response to (unsaved) text edits
      * @param {$.Event} event
      * @param {Document} document
      * @param {{from: {line:number,ch:number}, to: {line:number,ch:number}, text: string, next: change}} change
      *      A linked list as described in the Document constructor
      */
-    function _documentChangeHandler(event, document, change) {
-        if (searchResultsPanel.isVisible() && _inScope(document.file, currentScope)) {
+    _documentChangeHandler = function (event, document, change) {
+        // Re-check the filtering that the initial search applied
+        if (_inSearchScope(document.file)) {
             var updateResults = _updateSearchResults(document, change, false);
             
             if (timeoutID) {
@@ -722,45 +811,40 @@ define(function (require, exports, module) {
                 }, UPDATE_TIMEOUT);
             }
         }
-    }
+    };
     
-    function _doSearchInOneFile(addMatches, file) {
-        var result = new $.Deferred();
-                    
-        if (!_inScope(file, currentScope)) {
-            result.resolve();
-        } else {
-            DocumentManager.getDocumentText(file)
-                .done(function (text) {
-                    addMatches(file.fullPath, text, currentQueryExpr);
-                })
-                .always(function () {
-                    // Always resolve. If there is an error, this file
-                    // is skipped and we move on to the next file.
-                    result.resolve();
-                });
-        }
-        return result.promise();
-    }
-
     /**
-     * @private
-     * Used to filter out image files when building a list of file in which to
-     * search. Ideally this would filter out ALL binary files.
-     * @param {FileSystemEntry} entry The entry to test
-     * @return {boolean} Whether or not the entry's contents should be searched
+     * Finds search results in the given file and adds them to 'searchResults.' Resolves with
+     * true if any matches found, false if none found. Errors reading the file are treated the
+     * same as if no results found.
+     * 
+     * Does not perform any filtering - assumes caller has already vetted this file as a search
+     * candidate.
      */
-    function _findInFilesFilter(entry) {
-        var language = LanguageManager.getLanguageForPath(entry.fullPath);
-        return !language.isBinary();
+    function _doSearchInOneFile(file) {
+        var result = new $.Deferred();
+        
+        DocumentManager.getDocumentText(file)
+            .done(function (text) {
+                var foundMatches = _addSearchMatches(file.fullPath, text, currentQueryExpr);
+                result.resolve(foundMatches);
+            })
+            .fail(function () {
+                // Always resolve. If there is an error, this file
+                // is skipped and we move on to the next file.
+                result.resolve();
+            });
+        
+        return result.promise();
     }
     
     /**
      * @private
      * Executes the Find in Files search inside the 'currentScope'
      * @param {string} query String to be searched
+     * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
      */
-    function _doSearch(query) {
+    function _doSearch(query, candidateFilesPromise) {
         currentQuery     = query;
         currentQueryExpr = _getQueryRegExp(query);
         
@@ -773,18 +857,30 @@ define(function (require, exports, module) {
         var scopeName = currentScope ? currentScope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + query);
         
-        ProjectManager.getAllFiles(_findInFilesFilter, true)
+        candidateFilesPromise
             .then(function (fileListResult) {
-                var doSearch = _doSearchInOneFile.bind(undefined, _addSearchMatches);
-                return Async.doInParallel(fileListResult, doSearch);
+                // Filter out files/folders that match user's current exclusion filter
+                fileListResult = FileFilters.filterFileList(currentFilter, fileListResult);
+                
+                if (fileListResult.length) {
+                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                } else {
+                    return ZERO_FILES_TO_SEARCH;
+                }
             })
-            .done(function () {
+            .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 _sortResultFiles();
-                _showSearchResults();
+                _showSearchResults(zeroFilesToken);
                 StatusBar.hideBusyIndicator();
                 PerfUtils.addMeasurement(perfTimer);
-                $(DocumentModule).on("documentChange.findInFiles", _documentChangeHandler);
+                
+                // Listen for FS & Document changes to keep results up to date
+                if (!$.isEmptyObject(searchResults)) {
+                    _addListeners();
+                }
+                
+                exports._searchResults = searchResults;  // for unit tests
             })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
@@ -823,12 +919,14 @@ define(function (require, exports, module) {
         if (this.closed) {
             return;
         }
-        
+        this.modalBar.close(true, !suppressAnimation);
+    };
+    
+    FindInFilesDialog.prototype._handleClose = function () {
         // Hide error popup, since it hangs down low enough to make the slide-out look awkward
         $(".modal-bar .error").hide();
         
         this.closed = true;
-        this.modalBar.close(true, !suppressAnimation);
         EditorManager.focusEditor();
         dialog = null;
     };
@@ -852,9 +950,19 @@ define(function (require, exports, module) {
         // (Any previous open FindInFiles bar instance was already handled by our caller)
         FindReplace._closeFindBar();
         
-        this.modalBar    = new ModalBar(dialogHTML, false);
+        this.modalBar    = new ModalBar(dialogHTML, true);
+        $(this.modalBar).on("close", this._handleClose.bind(this));
         
-        var $searchField = $("input#find-what");
+        // Custom closing behavior: if in the middle of executing search, blur shouldn't close ModalBar yet. And
+        // don't close bar when opening Edit Filter dialog either.
+        var self = this;
+        this.modalBar.isLockedOpen = function () {
+            return self.getDialogTextField().attr("disabled") || $(".modal.instance .exclusions-editor").length > 0;
+        };
+        
+        var $searchField = $("input#find-what"),
+            candidateFilesPromise = getCandidateFiles(),  // used for eventual search, and in exclusions editor UI
+            filterPicker;
         
         function handleQueryChange() {
             // Check the query expression on every input event. This way the user is alerted
@@ -881,17 +989,18 @@ define(function (require, exports, module) {
                     } else if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                         StatusBar.showBusyIndicator(true);
                         that.getDialogTextField().attr("disabled", "disabled");
-                        _doSearch(query);
+                        
+                        if (filterPicker) {
+                            currentFilter = FileFilters.commitPicker(filterPicker);
+                        } else {
+                            // Single-file scope: don't use any file filters
+                            currentFilter = null;
+                        }
+                        _doSearch(query, candidateFilesPromise);
                     }
                 }
             })
             .bind("input", handleQueryChange)
-            .blur(function () {
-                if (that.getDialogTextField().attr("disabled")) {
-                    return;
-                }
-                that._close();
-            })
             .focus();
         
         this.modalBar.getRoot().on("click", "#find-case-sensitive, #find-regexp", function (e) {
@@ -900,6 +1009,17 @@ define(function (require, exports, module) {
             
             handleQueryChange();  // re-validate regexp if needed
         });
+        
+        // Show file-exclusion UI *unless* search scope is just a single file
+        if (!scope || scope.isDirectory) {
+            var exclusionsContext = {
+                label: _labelForScope(scope),
+                promise: candidateFilesPromise
+            };
+
+            filterPicker = FileFilters.createFilterPicker(exclusionsContext);
+            this.modalBar.getRoot().find("#find-group").append(filterPicker);
+        }
         
         // Initial UI state (including prepopulated initialString passed into template)
         FindReplace._updateSearchBarFromPrefs();
@@ -921,7 +1041,7 @@ define(function (require, exports, module) {
         
         if (scope instanceof InMemoryFile) {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: scope.fullPath }).done(function () {
-                CommandManager.execute(Commands.EDIT_FIND);
+                CommandManager.execute(Commands.CMD_FIND);
             });
             return;
         }
@@ -950,6 +1070,7 @@ define(function (require, exports, module) {
         currentQueryExpr   = null;
         currentScope       = scope;
         maxHitsFoundInFile = false;
+        exports._searchResults = null;  // for unit tests
                             
         dialog.showDialog(initialString, scope);
     }
@@ -983,7 +1104,7 @@ define(function (require, exports, module) {
                     resultsChanged = true;
                 }
             });
-            
+
             // Restore the results if needed
             if (resultsChanged) {
                 _sortResultFiles();
@@ -994,7 +1115,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Handle a FileSystem "change" event
+     * Updates search results in response to FileSystem "change" event
      * @param {$.Event} event
      * @param {FileSystemEntry} entry
      * @param {Array.<FileSystemEntry>=} added Added children
@@ -1025,17 +1146,15 @@ define(function (require, exports, module) {
             var addedFiles = [],
                 deferred = new $.Deferred();
             
-            var doSearch = _doSearchInOneFile.bind(undefined, function () {
-                if (_addSearchMatches.apply(undefined, arguments)) {
-                    resultsChanged = true;
-                }
-            });
-            
             // gather up added files
             var visitor = function (child) {
+                // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
-                    if (child.isFile) {
-                        addedFiles.push(child);
+                    if (child.isFile && _isReadableText(child.name)) {
+                        // Re-check the filtering that the initial search applied
+                        if (_inSearchScope(child)) {
+                            addedFiles.push(child);
+                        }
                     }
                     return true;
                 }
@@ -1049,7 +1168,12 @@ define(function (require, exports, module) {
                 }
                 
                 // find additional matches in all added files
-                Async.doInParallel(addedFiles, doSearch).always(deferred.resolve);
+                Async.doInParallel(addedFiles, function (file) {
+                    return _doSearchInOneFile(file)
+                        .done(function (foundMatches) {
+                            resultsChanged = resultsChanged || foundMatches;
+                        });
+                }).always(deferred.resolve);
             });
     
             return deferred.promise();
@@ -1063,8 +1187,8 @@ define(function (require, exports, module) {
         var addPromise;
         if (entry.isDirectory) {
             if (!added || !removed) {
-                // If the added or removed sets are null, we should redo the
-                // search for the entire directory
+                // If the added or removed sets are null, must redo the search for the entire subtree - we
+                // don't know which child files/folders may have been added or removed.
                 _removeSearchResultsForEntry(entry);
                 
                 var deferred = $.Deferred();
@@ -1112,6 +1236,11 @@ define(function (require, exports, module) {
     });
     
     // Initialize: command handlers
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,   Commands.EDIT_FIND_IN_FILES,   _doFindInFiles);
-    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE, Commands.EDIT_FIND_IN_SUBTREE, _doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,      Commands.CMD_FIND_IN_FILES,     _doFindInFiles);
+    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,   Commands.CMD_FIND_IN_SELECTED,  _doFindInSubtree);
+    CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,    Commands.CMD_FIND_IN_SUBTREE,   _doFindInSubtree);
+    
+    // For unit testing
+    exports._doFindInFiles = _doFindInFiles;
+    exports._searchResults = null;
 });
