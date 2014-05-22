@@ -215,7 +215,7 @@ define({
     "CMD_FILE_NEW": "파일 만들기",
     "CMD_FILE_NEW_FOLDER": "폴더 만들기",
     "CMD_FILE_OPEN": "파일 열기\u2026",
-    "CMD_ADD_TO_WORKING_SET": "작업세트에 추가",
+    "CMD_ADD_TO_PANE_LIST": "작업세트에 추가",
     "CMD_OPEN_DROPPED_FILES": "드롭한 파일들 열기",
     "CMD_OPEN_FOLDER": "폴더 열기\u2026",
     "CMD_FILE_CLOSE": "닫기",

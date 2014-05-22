@@ -220,7 +220,7 @@ define({
     "CMD_FILE_NEW"                        : "Fișier nou",
     "CMD_FILE_NEW_FOLDER"                 : "Dosar nou",
     "CMD_FILE_OPEN"                       : "Deschide\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Adaugă la setul de lucru",
+    "CMD_ADD_TO_PANE_LIST"              : "Adaugă la setul de lucru",
     "CMD_OPEN_DROPPED_FILES"              : "Deschide fișierele depuse",
     "CMD_OPEN_FOLDER"                     : "Deshide un dosar\u2026",
     "CMD_FILE_CLOSE"                      : "Închide",

@@ -220,7 +220,7 @@ define({
     "CMD_FILE_NEW"                        : "Berkas Baru",
     "CMD_FILE_NEW_FOLDER"                 : "Folder Baru",
     "CMD_FILE_OPEN"                       : "Buka\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Tambahkan ke working set",
+    "CMD_ADD_TO_PANE_LIST"              : "Tambahkan ke working set",
     "CMD_OPEN_DROPPED_FILES"              : "Buka file yang di-drop",
     "CMD_OPEN_FOLDER"                     : "Buka Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Tutup",

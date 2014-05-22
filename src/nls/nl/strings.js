@@ -205,7 +205,7 @@ define({
     "CMD_FILE_NEW"                        : "Nieuw Bestand",
     "CMD_FILE_NEW_FOLDER"                 : "Nieuwe Map",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Voeg Toe Aan Werkset",
+    "CMD_ADD_TO_PANE_LIST"              : "Voeg Toe Aan Werkset",
     "CMD_OPEN_FOLDER"                     : "Open Map\u2026",
     "CMD_FILE_CLOSE"                      : "Sluit",
     "CMD_FILE_CLOSE_ALL"                  : "Sluit alles",

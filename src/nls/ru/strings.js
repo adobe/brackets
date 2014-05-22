@@ -255,7 +255,7 @@ define({
     "CMD_FILE_NEW"                        : "Новый файл",
     "CMD_FILE_NEW_FOLDER"                 : "Новая директория",
     "CMD_FILE_OPEN"                       : "Открыть\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Добавить в рабочий набор",
+    "CMD_ADD_TO_PANE_LIST"              : "Добавить в рабочий набор",
     "CMD_OPEN_DROPPED_FILES"              : "Открыть перетащенные файлы",
     "CMD_OPEN_FOLDER"                     : "Открыть директорию\u2026",
     "CMD_FILE_CLOSE"                      : "Закрыть",

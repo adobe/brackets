@@ -205,7 +205,7 @@ define({
     "CMD_FILE_NEW"                        : "Нова датотека",
     "CMD_FILE_NEW_FOLDER"                 : "Нови директоријум",
     "CMD_FILE_OPEN"                       : "Отвори\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Додај у радни сет",
+    "CMD_ADD_TO_PANE_LIST"              : "Додај у радни сет",
     "CMD_OPEN_FOLDER"                     : "Отвори директоријум\u2026",
     "CMD_FILE_CLOSE"                      : "Затвори",
     "CMD_FILE_CLOSE_ALL"                  : "Затвори све",

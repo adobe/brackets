@@ -254,7 +254,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuevo archivo",
     "CMD_FILE_NEW_FOLDER"                 : "Nueva carpeta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Añadir al espacio de trabajo",
+    "CMD_ADD_TO_PANE_LIST"              : "Añadir al espacio de trabajo",
     "CMD_OPEN_DROPPED_FILES"              : "Abrir archivos soltados",
     "CMD_OPEN_FOLDER"                     : "Abrir carpeta\u2026",
     "CMD_FILE_CLOSE"                      : "Cerrar",

@@ -224,7 +224,7 @@ define({
     "CMD_FILE_NEW"                        : "Nový soubor",
     "CMD_FILE_NEW_FOLDER"                 : "Nová složka",
     "CMD_FILE_OPEN"                       : "Otevřít\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Přidat k pracovní sadě",
+    "CMD_ADD_TO_PANE_LIST"              : "Přidat k pracovní sadě",
     "CMD_OPEN_DROPPED_FILES"              : "Otevřít opuštěné soubory",
     "CMD_OPEN_FOLDER"                     : "Otevřít složku\u2026",
     "CMD_FILE_CLOSE"                      : "Zavřít",

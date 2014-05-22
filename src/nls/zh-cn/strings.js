@@ -235,7 +235,7 @@ define({
     "CMD_FILE_NEW"                        : "新建文件",
     "CMD_FILE_NEW_FOLDER"                 : "新建目录",
     "CMD_FILE_OPEN"                       : "打开\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "添加至工作集合",
+    "CMD_ADD_TO_PANE_LIST"              : "添加至工作集合",
     "CMD_OPEN_DROPPED_FILES"              : "打开拖放的文件",
     "CMD_OPEN_FOLDER"                     : "打开目录\u2026",
     "CMD_FILE_CLOSE"                      : "关闭",

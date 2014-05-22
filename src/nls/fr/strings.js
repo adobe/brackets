@@ -254,7 +254,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
-	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
+	"CMD_ADD_TO_PANE_LIST": "Ajouter à l’ensemble de travail",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
 	"CMD_FILE_CLOSE": "Fermer",

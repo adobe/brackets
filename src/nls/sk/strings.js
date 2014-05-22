@@ -187,7 +187,7 @@ define({
     "CMD_FILE_NEW"                        : "Nový súbor",
     "CMD_FILE_NEW_FOLDER"                 : "Nový adresár",
     "CMD_FILE_OPEN"                       : "Otvoriť\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Pridať do pracovnej sady",
+    "CMD_ADD_TO_PANE_LIST"              : "Pridať do pracovnej sady",
     "CMD_OPEN_FOLDER"                     : "Otvoriť adresár\u2026",
     "CMD_FILE_CLOSE"                      : "Zatvoriť",
     "CMD_FILE_CLOSE_ALL"                  : "Zatvoriť všetko",

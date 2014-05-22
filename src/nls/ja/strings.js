@@ -254,7 +254,7 @@ define({
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに追加する",
+	"CMD_ADD_TO_PANE_LIST": "ワーキングセットに追加する",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
 	"CMD_FILE_CLOSE": "閉じる",

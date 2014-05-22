@@ -247,7 +247,7 @@ define({
     "CMD_FILE_NEW"                        : "Nova datoteka",
     "CMD_FILE_NEW_FOLDER"                 : "Nova mapa",
     "CMD_FILE_OPEN"                       : "Otvori\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Dodaj u radni set",
+    "CMD_ADD_TO_PANE_LIST"              : "Dodaj u radni set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Otvori Mapu\u2026",
     "CMD_FILE_CLOSE"                      : "Zatvori",

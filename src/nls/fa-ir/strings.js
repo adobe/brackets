@@ -220,7 +220,7 @@ define({
     "CMD_FILE_NEW"                        : "پرونده جدید",
     "CMD_FILE_NEW_FOLDER"                 : "پوشه جدید",
     "CMD_FILE_OPEN"                       : "باز کردن\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "افزودن به محیط کاری",
+    "CMD_ADD_TO_PANE_LIST"              : "افزودن به محیط کاری",
 	"CMD_OPEN_DROPPED_FILES"              : "بازکردن فایل های درنظر گرفته نشده",
     "CMD_OPEN_FOLDER"                     : "باز کردن پوشه\u2026",
     "CMD_FILE_CLOSE"                      : "بستن",

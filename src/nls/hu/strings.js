@@ -171,7 +171,7 @@ define({
     "CMD_FILE_NEW"                        : "Új Fájl",
     "CMD_FILE_NEW_FOLDER"                 : "Új Mappa",
     "CMD_FILE_OPEN"                       : "Megnyitás\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Hozzáadás a Munkakészlethez",
+    "CMD_ADD_TO_PANE_LIST"              : "Hozzáadás a Munkakészlethez",
     "CMD_OPEN_FOLDER"                     : "Mappa Megnyitása\u2026",
     "CMD_FILE_CLOSE"                      : "Bezárás",
     "CMD_FILE_CLOSE_ALL"                  : "Összes Bezárása",

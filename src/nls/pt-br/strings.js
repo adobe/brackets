@@ -206,7 +206,7 @@ define({
     "CMD_FILE_NEW"                        : "Novo arquivo",
     "CMD_FILE_NEW_FOLDER"                 : "Nova pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao Conjunto de Trabalho",
+    "CMD_ADD_TO_PANE_LIST"              : "Adicionar ao Conjunto de Trabalho",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
     "CMD_FILE_CLOSE"                      : "Fechar",
     "CMD_FILE_CLOSE_ALL"                  : "Fechar todos",
