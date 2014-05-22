@@ -46,7 +46,7 @@ require.config({
         // https://github.com/adobe/brackets-shell/blob/master/appshell/appshell_extensions.js
         // Change this value to load custom implementation to run brackets in
         // something else than Brackets shell (e.g. in a browser).
-        "appShellImpl"      : "utils/InBrowserShell"
+        "appShellImpl"      : "shellImpl/InBrowserShell"
     }
 });
 
