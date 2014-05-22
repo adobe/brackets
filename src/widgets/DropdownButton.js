@@ -123,6 +123,47 @@ define(function (require, exports, module) {
         return html;
     };
     
+    /**
+     * Refresh the dropdown list by removing and re-creating all list items.
+     * Call this after deleting/adding any item in the dropdown list.
+     */
+    DropdownButton.prototype.refresh = function () {
+        if (!this.$dropdown) {
+            return;
+        }
+        
+        // Remove all list items and then re-create them from this.items.
+        $("li", this.$dropdown).remove();
+        this.$dropdown.append(this._renderList());
+        
+        // Also trigger openDropdown handler so that custom event handlers can be
+        // set up for any custom UI in the list.
+        $(this).triggerHandler("openDropdown", [this.$dropdown]);
+    };
+    
+    /**
+     * Check/Uncheck the list item of the given index.
+     * @param {number} index The index of the list item to be checked or unchecked
+     * @param {boolean} checked True if the list item is to be checked, false to get check
+     *    mark removed.
+     */
+    DropdownButton.prototype.setChecked = function (index, checked) {
+        if (!this.$dropdown) {
+            return;
+        }
+        
+        var listItems = $("li", this.$dropdown),
+            count     = listItems.length;
+
+        if (index > -1 && index < count) {
+            if (checked) {
+                $("a", listItems[index]).addClass("checked");
+            } else if ($(listItems[index]).hasClass("checked")) {
+                $("a", listItems[index]).removeClass("checked");
+            }
+        }
+    };
+        
     /** Pops open the dropdown if currently closed. Does nothing if items.length == 0 */
     DropdownButton.prototype.showDropdown = function () {
         // Act like a plain old button if no items to show
@@ -194,12 +235,12 @@ define(function (require, exports, module) {
     DropdownButton.prototype._onDropdownClose = function () {
         window.document.body.removeEventListener("click", this._onClickOutside, true);
         $(PanelManager).off("editorAreaResize", this.closeDropdown);
-
+        
         // Restore focus to old pos, unless "select" handler changed it
         if (window.document.activeElement === this.$dropdown[0]) {
             this._lastFocus.focus();
         }
-        
+
         this._dropdownEventHandler = null;
         this.$dropdown = null;  // already remvoed from DOM automatically by PopUpManager
     };
@@ -215,8 +256,9 @@ define(function (require, exports, module) {
     DropdownButton.prototype._onClickOutside = function (event) {
         var $container = $(event.target).closest(".dropdownbutton-popup");
 
-        // If click is outside dropdown list, then close dropdown list
-        if ($container.length === 0 || $container[0] !== this.$dropdown[0]) {
+        // If click is outside dropdown list or dropdown button, then close dropdown list
+        if (!$(event.target).hasClass("btn btn-dropdown") &&
+                ($container.length === 0 || $container[0] !== this.$dropdown[0])) {
             this.closeDropdown();
         }
     };

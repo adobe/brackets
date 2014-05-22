@@ -186,7 +186,7 @@ define(function (require, exports, module) {
 
         // If the item to be selected is a divider, then rotate one more.
         if ($(this.$items[pos]).hasClass("divider")) {
-            this._rotateSelection((distance > 0) ? ++distance : --distance);
+            this._rotateSelection((distance > 0) ? (distance + 1) : (distance - 1));
         } else {
             this._setSelectedIndex(pos, true);
         }

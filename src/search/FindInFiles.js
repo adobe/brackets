@@ -954,10 +954,12 @@ define(function (require, exports, module) {
         $(this.modalBar).on("close", this._handleClose.bind(this));
         
         // Custom closing behavior: if in the middle of executing search, blur shouldn't close ModalBar yet. And
-        // don't close bar when opening Edit Filter dialog either.
+        // don't close bar when opening Edit Filter dialog or showing the filter dropdown list either.
         var self = this;
         this.modalBar.isLockedOpen = function () {
-            return self.getDialogTextField().attr("disabled") || $(".modal.instance .exclusions-editor").length > 0;
+            return self.getDialogTextField().attr("disabled") ||
+                    $(".modal.instance .exclusions-editor").length > 0 ||
+                    $("ul.dropdown-menu.dropdownbutton-popup").length > 0;
         };
         
         var $searchField = $("input#find-what"),

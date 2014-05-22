@@ -38,7 +38,9 @@ define(function (require, exports, module) {
         DropdownButton     = require("widgets/DropdownButton").DropdownButton,
         StringUtils        = require("utils/StringUtils"),
         Strings            = require("strings"),
-        PreferencesManager = require("preferences/PreferencesManager");
+        ViewUtils          = require("utils/ViewUtils"),
+        PreferencesManager = require("preferences/PreferencesManager"),
+        EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html");
   
     /** @type {number} Constant: first filter index in the filter dropdown list */
     var FIRST_FILTER_INDEX = 3;
@@ -62,6 +64,8 @@ define(function (require, exports, module) {
 
         if (filterSets.length) {
             dropdownItems.push("---");
+            // FIRST_FILTER_INDEX needs to stay in sync with the number of static items (plus separator)
+            // ie. the number of items populated so far before we concatenate with the actual filter sets.
             dropdownItems = dropdownItems.concat(filterSets);
         }
         _picker.items = dropdownItems;
@@ -80,14 +84,7 @@ define(function (require, exports, module) {
             return index;
         }
         
-        filterSets.forEach(function (curFilter, curIndex) {
-            if (!found && _.isEqual(curFilter, filter)) {
-                index = curIndex;
-                found = true;
-            }
-        });
-        
-        return index;
+        return _.findIndex(filterSets, _.partial(_.isEqual, filter));
     }
     
     /**
@@ -95,7 +92,7 @@ define(function (require, exports, module) {
      * before passing to filterPath()/filterFileList().
      * @return {?{name: string, patterns: Array.<string>}}
      */
-    function getLastFilter() {
+    function getActiveFilter() {
         var filterSets        = PreferencesManager.get("fileFilters") || [],
             activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
             oldFilter         = PreferencesManager.getViewState("search.exclusions") || [],
@@ -122,6 +119,8 @@ define(function (require, exports, module) {
     /**
      * Get the condensed form of the filter set by joining the first two in the set with
      * a comma separator and appending a short message with the number of filters being clipped.
+     * @param {Array.<string>} filter
+     * @param {string} condensed form of filter set
      */
     function _getCondensedForm(filter) {
         // Format filter in condensed form
@@ -138,7 +137,7 @@ define(function (require, exports, module) {
      * No Files Excluded if no filter is selected.
      */
     function _updatePicker() {
-        var filter = getLastFilter();
+        var filter = getActiveFilter();
         if (filter && filter.patterns.length) {
             var label = filter.name || _getCondensedForm(filter.patterns);
             _picker.$button.text(StringUtils.format(Strings.EXCLUDE_FILE_FILTER, label));
@@ -154,7 +153,7 @@ define(function (require, exports, module) {
      * @param {{name: string, patterns: Array.<string>}=} filter
      * @param {number=} index The index of the filter set in the list of saved filter sets or -1 if it is a new one
      */
-    function setLastFilter(filter, index) {
+    function setActiveFilter(filter, index) {
         var filterSets = PreferencesManager.get("fileFilters") || [];
         
         if (filter) {
@@ -169,7 +168,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 // Should not have been called with an invalid index to the available filter sets.
-                console.log("setLastFilter is called with an invalid index: " + index);
+                console.log("setActiveFilter is called with an invalid index: " + index);
                 return;
             }
 
@@ -276,30 +275,26 @@ define(function (require, exports, module) {
     
     
     /**
-     * Opens a dialog box to edit the given filter. When editing is finished, the value of getLastFilter() changes to
+     * Opens a dialog box to edit the given filter. When editing is finished, the value of getActiveFilter() changes to
      * reflect the edits. If the dialog was canceled, the preference is left unchanged.
      * @param {!{name: string, patterns: Array.<string>}} filter
      * @param {number} index The index of the filter set to be edited or created. The value is -1 if it is for a new one 
-     *          to be created, 
+     *          to be created.
      * @return {!$.Promise} Dialog box promise
      */
     function editFilter(filter, index) {
         var lastFocus = window.document.activeElement;
         
-        var html = StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url) +
-            "<input type='text' class='exclusions-name' placeholder='Name this exclusion set (optional)'>" +
-            "<textarea class='exclusions-editor'></textarea><div class='exclusions-filecount'>" +
-            Strings.FILTER_COUNTING_FILES + "</div>";
-        var buttons = [
-            { className : Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL, text: Strings.CANCEL },
-            { className : Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK, text: Strings.OK }
-        ];
-        var dialog = Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_INFO, Strings.FILE_FILTER_DIALOG, html, buttons),
+        var templateVars = {
+                instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
+                Strings: Strings
+            };
+        var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
             $nameField = dialog.getElement().find(".exclusions-name"),
             $editField = dialog.getElement().find(".exclusions-editor");
         
-        $nameField.val(filter.name).focus();
-        $editField.val(filter.patterns.length ? filter.patterns.join("\n") : "");
+        $nameField.val(filter.name);
+        $editField.val(filter.patterns.join("\n")).focus();
         
         function getValue() {
             var newFilter = $editField.val().split("\n");
@@ -313,11 +308,11 @@ define(function (require, exports, module) {
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
-                setLastFilter({ name: $nameField.val(), patterns: getValue() }, index);
+                setActiveFilter({ name: $nameField.val(), patterns: getValue() }, index);
                 _updatePicker();
                 _doPopulate();
             }
-            lastFocus.focus();  // restore focus to old po
+            lastFocus.focus();  // restore focus to old pos
         });
         
         // Code to update the file count readout at bottom of dialog (if context provided)
@@ -353,83 +348,78 @@ define(function (require, exports, module) {
      * @return {!string} 'compiled' filter that can be passed to filterPath()/filterFileList().
      */
     function commitPicker(picker) {
-        var filter = getLastFilter();
+        var filter = getActiveFilter();
         return (filter && filter.patterns.length) ? compile(filter.patterns) : "";
     }
     
     /**
-     * Set up mouse click events for 'Delete' and 'Edit' buttons
-     * when the dropdown is open.
+     * Remove the target item from the filter dropdown list and update dropdown button
+     * and dropdown list UI.
+     * @param {!Event} e Mouse events
+     */
+    function _handleDeleteFilter(e) {
+        // Remove the filter set from the preferences and 
+        // clear the active filter set index from view state.
+        var filterSets        = PreferencesManager.get("fileFilters") || [],
+            activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
+            filterIndex       = $(e.target).parent().data("index") - FIRST_FILTER_INDEX;
+
+        // Don't let the click bubble upward.
+        e.stopPropagation();
+
+        filterSets.splice(filterIndex, 1);
+        PreferencesManager.set("fileFilters", filterSets);
+
+        if (activeFilterIndex === filterIndex) {
+            // Removing the active filter, so clear the active filter 
+            // both in the view state.
+            setActiveFilter(null);
+        } else if (activeFilterIndex > filterIndex) {
+            // Adjust the active filter index after the removal of a filter set before it.
+            --activeFilterIndex;
+            setActiveFilter(filterSets[activeFilterIndex], activeFilterIndex);
+        }
+
+        _updatePicker();
+        _doPopulate();
+        _picker.refresh();
+    }
+
+    /**
+     * Close filter dropdwon list and launch edit filter dialog.
+     * @param {!Event} e Mouse events
+     */
+    function _handleEditFilter(e) {
+        var filterSets  = PreferencesManager.get("fileFilters") || [],
+            filterIndex = $(e.target).parent().data("index") - FIRST_FILTER_INDEX;
+
+        // Don't let the click bubble upward.
+        e.stopPropagation();
+
+        // Close the dropdown first before opening the edit filter dialog 
+        // so that it will restore focus to the DOM element that has focus
+        // prior to opening it.
+        _picker.closeDropdown();
+
+        editFilter(filterSets[filterIndex], filterIndex);
+    }
+
+    /**
+     * Set up mouse click event listeners for 'Delete' and 'Edit' buttons
+     * when the dropdown is open. Also set check mark on the active filter.
      * @param {!Event>} event openDropdown event triggered when the dropdown is open
      * @param {!jQueryObject} $dropdown the jQuery DOM node of the dropdown list
      */
-    function _handleListEvents(event, $dropdown) {
+    function _handleOpenDropdown(event, $dropdown) {
+        var activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
+            checkedItemIndex = (activeFilterIndex > -1) ? (activeFilterIndex + FIRST_FILTER_INDEX) : -1;
+        _picker.setChecked(checkedItemIndex, true);
 
-        function adjustSuccedingFilters(removedFilterIndex) {
-            $dropdown.children().each(function () {
-                var index = $(".stylesheet-link", this).data("index");
-                if (index > removedFilterIndex) {
-                    if (index === removedFilterIndex + 1) {
-                        $(this).find("a").addClass("selected");
-                    }
-                    $(".stylesheet-link", this).data("index", index - 1);
-                }
-            });
-        }
-        
         $dropdown.find(".filter-trash-icon")
-            .on("click", function (e) {
-                // Remove the filter set from the preferences and 
-                // clear the active filter set index from view state.
-                var filterSets        = PreferencesManager.get("fileFilters") || [],
-                    activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
-                    filterIndex       = $(this).parent().data("index") - FIRST_FILTER_INDEX;
-
-                // Don't let the click bubble upward.
-                e.stopPropagation();
-
-                filterSets.splice(filterIndex, 1);
-                PreferencesManager.set("fileFilters", filterSets);
-
-                _doPopulate();
-                
-                // Explicitly remove the list item to refresh the dropdown menu
-                $(this).closest("li").remove();
-                
-                if (filterSets.length === 0) {
-                    $dropdown.find(".divider").remove();
-                }
-
-                if (activeFilterIndex === filterIndex) {
-                    // Removing the active filter, so clear the active filter 
-                    // both in the view state and the picker button label.
-                    setLastFilter();
-                } else if (activeFilterIndex > filterIndex) {
-                    // Adjust the active filter index after the removal of a filter set before it.
-                    setLastFilter(filterSets[--activeFilterIndex], activeFilterIndex);
-                }
-
-                // Also adjust the data-index of all filter sets in the dropdown that are after the deleted one
-                adjustSuccedingFilters(filterIndex + FIRST_FILTER_INDEX);
-                
-                _updatePicker();
-            });
+            .on("click", _handleDeleteFilter);
         
         $dropdown.find(".filter-edit-icon")
-            .on("click", function (e) {
-                var filterSets        = PreferencesManager.get("fileFilters") || [],
-                    filterIndex       = $(this).parent().data("index") - FIRST_FILTER_INDEX;
-
-                // Don't let the click bubble upward.
-                e.stopPropagation();
-                
-                // Close the dropdown first before opening the edit filter dialog 
-                // so that it will restore focus to the DOM element that has focus
-                // prior to opening it.
-                _picker.closeDropdown();
-                
-                editFilter(filterSets[filterIndex], filterIndex);
-            });
+            .on("click", _handleEditFilter);
     }
                       
     /**
@@ -438,11 +428,13 @@ define(function (require, exports, module) {
      * when the UI containing the filter picker is confirmed (which updates the MRU order) and then use the 
      * returned filter object as needed.
      * 
-     * @param {?{label:string, promise:$.Promise}} context Info on files filter will apply to - see editFilter()
+     * @param {?{label:string, promise:$.Promise}} context Info on files that filter will apply to. 
+     *      This will be saved as _context for later use in creating a new filter or editing an
+     *      existing filter in Edit Filter dialog.
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
     function createFilterPicker(context) {
-
+        
         function itemRenderer(item, index) {
             if (index < FIRST_FILTER_INDEX) {
                 // Prefix the two filter commands with 'recent-filter-name' so that
@@ -464,14 +456,15 @@ define(function (require, exports, module) {
 
         _context = context;
         _picker = new DropdownButton("", [], itemRenderer);
-        _doPopulate();
+
         _updatePicker();
+        _doPopulate();
         
         // Add 'file-filter-picker' to keep some margin space on the left of the button
         _picker.$button.addClass("file-filter-picker no-focus");
         
-        // Set up mouse click events for 'Delete' and 'Edit' buttons
-        $(_picker).on("openDropdown", _handleListEvents);
+        // Set up mouse click event listeners for 'Delete' and 'Edit' buttons
+        $(_picker).on("openDropdown", _handleOpenDropdown);
         
         $(_picker).on("select", function (event, item, itemIndex) {
             if (itemIndex === 0) {
@@ -483,12 +476,16 @@ define(function (require, exports, module) {
                 // Create a new filter set
                 editFilter({ name: "", patterns: [] }, -1);
             } else if (itemIndex === 1) {
+                // Uncheck the prior active filter in the dropdown list.
+                var checkedItemIndex = getActiveFilter() + FIRST_FILTER_INDEX;
+                _picker.setChecked(itemIndex, false);
+                
                 // Clear the active filter
-                setLastFilter();
+                setActiveFilter(null);
                 _updatePicker();
             } else if (itemIndex >= FIRST_FILTER_INDEX && item) {
-                var filterSets = PreferencesManager.get("fileFilters") || [];
-                setLastFilter(item, itemIndex - FIRST_FILTER_INDEX);
+                setActiveFilter(item, itemIndex - FIRST_FILTER_INDEX);
+                _picker.setChecked(itemIndex, true);
                 _updatePicker();
             }
         });
@@ -520,8 +517,8 @@ define(function (require, exports, module) {
 
     exports.createFilterPicker = createFilterPicker;
     exports.commitPicker       = commitPicker;
-    exports.getLastFilter      = getLastFilter;
-    exports.setLastFilter      = setLastFilter;
+    exports.getActiveFilter      = getActiveFilter;
+    exports.setActiveFilter      = setActiveFilter;
     exports.editFilter         = editFilter;
     exports.compile            = compile;
     exports.filterPath         = filterPath;
