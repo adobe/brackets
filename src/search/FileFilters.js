@@ -140,9 +140,9 @@ define(function (require, exports, module) {
         var filter = getActiveFilter();
         if (filter && filter.patterns.length) {
             var label = filter.name || _getCondensedForm(filter.patterns);
-            _picker.$button.text(StringUtils.format(Strings.EXCLUDE_FILE_FILTER, label));
+            _picker.setButtonLabel(StringUtils.format(Strings.EXCLUDE_FILE_FILTER, label));
         } else {
-            _picker.$button.text(Strings.NO_FILE_FILTER);
+            _picker.setButtonLabel(Strings.NO_FILE_FILTER);
         }
     }
     

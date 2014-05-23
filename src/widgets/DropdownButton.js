@@ -99,6 +99,17 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Update the button label.
+     * @param {string} label 
+     */
+    DropdownButton.prototype.setButtonLabel = function (label) {
+        if (!this.$button) {
+            return;
+        }
+        $(this.$button).text(label);
+    };
+    
+    /**
      * Called for each item when rendering the dropdown.
      * @param {*} item from items array
      * @param {number} index in items array
@@ -156,11 +167,7 @@ define(function (require, exports, module) {
             count     = listItems.length;
 
         if (index > -1 && index < count) {
-            if (checked) {
-                $("a", listItems[index]).addClass("checked");
-            } else if ($(listItems[index]).hasClass("checked")) {
-                $("a", listItems[index]).removeClass("checked");
-            }
+            $("a", listItems[index]).toggleClass("checked", checked);
         }
     };
         
@@ -215,7 +222,7 @@ define(function (require, exports, module) {
         this._dropdownEventHandler = new DropdownEventHandler($dropdown, this._onSelect.bind(this), this._onDropdownClose.bind(this));
         this._dropdownEventHandler.open();
 
-        window.document.body.addEventListener("click", this._onClickOutside, true);
+        window.document.body.addEventListener("mousedown", this._onClickOutside, true);
         $(PanelManager).on("editorAreaResize", this.closeDropdown);
         
         // Manage focus
@@ -233,7 +240,7 @@ define(function (require, exports, module) {
      * was closed.
      */
     DropdownButton.prototype._onDropdownClose = function () {
-        window.document.body.removeEventListener("click", this._onClickOutside, true);
+        window.document.body.removeEventListener("mousedown", this._onClickOutside, true);
         $(PanelManager).off("editorAreaResize", this.closeDropdown);
         
         // Restore focus to old pos, unless "select" handler changed it
@@ -257,9 +264,11 @@ define(function (require, exports, module) {
         var $container = $(event.target).closest(".dropdownbutton-popup");
 
         // If click is outside dropdown list or dropdown button, then close dropdown list
-        if (!$(event.target).hasClass("btn btn-dropdown") &&
+        if (!$(event.target).is(this.$button) &&
                 ($container.length === 0 || $container[0] !== this.$dropdown[0])) {
             this.closeDropdown();
+            event.stopPropagation();
+            event.preventDefault();
         }
     };
     
