@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         StringUtils        = require("utils/StringUtils"),
         Strings            = require("strings"),
         PreferencesManager = require("preferences/PreferencesManager"),
-        EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html");
+        EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
+        FilterNameTemplate = require("text!htmlContent/filter-name.html");
   
     /** @type {number} Constant: first filter index in the filter dropdown list */
     var FIRST_FILTER_INDEX = 3;
@@ -442,15 +443,12 @@ define(function (require, exports, module) {
             }
             
             var condensedPatterns = _getCondensedForm(item.patterns),
-                menuItem = "<div class='filter-trash-icon'>&times;</div>" +
-                           "<span class='recent-filter-name'>";
-            
-            menuItem += _.escape(item.name || condensedPatterns);
-            menuItem += "</span><span class='recent-filter-patterns'>";
-            menuItem += (item.name ? _.escape(" - " + condensedPatterns) : "");
-            menuItem += "</span><span class='filter-edit-icon'></span>";
-            
-            return menuItem;
+                templateVars = {
+                    "filter-name"    : _.escape(item.name || condensedPatterns),
+                    "filter-patterns": item.name ? " - " + _.escape(condensedPatterns) : ""
+                };
+                
+            return Mustache.render(FilterNameTemplate, templateVars);
         }
 
         _context = context;
